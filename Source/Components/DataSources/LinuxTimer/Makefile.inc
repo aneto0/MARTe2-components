@@ -22,9 +22,9 @@
 #
 #############################################################
 
-OBJSX=
+OBJSX=LinuxTimer.x
 
-PACKAGE=Components/DataSources/LinuxTimer
+PACKAGE=Components/DataSources
 ROOT_DIR=../../../../
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
@@ -36,12 +36,14 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
 all: $(OBJS)    \
-	        $(BUILD_DIR)/LinuxTimer$(DLLEXT)
+    $(BUILD_DIR)/LinuxTimer$(LIBEXT) \
+    $(BUILD_DIR)/LinuxTimer$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

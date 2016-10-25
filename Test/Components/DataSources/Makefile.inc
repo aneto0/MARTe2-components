@@ -2,7 +2,7 @@
 #
 # Copyright 2015 F4E | European Joint Undertaking for ITER 
 #  and the Development of Fusion Energy ('Fusion for Energy')
-#
+# 
 # Licensed under the EUPL, Version 1.1 or - as soon they 
 # will be approved by the European Commission - subsequent  
 # versions of the EUPL (the "Licence"); 
@@ -23,22 +23,21 @@
 # $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
 #
 #############################################################
-SPB    = Source/Components/DataSources.x \
-    Test/Components/DataSources.x \
-    Test/GTest.x
 
-#Source/Components/GAMs.x \
-    Source/Components/Interfaces.x \
-    Test/Components/GAMs.x \
-    Test/Components/Interfaces.x \
-
+SPB=  LinuxTimer.x
+		
+PACKAGE=Components
+ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
-ROOT_DIR=.
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-all: $(OBJS) $(SUBPROJ) 
+LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
+
+all: $(OBJS) $(SUBPROJ) \
+                $(BUILD_DIR)/DataSourceTests$(LIBEXT)
 	echo  $(OBJS)
 
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+include depends.$(TARGET)
 
+include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)

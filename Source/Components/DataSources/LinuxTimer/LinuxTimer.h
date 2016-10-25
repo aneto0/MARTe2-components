@@ -28,6 +28,9 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
+#include "EventSem.h"
+#include "EmbeddedServiceMethodBinderI.h"
+#include "SingleThreadService.h"
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -36,9 +39,129 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
 
-class LinuxTimer {
+/**
+ * @brief TODO
+ * @details TODO
+ */
+class LinuxTimer: public DataSourceI, public EmbeddedServiceMethodBinderI {
+public:
+    CLASS_REGISTER_DECLARATION()
+    /**
+     * @brief TODO
+     */
+LinuxTimer    ();
+
+    /**
+     * @brief TODO
+     */
+    virtual ~LinuxTimer();
+
+    /**
+     * @brief TODO
+     */
+    virtual bool AllocateMemory();
+
+    /**
+     * @brief TODO
+     */
+    virtual uint32 GetNumberOfMemoryBuffers();
+
+    /**
+     * @brief TODO
+     */
+    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
+            const uint32 bufferIdx,
+            void *&signalAddress);
+
+    /**
+     * @brief TODO
+     */
+    virtual const char8 *GetBrokerName(StructuredDataI &data,
+            const SignalDirection direction);
+
+    /**
+     * @brief TODO
+     */
+    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
+            const char8* const functionName,
+            void * const gamMemPtr);
+
+    /**
+     * @brief TODO
+     */
+    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
+            const char8* const functionName,
+            void * const gamMemPtr);
+
+    /**
+     * @brief TODO
+     */
+    virtual bool Synchronise();
+
+    /**
+     * @brief TODO
+     */
+    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+
+    /**
+     * @brief TODO
+     */
+    virtual bool PrepareNextState(const char8 * const currentStateName,
+            const char8 * const nextStateName);
+
+    /**
+     * @brief TODO
+     */
+    virtual bool Initialise(StructuredDataI & data);
+
+    /**
+     * @brief TODO
+     */
+    virtual bool SetConfiguredDatabase(StructuredDataI & data);
+
+private:
+    /**
+     * @brief TODO
+     */
+    enum LinuxTimerSleepNature {
+        Default = 0,
+        Busy = 1
+    };
+
+    /**
+     * @brief TODO
+     */
+    LinuxTimerSleepNature sleepNature;
+
+    /**
+     * TODO
+     */
+    uint32 counterAndTimer[2];
+
+    /**
+     * TODO
+     */
+    EventSem synchSem;
+
+    /**
+     * TODO
+     */
+    SingleThreadService executor;
+
+    /**
+     * TODO
+     */
+    uint64 lastTimeTicks;
+
+    /**
+     * TODO
+     */
+    uint64 sleepTimeTicks;
+
 };
+}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
