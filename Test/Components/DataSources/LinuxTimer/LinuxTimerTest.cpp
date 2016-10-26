@@ -30,6 +30,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "LinuxTimer.h"
 #include "LinuxTimerTest.h"
 
 /*---------------------------------------------------------------------------*/
@@ -40,6 +41,76 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 bool LinuxTimerTest::TestConstructor() {
+    using namespace MARTe;
+    LinuxTimer test;
+    uint32 *counter;
+    uint32 *timer;
+    test.GetSignalMemoryBuffer(0, 0, (void *&) counter);
+    test.GetSignalMemoryBuffer(1, 0, (void *&) timer);
+    bool ok = (counter == 0);
+    ok &= (timer == 0);
+    return ok;
+}
+
+bool LinuxTimerTest::TestAllocateMemory() {
+    using namespace MARTe;
+    LinuxTimer test;
+    return test.AllocateMemory();
+}
+
+bool LinuxTimerTest::TestGetNumberOfMemoryBuffers() {
+    using namespace MARTe;
+    LinuxTimer test;
+    return (test.GetNumberOfMemoryBuffers() == 1u);
+}
+
+bool LinuxTimerTest::TestGetSignalMemoryBuffer() {
+    using namespace MARTe;
+    LinuxTimer test;
+    uint32 *counter;
+    uint32 *timer;
+    test.GetSignalMemoryBuffer(0, 0, (void *&) counter);
+    test.GetSignalMemoryBuffer(1, 0, (void *&) timer);
+    bool ok = (counter == 0);
+    ok &= (timer == 0);
+    return ok;
+}
+
+bool LinuxTimerTest::TestGetSignalMemoryBuffer_False() {
+    using namespace MARTe;
+    LinuxTimer test;
+    uint32 *ptr;
+    return !test.GetSignalMemoryBuffer(2, 0, (void *&) ptr);
+}
+
+bool LinuxTimerTest::TestGetBrokerName() {
+    return "MemoryMapSynchronisedInputBroker";
+}
+
+bool LinuxTimerTest::TestGetInputBrokers() {
     return true;
 }
 
+bool LinuxTimerTest::TestGetOutputBrokers() {
+    return true;
+}
+
+bool LinuxTimerTest::TestSynchronise() {
+    return true;
+}
+
+bool LinuxTimerTest::TestExecute() {
+    return true;
+}
+
+bool LinuxTimerTest::TestPrepareNextState() {
+    return true;
+}
+
+bool LinuxTimerTest::TestInitialise() {
+    return true;
+}
+
+bool LinuxTimerTest::TestSetConfiguredDatabase() {
+    return true;
+}

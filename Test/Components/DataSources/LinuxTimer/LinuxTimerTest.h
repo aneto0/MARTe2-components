@@ -45,6 +45,32 @@ public:
      */
     bool TestConstructor();
 
+    /**
+     * @brief Tests the AllocateMemory method.
+     */
+    bool TestAllocateMemory();
+
+    bool TestGetNumberOfMemoryBuffers();
+
+    bool TestGetSignalMemoryBuffer();
+
+    bool TestGetSignalMemoryBuffer_False();
+
+    bool TestGetBrokerName();
+
+    bool TestGetInputBrokers();
+
+    bool TestGetOutputBrokers();
+
+    bool TestSynchronise();
+
+    bool TestExecute();
+
+    bool TestPrepareNextState();
+
+    bool TestInitialise();
+
+    bool TestSetConfiguredDatabase();
 };
 
 /*---------------------------------------------------------------------------*/

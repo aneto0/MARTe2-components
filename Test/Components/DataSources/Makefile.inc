@@ -35,7 +35,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
 
 all: $(OBJS) $(SUBPROJ) \
-                $(BUILD_DIR)/DataSourceTests$(LIBEXT)
+                $(BUILD_DIR)/DataSourcesTests$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

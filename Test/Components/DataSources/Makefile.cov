@@ -28,3 +28,4 @@ TARGET=cov
 
 include Makefile.inc
 
+LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimerTest$(LIBEXT)

@@ -30,6 +30,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "LinuxTimer.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 
@@ -47,21 +48,22 @@ LinuxTimer::LinuxTimer() :
         executor(*this) {
     lastTimeTicks = 0u;
     sleepTimeTicks = 0u;
+    synchronisingFunctionIdx = 0u;
     counterAndTimer[0] = 0u;
     counterAndTimer[1] = 0u;
     sleepNature = Busy;
     if (!synchSem.Create()) {
-        //TODO log
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
 }
 
 LinuxTimer::~LinuxTimer() {
     if (!synchSem.Post()) {
-        //TODO log
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem.");
     }
     if (!executor.Stop()) {
         if (!executor.Stop()) {
-            //TODO log
+            REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
         }
     }
 }
@@ -71,31 +73,23 @@ bool LinuxTimer::AllocateMemory() {
 }
 
 bool LinuxTimer::Initialise(StructuredDataI& data) {
-    uint32 timerPeriodUsecTime = 0u;
-    bool ok = data.Read("TimerPeriodUsec", timerPeriodUsecTime);
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "TimerPeriodUsec shall be set.");
+    bool ok = true;
+    StreamString sleepNatureStr;
+    if (!data.Read("SleepNature", sleepNatureStr)) {
+        REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
+        sleepNatureStr = "Default";
     }
-    if (ok) {
-        StreamString sleepNatureStr;
-        if (!data.Read("SleepNature", sleepNatureStr)) {
-            REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
-            sleepNatureStr = "Default";
-        }
-        if (sleepNatureStr == "Default") {
-            sleepNature = Default;
-        }
-        else if (sleepNatureStr == "Busy") {
-            sleepNature = Busy;
-        }
-        else {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported SleepNature.");
-            ok = false;
-        }
+    if (sleepNatureStr == "Default") {
+        sleepNature = Default;
     }
-    if (ok) {
-        sleepTimeTicks = timerPeriodUsecTime * HighResolutionTimer::Frequency();
+    else if (sleepNatureStr == "Busy") {
+        sleepNature = Busy;
     }
+    else {
+        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported SleepNature.");
+        ok = false;
+    }
+
     return ok;
 }
 
@@ -115,6 +109,38 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall have 32 bits");
         }
+    }
+
+    uint32 nOfFunctions = GetNumberOfFunctions();
+    float32 frequency = -1.0F;
+    bool found = false;
+    uint32 functionIdx;
+    for (functionIdx = 0u; (functionIdx < nOfFunctions) && (ok); functionIdx++) {
+        uint32 nOfSignals = 0u;
+        if (ok) {
+            ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
+        }
+
+        if (ok) {
+            uint32 i;
+            for (i = 0u; (i < nOfSignals) && (ok) && (!found); i++) {
+                ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, frequency);
+                found = (frequency > 0.F);
+                if (found) {
+                    synchronisingFunctionIdx = i;
+                }
+            }
+        }
+
+    }
+    ok = found;
+    if (ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "The timer will be set using a frequency of %f", frequency)
+        uint32 timerPeriodUsecTime = 1e6 / frequency;
+        sleepTimeTicks = timerPeriodUsecTime * HighResolutionTimer::Frequency();
+    }
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::ParametersError, "No frequency was set (i.e. no signal synchronises on this LinuxTimer).");
     }
     return ok;
 }
@@ -141,21 +167,46 @@ bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx,
 
 const char8* LinuxTimer::GetBrokerName(StructuredDataI& data,
                                        const SignalDirection direction) {
-    return "MemoryMapSynchronisedInputBroker";
+    const char8 *brokerName = NULL_PTR(const char8 *);
+    float32 frequency = 0;
+    if (data.Read("Frequency", frequency)) {
+        brokerName = "MemoryMapSynchronisedInputBroker";
+    }
+    else {
+        brokerName = "MemoryMapInputBroker";
+    }
+    return brokerName;
 }
 
 bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers,
                                  const char8* const functionName,
                                  void* const gamMemPtr) {
-    ReferenceT<MemoryMapSynchronisedInputBroker> broker("MemoryMapSynchronisedInputBroker");
-    bool ret = broker.IsValid();
-    if (ret) {
-        ret = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+    //Check if this function has a synchronisation point (i.e. a signal which has Frequency > 0)
+    uint32 functionIdx = 0u;
+    bool ok = GetFunctionIndex(functionIdx, functionName);
+
+    ReferenceT<MemoryMapBroker> broker;
+    if (ok) {
+        if (synchronisingFunctionIdx == functionIdx) {
+            ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");
+            broker = brokerSync;
+        }
+        else {
+            ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
+            broker = brokerNotSync;
+        }
     }
-    if (ret) {
-        ret = inputBrokers.Insert(broker);
+    if (ok) {
+        ok = broker.IsValid();
     }
-    return ret;
+    if (ok) {
+        ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+    }
+    if (ok) {
+        ok = inputBrokers.Insert(broker);
+    }
+
+    return ok;
 }
 
 bool LinuxTimer::GetOutputBrokers(ReferenceContainer& outputBrokers,
@@ -171,9 +222,13 @@ bool LinuxTimer::Synchronise() {
 
 bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
                                   const char8* const nextStateName) {
+    bool ok = true;
+    if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+        ok = executor.Start();
+    }
     counterAndTimer[0] = 0u;
     counterAndTimer[1] = 1u;
-    return true;
+    return ok;
 }
 
 ErrorManagement::ErrorType LinuxTimer::Execute(const ExecutionInfo& info) {

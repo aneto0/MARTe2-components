@@ -36,9 +36,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
 
-LIBRARIES   += ../../Build/$(TARGET)/Components/DataSources/DataSourceTests$(LIBEXT)
-LIBRARIES   += -L$(MARTe2_DIR)/Build/$(TARGET)/Core/ -lMARTe2
-
 all: $(OBJS) $(SUBPROJ)   \
         $(BUILD_DIR)/MainGTest$(EXEEXT)
 	echo  $(OBJS)

@@ -27,6 +27,9 @@ TARGET=cov
 include Makefile.inc
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-#LIBRARIES   += FileSystem/cov/MARTeFGTest$(LIBEXT)
+LIBRARIES   += ../../Source/Components/DataSources/LinuxTimer/$(TARGET)/LinuxTimer$(LIBEXT)
+LIBRARIES   += ../../Test/Components/DataSources/LinuxTimer/$(TARGET)/LinuxTimerTest$(LIBEXT)
 
+
+LIBRARIES   += -L$(MARTe2_DIR)/Build/linux/Core/ -lMARTe2
 LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a 

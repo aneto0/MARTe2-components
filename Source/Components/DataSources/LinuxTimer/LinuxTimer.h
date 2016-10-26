@@ -160,6 +160,11 @@ private:
      */
     uint64 sleepTimeTicks;
 
+    /**
+     * TODO
+     */
+    uint32 synchronisingFunctionIdx;
+
 };
 }
 

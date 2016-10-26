@@ -1,7 +1,9 @@
 #!/bin/bash
 HOST=flexelint.codac.local
 if [ -z ${MARTe2_DIR+x} ]; then echo "The variable MARTe2_DIR was not set."; exit; fi
+
 REMOTE_DIR_CODE_MARTe2=MARTe2-dev
+
 cd $MARTe2_DIR
 rsync -avz --delete -e ssh . $USER@$HOST:$REMOTE_DIR_CODE_MARTe2
 cd -
