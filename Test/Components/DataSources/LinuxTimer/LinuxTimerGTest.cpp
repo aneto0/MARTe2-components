@@ -46,10 +46,112 @@ TEST(LinuxTimerGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+TEST(LinuxTimerGTest,TestAllocateMemory) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestAllocateMemory());
+}
+
+TEST(LinuxTimerGTest,TestGetNumberOfMemoryBuffers) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
+}
+
+TEST(LinuxTimerGTest,TestGetSignalMemoryBuffer) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+}
+
+TEST(LinuxTimerGTest,TestGetSignalMemoryBuffer_False) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
+}
+
+TEST(LinuxTimerGTest,TestGetBrokerName) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestGetBrokerName());
+}
+
+TEST(LinuxTimerGTest, TestGetInputBrokers) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers());
+}
+
+TEST(LinuxTimerGTest, TestGetOutputBrokers) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers());
+}
+
+TEST(LinuxTimerGTest, TestSynchronise) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSynchronise());
+}
+
+TEST(LinuxTimerGTest, TestExecute) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute());
+}
+
+TEST(LinuxTimerGTest, TestExecute_Busy) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute_Busy());
+}
+
+TEST(LinuxTimerGTest, TestPrepareNextState) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
+}
+
+TEST(LinuxTimerGTest, TestInitialise_Default) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_Default());
+}
+
+TEST(LinuxTimerGTest, TestInitialise_Busy) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_Busy());
+}
+
+TEST(LinuxTimerGTest, TestInitialise_Empty) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_Empty());
+}
+
+TEST(LinuxTimerGTest, TestInitialise_False) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_False());
+}
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase());
+}
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_MoreThan2Signals) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThan2Signals());
+}
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_No32BitsSignal1) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_No32BitsSignal1());
+}
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_No32BitsSignal2) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_No32BitsSignal2());
+}
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_NoFrequencySet) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_NoFrequencySet());
+}
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_One_Signal_Per_GAM) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_One_Signal_Per_GAM());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-
-
-	

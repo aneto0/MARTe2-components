@@ -66,11 +66,29 @@ public:
 
     bool TestExecute();
 
+    bool TestExecute_Busy();
+
     bool TestPrepareNextState();
 
-    bool TestInitialise();
+    bool TestInitialise_Empty();
+
+    bool TestInitialise_Default();
+
+    bool TestInitialise_Busy();
+
+    bool TestInitialise_False();
 
     bool TestSetConfiguredDatabase();
+
+    bool TestSetConfiguredDatabase_One_Signal_Per_GAM();
+
+    bool TestSetConfiguredDatabase_False_MoreThan2Signals();
+
+    bool TestSetConfiguredDatabase_False_No32BitsSignal1();
+
+    bool TestSetConfiguredDatabase_False_No32BitsSignal2();
+
+    bool TestSetConfiguredDatabase_NoFrequencySet();
 };
 
 /*---------------------------------------------------------------------------*/

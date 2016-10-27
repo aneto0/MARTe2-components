@@ -44,6 +44,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 
 INCLUDES += -I../../../../Source/Components/DataSources/LinuxTimer

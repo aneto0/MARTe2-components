@@ -163,6 +163,11 @@ private:
     /**
      * TODO
      */
+    uint32 timerPeriodUsecTime;
+
+    /**
+     * TODO
+     */
     uint32 synchronisingFunctionIdx;
 
 };

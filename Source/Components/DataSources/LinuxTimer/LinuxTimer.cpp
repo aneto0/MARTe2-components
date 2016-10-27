@@ -48,6 +48,7 @@ LinuxTimer::LinuxTimer() :
         executor(*this) {
     lastTimeTicks = 0u;
     sleepTimeTicks = 0u;
+    timerPeriodUsecTime = 0u;
     synchronisingFunctionIdx = 0u;
     counterAndTimer[0] = 0u;
     counterAndTimer[1] = 0u;
@@ -94,20 +95,25 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
 }
 
 bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
-    bool ok = (GetNumberOfSignals() == 2u);
+    bool ok = DataSourceI::SetConfiguredDatabase(data);
+    if (ok) {
+        ok = (GetNumberOfSignals() == 2u);
+    }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Exactly two signals shall be configured");
     }
     if (ok) {
-        ok = (GetSignalType(0u).numberOfBits != 32u);
+        ok = (GetSignalType(0u).numberOfBits == 32u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The first signal shall have 32 bits");
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits and %d were specified",
+                                    uint16(GetSignalType(0u).numberOfBits));
         }
     }
     if (ok) {
-        ok = (GetSignalType(1u).numberOfBits != 32u);
+        ok = (GetSignalType(1u).numberOfBits == 32u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall have 32 bits");
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits and %d were specified",
+                                    uint16(GetSignalType(1u).numberOfBits));
         }
     }
 
@@ -127,7 +133,7 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
                 ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, frequency);
                 found = (frequency > 0.F);
                 if (found) {
-                    synchronisingFunctionIdx = i;
+                    synchronisingFunctionIdx = functionIdx;
                 }
             }
         }
@@ -135,12 +141,12 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     }
     ok = found;
     if (ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "The timer will be set using a frequency of %f", frequency)
-        uint32 timerPeriodUsecTime = 1e6 / frequency;
-        sleepTimeTicks = timerPeriodUsecTime * HighResolutionTimer::Frequency();
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "The timer will be set using a frequency of %f Hz", frequency)
+        timerPeriodUsecTime = 1e6 / frequency;
+        sleepTimeTicks = HighResolutionTimer::Frequency() / frequency;
     }
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "No frequency was set (i.e. no signal synchronises on this LinuxTimer).");
+        REPORT_ERROR(ErrorManagement::ParametersError, "No frequency > 0 was set (i.e. no signal synchronises on this LinuxTimer).");
     }
     return ok;
 }
@@ -156,7 +162,7 @@ bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx,
     if (signalIdx == 0u) {
         signalAddress = &counterAndTimer[0];
     }
-    if (signalIdx == 1u) {
+    else if (signalIdx == 1u) {
         signalAddress = &counterAndTimer[1];
     }
     else {
@@ -168,12 +174,21 @@ bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx,
 const char8* LinuxTimer::GetBrokerName(StructuredDataI& data,
                                        const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
-    float32 frequency = 0;
-    if (data.Read("Frequency", frequency)) {
-        brokerName = "MemoryMapSynchronisedInputBroker";
+    if (direction == InputSignals) {
+        float32 frequency = 0;
+        if (!data.Read("Frequency", frequency)) {
+            frequency = -1;
+        }
+
+        if (frequency > 0) {
+            brokerName = "MemoryMapSynchronisedInputBroker";
+        }
+        else {
+            brokerName = "MemoryMapInputBroker";
+        }
     }
     else {
-        brokerName = "MemoryMapInputBroker";
+        REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with OutputSignals");
     }
     return brokerName;
 }
@@ -186,24 +201,44 @@ bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers,
     bool ok = GetFunctionIndex(functionIdx, functionName);
 
     ReferenceT<MemoryMapBroker> broker;
-    if (ok) {
-        if (synchronisingFunctionIdx == functionIdx) {
-            ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");
-            broker = brokerSync;
+
+    if (synchronisingFunctionIdx == functionIdx) {
+        ReferenceT<MemoryMapSynchronisedInputBroker> broker("MemoryMapSynchronisedInputBroker");
+        if (ok) {
+            ok = broker.IsValid();
         }
-        else {
-            ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
-            broker = brokerNotSync;
+        if (ok) {
+            ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+        }
+        if (ok) {
+            ok = inputBrokers.Insert(broker);
+        }
+        uint32 nOfFunctionSignals = 0u;
+        if (ok) {
+            ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunctionSignals);
+        }
+        if (ok) {
+            if (nOfFunctionSignals > 1u) {
+                ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
+                ok = broker.IsValid();
+                if (ok) {
+                    ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+                }
+                if (ok) {
+                    ok = inputBrokers.Insert(broker);
+                }
+            }
         }
     }
-    if (ok) {
+    else {
+        ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
         ok = broker.IsValid();
-    }
-    if (ok) {
-        ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
-    }
-    if (ok) {
-        ok = inputBrokers.Insert(broker);
+        if (ok) {
+            ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+        }
+        if (ok) {
+            ok = inputBrokers.Insert(broker);
+        }
     }
 
     return ok;
@@ -227,13 +262,23 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
         ok = executor.Start();
     }
     counterAndTimer[0] = 0u;
-    counterAndTimer[1] = 1u;
+    counterAndTimer[1] = 0u;
     return ok;
 }
 
 ErrorManagement::ErrorType LinuxTimer::Execute(const ExecutionInfo& info) {
+    if (lastTimeTicks == 0u) {
+        lastTimeTicks = HighResolutionTimer::Counter();
+    }
+
+    float64 sleepTime = 0;
     uint64 sleepTicksCorrection = (HighResolutionTimer::Counter() - lastTimeTicks);
-    float64 sleepTime = (sleepTimeTicks - sleepTicksCorrection) * HighResolutionTimer::Period();
+    if (sleepTicksCorrection < sleepTimeTicks) {
+        sleepTime = (sleepTimeTicks - sleepTicksCorrection) * HighResolutionTimer::Period();
+    }
+    else {
+        sleepTime = sleepTimeTicks * HighResolutionTimer::Period();
+    }
 
     if (sleepNature == Busy) {
         Sleep::Busy(sleepTime);
@@ -244,6 +289,8 @@ ErrorManagement::ErrorType LinuxTimer::Execute(const ExecutionInfo& info) {
     lastTimeTicks = HighResolutionTimer::Counter();
 
     ErrorManagement::ErrorType err = synchSem.Post();
+    counterAndTimer[0]++;
+    counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTime;
 
     return err;
 }
