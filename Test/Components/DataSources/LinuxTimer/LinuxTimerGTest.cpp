@@ -141,9 +141,9 @@ TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_No32BitsSignal2) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_No32BitsSignal2());
 }
 
-TEST(LinuxTimerGTest, TestSetConfiguredDatabase_NoFrequencySet) {
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_NoFrequencySet) {
     LinuxTimerTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_NoFrequencySet());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoFrequencySet());
 }
 
 TEST(LinuxTimerGTest, TestSetConfiguredDatabase_One_Signal_Per_GAM) {
@@ -151,6 +151,15 @@ TEST(LinuxTimerGTest, TestSetConfiguredDatabase_One_Signal_Per_GAM) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_One_Signal_Per_GAM());
 }
 
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_IntegerSignal1) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_IntegerSignal1());
+}
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_IntegerSignal2) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_IntegerSignal2());
+}
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

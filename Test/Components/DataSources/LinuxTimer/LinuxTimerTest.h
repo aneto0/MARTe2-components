@@ -50,45 +50,115 @@ public:
      */
     bool TestAllocateMemory();
 
+    /**
+     * @brief Tests the GetNumberOfMemoryBuffers method.
+     */
     bool TestGetNumberOfMemoryBuffers();
 
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method.
+     */
     bool TestGetSignalMemoryBuffer();
 
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
+     */
     bool TestGetSignalMemoryBuffer_False();
 
+    /**
+     * @brief Tests the GetBrokerName method.
+     */
     bool TestGetBrokerName();
 
+    /**
+     * @brief Tests the GetInputBrokers method.
+     */
     bool TestGetInputBrokers();
 
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
     bool TestGetOutputBrokers();
 
+    /**
+     * @brief Tests the Synchronise method.
+     */
     bool TestSynchronise();
 
+    /**
+     * @brief Tests the Execute method.
+     */
     bool TestExecute();
 
+    /**
+     * @brief Tests the Execute method with Busy sleep.
+     */
     bool TestExecute_Busy();
 
+    /**
+     * @brief Tests the PrepareNextState method.
+     */
     bool TestPrepareNextState();
 
+    /**
+     * @brief Tests the Initialise method with an empty StructuredDataI.
+     */
     bool TestInitialise_Empty();
 
+    /**
+     * @brief Tests the Initialise method with a Default SleepNature.
+     */
     bool TestInitialise_Default();
 
+    /**
+     * @brief Tests the Initialise method  with a Busy SleepNature.
+     */
     bool TestInitialise_Busy();
 
+    /**
+     * @brief Tests the Initialise method with an invalid SleepNature..
+     */
     bool TestInitialise_False();
 
+    /**
+     * @brief Tests the SetConfiguredDatabase method.
+     */
     bool TestSetConfiguredDatabase();
 
+    /**
+     * @brief Tests the SetConfiguredDatabase method with only one signal specified on each GAM.
+     */
     bool TestSetConfiguredDatabase_One_Signal_Per_GAM();
 
+    /**
+     * @brief Tests the SetConfiguredDatabase method specifying more than two signals.
+     */
     bool TestSetConfiguredDatabase_False_MoreThan2Signals();
 
+    /**
+     * @brief Tests the SetConfiguredDatabase method specifying with a first signal that has more than 32 bits.
+     */
     bool TestSetConfiguredDatabase_False_No32BitsSignal1();
 
+    /**
+     * @brief Tests the SetConfiguredDatabase method specifying with a first signal that is not (Un)SignedInteged.
+     */
+    bool TestSetConfiguredDatabase_False_IntegerSignal1();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method specifying with a second signal that has more than 32 bits.
+     */
     bool TestSetConfiguredDatabase_False_No32BitsSignal2();
 
-    bool TestSetConfiguredDatabase_NoFrequencySet();
+    /**
+     * @brief Tests the SetConfiguredDatabase method specifying with a second signal that is not (Un)SignedInteged.
+     */
+    bool TestSetConfiguredDatabase_False_IntegerSignal2();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase without setting any frequency.
+     */
+    bool TestSetConfiguredDatabase_False_NoFrequencySet();
 };
 
 /*---------------------------------------------------------------------------*/

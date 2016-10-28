@@ -58,6 +58,7 @@ LinuxTimer::LinuxTimer() :
     }
 }
 
+/*lint -e{1551} the destructor must guarantee that the Timer SingleThreadService is stopped.*/
 LinuxTimer::~LinuxTimer() {
     if (!synchSem.Post()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem.");
@@ -106,26 +107,41 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
         ok = (GetSignalType(0u).numberOfBits == 32u);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits and %d were specified",
-                                    uint16(GetSignalType(0u).numberOfBits));
+                                    uint16(GetSignalType(0u).numberOfBits))
+        }
+    }
+    if (ok) {
+        ok = (GetSignalType(0u).type == SignedInteger);
+        if (!ok) {
+            ok = (GetSignalType(0u).type == UnsignedInteger);
+        }
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The first signal shall SignedInteger or UnsignedInteger type");
         }
     }
     if (ok) {
         ok = (GetSignalType(1u).numberOfBits == 32u);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits and %d were specified",
-                                    uint16(GetSignalType(1u).numberOfBits));
+                                    uint16(GetSignalType(1u).numberOfBits))
         }
     }
-
+    if (ok) {
+        ok = (GetSignalType(1u).type == SignedInteger);
+        if (!ok) {
+            ok = (GetSignalType(1u).type == UnsignedInteger);
+        }
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall SignedInteger or UnsignedInteger type");
+        }
+    }
     uint32 nOfFunctions = GetNumberOfFunctions();
     float32 frequency = -1.0F;
     bool found = false;
     uint32 functionIdx;
     for (functionIdx = 0u; (functionIdx < nOfFunctions) && (ok); functionIdx++) {
         uint32 nOfSignals = 0u;
-        if (ok) {
-            ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
-        }
+        ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
 
         if (ok) {
             uint32 i;
@@ -142,8 +158,10 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     ok = found;
     if (ok) {
         REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "The timer will be set using a frequency of %f Hz", frequency)
-        timerPeriodUsecTime = 1e6 / frequency;
-        sleepTimeTicks = HighResolutionTimer::Frequency() / frequency;
+        float64 periodUsec = (1e6 / frequency);
+        timerPeriodUsecTime = static_cast<uint32>(periodUsec);
+        uint64 sleepTimeTicks64 = HighResolutionTimer::Frequency() / static_cast<uint64>(frequency);
+        sleepTimeTicks = static_cast<uint32>(sleepTimeTicks64);
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "No frequency > 0 was set (i.e. no signal synchronises on this LinuxTimer).");
@@ -155,6 +173,7 @@ uint32 LinuxTimer::GetNumberOfMemoryBuffers() {
     return 1u;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
 bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx,
                                        const uint32 bufferIdx,
                                        void*& signalAddress) {
@@ -175,12 +194,12 @@ const char8* LinuxTimer::GetBrokerName(StructuredDataI& data,
                                        const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == InputSignals) {
-        float32 frequency = 0;
+        float32 frequency = 0.F;
         if (!data.Read("Frequency", frequency)) {
-            frequency = -1;
+            frequency = -1.F;
         }
 
-        if (frequency > 0) {
+        if (frequency > 0.F) {
             brokerName = "MemoryMapSynchronisedInputBroker";
         }
         else {
@@ -200,18 +219,16 @@ bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers,
     uint32 functionIdx = 0u;
     bool ok = GetFunctionIndex(functionIdx, functionName);
 
-    ReferenceT<MemoryMapBroker> broker;
-
     if (synchronisingFunctionIdx == functionIdx) {
-        ReferenceT<MemoryMapSynchronisedInputBroker> broker("MemoryMapSynchronisedInputBroker");
+        ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");
         if (ok) {
-            ok = broker.IsValid();
+            ok = brokerSync.IsValid();
         }
         if (ok) {
-            ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+            ok = brokerSync->Init(InputSignals, *this, functionName, gamMemPtr);
         }
         if (ok) {
-            ok = inputBrokers.Insert(broker);
+            ok = inputBrokers.Insert(brokerSync);
         }
         uint32 nOfFunctionSignals = 0u;
         if (ok) {
@@ -219,13 +236,13 @@ bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers,
         }
         if (ok) {
             if (nOfFunctionSignals > 1u) {
-                ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
-                ok = broker.IsValid();
+                ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
+                ok = brokerNotSync.IsValid();
                 if (ok) {
-                    ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+                    ok = brokerNotSync->Init(InputSignals, *this, functionName, gamMemPtr);
                 }
                 if (ok) {
-                    ok = inputBrokers.Insert(broker);
+                    ok = inputBrokers.Insert(brokerNotSync);
                 }
             }
         }
@@ -244,6 +261,7 @@ bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers,
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
 bool LinuxTimer::GetOutputBrokers(ReferenceContainer& outputBrokers,
                                   const char8* const functionName,
                                   void* const gamMemPtr) {
@@ -255,6 +273,7 @@ bool LinuxTimer::Synchronise() {
     return err.ErrorsCleared();
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the counter and the timer are always reset irrespectively of the states being changed.*/
 bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
                                   const char8* const nextStateName) {
     bool ok = true;
@@ -266,18 +285,20 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the method sleeps for the given period irrespectively of the input info.*/
 ErrorManagement::ErrorType LinuxTimer::Execute(const ExecutionInfo& info) {
     if (lastTimeTicks == 0u) {
         lastTimeTicks = HighResolutionTimer::Counter();
     }
 
-    float64 sleepTime = 0;
+    float64 sleepTime = 0.F;
     uint64 sleepTicksCorrection = (HighResolutionTimer::Counter() - lastTimeTicks);
     if (sleepTicksCorrection < sleepTimeTicks) {
-        sleepTime = (sleepTimeTicks - sleepTicksCorrection) * HighResolutionTimer::Period();
+        uint64 deltaTicks = sleepTimeTicks - sleepTicksCorrection;
+        sleepTime = static_cast<float64>(deltaTicks) * HighResolutionTimer::Period();
     }
     else {
-        sleepTime = sleepTimeTicks * HighResolutionTimer::Period();
+        sleepTime = static_cast<float64>(sleepTimeTicks) * HighResolutionTimer::Period();
     }
 
     if (sleepNature == Busy) {
