@@ -66,6 +66,10 @@ LinuxTimerTestGAM    () : GAM() {
         return true;
     }
 
+    bool Setup() {
+        return true;
+    }
+
     MARTe::uint32 val1;
 
     MARTe::uint32 val2;
