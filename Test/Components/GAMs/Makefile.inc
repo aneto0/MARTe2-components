@@ -20,11 +20,24 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-TARGET=msc
+SPB=  BufferGAM.x
+		
+PACKAGE=Components
+ROOT_DIR=../../..
+MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
-include Makefile.inc
+include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-CPPFLAGS+= -fprofile-arcs -ftest-coverage -coverage
+LIBRARIES_STATIC+=$(BUILD_DIR)/BufferGAM/BufferGAMTest$(LIBEXT)
 
+all: $(OBJS) $(SUBPROJ) \
+                $(BUILD_DIR)/GAMsTests$(LIBEXT)
+	echo  $(OBJS)
+
+include depends.$(TARGET)
+
+include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)

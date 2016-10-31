@@ -36,7 +36,7 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * Tests the LinuxTimerTest public methods.
+ * @brief Tests the LinuxTimerTest public methods.
  */
 class LinuxTimerTest {
 public:

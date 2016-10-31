@@ -20,11 +20,10 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-TARGET=cov
+TARGET=linux
 
 include Makefile.inc
-
-LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimer$(LIBEXT)
-

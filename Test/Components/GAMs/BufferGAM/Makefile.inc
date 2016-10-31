@@ -20,26 +20,39 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-OBJSX=MainGTest.x
-SPB =
-
-PACKAGE=
-ROOT_DIR=../..
+OBJSX +=  BufferGAMTest.x
+		
+PACKAGE=Components/GAMs
+ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+INCLUDES += -I$(MARTe2_DIR)/Components/GAMs/BufferGAM
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 
-all: $(OBJS) $(SUBPROJ)   \
-        $(BUILD_DIR)/MainGTest$(EXEEXT)
+INCLUDES += -I../../../../Source/Components/GAMs/BufferGAM
+
+
+all: $(OBJS) \
+                $(BUILD_DIR)/BufferGAMTest$(LIBEXT)
 	echo  $(OBJS)
-
 
 include depends.$(TARGET)
 

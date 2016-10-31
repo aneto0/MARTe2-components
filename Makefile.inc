@@ -24,12 +24,12 @@
 #
 #############################################################
 SPB    = Source/Components/DataSources.x \
+	Source/Components/GAMs.x \
     Test/Components/DataSources.x \
+    Test/Components/GAMs.x \
     Test/GTest.x
 
-#Source/Components/GAMs.x \
-    Source/Components/Interfaces.x \
-    Test/Components/GAMs.x \
+#    Source/Components/Interfaces.x \
     Test/Components/Interfaces.x \
 
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults

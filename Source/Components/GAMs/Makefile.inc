@@ -24,7 +24,7 @@
 
 OBJSX= 
 
-SPB    =
+SPB=BufferGAM.x
 
 PACKAGE=Components
 ROOT_DIR=../../..
@@ -33,12 +33,12 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 
-LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
+LIBRARIES_STATIC=$(BUILD_DIR)/BufferGAM/BufferGAM$(LIBEXT)
 
 all: $(OBJS)  $(SUBPROJ)  \
     $(BUILD_DIR)/GAMs$(LIBEXT) \
-    $(BUILD_DIR)/GAMs$(DLLEXT) \
-    echo  $(OBJS)
+    $(BUILD_DIR)/GAMs$(DLLEXT)
+	echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 

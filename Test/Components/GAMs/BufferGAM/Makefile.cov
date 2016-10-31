@@ -20,11 +20,15 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
 TARGET=cov
 
-include Makefile.inc
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimer$(LIBEXT)
+OBJSX = BufferGAMGTest.x
+
+include Makefile.inc
 
