@@ -1,5 +1,7 @@
 -i./Source/Components/DataSources/LinuxTimer/
+-i./Source/Components/DataSources/LoggerDataSource/
 -i./Source/Components/GAMs/BufferGAM/
 
 BufferGAM.cpp
 LinuxTimer.cpp
+LoggerDataSource.cpp

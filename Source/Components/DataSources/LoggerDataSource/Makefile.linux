@@ -20,25 +20,9 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
-#
 #############################################################
 
-SPB=  LinuxTimer.x LoggerDataSource.x
-		
-PACKAGE=Components
-ROOT_DIR=../../..
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
+TARGET=linux
 
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
+include Makefile.inc
 
-LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
-
-all: $(OBJS) $(SUBPROJ) \
-                $(BUILD_DIR)/DataSourcesTests$(LIBEXT)
-	echo  $(OBJS)
-
-include depends.$(TARGET)
-
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)

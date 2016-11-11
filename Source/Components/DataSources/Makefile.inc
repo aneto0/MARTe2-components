@@ -24,7 +24,7 @@
 
 OBJSX= 
 
-SPB    = LinuxTimer.x
+SPB    = LinuxTimer.x LoggerDataSource.x
 
 PACKAGE=Components
 ROOT_DIR=../../..
@@ -33,6 +33,7 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 
 all: $(OBJS)  $(SUBPROJ)  \
     $(BUILD_DIR)/DataSources$(LIBEXT) \
