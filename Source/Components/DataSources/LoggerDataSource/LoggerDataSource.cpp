@@ -55,20 +55,23 @@ bool LoggerDataSource::AllocateMemory() {
 }
 
 uint32 LoggerDataSource::GetNumberOfMemoryBuffers() {
-    return 1u;
+    return 0u;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: Method not required by this DataSourceI implementation. (TODO move interface to a MemoryMappedDataSource).*/
 bool LoggerDataSource::GetSignalMemoryBuffer(const uint32 signalIdx,
                                              const uint32 bufferIdx,
                                              void*& signalAddress) {
     return true;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: Method not required by this DataSourceI implementation. (TODO move interface to a MemoryMappedDataSource).*/
 const char8* LoggerDataSource::GetBrokerName(StructuredDataI& data,
                                              const SignalDirection direction) {
     return "LoggerBroker";
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: Method not required by this DataSourceI implementation. (TODO move interface to a MemoryMappedDataSource).*/
 bool LoggerDataSource::GetInputBrokers(ReferenceContainer& inputBrokers,
                                        const char8* const functionName,
                                        void* const gamMemPtr) {
@@ -86,6 +89,7 @@ bool LoggerDataSource::GetOutputBrokers(ReferenceContainer& outputBrokers,
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: this DataSourceI implementation is independent of the states being changed.*/
 bool LoggerDataSource::PrepareNextState(const char8 * const currentStateName,
                                         const char8 * const nextStateName) {
     return true;

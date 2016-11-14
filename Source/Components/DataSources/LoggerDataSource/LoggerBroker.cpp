@@ -1,8 +1,8 @@
 /**
  * @file LoggerBroker.cpp
  * @brief Source file for class LoggerBroker
- * @date Nov 9, 2016 TODO Verify the value and format of the date
- * @author aneto TODO Verify the name and format of the author
+ * @date 09/11/2016
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -31,6 +31,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
+#include "CompilerTypes.h"
 #include "LoggerBroker.h"
 
 /*---------------------------------------------------------------------------*/
@@ -39,11 +40,13 @@
 
 namespace MARTe {
 
-LoggerBroker::LoggerBroker() {
+LoggerBroker::LoggerBroker() :
+        BrokerI() {
     signalNames = NULL_PTR(StreamString *);
     outputSignals = NULL_PTR(AnyType *);
 }
 
+/*lint -e{1551} the destructor must guarantee that the signalNames and outputSignals are freed.*/
 LoggerBroker::~LoggerBroker() {
     if (signalNames != NULL_PTR(StreamString *)) {
         delete[] signalNames;
@@ -53,10 +56,10 @@ LoggerBroker::~LoggerBroker() {
     }
 }
 
-bool LoggerBroker::Init(SignalDirection direction,
+bool LoggerBroker::Init(SignalDirection const direction,
                         DataSourceI& dataSourceIn,
                         const char8* const functionName,
-                        void* gamMemoryAddress) {
+                        void  * const gamMemoryAddress) {
     bool ok = (direction == OutputSignals);
     if (ok) {
         ok = BrokerI::InitFunctionPointers(direction, dataSourceIn, functionName, gamMemoryAddress);
@@ -77,56 +80,65 @@ bool LoggerBroker::Init(SignalDirection direction,
         ok = dataSourceIn.GetFunctionNumberOfSignals(direction, functionIdx, nOfFunctionSignals);
     }
     uint32 n;
+    uint32 c = 0u;
     for (n = 0u; (n < nOfFunctionSignals) && (ok); n++) {
         //Look for the nth signal of functionName that interacts with this Broker
         StreamString signalAlias;
         ok = dataSourceIn.GetFunctionSignalAlias(OutputSignals, functionIdx, n, signalAlias);
 
         //Get the signal index in the dataSourceIn where this signalName is located
-        uint32 signalIdx;
+        uint32 signalIdx = 0u;
         if (ok) {
             ok = dataSourceIn.GetSignalIndex(signalIdx, signalAlias.Buffer());
         }
-        uint32 numberOfArrayElements = 0u;
-        //Check if the signal is an array...
+        TypeDescriptor signalDesc = dataSourceIn.GetSignalType(signalIdx);
+        uint32 numberOfRanges = 0u;
+        //Get the number of ranges defined...
         if (ok) {
-            ok = dataSourceIn.GetFunctionSignalNumberOfByteOffsets(direction, functionIdx, signalIdx, numberOfArrayElements);
+            ok = dataSourceIn.GetFunctionSignalNumberOfByteOffsets(direction, functionIdx, signalIdx, numberOfRanges);
         }
         if (ok) {
-            ok = (numberOfArrayElements > 0u);
+            ok = (numberOfRanges > 0u);
         }
+        uint8 numberOfDimensions = 0u;
         if (ok) {
-            uint32 i;
-            TypeDescriptor signalDesc = dataSourceIn.GetSignalType(signalIdx);
-            for (i = 0u; (i < numberOfArrayElements) && (ok); i++) {
-                AnyType printType(signalDesc, 0, GetFunctionPointer(n));
-                outputSignals[n] = printType;
-                if (numberOfArrayElements == 1u) {
-                    signalNames[n] = signalAlias;
-                    ok = signalNames[n].Seek(0u);
-                }
-                else {
-                    uint32 startIdx = 0u;
-                    uint32 size = 0u;
-                    uint32 endIdx = 0u;
-                    dataSourceIn.GetFunctionSignalByteOffsetInfo(direction, functionIdx, signalIdx, i, startIdx, size);
-                    uint32 nOfBytes = signalDesc.numberOfBits / 8u;
-                    if (nOfBytes > 0u) {
-                        endIdx = startIdx + (size / nOfBytes);
-                    }
-                    signalNames[n].Printf("%s [%d:%d]", signalAlias.Buffer(), startIdx, endIdx);
+            ok = dataSourceIn.GetSignalNumberOfDimensions(signalIdx, numberOfDimensions);
+        }
+        uint32 i;
+        for (i = 0u; (i < numberOfRanges) && (ok); i++) {
+            uint32 startIdx = 0u;
+            uint32 size = 0u;
+            uint32 endIdx = 0u;
+            ok = dataSourceIn.GetFunctionSignalByteOffsetInfo(direction, functionIdx, signalIdx, i, startIdx, size);
+            if (ok) {
+                uint32 nOfBytes = static_cast<uint32>(signalDesc.numberOfBits) / 8u;
+                if (nOfBytes > 0u) {
+                    startIdx = startIdx / nOfBytes;
+                    endIdx = startIdx + (size / nOfBytes);
                 }
             }
+            if (signalNames != NULL_PTR(StreamString *)) {
+                ok = signalNames[c].Printf("%s [%d:%d]", signalAlias.Buffer(), startIdx, endIdx - 1u);
+            }
+
+            AnyType printType(signalDesc, 0u, GetFunctionPointer(c));
+            if (outputSignals != NULL_PTR(AnyType *)) {
+                outputSignals[c] = printType;
+                outputSignals[c].SetNumberOfDimensions(numberOfDimensions);
+                outputSignals[c].SetNumberOfElements(0u, endIdx - startIdx);
+            }
+            c++;
         }
     }
-
     return ok;
 }
 
 bool LoggerBroker::Execute() {
     uint32 n;
     for (n = 0u; n < numberOfCopies; n++) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "%s:%!", signalNames[n].Buffer(), outputSignals[n])
+        if ((signalNames != NULL_PTR(StreamString *)) && (outputSignals != NULL_PTR(AnyType *))) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "%s:%!", signalNames[n].Buffer(), outputSignals[n])
+        }
     }
     return true;
 }

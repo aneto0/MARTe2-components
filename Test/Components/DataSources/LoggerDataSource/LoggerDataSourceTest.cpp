@@ -30,20 +30,97 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "LoggerDataSourceTest.h"
+
 #include "GAM.h"
-#include "GAMScheduler.h"
+#include "LoggerDataSource.h"
+#include "LoggerDataSourceTest.h"
 #include "MemoryOperationsHelper.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+/**
+ * Empty GAM to "generate" signals for the LoggerDataSource
+ */
+class LoggerDataSourceTestGAM: public MARTe::GAM {
+public:
+    CLASS_REGISTER_DECLARATION()
+
+    LoggerDataSourceTestGAM    () : GAM() {
+    }
+
+    ~LoggerDataSourceTestGAM() {
+
+    }
+
+    bool Execute() {
+        return true;
+    }
+
+    bool Setup() {
+        return true;
+    }
+
+};
+CLASS_REGISTER(LoggerDataSourceTestGAM, "1.0")
+
+
+
+/*---------------------------------------------------------------------------*/
+/*                           Method definitions                              */
+/*---------------------------------------------------------------------------*/
 
 bool LoggerDataSourceTest::TestConstructor() {
+    using namespace MARTe;
+    LoggerDataSource lds;
+    return true;
+}
+
+bool LoggerDataSourceTest::TestSynchronise() {
+    using namespace MARTe;
+    LoggerDataSource lds;
+    return !lds.Synchronise();
+}
+
+bool LoggerDataSourceTest::TestAllocateMemory() {
+    using namespace MARTe;
+    LoggerDataSource lds;
+    return lds.AllocateMemory();
+}
+
+bool LoggerDataSourceTest::TestGetNumberOfMemoryBuffers() {
+    using namespace MARTe;
+    LoggerDataSource lds;
+    return (lds.GetNumberOfMemoryBuffers() == 0u);
+}
+
+bool LoggerDataSourceTest::TestGetSignalMemoryBuffer() {
+    using namespace MARTe;
+    LoggerDataSource lds;
+    uint32 signalIdx = 0u;
+    uint32 bufferIdx = 0u;
+    void *signalAddress = NULL;
+    return lds.GetSignalMemoryBuffer(signalIdx, bufferIdx, signalAddress);
+}
+
+bool LoggerDataSourceTest::TestGetBrokerName() {
+    using namespace MARTe;
+    LoggerDataSource lds;
+    ConfigurationDatabase cdb;
+    return (StringHelper::Compare(lds.GetBrokerName(cdb, OutputSignals), "LoggerBroker") == 0u);
+}
+
+bool LoggerDataSourceTest::TestGetInputBrokers() {
+    using namespace MARTe;
+    LoggerDataSource lds;
+    ReferenceContainer rc;
+    return !lds.GetInputBrokers(rc, "", NULL);
+}
+
+bool LoggerDataSourceTest::TestGetOutputBrokers() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
             "$Test = {"
@@ -51,49 +128,16 @@ bool LoggerDataSourceTest::TestConstructor() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +GAMA = {"
-            "            Class = BufferGAM::BufferGAM"
-            "            InputSignals = {"
-            "                Counter = {"
-            "                    DataSource = Timer"
-            "                    Type = uint32"
-            "                }"
-            "                Time = {"
-            "                    DataSource = Timer"
-            "                    Type = uint32"
-            "                    Frequency = 10"
-            "                }"
-            "            }"
+            "            Class = LoggerDataSourceTestGAM"
             "            OutputSignals = {"
-            "                Counter = {"
-            "                    DataSource = DDB1"
-            "                    Type = uint32"
-            "                }"
-            "                Time = {"
-            "                    DataSource = DDB1"
-            "                    Type = uint32"
-            "                }"
-            "            }"
-            "        }"
-            "        +GAMB = {"
-            "            Class = BufferGAM"
-            "            InputSignals = {"
-            "                Counter = {"
-            "                    DataSource = DDB1"
-            "                    Type = uint32"
-            "                }"
-            "                Time = {"
-            "                    DataSource = DDB1"
-            "                    Type = uint32"
-            "                }"
-            "            }"
-            "            OutputSignals = {"
-            "                Counter = {"
+            "                Signal1 = {"
             "                    DataSource = LoggerDS"
             "                    Type = uint32"
             "                }"
-            "                Time = {"
+            "                Signal2 = {"
             "                    DataSource = LoggerDS"
             "                    Type = uint32"
+            "                    NumberOfElements = 5"
             "                }"
             "            }"
             "        }"
@@ -101,12 +145,6 @@ bool LoggerDataSourceTest::TestConstructor() {
             "    +Data = {"
             "        Class = ReferenceContainer"
             "        DefaultDataSource = DDB1"
-            "        +DDB1 = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timer = {"
-            "            Class = LinuxTimer"
-            "        }"
             "        +LoggerDS = {"
             "            Class = LoggerDataSource"
             "        }"
@@ -122,7 +160,7 @@ bool LoggerDataSourceTest::TestConstructor() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    Functions = {GAMA GAMB}"
+            "                    Functions = {GAMA}"
             "                }"
             "            }"
             "        }"
@@ -132,15 +170,6 @@ bool LoggerDataSourceTest::TestConstructor() {
             "        TimingDataSource = Timings"
             "    }"
             "}";
-
-    ClassRegistryDatabase *crd = ClassRegistryDatabase::Instance();
-    uint32 numberOfItems = crd->GetSize();
-    uint32 n;
-    for (n = 0u; n < numberOfItems; n++) {
-        const ClassRegistryItem *cri = crd->Peek(n);
-        uint16 classUid = cri->GetClassProperties()->GetUniqueIdentifier();
-        printf("ClassName = %s %u\n", cri->GetClassProperties()->GetName(), classUid);
-    }
 
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -163,19 +192,12 @@ bool LoggerDataSourceTest::TestConstructor() {
     if (ok) {
         ok = application->ConfigureApplication();
     }
-    if (ok) {
-        ok = application->PrepareNextState("State1");
-    }
-    if (ok) {
-        application->StartExecution();
-    }
-    while (1) {
-        Sleep::Sec(1.0);
-    }
-    return true;
+    god->CleanUp();
+    return ok;
 }
 
-/*---------------------------------------------------------------------------*/
-/*                           Method definitions                              */
-/*---------------------------------------------------------------------------*/
-
+bool LoggerDataSourceTest::TestPrepareNextState() {
+    using namespace MARTe;
+    LoggerDataSource lds;
+    return lds.PrepareNextState("", "");
+}

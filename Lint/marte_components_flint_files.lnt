@@ -5,3 +5,4 @@
 BufferGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
+LoggerBroker.cpp

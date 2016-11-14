@@ -1,8 +1,8 @@
 /**
  * @file LoggerDataSource.h
  * @brief Header file for class LoggerDataSource
- * @date Nov 9, 2016 TODO Verify the value and format of the date
- * @author aneto TODO Verify the name and format of the author
+ * @date 09/11/2016
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef SOURCE_COMPONENTS_DATASOURCES_LOGGERDATASOURCE_LOGGERDATASOURCE_H_
-#define SOURCE_COMPONENTS_DATASOURCES_LOGGERDATASOURCE_LOGGERDATASOURCE_H_
+#ifndef LOGGERDATASOURCE_H_
+#define LOGGERDATASOURCE_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -37,36 +37,91 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+/**
+ * @brief A DataSource which prints in the MARTe logger the current value of any signal.
+ * @details The LoggerDataSource will call REPORT_ERROR with the current value of
+ *  all the signals listed on its Signals section.
+ *
+ * The configuration syntax is (names are only given as an example):
+ * +LoggerDS = {
+ *     Class = LoggerDataSource
+ * }
+ *
+ * A signal will be added for each GAM signal that writes to this instance of the DataSourceI.
+ */
 class LoggerDataSource: public DataSourceI {
 public:
     CLASS_REGISTER_DECLARATION()
-    LoggerDataSource();
+    /**
+     * @brief Default constructor. NOOP.
+     */
+LoggerDataSource    ();
 
+    /**
+     * @brief Destructor. NOOP.
+     */
     virtual ~LoggerDataSource();
 
+    /**
+     * @brief NOOP.
+     * @return true.
+     */
     virtual bool Synchronise();
 
+    /**
+     * @brief NOOP.
+     * @return true.
+     */
     virtual bool AllocateMemory();
 
+    /**
+     * @brief NOOP.
+     * @return 0u.
+     */
     virtual uint32 GetNumberOfMemoryBuffers();
 
+    /**
+     * @brief NOOP.
+     * @return true.
+     */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-                                       const uint32 bufferIdx,
-                                       void *&signalAddress);
+            const uint32 bufferIdx,
+            void *&signalAddress);
 
+    /**
+     * @brief Returns "LoggerBroker".
+     * @param[in] data is not used as LoggerBroker is always returned.
+     * @param[in] direction is not used as LoggerBroker is always returned.
+     * @return "LoggerBroker"
+     */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-                                       const SignalDirection direction);
+            const SignalDirection direction);
 
+    /**
+     * @brief Only OutputBrokers are supported.
+     * @return false.
+     */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-                                 const char8* const functionName,
-                                 void * const gamMemPtr);
+            const char8* const functionName,
+            void * const gamMemPtr);
 
+    /**
+     * @brief Creates a new instance of a LoggerBroker and adds it to \a outputBrokers.
+     * @param[out] outputBrokers where the BrokerI instances have to be added to.
+     * @param[in] functionName name of the function being queried.
+     * @param[in] gamMemPtr the GAM memory where the signals will be written to.
+     * @return true iff the LoggerBroker has been successfully initialised and added to the \a outputBrokers.
+     */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-                                  const char8* const functionName,
-                                  void * const gamMemPtr);
+            const char8* const functionName,
+            void * const gamMemPtr);
 
+    /**
+     * @brief NOOP.
+     * @return true.
+     */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-                                      const char8 * const nextStateName);
+            const char8 * const nextStateName);
 };
 }
 
@@ -74,5 +129,5 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* SOURCE_COMPONENTS_DATASOURCES_LOGGERDATASOURCE_LOGGERDATASOURCE_H_ */
+#endif /* LOGGERDATASOURCE_H_ */
 

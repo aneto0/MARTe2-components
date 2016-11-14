@@ -1,6 +1,6 @@
 /**
- * @file LoggerDataSourceGTest.cpp
- * @brief Source file for class LoggerDataSourceGTest
+ * @file LoggerBrokerGTest.cpp
+ * @brief Source file for class LoggerBrokerGTest
  * @date 25/10/2016
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class LoggerDataSourceGTest (public, protected, and private). Be aware that some
+ * the class LoggerBrokerGTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -32,7 +32,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "LoggerDataSourceTest.h"
+#include "LoggerBrokerTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -41,51 +41,20 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-TEST(LoggerDataSourceGTest,TestConstructor) {
-    LoggerDataSourceTest test;
+TEST(LoggerBrokerGTest,TestConstructor) {
+    LoggerBrokerTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(LoggerDataSourceGTest,TestAllocateMemory) {
-    LoggerDataSourceTest test;
-    ASSERT_TRUE(test.TestAllocateMemory());
+TEST(LoggerBrokerGTest,TestInit) {
+    LoggerBrokerTest test;
+    ASSERT_TRUE(test.TestInit());
 }
 
-TEST(LoggerDataSourceGTest,TestGetBrokerName) {
-    LoggerDataSourceTest test;
-    ASSERT_TRUE(test.TestGetBrokerName());
+TEST(LoggerBrokerGTest,TestExecute) {
+    LoggerBrokerTest test;
+    ASSERT_TRUE(test.TestExecute());
 }
-
-TEST(LoggerDataSourceGTest,TestGetInputBrokers) {
-    LoggerDataSourceTest test;
-    ASSERT_TRUE(test.TestGetInputBrokers());
-}
-
-TEST(LoggerDataSourceGTest,TestGetNumberOfMemoryBuffers) {
-    LoggerDataSourceTest test;
-    ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
-}
-
-TEST(LoggerDataSourceGTest,TestGetOutputBrokers) {
-    LoggerDataSourceTest test;
-    ASSERT_TRUE(test.TestGetOutputBrokers());
-}
-
-TEST(LoggerDataSourceGTest,TestGetSignalMemoryBuffer) {
-    LoggerDataSourceTest test;
-    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
-}
-
-TEST(LoggerDataSourceGTest,TestPrepareNextState) {
-    LoggerDataSourceTest test;
-    ASSERT_TRUE(test.TestPrepareNextState());
-}
-
-TEST(LoggerDataSourceGTest,TestSynchronise) {
-    LoggerDataSourceTest test;
-    ASSERT_TRUE(test.TestSynchronise());
-}
-
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

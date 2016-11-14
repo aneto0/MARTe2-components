@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  LoggerDataSourceTest.x
+OBJSX +=  LoggerDataSourceTest.x LoggerBrokerTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..

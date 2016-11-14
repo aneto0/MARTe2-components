@@ -1,8 +1,8 @@
 /**
  * @file LoggerBroker.h
  * @brief Header file for class LoggerBroker
- * @date Nov 9, 2016 TODO Verify the value and format of the date
- * @author aneto TODO Verify the name and format of the author
+ * @date 09/11/2016
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef SOURCE_COMPONENTS_DATASOURCES_LOGGERDATASOURCE_LOGGERBROKER_H_
-#define SOURCE_COMPONENTS_DATASOURCES_LOGGERDATASOURCE_LOGGERBROKER_H_
+#ifndef LOGGERBROKER_H_
+#define LOGGERBROKER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -38,22 +38,56 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+/**
+ * @brief a BrokerI implementation for the LoggerDataSource.
+ * @details The Execute method prints to the REPORT_ERROR stream the value of all
+ *  the registered signals, using the AnyType Printf.
+ */
 class LoggerBroker: public BrokerI {
 
 public:
     CLASS_REGISTER_DECLARATION()
+
+    /**
+     * @brief Constructor. NOOP
+     */
     LoggerBroker();
+
+    /**
+     * @brief Destructor. Frees memory allocated for the output signals.
+     */
     virtual ~LoggerBroker();
+
+    /**
+     * @brief For every signal from the functionName that interacts with this DataSourceI, stores
+     *  the signal type and dimension in an AnyType which gets printed in the Execute method.
+     * @param[in] direction only OutputSignals is supported.
+     * @param[in] dataSourceIn the data source which holds the signals definition.
+     * @param[in] functionName the name of the function holding the signal memory.
+     * @param[in] gamMemoryAddress the base address of the GAM memory (where signal data is stored).
+     * @return true if all the copy information related to \a functionName can be successfully retrieved.
+     */
     virtual bool Init(SignalDirection direction,
             DataSourceI &dataSourceIn,
             const char8 * const functionName,
             void *gamMemoryAddress);
+
+    /**
+     * @brief For all the signals print their AnyType value in the logger stream.
+     * @return true.
+     */
     virtual bool Execute();
 
 private:
 
+    /**
+     * Hold the AnyType value of the signals.
+     */
     AnyType *outputSignals;
 
+    /**
+     * Hold the signal names.
+     */
     StreamString *signalNames;
 };
 

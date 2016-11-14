@@ -1,7 +1,7 @@
 /**
- * @file LoggerDataSourceTest.h
- * @brief Header file for class LoggerDataSourceTest
- * @date 09/11/2016
+ * @file LoggerBrokerTest.h
+ * @brief Header file for class LoggerBrokerTest
+ * @date 12/11/2016
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class LoggerDataSourceTest
+ * @details This header file contains the declaration of the class LoggerBrokerTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef LOGGERDATASOURCETEST_H_
-#define LOGGERDATASOURCETEST_H_
+#ifndef LOGGERBROKERTEST_H_
+#define LOGGERBROKERTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -32,14 +32,14 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 /**
- * @brief Tests the LoggerDataSource public methods.
+ * @brief Tests the LoggerBroker public methods.
  */
-class LoggerDataSourceTest {
+class LoggerBrokerTest {
 public:
     /**
      * @brief Tests the constructor.
@@ -47,49 +47,21 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the Synchronise method.
+     * @brief Tests the Init method.
      */
-    bool TestSynchronise();
+    bool TestInit();
 
     /**
-     * @brief Tests the AllocateMemory method.
+     * @brief Tests the Execute method.
      */
-    bool TestAllocateMemory();
-
-    /**
-     * @brief Tests the GetNumberOfMemoryBuffers method.
-     */
-    bool TestGetNumberOfMemoryBuffers();
-
-    /**
-     * @brief Tests the GetSignalMemoryBuffer method.
-     */
-    bool TestGetSignalMemoryBuffer();
-
-    /**
-     * @brief Tests the GetBrokerName method.
-     */
-    bool TestGetBrokerName();
-
-    /**
-     * @brief Tests the GetInputBrokers method.
-     */
-    bool TestGetInputBrokers();
-
-    /**
-     * @brief Tests the GetOutputBrokers method.
-     */
-    bool TestGetOutputBrokers();
-
-    /**
-     * @brief Tests the PrepareNextState method.
-     */
-    bool TestPrepareNextState();
+    bool TestExecute();
 };
+
+
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* LOGGERDATASOURCETEST_H_ */
-
+#endif /* LOGGERBROKERTEST_H_ */
+	

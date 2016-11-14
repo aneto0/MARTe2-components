@@ -26,7 +26,9 @@
 
 TARGET=cov
 
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = LoggerDataSourceGTest.x LoggerBrokerGTest.x
+
 include Makefile.inc
 
-LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimerTest$(LIBEXT)
-LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSourceTest$(LIBEXT)
