@@ -1,8 +1,8 @@
 /**
  * @file BufferGAMGTest.cpp
  * @brief Source file for class BufferGAMGTest
- * @date Oct 31, 2016 TODO Verify the value and format of the date
- * @author aneto TODO Verify the name and format of the author
+ * @date 31/10/2016
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
