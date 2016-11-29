@@ -88,7 +88,7 @@ NI6259ADC::~NI6259ADC() {
     }
     for (n = 0u; n < NI6259ADC_CHANNELS; n++) {
         if (channelsMemory[n] != NULL_PTR(float32 *)) {
-            delete [] channelsMemory[n];
+            delete[] channelsMemory[n];
         }
     }
 }
@@ -198,13 +198,13 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (samplingFrequency == 0u);
+        ok = (samplingFrequency != 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::Information, "SamplingFrequency cannot be zero");
         }
     }
     if (ok) {
-        ok = (samplingFrequency < 1000000u);
+        ok = (samplingFrequency <= 1000000u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::Information, "SamplingFrequency must be < 1 MHz");
         }
@@ -356,6 +356,86 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         }
     }
 
+    //TODO Check the number of signals here as well!
+
+    //Get individual signal parameters
+    uint32 i;
+    if (ok) {
+        ok = data.MoveRelative("Signals");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
+        }
+        for (i = 0u; (i < NI6259ADC_CHANNELS) && (ok); i++) {
+            if (data.MoveRelative(data.GetChildName(i))) {
+                StreamString range;
+                if (data.Read("InputRange", range)) {
+                    if (range == "10") {
+                        inputRange[NI6259ADC_HEADER_SIZE + i] = 1u;
+                    }
+                    else if (range == "5") {
+                        inputRange[NI6259ADC_HEADER_SIZE + i] = 2u;
+                    }
+                    else if (range == "2") {
+                        inputRange[NI6259ADC_HEADER_SIZE + i] = 3u;
+                    }
+                    else if (range == "1") {
+                        inputRange[NI6259ADC_HEADER_SIZE + i] = 4u;
+                    }
+                    else if (range == "500") {
+                        inputRange[NI6259ADC_HEADER_SIZE + i] = 5u;
+                    }
+                    else if (range == "200") {
+                        inputRange[NI6259ADC_HEADER_SIZE + i] = 6u;
+                    }
+                    else if (range == "100") {
+                        inputRange[NI6259ADC_HEADER_SIZE + i] = 7u;
+                    }
+                    else {
+                        ok = false;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputRange.");
+                    }
+                }
+                StreamString polarity;
+                if (data.Read("InputPolarity", polarity)) {
+                    if (polarity == "Unipolar") {
+                        inputPolarity[NI6259ADC_HEADER_SIZE + i] = AI_POLARITY_UNIPOLAR;
+                    }
+                    else if (polarity == "Bipolar") {
+                        inputPolarity[NI6259ADC_HEADER_SIZE + i] = AI_POLARITY_BIPOLAR;
+                    }
+                    else {
+                        ok = false;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputPolarity.");
+                    }
+                }
+                StreamString mode;
+                if (data.Read("InputMode", mode)) {
+                    if (mode == "Differential") {
+                        inputMode[NI6259ADC_HEADER_SIZE + i] = AI_CHANNEL_TYPE_DIFFERENTIAL;
+                    }
+                    else if (polarity == "NRSE") {
+                        inputMode[NI6259ADC_HEADER_SIZE + i] = AI_CHANNEL_TYPE_NRSE;
+                    }
+                    else if (polarity == "RSE") {
+                        inputMode[NI6259ADC_HEADER_SIZE + i] = AI_CHANNEL_TYPE_RSE;
+                    }
+                    else {
+                        ok = false;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputMode.");
+                    }
+                }
+                if (ok) {
+                    ok = data.MoveToAncestor(1u);
+                }
+            }
+        }
+    }
+    if (ok) {
+        ok = data.MoveToAncestor(1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the parent section");
+        }
+    }
     return ok;
 }
 
@@ -469,83 +549,6 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
 
-    //Get individual signal parameters
-    if (ok) {
-        ok = data.MoveRelative("Signals");
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
-        }
-        for (i = 0u; (i < NI6259ADC_CHANNELS) && (ok); i++) {
-            if (data.MoveRelative(data.GetChildName(i))) {
-                StreamString range;
-                if (data.Read("InputRange", range)) {
-                    if (range == "10V") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 1u;
-                    }
-                    else if (range == "5V") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 2u;
-                    }
-                    else if (range == "2V") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 3u;
-                    }
-                    else if (range == "1V") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 4u;
-                    }
-                    else if (range == "500mV") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 5u;
-                    }
-                    else if (range == "200mV") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 6u;
-                    }
-                    else if (range == "100mV") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 7u;
-                    }
-                    else {
-                        ok = false;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputRange.");
-                    }
-                }
-                StreamString polarity;
-                if (data.Read("InputPolarity", polarity)) {
-                    if (polarity == "Unipolar") {
-                        inputPolarity[NI6259ADC_HEADER_SIZE + i] = AI_POLARITY_UNIPOLAR;
-                    }
-                    else if (polarity == "Bipolar") {
-                        inputPolarity[NI6259ADC_HEADER_SIZE + i] = AI_POLARITY_BIPOLAR;
-                    }
-                    else {
-                        ok = false;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputPolarity.");
-                    }
-                }
-                StreamString mode;
-                if (data.Read("InputMode", mode)) {
-                    if (mode == "Differential") {
-                        inputMode[NI6259ADC_HEADER_SIZE + i] = AI_CHANNEL_TYPE_DIFFERENTIAL;
-                    }
-                    else if (polarity == "NRSE") {
-                        inputMode[NI6259ADC_HEADER_SIZE + i] = AI_CHANNEL_TYPE_NRSE;
-                    }
-                    else if (polarity == "RSE") {
-                        inputMode[NI6259ADC_HEADER_SIZE + i] = AI_CHANNEL_TYPE_RSE;
-                    }
-                    else {
-                        ok = false;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputMode.");
-                    }
-                }
-                if (ok) {
-                    ok = data.MoveToAncestor(1u);
-                }
-            }
-        }
-    }
-    if (ok) {
-        ok = data.MoveToAncestor(1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the parent section");
-        }
-    }
     StreamString fullDeviceName;
     //Configure the board
     if (ok) {
@@ -563,7 +566,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     }
     pxi6259_ai_conf_t adcConfiguration = pxi6259_create_ai_conf();
     for (i = 0u; (i < NI6259ADC_CHANNELS) && (ok); i++) {
-        ok = (pxi6259_add_ai_channel(&adcConfiguration, i, inputPolarity[i], inputRange[i], inputMode[i], 0) > 0);
+        ok = (pxi6259_add_ai_channel(&adcConfiguration, i, inputPolarity[i], inputRange[i], inputMode[i], 0) == 0);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", i, fullDeviceName)
         }
@@ -571,14 +574,14 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         if (samplingFrequency != 0u) {
             int32 divisions = static_cast<int32>(20000000 / frequency + 0.5f);
-            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, divisions, delayDivisor, clockSource, clockPolarity) > 0);
+            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, divisions, delayDivisor, clockSource, clockPolarity) == 0);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the clock for device %s", fullDeviceName)
         }
     }
     if (ok) {
-        ok = (pxi6259_load_ai_conf(boardFileDescriptor, &adcConfiguration) > 0);
+        ok = (pxi6259_load_ai_conf(boardFileDescriptor, &adcConfiguration) == 0);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName)
         }
@@ -623,7 +626,7 @@ ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
             uint32 readSamples = 0u;
             while ((readSamples < numberOfSamples) && (keepRunning)) {
                 int32 currentSamples = pxi6259_read_ai(channelsFileDescriptors[i], &channelsMemory[i][readSamples], numberOfSamples - readSamples);
-                if (currentSamples > 0) {
+                if (currentSamples == 0) {
                     readSamples += currentSamples;
                 }
             }

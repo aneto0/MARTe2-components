@@ -44,6 +44,9 @@ TEST(NI6259ADCGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-
+TEST(NI6259ADCGTest,TestIntegrated) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestIntegrated());
+}
 
 	

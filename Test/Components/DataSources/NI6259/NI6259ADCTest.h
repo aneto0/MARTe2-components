@@ -46,6 +46,11 @@ public:
      * @brief Tests the constructor.
      */
     bool TestConstructor();
+
+    /**
+     * @brief Tests the NI6259 integrated in an application
+     */
+    bool TestIntegrated();
 };
 
 
