@@ -20,26 +20,38 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
-#
 #############################################################
+ifdef CODAC_ROOT
+OBJSX=NI6259ADC.x
+else
+OBJSX=NI6259.x
+@echo 'NI6259 only supported in CCS machines. An empty library will be generated. Skipping...'
+endif
 
-SPB=  LinuxTimer.x LoggerDataSource.x NI6259.x
-		
-PACKAGE=Components
-ROOT_DIR=../../..
+PACKAGE=Components/DataSources
+ROOT_DIR=../../../../
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259Test$(LIBEXT)
+INCLUDES += -I.
+INCLUDES += -I/opt/codac-5.1/include/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
-all: $(OBJS) $(SUBPROJ) \
-                $(BUILD_DIR)/DataSourcesTests$(LIBEXT)
+all: $(OBJS)    \
+    $(BUILD_DIR)/NI6259$(LIBEXT) \
+    $(BUILD_DIR)/NI6259$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+

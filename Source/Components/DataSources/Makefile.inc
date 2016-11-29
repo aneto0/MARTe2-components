@@ -24,7 +24,7 @@
 
 OBJSX= 
 
-SPB    = LinuxTimer.x LoggerDataSource.x
+SPB    = LinuxTimer.x LoggerDataSource.x NI6259.x
 
 PACKAGE=Components
 ROOT_DIR=../../..
@@ -34,6 +34,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259$(LIBEXT)
 
 all: $(OBJS)  $(SUBPROJ)  \
     $(BUILD_DIR)/DataSources$(LIBEXT) \
