@@ -108,9 +108,9 @@ public:
 
 LoggerBrokerTestScheduler    ();
 
-    virtual void StartExecution();
+    virtual MARTe::ErrorManagement::ErrorType StartNextStateExecution();
 
-    virtual void StopExecution();
+    virtual MARTe::ErrorManagement::ErrorType StopCurrentStateExecution();
 
     void ExecuteThreadCycle(MARTe::uint32 threadId);
 
@@ -127,7 +127,8 @@ LoggerBrokerTestScheduler::LoggerBrokerTestScheduler() :
         MARTe::GAMSchedulerI() {
     scheduledStates = NULL_PTR(MARTe::ScheduledState * const *);
 }
-void LoggerBrokerTestScheduler::StartExecution() {
+MARTe::ErrorManagement::ErrorType LoggerBrokerTestScheduler::StartNextStateExecution() {
+    return MARTe::ErrorManagement::NoError;
 }
 
 bool LoggerBrokerTestScheduler::ConfigureScheduler() {
@@ -144,7 +145,8 @@ void LoggerBrokerTestScheduler::ExecuteThreadCycle(MARTe::uint32 threadId) {
                        scheduledStates[MARTe::RealTimeApplication::GetIndex()]->threads[threadId].numberOfExecutables);
 
 }
-void LoggerBrokerTestScheduler::StopExecution() {
+MARTe::ErrorManagement::ErrorType LoggerBrokerTestScheduler::StopCurrentStateExecution() {
+    return MARTe::ErrorManagement::NoError;
 }
 
 void LoggerBrokerTestScheduler::CustomPrepareNextState() {
@@ -250,7 +252,7 @@ bool LoggerBrokerTest::TestInit() {
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ok) {
-        god->CleanUp();
+        god->Purge();
         ok = god->Initialise(cdb);
     }
     ReferenceT<RealTimeApplication> application;
@@ -266,7 +268,7 @@ bool LoggerBrokerTest::TestInit() {
     if (ok) {
         scheduler->PrepareNextState("", "State1");
 
-        application->StartExecution();
+        application->StartNextStateExecution();
 
         lastError = "";
         ErrorManagement::ErrorProcessFunctionType currentErrorMessageProcessFunction = MARTe::ErrorManagement::errorMessageProcessFunction;
@@ -279,7 +281,7 @@ bool LoggerBrokerTest::TestInit() {
     }
 
     REPORT_ERROR(ErrorManagement::Information, lastError.Buffer());
-    god->CleanUp();
+    god->Purge();
     if (ok) {
         ok = (lastError == "Signal1 [0:0]:1 Signal2 [1:1]:{ 2 }  Signal3 [1:2]:{ 2 3 }  Signal3 [3:5]:{ 4 5 6 }  Signal4 [0:3]:{ { 1 2 3 4 } }  Signal5 [0:1]:{ 1 2 } ");
     }

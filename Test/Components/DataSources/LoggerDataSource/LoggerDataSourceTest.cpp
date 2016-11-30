@@ -181,7 +181,7 @@ bool LoggerDataSourceTest::TestGetOutputBrokers() {
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ok) {
-        god->CleanUp();
+        god->Purge();
         ok = god->Initialise(cdb);
     }
     ReferenceT<RealTimeApplication> application;
@@ -192,7 +192,7 @@ bool LoggerDataSourceTest::TestGetOutputBrokers() {
     if (ok) {
         ok = application->ConfigureApplication();
     }
-    god->CleanUp();
+    god->Purge();
     return ok;
 }
 

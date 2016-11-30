@@ -53,6 +53,7 @@ LinuxTimer::LinuxTimer() :
     counterAndTimer[0] = 0u;
     counterAndTimer[1] = 0u;
     sleepNature = Busy;
+    synchronising = false;
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
@@ -201,6 +202,7 @@ const char8* LinuxTimer::GetBrokerName(StructuredDataI& data,
 
         if (frequency > 0.F) {
             brokerName = "MemoryMapSynchronisedInputBroker";
+            synchronising = true;
         }
         else {
             brokerName = "MemoryMapInputBroker";
@@ -219,12 +221,13 @@ bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers,
     uint32 functionIdx = 0u;
     bool ok = GetFunctionIndex(functionIdx, functionName);
 
-    if (synchronisingFunctionIdx == functionIdx) {
+    if ((synchronising) && (synchronisingFunctionIdx == functionIdx)) {
         ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");
         if (ok) {
             ok = brokerSync.IsValid();
         }
         if (ok) {
+            //This call will only add the Synchronous signal (given that GetBrokerName returned MemoryMapSynchronisedInputBroker at most for one signal)
             ok = brokerSync->Init(InputSignals, *this, functionName, gamMemPtr);
         }
         if (ok) {
@@ -234,6 +237,7 @@ bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers,
         if (ok) {
             ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunctionSignals);
         }
+        //Must also add the signals which are not synchronous but that belong to the same GAM...
         if (ok) {
             if (nOfFunctionSignals > 1u) {
                 ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
@@ -309,7 +313,7 @@ ErrorManagement::ErrorType LinuxTimer::Execute(const ExecutionInfo& info) {
     }
     lastTimeTicks = HighResolutionTimer::Counter();
 
-    ErrorManagement::ErrorType err = synchSem.Post();
+    ErrorManagement::ErrorType err = !synchSem.Post();
     counterAndTimer[0]++;
     counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTime;
 

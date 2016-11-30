@@ -233,6 +233,10 @@ private:
      */
     uint32 synchronisingFunctionIdx;
 
+    /**
+     * True if this a synchronising data source
+     */
+    bool synchronising;
 };
 }
 

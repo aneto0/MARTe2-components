@@ -94,7 +94,7 @@ bool TestIntegratedInApplication(const MARTe::char8 * const config,
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ok) {
-        god->CleanUp();
+        god->Purge();
         ok = god->Initialise(cdb);
     }
     ReferenceT<RealTimeApplication> application;
@@ -109,7 +109,7 @@ bool TestIntegratedInApplication(const MARTe::char8 * const config,
         ok = application->PrepareNextState("State1");
     }
     if (ok) {
-        application->StartExecution();
+        application->StartNextStateExecution();
     }
 
     ReferenceT<LinuxTimer> linuxTimer = application->Find("Data.Timer");
@@ -143,10 +143,10 @@ bool TestIntegratedInApplication(const MARTe::char8 * const config,
     }
 
     if (ok) {
-        application->StopExecution();
+        application->StopCurrentStateExecution();
     }
 
-    god->CleanUp();
+    god->Purge();
     return ok;
 }
 
@@ -781,7 +781,7 @@ bool LinuxTimerTest::TestPrepareNextState() {
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ok) {
-        god->CleanUp();
+        god->Purge();
         ok = god->Initialise(cdb);
     }
     ReferenceT<RealTimeApplication> application;
@@ -796,7 +796,7 @@ bool LinuxTimerTest::TestPrepareNextState() {
         ok = application->PrepareNextState("State1");
     }
     if (ok) {
-        application->StartExecution();
+        application->StartNextStateExecution();
     }
 
     ReferenceT<LinuxTimer> linuxTimer = application->Find("Data.Timer");
@@ -824,7 +824,7 @@ bool LinuxTimerTest::TestPrepareNextState() {
     Sleep::MSec(1000);
     uint32 counterBefore = (*counter);
     uint32 timerBefore = (*timer);
-    application->StopExecution();
+    application->StopCurrentStateExecution();
 
     if (ok) {
         ok = (counterBefore > 1000) && (timerBefore > 1000000);
@@ -832,13 +832,13 @@ bool LinuxTimerTest::TestPrepareNextState() {
     if (ok) {
         ok = application->PrepareNextState("State1");
     }
-    application->StartExecution();
+    application->StartNextStateExecution();
     if (ok) {
         ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
     }
-    application->StopExecution();
+    application->StopCurrentStateExecution();
 
-    god->CleanUp();
+    god->Purge();
     return ok;
 }
 

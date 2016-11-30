@@ -157,7 +157,7 @@ bool TestIntegratedInApplication(const MARTe::char8 * const config,
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ok) {
-        god->CleanUp();
+        god->Purge();
         ok = god->Initialise(cdb);
     }
     ReferenceT<RealTimeApplication> application;
@@ -170,7 +170,7 @@ bool TestIntegratedInApplication(const MARTe::char8 * const config,
     }
 
     if (destroy) {
-        god->CleanUp();
+        god->Purge();
     }
     return ok;
 }
@@ -807,7 +807,7 @@ bool BufferGAMTest::TestExecute() {
             ok = (outMem[n] == (n * n + 1));
         }
     }
-    god->CleanUp();
+    god->Purge();
     return ok;
 
 }
