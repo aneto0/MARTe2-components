@@ -123,6 +123,8 @@ bool NI6259ADCTest::TestIntegrated() {
             "                   InputRange = 10"
             "                   Type = float32"
             "                   ChannelId = 0"
+            "                   InputPolarity = Bipolar"
+            "                   InputMode = RSE"
             "                }"
             "                ADC1_0 = {"
             "                   Type = float32"

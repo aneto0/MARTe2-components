@@ -452,10 +452,10 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
                             if (mode == "Differential") {
                                 inputMode[channelId] = AI_CHANNEL_TYPE_DIFFERENTIAL;
                             }
-                            else if (polarity == "NRSE") {
+                            else if (mode == "NRSE") {
                                 inputMode[channelId] = AI_CHANNEL_TYPE_NRSE;
                             }
-                            else if (polarity == "RSE") {
+                            else if (mode == "RSE") {
                                 inputMode[channelId] = AI_CHANNEL_TYPE_RSE;
                             }
                             else {
