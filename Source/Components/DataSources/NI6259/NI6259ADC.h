@@ -56,7 +56,7 @@
 
 namespace MARTe {
 //Number of ADC channels
-const uint32 NI6259ADC_CHANNELS = 32u;
+const uint32 NI6259ADC_MAX_CHANNELS = 32u;
 //Counter and timer
 const uint32 NI6259ADC_HEADER_SIZE = 2u;
 /**
@@ -68,7 +68,7 @@ public:
     /**
      * @brief TODO
      */
-    NI6259ADC();
+NI6259ADC    ();
 
     /**
      * @brief TODO
@@ -149,7 +149,6 @@ public:
      */
     virtual bool Initialise(StructuredDataI & data);
 
-
     /**
      * @brief Verifies that 32, and only 32, signal are set with the correct type.
      * @details TODO
@@ -207,17 +206,17 @@ private:
     /**
      * The board individual channel gains
      */
-    uint32 inputRange[NI6259ADC_CHANNELS];
+    uint32 inputRange[NI6259ADC_MAX_CHANNELS];
 
     /**
      * The board individual channel polarities
      */
-    ai_polarity_t inputPolarity[NI6259ADC_CHANNELS];
+    ai_polarity_t inputPolarity[NI6259ADC_MAX_CHANNELS];
 
     /**
      * The board individual channel modes (differential, ...)
      */
-    ai_channel_type_t inputMode[NI6259ADC_CHANNELS];
+    ai_channel_type_t inputMode[NI6259ADC_MAX_CHANNELS];
 
     /**
      * The ADC clock source;
@@ -242,12 +241,22 @@ private:
     /**
      * The channel file descriptors
      */
-    int32 channelsFileDescriptors[NI6259ADC_CHANNELS];
+    int32 channelsFileDescriptors[NI6259ADC_MAX_CHANNELS];
 
     /**
      * The signal memory
      */
-    float32 *channelsMemory[NI6259ADC_CHANNELS];
+    float32 *channelsMemory[NI6259ADC_MAX_CHANNELS];
+
+    /**
+     * The ADCs that are enabled
+     */
+    bool adcEnabled[NI6259ADC_MAX_CHANNELS];
+
+    /**
+     * The number of enabled adcs
+     */
+    uint32 numberOfADCsEnabled;
 
     /**
      * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
@@ -258,6 +267,12 @@ private:
      * True while running
      */
     bool keepRunning;
+
+    /**
+     * True if this a synchronising data source
+     */
+    bool synchronising;
+
 };
 }
 

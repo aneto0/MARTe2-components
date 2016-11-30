@@ -55,14 +55,17 @@ NI6259ADC::NI6259ADC() :
     time = 0u;
     delayDivisor = 0u;
     samplingPeriodMicroSeconds = 0u;
+    numberOfADCsEnabled = 0u;
     clockSource = AI_SAMPLE_SELECT_SI_TC;
     clockPolarity = AI_SAMPLE_POLARITY_ACTIVE_HIGH_OR_RISING_EDGE;
     keepRunning = true;
+    synchronising = false;
     uint32 n;
-    for (n = 0u; n < NI6259ADC_CHANNELS; n++) {
+    for (n = 0u; n < NI6259ADC_MAX_CHANNELS; n++) {
         inputRange[n] = 1u;
         inputMode[n] = AI_CHANNEL_TYPE_RSE;
         inputPolarity[n] = AI_POLARITY_UNIPOLAR;
+        adcEnabled[n] = false;
         channelsFileDescriptors[n] = -1;
         channelsMemory[n] = NULL_PTR(float32 *);
     }
@@ -78,15 +81,20 @@ NI6259ADC::~NI6259ADC() {
         }
     }
     uint32 n;
-    for (n = 0u; n < NI6259ADC_CHANNELS; n++) {
+    if (boardFileDescriptor != -1) {
+        if (pxi6259_stop_ai(boardFileDescriptor) < 0) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Could not stop acquisition.");
+        }
+    }
+    for (n = 0u; n < NI6259ADC_MAX_CHANNELS; n++) {
         if (channelsFileDescriptors[n] != -1) {
-            if (pxi6259_stop_ai(channelsFileDescriptors[n]) < 0) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not stop channel acquisition.");
-            }
             close(channelsFileDescriptors[n]);
         }
     }
-    for (n = 0u; n < NI6259ADC_CHANNELS; n++) {
+    if (boardFileDescriptor != -1) {
+        close(boardFileDescriptor);
+    }
+    for (n = 0u; n < NI6259ADC_MAX_CHANNELS; n++) {
         if (channelsMemory[n] != NULL_PTR(float32 *)) {
             delete[] channelsMemory[n];
         }
@@ -102,7 +110,7 @@ uint32 NI6259ADC::GetNumberOfMemoryBuffers() {
 }
 
 bool NI6259ADC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    bool ok = (signalIdx < (NI6259ADC_CHANNELS + NI6259ADC_HEADER_SIZE));
+    bool ok = (signalIdx < (NI6259ADC_MAX_CHANNELS + NI6259ADC_HEADER_SIZE));
     if (ok) {
         if (signalIdx == 0u) {
             signalAddress = reinterpret_cast<void *&>(counter);
@@ -127,6 +135,7 @@ const char8* NI6259ADC::GetBrokerName(StructuredDataI& data, const SignalDirecti
 
         if (frequency > 0.F) {
             brokerName = "MemoryMapSynchronisedInputBroker";
+            synchronising = true;
         }
         else {
             brokerName = "MemoryMapInputBroker";
@@ -143,7 +152,7 @@ bool NI6259ADC::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
     uint32 functionIdx = 0u;
     bool ok = GetFunctionIndex(functionIdx, functionName);
 
-    if (synchronisingFunctionIdx == functionIdx) {
+    if ((synchronising) && (synchronisingFunctionIdx == functionIdx)) {
         ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");
         if (ok) {
             ok = brokerSync.IsValid();
@@ -153,6 +162,23 @@ bool NI6259ADC::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
         }
         if (ok) {
             ok = inputBrokers.Insert(brokerSync);
+        }
+        uint32 nOfFunctionSignals = 0u;
+        if (ok) {
+            ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunctionSignals);
+        }
+        //Must also add the signals which are not synchronous but that belong to the same GAM...
+        if (ok) {
+            if (nOfFunctionSignals > 1u) {
+                ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
+                ok = brokerNotSync.IsValid();
+                if (ok) {
+                    ok = brokerNotSync->Init(InputSignals, *this, functionName, gamMemPtr);
+                }
+                if (ok) {
+                    ok = inputBrokers.Insert(brokerNotSync);
+                }
+            }
         }
     }
     else {
@@ -174,7 +200,10 @@ bool NI6259ADC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
 }
 
 bool NI6259ADC::Synchronise() {
-    ErrorManagement::ErrorType err = synchSem.ResetWait(TTInfiniteWait);
+    ErrorManagement::ErrorType err;
+    if (synchronising) {
+        err = synchSem.ResetWait(TTInfiniteWait);
+    }
     return err.ErrorsCleared();
 }
 
@@ -355,9 +384,6 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockPolarity");
         }
     }
-
-    //TODO Check the number of signals here as well!
-
     //Get individual signal parameters
     uint32 i;
     if (ok) {
@@ -365,68 +391,87 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
-        for (i = 0u; (i < NI6259ADC_CHANNELS) && (ok); i++) {
+        if (ok) {
+            //Do not allow to add signals in run-time
+            ok = data.Write("Locked", 1);
+        }
+        while ((i < NI6259ADC_MAX_CHANNELS) && (ok)) {
             if (data.MoveRelative(data.GetChildName(i))) {
-                StreamString range;
-                if (data.Read("InputRange", range)) {
-                    if (range == "10") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 1u;
+                uint32 channelId;
+                if (data.Read("ChannelId", channelId)) {
+                    ok = (channelId < NI6259ADC_MAX_CHANNELS);
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Invalid ChannelId specified.");
                     }
-                    else if (range == "5") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 2u;
-                    }
-                    else if (range == "2") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 3u;
-                    }
-                    else if (range == "1") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 4u;
-                    }
-                    else if (range == "500") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 5u;
-                    }
-                    else if (range == "200") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 6u;
-                    }
-                    else if (range == "100") {
-                        inputRange[NI6259ADC_HEADER_SIZE + i] = 7u;
-                    }
-                    else {
-                        ok = false;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputRange.");
-                    }
-                }
-                StreamString polarity;
-                if (data.Read("InputPolarity", polarity)) {
-                    if (polarity == "Unipolar") {
-                        inputPolarity[NI6259ADC_HEADER_SIZE + i] = AI_POLARITY_UNIPOLAR;
-                    }
-                    else if (polarity == "Bipolar") {
-                        inputPolarity[NI6259ADC_HEADER_SIZE + i] = AI_POLARITY_BIPOLAR;
-                    }
-                    else {
-                        ok = false;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputPolarity.");
-                    }
-                }
-                StreamString mode;
-                if (data.Read("InputMode", mode)) {
-                    if (mode == "Differential") {
-                        inputMode[NI6259ADC_HEADER_SIZE + i] = AI_CHANNEL_TYPE_DIFFERENTIAL;
-                    }
-                    else if (polarity == "NRSE") {
-                        inputMode[NI6259ADC_HEADER_SIZE + i] = AI_CHANNEL_TYPE_NRSE;
-                    }
-                    else if (polarity == "RSE") {
-                        inputMode[NI6259ADC_HEADER_SIZE + i] = AI_CHANNEL_TYPE_RSE;
-                    }
-                    else {
-                        ok = false;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputMode.");
+                    if (ok) {
+                        adcEnabled[channelId] = true;
+                        float32 range;
+                        numberOfADCsEnabled++;
+                        if (data.Read("InputRange", range)) {
+                            if (range == 10) {
+                                inputRange[channelId] = 1u;
+                            }
+                            else if (range == 5) {
+                                inputRange[channelId] = 2u;
+                            }
+                            else if (range == 2) {
+                                inputRange[channelId] = 3u;
+                            }
+                            else if (range == 1) {
+                                inputRange[channelId] = 4u;
+                            }
+                            else if (range == 0.5) {
+                                inputRange[channelId] = 5u;
+                            }
+                            else if (range == 0.2) {
+                                inputRange[channelId] = 6u;
+                            }
+                            else if (range == 0.1) {
+                                inputRange[channelId] = 7u;
+                            }
+                            else {
+                                ok = false;
+                                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputRange.");
+                            }
+                        }
+                        StreamString polarity;
+                        if (data.Read("InputPolarity", polarity)) {
+                            if (polarity == "Unipolar") {
+                                inputPolarity[channelId] = AI_POLARITY_UNIPOLAR;
+                            }
+                            else if (polarity == "Bipolar") {
+                                inputPolarity[channelId] = AI_POLARITY_BIPOLAR;
+                            }
+                            else {
+                                ok = false;
+                                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputPolarity.");
+                            }
+                        }
+                        StreamString mode;
+                        if (data.Read("InputMode", mode)) {
+                            if (mode == "Differential") {
+                                inputMode[channelId] = AI_CHANNEL_TYPE_DIFFERENTIAL;
+                            }
+                            else if (polarity == "NRSE") {
+                                inputMode[channelId] = AI_CHANNEL_TYPE_NRSE;
+                            }
+                            else if (polarity == "RSE") {
+                                inputMode[channelId] = AI_CHANNEL_TYPE_RSE;
+                            }
+                            else {
+                                ok = false;
+                                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputMode.");
+                            }
+                        }
                     }
                 }
                 if (ok) {
                     ok = data.MoveToAncestor(1u);
                 }
+                i++;
+            }
+            else {
+                break;
             }
         }
     }
@@ -443,10 +488,10 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     uint32 i;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
-        ok = (GetNumberOfSignals() == (NI6259ADC_CHANNELS + NI6259ADC_HEADER_SIZE));
+        ok = (GetNumberOfSignals() > (NI6259ADC_HEADER_SIZE));
     }
     if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Exactly (%d + %d) signals shall be configured", NI6259ADC_CHANNELS, NI6259ADC_HEADER_SIZE)
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Exactly (%d) signals shall be configured (header + 1 ADC)", NI6259ADC_HEADER_SIZE + 1u)
     }
     //The type of counter shall be unsigned int32 or uint32
     if (ok) {
@@ -469,7 +514,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        for (i = 0u; (i < NI6259ADC_CHANNELS) && (ok); i++) {
+        for (i = 0u; (i < numberOfADCsEnabled) && (ok); i++) {
             ok = (GetSignalType(NI6259ADC_HEADER_SIZE + i) == Float32Bit);
         }
         if (!ok) {
@@ -479,17 +524,17 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
 
     //Check that if there is a synchronisation channel (i.e. that this board will serve a time source)
     uint32 nOfFunctions = GetNumberOfFunctions();
-    float32 frequency = -1.0F;
     bool found = false;
     uint32 functionIdx;
+    float32 cycleFrequency = -1.0F;
     for (functionIdx = 0u; (functionIdx < nOfFunctions) && (ok); functionIdx++) {
         uint32 nOfSignals = 0u;
         ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
 
         if (ok) {
             for (i = 0u; (i < nOfSignals) && (ok) && (!found); i++) {
-                ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, frequency);
-                found = (frequency > 0.F);
+                ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, cycleFrequency);
+                found = (cycleFrequency > 0.F);
                 if (found) {
                     synchronisingFunctionIdx = functionIdx;
                 }
@@ -548,6 +593,14 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
     }
+    if (synchronising) {
+        //numberOfADCsEnabled > 0 as otherwise it would be stopped
+        uint32 singleADCFrequency = samplingFrequency / numberOfADCsEnabled;
+        ok = (singleADCFrequency == (cycleFrequency * numberOfSamples));
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "samplingFrequency/numberOfADCsEnabled (%u) is not equal to cycleFrequency * numberOfSamples (%u)", (samplingFrequency / numberOfADCsEnabled), (cycleFrequency * numberOfSamples))
+        }
+    }
 
     StreamString fullDeviceName;
     //Configure the board
@@ -565,19 +618,39 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     pxi6259_ai_conf_t adcConfiguration = pxi6259_create_ai_conf();
-    for (i = 0u; (i < NI6259ADC_CHANNELS) && (ok); i++) {
-        ok = (pxi6259_add_ai_channel(&adcConfiguration, i, inputPolarity[i], inputRange[i], inputMode[i], 0) == 0);
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", i, fullDeviceName)
+    for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
+        if (adcEnabled[i]) {
+            ok = (pxi6259_add_ai_channel(&adcConfiguration, i, inputPolarity[i], inputRange[i], inputMode[i], 0) == 0);
+            if (!ok) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", i, fullDeviceName)
+            }
         }
     }
     if (ok) {
         if (samplingFrequency != 0u) {
-            int32 divisions = static_cast<int32>(20000000 / frequency + 0.5f);
+            int32 divisions = static_cast<int32>(20000000 / samplingFrequency + 0.5f);
             ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, divisions, delayDivisor, clockSource, clockPolarity) == 0);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the clock for device %s", fullDeviceName)
+        }
+    }
+    if (ok) {
+        ok = (pxi6259_set_ai_attribute(&adcConfiguration, AI_CONTINUOUS, 1) == 0);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set AI_CONTINUOUS for device %s", fullDeviceName)
+        }
+    }
+    if (ok) {
+        ok = (pxi6259_set_ai_attribute(&adcConfiguration, AI_BLOCKING_EXACT, 0) == 0);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set AI_BLOCKING_EXACT for device %s", fullDeviceName)
+        }
+    }
+    if (ok) {
+        ok = (pxi6259_set_ai_number_of_samples(&adcConfiguration, 0, numberOfSamples, 1) == 0);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName)
         }
     }
     if (ok) {
@@ -588,7 +661,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         //Allocate memory
-        for (i = 0u; (i < NI6259ADC_CHANNELS) && (ok); i++) {
+        for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
             channelsMemory[i] = new float32[numberOfSamples];
         }
     }
@@ -596,22 +669,29 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         //Required to wait for devices to be available in /dev!
         Sleep::Sec(1.0);
-        for (i = 0u; (i < NI6259ADC_CHANNELS) && (ok); i++) {
-            StreamString channelDeviceName;
-            ok = channelDeviceName.Printf("%s.%d", fullDeviceName.Buffer(), i);
-            if (ok) {
-                ok = channelDeviceName.Seek(0ULL);
-            }
-            if (ok) {
-                channelsFileDescriptors[i] = open(channelDeviceName.Buffer(), O_RDWR);
-                ok = (channelsFileDescriptors[i] > -1);
-                if (!ok) {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName)
+        for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
+            if (adcEnabled[i]) {
+                StreamString channelDeviceName;
+                ok = channelDeviceName.Printf("%s.%d", fullDeviceName.Buffer(), i);
+                if (ok) {
+                    ok = channelDeviceName.Seek(0ULL);
+                }
+                if (ok) {
+                    channelsFileDescriptors[i] = open(channelDeviceName.Buffer(), O_RDWR);
+                    ok = (channelsFileDescriptors[i] > -1);
+                    if (!ok) {
+                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName)
+                    }
                 }
             }
         }
     }
-
+    if (ok) {
+        ok = (pxi6259_start_ai(boardFileDescriptor) == 0);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName)
+        }
+    }
     return ok;
 }
 
@@ -621,18 +701,28 @@ ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
         keepRunning = false;
     }
     else {
-        uint32 i;
-        for (i = 0u; (i < NI6259ADC_CHANNELS) && (keepRunning); i++) {
-            uint32 readSamples = 0u;
-            while ((readSamples < numberOfSamples) && (keepRunning)) {
-                int32 currentSamples = pxi6259_read_ai(channelsFileDescriptors[i], &channelsMemory[i][readSamples], numberOfSamples - readSamples);
-                if (currentSamples == 0) {
-                    readSamples += currentSamples;
+        uint32 i = 0u;
+        for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (keepRunning); i++) {
+            if (adcEnabled[i]) {
+                uint32 readSamples = 0u;
+                while ((readSamples < numberOfSamples) && (keepRunning)) {
+                    int32 currentSamples = pxi6259_read_ai(channelsFileDescriptors[i], &channelsMemory[i][readSamples], numberOfSamples - readSamples);
+                    if (currentSamples > 0) {
+                        readSamples += currentSamples;
+                        //Needs to sleep while waiting for data, otherwise it will get stuck on pxi6259_read_ai
+                        if (i == 0u) {
+                            Sleep::Sec(100e-6);
+                        }
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Failed reading from ADC");
+                    }
                 }
             }
         }
-
-        err = synchSem.Post();
+        if (synchronising) {
+            err = !synchSem.Post();
+        }
         counter++;
         time = counter * numberOfSamples * samplingPeriodMicroSeconds;
     }
