@@ -56,6 +56,10 @@ public:
 
     }
 
+    virtual bool Execute() {
+        return true;
+    }
+
     void *GetInputSignalsMemory() {
         return BufferGAM::GetInputSignalsMemory();
     }
