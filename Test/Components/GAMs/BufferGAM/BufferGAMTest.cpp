@@ -78,7 +78,7 @@ class BufferGAMDataSourceHelper: public MARTe::DataSourceI {
 public:
     CLASS_REGISTER_DECLARATION()
 
-    BufferGAMDataSourceHelper() : MARTe::DataSourceI() {
+BufferGAMDataSourceHelper    () : MARTe::DataSourceI() {
     }
 
     virtual ~BufferGAMDataSourceHelper() {
@@ -145,10 +145,10 @@ public:
 CLASS_REGISTER(BufferGAMDataSourceHelper, "1.0");
 
 /**
- * Starts a MARTe application that uses this driver instance.
+ * Starts a MARTe application that uses this GAM instance.
  */
-bool TestIntegratedInApplication(const MARTe::char8 * const config,
-                                 bool destroy = true) {
+static bool TestIntegratedInApplication(const MARTe::char8 * const config,
+                                        bool destroy = true) {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;

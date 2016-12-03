@@ -36,7 +36,7 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * @brief Tests the BufferGAMTest public methods.
+ * @brief Tests the BufferGAM public methods.
  */
 class BufferGAMTest {
 public:

@@ -44,6 +44,10 @@ BufferGAM::BufferGAM() :
     totalSignalsByteSize = 0u;
 }
 
+BufferGAM::~BufferGAM() {
+
+}
+
 bool BufferGAM::Setup() {
     bool ret = (GetNumberOfInputSignals() == GetNumberOfOutputSignals());
     if (!ret) {

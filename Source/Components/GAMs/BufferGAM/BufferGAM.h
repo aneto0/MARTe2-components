@@ -77,6 +77,11 @@ public:
     BufferGAM();
 
     /**
+     * @brief Destructor. NOOP.
+     */
+    virtual ~BufferGAM();
+
+    /**
      * @brief Verifies correctness of the GAM configuration.
      * @details Checks that the number of input signals is equal to the number of output signals and that,
      * for each signal, the same type is used.
