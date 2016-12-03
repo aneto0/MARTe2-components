@@ -25,6 +25,9 @@
 OBJSX= 
 
 SPB=BufferGAM.x
+ifdef EFDA_MARTe_DIR
+SPB+=BaseLib2GAM.x
+endif
 
 PACKAGE=Components
 ROOT_DIR=../../..
@@ -34,6 +37,9 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 
 LIBRARIES_STATIC=$(BUILD_DIR)/BufferGAM/BufferGAM$(LIBEXT)
+ifdef EFDA_MARTe_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAM$(LIBEXT)
+endif
 
 all: $(OBJS)  $(SUBPROJ)  \
     $(BUILD_DIR)/GAMs$(LIBEXT) \

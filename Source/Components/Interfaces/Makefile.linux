@@ -20,31 +20,8 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
-#
 #############################################################
+TARGET=linux
 
-SPB=  BufferGAM.x
+include Makefile.inc
 
-ifdef EFDA_MARTe_DIR
-SPB += BaseLib2GAM.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-LIBRARIES_STATIC+=$(BUILD_DIR)/BufferGAM/BufferGAMTest$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAMTest$(LIBEXT)
-endif
-
-all: $(OBJS) $(SUBPROJ) \
-                $(BUILD_DIR)/GAMsTests$(LIBEXT)
-	echo  $(OBJS)
-
-include depends.$(TARGET)
-
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)

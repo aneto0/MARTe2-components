@@ -20,14 +20,12 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
-#
 #############################################################
 
-SPB=  BufferGAM.x
+OBJSX= 
 
 ifdef EFDA_MARTe_DIR
-SPB += BaseLib2GAM.x
+SPB+=BaseLib2Wrapper.x
 endif
 
 PACKAGE=Components
@@ -36,15 +34,15 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC+=$(BUILD_DIR)/BufferGAM/BufferGAMTest$(LIBEXT)
 ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2Wrapper$(LIBEXT)
 endif
 
-all: $(OBJS) $(SUBPROJ) \
-                $(BUILD_DIR)/GAMsTests$(LIBEXT)
+all: $(OBJS)  $(SUBPROJ)  \
+    $(BUILD_DIR)/Interfaces$(LIBEXT) \
+    $(BUILD_DIR)/Interfaces$(DLLEXT)
 	echo  $(OBJS)
 
-include depends.$(TARGET)
-
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+
+
