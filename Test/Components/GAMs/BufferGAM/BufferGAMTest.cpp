@@ -56,10 +56,6 @@ public:
 
     }
 
-    virtual bool Execute() {
-        return true;
-    }
-
     void *GetInputSignalsMemory() {
         return BufferGAM::GetInputSignalsMemory();
     }
@@ -741,6 +737,96 @@ bool BufferGAMTest::TestExecute() {
             "                   DataSource = Drv1"
             "                   Type = float32"
             "                   NumberOfElements = 10"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = DDB1"
+            "                   Type = float32"
+            "                   NumberOfElements = 10"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "        +Drv1 = {"
+            "            Class = BufferGAMDataSourceHelper"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAM1}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+    bool ok = TestIntegratedInApplication(config1, false);
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ReferenceT<BufferGAMHelper> gam = god->Find("Test.Functions.GAM1");
+    if (ok) {
+        ok = gam.IsValid();
+    }
+    if (ok) {
+        uint32 *inMem = static_cast<uint32 *>(gam->GetInputSignalsMemory());
+        uint32 *outMem = static_cast<uint32 *>(gam->GetOutputSignalsMemory());
+        uint32 n;
+        for (n = 0; n < 10; n++) {
+            inMem[n] = (n * n + 1);
+
+        }
+        for (n = 0; n < 10; n++) {
+            outMem[n] = 0;
+        }
+    }
+    if (ok) {
+        ok = gam->Execute();
+    }
+    if (ok) {
+        uint32 *outMem = static_cast<uint32 *>(gam->GetOutputSignalsMemory());
+        uint32 n;
+        for (n = 0; (n < 10) && (ok); n++) {
+            ok = (outMem[n] == (n * n + 1));
+        }
+    }
+    god->Purge();
+    return ok;
+
+}
+
+bool BufferGAMTest::TestExecute_Samples() {
+    using namespace MARTe;
+    const MARTe::char8 * const config1 = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAM1 = {"
+            "            Class = BufferGAMHelper"
+            "            InputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = Drv1"
+            "                   Type = float32"
+            "                   NumberOfElements = 1"
+            "                   Samples = 10"
             "               }"
             "            }"
             "            OutputSignals = {"

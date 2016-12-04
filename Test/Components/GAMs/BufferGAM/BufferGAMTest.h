@@ -84,6 +84,11 @@ public:
      * @brief Tests the Execute method.
      */
     bool TestExecute();
+
+    /**
+     * @brief Tests the Execute method with samples > 0.
+     */
+    bool TestExecute_Samples();
 };
 
 /*---------------------------------------------------------------------------*/

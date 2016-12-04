@@ -57,23 +57,36 @@ bool BufferGAM::Setup() {
     totalSignalsByteSize = 0u;
     for (n = 0u; (n < GetNumberOfInputSignals()) && (ret); n++) {
         uint32 inByteSize = 0u;
+        uint32 inSamples = 1u;
         uint32 outByteSize = 0u;
+        uint32 outSamples = 1u;
         uint32 idx = n;
         ret = GetSignalByteSize(InputSignals, idx, inByteSize);
         if (ret) {
-            totalSignalsByteSize += inByteSize;
             ret = GetSignalByteSize(OutputSignals, idx, outByteSize);
+        }
+        if (ret) {
+            ret = GetSignalNumberOfSamples(InputSignals, idx, inSamples);
+        }
+        if (ret) {
+            ret = GetSignalNumberOfSamples(OutputSignals, idx, outSamples);
+            inByteSize *= inSamples;
+            outByteSize *= outSamples;
         }
         if (ret) {
             ret = (inByteSize == outByteSize);
             if (!ret) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalByteSize(InputSignals, %d) != GetSignalByteSize(OutputSignals, %d)", idx, idx)
+                REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalByteSize(InputSignals, %d) != GetSignalByteSize(OutputSignals, %d)",
+                                        idx, idx)
             }
+        }
+        if (ret) {
+            totalSignalsByteSize = inByteSize;
         }
 
         TypeDescriptor inType = GetSignalType(InputSignals, idx);
         TypeDescriptor outType = GetSignalType(OutputSignals, idx);
-        if(ret) {
+        if (ret) {
             ret = (inType == outType);
             if (!ret) {
                 REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalType(InputSignals, %d) != GetSignalType(OutputSignals, %d)", idx, idx)

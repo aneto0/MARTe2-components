@@ -83,6 +83,10 @@ TEST(BufferGAMGTest,TestExecute) {
     ASSERT_TRUE(test.TestExecute());
 }
 
+TEST(BufferGAMGTest,TestExecute_Samples) {
+    BufferGAMTest test;
+    ASSERT_TRUE(test.TestExecute_Samples());
+}
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
