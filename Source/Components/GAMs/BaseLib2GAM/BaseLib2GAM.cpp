@@ -51,6 +51,7 @@ BaseLib2GAM::BaseLib2GAM() :
     outputFromGAM = NULL_PTR(void *);
     inputToGAMByteSize = 0u;
     outputFromGAMByteSize = 0u;
+    gamFunctionNumber = 0u;
 }
 
 /*lint -e{1551} -e{1540} the destructor must guarantee that the GAMAdapter is removed from the GlobalObjectDatabase of BaseLib2.
@@ -200,7 +201,7 @@ bool BaseLib2GAM::Execute() {
 }
 
 bool BaseLib2GAM::TranslateSignalName(TypeDescriptor signalType,
-                                      StreamString &signalTypeName) {
+                                      StreamString &signalTypeName) const {
     bool ok = true;
     if (signalType.type == UnsignedInteger) {
         ok = signalTypeName.Printf("uint%u", signalType.numberOfBits);

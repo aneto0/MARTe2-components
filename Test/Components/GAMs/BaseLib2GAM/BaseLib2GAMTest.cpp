@@ -80,15 +80,15 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config,
 
     bool ok = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
 
     if (ok) {
-        god->Purge();
-        ok = god->Initialise(cdb);
+        ord->Purge();
+        ok = ord->Initialise(cdb);
     }
     ReferenceT<RealTimeApplication> application;
     if (ok) {
-        application = god->Find("Test");
+        application = ord->Find("Test");
         ok = application.IsValid();
     }
     if (ok) {
@@ -96,9 +96,6 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config,
     }
     if (ok) {
         ok = application->PrepareNextState(firstState);
-    }
-    if (ok) {
-        ok = application->StartNextStateExecution();
     }
 
     return ok;
@@ -150,6 +147,693 @@ CLASS_REGISTER(BaseLib2GAMTestScheduler, "1.0")
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+bool BaseLib2GAMTest::TestInitialise() {
+    using namespace MARTe;
+    const char8 * const config = ""
+            "+GAM1 = {"
+            "    Class = BaseLib2GAMHelper"
+            "    InputSignals = {"
+            "        Signal1 = {"
+            "            DataSource = DDB1"
+            "            Type = float32"
+            "            NumberOfElements = 1"
+            "            Default = 2.5"
+            "        }"
+            "    }"
+            "    OutputSignals = {"
+            "        Signal2 = {"
+            "            DataSource = DDB1"
+            "            Type = int32"
+            "            NumberOfElements = 1"
+            "        }"
+            "    }"
+            "    GAMName = \"TypeConvert1\""
+            "    GAMFunctionNumber = 0x00010000"
+            "    BaseLib2Config = \""
+            "        +TypeConvert1 = {"
+            "            Class = TypeConvertGAM"
+            "            InputSignals = {"
+            "                Signal1 = {"
+            "                    SignalName = Signal1"
+            "                    SignalType = float"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                Signal2 = {"
+            "                    SignalName = Signal2"
+            "                    SignalType = int32"
+            "                }"
+            "            }"
+            "        }"
+            "    \""
+            "}";
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        ord->Purge();
+        ok = ord->Initialise(cdb);
+    }
+    ord->Purge();
+    return ok;
+}
+
+bool BaseLib2GAMTest::TestInitialise_False_NoGAMName() {
+    using namespace MARTe;
+    const char8 * const config = ""
+            "+GAM1 = {"
+            "    Class = BaseLib2GAMHelper"
+            "    InputSignals = {"
+            "        Signal1 = {"
+            "            DataSource = DDB1"
+            "            Type = float32"
+            "            NumberOfElements = 1"
+            "            Default = 2.5"
+            "        }"
+            "    }"
+            "    OutputSignals = {"
+            "        Signal2 = {"
+            "            DataSource = DDB1"
+            "            Type = int32"
+            "            NumberOfElements = 1"
+            "        }"
+            "    }"
+            "    GAMFunctionNumber = 0x00010000"
+            "    BaseLib2Config = \""
+            "        +TypeConvert1 = {"
+            "            Class = TypeConvertGAM"
+            "            InputSignals = {"
+            "                Signal1 = {"
+            "                    SignalName = Signal1"
+            "                    SignalType = float"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                Signal2 = {"
+            "                    SignalName = Signal2"
+            "                    SignalType = int32"
+            "                }"
+            "            }"
+            "        }"
+            "    \""
+            "}";
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        ord->Purge();
+        ok = ord->Initialise(cdb);
+    }
+    ord->Purge();
+    return !ok;
+}
+
+bool BaseLib2GAMTest::TestInitialise_False_WrongGAMName() {
+    using namespace MARTe;
+    const char8 * const config = ""
+            "+GAM1 = {"
+            "    Class = BaseLib2GAMHelper"
+            "    InputSignals = {"
+            "        Signal1 = {"
+            "            DataSource = DDB1"
+            "            Type = float32"
+            "            NumberOfElements = 1"
+            "            Default = 2.5"
+            "        }"
+            "    }"
+            "    OutputSignals = {"
+            "        Signal2 = {"
+            "            DataSource = DDB1"
+            "            Type = int32"
+            "            NumberOfElements = 1"
+            "        }"
+            "    }"
+            "    GAMName = \"TypeConvert11\""
+            "    GAMFunctionNumber = 0x00010000"
+            "    BaseLib2Config = \""
+            "        +TypeConvert1 = {"
+            "            Class = TypeConvertGAM"
+            "            InputSignals = {"
+            "                Signal1 = {"
+            "                    SignalName = Signal1"
+            "                    SignalType = float"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                Signal2 = {"
+            "                    SignalName = Signal2"
+            "                    SignalType = int32"
+            "                }"
+            "            }"
+            "        }"
+            "    \""
+            "}";
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        ord->Purge();
+        ok = ord->Initialise(cdb);
+    }
+    ord->Purge();
+    return !ok;
+}
+
+bool BaseLib2GAMTest::TestInitialise_False_NoGAMFunctionNumber() {
+    using namespace MARTe;
+    const char8 * const config = ""
+            "+GAM1 = {"
+            "    Class = BaseLib2GAMHelper"
+            "    InputSignals = {"
+            "        Signal1 = {"
+            "            DataSource = DDB1"
+            "            Type = float32"
+            "            NumberOfElements = 1"
+            "            Default = 2.5"
+            "        }"
+            "    }"
+            "    OutputSignals = {"
+            "        Signal2 = {"
+            "            DataSource = DDB1"
+            "            Type = int32"
+            "            NumberOfElements = 1"
+            "        }"
+            "    }"
+            "    GAMName = \"TypeConvert1\""
+            "    BaseLib2Config = \""
+            "        +TypeConvert1 = {"
+            "            Class = TypeConvertGAM"
+            "            InputSignals = {"
+            "                Signal1 = {"
+            "                    SignalName = Signal1"
+            "                    SignalType = float"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                Signal2 = {"
+            "                    SignalName = Signal2"
+            "                    SignalType = int32"
+            "                }"
+            "            }"
+            "        }"
+            "    \""
+            "}";
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        ord->Purge();
+        ok = ord->Initialise(cdb);
+    }
+    ord->Purge();
+    return !ok;
+}
+
+bool BaseLib2GAMTest::TestInitialise_False_NoBaseLib2Config() {
+    using namespace MARTe;
+    const char8 * const config = ""
+            "+GAM1 = {"
+            "    Class = BaseLib2GAMHelper"
+            "    InputSignals = {"
+            "        Signal1 = {"
+            "            DataSource = DDB1"
+            "            Type = float32"
+            "            NumberOfElements = 1"
+            "            Default = 2.5"
+            "        }"
+            "    }"
+            "    OutputSignals = {"
+            "        Signal2 = {"
+            "            DataSource = DDB1"
+            "            Type = int32"
+            "            NumberOfElements = 1"
+            "        }"
+            "    }"
+            "    GAMName = \"TypeConvert1\""
+            "    GAMFunctionNumber = 0x00010000"
+            "    BaseLib2Configs = \""
+            "        +TypeConvert1 = {"
+            "            Class = TypeConvertGAM"
+            "            InputSignals = {"
+            "                Signal1 = {"
+            "                    SignalName = Signal1"
+            "                    SignalType = float"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                Signal2 = {"
+            "                    SignalName = Signal2"
+            "                    SignalType = int32"
+            "                }"
+            "            }"
+            "        }"
+            "    \""
+            "}";
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        ord->Purge();
+        ok = ord->Initialise(cdb);
+    }
+    ord->Purge();
+    return !ok;
+}
+
+bool BaseLib2GAMTest::TestInitialise_False_WrongBaseLib2Config() {
+    using namespace MARTe;
+    const char8 * const config = ""
+            "+GAM1 = {"
+            "    Class = BaseLib2GAMHelper"
+            "    InputSignals = {"
+            "        Signal1 = {"
+            "            DataSource = DDB1"
+            "            Type = float32"
+            "            NumberOfElements = 1"
+            "            Default = 2.5"
+            "        }"
+            "    }"
+            "    OutputSignals = {"
+            "        Signal2 = {"
+            "            DataSource = DDB1"
+            "            Type = int32"
+            "            NumberOfElements = 1"
+            "        }"
+            "    }"
+            "    GAMName = \"TypeConvert1\""
+            "    GAMFunctionNumber = 0x00010000"
+            "    BaseLib2Config = \""
+            "        +TypeConvert1 = {"
+            "            Classs = TypeConvertGAM"
+            "            InputSignals = {"
+            "                Signal1 = {"
+            "                    SignalName = Signal1"
+            "                    SignalType = float"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                Signal2 = {"
+            "                    SignalName = Signal2"
+            "                    SignalType = int32"
+            "                }"
+            "            }"
+            "        }"
+            "    \""
+            "}";
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        ord->Purge();
+        ok = ord->Initialise(cdb);
+    }
+    ord->Purge();
+    return !ok;
+}
+
+bool BaseLib2GAMTest::TestSetup() {
+    using namespace MARTe;
+    const MARTe::char8 * const config1 = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAM1 = {"
+            "            Class = BaseLib2GAMHelper"
+            "            InputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = DDB1"
+            "                   Type = float32"
+            "                   NumberOfElements = 1"
+            "                   Default = 2.5"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               Signal2 = {"
+            "                   DataSource = DDB1"
+            "                   Type = int32"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "            GAMName = \"TypeConvert1\""
+            "            GAMFunctionNumber = 0x00010000"
+            "            BaseLib2Config = \""
+            "                +TypeConvert1 = {"
+            "                    Class = TypeConvertGAM"
+            "                    InputSignals = {"
+            "                        Signal1 = {"
+            "                            SignalName = Signal1"
+            "                            SignalType = float"
+            "                        }"
+            "                    }"
+            "                    OutputSignals = {"
+            "                        Signal2 = {"
+            "                            SignalName = Signal2"
+            "                            SignalType = int32"
+            "                        }"
+            "                    }"
+            "                }"
+            "            \""
+            "        }"
+            "        +GAM2 = {"
+            "            Class = BaseLib2GAMHelper"
+            "            InputSignals = {"
+            "               Signal2 = {"
+            "                   DataSource = DDB1"
+            "                   Type = int32"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = DDB1"
+            "                   Type = float32"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "            GAMName = \"TypeConvert2\""
+            "            GAMFunctionNumber = 0x00010000"
+            "            BaseLib2Config = \""
+            "                +TypeConvert2 = {"
+            "                    Class = TypeConvertGAM"
+            "                    InputSignals = {"
+            "                        Signal2 = {"
+            "                            SignalName = Signal2"
+            "                            SignalType = int32"
+            "                        }"
+            "                    }"
+            "                    OutputSignals = {"
+            "                        Signal1 = {"
+            "                            SignalName = Signal1"
+            "                            SignalType = float"
+            "                        }"
+            "                    }"
+            "                }"
+            "            \""
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAM1 GAM2}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = BaseLib2GAMTestScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = TestIntegratedInApplication(config1, "State1");
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool BaseLib2GAMTest::TestSetup_InputSignals_Mismatch() {
+    using namespace MARTe;
+    const MARTe::char8 * const config1 = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAM1 = {"
+            "            Class = BaseLib2GAMHelper"
+            "            InputSignals = {"
+            "               Signal3 = {"
+            "                   DataSource = DDB1"
+            "                   Type = float32"
+            "                   NumberOfElements = 1"
+            "                   Default = 2.5"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               Signal2 = {"
+            "                   DataSource = DDB1"
+            "                   Type = int32"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "            GAMName = \"TypeConvert1\""
+            "            GAMFunctionNumber = 0x00010000"
+            "            BaseLib2Config = \""
+            "                +TypeConvert1 = {"
+            "                    Class = TypeConvertGAM"
+            "                    InputSignals = {"
+            "                        Signal1 = {"
+            "                            SignalName = Signal1"
+            "                            SignalType = float"
+            "                        }"
+            "                    }"
+            "                    OutputSignals = {"
+            "                        Signal2 = {"
+            "                            SignalName = Signal2"
+            "                            SignalType = int32"
+            "                        }"
+            "                    }"
+            "                }"
+            "            \""
+            "        }"
+            "        +GAM2 = {"
+            "            Class = BaseLib2GAMHelper"
+            "            InputSignals = {"
+            "               Signal2 = {"
+            "                   DataSource = DDB1"
+            "                   Type = int32"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = DDB1"
+            "                   Type = float32"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "            GAMName = \"TypeConvert2\""
+            "            GAMFunctionNumber = 0x00010000"
+            "            BaseLib2Config = \""
+            "                +TypeConvert2 = {"
+            "                    Class = TypeConvertGAM"
+            "                    InputSignals = {"
+            "                        Signal2 = {"
+            "                            SignalName = Signal2"
+            "                            SignalType = int32"
+            "                        }"
+            "                    }"
+            "                    OutputSignals = {"
+            "                        Signal1 = {"
+            "                            SignalName = Signal1"
+            "                            SignalType = float"
+            "                        }"
+            "                    }"
+            "                }"
+            "            \""
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAM1 GAM2}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = BaseLib2GAMTestScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = TestIntegratedInApplication(config1, "State1");
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return !ok;
+}
+
+bool BaseLib2GAMTest::TestSetup_OutputSignals_Mismatch() {
+    using namespace MARTe;
+    const MARTe::char8 * const config1 = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAM1 = {"
+            "            Class = BaseLib2GAMHelper"
+            "            InputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = DDB1"
+            "                   Type = float32"
+            "                   NumberOfElements = 1"
+            "                   Default = 2.5"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               Signal3 = {"
+            "                   DataSource = DDB1"
+            "                   Type = int32"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "            GAMName = \"TypeConvert1\""
+            "            GAMFunctionNumber = 0x00010000"
+            "            BaseLib2Config = \""
+            "                +TypeConvert1 = {"
+            "                    Class = TypeConvertGAM"
+            "                    InputSignals = {"
+            "                        Signal1 = {"
+            "                            SignalName = Signal1"
+            "                            SignalType = float"
+            "                        }"
+            "                    }"
+            "                    OutputSignals = {"
+            "                        Signal2 = {"
+            "                            SignalName = Signal2"
+            "                            SignalType = int32"
+            "                        }"
+            "                    }"
+            "                }"
+            "            \""
+            "        }"
+            "        +GAM2 = {"
+            "            Class = BaseLib2GAMHelper"
+            "            InputSignals = {"
+            "               Signal2 = {"
+            "                   DataSource = DDB1"
+            "                   Type = int32"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = DDB1"
+            "                   Type = float32"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "            GAMName = \"TypeConvert2\""
+            "            GAMFunctionNumber = 0x00010000"
+            "            BaseLib2Config = \""
+            "                +TypeConvert2 = {"
+            "                    Class = TypeConvertGAM"
+            "                    InputSignals = {"
+            "                        Signal2 = {"
+            "                            SignalName = Signal2"
+            "                            SignalType = int32"
+            "                        }"
+            "                    }"
+            "                    OutputSignals = {"
+            "                        Signal1 = {"
+            "                            SignalName = Signal1"
+            "                            SignalType = float"
+            "                        }"
+            "                    }"
+            "                }"
+            "            \""
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAM1 GAM2}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = BaseLib2GAMTestScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = TestIntegratedInApplication(config1, "State1");
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return !ok;
+}
 
 bool BaseLib2GAMTest::TestExecute() {
     using namespace MARTe;
@@ -263,12 +947,14 @@ bool BaseLib2GAMTest::TestExecute() {
 
     bool ok = TestIntegratedInApplication(config1, "State1");
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-    ReferenceT<BaseLib2GAMHelper> gam1 = god->Find("Test.Functions.GAM1");
-    ReferenceT<BaseLib2GAMHelper> gam2 = god->Find("Test.Functions.GAM2");
-    ReferenceT<BaseLib2GAMTestScheduler> scheduler = god->Find("Test.Scheduler");
-    ReferenceT<RealTimeApplication> application = god->Find("Test");
-
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<BaseLib2GAMHelper> gam1 = ord->Find("Test.Functions.GAM1");
+    ReferenceT<BaseLib2GAMHelper> gam2 = ord->Find("Test.Functions.GAM2");
+    ReferenceT<BaseLib2GAMTestScheduler> scheduler = ord->Find("Test.Scheduler");
+    ReferenceT<RealTimeApplication> application = ord->Find("Test");
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
     if (ok) {
         ok = gam1.IsValid();
     }
@@ -304,11 +990,10 @@ bool BaseLib2GAMTest::TestExecute() {
         ok &= (*outMemGam2 == 2.0);
     }
     application->StopCurrentStateExecution();
-    god->Purge();
+    ord->Purge();
     return ok;
 }
 
-#include <stdio.h>
 bool BaseLib2GAMTest::TestExecute_Arrays() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
@@ -449,18 +1134,15 @@ bool BaseLib2GAMTest::TestExecute_Arrays() {
     if (ok) {
         ok = cdb.MoveToRoot();
     }
-    StreamString ss;
-    ss.Printf("%!\n", cdb);
-    printf("%s\n", ss.Buffer());
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
 
     if (ok) {
-        god->Purge();
-        ok = god->Initialise(cdb);
+        ord->Purge();
+        ok = ord->Initialise(cdb);
     }
     ReferenceT<RealTimeApplication> application;
     if (ok) {
-        application = god->Find("Test");
+        application = ord->Find("Test");
         ok = application.IsValid();
     }
     if (ok) {
@@ -473,9 +1155,9 @@ bool BaseLib2GAMTest::TestExecute_Arrays() {
         ok = application->StartNextStateExecution();
     }
 
-    ReferenceT<BaseLib2GAMHelper> gam1 = god->Find("Test.Functions.GAM1");
-    ReferenceT<BaseLib2GAMHelper> gam2 = god->Find("Test.Functions.GAM2");
-    ReferenceT<BaseLib2GAMTestScheduler> scheduler = god->Find("Test.Scheduler");
+    ReferenceT<BaseLib2GAMHelper> gam1 = ord->Find("Test.Functions.GAM1");
+    ReferenceT<BaseLib2GAMHelper> gam2 = ord->Find("Test.Functions.GAM2");
+    ReferenceT<BaseLib2GAMTestScheduler> scheduler = ord->Find("Test.Scheduler");
 
     if (ok) {
         ok = gam1.IsValid();
@@ -528,6 +1210,34 @@ bool BaseLib2GAMTest::TestExecute_Arrays() {
         ok &= (outMemGam2[2] == 2.0);
     }
     application->StopCurrentStateExecution();
-    god->Purge();
+    ord->Purge();
+    return ok;
+}
+
+static bool TestTranslateSignalNameHelper(MARTe::TypeDescriptor typeDesc,
+                                          MARTe::StreamString expected) {
+    using namespace MARTe;
+    BaseLib2GAM gam;
+    StreamString signalName;
+    bool ok = gam.TranslateSignalName(typeDesc, signalName);
+    ok &= (signalName == expected);
+    return ok;
+}
+
+bool BaseLib2GAMTest::TestTranslateSignalName() {
+    using namespace MARTe;
+
+    bool ok = TestTranslateSignalNameHelper(UnsignedInteger8Bit, "uint8");
+    ok &= TestTranslateSignalNameHelper(UnsignedInteger16Bit, "uint16");
+    ok &= TestTranslateSignalNameHelper(UnsignedInteger32Bit, "uint32");
+    ok &= TestTranslateSignalNameHelper(UnsignedInteger64Bit, "uint64");
+    ok &= TestTranslateSignalNameHelper(SignedInteger16Bit, "int8");
+    ok &= TestTranslateSignalNameHelper(SignedInteger16Bit, "int16");
+    ok &= TestTranslateSignalNameHelper(SignedInteger32Bit, "int32");
+    ok &= TestTranslateSignalNameHelper(SignedInteger64Bit, "int64");
+    ok &= TestTranslateSignalNameHelper(Float32Bit, "float");
+    ok &= TestTranslateSignalNameHelper(Float64Bit, "double");
+    ok &= !TestTranslateSignalNameHelper(Float128Bit, "");
+    ok &= !TestTranslateSignalNameHelper(Character8Bit, "");
     return ok;
 }

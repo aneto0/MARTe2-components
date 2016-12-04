@@ -43,6 +43,50 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+TEST(BaseLib2GAMGTest,TestInitialise) {
+    BaseLib2GAMTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(BaseLib2GAMGTest,TestInitialise_False_NoGAMName) {
+    BaseLib2GAMTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoGAMName());
+}
+
+TEST(BaseLib2GAMGTest,TestInitialise_False_WrongGAMName) {
+    BaseLib2GAMTest test;
+    ASSERT_TRUE(test.TestInitialise_False_WrongGAMName());
+}
+
+TEST(BaseLib2GAMGTest,TestInitialise_False_NoGAMFunctionNumber) {
+    BaseLib2GAMTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoGAMFunctionNumber());
+}
+
+TEST(BaseLib2GAMGTest,TestInitialise_False_NoBaseLib2Config) {
+    BaseLib2GAMTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoBaseLib2Config());
+}
+
+TEST(BaseLib2GAMGTest,TestInitialise_False_WrongBaseLib2Config) {
+    BaseLib2GAMTest test;
+    ASSERT_TRUE(test.TestInitialise_False_WrongBaseLib2Config());
+}
+
+TEST(BaseLib2GAMGTest,TestSetup) {
+    BaseLib2GAMTest test;
+    ASSERT_TRUE(test.TestSetup());
+}
+
+TEST(BaseLib2GAMGTest,TestSetup_InputSignals_Mismatch) {
+    BaseLib2GAMTest test;
+    ASSERT_TRUE(test.TestSetup_InputSignals_Mismatch());
+}
+
+TEST(BaseLib2GAMGTest,TestSetup_OutputSignals_Mismatch) {
+    BaseLib2GAMTest test;
+    ASSERT_TRUE(test.TestSetup_OutputSignals_Mismatch());
+}
 
 TEST(BaseLib2GAMGTest,TestExecute) {
     BaseLib2GAMTest test;
@@ -52,4 +96,9 @@ TEST(BaseLib2GAMGTest,TestExecute) {
 TEST(BaseLib2GAMGTest,TestExecute_Arrays) {
     BaseLib2GAMTest test;
     ASSERT_TRUE(test.TestExecute_Arrays());
+}
+
+TEST(BaseLib2GAMGTest,TestTranslateSignalName) {
+    BaseLib2GAMTest test;
+    ASSERT_TRUE(test.TestTranslateSignalName());
 }

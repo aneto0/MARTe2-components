@@ -20,13 +20,17 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
 TARGET=cov
 
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = BaseLib2GAMGTest.x
+
+LIBRARIES_STATIC += $(EFDA_MARTe_DIR)/GAMs/TypeConvertGAM/linux/TypeConvertGAM.o
+
 include Makefile.inc
 
-LIBRARIES_STATIC=BufferGAM/cov/BufferGAM$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=BaseLib2GAM/cov/BaseLib2GAM$(LIBEXT)
-endif

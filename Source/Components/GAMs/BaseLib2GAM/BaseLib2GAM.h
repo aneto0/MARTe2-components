@@ -131,7 +131,7 @@ public:
      * @return true if the name can be successfully translated.
      */
     bool TranslateSignalName(TypeDescriptor signalType,
-                             StreamString &signalTypeName);
+                             StreamString &signalTypeName) const ;
 
 private:
 

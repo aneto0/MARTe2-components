@@ -22,23 +22,7 @@
 #
 #############################################################
 
-TARGET=linux
+TARGET=cov
 
 include Makefile.inc
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-#To be removed when more Interface components will be available
-ifdef EFDA_MARTe_DIR
-LIBRARIES   += ../../Build/$(TARGET)/Components/Interfaces/Interfaces$(LIBEXT)
-endif
-
-LIBRARIES   += ../../Build/$(TARGET)/Components/DataSources/DataSources$(LIBEXT)
-LIBRARIES   += ../../Build/$(TARGET)/Components/DataSources/DataSourcesTests$(LIBEXT)
-LIBRARIES   += ../../Build/$(TARGET)/Components/GAMs/GAMs$(LIBEXT)
-LIBRARIES   += ../../Build/$(TARGET)/Components/GAMs/GAMsTests$(LIBEXT)
-LIBRARIES   += -L$(MARTe2_DIR)/Build/$(TARGET)/Core/ -lMARTe2
-LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a
-
-ifdef EFDA_MARTe_DIR
-LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
-endif 

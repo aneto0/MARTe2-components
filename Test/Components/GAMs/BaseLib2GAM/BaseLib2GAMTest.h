@@ -47,14 +47,49 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the Setup method.
+     * @brief Tests the Initialise method.
      */
     bool TestInitialise();
+
+    /**
+     * @brief Tests the Initialise method without specifying the GAMName.
+     */
+    bool TestInitialise_False_NoGAMName();
+
+    /**
+     * @brief Tests the Initialise method without specifying a wrong GAMName.
+     */
+    bool TestInitialise_False_WrongGAMName();
+
+    /**
+     * @brief Tests the Initialise method without specifying the GAMFunctionNumber.
+     */
+    bool TestInitialise_False_NoGAMFunctionNumber();
+
+    /**
+     * @brief Tests the Initialise method without specifying the BaseLib2Config.
+     */
+    bool TestInitialise_False_NoBaseLib2Config();
+
+    /**
+     * @brief Tests the Initialise method specifying an unloadable BaseLib2Config.
+     */
+    bool TestInitialise_False_WrongBaseLib2Config();
 
     /**
      * @brief Tests the Setup method.
      */
     bool TestSetup();
+
+    /**
+     * @brief Tests the Setup method with a mismatch in the input signals.
+     */
+    bool TestSetup_InputSignals_Mismatch();
+
+    /**
+     * @brief Tests the Setup method with a mismatch in the output signals.
+     */
+    bool TestSetup_OutputSignals_Mismatch();
 
     /**
      * @brief Tests the Execute method.
@@ -65,6 +100,11 @@ public:
      * @brief Tests the Execute method with arrays.
      */
     bool TestExecute_Arrays();
+
+    /**
+     * @brief Tests the TranslateSignalName method.
+     */
+    bool TestTranslateSignalName();
 
 };
 
