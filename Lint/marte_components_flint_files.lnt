@@ -8,10 +8,10 @@
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
 -i./Source/Components/GAMs/BaseLib2GAM/
--i./Source/Components/GAMs/BufferGAM/
+-i./Source/Components/GAMs/IOGAM/
 
 BaseLib2GAM.cpp
-BufferGAM.cpp
+IOGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp

@@ -44,7 +44,7 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 /**
- * Gives access to the BufferGAM memory for the Execute test
+ * Gives access to the BaseLib2GAM memory for the Execute test
  */
 class BaseLib2GAMHelper: public MARTe::BaseLib2GAM {
 public:

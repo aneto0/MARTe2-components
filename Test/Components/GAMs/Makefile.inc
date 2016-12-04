@@ -24,7 +24,7 @@
 #
 #############################################################
 
-SPB=  BufferGAM.x
+SPB=  IOGAM.x
 
 ifdef EFDA_MARTe_DIR
 SPB += BaseLib2GAM.x
@@ -36,7 +36,7 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC+=$(BUILD_DIR)/BufferGAM/BufferGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/IOGAM/IOGAMTest$(LIBEXT)
 ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAMTest$(LIBEXT)
 endif

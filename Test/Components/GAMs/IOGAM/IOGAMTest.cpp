@@ -1,6 +1,6 @@
 /**
- * @file BufferGAMTest.cpp
- * @brief Source file for class BufferGAMTest
+ * @file IOGAMTest.cpp
+ * @brief Source file for class IOGAMTest
  * @date 31/10/2016
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class BufferGAMTest (public, protected, and private). Be aware that some 
+ * the class IOGAMTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -30,8 +30,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "BufferGAM.h"
-#include "BufferGAMTest.h"
+#include "IOGAM.h"
+#include "IOGAMTest.h"
 #include "DataSourceI.h"
 #include "GAMScheduler.h"
 #include "MemoryOperationsHelper.h"
@@ -45,39 +45,39 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 /**
- * Gives access to the BufferGAM memory for the Execute test
+ * Gives access to the IOGAM memory for the Execute test
  */
-class BufferGAMHelper: public MARTe::BufferGAM {
+class IOGAMHelper: public MARTe::IOGAM {
 public:
-    CLASS_REGISTER_DECLARATION()BufferGAMHelper() : MARTe::BufferGAM() {
+    CLASS_REGISTER_DECLARATION()IOGAMHelper() : MARTe::IOGAM() {
     }
 
-    virtual ~BufferGAMHelper() {
+    virtual ~IOGAMHelper() {
 
     }
 
     void *GetInputSignalsMemory() {
-        return BufferGAM::GetInputSignalsMemory();
+        return IOGAM::GetInputSignalsMemory();
     }
 
     void *GetOutputSignalsMemory() {
-        return BufferGAM::GetOutputSignalsMemory();
+        return IOGAM::GetOutputSignalsMemory();
     }
 };
-CLASS_REGISTER(BufferGAMHelper, "1.0");
+CLASS_REGISTER(IOGAMHelper, "1.0");
 
 /**
  * A dummy DataSource which can be used to test different configuration interfaces
- *  to the BufferGAM
+ *  to the IOGAM
  */
-class BufferGAMDataSourceHelper: public MARTe::DataSourceI {
+class IOGAMDataSourceHelper: public MARTe::DataSourceI {
 public:
     CLASS_REGISTER_DECLARATION()
 
-BufferGAMDataSourceHelper    () : MARTe::DataSourceI() {
+IOGAMDataSourceHelper    () : MARTe::DataSourceI() {
     }
 
-    virtual ~BufferGAMDataSourceHelper() {
+    virtual ~IOGAMDataSourceHelper() {
 
     }
 
@@ -138,7 +138,7 @@ BufferGAMDataSourceHelper    () : MARTe::DataSourceI() {
 
 };
 
-CLASS_REGISTER(BufferGAMDataSourceHelper, "1.0");
+CLASS_REGISTER(IOGAMDataSourceHelper, "1.0");
 
 /**
  * Starts a MARTe application that uses this GAM instance.
@@ -178,13 +178,13 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config,
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-bool BufferGAMTest::TestConstructor() {
+bool IOGAMTest::TestConstructor() {
     using namespace MARTe;
-    BufferGAM gam;
+    IOGAM gam;
     return (gam.GetNumberOfInputSignals() == 0u) && (gam.GetNumberOfOutputSignals() == 0u);
 }
 
-bool BufferGAMTest::TestSetup() {
+bool IOGAMTest::TestSetup() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
             "$Test = {"
@@ -192,7 +192,7 @@ bool BufferGAMTest::TestSetup() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +GAM1 = {"
-            "            Class = BufferGAM"
+            "            Class = IOGAM"
             "            InputSignals = {"
             "               GAM1_ReadTime = {"
             "                   DataSource = Timings"
@@ -243,7 +243,7 @@ bool BufferGAMTest::TestSetup() {
             "            Class = TimingDataSource"
             "        }"
             "        +Drv1 = {"
-            "            Class = BufferGAMDataSourceHelper"
+            "            Class = IOGAMDataSourceHelper"
             "        }"
             "    }"
             "    +States = {"
@@ -268,7 +268,7 @@ bool BufferGAMTest::TestSetup() {
     return ok;
 }
 
-bool BufferGAMTest::TestSetup_False_LessInputs() {
+bool IOGAMTest::TestSetup_False_LessInputs() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
             "$Test = {"
@@ -276,7 +276,7 @@ bool BufferGAMTest::TestSetup_False_LessInputs() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +GAM1 = {"
-            "            Class = BufferGAM"
+            "            Class = IOGAM"
             "            InputSignals = {"
             "               GAM1_ReadTime = {"
             "                   DataSource = Timings"
@@ -335,7 +335,7 @@ bool BufferGAMTest::TestSetup_False_LessInputs() {
     return !ok;
 }
 
-bool BufferGAMTest::TestSetup_False_LessOutputs() {
+bool IOGAMTest::TestSetup_False_LessOutputs() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
             "$Test = {"
@@ -343,7 +343,7 @@ bool BufferGAMTest::TestSetup_False_LessOutputs() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +GAM1 = {"
-            "            Class = BufferGAM"
+            "            Class = IOGAM"
             "            InputSignals = {"
             "               GAM1_ReadTime = {"
             "                   DataSource = Timings"
@@ -402,7 +402,7 @@ bool BufferGAMTest::TestSetup_False_LessOutputs() {
     return !ok;
 }
 
-bool BufferGAMTest::TestSetup_False_DifferentType_Input() {
+bool IOGAMTest::TestSetup_False_DifferentType_Input() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
             "$Test = {"
@@ -410,7 +410,7 @@ bool BufferGAMTest::TestSetup_False_DifferentType_Input() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +GAM1 = {"
-            "            Class = BufferGAM"
+            "            Class = IOGAM"
             "            InputSignals = {"
             "               GAM1_ReadTime = {"
             "                   DataSource = Timings"
@@ -459,7 +459,7 @@ bool BufferGAMTest::TestSetup_False_DifferentType_Input() {
             "            Class = TimingDataSource"
             "        }"
             "        +Drv1 = {"
-            "            Class = BufferGAMDataSourceHelper"
+            "            Class = IOGAMDataSourceHelper"
             "        }"
             "    }"
             "    +States = {"
@@ -484,7 +484,7 @@ bool BufferGAMTest::TestSetup_False_DifferentType_Input() {
     return !ok;
 }
 
-bool BufferGAMTest::TestSetup_False_DifferentType_Output() {
+bool IOGAMTest::TestSetup_False_DifferentType_Output() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
             "$Test = {"
@@ -492,7 +492,7 @@ bool BufferGAMTest::TestSetup_False_DifferentType_Output() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +GAM1 = {"
-            "            Class = BufferGAM"
+            "            Class = IOGAM"
             "            InputSignals = {"
             "               GAM1_ReadTime = {"
             "                   DataSource = Timings"
@@ -555,7 +555,7 @@ bool BufferGAMTest::TestSetup_False_DifferentType_Output() {
     return !ok;
 }
 
-bool BufferGAMTest::TestSetup_False_DifferentSize_Input() {
+bool IOGAMTest::TestSetup_False_DifferentSize_Input() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
             "$Test = {"
@@ -563,7 +563,7 @@ bool BufferGAMTest::TestSetup_False_DifferentSize_Input() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +GAM1 = {"
-            "            Class = BufferGAM"
+            "            Class = IOGAM"
             "            InputSignals = {"
             "               GAM1_ReadTime = {"
             "                   DataSource = Timings"
@@ -614,7 +614,7 @@ bool BufferGAMTest::TestSetup_False_DifferentSize_Input() {
             "            Class = TimingDataSource"
             "        }"
             "        +Drv1 = {"
-            "            Class = BufferGAMDataSourceHelper"
+            "            Class = IOGAMDataSourceHelper"
             "        }"
             "    }"
             "    +States = {"
@@ -639,7 +639,7 @@ bool BufferGAMTest::TestSetup_False_DifferentSize_Input() {
     return !ok;
 }
 
-bool BufferGAMTest::TestSetup_False_DifferentSize_Output() {
+bool IOGAMTest::TestSetup_False_DifferentSize_Output() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
             "$Test = {"
@@ -647,7 +647,7 @@ bool BufferGAMTest::TestSetup_False_DifferentSize_Output() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +GAM1 = {"
-            "            Class = BufferGAM"
+            "            Class = IOGAM"
             "            InputSignals = {"
             "               GAM1_ReadTime = {"
             "                   DataSource = Timings"
@@ -698,7 +698,7 @@ bool BufferGAMTest::TestSetup_False_DifferentSize_Output() {
             "            Class = TimingDataSource"
             "        }"
             "        +Drv1 = {"
-            "            Class = BufferGAMDataSourceHelper"
+            "            Class = IOGAMDataSourceHelper"
             "        }"
             "    }"
             "    +States = {"
@@ -723,7 +723,7 @@ bool BufferGAMTest::TestSetup_False_DifferentSize_Output() {
     return !ok;
 }
 
-bool BufferGAMTest::TestExecute() {
+bool IOGAMTest::TestExecute() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
             "$Test = {"
@@ -731,7 +731,7 @@ bool BufferGAMTest::TestExecute() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +GAM1 = {"
-            "            Class = BufferGAMHelper"
+            "            Class = IOGAMHelper"
             "            InputSignals = {"
             "               Signal1 = {"
             "                   DataSource = Drv1"
@@ -758,7 +758,7 @@ bool BufferGAMTest::TestExecute() {
             "            Class = TimingDataSource"
             "        }"
             "        +Drv1 = {"
-            "            Class = BufferGAMDataSourceHelper"
+            "            Class = IOGAMDataSourceHelper"
             "        }"
             "    }"
             "    +States = {"
@@ -781,7 +781,7 @@ bool BufferGAMTest::TestExecute() {
             "}";
     bool ok = TestIntegratedInApplication(config1, false);
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-    ReferenceT<BufferGAMHelper> gam = god->Find("Test.Functions.GAM1");
+    ReferenceT<IOGAMHelper> gam = god->Find("Test.Functions.GAM1");
     if (ok) {
         ok = gam.IsValid();
     }
@@ -812,7 +812,7 @@ bool BufferGAMTest::TestExecute() {
 
 }
 
-bool BufferGAMTest::TestExecute_Samples() {
+bool IOGAMTest::TestExecute_Samples() {
     using namespace MARTe;
     const MARTe::char8 * const config1 = ""
             "$Test = {"
@@ -820,7 +820,7 @@ bool BufferGAMTest::TestExecute_Samples() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +GAM1 = {"
-            "            Class = BufferGAMHelper"
+            "            Class = IOGAMHelper"
             "            InputSignals = {"
             "               Signal1 = {"
             "                   DataSource = Drv1"
@@ -848,7 +848,7 @@ bool BufferGAMTest::TestExecute_Samples() {
             "            Class = TimingDataSource"
             "        }"
             "        +Drv1 = {"
-            "            Class = BufferGAMDataSourceHelper"
+            "            Class = IOGAMDataSourceHelper"
             "        }"
             "    }"
             "    +States = {"
@@ -871,7 +871,7 @@ bool BufferGAMTest::TestExecute_Samples() {
             "}";
     bool ok = TestIntegratedInApplication(config1, false);
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-    ReferenceT<BufferGAMHelper> gam = god->Find("Test.Functions.GAM1");
+    ReferenceT<IOGAMHelper> gam = god->Find("Test.Functions.GAM1");
     if (ok) {
         ok = gam.IsValid();
     }

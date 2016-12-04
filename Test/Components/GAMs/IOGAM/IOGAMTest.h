@@ -1,6 +1,6 @@
 /**
- * @file BufferGAMTest.h
- * @brief Header file for class BufferGAMTest
+ * @file IOGAMTest.h
+ * @brief Header file for class IOGAMTest
  * @date 31/10/2016
  * @author Andre Neto
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class BufferGAMTest
+ * @details This header file contains the declaration of the class IOGAMTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef BUFFERGAMTEST_H_
-#define BUFFERGAMTEST_H_
+#ifndef IOGAMTEST_H_
+#define IOGAMTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -36,9 +36,9 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * @brief Tests the BufferGAM public methods.
+ * @brief Tests the IOGAM public methods.
  */
-class BufferGAMTest {
+class IOGAMTest {
 public:
     /**
      * @brief Tests the constructor.
@@ -95,5 +95,5 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* BUFFERGAMTEST_H_ */
+#endif /* IOGAMTEST_H_ */
 
