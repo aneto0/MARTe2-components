@@ -1231,7 +1231,7 @@ bool BaseLib2GAMTest::TestTranslateSignalName() {
     ok &= TestTranslateSignalNameHelper(UnsignedInteger16Bit, "uint16");
     ok &= TestTranslateSignalNameHelper(UnsignedInteger32Bit, "uint32");
     ok &= TestTranslateSignalNameHelper(UnsignedInteger64Bit, "uint64");
-    ok &= TestTranslateSignalNameHelper(SignedInteger16Bit, "int8");
+    ok &= TestTranslateSignalNameHelper(SignedInteger8Bit, "int8");
     ok &= TestTranslateSignalNameHelper(SignedInteger16Bit, "int16");
     ok &= TestTranslateSignalNameHelper(SignedInteger32Bit, "int32");
     ok &= TestTranslateSignalNameHelper(SignedInteger64Bit, "int64");
