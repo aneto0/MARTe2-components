@@ -31,6 +31,8 @@ ROOT_DIR=../../../../
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+CPPFLAGS += -DEFDA_MARTe_DIR=$(EFDA_MARTe_DIR)
+
 INCLUDES += -I.
 INCLUDES += -I$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types

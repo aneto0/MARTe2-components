@@ -26,8 +26,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-//Otherwise lint may stop here when the target system does not have this module
-#ifdef EFDA_MARTe_DIR
 #include "GAMAdapter.h"
 
 /*---------------------------------------------------------------------------*/
@@ -222,4 +220,3 @@ bool BaseLib2GAM::TranslateSignalName(TypeDescriptor signalType,
 }
 
 }
-#endif

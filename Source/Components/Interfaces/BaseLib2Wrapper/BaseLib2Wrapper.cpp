@@ -114,4 +114,3 @@ bool BaseLib2Wrapper::HandleBaseLib2Message(const char8 * const destination,
 
 CLASS_REGISTER(BaseLib2Wrapper, "1.0")
 }
-

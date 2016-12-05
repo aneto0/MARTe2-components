@@ -26,6 +26,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+//Otherwise lint may stop here when the target system does not have this module
+#ifdef EFDA_MARTe_DIR
 #include "Adapter.h"
 
 /*---------------------------------------------------------------------------*/
@@ -74,4 +76,4 @@ ErrorManagement::ErrorType BaseLib2WrapperMessageFilter::ConsumeMessage(Referenc
 
 CLASS_REGISTER(BaseLib2WrapperMessageFilter, "1.0")
 }
-
+#endif
