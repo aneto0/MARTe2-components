@@ -32,10 +32,14 @@ SPB += Source/Components/Interfaces.x
 endif
 
 SPB += Test/Components/DataSources.x \
-    Test/Components/GAMs.x \
-    Test/GTest.x
+    Test/Components/GAMs.x
 
-#Test/Components/Interfaces.x \
+#Clause to be removed as soon as more than one interface will be available
+ifdef EFDA_MARTe_DIR
+SPB += Test/Components/Interfaces.x
+endif
+
+SPB += Test/GTest.x
 
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 

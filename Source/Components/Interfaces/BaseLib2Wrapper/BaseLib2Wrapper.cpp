@@ -27,12 +27,14 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #include "Adapter.h"
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "BaseLib2Wrapper.h"
+#include "BaseLib2WrapperMessageFilter.h"
+#include "ConfigurationDatabase.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -42,12 +44,77 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-namespace BaseLib2 {
-bool Adapter::ReceiveMessageFromBaseLib2(const char8 *destination, const char8 *content, uint32 code) {
-    printf("Received message to %s with content %s and code %d\n", destination, content, code);
-    return true;
-}
+namespace MARTe {
+
+BaseLib2Wrapper::BaseLib2Wrapper() :
+        Object(),
+        QueuedMessageI() {
+    BaseLib2::Adapter::Instance()->SetAdapterMessageListener(this);
 }
 
+/*lint -e{1551} the destructor must guarantee that the QueuedMessageI SingleThreadService is stopped.*/
+BaseLib2Wrapper::~BaseLib2Wrapper() {
+    ErrorManagement::ErrorType err = Stop();
+    if (!err.ErrorsCleared()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not Stop the BaseLib2Wrapper. Retrying...");
+        err = Stop();
+        if (!err.ErrorsCleared()) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Could not Stop the BaseLib2Wrapper.");
+        }
+    }
+    BaseLib2::Adapter::Instance()->UnloadObjects();
+}
 
-	
+bool BaseLib2Wrapper::Initialise(StructuredDataI & data) {
+    bool ok = Object::Initialise(data);
+    if (ok) {
+        ReferenceT<BaseLib2WrapperMessageFilter> filter(new BaseLib2WrapperMessageFilter());
+        ok = (InstallMessageFilter(filter) == ErrorManagement::NoError);
+    }
+    StreamString baseLib2Config;
+    if (ok) {
+        ok = data.Read("BaseLib2Config", baseLib2Config);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The BaseLib2Config parameter shall be specified.");
+        }
+    }
+    if (ok) {
+        ok = baseLib2Config.Seek(0LLU);
+    }
+    if (ok) {
+        ok = BaseLib2::Adapter::Instance()->LoadObjects(baseLib2Config.Buffer());
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Failed to LoadObjects in BaseLib2::Adapter");
+        }
+    }
+    if (ok) {
+        ok = (Start() == ErrorManagement::NoError);
+    }
+    return ok;
+}
+
+bool BaseLib2Wrapper::HandleBaseLib2Message(const char8 *destination,
+                                            const char8 *content,
+                                            uint32 code) {
+    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Received message to %s with content %s and code %d\n", destination, content, code)
+    ReferenceT<Message> msg(new Message());
+    ConfigurationDatabase cdb;
+    bool ok = cdb.Write("Destination", destination);
+    if (ok) {
+        ok = cdb.Write("Function", content);
+    }
+    if (ok) {
+        ok = msg->Initialise(cdb);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Could not Initialise Message");
+        }
+    }
+    if (ok) {
+        ok = (MessageI::SendMessage(msg, this) == ErrorManagement::NoError);
+    }
+    return ok;
+}
+
+CLASS_REGISTER(BaseLib2Wrapper, "1.0")
+}
+

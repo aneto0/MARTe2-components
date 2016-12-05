@@ -24,9 +24,9 @@
 #
 #############################################################
 
-OBJSX +=  BaseLib2GAMTest.x
+OBJSX +=  BaseLib2WrapperTest.x BaseLib2WrapperMessageFilterTest.x
 		
-PACKAGE=Components/GAMs
+PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
@@ -46,11 +46,11 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 
-INCLUDES += -I../../../../Source/Components/GAMs/BaseLib2GAM
-
+INCLUDES += -I../../../../Source/Components/Interfaces/BaseLib2Wrapper
+INCLUDES += -I$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter
 
 all: $(OBJS) \
-                $(BUILD_DIR)/BaseLib2GAMTest$(LIBEXT)
+                $(BUILD_DIR)/BaseLib2WrapperTest$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

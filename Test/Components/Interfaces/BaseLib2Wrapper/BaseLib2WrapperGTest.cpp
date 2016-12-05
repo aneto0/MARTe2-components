@@ -1,7 +1,7 @@
 /**
- * @file BaseLib2GAMGTest.cpp
- * @brief Source file for class BaseLib2GAMGTest
- * @date 2/12/2016
+ * @file BaseLib2WrapperGTest.cpp
+ * @brief Source file for class BaseLib2WrapperGTest
+ * @date 05/12/2016
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class BaseLib2GAMGTest (public, protected, and private). Be aware that some 
+ * the class BaseLib2WrapperGTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -32,78 +32,36 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "BaseLib2GAMTest.h"
+#include "BaseLib2WrapperTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
-TEST(BaseLib2GAMGTest,TestConstructor) {
-    BaseLib2GAMTest test;
+TEST(BaseLib2WrapperGTest,TestConstructor) {
+    BaseLib2WrapperTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(BaseLib2GAMGTest,TestInitialise) {
-    BaseLib2GAMTest test;
+TEST(BaseLib2WrapperGTest,TestInitialise) {
+    BaseLib2WrapperTest test;
     ASSERT_TRUE(test.TestInitialise());
 }
 
-TEST(BaseLib2GAMGTest,TestInitialise_False_NoGAMName) {
-    BaseLib2GAMTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoGAMName());
-}
-
-TEST(BaseLib2GAMGTest,TestInitialise_False_WrongGAMName) {
-    BaseLib2GAMTest test;
-    ASSERT_TRUE(test.TestInitialise_False_WrongGAMName());
-}
-
-TEST(BaseLib2GAMGTest,TestInitialise_False_NoGAMFunctionNumber) {
-    BaseLib2GAMTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoGAMFunctionNumber());
-}
-
-TEST(BaseLib2GAMGTest,TestInitialise_False_NoBaseLib2Config) {
-    BaseLib2GAMTest test;
+TEST(BaseLib2WrapperGTest,TestInitialise_False_NoBaseLib2Config) {
+    BaseLib2WrapperTest test;
     ASSERT_TRUE(test.TestInitialise_False_NoBaseLib2Config());
 }
 
-TEST(BaseLib2GAMGTest,TestInitialise_False_WrongBaseLib2Config) {
-    BaseLib2GAMTest test;
-    ASSERT_TRUE(test.TestInitialise_False_WrongBaseLib2Config());
+TEST(BaseLib2WrapperGTest,TestInitialise_False_BadBaseLib2Config) {
+    BaseLib2WrapperTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadBaseLib2Config());
 }
 
-TEST(BaseLib2GAMGTest,TestSetup) {
-    BaseLib2GAMTest test;
-    ASSERT_TRUE(test.TestSetup());
-}
-
-TEST(BaseLib2GAMGTest,TestSetup_InputSignals_Mismatch) {
-    BaseLib2GAMTest test;
-    ASSERT_TRUE(test.TestSetup_InputSignals_Mismatch());
-}
-
-TEST(BaseLib2GAMGTest,TestSetup_OutputSignals_Mismatch) {
-    BaseLib2GAMTest test;
-    ASSERT_TRUE(test.TestSetup_OutputSignals_Mismatch());
-}
-
-TEST(BaseLib2GAMGTest,TestExecute) {
-    BaseLib2GAMTest test;
-    ASSERT_TRUE(test.TestExecute());
-}
-
-TEST(BaseLib2GAMGTest,TestExecute_Arrays) {
-    BaseLib2GAMTest test;
-    ASSERT_TRUE(test.TestExecute_Arrays());
-}
-
-TEST(BaseLib2GAMGTest,TestTranslateSignalName) {
-    BaseLib2GAMTest test;
-    ASSERT_TRUE(test.TestTranslateSignalName());
+TEST(BaseLib2WrapperGTest,TestHandleBaseLib2Message) {
+    BaseLib2WrapperTest test;
+    ASSERT_TRUE(test.TestHandleBaseLib2Message());
 }

@@ -1,7 +1,7 @@
 /**
- * @file BaseLib2Wrapper.h
- * @brief Header file for class BaseLib2Wrapper
- * @date 2/12/2016
+ * @file BaseLib2WrapperMessageFilter.h
+ * @brief Header file for class BaseLib2WrapperMessageFilter
+ * @date 4/12/2016
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,66 +16,61 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class BaseLib2Wrapper
+ * @details This header file contains the declaration of the class BaseLib2WrapperMessageFilter
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef BASELIB2WRAPPER_H_
-#define BASELIB2WRAPPER_H_
+#ifndef BASELIB2WRAPPERMESSAGEFILTER_H_
+#define BASELIB2WRAPPERMESSAGEFILTER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "AdapterMessageListener.h"
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "QueuedMessageI.h"
+#include "MessageFilter.h"
+#include "Object.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-
 /**
  * @brief TODO
  */
-class BaseLib2Wrapper : public Object, public QueuedMessageI, public BaseLib2::AdapterMessageListener {
+class BaseLib2WrapperMessageFilter : public MessageFilter, public Object {
 public:
     CLASS_REGISTER_DECLARATION()
+    /**
+     * @brief Constructor. Initialises the MessageFilter(false).
+     * @post
+     *   IsPermanentFilter() == true
+     */
+    BaseLib2WrapperMessageFilter();
 
     /**
-     * @brief Default constructor. TODO
+     * @brief Destructor. NOOP.
      */
-    BaseLib2Wrapper();
+    virtual ~BaseLib2WrapperMessageFilter();
+
 
     /**
-     * @brief Destructor. TODO
+     * @brief Verifies if the \a messageToTest is one of messages to be caught (see SetMessagesToCatch).
+     * @param[in] messageToTest The message to test.
+     * @return ErrorManagement::NoError if the messageToTest was one of the messages to be caught, otherwise it returns ErrorManagement::UnsupportedFeature.
+     * @pre
+     *   SetEventSemaphore
      */
-    virtual ~BaseLib2Wrapper();
-
-    /**
-     * @brief TODO Retrieves the GAM main parameters and adds the GAM to the BaseLib2::GAMAdapter.
-     * @param[in] data configuration in the form described in the class description.
-     * The parameters GAMName, BaseLib2Config and GAMFunctionNumber are compulsory.
-     * @return true iff all the parameters set and if the GAM can be successfully added to the BaseLib2::GAMAdapter,
-     * which in turn means that the BaseLib2Config could be successfully parsed.
-     */
-    virtual bool Initialise(StructuredDataI & data);
-
-    /**
-     * TODO
-     */
-    virtual bool HandleBaseLib2Message(const char8 *destination, const char8 *content, uint32 code);
+    virtual ErrorManagement::ErrorType ConsumeMessage(ReferenceT<Message> &messageToTest);
 };
 
 }
-
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* BASELIB2WRAPPER_H_ */
+#endif /* BASELIB2WRAPPERMESSAGEFILTER_H_ */
 

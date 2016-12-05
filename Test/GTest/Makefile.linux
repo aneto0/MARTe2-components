@@ -30,6 +30,7 @@ INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 #To be removed when more Interface components will be available
 ifdef EFDA_MARTe_DIR
 LIBRARIES   += ../../Build/$(TARGET)/Components/Interfaces/Interfaces$(LIBEXT)
+LIBRARIES   += ../../Build/$(TARGET)/Components/Interfaces/InterfacesTests$(LIBEXT)
 endif
 
 LIBRARIES   += ../../Build/$(TARGET)/Components/DataSources/DataSources$(LIBEXT)

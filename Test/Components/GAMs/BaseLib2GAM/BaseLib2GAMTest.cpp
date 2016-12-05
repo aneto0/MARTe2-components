@@ -147,6 +147,11 @@ CLASS_REGISTER(BaseLib2GAMTestScheduler, "1.0")
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+bool BaseLib2GAMTest::TestConstructor() {
+    MARTe::BaseLib2GAM gam;
+    return true;
+}
+
 bool BaseLib2GAMTest::TestInitialise() {
     using namespace MARTe;
     const char8 * const config = ""

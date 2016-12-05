@@ -23,7 +23,7 @@
 # $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
 #
 #############################################################
-OBJSX=BaseLib2Wrapper.x
+OBJSX=BaseLib2Wrapper.x BaseLib2WrapperMessageFilter.x
 
 PACKAGE=Components/Interfaces
 
