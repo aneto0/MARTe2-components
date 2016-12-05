@@ -29,5 +29,5 @@ TARGET=cov
 include Makefile.inc
 
 ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=BaseLib2Wrapper/cov/BaseLib2WrapperTest$(LIBEXT)
+LIBRARIES_STATIC=BaseLib2Wrapper/cov/BaseLib2WrapperTest$(LIBEXT)
 endif

@@ -1,7 +1,7 @@
 /**
  * @file BaseLib2WrapperMessageFilter.h
  * @brief Header file for class BaseLib2WrapperMessageFilter
- * @date 4/12/2016
+ * @date 04/12/2016
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -39,7 +39,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 /**
- * @brief TODO
+ * @brief Forwards received messages into BaseLib2 objects
  */
 class BaseLib2WrapperMessageFilter : public MessageFilter, public Object {
 public:
@@ -58,11 +58,11 @@ public:
 
 
     /**
-     * @brief Verifies if the \a messageToTest is one of messages to be caught (see SetMessagesToCatch).
-     * @param[in] messageToTest The message to test.
-     * @return ErrorManagement::NoError if the messageToTest was one of the messages to be caught, otherwise it returns ErrorManagement::UnsupportedFeature.
-     * @pre
-     *   SetEventSemaphore
+     * @brief Forwards the received message into BaseLib2 objects.
+     * @param[in] messageToTest The message to be forwarded. The function argument shall have the format
+     * DESTINATION::CONTENT, where DESTINATION is the name object to be called in BaseLib2 and CONTENT the content
+     * to be set on the message.
+     * @return ErrorManagement::NoError if the message can be successfully sent with BaseLib2::Adapter::SendMessageToBaseLib2.
      */
     virtual ErrorManagement::ErrorType ConsumeMessage(ReferenceT<Message> &messageToTest);
 };

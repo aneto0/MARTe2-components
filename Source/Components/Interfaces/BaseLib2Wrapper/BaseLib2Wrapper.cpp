@@ -93,8 +93,8 @@ bool BaseLib2Wrapper::Initialise(StructuredDataI & data) {
     return ok;
 }
 
-bool BaseLib2Wrapper::HandleBaseLib2Message(const char8 *destination,
-                                            const char8 *content,
+bool BaseLib2Wrapper::HandleBaseLib2Message(const char8 * const destination,
+                                            const char8 * const content,
                                             uint32 code) {
     REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Received message to %s with content %s and code %d\n", destination, content, code)
     ReferenceT<Message> msg(new Message());
@@ -105,9 +105,6 @@ bool BaseLib2Wrapper::HandleBaseLib2Message(const char8 *destination,
     }
     if (ok) {
         ok = msg->Initialise(cdb);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Could not Initialise Message");
-        }
     }
     if (ok) {
         ok = (MessageI::SendMessage(msg, this) == ErrorManagement::NoError);

@@ -9,9 +9,12 @@
 -i./Source/Components/DataSources/LoggerDataSource/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/IOGAM/
+-i./Source/Components/Interfaces/BaseLib2Wrapper
 
 BaseLib2GAM.cpp
 IOGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
+BaseLib2Wrapper.cpp
+BaseLib2WrapperMessageFilter.cpp

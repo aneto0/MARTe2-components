@@ -1,7 +1,7 @@
 /**
  * @file BaseLib2Wrapper.h
  * @brief Header file for class BaseLib2Wrapper
- * @date 2/12/2016
+ * @date 02/12/2016
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -40,33 +40,52 @@
 namespace MARTe {
 
 /**
- * @brief TODO
+ * @brief Load BaseLib2 objects into a BaseLib2 GlobalObjectDatabase.
+ * @details This class allows to instantiate BaseLib2 objects and to send and receive Messages from these objects.
+ * The configuration syntax is (names are only given as an example):
+ * +BL2Wrapper = {
+ *     Class = BaseLib2Wrapper
+ *     BaseLib2Config = "
+ *         +SomeBaseLib2Obj1 = {
+ *             Class = \"SomeBaseLib2Class\"
+ *             ...
+ *         }
+ *         +AnotherBaseLib2Obj1 = {
+ *             Class = \"AnotherBaseLib2Class\"
+ *             ...
+ *         }
+ *     }"
+ * }
+ *
  */
 class BaseLib2Wrapper : public Object, public QueuedMessageI, public BaseLib2::AdapterMessageListener {
 public:
     CLASS_REGISTER_DECLARATION()
 
     /**
-     * @brief Default constructor. TODO
+     * @brief Default constructor.
      */
     BaseLib2Wrapper();
 
     /**
-     * @brief Destructor. TODO
+     * @brief Destructor. Stops the QueuedMessageI.
      */
     virtual ~BaseLib2Wrapper();
 
     /**
-     * @brief TODO Retrieves the GAM main parameters and adds the GAM to the BaseLib2::GAMAdapter.
-     * @param[in] data configuration in the form described in the class description.
-     * The parameters GAMName, BaseLib2Config and GAMFunctionNumber are compulsory.
-     * @return true iff all the parameters set and if the GAM can be successfully added to the BaseLib2::GAMAdapter,
-     * which in turn means that the BaseLib2Config could be successfully parsed.
+     * @brief Loads the BaseLib2Config objects into the BaseLib2::Adapter.
+     * @param[in] data configuration in the form described in the class description above.
+     * The parameters BaseLib2Config is compulsory.
+     * @return true iff BaseLib2Config is set and if BaseLib2::Adapter is capable of loading the configuration file.
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * TODO
+     * @brief Propages the Message received from BaseLib2 into MARTe2.
+     * @param[in] destination the name of the Object to receive the message (see Message).
+     * @param[in] content the Function of the message (see Message).
+     * @param[in] code not currently used.
+     * @return true if MessageI::SendMessage returns ErrorManagement::NoError.
      */
     virtual bool HandleBaseLib2Message(const char8 *destination, const char8 *content, uint32 code);
 };
