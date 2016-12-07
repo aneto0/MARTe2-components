@@ -5,10 +5,10 @@ if [ -z ${MARTe2_DIR+x} ]; then echo "The variable MARTe2_DIR was not set."; exi
 REMOTE_DIR_CODE_MARTe2=MARTe2-dev
 
 cd $MARTe2_DIR
-rsync -avz --delete -e ssh . $USER@$HOST:$REMOTE_DIR_CODE_MARTe2
+rsync -avz --exclude 'Lib' --exclude 'Test' --exclude '.git' --exclude 'Build' --exclude 'cov' --delete -e ssh . $USER@$HOST:$REMOTE_DIR_CODE_MARTe2
 cd -
 REMOTE_DIR_CODE=MARTe2-components
-rsync -avz --delete -e ssh . $USER@$HOST:$REMOTE_DIR_CODE
+rsync -avz --exclude 'Lib' --exclude 'Test' --exclude '.git' --exclude 'Build' --exclude 'cov' --delete -e ssh . $USER@$HOST:$REMOTE_DIR_CODE
 
 ssh $USER@$HOST \
 "cd $REMOTE_DIR_CODE && /opt/FlexeLint/flint \
