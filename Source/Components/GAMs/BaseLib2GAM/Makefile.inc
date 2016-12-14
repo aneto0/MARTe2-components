@@ -23,36 +23,34 @@
 # $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
 #
 #############################################################
-SPB    = Source/Components/DataSources.x \
-	Source/Components/GAMs.x
+OBJSX=BaseLib2GAM.x
 
-#Clause to be removed as soon as more than one interface will be available
-ifdef EFDA_MARTe_DIR
-SPB += Source/Components/Interfaces.x
-endif
+PACKAGE=Components/GAMs
 
-SPB += Test/Components/DataSources.x \
-    Test/Components/GAMs.x
-
-#Clause to be removed as soon as more than one interface will be available
-ifdef EFDA_MARTe_DIR
-SPB += Test/Components/Interfaces.x
-endif
-
-SPB += Test/GTest.x
-
+ROOT_DIR=../../../../
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-ROOT_DIR=.
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-all: $(OBJS) $(SUBPROJ) check-env
-	echo  $(OBJS)
+CPPFLAGS += -DEFDA_MARTe_DIR=$(EFDA_MARTe_DIR)
+
+INCLUDES += -I.
+INCLUDES += -I$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+
+
+all: $(OBJS) $(SUBPROJ) \
+	$(BUILD_DIR)/BaseLib2GAM$(LIBEXT) \
+	$(BUILD_DIR)/BaseLib2GAM$(DLLEXT)
+	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
-check-env:
-ifndef MARTe2_DIR
-    $(error MARTe2_DIR is undefined)
-endif
 

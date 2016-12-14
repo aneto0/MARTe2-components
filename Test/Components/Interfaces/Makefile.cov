@@ -28,7 +28,6 @@ TARGET=cov
 
 include Makefile.inc
 
-LIBRARIES_STATIC=IOGAM/cov/IOGAMTest$(LIBEXT)
 ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=BaseLib2GAM/cov/BaseLib2GAMTest$(LIBEXT)
+LIBRARIES_STATIC=BaseLib2Wrapper/cov/BaseLib2WrapperTest$(LIBEXT)
 endif

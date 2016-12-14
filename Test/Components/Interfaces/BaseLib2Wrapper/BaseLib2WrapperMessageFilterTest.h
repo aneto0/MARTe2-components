@@ -1,7 +1,7 @@
 /**
- * @file BufferGAMTest.h
- * @brief Header file for class BufferGAMTest
- * @date 31/10/2016
+ * @file BaseLib2WrapperMessageFilterTest.h
+ * @brief Header file for class BaseLib2WrapperMessageFilterTest
+ * @date 05/12/2016
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class BufferGAMTest
+ * @details This header file contains the declaration of the class BaseLib2WrapperMessageFilterTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef BUFFERGAMTEST_H_
-#define BUFFERGAMTEST_H_
+#ifndef BASELIB2WRAPPERMESSAGEFILTERTEST_H_
+#define BASELIB2WRAPPERMESSAGEFILTERTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -36,9 +36,9 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * @brief Tests the BufferGAMTest public methods.
+ * @brief Tests the BaseLib2WrapperMessageFilter public methods.
  */
-class BufferGAMTest {
+class BaseLib2WrapperMessageFilterTest {
 public:
     /**
      * @brief Tests the constructor.
@@ -46,49 +46,14 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the Setup method.
+     * @brief Tests the ConsumeMessage method.
      */
-    bool TestSetup();
-
-    /**
-     * @brief Tests the Setup method with a different number of inputs and output signals.
-     */
-    bool TestSetup_False_LessInputs();
-
-    /**
-     * @brief Tests the Setup method with a different number of inputs and output signals.
-     */
-    bool TestSetup_False_LessOutputs();
-
-    /**
-     * @brief Tests the Setup method with different signal types.
-     */
-    bool TestSetup_False_DifferentType_Input();
-
-    /**
-     * @brief Tests the Setup method with different signal types.
-     */
-    bool TestSetup_False_DifferentType_Output();
-
-    /**
-     * @brief Tests the Setup method with different signal sizes.
-     */
-    bool TestSetup_False_DifferentSize_Input();
-
-    /**
-     * @brief Tests the Setup method with different signal sizes.
-     */
-    bool TestSetup_False_DifferentSize_Output();
-
-    /**
-     * @brief Tests the Execute method.
-     */
-    bool TestExecute();
+    bool TestConsumeMessage();
 };
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* BUFFERGAMTEST_H_ */
+#endif /* BASELIB2WRAPPERMESSAGEFILTERTEST_H_ */
 

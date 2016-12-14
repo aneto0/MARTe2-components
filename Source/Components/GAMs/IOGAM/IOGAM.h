@@ -1,8 +1,8 @@
 /**
- * @file BufferGAM.h
- * @brief Header file for class BufferGAM
- * @date 6 Aug 2016
- * @author andre
+ * @file IOGAM.h
+ * @brief Header file for class IOGAM
+ * @date 06/08/2016
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class BufferGAM
+ * @details This header file contains the declaration of the class IOGAM
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef BUFFERGAM_H_
-#define BUFFERGAM_H_
+#ifndef IOGAM_H_
+#define IOGAM_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -37,13 +37,15 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * @brief GAM which copies its inputs to its outputs.
+ * @brief GAM which copies its inputs to its outputs. Allows to plug different DataSources (e.g. driver with a DDB).
  * @details This GAM copies its inputs to its outputs. The number of inputs shall
  *  be exactly the number of the outputs and, for each signal, the types shall also be the same.
+ *  Given that the DataSources cannot interchange data directly between them the main scope of the IOGAM is to
+ *  serve as a (direct) connector between DataSources.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
  * +Buffer = {
- *     Class = BufferGAM
+ *     Class = IOGAM
  *     InputSignals = {
  *         Signal1 = {
  *             DataSource = "Drv1"
@@ -67,14 +69,19 @@
  * }
  */
 namespace MARTe {
-class BufferGAM: public GAM {
+class IOGAM: public GAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Constructor. NOOP.
      */
-    BufferGAM();
+    IOGAM();
+
+    /**
+     * @brief Destructor. NOOP.
+     */
+    virtual ~IOGAM();
 
     /**
      * @brief Verifies correctness of the GAM configuration.
@@ -85,7 +92,7 @@ public:
      *   SetConfiguredDatabase() &&
      *   GetNumberOfInputSignals() == GetNumberOfOutputSignals() &&
      *   for each signal i: GetSignalType(InputSignals, i) == GetSignalType(OutputSignals, i) &&
-     *   for each signal i: GetSignalByteSize(InputSignals, i) == GetSignalByteSize(OutputSignals, i) &&
+     *   for each signal i: GetSignalByteSize(InputSignals, i) * GetSignalNumberOfSamples(InputSignals, i) == GetSignalByteSize(OutputSignals, i) * GetSignalNumberOfSamples(OutputSignals, i)
      */
     virtual bool Setup();
 
@@ -107,5 +114,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* BUFFERGAM_H_ */
+#endif /* IOGAM_H_ */
 

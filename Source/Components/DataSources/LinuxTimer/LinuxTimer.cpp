@@ -313,7 +313,7 @@ ErrorManagement::ErrorType LinuxTimer::Execute(const ExecutionInfo& info) {
     }
     lastTimeTicks = HighResolutionTimer::Counter();
 
-    ErrorManagement::ErrorType err = !synchSem.Post();
+    ErrorManagement::ErrorType err(synchSem.Post());
     counterAndTimer[0]++;
     counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTime;
 

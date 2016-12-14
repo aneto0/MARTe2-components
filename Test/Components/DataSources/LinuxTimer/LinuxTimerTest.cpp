@@ -832,11 +832,9 @@ bool LinuxTimerTest::TestPrepareNextState() {
     if (ok) {
         ok = application->PrepareNextState("State1");
     }
-    application->StartNextStateExecution();
     if (ok) {
         ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
     }
-    application->StopCurrentStateExecution();
 
     god->Purge();
     return ok;

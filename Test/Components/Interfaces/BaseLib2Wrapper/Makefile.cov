@@ -26,9 +26,9 @@
 
 TARGET=cov
 
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = BaseLib2WrapperGTest.x BaseLib2WrapperMessageFilterGTest.x
+
 include Makefile.inc
 
-LIBRARIES_STATIC=IOGAM/cov/IOGAMTest$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=BaseLib2GAM/cov/BaseLib2GAMTest$(LIBEXT)
-endif

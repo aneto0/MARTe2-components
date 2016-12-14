@@ -1,8 +1,8 @@
 /**
- * @file BufferGAM.cpp
- * @brief Source file for class BufferGAM
- * @date 6 Aug 2016
- * @author andre
+ * @file IOGAM.cpp
+ * @brief Source file for class IOGAM
+ * @date 06/08/2016
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class BufferGAM (public, protected, and private). Be aware that some
+ * the class IOGAM (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -29,7 +29,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "BufferGAM.h"
+#include "IOGAM.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -39,12 +39,16 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-BufferGAM::BufferGAM() :
+IOGAM::IOGAM() :
         GAM() {
     totalSignalsByteSize = 0u;
 }
 
-bool BufferGAM::Setup() {
+IOGAM::~IOGAM() {
+
+}
+
+bool IOGAM::Setup() {
     bool ret = (GetNumberOfInputSignals() == GetNumberOfOutputSignals());
     if (!ret) {
         REPORT_ERROR(ErrorManagement::InitialisationError, "GetNumberOfInputSignals() != GetNumberOfOutputSignals()");
@@ -53,23 +57,36 @@ bool BufferGAM::Setup() {
     totalSignalsByteSize = 0u;
     for (n = 0u; (n < GetNumberOfInputSignals()) && (ret); n++) {
         uint32 inByteSize = 0u;
+        uint32 inSamples = 1u;
         uint32 outByteSize = 0u;
+        uint32 outSamples = 1u;
         uint32 idx = n;
         ret = GetSignalByteSize(InputSignals, idx, inByteSize);
         if (ret) {
-            totalSignalsByteSize += inByteSize;
             ret = GetSignalByteSize(OutputSignals, idx, outByteSize);
+        }
+        if (ret) {
+            ret = GetSignalNumberOfSamples(InputSignals, idx, inSamples);
+        }
+        if (ret) {
+            ret = GetSignalNumberOfSamples(OutputSignals, idx, outSamples);
+            inByteSize *= inSamples;
+            outByteSize *= outSamples;
         }
         if (ret) {
             ret = (inByteSize == outByteSize);
             if (!ret) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalByteSize(InputSignals, %d) != GetSignalByteSize(OutputSignals, %d)", idx, idx)
+                REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalByteSize(InputSignals, %d) != GetSignalByteSize(OutputSignals, %d)",
+                                        idx, idx)
             }
+        }
+        if (ret) {
+            totalSignalsByteSize = inByteSize;
         }
 
         TypeDescriptor inType = GetSignalType(InputSignals, idx);
         TypeDescriptor outType = GetSignalType(OutputSignals, idx);
-        if(ret) {
+        if (ret) {
             ret = (inType == outType);
             if (!ret) {
                 REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalType(InputSignals, %d) != GetSignalType(OutputSignals, %d)", idx, idx)
@@ -80,9 +97,9 @@ bool BufferGAM::Setup() {
     return ret;
 }
 
-bool BufferGAM::Execute() {
+bool IOGAM::Execute() {
     return MemoryOperationsHelper::Copy(GetOutputSignalsMemory(), GetInputSignalsMemory(), totalSignalsByteSize);
 }
-CLASS_REGISTER(BufferGAM, "1.0")
+CLASS_REGISTER(IOGAM, "1.0")
 }
 

@@ -1,6 +1,6 @@
 /**
- * @file BufferGAMGTest.cpp
- * @brief Source file for class BufferGAMGTest
+ * @file IOGAMGTest.cpp
+ * @brief Source file for class IOGAMGTest
  * @date 31/10/2016
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class BufferGAMGTest (public, protected, and private). Be aware that some 
+ * the class IOGAMGTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -32,57 +32,61 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "BufferGAMTest.h"
+#include "IOGAMTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-TEST(BufferGAMGTest,TestConstructor) {
-    BufferGAMTest test;
+TEST(IOGAMGTest,TestConstructor) {
+    IOGAMTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(BufferGAMGTest,TestSetup) {
-    BufferGAMTest test;
+TEST(IOGAMGTest,TestSetup) {
+    IOGAMTest test;
     ASSERT_TRUE(test.TestSetup());
 }
 
-TEST(BufferGAMGTest,TestSetup_False_DifferentType_Input) {
-    BufferGAMTest test;
+TEST(IOGAMGTest,TestSetup_False_DifferentType_Input) {
+    IOGAMTest test;
     ASSERT_TRUE(test.TestSetup_False_DifferentType_Input());
 }
 
-TEST(BufferGAMGTest,TestSetup_False_DifferentType_Output) {
-    BufferGAMTest test;
+TEST(IOGAMGTest,TestSetup_False_DifferentType_Output) {
+    IOGAMTest test;
     ASSERT_TRUE(test.TestSetup_False_DifferentType_Output());
 }
 
-TEST(BufferGAMGTest,TestSetup_False_LessInputs) {
-    BufferGAMTest test;
+TEST(IOGAMGTest,TestSetup_False_LessInputs) {
+    IOGAMTest test;
     ASSERT_TRUE(test.TestSetup_False_LessInputs());
 }
 
-TEST(BufferGAMGTest,TestSetup_False_LessOutputs) {
-    BufferGAMTest test;
+TEST(IOGAMGTest,TestSetup_False_LessOutputs) {
+    IOGAMTest test;
     ASSERT_TRUE(test.TestSetup_False_LessOutputs());
 }
 
-TEST(BufferGAMGTest,TestSetup_False_DifferentSize_Input) {
-    BufferGAMTest test;
+TEST(IOGAMGTest,TestSetup_False_DifferentSize_Input) {
+    IOGAMTest test;
     ASSERT_TRUE(test.TestSetup_False_DifferentSize_Input());
 }
 
-TEST(BufferGAMGTest,TestSetup_False_DifferentSize_Output) {
-    BufferGAMTest test;
+TEST(IOGAMGTest,TestSetup_False_DifferentSize_Output) {
+    IOGAMTest test;
     ASSERT_TRUE(test.TestSetup_False_DifferentSize_Output());
 }
 
-TEST(BufferGAMGTest,TestExecute) {
-    BufferGAMTest test;
+TEST(IOGAMGTest,TestExecute) {
+    IOGAMTest test;
     ASSERT_TRUE(test.TestExecute());
 }
 
+TEST(IOGAMGTest,TestExecute_Samples) {
+    IOGAMTest test;
+    ASSERT_TRUE(test.TestExecute_Samples());
+}
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

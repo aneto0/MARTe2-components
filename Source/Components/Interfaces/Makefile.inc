@@ -22,25 +22,27 @@
 #
 #############################################################
 
-TARGET=cov
-
-include Makefile.inc
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
-
-LIBRARIES   += ../../Source/Components/DataSources/$(TARGET)/DataSources$(LIBEXT)
-LIBRARIES   += ../../Source/Components/GAMs/$(TARGET)/GAMs$(LIBEXT)
-#To be removed when more Interface components will be available
-ifdef EFDA_MARTe_DIR
-LIBRARIES   += ../../Source/Components/Interfaces/$(TARGET)/Interfaces$(LIBEXT)
-LIBRARIES   += ../../Test/Components/Interfaces/$(TARGET)/InterfacesTests$(LIBEXT)
-endif
-
-LIBRARIES   += ../../Test/Components/DataSources/$(TARGET)/DataSourcesTests$(LIBEXT)
-LIBRARIES   += ../../Test/Components/GAMs/$(TARGET)/GAMsTests$(LIBEXT)
-
-LIBRARIES   += -L$(MARTe2_DIR)/Build/linux/Core/ -lMARTe2
-LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a 
+OBJSX= 
 
 ifdef EFDA_MARTe_DIR
-LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
+SPB+=BaseLib2Wrapper.x
 endif
+
+PACKAGE=Components
+ROOT_DIR=../../..
+MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
+
+include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
+
+ifdef EFDA_MARTe_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2Wrapper$(LIBEXT)
+endif
+
+all: $(OBJS)  $(SUBPROJ)  \
+    $(BUILD_DIR)/Interfaces$(LIBEXT) \
+    $(BUILD_DIR)/Interfaces$(DLLEXT)
+	echo  $(OBJS)
+
+include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+
+

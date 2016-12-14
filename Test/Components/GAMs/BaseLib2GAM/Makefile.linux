@@ -24,11 +24,14 @@
 #
 #############################################################
 
-TARGET=cov
+TARGET=linux
 
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-OBJSX = BufferGAMGTest.x
+OBJSX = BaseLib2GAMGTest.x
+
+LIBRARIES_STATIC += $(EFDA_MARTe_DIR)/GAMs/TypeConvertGAM/linux/TypeConvertGAM.o
 
 include Makefile.inc
+
 
