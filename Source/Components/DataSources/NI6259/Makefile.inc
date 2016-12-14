@@ -21,20 +21,19 @@
 # permissions and limitations under the Licence. 
 #
 #############################################################
-ifdef CODAC_ROOT
+
 OBJSX=NI6259ADC.x
-else
-OBJSX=NI6259.x
-@echo 'NI6259 only supported in CCS machines. An empty library will be generated. Skipping...'
-endif
 
 PACKAGE=Components/DataSources
+
 ROOT_DIR=../../../../
+
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
+
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 INCLUDES += -I.
-INCLUDES += -I/opt/codac-5.1/include/
+INCLUDES += -I$(CODAC_ROOT)/include/
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects

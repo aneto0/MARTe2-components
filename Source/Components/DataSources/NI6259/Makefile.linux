@@ -26,6 +26,4 @@ TARGET=linux
 
 include Makefile.inc
 
-ifdef CODAC_ROOT
 LIBRARIES_STATIC += $(CODAC_ROOT)/lib/libpxi6259.a
-endif

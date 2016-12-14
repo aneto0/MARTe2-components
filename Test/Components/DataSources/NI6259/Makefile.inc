@@ -24,11 +24,7 @@
 #
 #############################################################
 
-ifdef CODAC_ROOT
 OBJSX =  NI6259ADCTest.x NI6259ADCGTest.x
-else
-OBJSX = NI6259Test.x
-endif
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
