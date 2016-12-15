@@ -42,7 +42,7 @@
 /*---------------------------------------------------------------------------*/
 /**
  * @brief A DataSource which provides an input interface to the NI6259 boards.
- * @details The DataSource shall always be configured with exactly 32 input signals.
+ * @details The DataSource shall always be ...
  *
  * The configuration syntax is (names are only given as an example):
  * +NI6259_0 = {

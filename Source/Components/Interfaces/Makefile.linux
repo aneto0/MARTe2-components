@@ -25,3 +25,6 @@ TARGET=linux
 
 include Makefile.inc
 
+ifdef EFDA_MARTe_DIR
+LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
+endif 

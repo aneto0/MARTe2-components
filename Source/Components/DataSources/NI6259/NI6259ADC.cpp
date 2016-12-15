@@ -113,10 +113,10 @@ bool NI6259ADC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
     bool ok = (signalIdx < (NI6259ADC_MAX_CHANNELS + NI6259ADC_HEADER_SIZE));
     if (ok) {
         if (signalIdx == 0u) {
-            signalAddress = reinterpret_cast<void *&>(counter);
+            signalAddress = reinterpret_cast<void *>(&counter);
         }
         else if (signalIdx == 1u) {
-            signalAddress = reinterpret_cast<void *&>(time);
+            signalAddress = reinterpret_cast<void *>(&time);
         }
         else {
             signalAddress = channelsMemory[signalIdx - NI6259ADC_HEADER_SIZE];
@@ -491,7 +491,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         ok = (GetNumberOfSignals() > (NI6259ADC_HEADER_SIZE));
     }
     if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Exactly (%d) signals shall be configured (header + 1 ADC)", NI6259ADC_HEADER_SIZE + 1u)
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "At least (%d) signals shall be configured (header + 1 ADC)", NI6259ADC_HEADER_SIZE + 1u)
     }
     //The type of counter shall be unsigned int32 or uint32
     if (ok) {
@@ -598,7 +598,9 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         uint32 singleADCFrequency = samplingFrequency / numberOfADCsEnabled;
         ok = (singleADCFrequency == (cycleFrequency * numberOfSamples));
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "samplingFrequency/numberOfADCsEnabled (%u) is not equal to cycleFrequency * numberOfSamples (%u)", (samplingFrequency / numberOfADCsEnabled), (cycleFrequency * numberOfSamples))
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError,
+                                    "samplingFrequency/numberOfADCsEnabled (%u) is not equal to cycleFrequency * numberOfSamples (%u)",
+                                    (samplingFrequency / numberOfADCsEnabled), (cycleFrequency * numberOfSamples))
         }
     }
 
@@ -621,9 +623,30 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
         if (adcEnabled[i]) {
             ok = (pxi6259_add_ai_channel(&adcConfiguration, i, inputPolarity[i], inputRange[i], inputMode[i], 0) == 0);
-            if (!ok) {
+            if (ok) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Channel %d set with polarity %d input range %d and input mode %d", i, inputPolarity[i],
+                                        inputRange[i], inputMode[i])
+            }
+            else {
                 REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", i, fullDeviceName)
             }
+        }
+    }
+    if (ok) {
+        ok = (pxi6259_set_ai_number_of_samples(&adcConfiguration, 0, numberOfSamples, 1) == 0);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName)
+        }
+    }
+    if (ok) {
+        if (numberOfADCsEnabled == 1u) {
+            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16, 3, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
+        }
+        else {
+            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 20, 3, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
+        }
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName)
         }
     }
     if (ok) {
@@ -647,12 +670,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set AI_BLOCKING_EXACT for device %s", fullDeviceName)
         }
     }
-    if (ok) {
-        ok = (pxi6259_set_ai_number_of_samples(&adcConfiguration, 0, numberOfSamples, 1) == 0);
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName)
-        }
-    }
+
     if (ok) {
         ok = (pxi6259_load_ai_conf(boardFileDescriptor, &adcConfiguration) == 0);
         if (!ok) {
@@ -695,6 +713,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     return ok;
 }
 
+#include <stdio.h>
 ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
     ErrorManagement::ErrorType err;
     if (info.GetStage() == ExecutionInfo::TerminationStage) {
@@ -706,7 +725,7 @@ ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
             if (adcEnabled[i]) {
                 uint32 readSamples = 0u;
                 while ((readSamples < numberOfSamples) && (keepRunning)) {
-                    int32 currentSamples = pxi6259_read_ai(channelsFileDescriptors[i], &channelsMemory[i][readSamples], numberOfSamples - readSamples);
+                    int32 currentSamples = pxi6259_read_ai(channelsFileDescriptors[i], &(channelsMemory[i][readSamples]), numberOfSamples - readSamples);
                     if (currentSamples > 0) {
                         readSamples += currentSamples;
                         //Needs to sleep while waiting for data, otherwise it will get stuck on pxi6259_read_ai
