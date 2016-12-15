@@ -87,6 +87,7 @@ namespace MARTe {
  */
 class BaseLib2GAM: public GAM {
 public:
+    CLASS_REGISTER_DECLARATION()
     /**
      * @brief Default constructor. NOOP.
      */
