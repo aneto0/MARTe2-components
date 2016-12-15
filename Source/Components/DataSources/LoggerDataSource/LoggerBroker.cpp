@@ -56,10 +56,7 @@ LoggerBroker::~LoggerBroker() {
     }
 }
 
-bool LoggerBroker::Init(SignalDirection const direction,
-                        DataSourceI& dataSourceIn,
-                        const char8* const functionName,
-                        void  * const gamMemoryAddress) {
+bool LoggerBroker::Init(SignalDirection const direction, DataSourceI& dataSourceIn, const char8* const functionName, void * const gamMemoryAddress) {
     bool ok = (direction == OutputSignals);
     if (ok) {
         ok = BrokerI::InitFunctionPointers(direction, dataSourceIn, functionName, gamMemoryAddress);
@@ -91,11 +88,12 @@ bool LoggerBroker::Init(SignalDirection const direction,
         if (ok) {
             ok = dataSourceIn.GetSignalIndex(signalIdx, signalAlias.Buffer());
         }
+
         TypeDescriptor signalDesc = dataSourceIn.GetSignalType(signalIdx);
         uint32 numberOfRanges = 0u;
         //Get the number of ranges defined...
         if (ok) {
-            ok = dataSourceIn.GetFunctionSignalNumberOfByteOffsets(direction, functionIdx, signalIdx, numberOfRanges);
+            ok = dataSourceIn.GetFunctionSignalNumberOfByteOffsets(direction, functionIdx, n, numberOfRanges);
         }
         if (ok) {
             ok = (numberOfRanges > 0u);
@@ -109,7 +107,7 @@ bool LoggerBroker::Init(SignalDirection const direction,
             uint32 startIdx = 0u;
             uint32 size = 0u;
             uint32 endIdx = 0u;
-            ok = dataSourceIn.GetFunctionSignalByteOffsetInfo(direction, functionIdx, signalIdx, i, startIdx, size);
+            ok = dataSourceIn.GetFunctionSignalByteOffsetInfo(direction, functionIdx, n, i, startIdx, size);
             if (ok) {
                 uint32 nOfBytes = static_cast<uint32>(signalDesc.numberOfBits) / 8u;
                 if (nOfBytes > 0u) {
