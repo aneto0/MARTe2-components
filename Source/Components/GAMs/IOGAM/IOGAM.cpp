@@ -81,7 +81,7 @@ bool IOGAM::Setup() {
             }
         }
         if (ret) {
-            totalSignalsByteSize = inByteSize;
+            totalSignalsByteSize += inByteSize;
         }
 
         TypeDescriptor inType = GetSignalType(InputSignals, idx);
