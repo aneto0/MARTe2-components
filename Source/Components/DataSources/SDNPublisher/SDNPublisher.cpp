@@ -277,11 +277,13 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
 
 const char8* SDNPublisher::GetBrokerName(StructuredDataI& data,
                                          const SignalDirection direction) {
-#if 1
-    return "MemoryMapSynchronisedOutputBroker";
-#else
-    return "MemoryMapOutputBroker";
-#endif
+    const char8 *brokerName = NULL_PTR(const char8 *);
+    if (direction == OutputSignals) {
+        brokerName = "MemoryMapSynchronisedOutputBroker";
+    } else {
+        REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
+    }
+    return brokerName;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/

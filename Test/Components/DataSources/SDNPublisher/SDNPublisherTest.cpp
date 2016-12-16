@@ -48,6 +48,10 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+static ccs::log::Severity_t org_filter = ccs::log::SetFilter(LOG_INFO);
+#undef log_trace
+#define log_trace log_info
+
 class SDNPublisherTestGAM: public MARTe::GAM {
 
 public:
@@ -55,15 +59,20 @@ public:
     CLASS_REGISTER_DECLARATION()
 
     SDNPublisherTestGAM() : GAM() {
+
+        log_trace("SDNPublisherTestGAM::SDNPublisherTestGAM - Entering method");
+
         counter = 0lu;
         timestamp = 0lu;
+
+        log_trace("SDNPublisherTestGAM::SDNPublisherTestGAM - Leaving method");
     }
 
-    ~SDNPublisherTestGAM() {
-
-    }
+    ~SDNPublisherTestGAM() { }
 
     bool Execute() {
+
+        log_trace("SDNPublisherTestGAM::Execute - Entering method");
 
         counter += 1;
 	MARTe::uint64 curr_time = get_time();
@@ -78,10 +87,17 @@ public:
             MARTe::MemoryOperationsHelper::Copy(GetOutputSignalMemory(1u), &timestamp, sizeof(MARTe::uint64));
         }
 
+        log_trace("SDNPublisherTestGAM::Execute - Leaving method");
+
         return true;
     }
 
     bool Setup() {
+
+        log_trace("SDNPublisherTestGAM::Setup - Entering method");
+
+        log_trace("SDNPublisherTestGAM::Setup - Leaving method");
+
         return true;
     }
 
@@ -102,8 +118,9 @@ bool TestIntegratedInApplication(const MARTe::char8 * const config) {
 
     ConfigurationDatabase cdb;
     StreamString configStream = config;
+    StreamString err;
     configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
+    StandardParser parser(configStream, cdb, &err);
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
@@ -111,6 +128,7 @@ bool TestIntegratedInApplication(const MARTe::char8 * const config) {
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
+        log_error("StandardParser::Parse failed with '%s'", err.Buffer());
     } else {
         god->Purge();
         ok = god->Initialise(cdb);
@@ -122,19 +140,27 @@ bool TestIntegratedInApplication(const MARTe::char8 * const config) {
         application = god->Find("Test");
         ok = application.IsValid();
     }
-    if (ok) {
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+    } else {
         ok = application->ConfigureApplication();
     }
-    if (ok) {
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::ConfigureApplication failed");
+    } else {
         ok = application->PrepareNextState("Running");
     }
-    if (ok) {
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::PrepareNextState failed");
+    } else {
         application->StartNextStateExecution();
     }
-    if (ok) {
-        wait_for(1000000000lu);
-    }
-    if (ok) {
+
+    wait_for(1000000000lu);
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::StartNextStateExecution failed");
+    } else {
         application->StopCurrentStateExecution();
     }
 
@@ -169,8 +195,8 @@ const MARTe::char8 * const config_default = ""
         "        DefaultDataSource = DDB1"
         "        +SDNPub = {"
         "            Class = SDNPublisher"
-        "            Topic = Default // The name is used to establish many-to-many communication channels"  
-        "            Interface = lo // The network interface name to be used"  
+        "            Topic = Default"  
+        "            Interface = lo"  
         "            Signals = {"  
         "                Counter = {"  
         "                    Type = uint64"  
@@ -186,11 +212,11 @@ const MARTe::char8 * const config_default = ""
         "    }"
         "    +States = {"
         "        Class = ReferenceContainer"
-        "        +State1 = {"
+        "        +Running = {"
         "            Class = RealTimeState"
         "            +Threads = {"
         "                Class = ReferenceContainer"
-        "                +Running = {"
+        "                +Thread = {"
         "                    Class = RealTimeThread"
         "                    Functions = {Timer}"
         "                }"
@@ -369,9 +395,14 @@ bool SDNPublisherTest::TestSetConfiguredDatabase() {
 }
 
 bool SDNPublisherTest::TestAllocateMemory() {
+    return TestIntegratedInApplication(config_default);
+}
+
+bool SDNPublisherTest::TestAllocateMemory_False() {
     using namespace MARTe;
     SDNPublisher test;
-    return test.AllocateMemory();
+    bool ok = test.AllocateMemory();
+    return !ok; // Expect failure
 }
 
 bool SDNPublisherTest::TestGetNumberOfMemoryBuffers() {
@@ -385,22 +416,21 @@ bool SDNPublisherTest::TestGetSignalMemoryBuffer() {
     return true;
 }
 
-bool SDNPublisherTest::TestGetBrokerName() {
+bool SDNPublisherTest::TestGetBrokerName_InputSignals() {
     using namespace MARTe;
     SDNPublisher test;
-    ConfigurationDatabase config;
-    StreamString brokerName = test.GetBrokerName(config, OutputSignals);
+    ConfigurationDatabase cdb;
+    StreamString brokerName = test.GetBrokerName(cdb, InputSignals);
     bool ok = (brokerName == "");
-    if (ok) {
-        brokerName = test.GetBrokerName(config, InputSignals);
-        ok = (brokerName == "MemoryMapInputBroker");
-    }
-    if (ok) {
-        config.Write("Frequency", 10);
-        brokerName = test.GetBrokerName(config, InputSignals);
-        ok = (brokerName == "MemoryMapSynchronisedInputBroker");
-    }
+    return ok;
+}
 
+bool SDNPublisherTest::TestGetBrokerName_OutputSignals() {
+    using namespace MARTe;
+    SDNPublisher test;
+    ConfigurationDatabase cdb;
+    StreamString brokerName = test.GetBrokerName(cdb, OutputSignals);
+    bool ok = (brokerName == "MemoryMapSynchronisedOutputBroker");
     return ok;
 }
 

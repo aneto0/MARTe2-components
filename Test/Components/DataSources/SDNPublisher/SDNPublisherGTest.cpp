@@ -134,6 +134,11 @@ TEST(SDNPublisherGTest,TestAllocateMemory) {
     ASSERT_TRUE(test.TestAllocateMemory());
 }
 
+TEST(SDNPublisherGTest,TestAllocateMemory_False) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestAllocateMemory_False());
+}
+
 TEST(SDNPublisherGTest,TestGetNumberOfMemoryBuffers) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
@@ -144,9 +149,14 @@ TEST(SDNPublisherGTest,TestGetSignalMemoryBuffer) {
     ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
 }
 
-TEST(SDNPublisherGTest,TestGetBrokerName) {
+TEST(SDNPublisherGTest,TestGetBrokerName_InputSignals) {
     SDNPublisherTest test;
-    ASSERT_TRUE(test.TestGetBrokerName());
+    ASSERT_TRUE(test.TestGetBrokerName_InputSignals());
+}
+
+TEST(SDNPublisherGTest,TestGetBrokerName_OutputSignals) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestGetBrokerName_OutputSignals());
 }
 
 TEST(SDNPublisherGTest, TestGetInputBrokers) {

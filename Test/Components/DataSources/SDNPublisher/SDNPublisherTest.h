@@ -129,6 +129,11 @@ public:
     bool TestAllocateMemory();
 
     /**
+     * @brief Tests the AllocateMemory method.
+     */
+    bool TestAllocateMemory_False();
+
+    /**
      * @brief Tests the GetNumberOfMemoryBuffers method.
      */
     bool TestGetNumberOfMemoryBuffers();
@@ -146,7 +151,12 @@ public:
     /**
      * @brief Tests the GetBrokerName method.
      */
-    bool TestGetBrokerName();
+    bool TestGetBrokerName_InputSignals();
+
+    /**
+     * @brief Tests the GetBrokerName method.
+     */
+    bool TestGetBrokerName_OutputSignals();
 
     /**
      * @brief Tests the GetInputBrokers method.
