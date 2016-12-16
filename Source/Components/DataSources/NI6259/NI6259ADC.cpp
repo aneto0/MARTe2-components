@@ -119,7 +119,7 @@ bool NI6259ADC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
             signalAddress = reinterpret_cast<void *>(&time);
         }
         else {
-            signalAddress = channelsMemory[signalIdx - NI6259ADC_HEADER_SIZE];
+            signalAddress = &(channelsMemory[signalIdx - NI6259ADC_HEADER_SIZE][0]);
         }
     }
     return ok;
@@ -596,11 +596,19 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     if (synchronising) {
         //numberOfADCsEnabled > 0 as otherwise it would be stopped
         uint32 singleADCFrequency = samplingFrequency / numberOfADCsEnabled;
-        ok = (singleADCFrequency == (cycleFrequency * numberOfSamples));
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError,
-                                    "samplingFrequency/numberOfADCsEnabled (%u) is not equal to cycleFrequency * numberOfSamples (%u)",
-                                    (samplingFrequency / numberOfADCsEnabled), (cycleFrequency * numberOfSamples))
+        if (ok) {
+            ok = (singleADCFrequency > cycleFrequency);
+            if (!ok) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "cycleFrequency (%u) cannot be greater than singleADCFrequency (%u)", samplingFrequency,
+                                        singleADCFrequency, cycleFrequency)
+            }
+        }
+        if (ok) {
+            uint32 totalNumberOfSamplesPerSecond = numberOfSamples * cycleFrequency;
+            ok = (singleADCFrequency >= totalNumberOfSamplesPerSecond);
+            if (!ok) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "singleADCFrequency (%u) shall be greater or equal to numberOfSamples * cycleFrequency (%u)",  singleADCFrequency, totalNumberOfSamplesPerSecond)
+            }
         }
     }
 
@@ -633,17 +641,21 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (pxi6259_set_ai_number_of_samples(&adcConfiguration, 0, numberOfSamples, 1) == 0);
+        ok = (pxi6259_set_ai_number_of_samples(&adcConfiguration, numberOfSamples, 0, 0) == 0);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName)
         }
     }
+    int32 divisions = 0u;
+    if (samplingFrequency != 0u) {
+        divisions = static_cast<int32>(20000000 / samplingFrequency + 0.5f);
+    }
     if (ok) {
         if (numberOfADCsEnabled == 1u) {
-            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16, 3, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
+            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16, divisions, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
         }
         else {
-            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 20, 3, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
+            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 20, divisions, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName)
@@ -651,7 +663,6 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         if (samplingFrequency != 0u) {
-            int32 divisions = static_cast<int32>(20000000 / samplingFrequency + 0.5f);
             ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, divisions, delayDivisor, clockSource, clockPolarity) == 0);
         }
         if (!ok) {
