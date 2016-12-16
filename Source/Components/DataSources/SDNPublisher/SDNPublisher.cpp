@@ -36,6 +36,7 @@
 #include "ErrorManagement.h"
 #include "ErrorInformation.h"
 #include "GlobalObjectsDatabase.h"
+#include "GAM.h"
 #include "SDNPublisher.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
@@ -179,7 +180,7 @@ bool SDNPublisher::AllocateMemory() {
     
     if (destAddr.Size() == 0) { // Topic defined by name
         sdn::Topic_InitializeMetadata(mdata, (const char*) topicName.Buffer(), 0);
-    } else { // An address as been explicitly provided 
+    } else { // An address as been explicitly provided
         sdn::Topic_InitializeMetadata(mdata, (const char*) topicName.Buffer(), 0, (const char*) destAddr.Buffer());
     }
 
@@ -255,6 +256,15 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
     log_trace("SDNPublisher::GetSignalMemoryBuffer - Entering method");
 
     bool ok = (signalIdx < nOfSignals);
+
+    if (ok) {
+        ok = (topic != NULL_PTR(sdn::Topic *));
+    }
+
+    if (ok) {
+        ok = (topic->GetTypeDefinition() != NULL_PTR(sdn::base::AnyType *));
+    }
+
     if (ok) {
         signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
         log_info("SDNPublisher::GetSignalMemoryBuffer - Reference of signal '%u' if '%p'", signalIdx, signalAddress);
@@ -320,3 +330,4 @@ bool SDNPublisher::Synchronise() {
 
 CLASS_REGISTER(SDNPublisher, "1.0.9")
 
+} /* namespace MARTe */

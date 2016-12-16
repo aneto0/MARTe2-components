@@ -24,8 +24,14 @@
 #
 #############################################################
 
-SPB=  LinuxTimer.x LoggerDataSource.x
-		
+SPB    =  LinuxTimer.x LoggerDataSource.x
+
+# Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
+# Current assumption is prior installation of CODAC Core System on the build node
+ifdef CODAC_VERSION
+SPB   += SDNPublisher.x
+endif
+	
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -35,8 +41,13 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
 
+# Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
+ifdef CODAC_VERSION
+LIBRARIES_STATIC+=$(BUILD_DIR)/SDNPublisher/SDNPublisherTest$(LIBEXT)
+endif
+
 all: $(OBJS) $(SUBPROJ) \
-                $(BUILD_DIR)/DataSourcesTests$(LIBEXT)
+    $(BUILD_DIR)/DataSourcesTests$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

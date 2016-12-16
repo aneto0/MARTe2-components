@@ -1,8 +1,8 @@
 /**
  * @file SDNPublisher.h
  * @brief Header file for class SDNPublisher
- * @date 24/10/2016
- * @author Andre Neto
+ * @date 12/12/2016
+ * @author Bertrand Bauvir
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -94,8 +94,8 @@ public:
     /**
      * @brief Destructor. Releases resources.
      * @post
-     *   topic = NULL_PTR(sdn::Topic *)
-     *   publisher = NULL_PTR(sdn::Publisher *)
+     *   topic = NULL_PTR
+     *   publisher = NULL_PTR
      */
     virtual ~SDNPublisher();
 
@@ -162,7 +162,7 @@ public:
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
-     * @details The implementation is not providing InputBrokers.
+     * @details The implementation does not provide InputBrokers.
      * @return false.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
@@ -170,8 +170,9 @@ public:
                                  void * const gamMemPtr);
 
     /**
-     * @brief .
-     * @return .
+     * @brief See DataSourceI::GetOutputBrokers.
+     * @details The implementation provides MemoryMapOutputBroker instances..
+     * @return true if the BrokerI::Init is successful.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
                                   const char8* const functionName,

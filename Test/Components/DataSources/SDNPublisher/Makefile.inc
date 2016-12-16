@@ -20,12 +20,14 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-OBJSX=SDNPublisher.x
-
+OBJSX += SDNPublisherTest.x
+		
 PACKAGE=Components/DataSources
-ROOT_DIR=../../../../
+ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
@@ -46,20 +48,13 @@ ifdef SDN_CORE_INCLUDE_DIR
 INCLUDES += -I$(SDN_CORE_INCLUDE_DIR)
 endif
 
-ifdef CODAC_ROOT
-LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core
-endif
-
-ifdef SDN_CORE_LIBRARY_DIR
-LIBRARIES += -L$(SDN_CORE_LIBRARY_DIR) -lsdn-core -lxml2
-endif
+INCLUDES += -I../../../../Source/Components/DataSources/SDNPublisher
 
 # Override CPPFLAGS due to scoped enums
 CPPFLAGS = -fPIC -frtti -Wall -std=c++0x -Werror -Wno-invalid-offsetof
 
-all: $(OBJS)    \
-    $(BUILD_DIR)/SDNPublisher$(LIBEXT) \
-    $(BUILD_DIR)/SDNPublisher$(DLLEXT)
+all: $(OBJS) \
+    $(BUILD_DIR)/SDNPublisherTest$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

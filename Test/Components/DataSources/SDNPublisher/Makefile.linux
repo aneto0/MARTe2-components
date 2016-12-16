@@ -20,17 +20,14 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-TARGET=cov
+TARGET=linux
+
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = SDNPublisherGTest.x
 
 include Makefile.inc
-
-LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimer$(LIBEXT)
-LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
-
-# Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
-ifdef CODAC_VERSION
-LIBRARIES_STATIC+=$(BUILD_DIR)/SDNPublisher/SDNPublisher$(LIBEXT)
-endif
-
