@@ -45,16 +45,18 @@ namespace MARTe {
  * @brief A DataSource which collects and publishes signals over the ITER SDN.
  * @details The DataSource collects its inputs signals into a SDN topic and publishes
  * the topic over the SDN network.
- * The SDN core library uses topic name as key to establish matching communication channels
+ *
+ * The SDN core library uses topic <name> as key to establish matching communication channels
  * across all participants. Alternatively, the destination address required by the underlying
  * transport may be defined explicitly, in which case matching topic names would only be used
  * to support fault investigation purposes.
-
+ *
  * The configuration syntax is (signals names are only given as an example):
  * +Publisher = {
  *     Class = SDNPublisher
  *     Topic = <name> // The name is used to establish many-to-many communication channels
  *     Interface = <name> // The network interface name to be used
+ *     Address = <address>:<port> // Optional - Explicit destination address
  *     Signals = {
  *         Counter = {
  *             Type = uint64
@@ -71,6 +73,9 @@ namespace MARTe {
  * The data payload over the network is structured in the same way as the signal definition
  * order. Interoperability between distributed poarticipants require strict configuration control
  * of the payload definition.
+ *
+ * The DataSource relies on a MemoryMapOutputBroker to interface to GAM signals. The DataSource
+ * does not allocate memory, rather maps directly the signals to the SDN message payload directly.
  */
 class SDNPublisher : public DataSourceI {
 
@@ -79,28 +84,57 @@ public:
     CLASS_REGISTER_DECLARATION()
 
     /**
-     * @brief Default constructor
+     * @brief Default constructor.
      * @post
-     *   Counter = 0
-     *   Time = 0
+     *   topic = NULL_PTR
+     *   publisher = NULL_PTR
      */
     SDNPublisher();
 
     /**
-     * @brief Destructor. Stops the EmbeddedThread.
+     * @brief Destructor. Releases resources.
+     * @post
+     *   topic = NULL_PTR(sdn::Topic *)
+     *   publisher = NULL_PTR(sdn::Publisher *)
      */
     virtual ~SDNPublisher();
 
     /**
-     * @brief .
-     * @return .
+     * @brief Verifies and parses instance parameters.
+     * @param[in] data configuration in the form:
+     * +Publisher = {
+     *     Class = SDNPublisher
+     *     Topic = <name> // The name is used to establish many-to-many communication channels
+     *     Interface = <name> // The network interface name to be used, e.g. eth0
+     *     Address = <address>:<port> // Optional - Explicit destination address
+     * }
+     * @details The configuration parameters are subject to the following criteria:
+     * The topic <name> is mandatory and can be any string. The <name> is used to associate the
+     * publisher to an address and must be identical on all participants. The mapping between topic
+     * <name> and address is done within the scope of the SDN core library and guaranteed to match
+     * between all participants using the same topic <name>. Alternatively, the destination address
+     * can be explicitly defined using a topic <name> of the form 'sdn://<address>:<port>/<name>';
+     * which is purposeful to establish e.g. a unicast connection.
+     * The interface <name> is mandatory and verified to correspond to a valid named
+     * interface on the host, e.g. eth0.
+     * @return true if criteria are met.
      */
     virtual bool Initialise(StructuredDataI &data);
 
     /**
-     * @brief See DataSourceI::AllocateMemory.
+     * @brief See DataSourceI::SetConfiguredDatabase.
+     * @details The DataSource does not parse the attribute; rather, the method is overloaded to
+     * perform signal validity checks outside the scope of the later SDNPublisher::AllocateMemory
+     * which can be ensured that it is called with signal list previously validated.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI& data);
+
+    /**
+     * @brief See DataSourceI::AllocateMemory.
+     * @details The method instantiate a sdn::Topic and sdn::Publisher, and used the transport message
+     * buffer inside the sdn::Publisher as memory for input signals.
+     * @return false in case or exception inside the SDN core library.
+     */
     virtual bool AllocateMemory();
 
     /**
@@ -111,6 +145,7 @@ public:
 
     /**
      * @brief See DataSourceI::GetSignalMemoryBuffers.
+     * @details The method maps signals directly to addresses within the SDN message payload.
      * @return 1.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
@@ -118,15 +153,17 @@ public:
                                        void *&signalAddress);
 
     /**
-     * @brief .
-     * @return .
+     * @brief See DataSourceI::GetBrokerName.
+     * @details The implementation is associated to a MemoryMapOutputBroker.
+     * @return MemoryMapOutputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
                                        const SignalDirection direction);
 
     /**
-     * @brief .
-     * @return .
+     * @brief See DataSourceI::GetInputBrokers.
+     * @details The implementation is not providing InputBrokers.
+     * @return false.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
                                  const char8* const functionName,
@@ -141,15 +178,17 @@ public:
                                   void * const gamMemPtr);
 
     /**
-     * @brief .
-     * @return .
+     * @brief See DataSourceI::PrepareNextState.
+     * @return true.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName);
 
     /**
-     * @brief .
-     * @return .
+     * @brief See DataSourceI::Synchronise.
+     * @details The method calls sdn::Publisher::Publish and relies on the fact that SDN
+     * message payload has been previously modified by the OutputBroker instances.
+     * @return true or false in case of error within the SDN core library.
      */
     virtual bool Synchronise();
 
@@ -159,7 +198,8 @@ private:
     StreamString topicName; // Configuration parameter
     StreamString destAddr;  // Configuration parameter (optional)
 
-    uint32 topicSize;  // The topic size computed from declared/connected input signals
+    uint32 nOfSignals; // Number of input signals
+
     sdn::Topic *topic; // The topic reference
     sdn::Publisher *publisher; // The sdn::Publisher reference
 
