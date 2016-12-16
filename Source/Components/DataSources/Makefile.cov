@@ -30,7 +30,7 @@ LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
-ifdef CODAC_VERSION
-LIBRARIES_STATIC+=$(BUILD_DIR)/SDNPublisher/SDNPublisher$(LIBEXT)
+ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
+LIBRARIES_STATIC+=SDNPublisher/cov/SDNPublisher$(LIBEXT)
 endif
 

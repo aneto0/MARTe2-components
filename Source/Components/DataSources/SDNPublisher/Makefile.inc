@@ -55,7 +55,7 @@ LIBRARIES += -L$(SDN_CORE_LIBRARY_DIR) -lsdn-core -lxml2
 endif
 
 # Override CPPFLAGS due to scoped enums
-CPPFLAGS = -fPIC -frtti -Wall -std=c++0x -Werror -Wno-invalid-offsetof
+CPPFLAGS += -std=c++0x
 
 all: $(OBJS)    \
     $(BUILD_DIR)/SDNPublisher$(LIBEXT) \

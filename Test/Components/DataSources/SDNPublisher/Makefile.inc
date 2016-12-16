@@ -51,8 +51,8 @@ endif
 INCLUDES += -I../../../../Source/Components/DataSources/SDNPublisher
 
 # Override CPPFLAGS due to scoped enums
-CPPFLAGS = -fPIC -frtti -Wall -std=c++0x -Werror -Wno-invalid-offsetof
-
+CPPFLAGS += -std=c++0x
+ 
 all: $(OBJS) \
     $(BUILD_DIR)/SDNPublisherTest$(LIBEXT)
 	echo  $(OBJS)
