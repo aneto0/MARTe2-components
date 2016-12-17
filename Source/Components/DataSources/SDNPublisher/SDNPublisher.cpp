@@ -44,13 +44,55 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-#if 0
-static ccs::log::Severity_t org_filter = ccs::log::SetFilter(LOG_TRACE);
-#else
-static ccs::log::Severity_t org_filter = ccs::log::SetFilter(LOG_INFO);
-#undef log_trace
-#define log_trace log_info
-#endif
+
+void vMessage2MARTe (Severity_t severity, const char* source, const char* message, va_list args) 
+{ 
+
+  if (severity > LOG_INFO) return;
+
+  using namespace MARTe;
+
+  ErrorManagement::ErrorType code;
+
+  switch (severity) 
+    {
+      default: 
+      case LOG_INFO:
+      case LOG_NOTICE:
+	code = ErrorManagement::Information; 
+	break;
+      case LOG_WARNING: 
+	code = ErrorManagement::Warning; 
+	break;
+      case LOG_ERR:
+	code = ErrorManagement::RecoverableError; 
+	break;
+      case LOG_CRIT:    
+      case LOG_ALERT:
+      case LOG_EMERG:
+	code = ErrorManagement::FatalError; 
+	break;
+    }
+
+  char buffer [1024] = STRING_UNDEFINED;
+  char* p_buf = (char*) buffer;
+  uint_t size = 1024;
+
+  if (IsUndefined(source) != true) snprintf(p_buf, size, "[%s] ", source);
+
+  /* Re-align pointer */
+  size -= strlen(p_buf); p_buf += strlen(p_buf); 
+
+  vsnprintf(p_buf, size, message, args); size -= strlen(p_buf); p_buf += strlen(p_buf); /* Re-align pointer */
+
+  REPORT_ERROR(code, buffer);
+
+  return; 
+
+};
+
+static ccs::log::Func_t org_cb = ccs::log::SetCallback(&vMessage2MARTe);
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

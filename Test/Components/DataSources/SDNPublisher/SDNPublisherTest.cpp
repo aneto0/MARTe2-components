@@ -48,10 +48,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-static ccs::log::Severity_t org_filter = ccs::log::SetFilter(LOG_INFO);
-#undef log_trace
-#define log_trace log_info
-
 class SDNPublisherTestGAM: public MARTe::GAM {
 
 public:
