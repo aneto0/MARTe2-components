@@ -179,6 +179,11 @@ TEST(SDNPublisherGTest, TestSynchronise) {
     ASSERT_TRUE(test.TestSynchronise());
 }
 
+TEST(SDNPublisherGTest, TestSynchronise_UCAST_Topic_1) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestSynchronise_UCAST_Topic_1());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

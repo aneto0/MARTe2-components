@@ -174,6 +174,11 @@ public:
     bool TestSynchronise();
 
     /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_UCAST_Topic_1();
+
+    /**
      * @brief Tests the PrepareNextState method.
      */
     bool TestPrepareNextState();

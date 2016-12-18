@@ -108,6 +108,44 @@ CLASS_REGISTER(SDNPublisherTestGAM, "1.0")
  * Starts a MARTe application that uses this driver instance.
  */
 
+bool ConfigureApplication(const MARTe::char8 * const config) {
+
+    using namespace MARTe;
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    StreamString err;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb, &err);
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    bool ok = parser.Parse();
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
+        log_error("StandardParser::Parse failed with '%s'", err.Buffer());
+    } else {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+
+    ReferenceT<RealTimeApplication> application;
+
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+    } else {
+        ok = application->ConfigureApplication();
+    }
+
+    return ok;
+
+}
+
 bool TestIntegratedInApplication(const MARTe::char8 * const config) {
 
     using namespace MARTe;
@@ -193,6 +231,66 @@ const MARTe::char8 * const config_default = ""
         "            Class = SDNPublisher"
         "            Topic = Default"  
         "            Interface = lo"  
+        "            Signals = {"  
+        "                Counter = {"  
+        "                    Type = uint64"  
+        "                }"  
+        "                Timestamp = {"  
+        "                    Type = uint64"  
+        "                }"  
+        "            }"  
+        "        }"  
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Standard configuration for testing
+const MARTe::char8 * const config_ucast = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = SDNPublisherTestGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"  
+        "            Interface = lo"  
+        "            Address = \"127.0.0.1:60000\""  
         "            Signals = {"  
         "                Counter = {"  
         "                    Type = uint64"  
@@ -451,5 +549,85 @@ bool SDNPublisherTest::TestPrepareNextState() {
 
 bool SDNPublisherTest::TestSynchronise() {
     return TestIntegratedInApplication(config_default);
+}
+
+bool SDNPublisherTest::TestSynchronise_UCAST_Topic_1() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config_ucast;
+    StreamString err;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb, &err);
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    bool ok = parser.Parse();
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
+        log_error("StandardParser::Parse failed with '%s'", err.Buffer());
+    } else {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+
+    ReferenceT<RealTimeApplication> application;
+
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+    } else {
+        ok = application->ConfigureApplication();
+    }
+    if (ok) {
+ 
+        ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
+	ok = publisher.IsValid();
+
+	if (ok) {
+	    // Instantiate a sdn::Metadata structure to configure the topic
+	    sdn::Metadata_t mdata; sdn::Topic_InitializeMetadata(mdata, "Default", 0, "127.0.0.1:60000");
+	    // Instantiate SDN topic from metadata specification
+	    sdn::Topic* topic = new sdn::Topic; topic->SetMetadata(mdata);
+	    sdn::Subscriber* subscriber;
+    
+	    if (ok) {
+	        ok = (topic->AddAttribute(0u, "Counter", "uint64") == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+		ok = (topic->Configure() == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        ok = topic->IsInitialized();
+	    }
+	    // Create sdn::Subscriber
+	    if (ok) {
+	        subscriber = new sdn::Subscriber(*topic);
+	    }
+	    if (ok) {
+	      ok = (subscriber->SetInterface((char*) "lo") == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        ok = (subscriber->Configure() == STATUS_SUCCESS);
+	    }
+	    // Call SDNPublisher::Synchronise
+	    if (ok) {
+	        ok = publisher->Synchronise();
+	    }
+	    // Test reception
+	    if (ok) {
+	        ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
+	    }
+	} 
+    }
+
+    return ok;
 }
 

@@ -116,12 +116,12 @@ SDNPublisher::~SDNPublisher() {
 
     log_trace("SDNPublisher::~SDNPublisher - Entering method");
 
-    if (topic != NULL_PTR(sdn::Topic *)) {
-        delete topic; topic = NULL_PTR(sdn::Topic *);
-    }
-
     if (publisher != NULL_PTR(sdn::Publisher *)) {
         delete publisher; publisher = NULL_PTR(sdn::Publisher *);
+    }
+
+    if (topic != NULL_PTR(sdn::Topic *)) {
+        delete topic; topic = NULL_PTR(sdn::Topic *);
     }
 
     log_trace("SDNPublisher::~SDNPublisher - Leaving method");
@@ -262,6 +262,7 @@ bool SDNPublisher::AllocateMemory() {
     }
 
     if (ok) {
+        topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
         ok = (topic->Configure() == STATUS_SUCCESS);
     }
 
@@ -372,6 +373,6 @@ bool SDNPublisher::Synchronise() {
     return ok;
 }
 
-CLASS_REGISTER(SDNPublisher, "1.0.9")
+CLASS_REGISTER(SDNPublisher, "1.0.10")
 
 } /* namespace MARTe */
