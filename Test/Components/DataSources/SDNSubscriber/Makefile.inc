@@ -24,33 +24,40 @@
 #
 #############################################################
 
-SPB    =  LinuxTimer.x LoggerDataSource.x
-
-# Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
-# Current assumption is prior installation of CODAC Core System on the build node
-ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
-SPB   += SDNPublisher.x SDNSubscriber.x
-endif
-	
-PACKAGE=Components
-ROOT_DIR=../../..
+OBJSX += SDNSubscriberTest.x
+		
+PACKAGE=Components/DataSources
+ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
+INCLUDES += -I.
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 
-# Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
-ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
-LIBRARIES_STATIC+=$(BUILD_DIR)/SDNPublisher/SDNPublisherTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/SDNSubscriber/SDNSubscriberTest$(LIBEXT)
+ifdef CODAC_ROOT
+INCLUDES += -I$(CODAC_ROOT)/include
 endif
 
-all: $(OBJS) $(SUBPROJ) \
-    $(BUILD_DIR)/DataSourcesTests$(LIBEXT)
+ifdef SDN_CORE_INCLUDE_DIR
+INCLUDES += -I$(SDN_CORE_INCLUDE_DIR)
+endif
+
+INCLUDES += -I../../../../Source/Components/DataSources/SDNSubscriber
+
+# Override CPPFLAGS due to scoped enums
+CPPFLAGS += -std=c++0x
+ 
+all: $(OBJS) \
+    $(BUILD_DIR)/SDNSubscriberTest$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+

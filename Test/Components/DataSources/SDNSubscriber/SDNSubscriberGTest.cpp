@@ -1,6 +1,6 @@
 /**
- * @file SDNPublisherGTest.cpp
- * @brief Source file for class SDNPublisherGTest
+ * @file SDNSubscriberGTest.cpp
+ * @brief Source file for class SDNSubscriberGTest
  * @date 12/12/2016
  * @author Bertrand Bauvir
  *
@@ -34,7 +34,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "SDNPublisherTest.h"
+#include "SDNSubscriberTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -44,158 +44,168 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-TEST(SDNPublisherGTest,TestConstructor) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest,TestConstructor) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_Empty) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_Empty) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_Empty());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_Default) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_Default) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_Default());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_Address) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_Address) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_Address());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_Address_mcast) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_Address_mcast) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_Address_mcast());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_Address_ucast) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_Address_ucast) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_Address_ucast());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_ShortForm) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_ShortForm) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_ShortForm());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_Missing_Topic) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_Timeout_0ul) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestInitialise_Timeout_0ul());
+}
+
+TEST(SDNSubscriberGTest, TestInitialise_Timeout_10ms) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestInitialise_Timeout_10ms());
+}
+
+TEST(SDNSubscriberGTest, TestInitialise_Missing_Topic) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_Missing_Topic());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_Missing_Interface) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_Missing_Interface) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_Missing_Interface());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_False_Interface_1) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_False_Interface_1) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_False_Interface_1());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_False_Interface_2) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_False_Interface_2) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_False_Interface_2());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_False_Address_1) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_False_Address_1) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_False_Address_1());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_False_Address_2) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_False_Address_2) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_False_Address_2());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_False_Address_3) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_False_Address_3) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_False_Address_3());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_False_Address_4) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_False_Address_4) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_False_Address_4());
 }
 
-TEST(SDNPublisherGTest, TestInitialise_False_Address_5) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestInitialise_False_Address_5) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_False_Address_5());
 }
 
-TEST(SDNPublisherGTest, TestSetConfiguredDatabase) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestSetConfiguredDatabase) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
-TEST(SDNPublisherGTest, TestSetConfiguredDatabase_False_NOfSignals) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestSetConfiguredDatabase_False_NOfSignals) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals());
 }
 
-TEST(SDNPublisherGTest,TestAllocateMemory) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest,TestAllocateMemory) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestAllocateMemory());
 }
 
-TEST(SDNPublisherGTest,TestAllocateMemory_False) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest,TestAllocateMemory_False) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestAllocateMemory_False());
 }
 
-TEST(SDNPublisherGTest,TestGetNumberOfMemoryBuffers) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest,TestGetNumberOfMemoryBuffers) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
 }
 
-TEST(SDNPublisherGTest,TestGetSignalMemoryBuffer) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest,TestGetSignalMemoryBuffer) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
 }
 
-TEST(SDNPublisherGTest,TestGetBrokerName_InputSignals) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest,TestGetBrokerName_InputSignals) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestGetBrokerName_InputSignals());
 }
 
-TEST(SDNPublisherGTest,TestGetBrokerName_OutputSignals) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest,TestGetBrokerName_OutputSignals) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestGetBrokerName_OutputSignals());
 }
 
-TEST(SDNPublisherGTest, TestGetInputBrokers) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestGetInputBrokers) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestGetInputBrokers());
 }
 
-TEST(SDNPublisherGTest, TestGetOutputBrokers) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestGetOutputBrokers) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestGetOutputBrokers());
 }
 
-TEST(SDNPublisherGTest, TestPrepareNextState) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestPrepareNextState) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestPrepareNextState());
 }
 
-TEST(SDNPublisherGTest, TestSynchronise) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestSynchronise) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise());
 }
 
-TEST(SDNPublisherGTest, TestSynchronise_MCAST_Topic_1) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_1) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_1());
 }
 
-TEST(SDNPublisherGTest, TestSynchronise_MCAST_Topic_2) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_2) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_2());
 }
 
-TEST(SDNPublisherGTest, TestSynchronise_UCAST_Topic_1) {
-    SDNPublisherTest test;
+TEST(SDNSubscriberGTest, TestSynchronise_UCAST_Topic_1) {
+    SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise_UCAST_Topic_1());
 }
 
