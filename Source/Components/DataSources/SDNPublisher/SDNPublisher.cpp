@@ -255,6 +255,16 @@ bool SDNPublisher::AllocateMemory() {
 	    ok = GetSignalNumberOfElements(signalIndex, signalNOfElements);
 	}
 
+	uint8 signalNOfDimensions;
+
+	if (ok) {
+	    ok = GetSignalNumberOfDimensions(signalIndex, signalNOfDimensions);
+	}
+
+	if (signalNOfDimensions > 1u) {
+	    signalNOfElements *= signalNOfDimensions;
+	}
+
 	if (ok) {
 	    ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
 	}

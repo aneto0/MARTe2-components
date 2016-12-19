@@ -129,6 +129,16 @@ public:
     bool TestAllocateMemory();
 
     /**
+     * @brief Tests the SetConfiguredDatabase method.
+     */
+    bool TestSetConfiguredDatabase();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method without signals.
+     */
+    bool TestSetConfiguredDatabase_False_NOfSignals();
+
+    /**
      * @brief Tests the AllocateMemory method.
      */
     bool TestAllocateMemory_False();
@@ -169,6 +179,11 @@ public:
     bool TestGetOutputBrokers();
 
     /**
+     * @brief Tests the PrepareNextState method.
+     */
+    bool TestPrepareNextState();
+
+    /**
      * @brief Tests the Synchronise method.
      */
     bool TestSynchronise();
@@ -176,27 +191,27 @@ public:
     /**
      * @brief Tests the Synchronise method.
      */
+    bool TestSynchronise_MCAST_Topic_1();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_Topic_2();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_Topic_3();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_Topic_4();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
     bool TestSynchronise_UCAST_Topic_1();
-
-    /**
-     * @brief Tests the PrepareNextState method.
-     */
-    bool TestPrepareNextState();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase method.
-     */
-    bool TestSetConfiguredDatabase();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase method with only one signal specified on each GAM.
-     */
-    bool TestSetConfiguredDatabase_One_Signal_Per_GAM();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase method specifying more than two signals.
-     */
-    bool TestSetConfiguredDatabase_False_MoreThan2Signals();
 
 };
 

@@ -129,6 +129,11 @@ TEST(SDNPublisherGTest, TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
+TEST(SDNPublisherGTest, TestSetConfiguredDatabase_False_NOfSignals) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals());
+}
+
 TEST(SDNPublisherGTest,TestAllocateMemory) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestAllocateMemory());
@@ -177,6 +182,16 @@ TEST(SDNPublisherGTest, TestPrepareNextState) {
 TEST(SDNPublisherGTest, TestSynchronise) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestSynchronise());
+}
+
+TEST(SDNPublisherGTest, TestSynchronise_MCAST_Topic_1) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_1());
+}
+
+TEST(SDNPublisherGTest, TestSynchronise_MCAST_Topic_2) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_2());
 }
 
 TEST(SDNPublisherGTest, TestSynchronise_UCAST_Topic_1) {

@@ -263,66 +263,6 @@ const MARTe::char8 * const config_default = ""
         "    }"
         "}";
 
-//Standard configuration for testing
-const MARTe::char8 * const config_ucast = ""
-        "$Test = {"
-        "    Class = RealTimeApplication"
-        "    +Functions = {"
-        "        Class = ReferenceContainer"
-        "        +Timer = {"
-        "            Class = SDNPublisherTestGAM"
-        "            OutputSignals = {"
-        "                Counter = {"
-        "                    DataSource = SDNPub"
-        "                    Type = uint64"
-        "                }"
-        "                Timestamp = {"
-        "                    DataSource = SDNPub"
-        "                    Type = uint64"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Data = {"
-        "        Class = ReferenceContainer"
-        "        DefaultDataSource = DDB1"
-        "        +SDNPub = {"
-        "            Class = SDNPublisher"
-        "            Topic = Default"  
-        "            Interface = lo"  
-        "            Address = \"127.0.0.1:60000\""  
-        "            Signals = {"  
-        "                Counter = {"  
-        "                    Type = uint64"  
-        "                }"  
-        "                Timestamp = {"  
-        "                    Type = uint64"  
-        "                }"  
-        "            }"  
-        "        }"  
-        "        +Timings = {"
-        "            Class = TimingDataSource"
-        "        }"
-        "    }"
-        "    +States = {"
-        "        Class = ReferenceContainer"
-        "        +Running = {"
-        "            Class = RealTimeState"
-        "            +Threads = {"
-        "                Class = ReferenceContainer"
-        "                +Thread = {"
-        "                    Class = RealTimeThread"
-        "                    Functions = {Timer}"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Scheduler = {"
-        "        Class = GAMScheduler"
-        "        TimingDataSource = Timings"
-        "    }"
-        "}";
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -488,6 +428,65 @@ bool SDNPublisherTest::TestSetConfiguredDatabase() {
     return TestIntegratedInApplication(config_default);
 }
 
+bool SDNPublisherTest::TestSetConfiguredDatabase_False_NOfSignals() {
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = SDNPublisherTestGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = DDB1"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = DDB1"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +DDB1 = {"
+        "            Class = GAMDataSource"
+        "        }"  
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"  
+        "            Interface = lo"  
+        "        }"  
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+    return !ok; // Expect failure
+}
+
 bool SDNPublisherTest::TestAllocateMemory() {
     return TestIntegratedInApplication(config_default);
 }
@@ -551,39 +550,315 @@ bool SDNPublisherTest::TestSynchronise() {
     return TestIntegratedInApplication(config_default);
 }
 
-bool SDNPublisherTest::TestSynchronise_UCAST_Topic_1() {
+bool SDNPublisherTest::TestSynchronise_MCAST_Topic_1() {
     using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config_ucast;
-    StreamString err;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb, &err);
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = SDNPublisherTestGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"  
+        "            Interface = lo"  
+        "            Signals = {"  
+        "                Counter = {"  
+        "                    Type = uint64"  
+        "                }"  
+        "                Timestamp = {"  
+        "                    Type = uint64"  
+        "                }"  
+        "            }"  
+        "        }"  
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    bool ok = ConfigureApplication(config);
 
-    bool ok = parser.Parse();
-
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
-        log_error("StandardParser::Parse failed with '%s'", err.Buffer());
-    } else {
-        god->Purge();
-        ok = god->Initialise(cdb);
-    }
-
-    ReferenceT<RealTimeApplication> application;
-
-    if (ok) {
-        application = god->Find("Test");
-        ok = application.IsValid();
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
-    } else {
-        ok = application->ConfigureApplication();
-    }
     if (ok) {
  
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
+	ok = publisher.IsValid();
+
+	if (ok) {
+	    // Instantiate a sdn::Metadata structure to configure the topic
+	    sdn::Metadata_t mdata; sdn::Topic_InitializeMetadata(mdata, "Default", 0);
+	    // Instantiate SDN topic from metadata specification
+	    sdn::Topic* topic = new sdn::Topic; topic->SetMetadata(mdata);
+	    sdn::Subscriber* subscriber;
+    
+	    if (ok) {
+	        ok = (topic->AddAttribute(0u, "Counter", "uint64") == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+		ok = (topic->Configure() == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        ok = topic->IsInitialized();
+	    }
+	    // Create sdn::Subscriber
+	    if (ok) {
+	        subscriber = new sdn::Subscriber(*topic);
+	    }
+	    if (ok) {
+	      ok = (subscriber->SetInterface((char*) "lo") == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        ok = (subscriber->Configure() == STATUS_SUCCESS);
+	    }
+	    // Call SDNPublisher::Synchronise
+	    if (ok) {
+	        ok = publisher->Synchronise();
+	    }
+	    // Test reception
+	    if (ok) {
+	        ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
+	    }
+	} 
+    }
+
+    return ok;
+}
+
+bool SDNPublisherTest::TestSynchronise_MCAST_Topic_2() {
+    using namespace MARTe;
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = SDNPublisherTestGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"  
+        "            Interface = lo"  
+        "            Signals = {"  
+        "                Counter = {"  
+        "                    Type = uint64"  
+        "                }"  
+        "                Timestamp = {"  
+        "                    Type = uint64"  
+        "                }"  
+        "                ArrayInt32_1D = {"  
+        "                    Type = uint32"  
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"  
+        "                }"  
+        "                ArrayInt32_2D = {"  
+        "                    Type = uint32"  
+        "                    NumberOfElements = 4"
+        "                    NumberOfDimensions = 2"  
+        "                }"  
+        "                ArrayFlt32_1D = {"  
+        "                    Type = float32"  
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"  
+        "                }"  
+        "                ArrayFlt32_2D = {"  
+        "                    Type = float32"  
+        "                    NumberOfElements = 4"
+        "                    NumberOfDimensions = 2"  
+        "                }"  
+        "            }"  
+        "        }"  
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+
+    if (ok) {
+ 
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
+	ok = publisher.IsValid();
+
+	if (ok) {
+	    // Instantiate a sdn::Metadata structure to configure the topic (name, version and size)
+	    sdn::Metadata_t mdata; sdn::Topic_InitializeMetadata(mdata, "Default", 160u, 0u);
+	    // Instantiate SDN topic from metadata specification
+	    sdn::Topic* topic = new sdn::Topic; topic->SetMetadata(mdata); 
+	    sdn::Subscriber* subscriber;
+    
+	    topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10	    
+	    ok = (topic->Configure() == STATUS_SUCCESS);
+
+	    if (ok) {
+	        ok = topic->IsInitialized();
+	    }
+	    // Create sdn::Subscriber
+	    if (ok) {
+	        subscriber = new sdn::Subscriber(*topic);
+	    }
+	    if (ok) {
+	      ok = (subscriber->SetInterface((char*) "lo") == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        ok = (subscriber->Configure() == STATUS_SUCCESS);
+	    }
+	    // Call SDNPublisher::Synchronise
+	    if (ok) {
+	        ok = publisher->Synchronise();
+	    }
+	    // Test reception
+	    if (ok) {
+	        ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
+	    }
+	} 
+    }
+
+    return ok;
+}
+
+bool SDNPublisherTest::TestSynchronise_UCAST_Topic_1() {
+    using namespace MARTe;
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = SDNPublisherTestGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"  
+        "            Interface = lo"  
+        "            Address = \"127.0.0.1:60000\""  
+        "            Signals = {"  
+        "                Counter = {"  
+        "                    Type = uint64"  
+        "                }"  
+        "                Timestamp = {"  
+        "                    Type = uint64"  
+        "                }"  
+        "            }"  
+        "        }"  
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+
+    if (ok) {
+ 
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
         ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
 	ok = publisher.IsValid();
 
