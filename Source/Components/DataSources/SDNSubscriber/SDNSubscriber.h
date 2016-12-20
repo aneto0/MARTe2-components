@@ -19,6 +19,11 @@
  * @details This header file contains the declaration of the class SDNSubscriber
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
+ *
+ * @todo Extend the implementation to support distributing signals to multiple GAM.
+ * @todo Extend the implementation to support asynchronous reception in own thread 
+ * whereby the SDN topic may be received and delivered without impacting the RT
+ * thread activity.
  */
 
 #ifndef SDNSUBSCRIBER_H_
@@ -79,7 +84,7 @@ namespace MARTe {
  * does not allocate memory, rather maps directly the signals to the SDN message payload directly.
  *
  * The DataSource can be used in asynchronous mode whereby the RT threads are synchronized with an
- * alternative method and the SDNSubscriber holds whichever signal samples were ast received. This
+ * alternative method and the SDNSubscriber holds whichever signal samples were last received. This
  * is currently specified with 'Timeout = 0'.
  */
 class SDNSubscriber : public DataSourceI {
@@ -189,7 +194,8 @@ public:
 
     /**
      * @brief See DataSourceI::PrepareNextState.
-     * @return true.
+     * @details The method empties the  receive buffer before returning. 
+     * @return true or false if sdn::Subscriber has not been instantiated.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName);

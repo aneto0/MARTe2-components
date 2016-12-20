@@ -23,8 +23,11 @@
  * @todo Nothing prevents the SDNPublisher DataSource to make the signals available
  * as InputSignals to other GAMs. The implementation may be extended to return
  * InputBrokers.
- * @todo Extend the implementation to support multiple GAM OutputSignals and declared
- * Trigger signals.
+ * @todo Extend the implementation to support multiple GAM OutputSignals and make use
+ * of Trigger signal declaration.
+ * @todo Extend the implementation to support asynchronous publication in own thread 
+ * whereby the SDN topic may be published at configurable rate and phase regardless
+ * of the RT thread activity.
  */
 
 #ifndef SDNPUBLISHER_H_
