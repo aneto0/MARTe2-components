@@ -328,29 +328,54 @@ bool SDNSubscriber::GetOutputBrokers(ReferenceContainer& outputBrokers,
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns true irrespectively of the input parameters.*/
 bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
-                                    const char8* const nextStateName) {
-    return true;
+                                     const char8* const nextStateName) {
+    // Empty the receive buffer, if necessary
+    bool ok = (subscriber != NULL_PTR(sdn::Subscriber *));
+
+    if (!ok) {
+        log_error("SDNSubscriber::PrepareNextState - sdn::Subscriber has not been initiaised");
+        REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initiaised");
+    }
+
+    if (ok) {
+        while (subscriber->Receive(0ul) == STATUS_SUCCESS);
+    }
+
+    return ok;
 }
 
 bool SDNSubscriber::Synchronise() {
 
     log_trace("SDNSubscriber::Synchronise - Entering method");
 
-    bool ok = true;
-
-    if (blocking) {
-        ok = (subscriber->Receive() == STATUS_SUCCESS);
-    } else {
-        ok = (subscriber->Receive(timeout) == STATUS_SUCCESS);
-    }
+    bool ok = (subscriber != NULL_PTR(sdn::Subscriber *));
 
     if (!ok) {
-        log_error("SDNSubscriber::Synchronise - Failed to receive on '%s'", ifaceName.Buffer());
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed to receive");
+        log_error("SDNSubscriber::Synchronise - sdn::Subscriber has not been initiaised");
+        REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initiaised");
     }
 
-    if (!ok) { // Ignore error for now
-        ok = true;
+    if (ok) {
+
+        if (blocking) {
+            ok = (subscriber->Receive() == STATUS_SUCCESS);
+        } else if (timeout > 0ul) {
+            ok = (subscriber->Receive(timeout) == STATUS_SUCCESS);
+        } else {
+            // Empty the receive buffer, if necessary
+            while (subscriber->Receive(0ul) == STATUS_SUCCESS) {
+                ok = true;
+    	    }
+        }
+
+        if (!ok) {
+            log_error("SDNSubscriber::Synchronise - Failed to receive on '%s'", ifaceName.Buffer());
+            REPORT_ERROR(ErrorManagement::FatalError, "Failed to receive");
+        }
+
+        if (!ok) { // Ignore error for now
+            ok = true;
+        }
     }
 
     log_trace("SDNSubscriber::Synchronise - Leaving method");

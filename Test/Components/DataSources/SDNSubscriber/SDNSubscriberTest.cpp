@@ -270,7 +270,7 @@ bool SDNSubscriberTest::TestConstructor() {
     using namespace MARTe;
     SDNSubscriber test;
     bool ok = (test.PrepareNextState("FromCurrent","ToNext")); // Test the instantiated class
-    return ok;
+    return !ok; // Expect failure since sdn::Subscriber has not yet been instantiated
 }
 
 bool SDNSubscriberTest::TestInitialise_Empty() {
@@ -564,7 +564,7 @@ bool SDNSubscriberTest::TestPrepareNextState() {
     using namespace MARTe;
     SDNSubscriber test;
     bool ok = (test.PrepareNextState("FromCurrent","ToNext")); // Test the instantiated class
-    return ok;
+    return !ok; // Expect failure since sdn::Subscriber has not yet been instantiated
 }
 
 bool SDNSubscriberTest::TestSynchronise() {

@@ -15,7 +15,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This header file contains the declaration of the class SDNSubscriber
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
@@ -42,7 +42,7 @@
 namespace MARTe {
 
 /**
- * @brief A DataSource which collects and publishes signals over the ITER SDN.
+ * @brief A DataSource which receives signals transported over the ITER SDN.
  * @details The DataSource connects to the SDN network named interface and received topics
  * with configurable blocking with timeout behaviour.
  *
@@ -77,6 +77,10 @@ namespace MARTe {
  *
  * The DataSource relies on a MemoryMapInputBroker to interface to GAM signals. The DataSource
  * does not allocate memory, rather maps directly the signals to the SDN message payload directly.
+ *
+ * The DataSource can be used in asynchronous mode whereby the RT threads are synchronized with an
+ * alternative method and the SDNSubscriber holds whichever signal samples were ast received. This
+ * is currently specified with 'Timeout = 0'.
  */
 class SDNSubscriber : public DataSourceI {
 

@@ -376,7 +376,16 @@ bool SDNPublisher::Synchronise() {
 
     log_trace("SDNPublisher::Synchronise - Entering method");
 
-    bool ok = (publisher->Publish() == STATUS_SUCCESS);
+    bool ok = (publisher != NULL_PTR(sdn::Publisher *));
+
+    if (!ok) {
+        log_error("SDNPublisher::Synchronise - sdn::Publisher has not been initiaised");
+        REPORT_ERROR(ErrorManagement::FatalError, "sdn::Publisher has not been initiaised");
+    }
+
+    if (ok) {
+        ok = (publisher->Publish() == STATUS_SUCCESS);
+    }
 
     log_trace("SDNPublisher::Synchronise - Leaving method");
 
