@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX=SDNSubscriber.x
+OBJSX=SDNSubscriber.x ThreadedSDNSubscriber.x
 
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../../
@@ -37,6 +37,8 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 
 ifdef CODAC_ROOT
 INCLUDES += -I$(CODAC_ROOT)/include

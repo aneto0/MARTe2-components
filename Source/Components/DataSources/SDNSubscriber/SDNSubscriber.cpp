@@ -33,10 +33,6 @@
 
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
-#include "ErrorManagement.h"
-#include "ErrorInformation.h"
-#include "GlobalObjectsDatabase.h"
-#include "GAM.h"
 #include "SDNSubscriber.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
@@ -329,7 +325,9 @@ bool SDNSubscriber::GetOutputBrokers(ReferenceContainer& outputBrokers,
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns true irrespectively of the input parameters.*/
 bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
                                      const char8* const nextStateName) {
-    // Empty the receive buffer, if necessary
+
+    log_trace("SDNSubscriber::PrepareNextState - Entering method");
+
     bool ok = (subscriber != NULL_PTR(sdn::Subscriber *));
 
     if (!ok) {
@@ -338,8 +336,11 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
     }
 
     if (ok) {
+        // Empty the receive buffer, if necessary
         while (subscriber->Receive(0ul) == STATUS_SUCCESS);
     }
+
+    log_trace("SDNSubscriber::PrepareNextState - Leaving method");
 
     return ok;
 }

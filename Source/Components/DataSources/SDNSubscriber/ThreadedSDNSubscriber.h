@@ -1,6 +1,6 @@
 /**
- * @file SDNSubscriber.h
- * @brief Header file for class SDNSubscriber
+ * @file ThreadedSDNSubscriber.h
+ * @brief Header file for class ThreadedSDNSubscriber
  * @date 20/12/2016
  * @author Bertrand Bauvir
  *
@@ -16,18 +16,16 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class SDNSubscriber
+ * @details This header file contains the declaration of the class ThreadedSDNSubscriber
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  *
  * @todo Extend the implementation to support distributing signals to multiple GAM.
- * @todo Extend the implementation to support asynchronous reception in own thread 
- * whereby the SDN topic may be received and delivered without impacting the RT
- * thread activity.
+ * @todo Inherit from (basic) SDNSubscriber for all common tasks.
  */
 
-#ifndef SDNSUBSCRIBER_H_
-#define SDNSUBSCRIBER_H_
+#ifndef THREADEDSDNSUBSCRIBER_H_
+#define THREADEDSDNSUBSCRIBER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -38,6 +36,9 @@
 /*---------------------------------------------------------------------------*/
 
 #include "DataSourceI.h"
+#include "EventSem.h"
+#include "EmbeddedServiceMethodBinderI.h"
+#include "SingleThreadService.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 
@@ -58,11 +59,12 @@ namespace MARTe {
  *
  * The configuration syntax is (signals names are only given as an example):
  * +Subscriber = {
- *     Class = SDNSubscriber
+ *     Class = ThreadedSDNSubscriber
  *     Topic = <name> // The name is used to establish many-to-many communication channels
  *     Interface = <name> // The network interface name to be used
  *     Address = <address>:<port> // Optional - Explicit destination address
- *     Timeout = <timeout_in_ns> // Optional - Blocking sdn::Subscriber::Receive if absent
+ *     Mode = Default|Caching|Synchronising // Optional - Explicit synchronisation mode
+ *     Timeout = <timeout_in_ms> // Optional - Used for synchronising mode semaphore
  *     Signals = {
  *         Counter = {
  *             Type = uint64
@@ -83,11 +85,12 @@ namespace MARTe {
  * The DataSource relies on a MemoryMapInputBroker to interface to GAM signals. The DataSource
  * does not allocate memory, rather maps directly the signals to the SDN message payload directly.
  *
- * The DataSource can be used in asynchronous mode whereby the RT threads are synchronized with an
- * alternative method and the SDNSubscriber holds whichever signal samples were last received. This
- * is currently specified with 'Timeout = 0'.
+ * The DataSource can be used in asynchronous (caching) mode whereby the RT threads are
+ * synchronized with an alternative method and the ThreadedSDNSubscriber holds whichever signal
+ * samples were last received. This is currently the Default mode which can be left unspecified, or
+ * explicitly selected with 'Default' or 'Caching' mode.
  */
-class SDNSubscriber : public DataSourceI {
+class ThreadedSDNSubscriber : public DataSourceI, public EmbeddedServiceMethodBinderI {
 
 public:
 
@@ -96,10 +99,11 @@ public:
     /**
      * @brief Default constructor.
      * @post
+     *   mode = Default
      *   topic = NULL_PTR
      *   subscriber = NULL_PTR
      */
-    SDNSubscriber();
+    ThreadedSDNSubscriber();
 
     /**
      * @brief Destructor. Releases resources.
@@ -107,16 +111,17 @@ public:
      *   topic = NULL_PTR
      *   subscriber = NULL_PTR
      */
-    virtual ~SDNSubscriber();
+    virtual ~ThreadedSDNSubscriber();
 
     /**
      * @brief Verifies and parses instance parameters.
      * @param[in] data configuration in the form:
      * +Subscriber = {
-     *     Class = SDNSubscriber
+     *     Class = ThreadedSDNSubscriber
      *     Topic = <name> // The name is used to establish many-to-many communication channels
      *     Interface = <name> // The network interface name to be used, e.g. eth0
      *     Address = <address>:<port> // Optional - Explicit destination address
+     *     Mode = Default|Caching|Synchronising // Optional - Explicit synchronisation mode
      * }
      * @details The configuration parameters are subject to the following criteria:
      * The topic <name> is mandatory and can be any string. The <name> is used to associate the
@@ -127,6 +132,10 @@ public:
      * which is purposeful to establish e.g. a unicast connection.
      * The interface <name> is mandatory and verified to correspond to a valid named interface on
      * the host, e.g. eth0.
+     * The synchronisation mode is used to discriminate between caching (the thread updated the
+     * signal memory with each received SDN message but the synchronisation of the RT thread is
+     * managed with an alternative mechanism) vs. synchronising behaviour (the activity of the RT
+     * thread is synchronised to the SDN reception).
      * @warning The unicast behaviour is selected by means of specifying any destination address
      * within the IPv4 unicast address range. The socket is bound to the named interface and the
      * address is not used.
@@ -137,7 +146,7 @@ public:
     /**
      * @brief See DataSourceI::SetConfiguredDatabase.
      * @details The DataSource does not parse the attribute; rather, the method is overloaded to
-     * perform signal validity checks outside the scope of the later SDNSubscriber::AllocateMemory
+     * perform signal validity checks outside the scope of the later ThreadedSDNSubscriber::AllocateMemory
      * which can be ensured that it is called with signal list previously validated.
      * @return false in case no signals are being configured.
      */
@@ -168,15 +177,17 @@ public:
 
     /**
      * @brief See DataSourceI::GetBrokerName.
-     * @details The implementation is associated to a MemoryMapInputBroker.
-     * @return MemoryMapInputBroker.
+     * @details The implementation is associated to a MemoryMapInputBroker or .
+     * MemoryMapSynchronisedInputBroker instances based on the DataSource synchronisation mode.
+     * @return MemoryMapInputBroker or MemoryMapSynchronisedInputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
                                        const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
-     * @details The implementation provides MemoryMapInputBroker instances.
+     * @details The implementation provides MemoryMapInputBroker or
+     * MemoryMapSynchronisedInputBroker instances based on the DataSource synchronisation mode.
      * @return true if the BrokerI::Init is successful.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
@@ -194,7 +205,8 @@ public:
 
     /**
      * @brief See DataSourceI::PrepareNextState.
-     * @details The method empties the  receive buffer before returning. 
+     * @details The method empties the receive buffer and starts the embedded thread before
+     * returning. 
      * @return true or false if sdn::Subscriber has not been instantiated.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
@@ -202,25 +214,53 @@ public:
 
     /**
      * @brief See DataSourceI::Synchronise.
-     * @details The method calls sdn::Subscriber::Receive. The current implementation
-     * is limited to blocking reception with configurable timeout. A future version
-     * would manage reception asynchronously in own thread.
+     * @details The method waits for a synchronisation semaphore which is posted by the 
+     * EmbeddedThread upon successful message reception.
      * @return true or false in case of error within the SDN core library.
      */
     virtual bool Synchronise();
 
+    /**
+     * @brief Callback function for an EmbeddedThread.
+     * @details The method calls sdn::Subscriber::Receive and posts an EventSem to
+     * notify the Synchronise method.
+     * @param[in] info not used.
+     * @return NoError if the EventSem can be successfully posted.
+     */
+    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+
 private:
 
+    /**
+     * The two supported sleep natures.
+     */
+    enum SynchronisingMode {
+        Default = 0, // Caching, non-synchronising DataSource
+        Synchronising = 1,
+    };
+    
     StreamString ifaceName; // Configuration parameter
     StreamString topicName; // Configuration parameter
     StreamString destAddr;  // Configuration parameter (optional)
+    StreamString modeName;  // Configuration parameter (optional)
 
     uint32 nOfSignals; // Number of input signals
-    bool blocking; // Blocking behaviour
-    uint64 timeout; // Configurable timeout (nsec)
+    TimeoutType TTTimeout; // Configurable timeout (msec)
 
     sdn::Topic *topic; // The topic reference
     sdn::Subscriber *subscriber; // The sdn::Subscriber reference
+
+    SynchronisingMode mode;
+
+    /**
+     * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
+     */
+    EventSem synchronisingSem;
+
+    /**
+     * The EmbeddedThread where the Execute method waits for the SDN topic to be received.
+     */
+    SingleThreadService executor;
 
 };
 
@@ -230,5 +270,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* SDNSUBSCRIBER_H_ */
+#endif /* THREADEDSDNSUBSCRIBER_H_ */
 
