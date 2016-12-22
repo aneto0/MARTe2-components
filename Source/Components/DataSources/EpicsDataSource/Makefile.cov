@@ -22,25 +22,7 @@
 #
 #############################################################
 
-OBJSX= 
+TARGET=cov
 
-SPB    = LinuxTimer.x LoggerDataSource.x EpicsDataSource.x
-
-PACKAGE=Components
-ROOT_DIR=../../..
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/EpicsDataSource/EpicsDataSource$(LIBEXT)
-
-all: $(OBJS)  $(SUBPROJ)  \
-    $(BUILD_DIR)/DataSources$(LIBEXT) \
-    $(BUILD_DIR)/DataSources$(DLLEXT)
-	echo  $(OBJS)
-
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
+include Makefile.inc
 

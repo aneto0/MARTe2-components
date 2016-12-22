@@ -22,25 +22,31 @@
 #
 #############################################################
 
-OBJSX= 
+OBJSX=EpicsInputDataSource.x EpicsOutputDataSource.x SharedDataArea.x SigblockDoubleBuffer.x Sigblock.x Platform.x
 
-SPB    = LinuxTimer.x LoggerDataSource.x EpicsDataSource.x
-
-PACKAGE=Components
-ROOT_DIR=../../..
+PACKAGE=Components/DataSources
+ROOT_DIR=../../../../
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/EpicsDataSource/EpicsDataSource$(LIBEXT)
+INCLUDES += -I.
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
-all: $(OBJS)  $(SUBPROJ)  \
-    $(BUILD_DIR)/DataSources$(LIBEXT) \
-    $(BUILD_DIR)/DataSources$(DLLEXT)
+all: $(OBJS)    \
+    $(BUILD_DIR)/EpicsDataSource$(LIBEXT) \
+    $(BUILD_DIR)/EpicsDataSource$(DLLEXT)
 	echo  $(OBJS)
 
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+include depends.$(TARGET)
 
+include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 
