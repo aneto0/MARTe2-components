@@ -724,7 +724,6 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     return ok;
 }
 
-#include <stdio.h>
 ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
     ErrorManagement::ErrorType err;
     if (info.GetStage() == ExecutionInfo::TerminationStage) {

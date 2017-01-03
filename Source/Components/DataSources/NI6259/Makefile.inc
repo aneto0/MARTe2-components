@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX=NI6259ADC.x
+OBJSX=NI6259ADC.x NI6259DAC.x
 
 PACKAGE=Components/DataSources
 
