@@ -102,7 +102,7 @@ const char8* NI6259DAC::GetBrokerName(StructuredDataI& data, const SignalDirecti
         brokerName = "MemoryMapSynchronisedOutputBroker";
     }
     else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with OutputSignals");
+        REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
     }
     return brokerName;
 }
@@ -112,7 +112,7 @@ bool NI6259DAC::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
 }
 
 bool NI6259DAC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT<MemoryMapOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
+    ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
     bool ok = broker.IsValid();
 
     if (ok) {
@@ -166,6 +166,7 @@ bool NI6259DAC::Initialise(StructuredDataI& data) {
                     }
                     if (ok) {
                         dacEnabled[channelId] = true;
+                        numberOfDACsEnabled++;
                         StreamString polarity;
                         if (data.Read("OutputPolarity", polarity)) {
                             if (polarity == "Unipolar") {
@@ -213,7 +214,6 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
 
-    //Check that if there is a synchronisation channel (i.e. that this board will serve a time source)
     uint32 nOfFunctions = GetNumberOfFunctions();
     uint32 functionIdx;
     //Check that the number of samples for all the signals is always the same
@@ -329,11 +329,10 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
     return ok;
 }
 
-#include <stdio.h>
 bool NI6259DAC::Synchronise() {
     uint32 i = 0u;
     bool ok = true;
-    for (i = 0u; (i < NI6259DAC_MAX_CHANNELS); i++) {
+    for (i = 0u; (i < NI6259DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
             ok = (pxi6259_write_ao(channelsFileDescriptors[i], channelsMemory[i], numberOfSamples) >= 0);
         }
