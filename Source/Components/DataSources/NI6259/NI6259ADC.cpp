@@ -60,6 +60,7 @@ NI6259ADC::NI6259ADC() :
     clockPolarity = AI_SAMPLE_POLARITY_ACTIVE_HIGH_OR_RISING_EDGE;
     keepRunning = true;
     synchronising = false;
+    cpuMask = 0u;
     uint32 n;
     for (n = 0u; n < NI6259ADC_MAX_CHANNELS; n++) {
         inputRange[n] = 1u;
@@ -213,6 +214,9 @@ bool NI6259ADC::PrepareNextState(const char8* const currentStateName, const char
     bool ok = true;
     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
         keepRunning = true;
+        if (cpuMask != 0u) {
+            executor.SetCPUMask(cpuMask);
+        }
         ok = executor.Start();
     }
     return ok;
@@ -299,6 +303,24 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         else if (clockSourceStr == "PFI9") {
             clockSource = AI_SAMPLE_SELECT_PFI9;
         }
+        else if (clockSourceStr == "PFI10") {
+            clockSource = AI_SAMPLE_SELECT_PFI10;
+        }
+        else if (clockSourceStr == "PFI11") {
+            clockSource = AI_SAMPLE_SELECT_PFI11;
+        }
+        else if (clockSourceStr == "PFI12") {
+            clockSource = AI_SAMPLE_SELECT_PFI12;
+        }
+        else if (clockSourceStr == "PFI13") {
+            clockSource = AI_SAMPLE_SELECT_PFI13;
+        }
+        else if (clockSourceStr == "PFI14") {
+            clockSource = AI_SAMPLE_SELECT_PFI14;
+        }
+        else if (clockSourceStr == "PFI15") {
+            clockSource = AI_SAMPLE_SELECT_PFI15;
+        }
         else if (clockSourceStr == "RTSI0") {
             clockSource = AI_SAMPLE_SELECT_RTSI0;
         }
@@ -320,6 +342,9 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         else if (clockSourceStr == "RTSI6") {
             clockSource = AI_SAMPLE_SELECT_RTSI6;
         }
+        else if (clockSourceStr == "RTSI7") {
+            clockSource = AI_SAMPLE_SELECT_RTSI7;
+        }
         else if (clockSourceStr == "PULSE") {
             clockSource = AI_SAMPLE_SELECT_PULSE;
         }
@@ -328,27 +353,6 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         }
         else if (clockSourceStr == "STAR_TRIGGER") {
             clockSource = AI_SAMPLE_SELECT_STAR_TRIGGER;
-        }
-        else if (clockSourceStr == "PFI10") {
-            clockSource = AI_SAMPLE_SELECT_PFI10;
-        }
-        else if (clockSourceStr == "PFI11") {
-            clockSource = AI_SAMPLE_SELECT_PFI11;
-        }
-        else if (clockSourceStr == "PFI12") {
-            clockSource = AI_SAMPLE_SELECT_PFI12;
-        }
-        else if (clockSourceStr == "PFI13") {
-            clockSource = AI_SAMPLE_SELECT_PFI13;
-        }
-        else if (clockSourceStr == "PFI14") {
-            clockSource = AI_SAMPLE_SELECT_PFI14;
-        }
-        else if (clockSourceStr == "PFI15") {
-            clockSource = AI_SAMPLE_SELECT_PFI15;
-        }
-        else if (clockSourceStr == "RTSI7") {
-            clockSource = AI_SAMPLE_SELECT_RTSI7;
         }
         else if (clockSourceStr == "GPCTR1_OUT") {
             clockSource = AI_SAMPLE_SELECT_GPCTR1_OUT;
@@ -382,6 +386,11 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         }
         else {
             REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockPolarity");
+        }
+    }
+    if (ok) {
+        if (!data.Read("CPUs", cpuMask)) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "No CPUs defined for %s", GetName())
         }
     }
     //Get individual signal parameters
@@ -596,19 +605,12 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     if (synchronising) {
         //numberOfADCsEnabled > 0 as otherwise it would be stopped
         uint32 singleADCFrequency = samplingFrequency / numberOfADCsEnabled;
-        if (ok) {
-            ok = (singleADCFrequency > cycleFrequency);
-            if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "cycleFrequency (%u) cannot be greater than singleADCFrequency (%u)", samplingFrequency,
-                                        singleADCFrequency, cycleFrequency)
-            }
-        }
-        if (ok) {
-            uint32 totalNumberOfSamplesPerSecond = numberOfSamples * cycleFrequency;
-            ok = (singleADCFrequency >= totalNumberOfSamplesPerSecond);
-            if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "singleADCFrequency (%u) shall be greater or equal to numberOfSamples * cycleFrequency (%u)",  singleADCFrequency, totalNumberOfSamplesPerSecond)
-            }
+        uint32 totalNumberOfSamplesPerSecond = numberOfSamples * cycleFrequency;
+        ok = (singleADCFrequency >= totalNumberOfSamplesPerSecond);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError,
+                                    "singleADCFrequency (%u) shall be greater or equal to numberOfSamples * cycleFrequency (%u)", singleADCFrequency,
+                                    totalNumberOfSamplesPerSecond)
         }
     }
 

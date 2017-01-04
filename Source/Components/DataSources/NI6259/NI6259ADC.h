@@ -40,43 +40,66 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-/**
- * @brief A DataSource which provides an input interface to the NI6259 boards.
- * @details The DataSource shall always be ...
- *
- * The configuration syntax is (names are only given as an example):
- * +NI6259_0 = {
- *     Class = NI6259::NI6259ADC
- *     TODO
- *     Signals = {
- *         TODO
- *     }
- * }
- */
-
 namespace MARTe {
 //Number of ADC channels
 const uint32 NI6259ADC_MAX_CHANNELS = 32u;
 //Counter and timer
 const uint32 NI6259ADC_HEADER_SIZE = 2u;
 /**
- * @brief TODO
+ * @brief A DataSource which provides an input interface to the NI6259 boards.
+ * @details Note that this is a multiplexed board and thus the sampling frequency is
+ * shared between the number of enabled channels.
+ *
+ * The configuration syntax is (names are only given as an example):
+ * +NI6259_0 = {
+ *     Class = NI6259::NI6259ADC
+ *     SamplingFrequency = 1000000 //]0, 1 MHZ]
+ *     DeviceName = "/dev/pxi6259"
+ *     BoardId = 0
+ *     DelayDivisor = 3
+ *     ClockSource = "SI_TC" //Possible values:SI_TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, PULSE, GPCRT0_OUT, STAR_TRIGGER, GPCTR1_OUT, SCXI_TRIG1, ANALOG_TRIGGER, LOW
+ *     ClockPolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
+ *     CPUs = 0xf //CPUs where the thread which reads data from the board is allowed to run on.
+ *     Signals = {
+ *          Counter = { //Mandatory. Number of ticks since last state change.
+ *              Type = uint32 //int32 also supported.
+ *          }
+ *          Time = { //Mandatory. Elapsed time in micro-seconds since last state change.
+ *               Type = uint32 //int32 also supported.
+ *          }
+ *          ADC0_0 = { //At least one ADC input shall be specified.
+ *              InputRange = 10 //Mandatory. Possible values: 0.1, 0.2, 0.5, 1, 2, 5, 10
+ *              Type = float32 //Mandatory. Only type that is supported.
+ *              ChannelId = 0 //Mandatory. The channel number.
+ *              InputPolarity = Bipolar //Optional. Possible values: Bipolar, Unipolar. Default value Unipolar.
+ *              InputMode = RSE //Optional. Possible values: Differential, RSE, NRSE. Default value RSE.
+ *          }
+ *          ADC1_0 = {
+ *             ...
+ *          }
+ *          ...
+ *     }
+ * }
  */
 class NI6259ADC: public DataSourceI, public EmbeddedServiceMethodBinderI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO
+     * @brief Default constructor.
+     * @details Initialises all the optional parameters as described in the class description.
      */
-NI6259ADC    ();
+    NI6259ADC();
 
     /**
-     * @brief TODO
+     * @brief Destructor.
+     * @details Closes all the file descriptors associated to the board and its channels.
+     * Stops the embedded thread which is reading from this board.
      */
     virtual ~NI6259ADC();
 
     /**
-     * @brief See DataSourceI::AllocateMemory.
+     * @brief See DataSourceI::AllocateMemory. NOOP.
+     * @return true.
      */
     virtual bool AllocateMemory();
 
@@ -87,7 +110,7 @@ NI6259ADC    ();
     virtual uint32 GetNumberOfMemoryBuffers();
 
     /**
-     * @brief See DataSourceI::GetNumberOfMemoryBuffers.
+     * @brief See DataSourceI::GetSignalMemoryBuffer.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
             const uint32 bufferIdx,
@@ -105,10 +128,6 @@ NI6259ADC    ();
      * @brief See DataSourceI::GetInputBrokers.
      * @details If the functionName is the one synchronising it adds a MemoryMapSynchronisedInputBroker instance to
      *  the inputBrokers, otherwise it adds a MemoryMapInputBroker instance to the inputBrokers.
-     * @param[out] inputBrokers where the BrokerI instances have to be added to.
-     * @param[in] functionName name of the function being queried.
-     * @param[in] gamMemPtr the GAM memory where the signals will be read from.
-     * @return true if the inputBrokers can be successfully configured.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
             const char8* const functionName,
@@ -123,36 +142,47 @@ NI6259ADC    ();
             void * const gamMemPtr);
 
     /**
-     * @brief Waits on an EventSem for the requested number of samples to be acquired.
+     * @brief Waits on an EventSem for the requested number of samples to be acquired for all the channels.
      * @return true if the semaphore is successfully posted.
      */
     virtual bool Synchronise();
 
     /**
      * @brief Callback function for the EmbeddedThread that reads data from this ADC board.
-     * @details TODO
-     * @return TODO.
+     * @details Reads data from all the configured ADC channels and posts the synchronisation semaphore.
+     * @return false if the synchronisation semaphore cannot be posted. Note that failure to read from the ADC will not
+     * return an error as the reading operation will be retried forever.
+     * @warning This method sleeps for 100 us. This is needed as otherwise it gets stuck on the function pxi6259_read_ai.
      */
     virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
 
     /**
-     * @brief TODO
-     * @details See StatefulI::PrepareNextState. Starts the EmbeddedThread (if it was not already started) and loops
-     * on the ExecuteMethod.
+     * @brief Starts the EmbeddedThread and sets the counter and the time to zero.
+     * @details See StatefulI::PrepareNextState. Starts the EmbeddedThread (if it was not already started) that reads from the ADC.
+     * Sets the counter and the time to zero.
      * @return true if the EmbeddedThread can be successfully started.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
             const char8 * const nextStateName);
 
     /**
-     * @brief TODO
+     * @brief Loads and verifies the configuration parameters detailed in the class description.
+     * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief Verifies that 32, and only 32, signal are set with the correct type.
-     * @details TODO
-     * @return TODO.
+     * @brief Final verification of all the parameters and setup of the board configuration.
+     * @details This method verifies that all the parameters (e.g. number of samples) requested by the GAMs interacting with this DataSource
+     *  are valid and consistent with the board parameters set during the initialisation phase.
+     * In particular the following conditions shall be met:
+     * - The type of the counter and of the time shall be 32 bit (un)signed integers.
+     * - All the ADC channels have type float32.
+     * - The number of samples of all the ADC channels is the same.
+     * - For synchronising boards (i.e. where a Frequency was defined for a given channel):
+     *  - The single ADC frequency (SamplingFrequency/NumberOfChannels) > Frequency * Samples
+     * @return true if all the parameters are valid and consistent with the board parameters and if the board can be successfully configured with
+     *  these parameters.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
@@ -272,6 +302,11 @@ private:
      * True if this a synchronising data source
      */
     bool synchronising;
+
+    /**
+     * The thread CPUs mask.
+     */
+    uint32 cpuMask;
 
 };
 }
