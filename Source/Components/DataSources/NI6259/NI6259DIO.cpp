@@ -60,7 +60,7 @@ NI6259DIO::~NI6259DIO() {
     uint32 n;
     for (n = 0u; n < PXI6259_NUMBER_OF_PORTS; n++) {
         if (portFileDescriptors[n] != -1) {
-            close (portFileDescriptors[n]);
+            close(portFileDescriptors[n]);
         }
     }
     if (boardFileDescriptor != -1) {
@@ -264,6 +264,12 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
     }
+    if (ok) {
+        ok = (pxi6259_load_dio_conf(boardFileDescriptor, &dioConfiguration) == 0);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName)
+        }
+    }
 
     if (ok) {
         //Required to wait for devices to be available in /dev!
@@ -288,6 +294,7 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
     return ok;
 }
 
+#include <stdio.h>
 bool NI6259DIO::Synchronise() {
     uint32 i = 0u;
     bool ok = true;

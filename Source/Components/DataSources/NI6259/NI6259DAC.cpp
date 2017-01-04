@@ -294,6 +294,13 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
+        ok = (pxi6259_load_ao_conf(boardFileDescriptor, &dacConfiguration) == 0);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName)
+        }
+    }
+
+    if (ok) {
         //Allocate memory
         for (i = 0u; (i < NI6259DAC_MAX_CHANNELS) && (ok); i++) {
             channelsMemory[i] = new float32[numberOfSamples];
