@@ -1,15 +1,18 @@
 -i%EFDA_MARTe_DIR%/Interfaces/BaseLib2Adapter/
+-i%CODAC_ROOT_INCLUDE_DIR%
 
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
+-i./Source/Components/DataSources/NI6259/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper
 
 BaseLib2GAM.cpp
+BaseLib2Wrapper.cpp
+BaseLib2WrapperMessageFilter.cpp
 IOGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
-BaseLib2Wrapper.cpp
-BaseLib2WrapperMessageFilter.cpp
+NI6259ADC.cpp

@@ -196,7 +196,7 @@ private:
     /**
      * The time value
      */
-    uint32 time;
+    uint32 timeValue;
 
     /**
      * The EmbeddedThread where the Execute method waits for the ADC data to be available.
@@ -236,7 +236,7 @@ private:
     /**
      * The board individual channel gains
      */
-    uint32 inputRange[NI6259ADC_MAX_CHANNELS];
+    uint8 inputRange[NI6259ADC_MAX_CHANNELS];
 
     /**
      * The board individual channel polarities
@@ -259,7 +259,7 @@ private:
     ai_sample_polarity_t clockPolarity;
 
     /**
-     * The clock delay divisior
+     * The clock delay divisor
      */
     uint32 delayDivisor;
 
