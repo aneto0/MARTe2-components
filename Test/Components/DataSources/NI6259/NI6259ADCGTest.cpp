@@ -44,9 +44,242 @@ TEST(NI6259ADCGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+TEST(NI6259ADCGTest,TestAllocateMemory) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestAllocateMemory());
+}
+
+TEST(NI6259ADCGTest,TestGetNumberOfMemoryBuffers) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
+}
+
+TEST(NI6259ADCGTest,TestGetSignalMemoryBuffer_False) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
+}
+
+TEST(NI6259ADCGTest,TestGetSignalMemoryBuffer) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+}
+
+TEST(NI6259ADCGTest,TestGetBrokerName) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestGetBrokerName());
+}
+
+TEST(NI6259ADCGTest,TestGetInputBrokers) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers());
+}
+
+TEST(NI6259ADCGTest,TestGetInputBrokers_NotSynchronisingGAM) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers_NotSynchronisingGAM());
+}
+
+TEST(NI6259ADCGTest,TestGetOutputBrokers) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers());
+}
+
+TEST(NI6259ADCGTest,TestSynchronise) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSynchronise());
+}
+
+TEST(NI6259ADCGTest,TestExecute) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestExecute());
+}
+
+TEST(NI6259ADCGTest,TestPrepareNextState) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
+}
+
+TEST(NI6259ADCGTest,TestInitialise) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_NoSamplingFrequency) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoSamplingFrequency());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_BadSamplingFrequency) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadSamplingFrequency());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_BadZeroSamplingFrequency) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadZeroSamplingFrequency());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_NoDeviceName) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoDeviceName());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_NoBoardId) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoBoardId());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_NoDelayDivisor) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoDelayDivisor());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_ClockSource) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_ClockSource());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_NoClockSource) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoClockSource());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_BadClockSource) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadClockSource());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_ClockPolarity) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_ClockPolarity());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_NoClockPolarity) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoClockPolarity());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_BadClockPolarity) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadClockPolarity());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_NoSignals) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoSignals());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_InputRange) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_InputRange());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_BadInputRange) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadInputRange());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_DefaultInputRange) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_DefaultInputRange());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_InputPolarity) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_InputPolarity());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_BadInputPolarity) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadInputPolarity());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_DefaultInputPolarity) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_DefaultInputPolarity());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_InputMode) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_InputMode());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_BadInputMode) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadInputMode());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_DefaultInputMode) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_DefaultInputMode());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_BadChannelId) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadChannelId());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_OneChannel) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_OneChannel());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_AllChannels) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_AllChannels());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_AllChannels_Parameters) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_AllChannels_Parameters());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_NoChannels) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoChannels());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_CounterTypeMismatch) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_CounterTypeMismatch());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_TimerTypeMismatch) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimerTypeMismatch());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_SignalTypeMismatch) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_SignalTypeMismatch());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_SignalNumberOfSamplesMismatch) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_SignalNumberOfSamplesMismatch());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_WrongDeviceName) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_WrongDeviceName());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_WrongFrequencyVsSamples) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_WrongFrequencyVsSamples());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_CounterSamples) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_CounterSamples());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_TimerSamples) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimerSamples());
+}
+
 TEST(NI6259ADCGTest,TestIntegrated) {
     NI6259ADCTest test;
     ASSERT_TRUE(test.TestIntegrated());
 }
-
-	

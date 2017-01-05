@@ -146,12 +146,6 @@ public:
      */
     virtual bool Synchronise();
 private:
-
-    /**
-     * Number of samples to write
-     */
-    uint32 numberOfSamples;
-
     /**
      * The board identifier
      */
@@ -180,7 +174,7 @@ private:
     /**
      * The signal memory
      */
-    float32 *channelsMemory[NI6259DAC_MAX_CHANNELS];
+    float32 *channelsMemory;
 
     /**
      * The DACs that are enabled

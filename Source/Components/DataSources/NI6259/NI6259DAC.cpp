@@ -44,7 +44,6 @@
 namespace MARTe {
 NI6259DAC::NI6259DAC() :
         DataSourceI() {
-    numberOfSamples = 0u;
     boardId = 0u;
     boardFileDescriptor = -1;
     deviceName = "";
@@ -54,8 +53,8 @@ NI6259DAC::NI6259DAC() :
         outputPolarity[n] = AO_DAC_POLARITY_UNIPOLAR;
         dacEnabled[n] = false;
         channelsFileDescriptors[n] = -1;
-        channelsMemory[n] = NULL_PTR(float32 *);
     }
+    channelsMemory = NULL_PTR(float32 *);
 }
 
 NI6259DAC::~NI6259DAC() {
@@ -73,10 +72,8 @@ NI6259DAC::~NI6259DAC() {
     if (boardFileDescriptor != -1) {
         close(boardFileDescriptor);
     }
-    for (n = 0u; n < NI6259DAC_MAX_CHANNELS; n++) {
-        if (channelsMemory[n] != NULL_PTR(float32 *)) {
-            delete[] channelsMemory[n];
-        }
+    if (channelsMemory != NULL_PTR(float32 *)) {
+        delete[] channelsMemory;
     }
 }
 
@@ -91,7 +88,7 @@ uint32 NI6259DAC::GetNumberOfMemoryBuffers() {
 bool NI6259DAC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
     bool ok = (signalIdx < (NI6259DAC_MAX_CHANNELS));
     if (ok) {
-        signalAddress = &(channelsMemory[signalIdx][0]);
+        signalAddress = &(channelsMemory[signalIdx]);
     }
     return ok;
 }
@@ -222,28 +219,13 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
         ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfSignals);
 
         for (i = 0u; (i < nOfSignals) && (ok); i++) {
-            uint32 signalIdx = 0u;
             uint32 nSamples = 0u;
             ok = GetFunctionSignalSamples(OutputSignals, functionIdx, i, nSamples);
-
-            StreamString signalAlias;
             if (ok) {
-                ok = GetFunctionSignalAlias(OutputSignals, functionIdx, i, signalAlias);
+                ok = (nSamples == 1u);
             }
-            if (ok) {
-                ok = GetSignalIndex(signalIdx, signalAlias.Buffer());
-            }
-            if (ok) {
-
-                if (numberOfSamples == 0u) {
-                    numberOfSamples = nSamples;
-                }
-                else {
-                    if (numberOfSamples != nSamples) {
-                        ok = false;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall have the same number of samples");
-                    }
-                }
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples shall be exactly one");
             }
         }
     }
@@ -282,15 +264,15 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (pxi6259_set_ao_attribute(&dacConfiguration, AO_CONTINUOUS, 0) == 0);
+        ok = (pxi6259_set_ao_count(&dacConfiguration, 1, 1, 0) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the parameter AO_CONTINUOUS %s", fullDeviceName)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName)
         }
     }
     if (ok) {
-        ok = (pxi6259_set_ao_count(&dacConfiguration, numberOfSamples, 1, AO_CONTINUOUS_IGNORE_BC_TC) == 0);
+        ok = (pxi6259_set_ao_update_clk(&dacConfiguration, AO_UPDATE_SOURCE_SELECT_UI_TC, AO_UPDATE_SOURCE_POLARITY_RISING_EDGE, 10u) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set pxi6259_set_ao_update_clk for device %s", fullDeviceName)
         }
     }
     if (ok) {
@@ -302,9 +284,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
 
     if (ok) {
         //Allocate memory
-        for (i = 0u; (i < NI6259DAC_MAX_CHANNELS) && (ok); i++) {
-            channelsMemory[i] = new float32[numberOfSamples];
-        }
+        channelsMemory = new float32[NI6259DAC_MAX_CHANNELS];
     }
 
     if (ok) {
@@ -341,7 +321,7 @@ bool NI6259DAC::Synchronise() {
     bool ok = true;
     for (i = 0u; (i < NI6259DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
-            ok = (pxi6259_write_ao(channelsFileDescriptors[i], channelsMemory[i], numberOfSamples) >= 0);
+            ok = (pxi6259_write_ao(channelsFileDescriptors[i], &(channelsMemory[i]), 1) >= 0);
         }
     }
     return ok;

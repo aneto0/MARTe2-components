@@ -68,7 +68,7 @@ const uint32 NI6259ADC_HEADER_SIZE = 2u;
  *               Type = uint32 //int32 also supported.
  *          }
  *          ADC0_0 = { //At least one ADC input shall be specified.
- *              InputRange = 10 //Mandatory. Possible values: 0.1, 0.2, 0.5, 1, 2, 5, 10
+ *              InputRange = 10 //Optional. Possible values: 0.1, 0.2, 0.5, 1, 2, 5, 10. Default value 10.
  *              Type = float32 //Mandatory. Only type that is supported.
  *              ChannelId = 0 //Mandatory. The channel number.
  *              InputPolarity = Bipolar //Optional. Possible values: Bipolar, Unipolar. Default value Unipolar.
@@ -186,6 +186,14 @@ public:
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
+    /**
+     * @brief Helper function to test the class.
+     * @details This method is meant to be used by the unit-test class in order to verify the correct setting of the board parameters.
+     * No real added value on making getters for all the structure elements, just for the sake of testing.
+     * @return true if the board was opened (i.e. if SetConfiguredDatabase was successful).
+     */
+    bool ReadAIConfiguration(pxi6259_ai_conf_t *conf) const;
+
 private:
 
     /**
@@ -274,9 +282,14 @@ private:
     int32 channelsFileDescriptors[NI6259ADC_MAX_CHANNELS];
 
     /**
-     * The signal memory
+     * The signals memory
      */
     float32 *channelsMemory[NI6259ADC_MAX_CHANNELS];
+
+    /**
+     * The memory of the current signal being read
+     */
+    float32 *channelMemory;
 
     /**
      * The ADCs that are enabled

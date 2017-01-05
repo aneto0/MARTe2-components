@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX =  NI6259ADCTest.x NI6259ADCGTest.x
+OBJSX +=  NI6259ADCTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
@@ -47,6 +47,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
 INCLUDES += -I../../../../Source/Components/DataSources/NI6259
 

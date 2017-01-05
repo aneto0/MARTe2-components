@@ -70,6 +70,7 @@ NI6259ADC::NI6259ADC() :
         channelsFileDescriptors[n] = -1;
         channelsMemory[n] = NULL_PTR(float32 *);
     }
+    channelMemory = NULL_PTR(float32 *);
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
@@ -100,6 +101,9 @@ NI6259ADC::~NI6259ADC() {
         if (channelsMemory[n] != NULL_PTR(float32 *)) {
             delete[] channelsMemory[n];
         }
+    }
+    if (channelMemory != NULL_PTR(float32 *)) {
+        delete[] channelMemory;
     }
 }
 
@@ -372,6 +376,7 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
             clockSource = AI_SAMPLE_SELECT_LOW;
         }
         else {
+            ok = false;
             REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockSource");
         }
     }
@@ -390,6 +395,7 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
             clockPolarity = AI_SAMPLE_POLARITY_ACTIVE_LOW_OR_FALLING_EDGE;
         }
         else {
+            ok = false;
             REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockPolarity");
         }
     }
@@ -409,7 +415,7 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
             //Do not allow to add signals in run-time
             ok = data.Write("Locked", 1);
         }
-        while ((i < NI6259ADC_MAX_CHANNELS) && (ok)) {
+        while ((i < (NI6259ADC_MAX_CHANNELS + NI6259ADC_HEADER_SIZE)) && (ok)) {
             if (data.MoveRelative(data.GetChildName(i))) {
                 uint32 channelId;
                 if (data.Read("ChannelId", channelId)) {
@@ -607,20 +613,20 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
     }
-    if (synchronising) {
-        //numberOfADCsEnabled > 0 as otherwise it would be stopped
-        if (numberOfADCsEnabled > 0u) {
-            uint32 singleADCFrequency = samplingFrequency / numberOfADCsEnabled;
-            float32 totalNumberOfSamplesPerSecond = (static_cast<float32>(numberOfSamples) * cycleFrequency);
-            ok = (singleADCFrequency >= static_cast<uint32>(totalNumberOfSamplesPerSecond));
-            if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError,
-                                        "singleADCFrequency (%u) shall be greater or equal to numberOfSamples * cycleFrequency (%u)", singleADCFrequency,
-                                        totalNumberOfSamplesPerSecond)
+    if (ok) {
+        if (synchronising) {
+            //numberOfADCsEnabled > 0 as otherwise it would be stopped
+            if (numberOfADCsEnabled > 0u) {
+                uint32 singleADCFrequency = samplingFrequency / numberOfADCsEnabled;
+                float32 totalNumberOfSamplesPerSecond = (static_cast<float32>(numberOfSamples) * cycleFrequency);
+                ok = (singleADCFrequency == static_cast<uint32>(totalNumberOfSamplesPerSecond));
+                if (!ok) {
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "singleADCFrequency (%u) shall be equal to numberOfSamples * cycleFrequency (%u)",
+                                            singleADCFrequency, totalNumberOfSamplesPerSecond)
+                }
             }
         }
     }
-
     StreamString fullDeviceName;
     //Configure the board
     if (ok) {
@@ -650,48 +656,33 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (pxi6259_set_ai_number_of_samples(&adcConfiguration, numberOfSamples, 0u, 0u) == 0);
+        ok = (pxi6259_set_ai_number_of_samples(&adcConfiguration, numberOfSamples, 0u, 1u) == 0);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName)
         }
     }
-    uint32 divisions = 0u;
-    if (samplingFrequency != 0u) {
-        float32 divisionsF = (20000000.F / static_cast<float32>(samplingFrequency)) + 0.5F;
-        divisions = static_cast<uint32>(divisionsF);
-    }
     if (ok) {
         if (numberOfADCsEnabled == 1u) {
-            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16u, divisions, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
+            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16u, delayDivisor, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
         }
         else {
-            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 20u, divisions, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
+            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 20u, delayDivisor, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName)
         }
     }
     if (ok) {
-        if (samplingFrequency != 0u) {
-            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, divisions, delayDivisor, clockSource, clockPolarity) == 0);
+        if (numberOfADCsEnabled == 1u) {
+            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, 16u, delayDivisor, clockSource, clockPolarity) == 0);
+        }
+        else {
+            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, 20u, delayDivisor, clockSource, clockPolarity) == 0);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the clock for device %s", fullDeviceName)
         }
     }
-    if (ok) {
-        ok = (pxi6259_set_ai_attribute(&adcConfiguration, AI_CONTINUOUS, 1) == 0);
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set AI_CONTINUOUS for device %s", fullDeviceName)
-        }
-    }
-    if (ok) {
-        ok = (pxi6259_set_ai_attribute(&adcConfiguration, AI_BLOCKING_EXACT, 0) == 0);
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set AI_BLOCKING_EXACT for device %s", fullDeviceName)
-        }
-    }
-
     if (ok) {
         ok = (pxi6259_load_ai_conf(boardFileDescriptor, &adcConfiguration) == 0);
         if (!ok) {
@@ -703,6 +694,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
             channelsMemory[i] = new float32[numberOfSamples];
         }
+        channelMemory = new float32[numberOfSamples];
     }
 
     if (ok) {
@@ -748,18 +740,27 @@ ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
                 size_t readSamples = 0u;
                 while ((readSamples < numberOfSamples) && (keepRunning)) {
                     size_t leftSamples = static_cast<size_t>(numberOfSamples) - readSamples;
-                    ssize_t currentSamples = pxi6259_read_ai(channelsFileDescriptors[i], &(channelsMemory[i][readSamples]), leftSamples);
-                    if (currentSamples > 0) {
-                        readSamples += static_cast<size_t>(currentSamples);
-                        //Needs to sleep while waiting for data, otherwise it will get stuck on pxi6259_read_ai
-                        if (i == 0u) {
+                    //ssize_t currentSamples = pxi6259_read_ai(channelsFileDescriptors[i], &(channelsMemory[i][readSamples]), leftSamples);
+                    //Unfortunately a buffered memory has to be used to read from the ADC. Using directly channelsMemory[i][readSamples] was
+                    //corrupting the memory if this was being copied by the broker while pxi6259_read_ai was being called.
+                    if (channelMemory != NULL_PTR(float32 *)) {
+                        ssize_t currentSamples = pxi6259_read_ai(channelsFileDescriptors[i], &(channelMemory[readSamples]), leftSamples);
+                        if (currentSamples > 0) {
+                            readSamples += static_cast<size_t>(currentSamples);
+                            //Needs to sleep while waiting for data, otherwise it will get stuck on pxi6259_read_ai
+                            if (i == 0u) {
+                                Sleep::Sec(100e-6);
+                            }
+                        }
+                        else {
                             Sleep::Sec(100e-6);
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Failed reading from ADC");
                         }
                     }
-                    else {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Failed reading from ADC");
-                    }
                 }
+            }
+            if (keepRunning) {
+                keepRunning = MemoryOperationsHelper::Copy(channelsMemory[i], channelMemory, numberOfSamples * static_cast<uint32>(sizeof(float32)));
             }
         }
         if (synchronising) {
@@ -770,6 +771,14 @@ ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
     }
 
     return err;
+}
+
+bool NI6259ADC::ReadAIConfiguration(pxi6259_ai_conf_t * const conf) const {
+    bool ok = false;
+    if (boardFileDescriptor > 0) {
+        ok = (pxi6259_read_ai_conf(boardFileDescriptor, conf) == 0);
+    }
+    return ok;
 }
 
 CLASS_REGISTER(NI6259ADC, "1.0")
