@@ -145,6 +145,7 @@ public:
      * @details This method verifies that all the parameters (e.g. number of samples) requested by the GAMs interacting with this DataSource
      *  are valid and consistent with the board parameters set during the initialisation phase.
      * In particular the following conditions shall be met:
+     * - At least one triggering signal was requested by a GAM (with the property Trigger = 1)
      * - All the DAC channels have type float32.
      * - The number of samples of all the DAC channels is exactly one.
      * @return true if all the parameters are valid and consistent with the board parameters and if the board can be successfully configured with
@@ -157,6 +158,15 @@ public:
      * @return true if the writing of all the channels is successful.
      */
     virtual bool Synchronise();
+
+    /**
+     * @brief Helper function to test the class.
+     * @details This method is meant to be used by the unit-test class in order to verify the correct setting of the board parameters.
+     * No real added value on making getters for all the structure elements, just for the sake of testing.
+     * @return true if the board was opened (i.e. if SetConfiguredDatabase was successful).
+     */
+    bool ReadAOConfiguration(pxi6259_ao_conf_t *conf) const;
+
 private:
     /**
      * The board identifier
@@ -194,9 +204,14 @@ private:
     bool dacEnabled[NI6259DAC_MAX_CHANNELS];
 
     /**
-     * The number of enabled dacs
+     * The number of enabled DACs
      */
     uint32 numberOfDACsEnabled;
+
+    /**
+     * True if at least one trigger was set.
+     */
+    bool triggerSet;
 
 };
 }

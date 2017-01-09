@@ -48,6 +48,7 @@ NI6259DAC::NI6259DAC() :
     boardFileDescriptor = -1;
     deviceName = "";
     numberOfDACsEnabled = 0u;
+    triggerSet = false;
     uint32 n;
     for (n = 0u; n < NI6259DAC_MAX_CHANNELS; n++) {
         outputPolarity[n] = AO_DAC_POLARITY_UNIPOLAR;
@@ -57,6 +58,7 @@ NI6259DAC::NI6259DAC() :
     channelsMemory = NULL_PTR(float32 *);
 }
 
+/*lint -e{1551} the destructor must guarantee that the NI6259DAC file descriptors are closed.*/
 NI6259DAC::~NI6259DAC() {
     uint32 n;
     if (boardFileDescriptor != -1) {
@@ -85,10 +87,13 @@ uint32 NI6259DAC::GetNumberOfMemoryBuffers() {
     return 1u;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
 bool NI6259DAC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
     bool ok = (signalIdx < (NI6259DAC_MAX_CHANNELS));
     if (ok) {
-        signalAddress = &(channelsMemory[signalIdx]);
+        if (channelsMemory != NULL_PTR(float32 *)) {
+            signalAddress = &(channelsMemory[signalIdx]);
+        }
     }
     return ok;
 }
@@ -103,6 +108,7 @@ const char8* NI6259DAC::GetBrokerName(StructuredDataI& data, const SignalDirecti
 
         if (trigger == 1u) {
             brokerName = "MemoryMapSynchronisedOutputBroker";
+            triggerSet = true;
         }
         else {
             brokerName = "MemoryMapOutputBroker";
@@ -135,9 +141,9 @@ bool NI6259DAC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
         ok = GetFunctionSignalTrigger(OutputSignals, functionIdx, i, trigger);
         triggerGAM = (trigger == 1u);
     }
-    if (triggerGAM) {
+    if ((ok) && (triggerGAM)) {
         ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
-        bool ok = broker.IsValid();
+        ok = broker.IsValid();
 
         if (ok) {
             ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
@@ -148,7 +154,7 @@ bool NI6259DAC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
         //Must also add the signals which are not triggering but that belong to the same GAM...
         if (ok) {
             if (nOfFunctionSignals > 1u) {
-                ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapOutputBroker");
+                ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
                 ok = brokerNotSync.IsValid();
                 if (ok) {
                     ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
@@ -160,7 +166,7 @@ bool NI6259DAC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
         }
     }
     else {
-        ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapOutputBroker");
+        ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
         ok = brokerNotSync.IsValid();
         if (ok) {
             ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
@@ -193,7 +199,7 @@ bool NI6259DAC::Initialise(StructuredDataI& data) {
     }
 
     //Get individual signal parameters
-    uint32 i;
+    uint32 i = 0u;
     if (ok) {
         ok = data.MoveRelative("Signals");
         if (!ok) {
@@ -253,6 +259,12 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
 
     if (ok) {
+        ok = triggerSet;
+    }
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::ParametersError, "At least one Trigger signal shall be set.");
+    }
+    if (ok) {
         for (i = 0u; (i < numberOfDACsEnabled) && (ok); i++) {
             ok = (GetSignalType(i) == Float32Bit);
         }
@@ -281,7 +293,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
     }
 
     StreamString fullDeviceName;
-//Configure the board
+    //Configure the board
     if (ok) {
         ok = fullDeviceName.Printf("%s.%d.ao", deviceName.Buffer(), boardId);
     }
@@ -298,12 +310,10 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
     pxi6259_ao_conf_t dacConfiguration = pxi6259_create_ao_conf();
     for (i = 0u; (i < NI6259DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
-            ok = (pxi6259_add_ao_channel(&dacConfiguration, i, outputPolarity[i]) == 0);
-            if (ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Channel %d set with polarity %d ", i, outputPolarity[i])
-            }
-            else {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set configuration for channel %d of device %s", i, fullDeviceName)
+            ok = (pxi6259_add_ao_channel(&dacConfiguration, static_cast<uint8_t>(i), outputPolarity[i]) == 0);
+            uint32 ii = i;
+            if (!ok) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set configuration for channel %d of device %s", ii, fullDeviceName)
             }
         }
     }
@@ -314,7 +324,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (pxi6259_set_ao_count(&dacConfiguration, 1, 1, 0) == 0);
+        ok = (pxi6259_set_ao_count(&dacConfiguration, 1u, 1u, 0u) == 0);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName)
         }
@@ -343,7 +353,8 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
         for (i = 0u; (i < NI6259DAC_MAX_CHANNELS) && (ok); i++) {
             if (dacEnabled[i]) {
                 StreamString channelDeviceName;
-                ok = channelDeviceName.Printf("%s.%d", fullDeviceName.Buffer(), i);
+                uint32 ii = i;
+                ok = channelDeviceName.Printf("%s.%d", fullDeviceName.Buffer(), ii);
                 if (ok) {
                     ok = channelDeviceName.Seek(0ULL);
                 }
@@ -367,12 +378,22 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
 }
 
 bool NI6259DAC::Synchronise() {
-    uint32 i = 0u;
+    uint32 i;
     bool ok = true;
     for (i = 0u; (i < NI6259DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
-            ok = (pxi6259_write_ao(channelsFileDescriptors[i], &(channelsMemory[i]), 1) >= 0);
+            if (channelsMemory != NULL_PTR(float32 *)) {
+                ok = (pxi6259_write_ao(channelsFileDescriptors[i], &(channelsMemory[i]), static_cast<size_t>(1u)) >= 0);
+            }
         }
+    }
+    return ok;
+}
+
+bool NI6259DAC::ReadAOConfiguration(pxi6259_ao_conf_t * const conf) const {
+    bool ok = false;
+    if (boardFileDescriptor > 0) {
+        ok = (pxi6259_read_ao_conf(boardFileDescriptor, conf) == 0);
     }
     return ok;
 }

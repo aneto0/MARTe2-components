@@ -28,7 +28,7 @@ TARGET=cov
 
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-OBJSX = NI6259ADCGTest.x
+OBJSX = NI6259ADCGTest.x NI6259DACGTest.x
 
 include Makefile.inc
 

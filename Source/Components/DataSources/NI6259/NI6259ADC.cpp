@@ -45,7 +45,7 @@
 namespace MARTe {
 NI6259ADC::NI6259ADC() :
         DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
-    synchronisingFunctionIdx = 0u;
+    cycleFrequency = 0.F;
     numberOfSamples = 0u;
     boardId = 0u;
     samplingFrequency = 0u;
@@ -142,6 +142,7 @@ const char8* NI6259ADC::GetBrokerName(StructuredDataI& data, const SignalDirecti
 
         if (frequency > 0.F) {
             brokerName = "MemoryMapSynchronisedInputBroker";
+            cycleFrequency = frequency;
             synchronising = true;
         }
         else {
@@ -158,17 +159,18 @@ bool NI6259ADC::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
     //Check if this function has a synchronisation point (i.e. a signal which has Frequency > 0)
     uint32 functionIdx = 0u;
     uint32 nOfSignals = 0u;
-    uint32 i = 0u;
-    float32 cycleFrequency = -1.0F;
 
     bool synchGAM = false;
     bool ok = GetFunctionIndex(functionIdx, functionName);
     if (ok) {
         ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
     }
+
+    uint32 i;
+    float32 frequency = 0.F;
     for (i = 0u; (i < nOfSignals) && (ok) && (!synchGAM); i++) {
-        ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, cycleFrequency);
-        synchGAM = (cycleFrequency > 0.F);
+        ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, frequency);
+        synchGAM = (frequency > 0.F);
     }
     if ((synchronising) && (synchGAM)) {
         ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");

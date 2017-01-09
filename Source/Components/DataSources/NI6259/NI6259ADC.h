@@ -312,6 +312,11 @@ private:
     bool synchronising;
 
     /**
+     * The requested cycle frequency for an application that synchronises on this board.
+     */
+    float32 cycleFrequency;
+
+    /**
      * The thread CPUs mask.
      */
     uint32 cpuMask;

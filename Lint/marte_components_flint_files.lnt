@@ -16,3 +16,4 @@ LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
 NI6259ADC.cpp
+NI6259DAC.cpp

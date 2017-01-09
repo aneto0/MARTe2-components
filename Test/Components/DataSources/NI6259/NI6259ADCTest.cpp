@@ -43,11 +43,11 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-class NI6259TestGAM: public MARTe::GAM {
+class NI6259ADCTestGAM: public MARTe::GAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
-NI6259TestGAM    () : GAM() {
+NI6259ADCTestGAM    () : GAM() {
         rms = 0;
         numberOfSamples = 0;
         signalPtr = NULL;
@@ -56,7 +56,7 @@ NI6259TestGAM    () : GAM() {
         totalSamples = 0;
     }
 
-    ~NI6259TestGAM() {
+    ~NI6259ADCTestGAM() {
     }
 
     bool Execute() {
@@ -86,7 +86,7 @@ NI6259TestGAM    () : GAM() {
     MARTe::uint32 totalSamples;
 
 };
-CLASS_REGISTER(NI6259TestGAM, "1.0")
+CLASS_REGISTER(NI6259ADCTestGAM, "1.0")
 
 static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
     using namespace MARTe;
@@ -112,7 +112,7 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
     if (ok) {
         ok = application->ConfigureApplication();
     }
-    ReferenceT<NI6259TestGAM> testGAM;
+    ReferenceT<NI6259ADCTestGAM> testGAM;
     if (ok) {
         testGAM = application->Find("Functions.GAMA");
         ok = testGAM.IsValid();
@@ -190,7 +190,7 @@ static const MARTe::char8 * const config1 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -272,7 +272,7 @@ static const MARTe::char8 * const config2 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -346,7 +346,7 @@ static const MARTe::char8 * const config3 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -637,7 +637,7 @@ static const MARTe::char8 * const config4 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -928,7 +928,7 @@ static const MARTe::char8 * const config5 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -945,7 +945,7 @@ static const MARTe::char8 * const config5 = ""
         "            }"
         "        }"
         "        +GAMB = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                ADC1_0 = {"
         "                    DataSource = NI6259_0"
@@ -1019,7 +1019,7 @@ static const MARTe::char8 * const config6 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -1081,7 +1081,7 @@ static const MARTe::char8 * const config7 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -1163,7 +1163,7 @@ static const MARTe::char8 * const config8 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -1245,7 +1245,7 @@ static const MARTe::char8 * const config9 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -1327,7 +1327,7 @@ static const MARTe::char8 * const config10 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -1344,7 +1344,7 @@ static const MARTe::char8 * const config10 = ""
         "            }"
         "        }"
         "        +GAMB = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                ADC1_0 = {"
         "                    DataSource = NI6259_0"
@@ -1419,7 +1419,7 @@ static const MARTe::char8 * const config11 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -1501,7 +1501,7 @@ static const MARTe::char8 * const config12 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -1583,7 +1583,7 @@ static const MARTe::char8 * const config13 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -1666,7 +1666,7 @@ static const MARTe::char8 * const config14 = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259TestGAM"
+        "            Class = NI6259ADCTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = NI6259_0"
@@ -2768,7 +2768,7 @@ bool NI6259ADCTest::TestIntegrated() {
     if (ok) {
         ok = application->ConfigureApplication();
     }
-    ReferenceT<NI6259TestGAM> testGAM;
+    ReferenceT<NI6259ADCTestGAM> testGAM;
     if (ok) {
         testGAM = application->Find("Functions.GAMA");
         ok = testGAM.IsValid();
