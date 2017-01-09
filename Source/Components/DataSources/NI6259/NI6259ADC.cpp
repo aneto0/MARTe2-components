@@ -157,9 +157,20 @@ const char8* NI6259ADC::GetBrokerName(StructuredDataI& data, const SignalDirecti
 bool NI6259ADC::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
     //Check if this function has a synchronisation point (i.e. a signal which has Frequency > 0)
     uint32 functionIdx = 0u;
-    bool ok = GetFunctionIndex(functionIdx, functionName);
+    uint32 nOfSignals = 0u;
+    uint32 i = 0u;
+    float32 cycleFrequency = -1.0F;
 
-    if ((synchronising) && (synchronisingFunctionIdx == functionIdx)) {
+    bool synchGAM = false;
+    bool ok = GetFunctionIndex(functionIdx, functionName);
+    if (ok) {
+        ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
+    }
+    for (i = 0u; (i < nOfSignals) && (ok) && (!synchGAM); i++) {
+        ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, cycleFrequency);
+        synchGAM = (cycleFrequency > 0.F);
+    }
+    if ((synchronising) && (synchGAM)) {
         ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");
         if (ok) {
             ok = brokerSync.IsValid();
@@ -542,25 +553,8 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
 
-    //Check that if there is a synchronisation channel (i.e. that this board will serve a time source)
     uint32 nOfFunctions = GetNumberOfFunctions();
-    bool found = false;
     uint32 functionIdx;
-    float32 cycleFrequency = -1.0F;
-    for (functionIdx = 0u; (functionIdx < nOfFunctions) && (ok); functionIdx++) {
-        uint32 nOfSignals = 0u;
-        ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
-
-        if (ok) {
-            for (i = 0u; (i < nOfSignals) && (ok) && (!found); i++) {
-                ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, cycleFrequency);
-                found = (cycleFrequency > 0.F);
-                if (found) {
-                    synchronisingFunctionIdx = functionIdx;
-                }
-            }
-        }
-    }
     //Check that the number of samples for the counter and the time is one and that for the other signals is always the same
     for (functionIdx = 0u; (functionIdx < nOfFunctions) && (ok); functionIdx++) {
         uint32 nOfSignals = 0u;

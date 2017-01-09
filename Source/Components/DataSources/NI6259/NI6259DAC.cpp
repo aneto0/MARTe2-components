@@ -96,7 +96,17 @@ bool NI6259DAC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
 const char8* NI6259DAC::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == OutputSignals) {
-        brokerName = "MemoryMapSynchronisedOutputBroker";
+        uint32 trigger = 0u;
+        if (!data.Read("Trigger", trigger)) {
+            trigger = 0u;
+        }
+
+        if (trigger == 1u) {
+            brokerName = "MemoryMapSynchronisedOutputBroker";
+        }
+        else {
+            brokerName = "MemoryMapOutputBroker";
+        }
     }
     else {
         REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
@@ -104,26 +114,66 @@ const char8* NI6259DAC::GetBrokerName(StructuredDataI& data, const SignalDirecti
     return brokerName;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
 bool NI6259DAC::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
     return false;
 }
 
 bool NI6259DAC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
-    bool ok = broker.IsValid();
+    //Check if there is a Trigger signal for this function.
+    uint32 functionIdx = 0u;
+    uint32 nOfFunctionSignals = 0u;
+    uint32 i;
+    bool triggerGAM = false;
+    bool ok = GetFunctionIndex(functionIdx, functionName);
 
     if (ok) {
-        ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
+        ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfFunctionSignals);
     }
-    if (ok) {
-        ok = outputBrokers.Insert(broker);
+    uint32 trigger = 0u;
+    for (i = 0u; (i < nOfFunctionSignals) && (ok) && (!triggerGAM); i++) {
+        ok = GetFunctionSignalTrigger(OutputSignals, functionIdx, i, trigger);
+        triggerGAM = (trigger == 1u);
     }
+    if (triggerGAM) {
+        ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
+        bool ok = broker.IsValid();
 
+        if (ok) {
+            ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
+        }
+        if (ok) {
+            ok = outputBrokers.Insert(broker);
+        }
+        //Must also add the signals which are not triggering but that belong to the same GAM...
+        if (ok) {
+            if (nOfFunctionSignals > 1u) {
+                ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapOutputBroker");
+                ok = brokerNotSync.IsValid();
+                if (ok) {
+                    ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
+                }
+                if (ok) {
+                    ok = outputBrokers.Insert(brokerNotSync);
+                }
+            }
+        }
+    }
+    else {
+        ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapOutputBroker");
+        ok = brokerNotSync.IsValid();
+        if (ok) {
+            ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
+        }
+        if (ok) {
+            ok = outputBrokers.Insert(brokerNotSync);
+        }
+    }
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP irrespectively of the input parameters.*/
 bool NI6259DAC::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
-
     return true;
 }
 
@@ -213,7 +263,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
 
     uint32 nOfFunctions = GetNumberOfFunctions();
     uint32 functionIdx;
-    //Check that the number of samples for all the signals is always the same
+    //Check that the number of samples for all the signals is one
     for (functionIdx = 0u; (functionIdx < nOfFunctions) && (ok); functionIdx++) {
         uint32 nOfSignals = 0u;
         ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfSignals);
@@ -231,7 +281,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
     }
 
     StreamString fullDeviceName;
-    //Configure the board
+//Configure the board
     if (ok) {
         ok = fullDeviceName.Printf("%s.%d.ao", deviceName.Buffer(), boardId);
     }

@@ -54,9 +54,9 @@ const uint32 NI6259ADC_HEADER_SIZE = 2u;
  * +NI6259_0 = {
  *     Class = NI6259::NI6259ADC
  *     SamplingFrequency = 1000000 //]0, 1 MHZ]
- *     DeviceName = "/dev/pxi6259"
- *     BoardId = 0
- *     DelayDivisor = 3
+ *     DeviceName = "/dev/pxi6259" //Mandatory
+ *     BoardId = 0 //Mandatory
+ *     DelayDivisor = 3 //Mandatory
  *     ClockSource = "SI_TC" //Possible values:SI_TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, PULSE, GPCRT0_OUT, STAR_TRIGGER, GPCTR1_OUT, SCXI_TRIG1, ANALOG_TRIGGER, LOW
  *     ClockPolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
  *     CPUs = 0xf //CPUs where the thread which reads data from the board is allowed to run on.
@@ -69,7 +69,7 @@ const uint32 NI6259ADC_HEADER_SIZE = 2u;
  *          }
  *          ADC0_0 = { //At least one ADC input shall be specified.
  *              InputRange = 10 //Optional. Possible values: 0.1, 0.2, 0.5, 1, 2, 5, 10. Default value 10.
- *              Type = float32 //Mandatory. Only type that is supported.
+ *              Type = float32 //Mandatory. Only the float32 type is supported.
  *              ChannelId = 0 //Mandatory. The channel number.
  *              InputPolarity = Bipolar //Optional. Possible values: Bipolar, Unipolar. Default value Unipolar.
  *              InputMode = RSE //Optional. Possible values: Differential, RSE, NRSE. Default value RSE.
@@ -92,7 +92,7 @@ public:
 
     /**
      * @brief Destructor.
-     * @details Closes all the file descriptors associated to the board and its channels.
+     * @details Closes all the file descriptors associated to the board, including any opened channels.
      * Stops the embedded thread which is reading from this board.
      */
     virtual ~NI6259ADC();
@@ -210,11 +210,6 @@ private:
      * The EmbeddedThread where the Execute method waits for the ADC data to be available.
      */
     SingleThreadService executor;
-
-    /**
-     * Index of the function which has the signal that synchronises on this DataSourceI.
-     */
-    uint32 synchronisingFunctionIdx;
 
     /**
      * Number of samples to read

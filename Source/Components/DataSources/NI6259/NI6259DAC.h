@@ -40,41 +40,47 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-/**
- * @brief A DataSource which provides an input interface to the NI6259 boards.
- * @details The DataSource shall always be ...
- *
- * The configuration syntax is (names are only given as an example):
- * +NI6259_0 = {
- *     Class = NI6259::NI6259DAC
- *     TODO
- *     Signals = {
- *         TODO
- *     }
- * }
- */
 
 namespace MARTe {
 //Number of DAC channels
 const uint32 NI6259DAC_MAX_CHANNELS = 4u;
 /**
- * @brief TODO
+ * @brief A DataSource which provides an output interface to the NI6259 boards.
+ * @details The configuration syntax is (names are only given as an example):
+ * +NI6259_0_DAC = {
+ *     Class = NI6259::NI6259DAC
+ *     DeviceName = "/dev/pxi6259" //Mandatory
+ *     BoardId = 0 //Mandatory
+ *     Signals = {
+ *         DAC0_0 = {
+ *             Type = float32 //Mandatory. Only type that is supported.
+ *             ChannelId = 0 //Mandatory. The channel number.
+ *             OutputPolarity = Bipolar //Optional. Possible values: Bipolar, Unipolar. Default value Unipolar.
+ *         }
+ *     }
+ * }
+ *
+ * Note that at least one of the GAMs writing to this DataSource must have set one of the signals with Trigger=1 (which forces the writing of all the signals to the DAC).
+ * The clock configuration is fixed to AO_UPDATE_SOURCE_SELECT_UI_TC and AO_UPDATE_SOURCE_POLARITY_RISING_EDGE.
  */
 class NI6259DAC: public DataSourceI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO
+     * @brief Default constructor.
+     * @details Initialises all the optional parameters as described in the class description.
      */
     NI6259DAC();
 
     /**
-     * @brief TODO
+     * @brief Destructor.
+     * @details Closes all the file descriptors associated to the board, including any opened channels.
      */
     virtual ~NI6259DAC();
 
     /**
-     * @brief See DataSourceI::AllocateMemory.
+     * @brief See DataSourceI::AllocateMemory. NOOP.
+     * @return true.
      */
     virtual bool AllocateMemory();
 
@@ -85,7 +91,7 @@ public:
     virtual uint32 GetNumberOfMemoryBuffers();
 
     /**
-     * @brief See DataSourceI::GetNumberOfMemoryBuffers.
+     * @brief See DataSourceI::GetSignalMemoryBuffer.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
             const uint32 bufferIdx,
@@ -93,56 +99,62 @@ public:
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @details Only InputSignals are supported.
-     * @return MemoryMapSynchronisedInputBroker if frequency > 0, MemoryMapInputBroker otherwise.
+     * @details Only OutputSignals are supported.
+     * @return MemoryMapSynchronisedOutputBroker if Trigger == 1 for any of the signals, MemoryMapOutputBroker otherwise.
      */
-    virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+    virtual const char8 *GetBrokerName(StructuredDataI &data, const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
-     * @details If the functionName is the one synchronising it adds a MemoryMapSynchronisedInputBroker instance to
-     *  the inputBrokers, otherwise it adds a MemoryMapInputBroker instance to the inputBrokers.
-     * @param[out] inputBrokers where the BrokerI instances have to be added to.
-     * @param[in] functionName name of the function being queried.
-     * @param[in] gamMemPtr the GAM memory where the signals will be read from.
-     * @return true if the inputBrokers can be successfully configured.
+     * @return false.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
             const char8* const functionName,
             void * const gamMemPtr);
 
     /**
-     * @brief See DataSourceI::GetOutputBrokers.
-     * @return false.
+     * @brief See DataSourceI::GetInputBrokers.
+     * @details If the functionName is one of the functions which requested a Trigger,
+     * it adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers,
+     * otherwise it adds a MemoryMapOutputBroker instance to the outputBrokers.
+     * @param[out] outputBrokers where the BrokerI instances have to be added to.
+     * @param[in] functionName name of the function being queried.
+     * @param[in] gamMemPtr the GAM memory where the signals will be read from.
+     * @return true if the outputBrokers can be successfully configured.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
             const char8* const functionName,
             void * const gamMemPtr);
 
     /**
-     * @brief TODO
-     * @details See StatefulI::PrepareNextState. Starts the EmbeddedThread (if it was not already started) and loops
-     * on the ExecuteMethod.
-     * @return true if the EmbeddedThread can be successfully started.
+     * @brief NOOP
+     * @details See StatefulI::PrepareNextState.
+     * @return true.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
             const char8 * const nextStateName);
 
     /**
-     * @brief TODO
+     * @brief Loads and verifies the configuration parameters detailed in the class description.
+     * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief Verifies that 32, and only 32, signal are set with the correct type.
-     * @details TODO
-     * @return TODO.
+     * @brief Final verification of all the parameters and setup of the board configuration.
+     * @details This method verifies that all the parameters (e.g. number of samples) requested by the GAMs interacting with this DataSource
+     *  are valid and consistent with the board parameters set during the initialisation phase.
+     * In particular the following conditions shall be met:
+     * - All the DAC channels have type float32.
+     * - The number of samples of all the DAC channels is exactly one.
+     * @return true if all the parameters are valid and consistent with the board parameters and if the board can be successfully configured with
+     *  these parameters.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @details TODO
+     * @details Writes the value of all the DAC channels to the board.
+     * @return true if the writing of all the channels is successful.
      */
     virtual bool Synchronise();
 private:
@@ -182,7 +194,7 @@ private:
     bool dacEnabled[NI6259DAC_MAX_CHANNELS];
 
     /**
-     * The number of enabled adcs
+     * The number of enabled dacs
      */
     uint32 numberOfDACsEnabled;
 
