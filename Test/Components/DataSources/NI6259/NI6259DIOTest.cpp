@@ -1,7 +1,7 @@
 /**
- * @file NI6259DACTest.cpp
- * @brief Source file for class NI6259DACTest
- * @date 29/11/2016
+ * @file NI6259DIOTest.cpp
+ * @brief Source file for class NI6259DIOTest
+ * @date 9/1/2017
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class NI6259DACTest (public, protected, and private). Be aware that some
+ * the class NI6259DIOTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -34,8 +34,8 @@
 #include "GAM.h"
 #include "GAMScheduler.h"
 #include "MemoryOperationsHelper.h"
-#include "NI6259DAC.h"
-#include "NI6259DACTest.h"
+#include "NI6259DIO.h"
+#include "NI6259DIOTest.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
@@ -43,38 +43,37 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-class NI6259DACTestGAM: public MARTe::GAM {
+class NI6259DIOTestGAM: public MARTe::GAM {
 public:
-    CLASS_REGISTER_DECLARATION()
-
-NI6259DACTestGAM    () : GAM() {
-        voltage = 1;
-        signalPtr = NULL;
+    CLASS_REGISTER_DECLARATION()NI6259DIOTestGAM () : GAM() {
+        inSignalPtr = NULL;
+        outSignalPtr = NULL;
         totalSamples = 0;
     }
 
-    ~NI6259DACTestGAM() {
+    ~NI6259DIOTestGAM() {
     }
 
     bool Execute() {
         using namespace MARTe;
-        *signalPtr = voltage;
+        *outSignalPtr = *inSignalPtr;
         totalSamples++;
         return true;
     }
 
     bool Setup() {
         using namespace MARTe;
-        signalPtr = reinterpret_cast<float *>(GetOutputSignalMemory(0));
+        inSignalPtr = reinterpret_cast<uint32 *>(GetInputSignalMemory(0));
+        outSignalPtr = reinterpret_cast<uint32 *>(GetOutputSignalMemory(0));
         return true;
     }
 
-    MARTe::float32 voltage;
-    MARTe::float32 *signalPtr;
+    MARTe::uint32 *inSignalPtr;
+    MARTe::uint32 *outSignalPtr;
     MARTe::uint32 totalSamples;
 
 };
-CLASS_REGISTER(NI6259DACTestGAM, "1.0")
+CLASS_REGISTER(NI6259DIOTestGAM, "1.0")
 
 static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
     using namespace MARTe;
@@ -100,7 +99,7 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
     if (ok) {
         ok = application->ConfigureApplication();
     }
-    ReferenceT<NI6259DACTestGAM> testGAM;
+    ReferenceT<NI6259DIOTestGAM> testGAM;
     if (ok) {
         testGAM = application->Find("Functions.GAMA");
         ok = testGAM.IsValid();
@@ -129,61 +128,24 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
     return ok;
 }
 
-static bool PatchConfiguration(const MARTe::char8 * const config1, const MARTe::char8 * const absoluteParameterLocation,
-                               const MARTe::char8 * const parameterToPatch, const MARTe::char8 * const valueToPatch, pxi6259_ao_conf_t *conf) {
-    using namespace MARTe;
-
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute(absoluteParameterLocation);
-    cdb.Delete(parameterToPatch);
-    if (valueToPatch != NULL) {
-        cdb.Write(parameterToPatch, valueToPatch);
-    }
-    cdb.MoveToRoot();
-
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-
-    if (ok) {
-        god->Purge();
-        ok = god->Initialise(cdb);
-    }
-    ReferenceT<RealTimeApplication> application;
-    if (ok) {
-        application = god->Find("Test");
-        ok = application.IsValid();
-    }
-    if (ok) {
-        ok = application->ConfigureApplication();
-    }
-    ReferenceT<NI6259DAC> ni6259DAC = application->Find("Data.NI6259_0");
-    if (ok) {
-        ok = ni6259DAC.IsValid();
-    }
-    if (ok) {
-        ni6259DAC->ReadAOConfiguration(conf);
-    }
-    god->Purge();
-
-    return ok;
-}
-
-//One channel base configuration
+//One port base configuration
 static const MARTe::char8 * const config1 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259DACTestGAM"
-        "            OutputSignals = {"
-        "                DAC0_0 = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT0_0 = {"
         "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 1"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
         "                    Trigger = 1"
         "                }"
         "            }"
@@ -193,14 +155,14 @@ static const MARTe::char8 * const config1 = ""
         "        Class = ReferenceContainer"
         "        DefaultDataSource = DDB1"
         "        +NI6259_0 = {"
-        "            Class = NI6259DAC"
+        "            Class = NI6259DIO"
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            Signals = {"
-        "                DAC0_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 0"
-        "                   OutputPolarity = Bipolar"
+        "                PORT0_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 0"
+        "                   Mask = 0x1"
         "                }"
         "            }"
         "        }"
@@ -227,352 +189,40 @@ static const MARTe::char8 * const config1 = ""
         "    }"
         "}";
 
-//Four channels base configuration
+//Two ports configuration. One port writing with no trigger.
 static const MARTe::char8 * const config2 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259DACTestGAM"
-        "            OutputSignals = {"
-        "                DAC0_0 = {"
-        "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 1"
-        "                    Trigger = 1"
-        "                }"
-        "                DAC1_0 = {"
-        "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 1"
-        "                }"
-        "                DAC2_0 = {"
-        "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 1"
-        "                }"
-        "                DAC3_0 = {"
-        "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 1"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Data = {"
-        "        Class = ReferenceContainer"
-        "        DefaultDataSource = DDB1"
-        "        +NI6259_0 = {"
-        "            Class = NI6259DAC"
-        "            DeviceName = \"/dev/pxi6259\""
-        "            BoardId = 0"
-        "            Signals = {"
-        "                DAC0_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 0"
-        "                   OutputPolarity = Bipolar"
-        "                }"
-        "                DAC1_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 1"
-        "                   OutputPolarity = Bipolar"
-        "                }"
-        "                DAC2_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 2"
-        "                   OutputPolarity = Bipolar"
-        "                }"
-        "                DAC3_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 3"
-        "                   OutputPolarity = Bipolar"
-        "                }"
-        "            }"
-        "        }"
-        "        +Timings = {"
-        "            Class = TimingDataSource"
-        "        }"
-        "    }"
-        "    +States = {"
-        "        Class = ReferenceContainer"
-        "        +State1 = {"
-        "            Class = RealTimeState"
-        "            +Threads = {"
-        "                Class = ReferenceContainer"
-        "                +Thread1 = {"
-        "                    Class = RealTimeThread"
-        "                    Functions = {GAMA}"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Scheduler = {"
-        "        Class = GAMScheduler"
-        "        TimingDataSource = Timings"
-        "    }"
-        "}";
-
-//One channel base configuration with no signals defined
-static const MARTe::char8 * const config3 = ""
-        "$Test = {"
-        "    Class = RealTimeApplication"
-        "    +Functions = {"
-        "        Class = ReferenceContainer"
-        "        +GAMA = {"
-        "            Class = NI6259DACTestGAM"
-        "            OutputSignals = {"
-        "                DAC0_0 = {"
-        "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 1"
-        "                    Trigger = 1"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Data = {"
-        "        Class = ReferenceContainer"
-        "        DefaultDataSource = DDB1"
-        "        +NI6259_0 = {"
-        "            Class = NI6259DAC"
-        "            DeviceName = \"/dev/pxi6259\""
-        "            BoardId = 0"
-        "            Signals = {"
-        "                DAC0_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 0"
-        "                   OutputPolarity = Bipolar"
-        "                }"
-        "            }"
-        "        }"
-        "        +NI6259_1 = {"
-        "            Class = NI6259DAC"
-        "            DeviceName = \"/dev/pxi6259\""
-        "            BoardId = 1"
-        "            Signals = {"
-        "                DAC0_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 0"
-        "                   OutputPolarity = Bipolar"
-        "                }"
-        "            }"
-        "        }"
-        "        +Timings = {"
-        "            Class = TimingDataSource"
-        "        }"
-        "    }"
-        "    +States = {"
-        "        Class = ReferenceContainer"
-        "        +State1 = {"
-        "            Class = RealTimeState"
-        "            +Threads = {"
-        "                Class = ReferenceContainer"
-        "                +Thread1 = {"
-        "                    Class = RealTimeThread"
-        "                    Functions = {GAMA}"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Scheduler = {"
-        "        Class = GAMScheduler"
-        "        TimingDataSource = Timings"
-        "    }"
-        "}";
-
-//One channel base configuration with a wrong signal type
-static const MARTe::char8 * const config4 = ""
-        "$Test = {"
-        "    Class = RealTimeApplication"
-        "    +Functions = {"
-        "        Class = ReferenceContainer"
-        "        +GAMA = {"
-        "            Class = NI6259DACTestGAM"
-        "            OutputSignals = {"
-        "                DAC0_0 = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT0_0 = {"
         "                    DataSource = NI6259_0"
         "                    Type = uint32"
-        "                    Samples = 1"
-        "                    Trigger = 1"
         "                }"
         "            }"
-        "        }"
-        "    }"
-        "    +Data = {"
-        "        Class = ReferenceContainer"
-        "        DefaultDataSource = DDB1"
-        "        +NI6259_0 = {"
-        "            Class = NI6259DAC"
-        "            DeviceName = \"/dev/pxi6259\""
-        "            BoardId = 0"
-        "            Signals = {"
-        "                DAC0_0 = {"
-        "                   Type = uint32"
-        "                   ChannelId = 0"
-        "                   OutputPolarity = Bipolar"
-        "                }"
-        "            }"
-        "        }"
-        "        +Timings = {"
-        "            Class = TimingDataSource"
-        "        }"
-        "    }"
-        "    +States = {"
-        "        Class = ReferenceContainer"
-        "        +State1 = {"
-        "            Class = RealTimeState"
-        "            +Threads = {"
-        "                Class = ReferenceContainer"
-        "                +Thread1 = {"
-        "                    Class = RealTimeThread"
-        "                    Functions = {GAMA}"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Scheduler = {"
-        "        Class = GAMScheduler"
-        "        TimingDataSource = Timings"
-        "    }"
-        "}";
-
-//One channel base configuration with more than one sample
-static const MARTe::char8 * const config5 = ""
-        "$Test = {"
-        "    Class = RealTimeApplication"
-        "    +Functions = {"
-        "        Class = ReferenceContainer"
-        "        +GAMA = {"
-        "            Class = NI6259DACTestGAM"
         "            OutputSignals = {"
-        "                DAC0_0 = {"
+        "                PORT0_0 = {"
         "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 2"
-        "                    Trigger = 1"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Data = {"
-        "        Class = ReferenceContainer"
-        "        DefaultDataSource = DDB1"
-        "        +NI6259_0 = {"
-        "            Class = NI6259DAC"
-        "            DeviceName = \"/dev/pxi6259\""
-        "            BoardId = 0"
-        "            Signals = {"
-        "                DAC0_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 0"
-        "                   OutputPolarity = Bipolar"
-        "                }"
-        "            }"
-        "        }"
-        "        +Timings = {"
-        "            Class = TimingDataSource"
-        "        }"
-        "    }"
-        "    +States = {"
-        "        Class = ReferenceContainer"
-        "        +State1 = {"
-        "            Class = RealTimeState"
-        "            +Threads = {"
-        "                Class = ReferenceContainer"
-        "                +Thread1 = {"
-        "                    Class = RealTimeThread"
-        "                    Functions = {GAMA}"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Scheduler = {"
-        "        Class = GAMScheduler"
-        "        TimingDataSource = Timings"
-        "    }"
-        "}";
-
-//One channel base configuration with a wrong device name
-static const MARTe::char8 * const config6 = ""
-        "$Test = {"
-        "    Class = RealTimeApplication"
-        "    +Functions = {"
-        "        Class = ReferenceContainer"
-        "        +GAMA = {"
-        "            Class = NI6259DACTestGAM"
-        "            OutputSignals = {"
-        "                DAC0_0 = {"
-        "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 1"
-        "                    Trigger = 1"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Data = {"
-        "        Class = ReferenceContainer"
-        "        DefaultDataSource = DDB1"
-        "        +NI6259_0 = {"
-        "            Class = NI6259DAC"
-        "            DeviceName = \"/tmp/pxi6259\""
-        "            BoardId = 0"
-        "            Signals = {"
-        "                DAC0_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 0"
-        "                   OutputPolarity = Bipolar"
-        "                }"
-        "            }"
-        "        }"
-        "        +Timings = {"
-        "            Class = TimingDataSource"
-        "        }"
-        "    }"
-        "    +States = {"
-        "        Class = ReferenceContainer"
-        "        +State1 = {"
-        "            Class = RealTimeState"
-        "            +Threads = {"
-        "                Class = ReferenceContainer"
-        "                +Thread1 = {"
-        "                    Class = RealTimeThread"
-        "                    Functions = {GAMA}"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Scheduler = {"
-        "        Class = GAMScheduler"
-        "        TimingDataSource = Timings"
-        "    }"
-        "}";
-
-//Two channel base configuration with two GAMs
-static const MARTe::char8 * const config7 = ""
-        "$Test = {"
-        "    Class = RealTimeApplication"
-        "    +Functions = {"
-        "        Class = ReferenceContainer"
-        "        +GAMA = {"
-        "            Class = NI6259DACTestGAM"
-        "            OutputSignals = {"
-        "                DAC0_0 = {"
-        "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 1"
-        "                    Trigger = 1"
+        "                    Type = uint32"
         "                }"
         "            }"
         "        }"
         "        +GAMB = {"
-        "            Class = NI6259DACTestGAM"
-        "            OutputSignals = {"
-        "                DAC1_0 = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT1_0 = {"
         "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 1"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                PORT1_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                    Trigger = 1"
         "                }"
         "            }"
         "        }"
@@ -581,19 +231,19 @@ static const MARTe::char8 * const config7 = ""
         "        Class = ReferenceContainer"
         "        DefaultDataSource = DDB1"
         "        +NI6259_0 = {"
-        "            Class = NI6259DAC"
+        "            Class = NI6259DIO"
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            Signals = {"
-        "                DAC0_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 0"
-        "                   OutputPolarity = Bipolar"
+        "                PORT0_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 0"
+        "                   Mask = 0x1"
         "                }"
-        "                DAC1_0 = {"
-        "                   Type = float32"
-        "                   ChannelId = 0"
-        "                   OutputPolarity = Bipolar"
+        "                PORT1_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 1"
+        "                   Mask = 0x3"
         "                }"
         "            }"
         "        }"
@@ -620,19 +270,48 @@ static const MARTe::char8 * const config7 = ""
         "    }"
         "}";
 
-//One channel base configuration without specifying triggers
-static const MARTe::char8 * const config8 = ""
+//Three ports configuration. One port writing with no trigger.
+static const MARTe::char8 * const config3 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = NI6259DACTestGAM"
-        "            OutputSignals = {"
-        "                DAC0_0 = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT0_0 = {"
         "                    DataSource = NI6259_0"
-        "                    Type = float32"
-        "                    Samples = 1"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAMB = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT1_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                }"
+        "                PORT2_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                PORT1_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                    Trigger = 1"
+        "                }"
+        "                PORT2_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
         "                }"
         "            }"
         "        }"
@@ -641,14 +320,150 @@ static const MARTe::char8 * const config8 = ""
         "        Class = ReferenceContainer"
         "        DefaultDataSource = DDB1"
         "        +NI6259_0 = {"
-        "            Class = NI6259DAC"
+        "            Class = NI6259DIO"
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            Signals = {"
-        "                DAC0_0 = {"
+        "                PORT0_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 0"
+        "                   Mask = 0x5"
+        "                }"
+        "                PORT1_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 1"
+        "                   Mask = 0x5"
+        "                }"
+        "                PORT2_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 2"
+        "                   Mask = 0x5"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA GAMB}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with no channels.
+static const MARTe::char8 * const config4 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6259_0 = {"
+        "            Class = NI6259DIO"
+        "            DeviceName = \"/dev/pxi6259\""
+        "            BoardId = 0"
+        "            Signals = {"
+        "                PORT0_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 0"
+        "                   Mask = 0x5"
+        "                }"
+        "            }"
+        "        }"
+        "        +NI6259_1 = {"
+        "            Class = NI6259DIO"
+        "            DeviceName = \"/dev/pxi6259\""
+        "            BoardId = 1"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA GAMB}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//One port base configuration with signal type mismatch
+static const MARTe::char8 * const config5 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = float32"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = float32"
+        "                    Trigger = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6259_0 = {"
+        "            Class = NI6259DIO"
+        "            DeviceName = \"/dev/pxi6259\""
+        "            BoardId = 0"
+        "            Signals = {"
+        "                PORT0_0 = {"
         "                   Type = float32"
-        "                   ChannelId = 0"
-        "                   OutputPolarity = Bipolar"
+        "                   PortId = 0"
+        "                   Mask = 0x1"
         "                }"
         "            }"
         "        }"
@@ -675,49 +490,334 @@ static const MARTe::char8 * const config8 = ""
         "    }"
         "}";
 
+//One port base configuration with more than one sample
+static const MARTe::char8 * const config6 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                    Samples = 2"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6259_0 = {"
+        "            Class = NI6259DIO"
+        "            DeviceName = \"/dev/pxi6259\""
+        "            BoardId = 0"
+        "            Signals = {"
+        "                PORT0_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 0"
+        "                   Mask = 0x1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//One port base configuration with a wrong device name
+static const MARTe::char8 * const config7 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                    Trigger = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6259_0 = {"
+        "            Class = NI6259DIO"
+        "            DeviceName = \"/tmp/pxi6259\""
+        "            BoardId = 0"
+        "            Signals = {"
+        "                PORT0_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 0"
+        "                   Mask = 0x1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//One port base configuration without specifying a triggering signal
+static const MARTe::char8 * const config8 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6259_0 = {"
+        "            Class = NI6259DIO"
+        "            DeviceName = \"/tmp/pxi6259\""
+        "            BoardId = 0"
+        "            Signals = {"
+        "                PORT0_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 0"
+        "                   Mask = 0x1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+
+//One port base configuration with only inputs
+static const MARTe::char8 * const config9 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6259_0 = {"
+        "            Class = NI6259DIO"
+        "            DeviceName = \"/dev/pxi6259\""
+        "            BoardId = 0"
+        "            Signals = {"
+        "                PORT0_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 0"
+        "                   Mask = 0x1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//One port base configuration with only outputs
+static const MARTe::char8 * const config10 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6259DIOTestGAM"
+        "            OutputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                    Trigger = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6259_0 = {"
+        "            Class = NI6259DIO"
+        "            DeviceName = \"/dev/pxi6259\""
+        "            BoardId = 0"
+        "            Signals = {"
+        "                PORT0_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 0"
+        "                   Mask = 0x1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-bool NI6259DACTest::TestConstructor() {
+bool NI6259DIOTest::TestConstructor() {
     using namespace MARTe;
-    NI6259DAC ni6259DAC;
+    NI6259DIO ni6259DIO;
     return true;
 }
 
-bool NI6259DACTest::TestAllocateMemory() {
+bool NI6259DIOTest::TestAllocateMemory() {
     using namespace MARTe;
-    NI6259DAC ni6259DAC;
-    return ni6259DAC.AllocateMemory();
+    NI6259DIO ni6259DIO;
+    return ni6259DIO.AllocateMemory();
 }
 
-bool NI6259DACTest::TestGetNumberOfMemoryBuffers() {
+bool NI6259DIOTest::TestGetNumberOfMemoryBuffers() {
     using namespace MARTe;
-    NI6259DAC ni6259DAC;
-    return (ni6259DAC.GetNumberOfMemoryBuffers() == 1u);
+    NI6259DIO ni6259DIO;
+    return (ni6259DIO.GetNumberOfMemoryBuffers() == 1u);
 }
 
-bool NI6259DACTest::TestGetSignalMemoryBuffer() {
+bool NI6259DIOTest::TestGetSignalMemoryBuffer() {
     using namespace MARTe;
-    NI6259DAC test;
-    float32 *dac0;
-    bool ok = test.GetSignalMemoryBuffer(0, 0, (void *&) dac0);
-    ok &= (dac0 == NULL);
+    NI6259DIO test;
+    uint32 *dio0;
+    bool ok = test.GetSignalMemoryBuffer(0, 0, (void *&) dio0);
+    ok &= (dio0 != NULL);
     return ok;
 }
 
-bool NI6259DACTest::TestGetSignalMemoryBuffer_False() {
+bool NI6259DIOTest::TestGetSignalMemoryBuffer_False() {
     using namespace MARTe;
-    NI6259DAC test;
+    NI6259DIO test;
     uint32 *ptr;
-    return !test.GetSignalMemoryBuffer(NI6259DAC_MAX_CHANNELS, 0, (void *&) ptr);
+    return !test.GetSignalMemoryBuffer(PXI6259_NUMBER_OF_PORTS, 0, (void *&) ptr);
 }
 
-bool NI6259DACTest::TestGetBrokerName() {
+bool NI6259DIOTest::TestGetBrokerName() {
     using namespace MARTe;
-    NI6259DAC test;
+    NI6259DIO test;
     ConfigurationDatabase config;
     StreamString brokerName = test.GetBrokerName(config, InputSignals);
-    bool ok = (brokerName == "");
+    bool ok = (brokerName == "MemoryMapSynchronisedInputBroker");
     if (ok) {
         brokerName = test.GetBrokerName(config, OutputSignals);
         ok = (brokerName == "MemoryMapOutputBroker");
@@ -731,32 +831,29 @@ bool NI6259DACTest::TestGetBrokerName() {
     return ok;
 }
 
-bool NI6259DACTest::TestGetInputBrokers() {
-    using namespace MARTe;
-    NI6259DAC test;
-    ReferenceContainer rc;
-    return !test.GetInputBrokers(rc, "", NULL);
-}
-
-bool NI6259DACTest::TestGetOutputBrokers() {
+bool NI6259DIOTest::TestGetInputBrokers() {
     return TestIntegratedInApplication(config1);
 }
 
-bool NI6259DACTest::TestGetOutputBrokers_NoTriggerGAM() {
-    return TestIntegratedInApplication(config7);
-}
-
-bool NI6259DACTest::TestSynchronise() {
+bool NI6259DIOTest::TestGetOutputBrokers() {
     return TestIntegratedInApplication(config1);
 }
 
-bool NI6259DACTest::TestPrepareNextState() {
+bool NI6259DIOTest::TestGetOutputBrokers_NoTriggerGAM() {
+    return TestIntegratedInApplication(config2);
+}
+
+bool NI6259DIOTest::TestSynchronise() {
+    return TestIntegratedInApplication(config1);
+}
+
+bool NI6259DIOTest::TestPrepareNextState() {
     using namespace MARTe;
-    NI6259DAC test;
+    NI6259DIO test;
     return test.PrepareNextState("", "");
 }
 
-bool NI6259DACTest::TestInitialise() {
+bool NI6259DIOTest::TestInitialise() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -764,14 +861,14 @@ bool NI6259DACTest::TestInitialise() {
     StandardParser parser(configStream, cdb);
     bool ok = parser.Parse();
     cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
-    NI6259DAC test;
+    NI6259DIO test;
     if (ok) {
         ok = test.Initialise(cdb);
     }
     return ok;
 }
 
-bool NI6259DACTest::TestInitialise_False_NoDeviceName() {
+bool NI6259DIOTest::TestInitialise_False_NoDeviceName() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -780,14 +877,14 @@ bool NI6259DACTest::TestInitialise_False_NoDeviceName() {
     bool ok = parser.Parse();
     cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
     cdb.Delete("DeviceName");
-    NI6259DAC test;
+    NI6259DIO test;
     if (ok) {
         ok = !test.Initialise(cdb);
     }
     return ok;
 }
 
-bool NI6259DACTest::TestInitialise_False_NoBoardId() {
+bool NI6259DIOTest::TestInitialise_False_NoBoardId() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -796,14 +893,14 @@ bool NI6259DACTest::TestInitialise_False_NoBoardId() {
     bool ok = parser.Parse();
     cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
     cdb.Delete("BoardId");
-    NI6259DAC test;
+    NI6259DIO test;
     if (ok) {
         ok = !test.Initialise(cdb);
     }
     return ok;
 }
 
-bool NI6259DACTest::TestInitialise_False_NoSignals() {
+bool NI6259DIOTest::TestInitialise_False_NoSignals() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -812,101 +909,52 @@ bool NI6259DACTest::TestInitialise_False_NoSignals() {
     bool ok = parser.Parse();
     cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
     cdb.Delete("Signals");
-    NI6259DAC test;
+    NI6259DIO test;
     if (ok) {
         ok = !test.Initialise(cdb);
     }
     return ok;
 }
 
-bool NI6259DACTest::TestInitialise_OutputPolarity() {
-    using namespace MARTe;
-    bool ok = true;
-    {
-        pxi6259_ao_conf_t conf;
-        if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0.Signals.DAC0_0", "OutputPolarity", "Unipolar", &conf);
-        }
-        if (ok) {
-            ok = (conf.channel[0].polarity == AO_DAC_POLARITY_UNIPOLAR);
-        }
-    }
-    {
-        pxi6259_ao_conf_t conf;
-        if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0.Signals.DAC0_0", "OutputPolarity", "Bipolar", &conf);
-        }
-        if (ok) {
-            ok = (conf.channel[0].polarity == AO_DAC_POLARITY_BIPOLAR);
-        }
-    }
-
-    return ok;
-}
-
-bool NI6259DACTest::TestInitialise_False_BadOutputPolarity() {
+bool NI6259DIOTest::TestInitialise_False_BadPortId() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6259_0.Signals.DAC0_0");
-    cdb.Delete("OutputPolarity");
-    cdb.Write("OutputPolarity", "INVALID");
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0.Signals.PORT0_0");
+    cdb.Delete("PortId");
+    cdb.Write("PortId", "3");
     cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
-    NI6259DAC test;
+    NI6259DIO test;
     if (ok) {
         ok = !test.Initialise(cdb);
     }
     return ok;
 }
 
-bool NI6259DACTest::TestInitialise_DefaultOutputPolarity() {
-    bool ok = true;
-    {
-        pxi6259_ao_conf_t conf;
-        if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0.Signals.DAC0_0", "OutputPolarity", NULL, &conf);
-        }
-        if (ok) {
-            ok = (conf.channel[0].polarity == AO_DAC_POLARITY_UNIPOLAR);
-        }
-    }
-    return ok;
-}
-
-bool NI6259DACTest::TestInitialise_False_BadChannelId() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6259_0.Signals.DAC0_0");
-    cdb.Delete("ChannelId");
-    cdb.Write("ChannelId", "4");
-    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
-    NI6259DAC test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
-
-bool NI6259DACTest::TestSetConfiguredDatabase() {
+bool NI6259DIOTest::TestSetConfiguredDatabase() {
     return TestIntegratedInApplication(config1);
 }
 
-bool NI6259DACTest::TestSetConfiguredDatabase_AllChannels() {
-    return TestIntegratedInApplication(config2);
+bool NI6259DIOTest::TestSetConfiguredDatabase_OnlyInputs() {
+    return TestIntegratedInApplication(config1);
 }
 
-bool NI6259DACTest::TestSetConfiguredDatabase_AllChannels_Parameters() {
+bool NI6259DIOTest::TestSetConfiguredDatabase_OnlyOutputs() {
+    return TestIntegratedInApplication(config1);
+}
+
+bool NI6259DIOTest::TestSetConfiguredDatabase_AllChannels() {
+    return TestIntegratedInApplication(config3);
+}
+
+bool NI6259DIOTest::TestSetConfiguredDatabase_AllChannels_Parameters() {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;
-    StreamString configStream = config2;
+    StreamString configStream = config3;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
 
@@ -927,16 +975,16 @@ bool NI6259DACTest::TestSetConfiguredDatabase_AllChannels_Parameters() {
         ok = application->ConfigureApplication();
     }
 
-    ReferenceT<NI6259DAC> ni6259DAC = application->Find("Data.NI6259_0");
+    ReferenceT<NI6259DIO> ni6259DIO = application->Find("Data.NI6259_0");
     if (ok) {
-        ok = ni6259DAC.IsValid();
+        ok = ni6259DIO.IsValid();
     }
     if (ok) {
-        pxi6259_ao_conf_t conf;
-        ni6259DAC->ReadAOConfiguration(&conf);
+        pxi6259_dio_conf_t conf;
+        ni6259DIO->ReadDIOConfiguration(&conf);
         uint32 i;
-        for (i = 0; (i < NI6259DAC_MAX_CHANNELS) && (ok); i++) {
-            ok &= (conf.channel[i].polarity == AO_DAC_POLARITY_BIPOLAR);
+        for (i = 0; (i < PXI6259_NUMBER_OF_PORTS) && (ok); i++) {
+            ok &= (conf.channel[i].mask == 0x5);
             ok &= (conf.channel[i].enabled);
         }
     }
@@ -945,23 +993,23 @@ bool NI6259DACTest::TestSetConfiguredDatabase_AllChannels_Parameters() {
     return ok;
 }
 
-bool NI6259DACTest::TestSetConfiguredDatabase_False_NoChannels() {
-    return !TestIntegratedInApplication(config3);
-}
-
-bool NI6259DACTest::TestSetConfiguredDatabase_False_SignalTypeMismatch() {
+bool NI6259DIOTest::TestSetConfiguredDatabase_False_NoChannels() {
     return !TestIntegratedInApplication(config4);
 }
 
-bool NI6259DACTest::TestSetConfiguredDatabase_False_SignalNumberOfSamplesGreaterThanOne() {
+bool NI6259DIOTest::TestSetConfiguredDatabase_False_SignalTypeMismatch() {
     return !TestIntegratedInApplication(config5);
 }
 
-bool NI6259DACTest::TestSetConfiguredDatabase_False_WrongDeviceName() {
+bool NI6259DIOTest::TestSetConfiguredDatabase_False_SignalNumberOfSamplesGreaterThanOne() {
     return !TestIntegratedInApplication(config6);
 }
 
-bool NI6259DACTest::TestSetConfiguredDatabase_False_NoTriggers() {
+bool NI6259DIOTest::TestSetConfiguredDatabase_False_WrongDeviceName() {
+    return !TestIntegratedInApplication(config7);
+}
+
+bool NI6259DIOTest::TestSetConfiguredDatabase_False_NoTriggers() {
     return !TestIntegratedInApplication(config8);
 }
 

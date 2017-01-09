@@ -40,39 +40,45 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-/**
- * @brief A DataSource which provides an input interface to the NI6259 boards.
- * @details The DataSource shall always be ...
- *
- * The configuration syntax is (names are only given as an example):
- * +NI6259_0 = {
- *     Class = NI6259::NI6259DIO
- *     TODO
- *     Signals = {
- *         TODO
- *     }
- * }
- */
-
 namespace MARTe {
 /**
- * @brief TODO
+ * @brief A DataSource which provides a digital input/output interface to the NI6259 boards.
+ * @details The DataSource shall always be ...
+ *
+ * +NI6259_0_DIO = {
+ *     Class = NI6259::NI6259DIO
+ *     DeviceName = "/dev/pxi6259" //Mandatory
+ *     BoardId = 0 //Mandatory
+ *     Signals = {
+ *         DIO0_0 = {
+ *             Type = uint32 //Mandatory. Only type that is supported.
+ *             PortId = 0 //Mandatory. The port number in the range [0, 2]
+ *             Mask = 0x1 //Mandatory. A mask where each bit defines if the pin is an input (bit=0) or an output (bit=1).
+ *         }
+ *     }
+ * }
+ *
+ * Note that at least one of the GAMs writing to this DataSource must have set one of the signals with Trigger=1 (which forces the writing of all the signals to the DIO ports).
  */
+
 class NI6259DIO: public DataSourceI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO
+     * @brief Default constructor.
+     * @details Initialises all the parameters described in the class description.
      */
 NI6259DIO    ();
 
     /**
-     * @brief TODO
+     * @brief Destructor.
+     * @details Closes all the file descriptors associated to the board, including any opened ports.
      */
     virtual ~NI6259DIO();
 
     /**
      * @brief See DataSourceI::AllocateMemory.
+     * @return true.
      */
     virtual bool AllocateMemory();
 
@@ -90,17 +96,16 @@ NI6259DIO    ();
             void *&signalAddress);
 
     /**
-     * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @details Only InputSignals are supported.
-     * @return MemoryMapSynchronisedInputBroker if frequency > 0, MemoryMapInputBroker otherwise.
+     * @brief See DataSourceI::GetBrokerName.
+     * @return For OutputSignals: MemoryMapSynchronisedOutputBroker if Trigger == 1 for any of the signals, MemoryMapOutputBroker otherwise.
+     * For InputSignals: MemoryMapSynchronisedInputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
-     * @details If the functionName is the one synchronising it adds a MemoryMapSynchronisedInputBroker instance to
-     *  the inputBrokers, otherwise it adds a MemoryMapInputBroker instance to the inputBrokers.
+     * @details Adds a MemoryMapSynchronisedInputBroker instance to the inputBrokers.
      * @param[out] inputBrokers where the BrokerI instances have to be added to.
      * @param[in] functionName name of the function being queried.
      * @param[in] gamMemPtr the GAM memory where the signals will be read from.
@@ -112,37 +117,58 @@ NI6259DIO    ();
 
     /**
      * @brief See DataSourceI::GetOutputBrokers.
-     * @return false.
+     * @details If the functionName is one of the functions which requested a Trigger,
+     * it adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers,
+     * otherwise it adds a MemoryMapOutputBroker instance to the outputBrokers.
+     * @param[out] outputBrokers where the BrokerI instances have to be added to.
+     * @param[in] functionName name of the function being queried.
+     * @param[in] gamMemPtr the GAM memory where the signals will be read from.
+     * @return true if the outputBrokers can be successfully configured.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
             const char8* const functionName,
             void * const gamMemPtr);
 
     /**
-     * @brief TODO
-     * @details See StatefulI::PrepareNextState. Starts the EmbeddedThread (if it was not already started) and loops
-     * on the ExecuteMethod.
-     * @return true if the EmbeddedThread can be successfully started.
+     * @brief See StatefulI::PrepareNextState.
+     * @details NOOP.
+     * @return true.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
             const char8 * const nextStateName);
 
     /**
-     * @brief TODO
+     * @brief Loads and verifies the configuration parameters detailed in the class description.
+     * @return true if all the mandatory parameters are correctly specified.
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief Verifies that 32, and only 32, signal are set with the correct type.
-     * @details TODO
-     * @return TODO.
+     * @brief Final verification of all the parameters and setup of the board configuration.
+     * @details This method verifies that all the parameters (e.g. number of samples) requested by the GAMs interacting with this DataSource
+     *  are valid and consistent with the board parameters set during the initialisation phase.
+     * In particular the following conditions shall be met:
+     * - At least one triggering signal was requested by a GAM which wants to write to this board (with the property Trigger = 1)
+     * - All the DIO channels have type uint32.
+     * - The number of samples of all the DIO channels is exactly one.
+     * @return true if all the parameters are valid and consistent with the board parameters and if the board can be successfully configured with
+     *  these parameters.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @details TODO
+     * @details Writes the value of all the DIO channels to the board, followed by a read of all the DIO channels from the board.
+     * @return true if the reading and writing of all the channels is successful.
      */
     virtual bool Synchronise();
+
+    /**
+     * @brief Helper function to test the class.
+     * @details This method is meant to be used by the unit-test class in order to verify the correct setting of the board parameters.
+     * No real added value on making getters for all the structure elements, just for the sake of testing.
+     * @return true if the board was opened (i.e. if SetConfiguredDatabase was successful).
+     */
+    bool ReadDIOConfiguration(pxi6259_dio_conf_t *conf) const;
 private:
 
     /**
@@ -171,12 +197,12 @@ private:
     uint32 portMask[PXI6259_NUMBER_OF_PORTS];
 
     /**
-     * TODO
+     * The current port values.
      */
     uint32 portValues[PXI6259_NUMBER_OF_PORTS];
 
     /**
-     * TODO
+     * Number of ports enabled for this board.
      */
     uint32 numberOfPortsEnabled;
 
@@ -185,6 +211,15 @@ private:
      */
     int32 portFileDescriptors[PXI6259_NUMBER_OF_PORTS];
 
+    /**
+     * True if at least one trigger was set.
+     */
+    bool triggerSet;
+
+    /**
+     * True if this board is used to write digital values.
+     */
+    bool outputsEnabled;
 };
 }
 

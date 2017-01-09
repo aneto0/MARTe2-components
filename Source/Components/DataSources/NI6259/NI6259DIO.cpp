@@ -49,6 +49,8 @@ NI6259DIO::NI6259DIO() :
     boardFileDescriptor = -1;
     numberOfPortsEnabled = 0u;
     deviceName = "";
+    triggerSet = false;
+    outputsEnabled = false;
     uint32 n;
     for (n = 0u; n < PXI6259_NUMBER_OF_PORTS; n++) {
         portEnabled[n] = false;
@@ -87,7 +89,19 @@ bool NI6259DIO::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
 const char8* NI6259DIO::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == OutputSignals) {
-        brokerName = "MemoryMapSynchronisedOutputBroker";
+        outputsEnabled = true;
+        uint32 trigger = 0u;
+        if (!data.Read("Trigger", trigger)) {
+            trigger = 0u;
+        }
+
+        if (trigger == 1u) {
+            brokerName = "MemoryMapSynchronisedOutputBroker";
+            triggerSet = true;
+        }
+        else {
+            brokerName = "MemoryMapOutputBroker";
+        }
     }
     else {
         brokerName = "MemoryMapSynchronisedInputBroker";
@@ -110,14 +124,53 @@ bool NI6259DIO::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
 }
 
 bool NI6259DIO::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
-    bool ok = broker.IsValid();
+    uint32 functionIdx = 0u;
+    uint32 nOfFunctionSignals = 0u;
+    uint32 i;
+    bool triggerGAM = false;
+    bool ok = GetFunctionIndex(functionIdx, functionName);
 
     if (ok) {
-        ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
+        ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfFunctionSignals);
     }
-    if (ok) {
-        ok = outputBrokers.Insert(broker);
+    uint32 trigger = 0u;
+    for (i = 0u; (i < nOfFunctionSignals) && (ok) && (!triggerGAM); i++) {
+        ok = GetFunctionSignalTrigger(OutputSignals, functionIdx, i, trigger);
+        triggerGAM = (trigger == 1u);
+    }
+    if ((ok) && (triggerGAM)) {
+        ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
+        ok = broker.IsValid();
+
+        if (ok) {
+            ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
+        }
+        if (ok) {
+            ok = outputBrokers.Insert(broker);
+        }
+        //Must also add the signals which are not triggering but that belong to the same GAM...
+        if (ok) {
+            if (nOfFunctionSignals > 1u) {
+                ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
+                ok = brokerNotSync.IsValid();
+                if (ok) {
+                    ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
+                }
+                if (ok) {
+                    ok = outputBrokers.Insert(brokerNotSync);
+                }
+            }
+        }
+    }
+    else {
+        ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
+        ok = brokerNotSync.IsValid();
+        if (ok) {
+            ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
+        }
+        if (ok) {
+            ok = outputBrokers.Insert(brokerNotSync);
+        }
     }
 
     return ok;
@@ -143,7 +196,7 @@ bool NI6259DIO::Initialise(StructuredDataI& data) {
     }
 
     //Get individual signal parameters
-    uint32 i;
+    uint32 i = 0u;
     if (ok) {
         ok = data.MoveRelative("Signals");
         if (!ok) {
@@ -193,7 +246,14 @@ bool NI6259DIO::Initialise(StructuredDataI& data) {
 bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
     uint32 i;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
-
+    if (ok) {
+        if (outputsEnabled) {
+            ok = triggerSet;
+        }
+    }
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::ParametersError, "At least one Trigger signal shall be set.");
+    }
     if (ok) {
         for (i = 0u; (i < numberOfPortsEnabled) && (ok); i++) {
             ok = (GetSignalType(i) == UnsignedInteger32Bit);
@@ -294,7 +354,6 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
     return ok;
 }
 
-#include <stdio.h>
 bool NI6259DIO::Synchronise() {
     uint32 i = 0u;
     bool ok = true;
@@ -305,6 +364,14 @@ bool NI6259DIO::Synchronise() {
                 ok = (read(portFileDescriptors[i], &(portValues[i]), sizeof(uint32)) == sizeof(uint32));
             }
         }
+    }
+    return ok;
+}
+
+bool NI6259DIO::ReadDIOConfiguration(pxi6259_dio_conf_t * const conf) const {
+    bool ok = false;
+    if (boardFileDescriptor > 0) {
+        ok = (pxi6259_read_dio_conf(boardFileDescriptor, conf) == 0);
     }
     return ok;
 }

@@ -1,7 +1,7 @@
 /**
- * @file NI6259DACTest.h
- * @brief Header file for class NI6259DACTest
- * @date 29/11/2016
+ * @file NI6259DIOTest.h
+ * @brief Header file for class NI6259DIOTest
+ * @date 9/1/2017
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class NI6259DACTest
+ * @details This header file contains the declaration of the class NI6259DIOTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef NI6259_NI6259DACTEST_H_
-#define NI6259_NI6259DACTEST_H_
+#ifndef NI6259_NI6259DIOTEST_H_
+#define NI6259_NI6259DIOTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -39,7 +39,7 @@
 /**
  * @brief Tests the LoggerDataSource public methods.
  */
-class NI6259DACTest {
+class NI6259DIOTest {
 public:
     /**
      * @brief Tests the constructor.
@@ -80,7 +80,6 @@ public:
      * @brief Tests the GetOutputBrokers method.
      */
     bool TestGetOutputBrokers();
-
     /**
      * @brief Tests the GetOutputBrokers with two GAMs (one triggering and one not triggering).
      */
@@ -117,29 +116,24 @@ public:
     bool TestInitialise_False_NoSignals();
 
     /**
-     * @brief Tests the Initialise method with all the possible output polarity.
+     * @brief Tests the Initialise method with an invalid port identifier.
      */
-    bool TestInitialise_OutputPolarity();
-
-    /**
-     * @brief Tests the Initialise method with an invalid output polarity.
-     */
-    bool TestInitialise_False_BadOutputPolarity();
-
-    /**
-     * @brief Tests the Initialise method with the default output polarity.
-     */
-    bool TestInitialise_DefaultOutputPolarity();
-
-    /**
-     * @brief Tests the Initialise method with an invalid channel identifier.
-     */
-    bool TestInitialise_False_BadChannelId();
+    bool TestInitialise_False_BadPortId();
 
     /**
      * @brief Tests the SetConfiguredDatabase method.
      */
     bool TestSetConfiguredDatabase();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method with a board that has only inputs enabled.
+     */
+    bool TestSetConfiguredDatabase_OnlyInputs();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method with a board that has only outputs enabled.
+     */
+    bool TestSetConfiguredDatabase_OnlyOutputs();
 
     /**
      * @brief Tests the SetConfiguredDatabase method with all the channels.
@@ -182,5 +176,5 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* NI6259_NI6259DACTEST_H_ */
+#endif /* NI6259_NI6259DIOTEST_H_ */
 

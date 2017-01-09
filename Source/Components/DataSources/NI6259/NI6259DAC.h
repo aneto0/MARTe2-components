@@ -45,7 +45,7 @@ namespace MARTe {
 //Number of DAC channels
 const uint32 NI6259DAC_MAX_CHANNELS = 4u;
 /**
- * @brief A DataSource which provides an output interface to the NI6259 boards.
+ * @brief A DataSource which provides an analogue output interface to the NI6259 boards.
  * @details The configuration syntax is (names are only given as an example):
  * +NI6259_0_DAC = {
  *     Class = NI6259::NI6259DAC
@@ -113,7 +113,7 @@ public:
             void * const gamMemPtr);
 
     /**
-     * @brief See DataSourceI::GetInputBrokers.
+     * @brief See DataSourceI::GetOutputBrokers.
      * @details If the functionName is one of the functions which requested a Trigger,
      * it adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers,
      * otherwise it adds a MemoryMapOutputBroker instance to the outputBrokers.
@@ -127,8 +127,8 @@ public:
             void * const gamMemPtr);
 
     /**
-     * @brief NOOP
-     * @details See StatefulI::PrepareNextState.
+     * @brief See StatefulI::PrepareNextState.
+     * @details NOOP.
      * @return true.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
