@@ -216,8 +216,10 @@ static const MARTe::char8 * const config1 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            CPUs = 0xf"
         "            Signals = {"
         "                Counter = {"
@@ -298,8 +300,10 @@ static const MARTe::char8 * const config2 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                Counter = {"
         "                    Type = uint32"
@@ -372,8 +376,10 @@ static const MARTe::char8 * const config3 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                Counter = {"
         "                    Type = uint32"
@@ -663,8 +669,10 @@ static const MARTe::char8 * const config4 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                Counter = {"
         "                    Type = uint32"
@@ -964,8 +972,10 @@ static const MARTe::char8 * const config5 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                Counter = {"
         "                    Type = uint32"
@@ -1039,8 +1049,10 @@ static const MARTe::char8 * const config6 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            CPUMask = 0xf"
         "            Signals = {"
         "                Counter = {"
@@ -1107,8 +1119,10 @@ static const MARTe::char8 * const config7 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            CPUMask = 0xf"
         "            Signals = {"
         "                Counter = {"
@@ -1189,8 +1203,10 @@ static const MARTe::char8 * const config8 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            CPUMask = 0xf"
         "            Signals = {"
         "                Counter = {"
@@ -1271,8 +1287,10 @@ static const MARTe::char8 * const config9 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            CPUMask = 0xf"
         "            Signals = {"
         "                Counter = {"
@@ -1363,8 +1381,10 @@ static const MARTe::char8 * const config10 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            CPUMask = 0xf"
         "            Signals = {"
         "                Counter = {"
@@ -1445,8 +1465,10 @@ static const MARTe::char8 * const config11 = ""
         "            DeviceName = \"/tmp/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            CPUMask = 0xf"
         "            Signals = {"
         "                Counter = {"
@@ -1527,8 +1549,10 @@ static const MARTe::char8 * const config12 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            CPUMask = 0xf"
         "            Signals = {"
         "                Counter = {"
@@ -1610,8 +1634,10 @@ static const MARTe::char8 * const config13 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            CPUMask = 0xf"
         "            Signals = {"
         "                Counter = {"
@@ -1693,8 +1719,10 @@ static const MARTe::char8 * const config14 = ""
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
         "            DelayDivisor = 3"
-        "            ClockSource = \"SI_TC\""
-        "            ClockPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
         "            CPUMask = 0xf"
         "            Signals = {"
         "                Counter = {"
@@ -2012,13 +2040,13 @@ bool NI6259ADCTest::TestInitialise_False_NoDelayDivisor() {
     return ok;
 }
 
-bool NI6259ADCTest::TestInitialise_ClockSource() {
+bool NI6259ADCTest::TestInitialise_ClockSampleSource() {
     using namespace MARTe;
     bool ok = true;
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "SI_TC", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "SI_TC", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_SI_TC);
@@ -2027,7 +2055,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI0", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI0", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI0);
@@ -2036,7 +2064,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI1", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI1", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI1);
@@ -2045,7 +2073,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI2", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI2", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI2);
@@ -2054,7 +2082,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI3", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI3", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI3);
@@ -2063,7 +2091,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI4", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI4", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI4);
@@ -2072,7 +2100,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI5", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI5", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI5);
@@ -2081,7 +2109,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI6", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI6", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI6);
@@ -2090,7 +2118,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI7", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI7", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI7);
@@ -2099,7 +2127,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI8", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI8", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI8);
@@ -2108,7 +2136,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI9", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI9", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI9);
@@ -2117,7 +2145,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI10", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI10", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI10);
@@ -2126,7 +2154,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI11", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI11", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI11);
@@ -2135,7 +2163,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI12", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI12", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI12);
@@ -2144,7 +2172,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI13", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI13", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI13);
@@ -2153,7 +2181,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI14", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI14", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI14);
@@ -2162,7 +2190,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PFI15", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PFI15", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PFI15);
@@ -2171,7 +2199,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "RTSI0", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "RTSI0", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_RTSI0);
@@ -2180,7 +2208,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "RTSI1", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "RTSI1", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_RTSI1);
@@ -2189,7 +2217,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "RTSI2", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "RTSI2", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_RTSI2);
@@ -2198,7 +2226,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "RTSI3", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "RTSI3", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_RTSI3);
@@ -2207,7 +2235,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "RTSI4", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "RTSI4", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_RTSI4);
@@ -2216,7 +2244,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "RTSI5", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "RTSI5", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_RTSI5);
@@ -2225,7 +2253,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "RTSI6", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "RTSI6", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_RTSI6);
@@ -2234,7 +2262,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "RTSI7", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "RTSI7", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_RTSI7);
@@ -2243,7 +2271,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "PULSE", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "PULSE", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_PULSE);
@@ -2252,7 +2280,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "GPCRT0_OUT", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "GPCRT0_OUT", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_GPCRT0_OUT);
@@ -2261,7 +2289,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "STAR_TRIGGER", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "STAR_TRIGGER", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_STAR_TRIGGER);
@@ -2270,7 +2298,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "GPCTR1_OUT", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "GPCTR1_OUT", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_GPCTR1_OUT);
@@ -2279,7 +2307,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "SCXI_TRIG1", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "SCXI_TRIG1", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_SCXI_TRIG1);
@@ -2288,7 +2316,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "ANALOG_TRIGGER", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "ANALOG_TRIGGER", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_ANALOG_TRIGGER);
@@ -2297,7 +2325,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSource", "LOW", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSampleSource", "LOW", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkSource == AI_SAMPLE_SELECT_LOW);
@@ -2307,7 +2335,7 @@ bool NI6259ADCTest::TestInitialise_ClockSource() {
     return ok;
 }
 
-bool NI6259ADCTest::TestInitialise_False_NoClockSource() {
+bool NI6259ADCTest::TestInitialise_False_NoClockSampleSource() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2315,7 +2343,7 @@ bool NI6259ADCTest::TestInitialise_False_NoClockSource() {
     StandardParser parser(configStream, cdb);
     bool ok = parser.Parse();
     cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
-    cdb.Delete("ClockSource");
+    cdb.Delete("ClockSampleSource");
     NI6259ADC test;
     if (ok) {
         ok = !test.Initialise(cdb);
@@ -2323,7 +2351,7 @@ bool NI6259ADCTest::TestInitialise_False_NoClockSource() {
     return ok;
 }
 
-bool NI6259ADCTest::TestInitialise_False_BadClockSource() {
+bool NI6259ADCTest::TestInitialise_False_BadClockSampleSource() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2331,8 +2359,8 @@ bool NI6259ADCTest::TestInitialise_False_BadClockSource() {
     StandardParser parser(configStream, cdb);
     bool ok = parser.Parse();
     cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
-    cdb.Delete("ClockSource");
-    cdb.Write("ClockSource", "INVALID");
+    cdb.Delete("ClockSampleSource");
+    cdb.Write("ClockSampleSource", "INVALID");
     NI6259ADC test;
     if (ok) {
         ok = !test.Initialise(cdb);
@@ -2340,13 +2368,13 @@ bool NI6259ADCTest::TestInitialise_False_BadClockSource() {
     return ok;
 }
 
-bool NI6259ADCTest::TestInitialise_ClockPolarity() {
+bool NI6259ADCTest::TestInitialise_ClockSamplePolarity() {
     using namespace MARTe;
     bool ok = true;
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockPolarity", "ACTIVE_HIGH_OR_RISING_EDGE", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSamplePolarity", "ACTIVE_HIGH_OR_RISING_EDGE", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkPolarity == AI_SAMPLE_POLARITY_ACTIVE_HIGH_OR_RISING_EDGE);
@@ -2355,7 +2383,7 @@ bool NI6259ADCTest::TestInitialise_ClockPolarity() {
     {
         pxi6259_ai_conf_t conf;
         if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockPolarity", "ACTIVE_LOW_OR_FALLING_EDGE", &conf);
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockSamplePolarity", "ACTIVE_LOW_OR_FALLING_EDGE", &conf);
         }
         if (ok) {
             ok = (conf.aiSampleClkPolarity == AI_SAMPLE_POLARITY_ACTIVE_LOW_OR_FALLING_EDGE);
@@ -2365,7 +2393,7 @@ bool NI6259ADCTest::TestInitialise_ClockPolarity() {
     return ok;
 }
 
-bool NI6259ADCTest::TestInitialise_False_NoClockPolarity() {
+bool NI6259ADCTest::TestInitialise_False_NoClockSamplePolarity() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2373,7 +2401,7 @@ bool NI6259ADCTest::TestInitialise_False_NoClockPolarity() {
     StandardParser parser(configStream, cdb);
     bool ok = parser.Parse();
     cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
-    cdb.Delete("ClockPolarity");
+    cdb.Delete("ClockSamplePolarity");
     NI6259ADC test;
     if (ok) {
         ok = !test.Initialise(cdb);
@@ -2381,7 +2409,7 @@ bool NI6259ADCTest::TestInitialise_False_NoClockPolarity() {
     return ok;
 }
 
-bool NI6259ADCTest::TestInitialise_False_BadClockPolarity() {
+bool NI6259ADCTest::TestInitialise_False_BadClockSamplePolarity() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2389,8 +2417,367 @@ bool NI6259ADCTest::TestInitialise_False_BadClockPolarity() {
     StandardParser parser(configStream, cdb);
     bool ok = parser.Parse();
     cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
-    cdb.Delete("ClockPolarity");
-    cdb.Write("ClockPolarity", "INVALID");
+    cdb.Delete("ClockSamplePolarity");
+    cdb.Write("ClockSamplePolarity", "INVALID");
+    NI6259ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6259ADCTest::TestInitialise_ClockConvertSource() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "SI2TC", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_SI2TC);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI0);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI1);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI2);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI3);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI4);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI5);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI6);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI7);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI8", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI8);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI9", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI9);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI10", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI10);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI11", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI11);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI12", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI12);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI13", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI13);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI14", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI14);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "PFI15", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_PFI15);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "RTSI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_RTSI0);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "RTSI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_RTSI1);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "RTSI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_RTSI2);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "RTSI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_RTSI3);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "RTSI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_RTSI4);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "RTSI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_RTSI5);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "RTSI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_RTSI6);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "RTSI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_RTSI7);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "GPCRT0_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_GPCRT0_OUT);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "STAR_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_STAR_TRIGGER);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "ANALOG_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_ANALOG_TRIGGER);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertSource", "LOW", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkSource == AI_CONVERT_SELECT_LOW);
+        }
+    }
+
+    return ok;
+}
+
+bool NI6259ADCTest::TestInitialise_False_NoClockConvertSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
+    cdb.Delete("ClockConvertSource");
+    NI6259ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6259ADCTest::TestInitialise_False_BadClockConvertSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
+    cdb.Delete("ClockConvertSource");
+    cdb.Write("ClockConvertSource", "INVALID");
+    NI6259ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6259ADCTest::TestInitialise_ClockConvertPolarity() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertPolarity", "RISING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkPolarity == AI_CONVERT_POLARITY_RISING_EDGE);
+        }
+    }
+    {
+        pxi6259_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockConvertPolarity", "FALLING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.aiConvertClkPolarity == AI_CONVERT_POLARITY_FALLING_EDGE);
+        }
+    }
+
+    return ok;
+}
+
+bool NI6259ADCTest::TestInitialise_False_NoClockConvertPolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
+    cdb.Delete("ClockConvertPolarity");
+    NI6259ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6259ADCTest::TestInitialise_False_BadClockConvertPolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
+    cdb.Delete("ClockConvertPolarity");
+    cdb.Write("ClockConvertPolarity", "INVALID");
     NI6259ADC test;
     if (ok) {
         ok = !test.Initialise(cdb);

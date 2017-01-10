@@ -134,34 +134,64 @@ TEST(NI6259ADCGTest,TestInitialise_False_NoDelayDivisor) {
     ASSERT_TRUE(test.TestInitialise_False_NoDelayDivisor());
 }
 
-TEST(NI6259ADCGTest,TestInitialise_ClockSource) {
+TEST(NI6259ADCGTest,TestInitialise_ClockSampleSource) {
     NI6259ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_ClockSource());
+    ASSERT_TRUE(test.TestInitialise_ClockSampleSource());
 }
 
-TEST(NI6259ADCGTest,TestInitialise_False_NoClockSource) {
+TEST(NI6259ADCGTest,TestInitialise_False_NoClockSampleSource) {
     NI6259ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoClockSource());
+    ASSERT_TRUE(test.TestInitialise_False_NoClockSampleSource());
 }
 
-TEST(NI6259ADCGTest,TestInitialise_False_BadClockSource) {
+TEST(NI6259ADCGTest,TestInitialise_False_BadClockSampleSource) {
     NI6259ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadClockSource());
+    ASSERT_TRUE(test.TestInitialise_False_BadClockSampleSource());
 }
 
-TEST(NI6259ADCGTest,TestInitialise_ClockPolarity) {
+TEST(NI6259ADCGTest,TestInitialise_ClockSamplePolarity) {
     NI6259ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_ClockPolarity());
+    ASSERT_TRUE(test.TestInitialise_ClockSamplePolarity());
 }
 
-TEST(NI6259ADCGTest,TestInitialise_False_NoClockPolarity) {
+TEST(NI6259ADCGTest,TestInitialise_False_NoClockSamplePolarity) {
     NI6259ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoClockPolarity());
+    ASSERT_TRUE(test.TestInitialise_False_NoClockSamplePolarity());
 }
 
-TEST(NI6259ADCGTest,TestInitialise_False_BadClockPolarity) {
+TEST(NI6259ADCGTest,TestInitialise_False_BadClockSamplePolarity) {
     NI6259ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadClockPolarity());
+    ASSERT_TRUE(test.TestInitialise_False_BadClockSamplePolarity());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_ClockConvertSource) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_ClockConvertSource());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_NoClockConvertSource) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoClockConvertSource());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_BadClockConvertSource) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadClockConvertSource());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_ClockConvertPolarity) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_ClockConvertPolarity());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_NoClockConvertPolarity) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoClockConvertPolarity());
+}
+
+TEST(NI6259ADCGTest,TestInitialise_False_BadClockConvertPolarity) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadClockConvertPolarity());
 }
 
 TEST(NI6259ADCGTest,TestInitialise_False_NoSignals) {

@@ -56,8 +56,10 @@ NI6259ADC::NI6259ADC() :
     delayDivisor = 0u;
     samplingPeriodMicroSeconds = 0u;
     numberOfADCsEnabled = 0u;
-    clockSource = AI_SAMPLE_SELECT_SI_TC;
-    clockPolarity = AI_SAMPLE_POLARITY_ACTIVE_HIGH_OR_RISING_EDGE;
+    clockSampleSource = AI_SAMPLE_SELECT_SI_TC;
+    clockSamplePolarity = AI_SAMPLE_POLARITY_ACTIVE_HIGH_OR_RISING_EDGE;
+    clockConvertSource = AI_CONVERT_SELECT_SI2TC;
+    clockConvertPolarity = AI_CONVERT_POLARITY_RISING_EDGE;
     keepRunning = true;
     synchronising = false;
     cpuMask = 0u;
@@ -284,134 +286,254 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The DelayDivisor shall be specified");
         }
     }
-    StreamString clockSourceStr;
+    StreamString clockSampleSourceStr;
     if (ok) {
-        ok = data.Read("ClockSource", clockSourceStr);
+        ok = data.Read("ClockSampleSource", clockSampleSourceStr);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockSource shall be specified");
+            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockSampleSource shall be specified");
         }
     }
     if (ok) {
-        if (clockSourceStr == "SI_TC") {
-            clockSource = AI_SAMPLE_SELECT_SI_TC;
+        if (clockSampleSourceStr == "SI_TC") {
+            clockSampleSource = AI_SAMPLE_SELECT_SI_TC;
         }
-        else if (clockSourceStr == "PFI0") {
-            clockSource = AI_SAMPLE_SELECT_PFI0;
+        else if (clockSampleSourceStr == "PFI0") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI0;
         }
-        else if (clockSourceStr == "PFI1") {
-            clockSource = AI_SAMPLE_SELECT_PFI1;
+        else if (clockSampleSourceStr == "PFI1") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI1;
         }
-        else if (clockSourceStr == "PFI2") {
-            clockSource = AI_SAMPLE_SELECT_PFI2;
+        else if (clockSampleSourceStr == "PFI2") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI2;
         }
-        else if (clockSourceStr == "PFI3") {
-            clockSource = AI_SAMPLE_SELECT_PFI3;
+        else if (clockSampleSourceStr == "PFI3") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI3;
         }
-        else if (clockSourceStr == "PFI4") {
-            clockSource = AI_SAMPLE_SELECT_PFI4;
+        else if (clockSampleSourceStr == "PFI4") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI4;
         }
-        else if (clockSourceStr == "PFI5") {
-            clockSource = AI_SAMPLE_SELECT_PFI5;
+        else if (clockSampleSourceStr == "PFI5") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI5;
         }
-        else if (clockSourceStr == "PFI6") {
-            clockSource = AI_SAMPLE_SELECT_PFI6;
+        else if (clockSampleSourceStr == "PFI6") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI6;
         }
-        else if (clockSourceStr == "PFI7") {
-            clockSource = AI_SAMPLE_SELECT_PFI7;
+        else if (clockSampleSourceStr == "PFI7") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI7;
         }
-        else if (clockSourceStr == "PFI8") {
-            clockSource = AI_SAMPLE_SELECT_PFI8;
+        else if (clockSampleSourceStr == "PFI8") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI8;
         }
-        else if (clockSourceStr == "PFI9") {
-            clockSource = AI_SAMPLE_SELECT_PFI9;
+        else if (clockSampleSourceStr == "PFI9") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI9;
         }
-        else if (clockSourceStr == "PFI10") {
-            clockSource = AI_SAMPLE_SELECT_PFI10;
+        else if (clockSampleSourceStr == "PFI10") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI10;
         }
-        else if (clockSourceStr == "PFI11") {
-            clockSource = AI_SAMPLE_SELECT_PFI11;
+        else if (clockSampleSourceStr == "PFI11") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI11;
         }
-        else if (clockSourceStr == "PFI12") {
-            clockSource = AI_SAMPLE_SELECT_PFI12;
+        else if (clockSampleSourceStr == "PFI12") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI12;
         }
-        else if (clockSourceStr == "PFI13") {
-            clockSource = AI_SAMPLE_SELECT_PFI13;
+        else if (clockSampleSourceStr == "PFI13") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI13;
         }
-        else if (clockSourceStr == "PFI14") {
-            clockSource = AI_SAMPLE_SELECT_PFI14;
+        else if (clockSampleSourceStr == "PFI14") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI14;
         }
-        else if (clockSourceStr == "PFI15") {
-            clockSource = AI_SAMPLE_SELECT_PFI15;
+        else if (clockSampleSourceStr == "PFI15") {
+            clockSampleSource = AI_SAMPLE_SELECT_PFI15;
         }
-        else if (clockSourceStr == "RTSI0") {
-            clockSource = AI_SAMPLE_SELECT_RTSI0;
+        else if (clockSampleSourceStr == "RTSI0") {
+            clockSampleSource = AI_SAMPLE_SELECT_RTSI0;
         }
-        else if (clockSourceStr == "RTSI1") {
-            clockSource = AI_SAMPLE_SELECT_RTSI1;
+        else if (clockSampleSourceStr == "RTSI1") {
+            clockSampleSource = AI_SAMPLE_SELECT_RTSI1;
         }
-        else if (clockSourceStr == "RTSI2") {
-            clockSource = AI_SAMPLE_SELECT_RTSI2;
+        else if (clockSampleSourceStr == "RTSI2") {
+            clockSampleSource = AI_SAMPLE_SELECT_RTSI2;
         }
-        else if (clockSourceStr == "RTSI3") {
-            clockSource = AI_SAMPLE_SELECT_RTSI3;
+        else if (clockSampleSourceStr == "RTSI3") {
+            clockSampleSource = AI_SAMPLE_SELECT_RTSI3;
         }
-        else if (clockSourceStr == "RTSI4") {
-            clockSource = AI_SAMPLE_SELECT_RTSI4;
+        else if (clockSampleSourceStr == "RTSI4") {
+            clockSampleSource = AI_SAMPLE_SELECT_RTSI4;
         }
-        else if (clockSourceStr == "RTSI5") {
-            clockSource = AI_SAMPLE_SELECT_RTSI5;
+        else if (clockSampleSourceStr == "RTSI5") {
+            clockSampleSource = AI_SAMPLE_SELECT_RTSI5;
         }
-        else if (clockSourceStr == "RTSI6") {
-            clockSource = AI_SAMPLE_SELECT_RTSI6;
+        else if (clockSampleSourceStr == "RTSI6") {
+            clockSampleSource = AI_SAMPLE_SELECT_RTSI6;
         }
-        else if (clockSourceStr == "RTSI7") {
-            clockSource = AI_SAMPLE_SELECT_RTSI7;
+        else if (clockSampleSourceStr == "RTSI7") {
+            clockSampleSource = AI_SAMPLE_SELECT_RTSI7;
         }
-        else if (clockSourceStr == "PULSE") {
-            clockSource = AI_SAMPLE_SELECT_PULSE;
+        else if (clockSampleSourceStr == "PULSE") {
+            clockSampleSource = AI_SAMPLE_SELECT_PULSE;
         }
-        else if (clockSourceStr == "GPCRT0_OUT") {
-            clockSource = AI_SAMPLE_SELECT_GPCRT0_OUT;
+        else if (clockSampleSourceStr == "GPCRT0_OUT") {
+            clockSampleSource = AI_SAMPLE_SELECT_GPCRT0_OUT;
         }
-        else if (clockSourceStr == "STAR_TRIGGER") {
-            clockSource = AI_SAMPLE_SELECT_STAR_TRIGGER;
+        else if (clockSampleSourceStr == "STAR_TRIGGER") {
+            clockSampleSource = AI_SAMPLE_SELECT_STAR_TRIGGER;
         }
-        else if (clockSourceStr == "GPCTR1_OUT") {
-            clockSource = AI_SAMPLE_SELECT_GPCTR1_OUT;
+        else if (clockSampleSourceStr == "GPCTR1_OUT") {
+            clockSampleSource = AI_SAMPLE_SELECT_GPCTR1_OUT;
         }
-        else if (clockSourceStr == "SCXI_TRIG1") {
-            clockSource = AI_SAMPLE_SELECT_SCXI_TRIG1;
+        else if (clockSampleSourceStr == "SCXI_TRIG1") {
+            clockSampleSource = AI_SAMPLE_SELECT_SCXI_TRIG1;
         }
-        else if (clockSourceStr == "ANALOG_TRIGGER") {
-            clockSource = AI_SAMPLE_SELECT_ANALOG_TRIGGER;
+        else if (clockSampleSourceStr == "ANALOG_TRIGGER") {
+            clockSampleSource = AI_SAMPLE_SELECT_ANALOG_TRIGGER;
         }
-        else if (clockSourceStr == "LOW") {
-            clockSource = AI_SAMPLE_SELECT_LOW;
+        else if (clockSampleSourceStr == "LOW") {
+            clockSampleSource = AI_SAMPLE_SELECT_LOW;
         }
         else {
             ok = false;
-            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockSource");
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockSampleSource");
         }
     }
-    StreamString clockPolarityStr;
+    StreamString clockSamplePolarityStr;
     if (ok) {
-        ok = data.Read("ClockPolarity", clockPolarityStr);
+        ok = data.Read("ClockSamplePolarity", clockSamplePolarityStr);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockPolarity shall be specified");
+            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockSamplePolarity shall be specified");
         }
     }
     if (ok) {
-        if (clockPolarityStr == "ACTIVE_HIGH_OR_RISING_EDGE") {
-            clockPolarity = AI_SAMPLE_POLARITY_ACTIVE_HIGH_OR_RISING_EDGE;
+        if (clockSamplePolarityStr == "ACTIVE_HIGH_OR_RISING_EDGE") {
+            clockSamplePolarity = AI_SAMPLE_POLARITY_ACTIVE_HIGH_OR_RISING_EDGE;
         }
-        else if (clockPolarityStr == "ACTIVE_LOW_OR_FALLING_EDGE") {
-            clockPolarity = AI_SAMPLE_POLARITY_ACTIVE_LOW_OR_FALLING_EDGE;
+        else if (clockSamplePolarityStr == "ACTIVE_LOW_OR_FALLING_EDGE") {
+            clockSamplePolarity = AI_SAMPLE_POLARITY_ACTIVE_LOW_OR_FALLING_EDGE;
         }
         else {
             ok = false;
-            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockPolarity");
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockSamplePolarity");
         }
     }
+    StreamString clockConvertSourceStr;
+    if (ok) {
+        ok = data.Read("ClockConvertSource", clockConvertSourceStr);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockConvertSource shall be specified");
+        }
+    }
+    if (ok) {
+        if (clockConvertSourceStr == "SI2TC") {
+            clockConvertSource = AI_CONVERT_SELECT_SI2TC;
+        }
+        else if (clockConvertSourceStr == "PFI0") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI0;
+        }
+        else if (clockConvertSourceStr == "PFI1") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI1;
+        }
+        else if (clockConvertSourceStr == "PFI2") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI2;
+        }
+        else if (clockConvertSourceStr == "PFI3") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI3;
+        }
+        else if (clockConvertSourceStr == "PFI4") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI4;
+        }
+        else if (clockConvertSourceStr == "PFI5") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI5;
+        }
+        else if (clockConvertSourceStr == "PFI6") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI6;
+        }
+        else if (clockConvertSourceStr == "PFI7") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI7;
+        }
+        else if (clockConvertSourceStr == "PFI8") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI8;
+        }
+        else if (clockConvertSourceStr == "PFI9") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI9;
+        }
+        else if (clockConvertSourceStr == "PFI10") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI10;
+        }
+        else if (clockConvertSourceStr == "PFI11") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI11;
+        }
+        else if (clockConvertSourceStr == "PFI12") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI12;
+        }
+        else if (clockConvertSourceStr == "PFI13") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI13;
+        }
+        else if (clockConvertSourceStr == "PFI14") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI14;
+        }
+        else if (clockConvertSourceStr == "PFI15") {
+            clockConvertSource = AI_CONVERT_SELECT_PFI15;
+        }
+        else if (clockConvertSourceStr == "RTSI0") {
+            clockConvertSource = AI_CONVERT_SELECT_RTSI0;
+        }
+        else if (clockConvertSourceStr == "RTSI1") {
+            clockConvertSource = AI_CONVERT_SELECT_RTSI1;
+        }
+        else if (clockConvertSourceStr == "RTSI2") {
+            clockConvertSource = AI_CONVERT_SELECT_RTSI2;
+        }
+        else if (clockConvertSourceStr == "RTSI3") {
+            clockConvertSource = AI_CONVERT_SELECT_RTSI3;
+        }
+        else if (clockConvertSourceStr == "RTSI4") {
+            clockConvertSource = AI_CONVERT_SELECT_RTSI4;
+        }
+        else if (clockConvertSourceStr == "RTSI5") {
+            clockConvertSource = AI_CONVERT_SELECT_RTSI5;
+        }
+        else if (clockConvertSourceStr == "RTSI6") {
+            clockConvertSource = AI_CONVERT_SELECT_RTSI6;
+        }
+        else if (clockConvertSourceStr == "RTSI7") {
+            clockConvertSource = AI_CONVERT_SELECT_RTSI7;
+        }
+        else if (clockConvertSourceStr == "GPCRT0_OUT") {
+            clockConvertSource = AI_CONVERT_SELECT_GPCRT0_OUT;
+        }
+        else if (clockConvertSourceStr == "STAR_TRIGGER") {
+            clockConvertSource = AI_CONVERT_SELECT_STAR_TRIGGER;
+        }
+        else if (clockConvertSourceStr == "ANALOG_TRIGGER") {
+            clockConvertSource = AI_CONVERT_SELECT_ANALOG_TRIGGER;
+        }
+        else if (clockConvertSourceStr == "LOW") {
+            clockConvertSource = AI_CONVERT_SELECT_LOW;
+        }
+        else {
+            ok = false;
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockConvertSource");
+        }
+    }
+    StreamString clockConvertPolarityStr;
+    if (ok) {
+        ok = data.Read("ClockConvertPolarity", clockConvertPolarityStr);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockSamplePolarity shall be specified");
+        }
+    }
+    if (ok) {
+        if (clockConvertPolarityStr == "RISING_EDGE") {
+            clockConvertPolarity = AI_CONVERT_POLARITY_RISING_EDGE;
+        }
+        else if (clockConvertPolarityStr == "FALLING_EDGE") {
+            clockConvertPolarity = AI_CONVERT_POLARITY_FALLING_EDGE;
+        }
+        else {
+            ok = false;
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockConvertPolarity");
+        }
+    }
+
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "No CPUs defined for %s", GetName())
@@ -659,10 +781,10 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         if (numberOfADCsEnabled == 1u) {
-            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16u, delayDivisor, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
+            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16u, delayDivisor, clockConvertSource, clockConvertPolarity) == 0);
         }
         else {
-            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 20u, delayDivisor, AI_CONVERT_SELECT_SI2TC, AI_CONVERT_POLARITY_RISING_EDGE) == 0);
+            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 20u, delayDivisor, clockConvertSource, clockConvertPolarity) == 0);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName)
@@ -670,10 +792,10 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         if (numberOfADCsEnabled == 1u) {
-            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, 16u, delayDivisor, clockSource, clockPolarity) == 0);
+            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, 16u, delayDivisor, clockSampleSource, clockSamplePolarity) == 0);
         }
         else {
-            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, 20u, delayDivisor, clockSource, clockPolarity) == 0);
+            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, 20u, delayDivisor, clockSampleSource, clockSamplePolarity) == 0);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the clock for device %s", fullDeviceName)

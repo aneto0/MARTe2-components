@@ -57,8 +57,10 @@ const uint32 NI6259ADC_HEADER_SIZE = 2u;
  *     DeviceName = "/dev/pxi6259" //Mandatory
  *     BoardId = 0 //Mandatory
  *     DelayDivisor = 3 //Mandatory
- *     ClockSource = "SI_TC" //Possible values:SI_TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, PULSE, GPCRT0_OUT, STAR_TRIGGER, GPCTR1_OUT, SCXI_TRIG1, ANALOG_TRIGGER, LOW
- *     ClockPolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
+ *     ClockSampleSource = "SI_TC" //Mandatory. Sampling clock source. Possible values:SI_TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, PULSE, GPCRT0_OUT, STAR_TRIGGER, GPCTR1_OUT, SCXI_TRIG1, ANALOG_TRIGGER, LOW
+ *     ClockSamplePolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
+ *     ClockConvertSource = "SI2TC" //Mandatory. Convert clock source. Default = SI2TC. Possible values:SI2TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, GPCRT0_OUT, STAR_TRIGGER, ANALOG_TRIGGER, LOW
+ *     ClockConvertPolarity = "RISING_EDGE" //Mandatory. Convert clock polarity. Default = RISING_EDGE. Possible values:RISING_EDGE, FALLING_EDGE
  *     CPUs = 0xf //CPUs where the thread which reads data from the board is allowed to run on.
  *     Signals = {
  *          Counter = { //Mandatory. Number of ticks since last state change.
@@ -88,7 +90,7 @@ public:
      * @brief Default constructor.
      * @details Initialises all the optional parameters as described in the class description.
      */
-    NI6259ADC();
+NI6259ADC    ();
 
     /**
      * @brief Destructor.
@@ -252,14 +254,24 @@ private:
     ai_channel_type_t inputMode[NI6259ADC_MAX_CHANNELS];
 
     /**
-     * The ADC clock source;
+     * The ADC sampling clock source;
      */
-    ai_sample_select_t clockSource;
+    ai_sample_select_t clockSampleSource;
 
     /**
-     * The ADC clock source;
+     * The ADC sampling clock polarity;
      */
-    ai_sample_polarity_t clockPolarity;
+    ai_sample_polarity_t clockSamplePolarity;
+
+    /**
+     * The ADC convert clock source;
+     */
+    ai_convert_select_t clockConvertSource;
+
+    /**
+     * The ADC convert clock polarity;
+     */
+    ai_convert_polarity_t clockConvertPolarity;
 
     /**
      * The clock delay divisor

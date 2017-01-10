@@ -139,32 +139,62 @@ public:
     /**
      * @brief Tests the Initialise method with all the possible clock sources.
      */
-    bool TestInitialise_ClockSource();
+    bool TestInitialise_ClockSampleSource();
 
     /**
      * @brief Tests the Initialise method without specifying a clock source.
      */
-    bool TestInitialise_False_NoClockSource();
+    bool TestInitialise_False_NoClockSampleSource();
 
     /**
      * @brief Tests the Initialise method with an invalid clock source.
      */
-    bool TestInitialise_False_BadClockSource();
+    bool TestInitialise_False_BadClockSampleSource();
 
     /**
      * @brief Tests the Initialise method with all the possible clock polarities.
      */
-    bool TestInitialise_ClockPolarity();
+    bool TestInitialise_ClockSamplePolarity();
 
     /**
      * @brief Tests the Initialise method without specifying a clock polarity.
      */
-    bool TestInitialise_False_NoClockPolarity();
+    bool TestInitialise_False_NoClockSamplePolarity();
 
     /**
      * @brief Tests the Initialise method with an invalid clock polarity.
      */
-    bool TestInitialise_False_BadClockPolarity();
+    bool TestInitialise_False_BadClockSamplePolarity();
+
+    /**
+     * @brief Tests the Initialise method with all the possible clock sources.
+     */
+    bool TestInitialise_ClockConvertSource();
+
+    /**
+     * @brief Tests the Initialise method without specifying a clock source.
+     */
+    bool TestInitialise_False_NoClockConvertSource();
+
+    /**
+     * @brief Tests the Initialise method with an invalid clock source.
+     */
+    bool TestInitialise_False_BadClockConvertSource();
+
+    /**
+     * @brief Tests the Initialise method with all the possible clock polarities.
+     */
+    bool TestInitialise_ClockConvertPolarity();
+
+    /**
+     * @brief Tests the Initialise method without specifying a clock polarity.
+     */
+    bool TestInitialise_False_NoClockConvertPolarity();
+
+    /**
+     * @brief Tests the Initialise method with an invalid clock polarity.
+     */
+    bool TestInitialise_False_BadClockConvertPolarity();
 
     /**
      * @brief Tests the Initialise method without specifying the signals section.
