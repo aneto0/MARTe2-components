@@ -51,6 +51,9 @@ const uint32 NI6259DAC_MAX_CHANNELS = 4u;
  *     Class = NI6259::NI6259DAC
  *     DeviceName = "/dev/pxi6259" //Mandatory
  *     BoardId = 0 //Mandatory
+ *     ClockUpdateSource = "UI_TC" //Mandatory. Update clock source. Possible values:UI_TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, GPCRT0_OUT, STAR_TRIGGER, GPCTR1_OUT, ANALOG_TRIGGER, LOW
+ *     ClockUpdatePolarity = "RISING_EDGE" //Mandatory. Possible values: RISING_EDGE, FALLING_EDGE
+ *     ClockUpdateDivisor = 10 //Optional. Default value = 10. Only meaningful if ClockUpdateSource == UI_TC.
  *     Signals = {
  *         DAC0_0 = {
  *             Type = float32 //Mandatory. Only type that is supported.
@@ -177,6 +180,21 @@ private:
      * The board device name
      */
     StreamString deviceName;
+
+    /**
+     * The DAC update clock source;
+     */
+    ao_update_source_select_t clockUpdateSource;
+
+    /**
+     * The DAC update clock polarity;
+     */
+    ao_update_source_polarity_t clockUpdatePolarity;
+
+    /**
+     * The DAC clock update divisor
+     */
+    uint32 clockUpdateDivisor;
 
     /**
      * The board individual channel polarities

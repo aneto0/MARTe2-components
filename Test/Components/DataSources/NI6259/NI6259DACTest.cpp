@@ -196,6 +196,8 @@ static const MARTe::char8 * const config1 = ""
         "            Class = NI6259DAC"
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
+        "            ClockUpdateSource = \"UI_TC\""
+        "            ClockUpdatePolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -266,6 +268,8 @@ static const MARTe::char8 * const config2 = ""
         "        +NI6259_0 = {"
         "            Class = NI6259DAC"
         "            DeviceName = \"/dev/pxi6259\""
+        "            ClockUpdateSource = \"UI_TC\""
+        "            ClockUpdatePolarity = \"RISING_EDGE\""
         "            BoardId = 0"
         "            Signals = {"
         "                DAC0_0 = {"
@@ -338,6 +342,8 @@ static const MARTe::char8 * const config3 = ""
         "            Class = NI6259DAC"
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
+        "            ClockUpdateSource = \"UI_TC\""
+        "            ClockUpdatePolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -350,6 +356,8 @@ static const MARTe::char8 * const config3 = ""
         "            Class = NI6259DAC"
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 1"
+        "            ClockUpdateSource = \"UI_TC\""
+        "            ClockUpdatePolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -406,6 +414,8 @@ static const MARTe::char8 * const config4 = ""
         "            Class = NI6259DAC"
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
+        "            ClockUpdateSource = \"UI_TC\""
+        "            ClockUpdatePolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = uint32"
@@ -462,6 +472,8 @@ static const MARTe::char8 * const config5 = ""
         "            Class = NI6259DAC"
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
+        "            ClockUpdateSource = \"UI_TC\""
+        "            ClockUpdatePolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -518,6 +530,8 @@ static const MARTe::char8 * const config6 = ""
         "            Class = NI6259DAC"
         "            DeviceName = \"/tmp/pxi6259\""
         "            BoardId = 0"
+        "            ClockUpdateSource = \"UI_TC\""
+        "            ClockUpdatePolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -584,6 +598,8 @@ static const MARTe::char8 * const config7 = ""
         "            Class = NI6259DAC"
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
+        "            ClockUpdateSource = \"UI_TC\""
+        "            ClockUpdatePolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -644,6 +660,8 @@ static const MARTe::char8 * const config8 = ""
         "            Class = NI6259DAC"
         "            DeviceName = \"/dev/pxi6259\""
         "            BoardId = 0"
+        "            ClockUpdateSource = \"UI_TC\""
+        "            ClockUpdatePolarity = \"RISING_EDGE\""
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -699,9 +717,15 @@ bool NI6259DACTest::TestGetNumberOfMemoryBuffers() {
 bool NI6259DACTest::TestGetSignalMemoryBuffer() {
     using namespace MARTe;
     NI6259DAC test;
-    float32 *dac0;
-    bool ok = test.GetSignalMemoryBuffer(0, 0, (void *&) dac0);
-    ok &= (dac0 == NULL);
+    float32 *dac;
+    bool ok = test.GetSignalMemoryBuffer(0, 0, (void *&) dac);
+    ok &= (dac != NULL);
+    ok = test.GetSignalMemoryBuffer(1, 0, (void *&) dac);
+    ok &= (dac != NULL);
+    ok = test.GetSignalMemoryBuffer(2, 0, (void *&) dac);
+    ok &= (dac != NULL);
+    ok = test.GetSignalMemoryBuffer(3, 0, (void *&) dac);
+    ok &= (dac != NULL);
     return ok;
 }
 
@@ -816,6 +840,406 @@ bool NI6259DACTest::TestInitialise_False_NoSignals() {
     if (ok) {
         ok = !test.Initialise(cdb);
     }
+    return ok;
+}
+
+bool NI6259DACTest::TestInitialise_ClockUpdateSource() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "UI_TC", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_UI_TC);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI0);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI1);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI2);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI3);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI4);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI5);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI6);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI7);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI8", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI8);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI9", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI9);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI10", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI10);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI11", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI11);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI12", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI12);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI13", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI13);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI14", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI14);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "PFI15", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_PFI15);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "RTSI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_RTSI0);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "RTSI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_RTSI1);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "RTSI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_RTSI2);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "RTSI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_RTSI3);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "RTSI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_RTSI4);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "RTSI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_RTSI5);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "RTSI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_RTSI6);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "RTSI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_RTSI7);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "GPCRT0_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_GPCTR0_Out);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "STAR_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_STAR_TRIGEGR);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "GPCTR1_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_GPCTR1_Out);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "ANALOG_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_ANALOG_TRIGGER);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateSource", "LOW", &conf);
+        }
+        if (ok) {
+            ok = (conf.updateSource == AO_UPDATE_SOURCE_SELECT_LOW);
+        }
+    }
+
+    return ok;
+}
+
+bool NI6259DACTest::TestInitialise_False_NoClockUpdateSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
+    cdb.Delete("ClockUpdateSource");
+    NI6259DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6259DACTest::TestInitialise_False_BadClockUpdateSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
+    cdb.Delete("ClockUpdateSource");
+    cdb.Write("ClockUpdateSource", "INVALID");
+    NI6259DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6259DACTest::TestInitialise_ClockUpdatePolarity() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdatePolarity", "RISING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.updatePolarity == AO_UPDATE_SOURCE_POLARITY_RISING_EDGE);
+        }
+    }
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdatePolarity", "FALLING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.updatePolarity == AO_UPDATE_SOURCE_POLARITY_FALLING_EDGE);
+        }
+    }
+
+    return ok;
+}
+
+bool NI6259DACTest::TestInitialise_False_NoClockUpdatePolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
+    cdb.Delete("ClockUpdatePolarity");
+    NI6259DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6259DACTest::TestInitialise_False_BadClockUpdatePolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
+    cdb.Delete("ClockUpdatePolarity");
+    cdb.Write("ClockUpdatePolarity", "INVALID");
+    NI6259DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6259DACTest::TestInitialise_ClockUpdateDivisor() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateDivisor", "8", &conf);
+        }
+        if (ok) {
+            ok = (conf.updatePeriodDivisor == 8);
+        }
+    }
+
+    return ok;
+}
+
+bool NI6259DACTest::TestInitialise_DefaultClockUpdateDivisor() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        pxi6259_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6259_0", "ClockUpdateDivisor", NULL, &conf);
+        }
+        if (ok) {
+            ok = (conf.updatePeriodDivisor == 10);
+        }
+    }
+
     return ok;
 }
 

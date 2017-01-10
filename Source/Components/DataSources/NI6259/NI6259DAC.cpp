@@ -48,7 +48,10 @@ NI6259DAC::NI6259DAC() :
     boardFileDescriptor = -1;
     deviceName = "";
     numberOfDACsEnabled = 0u;
+    clockUpdateDivisor = 10u;
     triggerSet = false;
+    clockUpdateSource = AO_UPDATE_SOURCE_SELECT_UI_TC;
+    clockUpdatePolarity = AO_UPDATE_SOURCE_POLARITY_RISING_EDGE;
     uint32 n;
     for (n = 0u; n < NI6259DAC_MAX_CHANNELS; n++) {
         outputPolarity[n] = AO_DAC_POLARITY_UNIPOLAR;
@@ -197,7 +200,133 @@ bool NI6259DAC::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The BoardId shall be specified");
         }
     }
-
+    StreamString clockUpdateSourceStr;
+    if (ok) {
+        ok = data.Read("ClockUpdateSource", clockUpdateSourceStr);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockUpdateSource shall be specified");
+        }
+    }
+    if (ok) {
+        if (clockUpdateSourceStr == "UI_TC") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_UI_TC;
+        }
+        else if (clockUpdateSourceStr == "PFI0") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI0;
+        }
+        else if (clockUpdateSourceStr == "PFI1") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI1;
+        }
+        else if (clockUpdateSourceStr == "PFI2") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI2;
+        }
+        else if (clockUpdateSourceStr == "PFI3") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI3;
+        }
+        else if (clockUpdateSourceStr == "PFI4") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI4;
+        }
+        else if (clockUpdateSourceStr == "PFI5") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI5;
+        }
+        else if (clockUpdateSourceStr == "PFI6") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI6;
+        }
+        else if (clockUpdateSourceStr == "PFI7") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI7;
+        }
+        else if (clockUpdateSourceStr == "PFI8") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI8;
+        }
+        else if (clockUpdateSourceStr == "PFI9") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI9;
+        }
+        else if (clockUpdateSourceStr == "PFI10") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI10;
+        }
+        else if (clockUpdateSourceStr == "PFI11") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI11;
+        }
+        else if (clockUpdateSourceStr == "PFI12") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI12;
+        }
+        else if (clockUpdateSourceStr == "PFI13") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI13;
+        }
+        else if (clockUpdateSourceStr == "PFI14") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI14;
+        }
+        else if (clockUpdateSourceStr == "PFI15") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_PFI15;
+        }
+        else if (clockUpdateSourceStr == "RTSI0") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_RTSI0;
+        }
+        else if (clockUpdateSourceStr == "RTSI1") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_RTSI1;
+        }
+        else if (clockUpdateSourceStr == "RTSI2") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_RTSI2;
+        }
+        else if (clockUpdateSourceStr == "RTSI3") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_RTSI3;
+        }
+        else if (clockUpdateSourceStr == "RTSI4") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_RTSI4;
+        }
+        else if (clockUpdateSourceStr == "RTSI5") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_RTSI5;
+        }
+        else if (clockUpdateSourceStr == "RTSI6") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_RTSI6;
+        }
+        else if (clockUpdateSourceStr == "RTSI7") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_RTSI7;
+        }
+        else if (clockUpdateSourceStr == "GPCRT0_OUT") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_GPCTR0_Out;
+        }
+        else if (clockUpdateSourceStr == "STAR_TRIGGER") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_STAR_TRIGEGR;
+        }
+        else if (clockUpdateSourceStr == "GPCTR1_OUT") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_GPCTR1_Out;
+        }
+        else if (clockUpdateSourceStr == "ANALOG_TRIGGER") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_ANALOG_TRIGGER;
+        }
+        else if (clockUpdateSourceStr == "LOW") {
+            clockUpdateSource = AO_UPDATE_SOURCE_SELECT_LOW;
+        }
+        else {
+            ok = false;
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockUpdateSource");
+        }
+    }
+    if (ok) {
+        if (data.Read("ClockUpdateDivisor", clockUpdateDivisor)) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "ClockUpdateDivisor set to: %d", clockUpdateDivisor)
+        }
+    }
+    StreamString clockUpdatePolarityStr;
+    if (ok) {
+        ok = data.Read("ClockUpdatePolarity", clockUpdatePolarityStr);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockUpdatePolarity shall be specified");
+        }
+    }
+    if (ok) {
+        if (clockUpdatePolarityStr == "RISING_EDGE") {
+            clockUpdatePolarity = AO_UPDATE_SOURCE_POLARITY_RISING_EDGE;
+        }
+        else if (clockUpdatePolarityStr == "FALLING_EDGE") {
+            clockUpdatePolarity = AO_UPDATE_SOURCE_POLARITY_FALLING_EDGE;
+        }
+        else {
+            ok = false;
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockUpdatePolarity");
+        }
+    }
     //Get individual signal parameters
     uint32 i = 0u;
     if (ok) {
@@ -330,7 +459,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (pxi6259_set_ao_update_clk(&dacConfiguration, AO_UPDATE_SOURCE_SELECT_UI_TC, AO_UPDATE_SOURCE_POLARITY_RISING_EDGE, 10u) == 0);
+        ok = (pxi6259_set_ao_update_clk(&dacConfiguration, clockUpdateSource, clockUpdatePolarity, clockUpdateDivisor) == 0);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set pxi6259_set_ao_update_clk for device %s", fullDeviceName)
         }

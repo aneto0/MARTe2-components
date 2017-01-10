@@ -114,9 +114,49 @@ TEST(NI6259DACGTest,TestInitialise_False_NoSignals) {
     ASSERT_TRUE(test.TestInitialise_False_NoSignals());
 }
 
+TEST(NI6259DACGTest,TestInitialise_ClockUpdateSource) {
+    NI6259DACTest test;
+    ASSERT_TRUE(test.TestInitialise_ClockUpdateSource());
+}
+
+TEST(NI6259DACGTest,TestInitialise_False_NoClockUpdateSource) {
+    NI6259DACTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoClockUpdateSource());
+}
+
+TEST(NI6259DACGTest,TestInitialise_False_BadClockUpdateSource) {
+    NI6259DACTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadClockUpdateSource());
+}
+
+TEST(NI6259DACGTest,TestInitialise_ClockUpdatePolarity) {
+    NI6259DACTest test;
+    ASSERT_TRUE(test.TestInitialise_ClockUpdatePolarity());
+}
+
+TEST(NI6259DACGTest,TestInitialise_False_NoClockUpdatePolarity) {
+    NI6259DACTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoClockUpdatePolarity());
+}
+
+TEST(NI6259DACGTest,TestInitialise_False_BadClockUpdatePolarity) {
+    NI6259DACTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadClockUpdatePolarity());
+}
+
 TEST(NI6259DACGTest,TestInitialise_OutputPolarity) {
     NI6259DACTest test;
     ASSERT_TRUE(test.TestInitialise_OutputPolarity());
+}
+
+TEST(NI6259DACGTest,TestInitialise_ClockUpdateDivisor) {
+    NI6259DACTest test;
+    ASSERT_TRUE(test.TestInitialise_ClockUpdateDivisor());
+}
+
+TEST(NI6259DACGTest,TestInitialise_DefaultClockUpdateDivisor) {
+    NI6259DACTest test;
+    ASSERT_TRUE(test.TestInitialise_DefaultClockUpdateDivisor());
 }
 
 TEST(NI6259DACGTest,TestInitialise_False_BadOutputPolarity) {

@@ -117,9 +117,50 @@ public:
     bool TestInitialise_False_NoSignals();
 
     /**
-     * @brief Tests the Initialise method with all the possible output polarity.
+     * @brief Tests the Initialise method with all the possible clock sources.
+     */
+    bool TestInitialise_ClockUpdateSource();
+
+    /**
+     * @brief Tests the Initialise method without specifying a clock source.
+     */
+    bool TestInitialise_False_NoClockUpdateSource();
+
+    /**
+     * @brief Tests the Initialise method with an invalid clock source.
+     */
+    bool TestInitialise_False_BadClockUpdateSource();
+
+    /**
+     * @brief Tests the Initialise method with all the possible clock polarities.
+     */
+    bool TestInitialise_ClockUpdatePolarity();
+
+    /**
+     * @brief Tests the Initialise method without specifying a clock polarity.
+     */
+    bool TestInitialise_False_NoClockUpdatePolarity();
+
+    /**
+     * @brief Tests the Initialise method with an invalid clock polarity.
+     */
+    bool TestInitialise_False_BadClockUpdatePolarity();
+
+    /**
+     * @brief Tests the Initialise method with a specified clock update divisor.
+     */
+    bool TestInitialise_ClockUpdateDivisor();
+
+    /**
+     * @brief Tests the Initialise method with the default clock update divisor.
+     */
+    bool TestInitialise_DefaultClockUpdateDivisor();
+
+    /**
+     * @brief Tests the Initialise method with all the possible output polarities.
      */
     bool TestInitialise_OutputPolarity();
+
 
     /**
      * @brief Tests the Initialise method with an invalid output polarity.
