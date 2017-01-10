@@ -17,3 +17,4 @@ LoggerDataSource.cpp
 LoggerBroker.cpp
 NI6259ADC.cpp
 NI6259DAC.cpp
+NI6259DIO.cpp

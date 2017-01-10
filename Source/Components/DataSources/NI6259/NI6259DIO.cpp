@@ -38,6 +38,9 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+//To keep MISRA happy about the signs...
+#define PXI6259_NUMBER_OF_PORTS_ static_cast<uint32>(PXI6259_NUMBER_OF_PORTS)
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -52,15 +55,17 @@ NI6259DIO::NI6259DIO() :
     triggerSet = false;
     outputsEnabled = false;
     uint32 n;
-    for (n = 0u; n < PXI6259_NUMBER_OF_PORTS; n++) {
+    for (n = 0u; n < PXI6259_NUMBER_OF_PORTS_; n++) {
         portEnabled[n] = false;
         portFileDescriptors[n] = -1;
+        portMask[n] = 0u;
+        portValues[n] = 0u;
     }
 }
 
 NI6259DIO::~NI6259DIO() {
     uint32 n;
-    for (n = 0u; n < PXI6259_NUMBER_OF_PORTS; n++) {
+    for (n = 0u; n < PXI6259_NUMBER_OF_PORTS_; n++) {
         if (portFileDescriptors[n] != -1) {
             close(portFileDescriptors[n]);
         }
@@ -78,8 +83,9 @@ uint32 NI6259DIO::GetNumberOfMemoryBuffers() {
     return 1u;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
 bool NI6259DIO::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    bool ok = (signalIdx < (PXI6259_NUMBER_OF_PORTS));
+    bool ok = (signalIdx < (PXI6259_NUMBER_OF_PORTS_));
     if (ok) {
         signalAddress = &(portValues[signalIdx]);
     }
@@ -176,6 +182,7 @@ bool NI6259DIO::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP irrespectively of the input parameters.*/
 bool NI6259DIO::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
     return true;
 }
@@ -206,11 +213,11 @@ bool NI6259DIO::Initialise(StructuredDataI& data) {
             //Do not allow to add signals in run-time
             ok = data.Write("Locked", 1);
         }
-        while ((i < PXI6259_NUMBER_OF_PORTS) && (ok)) {
+        while ((i < PXI6259_NUMBER_OF_PORTS_) && (ok)) {
             if (data.MoveRelative(data.GetChildName(i))) {
                 uint32 portId;
                 if (data.Read("PortId", portId)) {
-                    ok = (portId < PXI6259_NUMBER_OF_PORTS);
+                    ok = (portId < PXI6259_NUMBER_OF_PORTS_);
                     if (!ok) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "Invalid PortId specified.");
                     }
@@ -313,14 +320,15 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     pxi6259_dio_conf_t dioConfiguration = pxi6259_create_dio_conf();
-    for (i = 0u; (i < PXI6259_NUMBER_OF_PORTS) && (ok); i++) {
+    for (i = 0u; (i < PXI6259_NUMBER_OF_PORTS_) && (ok); i++) {
         if (portEnabled[i]) {
             ok = (pxi6259_add_dio_channel(&dioConfiguration, static_cast<uint8>(i), portMask[i]) == 0);
+            uint32 ii = i;
             if (ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port %d set with mask %d ", i, portMask[i])
+                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port %d set with mask %d ", ii, portMask[i])
             }
             else {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set configuration for port %d of device %s", i, fullDeviceName)
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set configuration for port %d of device %s", ii, fullDeviceName)
             }
         }
     }
@@ -334,10 +342,11 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         //Required to wait for devices to be available in /dev!
         Sleep::Sec(1.0);
-        for (i = 0u; (i < PXI6259_NUMBER_OF_PORTS) && (ok); i++) {
+        for (i = 0u; (i < PXI6259_NUMBER_OF_PORTS_) && (ok); i++) {
             if (portEnabled[i]) {
                 StreamString portDeviceName;
-                ok = portDeviceName.Printf("%s.%d", fullDeviceName.Buffer(), i);
+                uint32 ii = i;
+                ok = portDeviceName.Printf("%s.%d", fullDeviceName.Buffer(), ii);
                 if (ok) {
                     ok = portDeviceName.Seek(0ULL);
                 }
@@ -355,13 +364,13 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
 }
 
 bool NI6259DIO::Synchronise() {
-    uint32 i = 0u;
+    uint32 i;
     bool ok = true;
-    for (i = 0u; (i < PXI6259_NUMBER_OF_PORTS) && (ok); i++) {
+    for (i = 0u; (i < PXI6259_NUMBER_OF_PORTS_) && (ok); i++) {
         if (portEnabled[i]) {
-            ok = (write(portFileDescriptors[i], &(portValues[i]), sizeof(uint32)) == sizeof(uint32));
+            ok = (write(portFileDescriptors[i], &(portValues[i]), sizeof(uint32)) == static_cast<ssize_t>(sizeof(int32)));
             if (ok) {
-                ok = (read(portFileDescriptors[i], &(portValues[i]), sizeof(uint32)) == sizeof(uint32));
+                ok = (read(portFileDescriptors[i], &(portValues[i]), sizeof(uint32)) == static_cast<ssize_t>(sizeof(int32)));
             }
         }
     }
