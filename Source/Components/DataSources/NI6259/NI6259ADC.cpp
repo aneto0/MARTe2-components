@@ -774,12 +774,6 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (pxi6259_set_ai_number_of_samples(&adcConfiguration, numberOfSamples, 0u, 1u) == 0);
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName)
-        }
-    }
-    if (ok) {
         if (numberOfADCsEnabled == 1u) {
             ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16u, delayDivisor, clockConvertSource, clockConvertPolarity) == 0);
         }
@@ -853,6 +847,7 @@ ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
     }
     else {
         uint32 i;
+        bool slept = false;
         for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (keepRunning); i++) {
             if (adcEnabled[i]) {
                 size_t readSamples = 0u;
@@ -866,8 +861,9 @@ ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
                         if (currentSamples > 0) {
                             readSamples += static_cast<size_t>(currentSamples);
                             //Needs to sleep while waiting for data, otherwise it will get stuck on pxi6259_read_ai
-                            if (i == 0u) {
-                                Sleep::Sec(100e-6);
+                            if ((!slept) && (i == 0u)) {
+                                Sleep::Sec(50e-6);
+                                slept = true;
                             }
                         }
                         else {
