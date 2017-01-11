@@ -22,8 +22,8 @@
 #
 #############################################################
 
-TARGET=cov
+TARGET=linux
 
 include Makefile.inc
 
-LIBRARIES += -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2 -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter
+LIBRARIES_STATIC += $(CODAC_ROOT)/lib/libpxi6259.a
