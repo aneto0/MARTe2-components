@@ -22,32 +22,8 @@
 #
 #############################################################
 
-OBJSX= 
+TARGET=linux
 
-SPB    = LinuxTimer.x LoggerDataSource.x
-ifdef CODAC_ROOT
-SPB    += NI6259.x
-SPB    += NI6368.x
-endif
+include Makefile.inc
 
-PACKAGE=Components
-ROOT_DIR=../../..
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
-
-ifdef CODAC_ROOT
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259$(LIBEXT)
-endif
-
-all: $(OBJS)  $(SUBPROJ)  \
-    $(BUILD_DIR)/DataSources$(LIBEXT) \
-    $(BUILD_DIR)/DataSources$(DLLEXT)
-	echo  $(OBJS)
-
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
-
+LIBRARIES_STATIC += $(CODAC_ROOT)/lib/libpxi6259.a
