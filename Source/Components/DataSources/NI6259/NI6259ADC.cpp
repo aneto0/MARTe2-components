@@ -847,7 +847,6 @@ ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
     }
     else {
         uint32 i;
-        bool slept = false;
         for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (keepRunning); i++) {
             if (adcEnabled[i]) {
                 size_t readSamples = 0u;
@@ -860,10 +859,10 @@ ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
                         ssize_t currentSamples = pxi6259_read_ai(channelsFileDescriptors[i], &(channelMemory[readSamples]), leftSamples);
                         if (currentSamples > 0) {
                             readSamples += static_cast<size_t>(currentSamples);
-                            //Needs to sleep while waiting for data, otherwise it will get stuck on pxi6259_read_ai
-                            if ((!slept) && (i == 0u)) {
-                                Sleep::Sec(50e-6);
-                                slept = true;
+                            //Needs to sleep while waiting for data, otherwise it will get stuck on pxi6259_read_ai.
+                            //Do not try to further optimise this (e.g. by only sleeping once or so, as it will stop working!).
+                            if (i == 0u) {
+                                Sleep::Sec(20e-6);
                             }
                         }
                         else {
