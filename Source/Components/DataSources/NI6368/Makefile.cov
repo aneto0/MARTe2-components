@@ -26,4 +26,4 @@ TARGET=cov
 
 include Makefile.inc
 
-LIBRARIES_STATIC += $(CODAC_ROOT)/lib/libpxi6259.a
+LIBRARIES_STATIC += $(CODAC_ROOT)/lib/libnixseries.a

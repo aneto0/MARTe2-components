@@ -55,6 +55,7 @@ const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
  *     Class = NI6368::NI6368ADC
  *     DeviceName = "/dev/pxi6368" //Mandatory
  *     BoardId = 0 //Mandatory
+ *     DMABufferSize = 1000 //Mandatory. DMA size in bytes > 0.
  *     ClockSampleSource = "INTERNALTIMING" //Mandatory. Sampling clock source. Possible values: INTERNALTIMING, PFI0, ..., PFI15, RTSI0, ..., RTSI6, DIO_CHGDETECT, G0_OUT, ..., G3_OUT, STAR_TRIGGER, SCXI_TRIG1, LOW, PXIE_DSTARA, ATRIG, PXIE_DSTARB, G0_SAMPLECLK, ..., G3_SAMPLECLK, DI_CONVERT, AO_UPDATE, DO_UPDATE, INTTRIGGERA0, ..., INTTRIGGERA7
  *     ClockSamplePolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Mandatory. Sampling clock polarity. Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
  *     ClockConvertSource = "INTERNALTIMING" //Mandatory. Convert clock source. Possible values: INTERNALTIMING, PFI0, ..., PFI15, RTSI0, ..., RTSI6, DIO_CHGDETECT, G0_OUT, ..., G3_OUT, STAR_TRIGGER, SCXI_TRIG1, LOW, PXIE_DSTARA, ATRIG, PXIE_DSTARB, G0_SAMPLECLK, ..., G3_SAMPLECLK, DI_CONVERT, AO_UPDATE, DO_UPDATE, INTTRIGGERA0, ..., INTTRIGGERA7
@@ -73,7 +74,7 @@ const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
  *          }
  *          ADC0_0 = { //At least one ADC input shall be specified.
  *              InputRange = 10 //Optional. Possible values: 0.1, 0.2, 0.5, 1, 2, 5, 10. Default value 10.
- *              Type = float32 //Mandatory. Only the float32 type is supported.
+ *              Type = uint16 //Mandatory. Only the uint16 type is supported.
  *              ChannelId = 0 //Mandatory. The channel number.
  *              InputType = RSE //Optional. Possible values: Differential, RSE, NRSE, Loopback, Internal. Default value RSE.
  *          }
@@ -159,6 +160,19 @@ NI6368ADC    ();
      */
     virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
 
+    //TODO
+    ErrorManagement::ErrorType CopyFromDMA(uint32 numberOfSamples);
+    //TODO
+
+    //TODO
+    uint8 GetLastBufferIdx();
+    //TODO
+
+    //TODO
+    bool IsSynchronising();
+    //TODO
+
+
     /**
      * @brief Starts the EmbeddedThread and sets the counter and the time to zero.
      * @details See StatefulI::PrepareNextState. Starts the EmbeddedThread (if it was not already started) that reads from the ADC.
@@ -180,8 +194,8 @@ NI6368ADC    ();
      *  are valid and consistent with the board parameters set during the initialisation phase.
      * In particular the following conditions shall be met:
      * - The type of the counter and of the time shall be 32 bit (un)signed integers.
-     * - All the ADC channels have type float32.
-     * - The number of samples of all the ADC channels is the same.
+     * - All the ADC channels have type uint16.
+     * - The number of samples for all the ADC channels is the same.
      * @return true if all the parameters are valid and consistent with the board parameters and if the board can be successfully configured with
      *  these parameters.
      */
@@ -290,12 +304,37 @@ private:
     /**
      * The signals memory
      */
-    float32 *channelsMemory[NI6368ADC_MAX_CHANNELS];
+    uint16 *channelsMemory[2][NI6368ADC_MAX_CHANNELS];
 
     /**
-     * The memory of the current signal being read
+     * The memory DMA
      */
-    float32 *channelMemory;
+    struct xseries_dma *dma;
+
+    /**
+     * The memory DMA offset
+     */
+    uint32 dmaOffset;
+
+    /**
+     * The memory where the DMA is copied to.
+     */
+    int16 *dmaReadBuffer;
+
+    /**
+     * Total number of DMA bytes from the beginning
+     */
+    uint32 nBytesInDMAFromStart;
+
+    /**
+     * The last written buffer
+     */
+    uint8 currentBufferIdx;
+
+    /**
+     * The number of samples written to the current buffer.
+     */
+    uint32 currentBufferOffset;
 
     /**
      * The ADCs that are enabled
@@ -306,6 +345,11 @@ private:
      * The number of enabled adcs
      */
     uint32 numberOfADCsEnabled;
+
+    /**
+     * The DMA buffer size
+     */
+    uint32 dmaBufferSize;
 
     /**
      * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
