@@ -120,6 +120,16 @@ TEST(NI6368ADCGTest,TestInitialise_False_NoDMABufferSize) {
     ASSERT_TRUE(test.TestInitialise_False_NoDMABufferSize());
 }
 
+TEST(NI6368ADCGTest,TestInitialise_False_NoScanIntervalCounterPeriod) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterPeriod());
+}
+
+TEST(NI6368ADCGTest,TestInitialise_False_NoScanIntervalCounterDelay) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterDelay());
+}
+
 TEST(NI6368ADCGTest,TestInitialise_ClockSampleSource) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestInitialise_ClockSampleSource());
@@ -178,6 +188,36 @@ TEST(NI6368ADCGTest,TestInitialise_False_NoClockConvertPolarity) {
 TEST(NI6368ADCGTest,TestInitialise_False_BadClockConvertPolarity) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestInitialise_False_BadClockConvertPolarity());
+}
+
+TEST(NI6368ADCGTest,TestInitialise_ScanIntervalCounterSource) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_ScanIntervalCounterSource());
+}
+
+TEST(NI6368ADCGTest,TestInitialise_False_NoScanIntervalCounterSource) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterSource());
+}
+
+TEST(NI6368ADCGTest,TestInitialise_False_BadScanIntervalCounterSource) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadScanIntervalCounterSource());
+}
+
+TEST(NI6368ADCGTest,TestInitialise_ScanIntervalCounterPolarity) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_ScanIntervalCounterPolarity());
+}
+
+TEST(NI6368ADCGTest,TestInitialise_False_NoScanIntervalCounterPolarity) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterPolarity());
+}
+
+TEST(NI6368ADCGTest,TestInitialise_False_BadScanIntervalCounterPolarity) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadScanIntervalCounterPolarity());
 }
 
 TEST(NI6368ADCGTest,TestInitialise_False_NoSignals) {

@@ -122,6 +122,16 @@ public:
     bool TestInitialise_False_NoDMABufferSize();
 
     /**
+     * @brief Tests the Initialise method without specifying the ScanIntervalCounterPeriod.
+     */
+    bool TestInitialise_False_NoScanIntervalCounterPeriod();
+
+    /**
+     * @brief Tests the Initialise method without specifying the ScanIntervalCounterDelay.
+     */
+    bool TestInitialise_False_NoScanIntervalCounterDelay();
+
+    /**
      * @brief Tests the Initialise method with all the possible clock sources.
      */
     bool TestInitialise_ClockSampleSource();
@@ -180,6 +190,36 @@ public:
      * @brief Tests the Initialise method with an invalid clock polarity.
      */
     bool TestInitialise_False_BadClockConvertPolarity();
+
+    /**
+     * @brief Tests the Initialise method with all the possible ScanIntervalCounterSources.
+     */
+    bool TestInitialise_ScanIntervalCounterSource();
+
+    /**
+     * @brief Tests the Initialise method without specifying a ScanIntervalCounterSource.
+     */
+    bool TestInitialise_False_NoScanIntervalCounterSource();
+
+    /**
+     * @brief Tests the Initialise method with an invalid ScanIntervalCounterSource.
+     */
+    bool TestInitialise_False_BadScanIntervalCounterSource();
+
+    /**
+     * @brief Tests the Initialise method with all the possible ScanIntervalCounterPolarities.
+     */
+    bool TestInitialise_ScanIntervalCounterPolarity();
+
+    /**
+     * @brief Tests the Initialise method without specifying a ScanIntervalCounterPolarity.
+     */
+    bool TestInitialise_False_NoScanIntervalCounterPolarity();
+
+    /**
+     * @brief Tests the Initialise method with an ScanIntervalCounterPolarity.
+     */
+    bool TestInitialise_False_BadScanIntervalCounterPolarity();
 
     /**
      * @brief Tests the Initialise method without specifying the signals section.

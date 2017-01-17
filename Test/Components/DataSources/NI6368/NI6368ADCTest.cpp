@@ -1768,6 +1768,38 @@ bool NI6368ADCTest::TestInitialise_False_NoDMABufferSize() {
     return ok;
 }
 
+bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterPeriod() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("ScanIntervalCounterPeriod");
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterDelay() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("ScanIntervalCounterDelay");
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
 bool NI6368ADCTest::TestInitialise_ClockSampleSource() {
     using namespace MARTe;
     bool ok = true;
@@ -2825,6 +2857,391 @@ bool NI6368ADCTest::TestInitialise_False_BadClockConvertSource() {
     return ok;
 }
 
+bool NI6368ADCTest::TestInitialise_ScanIntervalCounterSource() {
+    bool ok = true;
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "COUNTER_TB3", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_TB3);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "COUNTER_TB2", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_TB2);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "COUNTER_TB1", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_TB1);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI0);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI1);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI2);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI3);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI4);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI5);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI6);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI7);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI8", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI8);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI9", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI9);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI10", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI10);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI11", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI11);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI12", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI12);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI13", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI13);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI14", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI14);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PFI15", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI15);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "RTSI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_RTSI0);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "RTSI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_RTSI1);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "RTSI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_RTSI2);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "RTSI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_RTSI3);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "RTSI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_RTSI4);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "RTSI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_RTSI5);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "RTSI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_RTSI6);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "RTSI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_RTSI7);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "PXI_CLK10", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PXI_CLK10);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "STAR_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_STAR_TRIGGER);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "ANALOG_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_ANALOG_TRIGGER);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "DSTARA", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_DSTARA);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterSource", "DSTARB", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_DSTARB);
+        }
+    }
+
+    return ok;
+}
+
+bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("ScanIntervalCounterSource");
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368ADCTest::TestInitialise_False_BadScanIntervalCounterSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("ScanIntervalCounterSource");
+    cdb.Write("ScanIntervalCounterSource", "INVALID");
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368ADCTest::TestInitialise_ScanIntervalCounterPolarity() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterPolarity", "RISING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_polarity == XSERIES_SCAN_INTERVAL_COUNTER_POLARITY_RISING_EDGE);
+        }
+    }
+    {
+        xseries_ai_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "ScanIntervalCounterPolarity", "FALLING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.intimer_params.si_polarity == XSERIES_SCAN_INTERVAL_COUNTER_POLARITY_FALLING_EDGE);
+        }
+    }
+
+    return ok;
+}
+
+bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterPolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("ScanIntervalCounterPolarity");
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368ADCTest::TestInitialise_False_BadScanIntervalCounterPolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("ScanIntervalCounterPolarity");
+    cdb.Write("ScanIntervalCounterPolarity", "INVALID");
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
 bool NI6368ADCTest::TestInitialise_ClockConvertPolarity() {
     using namespace MARTe;
     bool ok = true;
@@ -2908,7 +3325,7 @@ bool NI6368ADCTest::TestInitialise_InputRange() {
             ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", "10", &conf);
         }
         if (ok) {
-            ok = (conf.aichan_conf[0].gain == 1);
+            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_10V);
         }
     }
     {
@@ -2917,7 +3334,7 @@ bool NI6368ADCTest::TestInitialise_InputRange() {
             ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", "5", &conf);
         }
         if (ok) {
-            ok = (conf.aichan_conf[0].gain == 2);
+            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_5V);
         }
     }
     {
@@ -2926,7 +3343,7 @@ bool NI6368ADCTest::TestInitialise_InputRange() {
             ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", "2", &conf);
         }
         if (ok) {
-            ok = (conf.aichan_conf[0].gain == 3);
+            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_2V);
         }
     }
     {
@@ -2935,16 +3352,17 @@ bool NI6368ADCTest::TestInitialise_InputRange() {
             ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", "1", &conf);
         }
         if (ok) {
-            ok = (conf.aichan_conf[0].gain == 4);
+            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_1V);
         }
     }
+#if 0
     {
         xseries_ai_conf_t conf;
         if (ok) {
             ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", "0.5", &conf);
         }
         if (ok) {
-            ok = (conf.aichan_conf[0].gain == 5);
+            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_500mV);
         }
     }
     {
@@ -2953,7 +3371,7 @@ bool NI6368ADCTest::TestInitialise_InputRange() {
             ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", "0.2", &conf);
         }
         if (ok) {
-            ok = (conf.aichan_conf[0].gain == 6);
+            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_200mV);
         }
     }
     {
@@ -2962,10 +3380,10 @@ bool NI6368ADCTest::TestInitialise_InputRange() {
             ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", "0.1", &conf);
         }
         if (ok) {
-            ok = (conf.aichan_conf[0].gain == 7);
+            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_100mV);
         }
     }
-
+#endif
     return ok;
 }
 
@@ -2995,7 +3413,7 @@ bool NI6368ADCTest::TestInitialise_DefaultInputRange() {
             ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", NULL, &conf);
         }
         if (ok) {
-            ok = (conf.aichan_conf[0].gain == 1);
+            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_10V);
         }
     }
     return ok;
@@ -3144,8 +3562,8 @@ bool NI6368ADCTest::TestSetConfiguredDatabase_AllChannels_Parameters() {
         ni6368ADC->ReadAIConfiguration(&conf);
         uint32 i;
         for (i = 0; (i < NI6368ADC_MAX_CHANNELS) && (ok); i++) {
-            ok = (conf.aichan_conf[i].channel_type == XSERIES_AI_CHANNEL_TYPE_RSE);
-            ok &= (conf.aichan_conf[i].gain == 2);
+            ok = (conf.aichan_conf[i].channel_type == XSERIES_AI_CHANNEL_TYPE_NRSE);
+            ok &= (conf.aichan_conf[i].range == XSERIES_INPUT_RANGE_5V);
             ok &= (conf.aichan_conf[i].is_enabled);
         }
     }

@@ -121,7 +121,7 @@ NI6368ADC::~NI6368ADC() {
         }
     }
     if (dmaReadBuffer != NULL_PTR(int16 *)) {
-        delete [] dmaReadBuffer;
+        delete[] dmaReadBuffer;
     }
 }
 
@@ -248,12 +248,6 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
         ok = data.Read("DMABufferSize", dmaBufferSize);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The DMABufferSize shall be specified");
-        }
-    }
-    if (ok) {
-        ok = (dmaBufferSize > 0);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The DMABufferSize shall be > 0");
         }
     }
     if (ok) {
@@ -1027,8 +1021,8 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
     }
 
     if (ok) {
-        //Required to wait for devices to be available in /dev!
-        Sleep::Sec(0.1);
+        uint32 retry = 0;
+        const uint32 maxRetries = 10u;
         for (i = 0u; (i < NI6368ADC_MAX_CHANNELS) && (ok); i++) {
             if (adcEnabled[i]) {
                 StreamString channelDeviceName;
@@ -1039,8 +1033,16 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
                     ok = channelDeviceName.Seek(0ULL);
                 }
                 if (ok) {
-                    channelsFileDescriptors[i] = open(channelDeviceName.Buffer(), O_RDWR);
-                    ok = (channelsFileDescriptors[i] > -1);
+                    retry = 0u;
+                    channelsFileDescriptors[i] = -1;
+                    while ((channelsFileDescriptors[i] < 0) && (retry < maxRetries)) {
+                        channelsFileDescriptors[i] = open(channelDeviceName.Buffer(), O_RDWR);
+                        ok = (channelsFileDescriptors[i] > -1);
+                        if (!ok) {
+                            Sleep::Sec(0.1);
+                            retry++;
+                        }
+                    }
                     if (!ok) {
                         REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName)
                     }
@@ -1118,7 +1120,7 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
         //Empty DMA buffer
         int32 nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
         while (nBytesInDMA > 0) {
-            dmaOffset  = dmaOffset + nBytesInDMA - 1u;
+            dmaOffset = dmaOffset + nBytesInDMA - 1u;
             dmaOffset %= dma->ai.count;
             nBytesInDMAFromStart += nBytesInDMA;
             dma->ai.last_transfer_count = nBytesInDMAFromStart;
@@ -1144,7 +1146,7 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
                     memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nBytesInDMA));
                 }
                 err = CopyFromDMA(nBytesInDMA);
-                dmaOffset  = dmaOffset + nBytesInDMA - 1u;
+                dmaOffset = dmaOffset + nBytesInDMA - 1u;
                 dmaOffset %= dma->ai.count;
                 nBytesInDMAFromStart += nBytesInDMA;
                 dma->ai.last_transfer_count = nBytesInDMAFromStart;
