@@ -1028,7 +1028,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
 
     if (ok) {
         //Required to wait for devices to be available in /dev!
-        Sleep::Sec(1.0);
+        Sleep::Sec(0.1);
         for (i = 0u; (i < NI6368ADC_MAX_CHANNELS) && (ok); i++) {
             if (adcEnabled[i]) {
                 StreamString channelDeviceName;

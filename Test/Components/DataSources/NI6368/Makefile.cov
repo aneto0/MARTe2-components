@@ -20,15 +20,16 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
 TARGET=cov
 
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = NI6368ADCGTest.x 
+#NI6368DACGTest.x NI6368DIOGTest.x
+
 include Makefile.inc
 
-LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimer$(LIBEXT)
-LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
-ifdef CODAC_ROOT
-LIBRARIES_STATIC+=NI6259/cov/NI6259$(LIBEXT)
-LIBRARIES_STATIC+=NI6368/cov/NI6368$(LIBEXT)
-endif
