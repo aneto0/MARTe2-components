@@ -322,6 +322,16 @@ public:
     bool TestSetConfiguredDatabase_False_TimerSamples();
 
     /**
+     * @brief Tests the GetLastBufferIdx function.
+     */
+    bool TestGetLastBufferIdx();
+
+    /**
+     * @brief Tests the IsSynchronising function.
+     */
+    bool TestIsSynchronising();
+
+    /**
      * @brief Tests the NI6368 integrated in an application
      */
     bool TestIntegrated();

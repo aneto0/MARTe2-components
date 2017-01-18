@@ -53,7 +53,7 @@ const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
  * The configuration syntax is (names are only given as an example):
  * +NI6368_0 = {
  *     Class = NI6368::NI6368ADC
- *     DeviceName = "/dev/pxi6368" //Mandatory
+ *     DeviceName = "/dev/pxie-6368" //Mandatory
  *     BoardId = 0 //Mandatory
  *     DMABufferSize = 1000 //Mandatory. DMA size in bytes > 0.
  *     ClockSampleSource = "INTERNALTIMING" //Mandatory. Sampling clock source. Possible values: INTERNALTIMING, PFI0, ..., PFI15, RTSI0, ..., RTSI6, DIO_CHGDETECT, G0_OUT, ..., G3_OUT, STAR_TRIGGER, SCXI_TRIG1, LOW, PXIE_DSTARA, ATRIG, PXIE_DSTARB, G0_SAMPLECLK, ..., G3_SAMPLECLK, DI_CONVERT, AO_UPDATE, DO_UPDATE, INTTRIGGERA0, ..., INTTRIGGERA7
@@ -109,7 +109,7 @@ NI6368ADC    ();
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @return 1.
+     * @return 2.
      */
     virtual uint32 GetNumberOfMemoryBuffers();
 
@@ -123,15 +123,14 @@ NI6368ADC    ();
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
      * @details Only InputSignals are supported.
-     * @return MemoryMapSynchronisedInputBroker if frequency > 0, MemoryMapInputBroker otherwise.
+     * @return "NI6368ADCInputBroker".
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
-     * @details If the functionName is the one synchronising it adds a MemoryMapSynchronisedInputBroker instance to
-     *  the inputBrokers, otherwise it adds a MemoryMapInputBroker instance to the inputBrokers.
+     * @details Adds a NI6368ADCInputBroker instance to the inputBrokers.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
             const char8* const functionName,
@@ -153,24 +152,23 @@ NI6368ADC    ();
 
     /**
      * @brief Callback function for the EmbeddedThread that reads data from this ADC board.
-     * @details Reads data from all the configured ADC channels and posts the synchronisation semaphore.
-     * @return false if the synchronisation semaphore cannot be posted. Note that failure to read from the ADC will not
-     * return an error as the reading operation will be retried forever.
-     * @warning This method sleeps for 100 us. This is needed as otherwise it gets stuck on the function pxi6368_read_ai.
+     * @details Reads data from all the configured DMA channels and posts the synchronisation semaphore.
+     * @return false if the synchronisation semaphore cannot be posted.
      */
     virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
 
-    //TODO
-    ErrorManagement::ErrorType CopyFromDMA(uint32 numberOfSamples);
-    //TODO
-
-    //TODO
+    /**
+     * @brief Gets the last index written by the DMA (can be either 0 or 1).
+     * @return the last index written by the DMA.
+     */
     uint8 GetLastBufferIdx();
-    //TODO
 
-    //TODO
+    /**
+     * @brief Returns true if there is one GAM synchronising on this board.
+     * @return true if there is one GAM synchronising on this board.
+     */
     bool IsSynchronising();
-    //TODO
+
 
 
     /**
@@ -210,6 +208,17 @@ NI6368ADC    ();
     bool ReadAIConfiguration(xseries_ai_conf_t *conf) const;
 
 private:
+
+    /**
+     * @brief Copies from the DMA memory into the broker memory.
+     * @details The DMA memory is organised in a different way (see xseries-lib.h) w.r.t. to the broker memory.
+     * This function maps the DMA memory into the broker memory.
+     * @param numberOfSamples number of samples to copy between memories.
+     * @return ErrorManagement::FatalError if the semaphore cannot be posted.
+     */
+    ErrorManagement::ErrorType CopyFromDMA(uint32 numberOfSamples);
+
+
 
     /**
      * The counter value

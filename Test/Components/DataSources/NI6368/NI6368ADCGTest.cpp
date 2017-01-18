@@ -26,7 +26,7 @@
 /*---------------------------------------------------------------------------*/
 #include <limits.h>
 
-#include "../NI6368/NI6368ADCTest.h"
+#include "NI6368ADCTest.h"
 #include "gtest/gtest.h"
 
 /*---------------------------------------------------------------------------*/
@@ -318,6 +318,16 @@ TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_CounterSamples) {
 TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_TimerSamples) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimerSamples());
+}
+
+TEST(NI6368ADCGTest,TestGetLastBufferIdx) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestGetLastBufferIdx());
+}
+
+TEST(NI6368ADCGTest,TestIsSynchronising) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestIsSynchronising());
 }
 
 TEST(NI6368ADCGTest,TestIntegrated) {

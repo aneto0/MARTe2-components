@@ -24,7 +24,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "../NI6368/NI6368ADCTest.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -37,6 +36,7 @@
 #include "GAMScheduler.h"
 #include "MemoryOperationsHelper.h"
 #include "NI6368ADC.h"
+#include "NI6368ADCTest.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
@@ -3606,6 +3606,14 @@ bool NI6368ADCTest::TestSetConfiguredDatabase_False_CounterSamples() {
 
 bool NI6368ADCTest::TestSetConfiguredDatabase_False_TimerSamples() {
     return !TestIntegratedInApplication(config14);
+}
+
+bool NI6368ADCTest::TestGetLastBufferIdx() {
+    return TestIntegratedInApplication(config1);
+}
+
+bool NI6368ADCTest::TestIsSynchronising() {
+    return TestIntegratedInApplication(config5);
 }
 
 bool NI6368ADCTest::TestIntegrated() {

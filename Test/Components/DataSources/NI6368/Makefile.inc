@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  NI6368ADCTest.x
+OBJSX +=  NI6368ADCTest.x NI6368ADCInputBrokerTest.x
 #NI6368DACTest.x NI6368DIOTest.x
 		
 PACKAGE=Components/DataSources
