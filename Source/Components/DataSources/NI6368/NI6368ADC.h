@@ -218,8 +218,6 @@ private:
      */
     ErrorManagement::ErrorType CopyFromDMA(uint32 numberOfSamples);
 
-
-
     /**
      * The counter value
      */
@@ -313,7 +311,12 @@ private:
     /**
      * The signals memory
      */
-    uint16 *channelsMemory[2][NI6368ADC_MAX_CHANNELS];
+    int16 *channelsMemory[2][NI6368ADC_MAX_CHANNELS];
+
+    /**
+     * Maps the signal index in the signal list to the channel id
+     */
+    uint32 signalIdxToChannelId[NI6368ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE];
 
     /**
      * The memory DMA
@@ -329,6 +332,11 @@ private:
      * The memory where the DMA is copied to.
      */
     int16 *dmaReadBuffer;
+
+    /**
+     * The current DMA channel being copied.
+     */
+    uint32 dmaChannel;
 
     /**
      * Total number of DMA bytes from the beginning

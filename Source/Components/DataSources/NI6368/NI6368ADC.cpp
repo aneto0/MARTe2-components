@@ -68,6 +68,7 @@ NI6368ADC::NI6368ADC() :
     currentBufferOffset = 0u;
     nBytesInDMAFromStart = 0u;
     dmaOffset = 0u;
+    dmaChannel = 0u;
     dma = NULL_PTR(struct xseries_dma *);
 
     keepRunning = true;
@@ -79,8 +80,8 @@ NI6368ADC::NI6368ADC() :
         inputType[n] = XSERIES_AI_CHANNEL_TYPE_RSE;
         adcEnabled[n] = false;
         channelsFileDescriptors[n] = -1;
-        channelsMemory[0u][n] = NULL_PTR(uint16 *);
-        channelsMemory[1u][n] = NULL_PTR(uint16 *);
+        channelsMemory[0u][n] = NULL_PTR(int16 *);
+        channelsMemory[1u][n] = NULL_PTR(int16 *);
     }
     dmaReadBuffer = NULL_PTR(int16 *);
     if (!synchSem.Create()) {
@@ -113,10 +114,10 @@ NI6368ADC::~NI6368ADC() {
         close(boardFileDescriptor);
     }
     for (n = 0u; n < NI6368ADC_MAX_CHANNELS; n++) {
-        if (channelsMemory[0u][n] != NULL_PTR(uint16 *)) {
+        if (channelsMemory[0u][n] != NULL_PTR(int16 *)) {
             delete[] channelsMemory[0u][n];
         }
-        if (channelsMemory[1u][n] != NULL_PTR(uint16 *)) {
+        if (channelsMemory[1u][n] != NULL_PTR(int16 *)) {
             delete[] channelsMemory[1u][n];
         }
     }
@@ -759,6 +760,7 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
             ok = data.Write("Locked", 1);
         }
         while ((i < (NI6368ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE)) && (ok)) {
+            //TODO CHECK THAT THE CHANNELID IS MONOTONIC AND IN ORDER. OTHERWISE THERE WILL BE A MISMATCH WITH THE DMA ORDER
             if (data.MoveRelative(data.GetChildName(i))) {
                 uint32 channelId;
                 if (data.Read("ChannelId", channelId)) {
@@ -871,10 +873,10 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         for (i = 0u; (i < numberOfADCsEnabled) && (ok); i++) {
-            ok = (GetSignalType(NI6368ADC_HEADER_SIZE + i) == UnsignedInteger16Bit);
+            ok = (GetSignalType(NI6368ADC_HEADER_SIZE + i) == SignedInteger16Bit);
         }
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "All the ADC signals shall be of type UnsignedInteger16Bit");
+            REPORT_ERROR(ErrorManagement::ParametersError, "All the ADC signals shall be of type SignedInteger16Bit");
         }
     }
 
@@ -1015,8 +1017,8 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         //Allocate memory
         for (i = 0u; (i < NI6368ADC_MAX_CHANNELS) && (ok); i++) {
-            channelsMemory[0u][i] = new uint16[numberOfSamples];
-            channelsMemory[1u][i] = new uint16[numberOfSamples];
+            channelsMemory[0u][i] = new int16[numberOfSamples];
+            channelsMemory[1u][i] = new int16[numberOfSamples];
         }
     }
 
@@ -1081,30 +1083,28 @@ bool NI6368ADC::IsSynchronising() {
     return synchronising;
 }
 
+#include <stdio.h>
 ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(uint32 numberOfSamplesFromDMA) {
     ErrorManagement::ErrorType err;
-    uint32 s;
-    uint32 numberOfSamplesFromDMAPerChannel = numberOfSamplesFromDMA / numberOfADCsEnabled;
-    for (s = 0; s < (numberOfSamplesFromDMAPerChannel); s++) {
-        uint32 i;
-        uint32 dmaChannel = 0u;
-        for (i = 0u; (i < NI6368ADC_MAX_CHANNELS) && (keepRunning); i++) {
-            if (adcEnabled[i]) {
-                if (dmaReadBuffer != NULL_PTR(int16 *)) {
-                    channelsMemory[currentBufferIdx][i][currentBufferOffset] = dmaReadBuffer[s * numberOfADCsEnabled + dmaChannel];
-                    dmaChannel++;
-                }
-            }
+    uint32 s = 0u;
+    if (dmaReadBuffer != NULL_PTR(int16 *)) {
+        while (s < (numberOfSamplesFromDMA)) {
+            channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset] = dmaReadBuffer[s];
+            s++;
+            dmaChannel++;
 
-        }
-        currentBufferOffset++;
-        if (currentBufferOffset == numberOfSamples) {
-            currentBufferOffset = 0u;
-            currentBufferIdx = (currentBufferIdx + 1u) % 2u;
-            counter++;
-            timeValue = counter * numberOfSamples * 1000000llu / NI6368ADC_SAMPLING_FREQUENCY;
-            if (synchronising) {
-                err = !synchSem.Post();
+            if (dmaChannel == numberOfADCsEnabled) {
+                dmaChannel = 0u;
+                currentBufferOffset++;
+                if (currentBufferOffset == numberOfSamples) {
+                    currentBufferOffset = 0u;
+                    currentBufferIdx = (currentBufferIdx + 1u) % 2u;
+                    counter++;
+                    timeValue = counter * numberOfSamples * 1000000llu / NI6368ADC_SAMPLING_FREQUENCY;
+                    if (synchronising) {
+                        err = !synchSem.Post();
+                    }
+                }
             }
         }
     }
@@ -1120,10 +1120,11 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
         //Empty DMA buffer
         int32 nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
         while (nBytesInDMA > 0) {
-            dmaOffset = dmaOffset + nBytesInDMA - 1u;
+            dmaOffset = dmaOffset + nBytesInDMA;
             dmaOffset %= dma->ai.count;
             nBytesInDMAFromStart += nBytesInDMA;
             dma->ai.last_transfer_count = nBytesInDMAFromStart;
+            dmaChannel = (dma->ai.last_transfer_count % numberOfADCsEnabled);
             nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
         }
     }
@@ -1146,7 +1147,7 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
                     memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nBytesInDMA));
                 }
                 err = CopyFromDMA(nBytesInDMA);
-                dmaOffset = dmaOffset + nBytesInDMA - 1u;
+                dmaOffset = dmaOffset + nBytesInDMA;
                 dmaOffset %= dma->ai.count;
                 nBytesInDMAFromStart += nBytesInDMA;
                 dma->ai.last_transfer_count = nBytesInDMAFromStart;

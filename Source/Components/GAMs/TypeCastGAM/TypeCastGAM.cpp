@@ -146,11 +146,49 @@ bool TypeCastGAM::Execute() {
                     }
                 }
             }
+            else if (outputSignalType[i] == SignedInteger32Bit) {
+                for (s = 0u; s < signalNumberOfSamples[i]; s++) {
+                    for (n = 0u; n < signalNumberOfElements[i]; n++) {
+                        int32 *dest = reinterpret_cast<int32 *>(outputSignal);
+                        uint16 *src = reinterpret_cast<uint16 *>(inputSignal);
+                        dest[s * signalNumberOfElements[i] + n] = src[s * signalNumberOfElements[i] + n];
+                    }
+                }
+            }
             else if (outputSignalType[i] == Float32Bit) {
                 for (s = 0u; s < signalNumberOfSamples[i]; s++) {
                     for (n = 0u; n < signalNumberOfElements[i]; n++) {
                         float32 *dest = reinterpret_cast<float32 *>(outputSignal);
                         uint16 *src = reinterpret_cast<uint16 *>(inputSignal);
+                        dest[s * signalNumberOfElements[i] + n] = src[s * signalNumberOfElements[i] + n];
+                    }
+                }
+            }
+        }
+        else if (inputSignalType[i] == SignedInteger16Bit) {
+            if (outputSignalType[i] == UnsignedInteger32Bit) {
+                for (s = 0u; s < signalNumberOfSamples[i]; s++) {
+                    for (n = 0u; n < signalNumberOfElements[i]; n++) {
+                        uint32 *dest = reinterpret_cast<uint32 *>(outputSignal);
+                        int16 *src = reinterpret_cast<int16 *>(inputSignal);
+                        dest[s * signalNumberOfElements[i] + n] = src[s * signalNumberOfElements[i] + n];
+                    }
+                }
+            }
+            else if (outputSignalType[i] == SignedInteger32Bit) {
+                for (s = 0u; s < signalNumberOfSamples[i]; s++) {
+                    for (n = 0u; n < signalNumberOfElements[i]; n++) {
+                        int32 *dest = reinterpret_cast<int32 *>(outputSignal);
+                        int16 *src = reinterpret_cast<int16 *>(inputSignal);
+                        dest[s * signalNumberOfElements[i] + n] = src[s * signalNumberOfElements[i] + n];
+                    }
+                }
+            }
+            else if (outputSignalType[i] == Float32Bit) {
+                for (s = 0u; s < signalNumberOfSamples[i]; s++) {
+                    for (n = 0u; n < signalNumberOfElements[i]; n++) {
+                        float32 *dest = reinterpret_cast<float32 *>(outputSignal);
+                        int16 *src = reinterpret_cast<int16 *>(inputSignal);
                         dest[s * signalNumberOfElements[i] + n] = src[s * signalNumberOfElements[i] + n];
                     }
                 }
