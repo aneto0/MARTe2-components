@@ -22,9 +22,9 @@
 #
 #############################################################
 
-OBJSX=NI6368ADCInputBroker.x NI6368ADC.x
+OBJSX=NI6368ADCInputBroker.x NI6368ADC.x NI6368DAC.x
 
-#NI6368DAC.x NI6368DIO.x
+#NI6368DIO.x
 
 PACKAGE=Components/DataSources
 

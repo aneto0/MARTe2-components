@@ -32,6 +32,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "GAM.h"
+#include "ConversionHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -101,6 +102,12 @@ public:
      */
     virtual bool Setup();
 
+
+    /**
+     * @brief TODO
+     */
+    virtual bool Initialise(StructuredDataI & data);
+
     /**
      * @brief TODO TODO
      * @brief Copies the input signals memory to the output signal memory.
@@ -110,19 +117,13 @@ public:
 
 private:
     //TODO
-    uint32 *signalNumberOfElements;
-
-    //TODO
-    uint32 *signalNumberOfSamples;
-
-    //TODO
-    TypeDescriptor *inputSignalType;
-
-    //TODO
-    TypeDescriptor *outputSignalType;
+    ConversionHelper **conversionHelpers;
 
     //TODO
     uint32 numberOfSignals;
+
+    //TODO
+    ConfigurationDatabase cdb;
 };
 }
 
@@ -130,5 +131,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* TypeCastGAM_H_ */
+#endif /* TYPE_CAST_GAM_H_ */
 
