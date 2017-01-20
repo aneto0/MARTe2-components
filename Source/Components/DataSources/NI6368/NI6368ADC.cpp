@@ -1083,7 +1083,6 @@ bool NI6368ADC::IsSynchronising() {
     return synchronising;
 }
 
-#include <stdio.h>
 ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(uint32 numberOfSamplesFromDMA) {
     ErrorManagement::ErrorType err;
     uint32 s = 0u;
