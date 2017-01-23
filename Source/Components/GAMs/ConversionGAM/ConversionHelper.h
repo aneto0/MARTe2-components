@@ -39,6 +39,8 @@
 namespace MARTe {
 /**
  * @brief Support class for the ConversionGAM. One instance for each input signal is to be allocated.
+ * @details This class is responsible for converting all the input signal elements/samples to the corresponding
+ * output signal elements/samples.
  */
 class ConversionHelper {
 public:
@@ -56,7 +58,7 @@ public:
 
     /**
      * @brief To be specialised by ConversionHelperT, for all the supported data types.
-     * @details Converts all the signal elements and samples from the input type to the output type (set in the template).
+     * @details Converts all the signal elements and samples from the input type to the output type (set in the ConversionHelperT template).
      */
     virtual void Convert() = 0;
 
@@ -81,9 +83,9 @@ public:
 
     /**
      * @brief Sets the number of samples to be converted.
-     * @param[in] numberOfSamples the number of samples to be converted.
+     * @param[in] numberOfElementsIn the number of samples to be converted.
      */
-    void SetNumberOfElements(uint32 numberOfElements);
+    void SetNumberOfElements(const uint32 numberOfElementsIn);
 
     /**
      * @brief Gets the number of samples to be converted.
@@ -93,15 +95,15 @@ public:
 
     /**
      * @brief Sets the number of samples to be converted.
-     * @param[in] numberOfSamples the number of samples to be converted.
+     * @param[in] numberOfSamplesIn the number of samples to be converted.
      */
-    void SetNumberOfSamples(uint32 numberOfSamples);
+    void SetNumberOfSamples(const uint32 numberOfSamplesIn);
 
     /**
      * @brief Gets a pointer to output signal memory.
      * @return a pointer to output signal memory.
      */
-    void* GetOutputMemory() const;
+    void* GetOutputMemory();
 
 protected:
     /**
@@ -123,6 +125,10 @@ protected:
      * The signal output memory.
      */
     void * outputMemory;
+
+    /*lint -e{1712} This class does not have a default constructor because
+     * the inputMemory and the outputMemory must be defined on construction and both remain constant
+     * during the object's lifetime*/
 };
 }
 

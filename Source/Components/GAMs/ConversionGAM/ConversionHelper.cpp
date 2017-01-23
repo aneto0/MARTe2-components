@@ -1,8 +1,8 @@
 /**
  * @file ConversionHelper.cpp
  * @brief Source file for class ConversionHelper
- * @date Jan 20, 2017
- * @author aneto
+ * @date 20/01/2017
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -45,6 +45,7 @@ ConversionHelper::ConversionHelper(const void *  const inputMemoryIn, void * con
     numberOfSamples = 0u;
 }
 
+/*lint -e{1540} inputMemoryIn and outputMemoryIn freed by the ConversionGAM */
 ConversionHelper::~ConversionHelper() {
 
 }
@@ -69,7 +70,7 @@ void ConversionHelper::SetNumberOfSamples(const uint32 numberOfSamplesIn) {
     numberOfSamples = numberOfSamplesIn;
 }
 
-void* ConversionHelper::GetOutputMemory() const {
+void* ConversionHelper::GetOutputMemory() {
     return outputMemory;
 }
 }

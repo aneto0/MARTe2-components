@@ -39,10 +39,10 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 /**
- * @brief GAM which allows to convert signal between types.
+ * @brief GAM which allows to convert between different signal types.
  *
  * @details This GAM converts and copies the input signals to the output signals. A gain can
- * also be specified so that outputSignal[i] = gain[i] * inputSignal, where i is the input signal index (see GetNumberOfInputSignals()).
+ * also be specified so that outputSignal[i] = gain[i] * inputSignal[i], where i is the input signal index (see GetNumberOfInputSignals()).
  * If the signal is an array (or has more than one sample), this operation is applied to each element/sample.
  *
  * The number of input and output signals shall be the same, i.e. GetNumberOfInputSignals() == GetNumberOfOutputSignals().
@@ -109,12 +109,12 @@ ConversionGAM    ();
 
     /**
      * @brief see GAM::Initialise.
-     * "details Stores the GAM configuration in order to read the Gain of each OutputSignal
+     * @details Stores the GAM configuration in order to read the Gain of each OutputSignal
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief Convert the input signals memory to the output signal memory, eventually multipliying by a gain factor.
+     * @brief Convert the input signals memory to the output signal memory, eventually multiplying by a gain factor.
      * @return true if all the signals memory can be successfully copied.
      */
     virtual bool Execute();
@@ -126,7 +126,7 @@ private:
     ConversionHelper **conversionHelpers;
 
     /**
-     * Number of signals to copy
+     * Number of signals to copy.
      */
     uint32 numberOfSignals;
 

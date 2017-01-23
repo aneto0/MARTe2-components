@@ -48,6 +48,7 @@ ConversionGAM::ConversionGAM() :
     conversionHelpers = NULL_PTR(ConversionHelper **);
 }
 
+/*lint -e{1551} the destructor must guarantee that the conversionHelpers memory is freed.*/
 ConversionGAM::~ConversionGAM() {
     uint32 i;
     if (conversionHelpers != NULL_PTR(ConversionHelper **)) {
@@ -68,10 +69,13 @@ bool ConversionGAM::Initialise(StructuredDataI & data) {
     return ok;
 }
 
+/*lint -e{578} -e{613} Having GetInputSignalMemory(idx) == NULL or GetOutputSignalMemory(idx) == NULL is not an issue.
+ * conversionHelpers == NULL cannot be used as ret will be false.*/
 bool ConversionGAM::Setup() {
     bool ret = (GetNumberOfInputSignals() == GetNumberOfOutputSignals());
     if (!ret) {
-        REPORT_ERROR(ErrorManagement::InitialisationError, "GetNumberOfInputSignals() != GetNumberOfOutputSignals()");
+        REPORT_ERROR(ErrorManagement::InitialisationError,
+                     "GetNumberOfInputSignals() != GetNumberOfOutputSignals()");
     }
     uint32 n;
     uint32 signalNumberOfElements = 0u;
@@ -111,8 +115,10 @@ bool ConversionGAM::Setup() {
         if (ret) {
             ret = ((inElements * inSamples) == (outElements * outSamples));
             if (!ret) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError,
-                                        "(inElements * inSamples, %d) != (outElements * outSamples, %d)", idx, idx)
+                REPORT_ERROR_PARAMETERS(
+                        ErrorManagement::InitialisationError,
+                        "(inElements * inSamples, %d) != (outElements * outSamples, %d)",
+                        idx, idx)
             }
         }
         if (ret) {
@@ -124,478 +130,645 @@ bool ConversionGAM::Setup() {
         if (ret) {
             if (inputSignalType == UnsignedInteger8Bit) {
                 if (outputSignalType == UnsignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint8, uint8>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint8, uint8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint8, int8>(GetInputSignalMemory(idx),
-                                                                                GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint8, int8>(
+                            GetInputSignalMemory(idx),
+                            GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint8, uint16>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint8, uint16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint8, int16>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint8, int16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint8, uint32>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint8, uint32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint8, int32>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint8, int32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint8, uint64>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint8, uint64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint8, int64>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint8, int64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint8, float32>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint8,
+                            float32>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint8, float64>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint8,
+                            float64>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported OutputSignal type");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Unsupported OutputSignal type");
                     ret = false;
                 }
             }
             else if (inputSignalType == SignedInteger8Bit) {
                 if (outputSignalType == UnsignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int8, uint8>(GetInputSignalMemory(idx),
-                                                                                GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int8, uint8>(
+                            GetInputSignalMemory(idx),
+                            GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int8, int8>(GetInputSignalMemory(idx),
-                                                                               GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int8, int8>(
+                            GetInputSignalMemory(idx),
+                            GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int8, uint16>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int8, uint16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int8, int16>(GetInputSignalMemory(idx),
-                                                                                GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int8, int16>(
+                            GetInputSignalMemory(idx),
+                            GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int8, uint32>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int8, uint32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int8, int32>(GetInputSignalMemory(idx),
-                                                                                GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int8, int32>(
+                            GetInputSignalMemory(idx),
+                            GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int8, uint64>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int8, uint64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int8, int64>(GetInputSignalMemory(idx),
-                                                                                GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int8, int64>(
+                            GetInputSignalMemory(idx),
+                            GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int8, float32>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int8, float32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int8, float64>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int8, float64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported OutputSignal type");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Unsupported OutputSignal type");
                     ret = false;
                 }
             }
             else if (inputSignalType == UnsignedInteger16Bit) {
                 if (outputSignalType == UnsignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint16, uint8>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint16, uint8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint16, int8>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint16, int8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint16, uint16>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint16,
+                            uint16>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint16, int16>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint16, int16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint16, uint32>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint16,
+                            uint32>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint16, int32>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint16, int32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint16, uint64>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint16,
+                            uint64>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint16, int64>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint16, int64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint16, float32>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint16,
+                            float32>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint16, float64>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint16,
+                            float64>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported OutputSignal type");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Unsupported OutputSignal type");
                     ret = false;
                 }
             }
             else if (inputSignalType == SignedInteger16Bit) {
                 if (outputSignalType == UnsignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int16, uint8>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int16, uint8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int16, int8>(GetInputSignalMemory(idx),
-                                                                                GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int16, int8>(
+                            GetInputSignalMemory(idx),
+                            GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int16, uint16>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int16, uint16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int16, int16>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int16, int16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int16, uint32>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int16, uint32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int16, int32>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int16, int32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int16, uint64>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int16, uint64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int16, int64>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int16, int64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int16, float32>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int16,
+                            float32>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int16, float64>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int16,
+                            float64>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported OutputSignal type");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Unsupported OutputSignal type");
                     ret = false;
                 }
             }
             else if (inputSignalType == UnsignedInteger32Bit) {
                 if (outputSignalType == UnsignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint32, uint8>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint32, uint8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint32, int8>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint32, int8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint32, uint16>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint32,
+                            uint16>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint32, int16>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint32, int16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint32, uint32>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint32,
+                            uint32>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint32, int32>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint32, int32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint32, uint64>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint32,
+                            uint64>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint32, int64>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint32, int64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint32, float32>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint32,
+                            float32>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint32, float64>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint32,
+                            float64>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported OutputSignal type");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Unsupported OutputSignal type");
                     ret = false;
                 }
             }
             else if (inputSignalType == SignedInteger32Bit) {
                 if (outputSignalType == UnsignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int32, uint8>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int32, uint8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int32, int8>(GetInputSignalMemory(idx),
-                                                                                GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int32, int8>(
+                            GetInputSignalMemory(idx),
+                            GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int32, uint16>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int32, uint16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int32, int16>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int32, int16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int32, uint32>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int32, uint32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int32, int32>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int32, int32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int32, uint64>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int32, uint64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int32, int64>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int32, int64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int32, float32>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int32,
+                            float32>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int32, float64>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int32,
+                            float64>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported OutputSignal type");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Unsupported OutputSignal type");
                     ret = false;
                 }
             }
             else if (inputSignalType == UnsignedInteger64Bit) {
                 if (outputSignalType == UnsignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint64, uint8>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint64, uint8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint64, int8>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint64, int8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint64, uint16>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint64,
+                            uint16>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint64, int16>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint64, int16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint64, uint32>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint64,
+                            uint32>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint64, int32>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint64, int32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint64, uint64>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint64,
+                            uint64>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint64, int64>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<uint64, int64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint64, float32>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint64,
+                            float32>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<uint64, float64>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<uint64,
+                            float64>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported OutputSignal type");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Unsupported OutputSignal type");
                     ret = false;
                 }
             }
             else if (inputSignalType == SignedInteger64Bit) {
                 if (outputSignalType == UnsignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int64, uint8>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int64, uint8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int64, int8>(GetInputSignalMemory(idx),
-                                                                                GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int64, int8>(
+                            GetInputSignalMemory(idx),
+                            GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int64, uint16>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int64, uint16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int64, int16>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int64, int16>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int64, uint32>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int64, uint32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int64, int32>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int64, int32>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int64, uint64>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int64, uint64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int64, int64>(GetInputSignalMemory(idx),
-                                                                                 GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<int64, int64>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int64, float32>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int64,
+                            float32>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<int64, float64>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<int64,
+                            float64>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported OutputSignal type");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Unsupported OutputSignal type");
                     ret = false;
                 }
             }
             else if (inputSignalType == Float32Bit) {
                 if (outputSignalType == UnsignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float32, uint8>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float32,
+                            uint8>(GetInputSignalMemory(idx),
+                                   GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float32, int8>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<float32, int8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float32, uint16>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float32,
+                            uint16>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float32, int16>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float32,
+                            int16>(GetInputSignalMemory(idx),
+                                   GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float32, uint32>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float32,
+                            uint32>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float32, int32>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float32,
+                            int32>(GetInputSignalMemory(idx),
+                                   GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float32, uint64>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float32,
+                            uint64>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float32, int64>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float32,
+                            int64>(GetInputSignalMemory(idx),
+                                   GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float32, float32>(GetInputSignalMemory(idx),
-                                                                                     GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float32,
+                            float32>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float32, float64>(GetInputSignalMemory(idx),
-                                                                                     GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float32,
+                            float64>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported OutputSignal type");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Unsupported OutputSignal type");
                     ret = false;
                 }
             }
             else if (inputSignalType == Float64Bit) {
                 if (outputSignalType == UnsignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float64, uint8>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float64,
+                            uint8>(GetInputSignalMemory(idx),
+                                   GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger8Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float64, int8>(GetInputSignalMemory(idx),
-                                                                                  GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] =
+                            new ConversionHelperT<float64, int8>(
+                                    GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float64, uint16>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float64,
+                            uint16>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger16Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float64, int16>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float64,
+                            int16>(GetInputSignalMemory(idx),
+                                   GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float64, uint32>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float64,
+                            uint32>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float64, int32>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float64,
+                            int32>(GetInputSignalMemory(idx),
+                                   GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == UnsignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float64, uint64>(GetInputSignalMemory(idx),
-                                                                                    GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float64,
+                            uint64>(GetInputSignalMemory(idx),
+                                    GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == SignedInteger64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float64, int64>(GetInputSignalMemory(idx),
-                                                                                   GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float64,
+                            int64>(GetInputSignalMemory(idx),
+                                   GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float32Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float64, float32>(GetInputSignalMemory(idx),
-                                                                                     GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float64,
+                            float32>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else if (outputSignalType == Float64Bit) {
-                    conversionHelpers[idx] = new ConversionHelperT<float64, float64>(GetInputSignalMemory(idx),
-                                                                                     GetOutputSignalMemory(idx));
+                    conversionHelpers[idx] = new ConversionHelperT<float64,
+                            float64>(GetInputSignalMemory(idx),
+                                     GetOutputSignalMemory(idx));
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported OutputSignal type");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Unsupported OutputSignal type");
                     ret = false;
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputSignal type");
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "Unsupported InputSignal type");
                 ret = false;
             }
             if (ret) {
                 if (conversionHelpers[idx] != NULL_PTR(ConversionHelper *)) {
-                    conversionHelpers[idx]->SetNumberOfElements(signalNumberOfElements);
-                    conversionHelpers[idx]->SetNumberOfSamples(signalNumberOfSamples);
+                    conversionHelpers[idx]->SetNumberOfElements(
+                            signalNumberOfElements);
+                    conversionHelpers[idx]->SetNumberOfSamples(
+                            signalNumberOfSamples);
 
                     StreamString signalName = cdb.GetChildName(idx);
                     ret = cdb.MoveRelative(signalName.Buffer());
 
                     if (ret) {
-                        conversionHelpers[idx]->LoadGain(cdb);
+                        if (conversionHelpers[idx]->LoadGain(cdb)) {
+                            REPORT_ERROR_PARAMETERS(
+                                    ErrorManagement::ParametersError,
+                                    "Gain set for conversion %d", idx)
+                        }
                         ret = cdb.MoveToAncestor(1u);
                     }
                 }
@@ -608,8 +781,10 @@ bool ConversionGAM::Setup() {
 
 bool ConversionGAM::Execute() {
     uint32 i;
-    for (i = 0u; i < numberOfSignals; i++) {
-        conversionHelpers[i]->Convert();
+    if (conversionHelpers != NULL_PTR(ConversionHelper **)) {
+        for (i = 0u; i < numberOfSignals; i++) {
+            conversionHelpers[i]->Convert();
+        }
     }
 
     return true;

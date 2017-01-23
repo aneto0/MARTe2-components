@@ -76,22 +76,22 @@ public:
     bool TestSetup_False_InvalidNumberOfInputsOutputs();
 
     /**
-     * @brief Tests the Setup method with a number a mismatch of the input signals number of elements.
+     * @brief Tests the Setup method with a mismatch of the input signals number of elements.
      */
     bool TestSetup_False_InvalidInputElementsMismatch();
 
     /**
-     * @brief Tests the Setup method with a number a mismatch of the output signals number of elements.
+     * @brief Tests the Setup method with a mismatch of the output signals number of elements.
      */
     bool TestSetup_False_InvalidOutputElementsMismatch();
 
     /**
-     * @brief Tests the Setup method with a number a mismatch of the input signals number of samples.
+     * @brief Tests the Setup method with a mismatch of the input signals number of samples.
      */
     bool TestSetup_False_InvalidInputSamplesMismatch();
 
     /**
-     * @brief Tests the Setup method with a number a mismatch of the output signals number of samples.
+     * @brief Tests the Setup method with a mismatch of the output signals number of samples.
      */
     bool TestSetup_False_InvalidOutputSamplesMismatch();
 
