@@ -1,8 +1,8 @@
 /**
  * @file ConversionHelperT.h
  * @brief Header file for class ConversionHelperT
- * @date Jan 20, 2017
- * @author aneto
+ * @date 20/01/2017
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef SOURCE_COMPONENTS_GAMS_TYPECASTGAM_CONVERSIONHELPERT_H_
-#define 		SOURCE_COMPONENTS_GAMS_TYPECASTGAM_CONVERSIONHELPERT_H_
+#ifndef CONVERSIONHELPERT_H_
+#define CONVERSIONHELPERT_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -31,27 +31,55 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "ConversionHelper.h"
 #include "StructuredDataI.h"
+#include "ConversionHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+/**
+ * @brief Support class for the ConversionGAM. One instance for each input signal is to be allocated.
+ */
+/*lint -esym(9107, MARTe::ConversionHelperT*) [MISRA C++ Rule 3-1-1]. Justification: Required for template implementation.
+ * No code is actually being generated and the header files can be included in multiple unit files.*/
 template<typename inputType, typename outputType>
 class ConversionHelperT: public ConversionHelper {
 public:
+    /**
+     * @see ConversionHelper::ConversionHelper
+     */
     ConversionHelperT(const void * inputMemoryIn, void * outputMemoryIn);
 
-    ~ConversionHelperT();
+    /**
+     * @brief Default destructor. NOOP.
+     */
+    virtual ~ConversionHelperT();
 
+    /**
+     * @see ConversionHelper::Convert.
+     * @details Converts for the declared type names. A cast to the declared inputType and outputType is performed and the signals are copied.
+     */
     virtual void Convert();
 
-    bool LoadGain(StructuredDataI &data);
+    /**
+     * @see ConversionHelper::LoadGain.
+     */
+    virtual bool LoadGain(StructuredDataI &data);
 
 private:
+    /**
+     * True if the Gain parameter was defined.
+     */
     bool gainDefined;
+
+    /**
+     * The gain that is used to scale the input signal.
+     */
     outputType gain;
+    /*lint -e{1712} This class does not have a default constructor because
+     * the inputMemory and the outputMemory must be defined on construction and both remain constant
+     * during the object's lifetime*/
 };
 }
 
@@ -60,10 +88,12 @@ private:
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 template<typename inputType, typename outputType>
-ConversionHelperT<inputType, outputType>::ConversionHelperT(const void * inputMemoryIn, void * outputMemoryIn) :
+ConversionHelperT<inputType, outputType>::ConversionHelperT(
+        const void * const inputMemoryIn, void * const outputMemoryIn) :
         ConversionHelper(inputMemoryIn, outputMemoryIn) {
     gainDefined = false;
-    gain = 0;
+    /*lint -e{9117} [MISRA C++ Rule 5-0-4]. Justification: the type of the gain will depend on the outputType.*/
+    gain = static_cast<outputType>(0);
 }
 
 template<typename inputType, typename outputType>
@@ -81,16 +111,21 @@ template<typename inputType, typename outputType>
 void ConversionHelperT<inputType, outputType>::Convert() {
     uint32 s;
     uint32 n;
+    uint32 idx;
     outputType *dest = reinterpret_cast<outputType *>(outputMemory);
     const inputType *src = reinterpret_cast<const inputType *>(inputMemory);
     if ((dest != NULL) && (src != NULL)) {
         for (s = 0u; s < numberOfSamples; s++) {
             for (n = 0u; n < numberOfElements; n++) {
+                idx = s * numberOfElements;
+                idx += n;
                 if (gainDefined) {
-                    dest[s * numberOfElements + n] = gain * static_cast<outputType>(src[s * numberOfElements + n]);
+                    /*lint -e{734} -e{571} Loss of precision is responsibility of the conversion requested by the user.*/
+                    dest[idx] = gain * static_cast<outputType>(src[idx]);
                 }
                 else {
-                    dest[s * numberOfElements + n] = src[s * numberOfElements + n];
+                    /*lint -e{734} -e{571} Loss of precision is responsibility of the conversion requested by the user.*/
+                    dest[idx] = static_cast<outputType>(src[idx]);
                 }
             }
         }
@@ -98,5 +133,5 @@ void ConversionHelperT<inputType, outputType>::Convert() {
 }
 
 }
-#endif /* SOURCE_COMPONENTS_GAMS_TYPECASTGAM_CONVERSIONHELPERT_H_ */
+#endif /* CONVERSIONHELPERT_H_ */
 

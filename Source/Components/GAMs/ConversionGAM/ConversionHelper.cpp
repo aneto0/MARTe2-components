@@ -1,8 +1,8 @@
 /**
  * @file ConversionHelper.cpp
  * @brief Source file for class ConversionHelper
- * @date Jan 20, 2017
- * @author aneto
+ * @date 20/01/2017
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -38,13 +38,14 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-ConversionHelper::ConversionHelper(const void * inputMemoryIn, void * outputMemoryIn) {
+ConversionHelper::ConversionHelper(const void *  const inputMemoryIn, void * const outputMemoryIn) {
     inputMemory = inputMemoryIn;
     outputMemory = outputMemoryIn;
     numberOfElements = 0u;
     numberOfSamples = 0u;
 }
 
+/*lint -e{1540} inputMemoryIn and outputMemoryIn freed by the ConversionGAM */
 ConversionHelper::~ConversionHelper() {
 
 }
@@ -57,7 +58,7 @@ uint32 ConversionHelper::GetNumberOfElements() const {
     return numberOfElements;
 }
 
-void ConversionHelper::SetNumberOfElements(uint32 numberOfElementsIn) {
+void ConversionHelper::SetNumberOfElements(const uint32 numberOfElementsIn) {
     numberOfElements = numberOfElementsIn;
 }
 
@@ -65,11 +66,11 @@ uint32 ConversionHelper::GetNumberOfSamples() const {
     return numberOfSamples;
 }
 
-void ConversionHelper::SetNumberOfSamples(uint32 numberOfSamplesIn) {
+void ConversionHelper::SetNumberOfSamples(const uint32 numberOfSamplesIn) {
     numberOfSamples = numberOfSamplesIn;
 }
 
-void* ConversionHelper::GetOutputMemory() const {
+void* ConversionHelper::GetOutputMemory() {
     return outputMemory;
 }
 }

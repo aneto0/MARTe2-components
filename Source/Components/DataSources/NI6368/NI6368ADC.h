@@ -169,8 +169,6 @@ NI6368ADC    ();
      */
     bool IsSynchronising();
 
-
-
     /**
      * @brief Starts the EmbeddedThread and sets the counter and the time to zero.
      * @details See StatefulI::PrepareNextState. Starts the EmbeddedThread (if it was not already started) that reads from the ADC.

@@ -1,7 +1,7 @@
 /**
- * @file ConversionHelper.h
- * @brief Header file for class ConversionHelper
- * @date 20/01/2017
+ * @file ConversioNHelperTTest.h
+ * @brief Header file for class ConversionHelperTTest
+ * @date 22/01/2017
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class ConversionHelper
+ * @details This header file contains the declaration of the class ConversionHelperTTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef CONVERSIONHELPER_H_
-#define CONVERSIONHELPER_H_
+#ifndef CONVERSIONGAM_CONVERSIONHELPERTTEST_H_
+#define CONVERSIONGAM_CONVERSIONHELPERTTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -31,48 +31,65 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "StructuredDataI.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-namespace MARTe {
-class ConversionHelper {
+
+/**
+ * @brief Tests the ConversionHelper/ConversionHelperT public methods.
+ */
+class ConversionHelperTTest {
 public:
-    ConversionHelper(const void * inputMemoryIn, void * outputMemoryIn);
+    /**
+     * @brief Tests the constructor.
+     */
+    bool TestConstructor();
 
-    virtual ~ConversionHelper();
+    /**
+     * @brief Tests the Convert method.
+     */
+    bool TestConvert();
 
-    virtual void Convert() = 0;
+    /**
+     * @brief Tests the LoadGain method.
+     */
+    bool TestLoadGain();
 
-    virtual bool LoadGain(StructuredDataI &data) = 0;
+    /**
+     * @brief Tests the GetInputMemory method.
+     */
+    bool TestGetInputMemory();
 
-    const void* GetInputMemory() const;
+    /**
+     * @brief Tests the GetNumberOfElements method.
+     */
+    bool TestGetNumberOfElements();
 
-    uint32 GetNumberOfElements() const ;
+    /**
+     * @brief Tests the SetNumberOfElements method.
+     */
+    bool TestSetNumberOfElements();
 
-    void SetNumberOfElements(uint32 numberOfElements);
+    /**
+     * @brief Tests the GetNumberOfSamples method.
+     */
+    bool TestGetNumberOfSamples();
 
-    uint32 GetNumberOfSamples() const;
+    /**
+     * @brief Tests the SetNumberOfSamples method.
+     */
+    bool TestSetNumberOfSamples();
 
-    void SetNumberOfSamples(uint32 numberOfSamples);
+    /**
+     * @brief Tests the GetOutputMemory method.
+     */
+    bool TestGetOutputMemory();
 
-    void* GetOutputMemory() const;
-
-
-protected:
-    uint32 numberOfSamples;
-    uint32 numberOfElements;
-    const void * inputMemory;
-    void * outputMemory;
 };
-}
-
-
-
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* CONVERSIONHELPER_H_ */
-	
+#endif /* CONVERSIONGAM_CONVERSIONHELPERTTEST_H_ */
+

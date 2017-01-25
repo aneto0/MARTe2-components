@@ -28,8 +28,7 @@ TARGET=cov
 
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-OBJSX = NI6368ADCGTest.x NI6368ADCInputBrokerGTest.x NI6368DACGTest.x
-# NI6368DIOGTest.x
+OBJSX = ConversionGAMGTest.x ConversionHelperTGTest.x
 
 include Makefile.inc
 

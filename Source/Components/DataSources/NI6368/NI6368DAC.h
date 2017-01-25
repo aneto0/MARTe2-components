@@ -182,26 +182,6 @@ private:
     StreamString deviceName;
 
     /**
-     * The DAC update clock source;
-     */
-    //ao_update_source_select_t clockUpdateSource;
-
-    /**
-     * The DAC update clock polarity;
-     */
-    //ao_update_source_polarity_t clockUpdatePolarity;
-
-    /**
-     * The DAC clock update divisor
-     */
-    //uint32 clockUpdateDivisor;
-
-    /**
-     * The board individual channel polarities
-     */
-    //ao_dac_polarity_t outputPolarity[NI6368DAC_MAX_CHANNELS];
-
-    /**
      * The board individual channel output ranges
      */
     xseries_output_range_t outputRange[NI6368DAC_MAX_CHANNELS];

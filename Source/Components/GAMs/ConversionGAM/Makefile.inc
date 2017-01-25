@@ -23,7 +23,7 @@
 # $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
 #
 #############################################################
-OBJSX=TypeCastGAM.x ConversionHelper.x
+OBJSX=ConversionGAM.x ConversionHelper.x
 
 PACKAGE=Components/GAMs
 
@@ -45,8 +45,8 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
 
 all: $(OBJS) $(SUBPROJ) \
-	$(BUILD_DIR)/TypeCastGAM$(LIBEXT) \
-	$(BUILD_DIR)/TypeCastGAM$(DLLEXT)
+	$(BUILD_DIR)/ConversionGAM$(LIBEXT) \
+	$(BUILD_DIR)/ConversionGAM$(DLLEXT)
 	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)

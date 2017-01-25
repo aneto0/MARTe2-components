@@ -1,6 +1,6 @@
 /**
- * @file TypeCastGAM.h
- * @brief Header file for class TypeCastGAM
+ * @file ConversionGAM.h
+ * @brief Header file for class ConversionGAM
  * @date 16/01/2017
  * @author Andre Neto
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class TypeCastGAM
+ * @details This header file contains the declaration of the class ConversionGAM
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef TYPE_CAST_GAM_H_
-#define TYPE_CAST_GAM_H_
+#ifndef CONVERSION_GAM_H_
+#define CONVERSION_GAM_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -31,98 +31,108 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "GAM.h"
 #include "ConversionHelper.h"
+#include "GAM.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
 /**
- * @brief TODO TODO
+ * @brief GAM which allows to convert between different signal types.
  *
- * GAM which copies its inputs to its outputs. Allows to plug different DataSources (e.g. driver with a DDB).
- * @details This GAM copies its inputs to its outputs. The number of inputs shall
- *  be exactly the number of the outputs and, for each signal, the types shall also be the same.
- *  Given that the DataSources cannot interchange data directly between them the main scope of the TypeCastGAM is to
- *  serve as a (direct) connector between DataSources.
+ * @details This GAM converts and copies the input signals to the output signals. A gain can
+ * also be specified so that outputSignal[i] = gain[i] * inputSignal[i], where i is the input signal index (see GetNumberOfInputSignals()).
+ * If the signal is an array (or has more than one sample), this operation is applied to each element/sample.
  *
- * The configuration syntax is (names and signal quantity are only given as an example):
- * +Buffer = {
- *     Class = TypeCastGAM
+ * The number of input and output signals shall be the same, i.e. GetNumberOfInputSignals() == GetNumberOfOutputSignals().
+ *
+ * For each input signal, the number of elements multiplied by the number of samples shall be the
+ * same as the number of elements multiplied by the number of samples in the correspondent output signal.
+ * Note that the number of elements or samples can be different, provided that the equality above is respected.
+ *
+ * The configuration syntax is (names and signal quantities are only given as an example):
+ * +Conversion1 = {
+ *     Class = ConversionGAM
  *     InputSignals = {
  *         Signal1 = {
  *             DataSource = "Drv1"
  *             Type = uint32
+ *             Samples = 20
+ *             Elements = 10
  *         }
  *         Signal2 = {
  *             DataSource = "Drv2"
- *             Type = int32
+ *             Type = int16
  *         }
  *     }
  *     OutputSignals = {
- *         Signal1O = {
+ *         Signal1 = {
  *             DataSource = "LCD"
- *             Type = uint32
+ *             Type = float32
+ *             Elements = 200
+ *             Gain = 3
  *         }
- *         Signal2O = {
+ *         Signal2 = {
  *             DataSource = "LCD"
  *             Type = int32
  *         }
  *     }
  * }
  */
-namespace MARTe {
-class TypeCastGAM: public GAM {
+class ConversionGAM: public GAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Constructor. NOOP.
      */
-    TypeCastGAM();
+ConversionGAM    ();
 
     /**
      * @brief Destructor. NOOP.
      */
-    virtual ~TypeCastGAM();
+    virtual ~ConversionGAM();
 
     /**
-     * @brief TODO TODO
-     *
-     *
-     * Verifies correctness of the GAM configuration.
-     * @details Checks that the number of input signals is equal to the number of output signals and that,
-     * for each signal, the same type is used.
+     * @brief Verifies the correctness of the GAM configuration.
+     * @details Checks that the number of input signals is equal to the number of output signals and that the rules below are met.
      * @return is the pre-conditions are met.
      * @pre
      *   SetConfiguredDatabase() &&
      *   GetNumberOfInputSignals() == GetNumberOfOutputSignals() &&
-     *   for each signal i: GetSignalType(InputSignals, i) == GetSignalType(OutputSignals, i) &&
-     *   for each signal i: GetSignalByteSize(InputSignals, i) * GetSignalNumberOfSamples(InputSignals, i) == GetSignalByteSize(OutputSignals, i) * GetSignalNumberOfSamples(OutputSignals, i)
+     *   for each signal i: GetSignalByteSize(InputSignals, i) * GetSignalNumberOfSamples(InputSignals, i) == GetSignalByteSize(OutputSignals, i) * GetSignalNumberOfSamples(OutputSignals, i) &&
+     *   for each signal i: GetSignalType(InputSignals, i) == uint8 or int8 or uint16 or int16 or uint32 or int32 or uint64 or int64 or float32 or float64
+     *   for each signal i: GetSignalType(OutputSignals, i) == uint8 or int8 or uint16 or int16 or uint32 or int32 or uint64 or int64 or float32 or float64
      */
     virtual bool Setup();
 
-
     /**
-     * @brief TODO
+     * @brief see GAM::Initialise.
+     * @details Stores the GAM configuration in order to read the Gain of each OutputSignal
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief TODO TODO
-     * @brief Copies the input signals memory to the output signal memory.
+     * @brief Convert the input signals memory to the output signal memory, eventually multiplying by a gain factor.
      * @return true if all the signals memory can be successfully copied.
      */
     virtual bool Execute();
 
 private:
-    //TODO
+    /**
+     * One ConversionHelperT for each signal.
+     */
     ConversionHelper **conversionHelpers;
 
-    //TODO
+    /**
+     * Number of signals to copy.
+     */
     uint32 numberOfSignals;
 
-    //TODO
+    /**
+     * StructuredData received at Initialise.
+     */
     ConfigurationDatabase cdb;
 };
 }
@@ -131,5 +141,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* TYPE_CAST_GAM_H_ */
+#endif /* CONVERSION_GAM_H_ */
 
