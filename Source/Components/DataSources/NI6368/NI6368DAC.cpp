@@ -320,6 +320,16 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName)
         }
     }
+    if (ok) {
+        bool stopped = (xseries_stop_ao(boardFileDescriptor) == 0);
+        if (!stopped) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Could not stop the device %s while starting", fullDeviceName)
+        }
+        bool reset = (xseries_reset_ao(boardFileDescriptor) == 0);
+        if (!reset) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Could not reset the device %s while starting", fullDeviceName)
+        }
+    }
     xseries_ao_conf_t dacConfiguration = xseries_static_ao();
     for (i = 0u; (i < NI6368DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
