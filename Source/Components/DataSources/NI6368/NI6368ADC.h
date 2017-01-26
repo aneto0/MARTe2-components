@@ -76,7 +76,6 @@ const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
  *              InputRange = 10 //Optional. Possible values: 0.1, 0.2, 0.5, 1, 2, 5, 10. Default value 10.
  *              Type = uint16 //Mandatory. Only the uint16 type is supported.
  *              ChannelId = 0 //Mandatory. The channel number.
- *              InputType = RSE //Optional. Possible values: Differential, RSE, NRSE, Loopback, Internal. Default value RSE.
  *          }
  *          ADC1_0 = {
  *             ...
@@ -250,11 +249,6 @@ private:
      * The board individual channel gains
      */
     xseries_input_range_t inputRange[NI6368ADC_MAX_CHANNELS];
-
-    /**
-     * The board individual channel modes (differential, ...)
-     */
-    xseries_ai_channel_type_t inputType[NI6368ADC_MAX_CHANNELS];
 
     /**
      * The ADC sampling clock source;

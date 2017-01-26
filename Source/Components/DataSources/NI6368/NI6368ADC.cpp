@@ -77,7 +77,6 @@ NI6368ADC::NI6368ADC() :
     uint32 n;
     for (n = 0u; n < NI6368ADC_MAX_CHANNELS; n++) {
         inputRange[n] = XSERIES_INPUT_RANGE_10V;
-        inputType[n] = XSERIES_AI_CHANNEL_TYPE_RSE;
         adcEnabled[n] = false;
         channelsFileDescriptors[n] = -1;
         channelsMemory[0u][n] = NULL_PTR(int16 *);
@@ -799,28 +798,6 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
                                 REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputRange.");
                             }
                         }
-                        StreamString mode;
-                        if (data.Read("InputType", mode)) {
-                            if (mode == "Differential") {
-                                inputType[channelId] = XSERIES_AI_CHANNEL_TYPE_DIFFERENTIAL;
-                            }
-                            else if (mode == "Loopback") {
-                                inputType[channelId] = XSERIES_AI_CHANNEL_TYPE_LOOPBACK;
-                            }
-                            else if (mode == "Internal") {
-                                inputType[channelId] = XSERIES_AI_CHANNEL_TYPE_INTERNAL;
-                            }
-                            else if (mode == "NRSE") {
-                                inputType[channelId] = XSERIES_AI_CHANNEL_TYPE_NRSE;
-                            }
-                            else if (mode == "RSE") {
-                                inputType[channelId] = XSERIES_AI_CHANNEL_TYPE_RSE;
-                            }
-                            else {
-                                ok = false;
-                                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputType.");
-                            }
-                        }
                     }
                 }
                 if (ok) {
@@ -976,7 +953,8 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
     xseries_ai_conf_t adcConfiguration = xseries_continuous_ai();
     for (i = 0u; (i < NI6368ADC_MAX_CHANNELS) && (ok); i++) {
         if (adcEnabled[i]) {
-            ok = (xseries_add_ai_channel(&adcConfiguration, static_cast<uint8_t>(i), inputRange[i], inputType[i], 0u) == 0);
+            //6368 only supports differential inputs.
+            ok = (xseries_add_ai_channel(&adcConfiguration, static_cast<uint8_t>(i), inputRange[i], XSERIES_AI_CHANNEL_TYPE_DIFFERENTIAL, 0u) == 0);
             uint32 ii = i;
             if (!ok) {
                 REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", ii, fullDeviceName)

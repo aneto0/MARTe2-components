@@ -240,16 +240,6 @@ TEST(NI6368ADCGTest,TestInitialise_DefaultInputRange) {
     ASSERT_TRUE(test.TestInitialise_DefaultInputRange());
 }
 
-TEST(NI6368ADCGTest,TestInitialise_InputType) {
-    NI6368ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_InputType());
-}
-
-TEST(NI6368ADCGTest,TestInitialise_False_BadInputType) {
-    NI6368ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadInputType());
-}
-
 TEST(NI6368ADCGTest,TestInitialise_DefaultInputType) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestInitialise_DefaultInputType());
