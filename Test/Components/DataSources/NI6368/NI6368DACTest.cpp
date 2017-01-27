@@ -159,8 +159,9 @@ static bool PatchConfiguration(const MARTe::char8 * const config1, const MARTe::
     if (ok) {
         ok = application->ConfigureApplication();
     }
-    ReferenceT<NI6368DAC> ni6368DAC = application->Find("Data.NI6368_0");
+    ReferenceT<NI6368DAC> ni6368DAC;
     if (ok) {
+        ni6368DAC = application->Find("Data.NI6368_0");
         ok = ni6368DAC.IsValid();
     }
     if (ok) {
@@ -183,7 +184,7 @@ static const MARTe::char8 * const config1 = ""
         "                DAC0_0 = {"
         "                    DataSource = NI6368_0"
         "                    Type = float32"
-        "                    Samples = 1000"
+        "                    NumberOfElements = 1000"
         "                    Trigger = 1"
         "                }"
         "            }"
@@ -196,6 +197,14 @@ static const MARTe::char8 * const config1 = ""
         "            Class = NI6368DAC"
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -267,6 +276,14 @@ static const MARTe::char8 * const config2 = ""
         "            Class = NI6368DAC"
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -338,6 +355,14 @@ static const MARTe::char8 * const config3 = ""
         "            Class = NI6368DAC"
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -350,6 +375,14 @@ static const MARTe::char8 * const config3 = ""
         "            Class = NI6368DAC"
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 1"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -406,6 +439,14 @@ static const MARTe::char8 * const config4 = ""
         "            Class = NI6368DAC"
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = uint32"
@@ -449,7 +490,7 @@ static const MARTe::char8 * const config5 = ""
         "                DAC0_0 = {"
         "                    DataSource = NI6368_0"
         "                    Type = float32"
-        "                    Samples = 2"
+        "                    Samples = 1"
         "                    Trigger = 1"
         "                }"
         "            }"
@@ -462,6 +503,14 @@ static const MARTe::char8 * const config5 = ""
         "            Class = NI6368DAC"
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -518,6 +567,14 @@ static const MARTe::char8 * const config6 = ""
         "            Class = NI6368DAC"
         "            DeviceName = \"/tmp/pxie-6368\""
         "            BoardId = 0"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -584,6 +641,14 @@ static const MARTe::char8 * const config7 = ""
         "            Class = NI6368DAC"
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -644,6 +709,14 @@ static const MARTe::char8 * const config8 = ""
         "            Class = NI6368DAC"
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
@@ -675,6 +748,157 @@ static const MARTe::char8 * const config8 = ""
         "    }"
         "}";
 
+//Two channel base configuration with different number of elements
+static const MARTe::char8 * const config9 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6368DACTestGAM"
+        "            OutputSignals = {"
+        "                DAC0_0 = {"
+        "                    DataSource = NI6368_0"
+        "                    Type = float32"
+        "                    Samples = 1"
+        "                    NumberOfElements = 10"
+        "                    Trigger = 1"
+        "                }"
+        "                DAC1_0 = {"
+        "                    DataSource = NI6368_0"
+        "                    Type = float32"
+        "                    Samples = 1"
+        "                    NumberOfElements = 9"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6368_0 = {"
+        "            Class = NI6368DAC"
+        "            DeviceName = \"/dev/pxie-6368\""
+        "            BoardId = 0"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
+        "            Signals = {"
+        "                DAC0_0 = {"
+        "                   Type = float32"
+        "                   ChannelId = 0"
+        "                   OutputRange = 10"
+        "                }"
+        "                DAC1_0 = {"
+        "                   Type = float32"
+        "                   ChannelId = 1"
+        "                   OutputRange = 10"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Two channel base configuration with more than one sample
+static const MARTe::char8 * const config10 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6368DACTestGAM"
+        "            OutputSignals = {"
+        "                DAC0_0 = {"
+        "                    DataSource = NI6368_0"
+        "                    Type = float32"
+        "                    Samples = 1"
+        "                    NumberOfElements = 10"
+        "                    Trigger = 1"
+        "                }"
+        "                DAC1_0 = {"
+        "                    DataSource = NI6368_0"
+        "                    Type = float32"
+        "                    Samples = 2"
+        "                    NumberOfElements = 10"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6368_0 = {"
+        "            Class = NI6368DAC"
+        "            DeviceName = \"/dev/pxie-6368\""
+        "            BoardId = 0"
+        "            StartTriggerSource = \"SW_PULSE\""
+        "            StartTriggerPolarity = \"RISING_EDGE\""
+        "            UpdateCounterSource = \"UI_TC\""
+        "            UpdateCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterSource = \"TB3\""
+        "            UpdateIntervalCounterPolarity = \"RISING_EDGE\""
+        "            UpdateIntervalCounterPeriodDivisor = 100000"
+        "            UpdateIntervalCounterDelay = 2"
+        "            Signals = {"
+        "                DAC0_0 = {"
+        "                   Type = float32"
+        "                   ChannelId = 0"
+        "                   OutputRange = 10"
+        "                }"
+        "                DAC1_0 = {"
+        "                   Type = float32"
+        "                   ChannelId = 1"
+        "                   OutputRange = 10"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -918,6 +1142,1590 @@ bool NI6368DACTest::TestInitialise_False_BadChannelId() {
     return ok;
 }
 
+bool NI6368DACTest::TestInitialise_StartTriggerSource() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "SW_PULSE", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_SW_PULSE);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI0);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI3);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI4);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI5);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI6);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI7);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI8", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI8);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI9", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI9);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI10", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI10);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI11", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI11);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI12", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI12);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI13", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI13);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI14", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI14);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PFI15", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PFI15);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "RTSI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_RTSI0);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "RTSI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_RTSI1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "RTSI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_RTSI2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "RTSI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_RTSI3);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "RTSI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_RTSI4);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "RTSI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_RTSI5);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "RTSI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_RTSI6);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "RTSI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_RTSI7);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "DIO_CHGDETECT", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_DIO_CHGDETECT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "G0_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_G0_OUT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "G1_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_G1_OUT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "G2_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_G2_OUT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "G3_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_G3_OUT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "STAR_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_STAR_TRIGGER);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "ANALOG_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_ANALOG_TRIGGER);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "AI_START1", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_AI_START1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "AI_START2", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_AI_START2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "STAR_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_STAR_TRIGGER);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "LOW", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_LOW);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PXIE_DSTARA", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PXIE_DSTARA);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "PXIE_DSTARB", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_PXIE_DSTARB);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "DI_START1", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_DI_START1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "DI_START2", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_DI_START2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "DO_START1", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_DO_START1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "FIFOCONDITION", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_FIFOCONDITION);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "INTTRIGGERA0", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_INTTRIGGERA0);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "INTTRIGGERA1", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_INTTRIGGERA1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "INTTRIGGERA2", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_INTTRIGGERA2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "INTTRIGGERA3", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_INTTRIGGERA3);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "INTTRIGGERA4", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_INTTRIGGERA4);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "INTTRIGGERA5", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_INTTRIGGERA5);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "INTTRIGGERA6", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_INTTRIGGERA6);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerSource", "INTTRIGGERA7", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_source == XSERIES_AO_START_TRIGGER_INTTRIGGERA7);
+        }
+    }
+
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_NoStartTriggerSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("StartTriggerSource");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_BadStartTriggerSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("StartTriggerSource");
+    cdb.Write("StartTriggerSource", "INVALID");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_StartTriggerPolarity() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerPolarity", "RISING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_polarity == XSERIES_AO_POLARITY_RISING_EDGE);
+        }
+    }
+    //TODO check that FALLING_EDGE is indeed not supported
+#if 0
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerPolarity", "FALLING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.start1_polarity == XSERIES_AO_POLARITY_FALLING_EDGE);
+        }
+    }
+#endif
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_NoStartTriggerPolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("StartTriggerPolarity");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_BadStartTriggerPolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("StartTriggerPolarity");
+    cdb.Write("StartTriggerPolarity", "INVALID");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_UpdateCounterSource() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "UI_TC", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_UI_TC);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI0);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI3);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI4);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI5);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI6);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI7);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI8", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI8);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI9", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI9);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI10", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI10);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI11", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI11);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI12", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI12);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI13", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI13);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI14", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI14);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PFI15", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PFI15);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "RTSI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_RTSI0);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "RTSI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_RTSI1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "RTSI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_RTSI2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "RTSI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_RTSI3);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "RTSI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_RTSI4);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "RTSI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_RTSI5);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "RTSI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_RTSI6);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "RTSI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_RTSI7);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "DIO_CHGDETECT", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_DIO_CHGDETECT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "G0_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_G0_OUT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "G1_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_G1_OUT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "G2_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_G2_OUT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "G3_OUT", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_G3_OUT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "STAR_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_STAR_TRIGGER);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "ANALOG_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_ANALOG_TRIGGER);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "STAR_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_STAR_TRIGGER);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "LOW", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_LOW);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PXIE_DSTARA", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PXIE_DSTARA);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "PXIE_DSTARB", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_PXIE_DSTARB);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "G0_SAMPLECLK", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_G0_SAMPLECLK);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "G1_SAMPLECLK", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_G1_SAMPLECLK);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "G2_SAMPLECLK", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_G2_SAMPLECLK);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "G3_SAMPLECLK", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_G3_SAMPLECLK);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "AI_CONVERT", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_AI_CONVERT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "AI_START", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_AI_START);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "DI_CONVERT", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_DI_CONVERT);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "DO_UPDATE", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_DO_UPDATE);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "AUTOUPDATE", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_AUTOUPDATE);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "INTTRIGGERA0", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA0);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "INTTRIGGERA1", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "INTTRIGGERA2", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "INTTRIGGERA3", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA3);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "INTTRIGGERA4", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA4);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "INTTRIGGERA5", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA5);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "INTTRIGGERA6", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA6);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterSource", "INTTRIGGERA7", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_source == XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA7);
+        }
+    }
+
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_NoUpdateCounterSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateCounterSource");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_BadUpdateCounterSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateCounterSource");
+    cdb.Write("UpdateCounterSource", "INVALID");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_UpdateCounterPolarity() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterPolarity", "RISING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_polarity == XSERIES_AO_POLARITY_RISING_EDGE);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateCounterPolarity", "FALLING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.update_polarity == XSERIES_AO_POLARITY_FALLING_EDGE);
+        }
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_NoUpdateCounterPolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateCounterPolarity");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_BadUpdateCounterPolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateCounterPolarity");
+    cdb.Write("UpdateCounterPolarity", "INVALID");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_UpdateIntervalCounterSource() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "TB3", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB3);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "TB2", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "TB1", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI0);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI3);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI4);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI5);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI6);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI7);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI8", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI8);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI9", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI9);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI10", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI10);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI11", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI11);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI12", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI12);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI13", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI13);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI14", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI14);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PFI15", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI15);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "RTSI0", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI0);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "RTSI1", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI1);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "RTSI2", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI2);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "RTSI3", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI3);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "RTSI4", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI4);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "RTSI5", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI5);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "RTSI6", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI6);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "RTSI7", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI7);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "STAR_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_STAR_TRIGGER);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "ANALOG_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_ANALOG_TRIGGER);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "STAR_TRIGGER", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_STAR_TRIGGER);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "DSTARA", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_DSTARA);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "DSTARB", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_DSTARB);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterSource", "PXI_CLK10", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_source == XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PXI_CLK10);
+        }
+    }
+
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_NoUpdateIntervalCounterSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateIntervalCounterSource");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_BadUpdateIntervalCounterSource() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateIntervalCounterSource");
+    cdb.Write("UpdateIntervalCounterSource", "INVALID");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_UpdateIntervalCounterPolarity() {
+    using namespace MARTe;
+    bool ok = true;
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterPolarity", "RISING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_polarity == XSERIES_OUTTIMER_POLARITY_RISING_EDGE);
+        }
+    }
+    {
+        xseries_ao_conf_t conf;
+        if (ok) {
+            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "UpdateIntervalCounterPolarity", "FALLING_EDGE", &conf);
+        }
+        if (ok) {
+            ok = (conf.outtimer_params.ui_polarity == XSERIES_OUTTIMER_POLARITY_FALLING_EDGE);
+        }
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_NoUpdateIntervalCounterPolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateIntervalCounterPolarity");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_BadUpdateIntervalCounterPolarity() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateIntervalCounterPolarity");
+    cdb.Write("UpdateIntervalCounterPolarity", "INVALID");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_NoUpdateIntervalCounterPeriodDivisor() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateIntervalCounterPeriodDivisor");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_NoUpdateIntervalCounterDelay() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateIntervalCounterDelay");
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_InvalidUpdateIntervalCounterPeriodDivisor() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateIntervalCounterPeriodDivisor");
+    cdb.Write("UpdateIntervalCounterPeriodDivisor", 0);
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368DACTest::TestInitialise_False_InvalidUpdateIntervalCounterDelay() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Delete("UpdateIntervalCounterDelay");
+    cdb.Write("UpdateIntervalCounterDelay", 0);
+    NI6368DAC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
 bool NI6368DACTest::TestSetConfiguredDatabase() {
     return TestIntegratedInApplication(config1);
 }
@@ -951,8 +2759,9 @@ bool NI6368DACTest::TestSetConfiguredDatabase_AllChannels_Parameters() {
         ok = application->ConfigureApplication();
     }
 
-    ReferenceT<NI6368DAC> ni6368DAC = application->Find("Data.NI6368_0");
+    ReferenceT<NI6368DAC> ni6368DAC;
     if (ok) {
+        ni6368DAC = application->Find("Data.NI6368_0");
         ok = ni6368DAC.IsValid();
     }
     if (ok) {
@@ -983,5 +2792,13 @@ bool NI6368DACTest::TestSetConfiguredDatabase_False_WrongDeviceName() {
 
 bool NI6368DACTest::TestSetConfiguredDatabase_False_NoTriggers() {
     return !TestIntegratedInApplication(config8);
+}
+
+bool NI6368DACTest::TestSetConfiguredDatabase_False_DifferentElements() {
+    return !TestIntegratedInApplication(config9);
+}
+
+bool NI6368DACTest::TestSetConfiguredDatabase_False_MoreThanOneSample() {
+    return !TestIntegratedInApplication(config10);
 }
 

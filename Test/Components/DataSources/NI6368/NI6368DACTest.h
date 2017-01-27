@@ -137,6 +137,116 @@ public:
     bool TestInitialise_False_BadChannelId();
 
     /**
+     * @brief Tests the Initialise method with all the possible start trigger sources.
+     */
+    bool TestInitialise_StartTriggerSource();
+
+    /**
+     * @brief Tests the Initialise method without specifying a start trigger sources.
+     */
+    bool TestInitialise_False_NoStartTriggerSource();
+
+    /**
+     * @brief Tests the Initialise method with an invalid start trigger source.
+     */
+    bool TestInitialise_False_BadStartTriggerSource();
+
+    /**
+     * @brief Tests the Initialise method with all the possible start trigger polarities.
+     */
+    bool TestInitialise_StartTriggerPolarity();
+
+    /**
+     * @brief Tests the Initialise method without specifying a start trigger polarity.
+     */
+    bool TestInitialise_False_NoStartTriggerPolarity();
+
+    /**
+     * @brief Tests the Initialise method with an invalid start trigger polarity.
+     */
+    bool TestInitialise_False_BadStartTriggerPolarity();
+
+    /**
+     * @brief Tests the Initialise method with all the possible update counter sources.
+     */
+    bool TestInitialise_UpdateCounterSource();
+
+    /**
+     * @brief Tests the Initialise method without specifying an update counter source.
+     */
+    bool TestInitialise_False_NoUpdateCounterSource();
+
+    /**
+     * @brief Tests the Initialise method with an invalid update counter source.
+     */
+    bool TestInitialise_False_BadUpdateCounterSource();
+
+    /**
+     * @brief Tests the Initialise method with all the possible update counter polarities.
+     */
+    bool TestInitialise_UpdateCounterPolarity();
+
+    /**
+     * @brief Tests the Initialise method without specifying an update counter polarity.
+     */
+    bool TestInitialise_False_NoUpdateCounterPolarity();
+
+    /**
+     * @brief Tests the Initialise method with an invalid update counter polarity.
+     */
+    bool TestInitialise_False_BadUpdateCounterPolarity();
+
+    /**
+     * @brief Tests the Initialise method with all the possible update interval counter sources.
+     */
+    bool TestInitialise_UpdateIntervalCounterSource();
+
+    /**
+     * @brief Tests the Initialise method without specifying an update interval counter source.
+     */
+    bool TestInitialise_False_NoUpdateIntervalCounterSource();
+
+    /**
+     * @brief Tests the Initialise method with an invalid update interval counter source.
+     */
+    bool TestInitialise_False_BadUpdateIntervalCounterSource();
+
+    /**
+     * @brief Tests the Initialise method with all the possible update interval counter polarities.
+     */
+    bool TestInitialise_UpdateIntervalCounterPolarity();
+
+    /**
+     * @brief Tests the Initialise method without specifying an update interval counter polarity.
+     */
+    bool TestInitialise_False_NoUpdateIntervalCounterPolarity();
+
+    /**
+     * @brief Tests the Initialise method with an invalid update interval counter polarity.
+     */
+    bool TestInitialise_False_BadUpdateIntervalCounterPolarity();
+
+    /**
+     * @brief Tests the Initialise method without specifying the UpdateIntervalCounterPeriodDivisor.
+     */
+    bool TestInitialise_False_NoUpdateIntervalCounterPeriodDivisor();
+
+    /**
+     * @brief Tests the Initialise method without specifying the UpdateIntervalCounterDelay.
+     */
+    bool TestInitialise_False_NoUpdateIntervalCounterDelay();
+
+    /**
+     * @brief Tests the Initialise method with an invalid UpdateIntervalCounterPeriod.
+     */
+    bool TestInitialise_False_InvalidUpdateIntervalCounterPeriodDivisor();
+
+    /**
+     * @brief Tests the Initialise method with an invalid UpdateIntervalDivisorCounterDelay.
+     */
+    bool TestInitialise_False_InvalidUpdateIntervalCounterDelay();
+
+    /**
      * @brief Tests the SetConfiguredDatabase method.
      */
     bool TestSetConfiguredDatabase();
@@ -171,6 +281,15 @@ public:
      */
     bool TestSetConfiguredDatabase_False_NoTriggers();
 
+    /**
+     * @brief Tests the SetConfiguredDatabase specifying an inconsistent number of elements.
+     */
+    bool TestSetConfiguredDatabase_False_DifferentElements();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase specifying more than one sample.
+     */
+    bool TestSetConfiguredDatabase_False_MoreThanOneSample();
 };
 
 /*---------------------------------------------------------------------------*/

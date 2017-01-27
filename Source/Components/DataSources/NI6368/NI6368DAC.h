@@ -44,27 +44,30 @@ namespace MARTe {
 //Number of DAC channels
 const uint32 NI6368DAC_MAX_CHANNELS = 4u;
 /**
- * TODO check configuration
  * @brief A DataSource which provides an analogue output interface to the NI6368 boards.
  * @details The configuration syntax is (names are only given as an example):
  * +NI6368_0_DAC = {
  *     Class = NI6368::NI6368DAC
- *     DeviceName = "/dev/pxi6368" //Mandatory
+ *     DeviceName = "/dev/pxie-6368" //Mandatory
  *     BoardId = 0 //Mandatory
- *     ClockUpdateSource = "UI_TC" //Mandatory. Update clock source. Possible values:UI_TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, GPCRT0_OUT, STAR_TRIGGER, GPCTR1_OUT, ANALOG_TRIGGER, LOW
- *     ClockUpdatePolarity = "RISING_EDGE" //Mandatory. Possible values: RISING_EDGE, FALLING_EDGE
- *     ClockUpdateDivisor = 10 //Optional. Default value = 10. Only meaningful if ClockUpdateSource == UI_TC.
+ *     StartTriggerSource = "SW_PULSE" //Mandatory. Start trigger source. Possible values: SW_PULSE, PFI0, ..., PFI15, RTSI0, ..., RTSI7, AI_START1, AI_START2, STAR_TRIGGER, PXIE_DSTARA, PXIE_DSTARB, ANALOG_TRIGGER, LOW, G0_OUT, ..., G3_OUT, DIO_CHGDETECT, DI_START1, DI_START2, DO_START1, INTTRIGGERA0, ..., INTTRIGGERA7, FIFOCONDITION
+ *     StartTriggerPolarity = "RISING_EDGE" //Mandatory. Start trigger polarity.  RISING_EDGE, FALLING_EDGE
+ *     UpdateCounterSource = "UI_TC" //Mandatory. Possible values: UI_TC, PFI0, PFI1, PFI2, PFI3, PFI4, PFI5, PFI6, PFI7, PFI8, PFI9, RTSI0, RTSI1, RTSI2, RTSI3, RTSI4, RTSI5, RTSI6, G0_OUT, G1_OUT, STAR_TRIGGER, PFI10, PFI11, PFI12, PFI13, PFI14, PFI15, RTSI7, G2_OUT, G3_OUT, ANALOG_TRIGGER, LOW, PXIE_DSTARA, PXIE_DSTARB, DIO_CHGDETECT, G0_SAMPLECLK, G1_SAMPLECLK, G2_SAMPLECLK, G3_SAMPLECLK, AI_CONVERT, AI_START, DI_CONVERT, DO_UPDATE, INTTRIGGERA0, INTTRIGGERA1, INTTRIGGERA2, INTTRIGGERA3, INTTRIGGERA4, INTTRIGGERA5, INTTRIGGERA6, INTTRIGGERA7, AUTOUPDATE
+ *     UpdateCounterPolarity = "RISING_EDGE" //Mandatory. Update counter polarity.  RISING_EDGE, FALLING_EDGE
+ *     UpdateIntervalCounterSource = "TB3" //Mandatory. Possible values:TB3, PFI0, PFI1, PFI2, PFI3, PFI4, PFI5, PFI6, PFI7, PFI8, PFI9, RTSI0, RTSI1, RTSI2, RTSI3, RTSI4, RTSI5, RTSI6, DSTARA, TB2, STAR_TRIGGER, PFI10, PFI11, PFI12, PFI13, PFI14, PFI15, RTSI7, TB1, PXI_CLK10, ANALOG_TRIGGER, DSTARB
+ *     UpdateIntervalCounterPolarity = "RISING_EDGE" //Mandatory. Possible values: RISING_EDGE, FALLING_EDGE
+ *     UpdateIntervalCounterDivisor = 100000 //Mandatory > 0
+ *     UpdateIntervalCounterDelay = 2 //Mandatory > 0
  *     Signals = {
  *         DAC0_0 = {
  *             Type = float32 //Mandatory. Only type that is supported.
  *             ChannelId = 0 //Mandatory. The channel number.
- *             OutputPolarity = Bipolar //Optional. Possible values: Bipolar, Unipolar. Default value Unipolar.
+ *             OutputRange = 10 //Mandatory. Possible values: 10, 5, APFI0, APFI1
  *         }
  *     }
  * }
  *
  * Note that at least one of the GAMs writing to this DataSource must have set one of the signals with Trigger=1 (which forces the writing of all the signals to the DAC).
- * The clock configuration is fixed to AO_UPDATE_SOURCE_SELECT_UI_TC and AO_UPDATE_SOURCE_POLARITY_RISING_EDGE.
  */
 class NI6368DAC: public DataSourceI {
 public:
@@ -73,7 +76,7 @@ public:
      * @brief Default constructor.
      * @details Initialises all the optional parameters as described in the class description.
      */
-    NI6368DAC();
+NI6368DAC    ();
 
     /**
      * @brief Destructor.
@@ -150,7 +153,7 @@ public:
      * In particular the following conditions shall be met:
      * - At least one triggering signal was requested by a GAM (with the property Trigger = 1)
      * - All the DAC channels have type float32.
-     * - The number of samples of all the DAC channels is exactly one.
+     * - The number of samples of all the DAC channels is the same.
      * @return true if all the parameters are valid and consistent with the board parameters and if the board can be successfully configured with
      *  these parameters.
      */
@@ -182,6 +185,46 @@ private:
     StreamString deviceName;
 
     /**
+     * The start trigger source
+     */
+    xseries_ao_start_trigger_t startTriggerSource;
+
+    /**
+     * The start trigger polarity
+     */
+    xseries_ao_polarity_t startTriggerPolarity;
+
+    /**
+     * The update counter source
+     */
+    xseries_ao_update_counter_t updateCounterSource;
+
+    /**
+     * The update counter polarity
+     */
+    xseries_ao_polarity_t updateCounterPolarity;
+
+    /**
+     * The update interval counter source
+     */
+    xseries_outtimer_update_interval_counter_t updateIntervalCounterSource;
+
+    /**
+     * The update interval counter source
+     */
+    xseries_outtimer_polarity_t updateIntervalCounterPolarity;
+
+    /**
+     * The update interval counter period divisor
+     */
+    uint32 updateIntervalCounterPeriodDivisor;
+
+    /**
+     * The update interval counter delay
+     */
+    uint8 updateIntervalCounterDelay;
+
+    /**
      * The board individual channel output ranges
      */
     xseries_output_range_t outputRange[NI6368DAC_MAX_CHANNELS];
@@ -189,7 +232,7 @@ private:
     /**
      * The number of samples
      */
-    uint32 numberOfSamples;
+    uint32 numberOfElements;
 
     /**
      * The board file descriptor

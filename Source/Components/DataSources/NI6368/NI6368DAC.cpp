@@ -49,14 +49,20 @@ NI6368DAC::NI6368DAC() :
     boardFileDescriptor = -1;
     deviceName = "";
     numberOfDACsEnabled = 0u;
-    //clockUpdateDivisor = 10u;
     triggerSet = false;
-    numberOfSamples = 0u;
-    //clockUpdateSource = AO_UPDATE_SOURCE_SELECT_UI_TC;
-    //clockUpdatePolarity = AO_UPDATE_SOURCE_POLARITY_RISING_EDGE;
+    numberOfElements = 0u;
+
+    startTriggerSource = XSERIES_AO_START_TRIGGER_SW_PULSE;
+    startTriggerPolarity = XSERIES_AO_POLARITY_RISING_EDGE;
+    updateCounterSource = XSERIES_AO_UPDATE_COUNTER_UI_TC;
+    updateCounterPolarity = XSERIES_AO_POLARITY_RISING_EDGE;
+    updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB3;
+    updateIntervalCounterPolarity = XSERIES_OUTTIMER_POLARITY_RISING_EDGE;
+    updateIntervalCounterPeriodDivisor = 100000u;
+    updateIntervalCounterDelay = 2u;
+
     uint32 n;
     for (n = 0u; n < NI6368DAC_MAX_CHANNELS; n++) {
-        //outputPolarity[n] = AO_DAC_POLARITY_UNIPOLAR;
         outputRange[n] = XSERIES_OUTPUT_RANGE_10V;
         dacEnabled[n] = false;
         channelsFileDescriptors[n] = -1;
@@ -201,6 +207,525 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The BoardId shall be specified");
         }
     }
+    if (ok) {
+        StreamString startTriggerSourceStr;
+        ok = data.Read("StartTriggerSource", startTriggerSourceStr);
+        if (ok) {
+            if (startTriggerSourceStr == "SW_PULSE") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_SW_PULSE;
+            }
+            else if (startTriggerSourceStr == "PFI0") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI0;
+            }
+            else if (startTriggerSourceStr == "PFI1") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI1;
+            }
+            else if (startTriggerSourceStr == "PFI2") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI2;
+            }
+            else if (startTriggerSourceStr == "PFI3") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI3;
+            }
+            else if (startTriggerSourceStr == "PFI4") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI4;
+            }
+            else if (startTriggerSourceStr == "PFI5") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI5;
+            }
+            else if (startTriggerSourceStr == "PFI6") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI6;
+            }
+            else if (startTriggerSourceStr == "PFI7") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI7;
+            }
+            else if (startTriggerSourceStr == "PFI8") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI8;
+            }
+            else if (startTriggerSourceStr == "PFI9") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI9;
+            }
+            else if (startTriggerSourceStr == "RTSI0") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_RTSI0;
+            }
+            else if (startTriggerSourceStr == "RTSI1") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_RTSI1;
+            }
+            else if (startTriggerSourceStr == "RTSI2") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_RTSI2;
+            }
+            else if (startTriggerSourceStr == "RTSI3") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_RTSI3;
+            }
+            else if (startTriggerSourceStr == "RTSI4") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_RTSI4;
+            }
+            else if (startTriggerSourceStr == "RTSI5") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_RTSI5;
+            }
+            else if (startTriggerSourceStr == "RTSI6") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_RTSI6;
+            }
+            else if (startTriggerSourceStr == "AI_START2") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_AI_START2;
+            }
+            else if (startTriggerSourceStr == "AI_START1") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_AI_START1;
+            }
+            else if (startTriggerSourceStr == "STAR_TRIGGER") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_STAR_TRIGGER;
+            }
+            else if (startTriggerSourceStr == "PFI10") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI10;
+            }
+            else if (startTriggerSourceStr == "PFI11") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI11;
+            }
+            else if (startTriggerSourceStr == "PFI12") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI12;
+            }
+            else if (startTriggerSourceStr == "PFI13") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI13;
+            }
+            else if (startTriggerSourceStr == "PFI14") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI14;
+            }
+            else if (startTriggerSourceStr == "PFI15") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PFI15;
+            }
+            else if (startTriggerSourceStr == "RTSI7") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_RTSI7;
+            }
+            else if (startTriggerSourceStr == "PXIE_DSTARA") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PXIE_DSTARA;
+            }
+            else if (startTriggerSourceStr == "PXIE_DSTARB") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_PXIE_DSTARB;
+            }
+            else if (startTriggerSourceStr == "ANALOG_TRIGGER") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_ANALOG_TRIGGER;
+            }
+            else if (startTriggerSourceStr == "LOW") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_LOW;
+            }
+            else if (startTriggerSourceStr == "G0_OUT") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_G0_OUT;
+            }
+            else if (startTriggerSourceStr == "G1_OUT") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_G1_OUT;
+            }
+            else if (startTriggerSourceStr == "G2_OUT") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_G2_OUT;
+            }
+            else if (startTriggerSourceStr == "G3_OUT") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_G3_OUT;
+            }
+            else if (startTriggerSourceStr == "DIO_CHGDETECT") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_DIO_CHGDETECT;
+            }
+            else if (startTriggerSourceStr == "DI_START1") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_DI_START1;
+            }
+            else if (startTriggerSourceStr == "DI_START2") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_DI_START2;
+            }
+            else if (startTriggerSourceStr == "DO_START1") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_DO_START1;
+            }
+            else if (startTriggerSourceStr == "INTTRIGGERA0") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_INTTRIGGERA0;
+            }
+            else if (startTriggerSourceStr == "INTTRIGGERA1") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_INTTRIGGERA1;
+            }
+            else if (startTriggerSourceStr == "INTTRIGGERA2") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_INTTRIGGERA2;
+            }
+            else if (startTriggerSourceStr == "INTTRIGGERA3") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_INTTRIGGERA3;
+            }
+            else if (startTriggerSourceStr == "INTTRIGGERA4") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_INTTRIGGERA4;
+            }
+            else if (startTriggerSourceStr == "INTTRIGGERA5") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_INTTRIGGERA5;
+            }
+            else if (startTriggerSourceStr == "INTTRIGGERA6") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_INTTRIGGERA6;
+            }
+            else if (startTriggerSourceStr == "INTTRIGGERA7") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_INTTRIGGERA7;
+            }
+            else if (startTriggerSourceStr == "FIFOCONDITION") {
+                startTriggerSource = XSERIES_AO_START_TRIGGER_FIFOCONDITION;
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid StartTriggerSource specified");
+                ok = false;
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The StartTriggerSource shall be specified");
+        }
+    }
+    if (ok) {
+        StreamString startTriggerPolarityStr;
+        ok = data.Read("StartTriggerPolarity", startTriggerPolarityStr);
+        if (ok) {
+            if (startTriggerPolarityStr == "RISING_EDGE") {
+                startTriggerPolarity = XSERIES_AO_POLARITY_RISING_EDGE;
+            }
+            else if (startTriggerPolarityStr == "FALLING_EDGE") {
+                startTriggerPolarity = XSERIES_AO_POLARITY_FALLING_EDGE;
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid StartTriggerPolarity specified");
+                ok = false;
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The StartTriggerPolarity shall be specified");
+        }
+    }
+    if (ok) {
+        StreamString updateCounterSourceStr;
+        ok = data.Read("UpdateCounterSource", updateCounterSourceStr);
+        if (ok) {
+            if (updateCounterSourceStr == "UI_TC") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_UI_TC;
+            }
+            else if (updateCounterSourceStr == "PFI0") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI0;
+            }
+            else if (updateCounterSourceStr == "PFI1") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI1;
+            }
+            else if (updateCounterSourceStr == "PFI2") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI2;
+            }
+            else if (updateCounterSourceStr == "PFI3") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI3;
+            }
+            else if (updateCounterSourceStr == "PFI4") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI4;
+            }
+            else if (updateCounterSourceStr == "PFI5") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI5;
+            }
+            else if (updateCounterSourceStr == "PFI6") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI6;
+            }
+            else if (updateCounterSourceStr == "PFI7") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI7;
+            }
+            else if (updateCounterSourceStr == "PFI8") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI8;
+            }
+            else if (updateCounterSourceStr == "PFI9") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI9;
+            }
+            else if (updateCounterSourceStr == "RTSI0") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI0;
+            }
+            else if (updateCounterSourceStr == "RTSI1") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI1;
+            }
+            else if (updateCounterSourceStr == "RTSI2") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI2;
+            }
+            else if (updateCounterSourceStr == "RTSI3") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI3;
+            }
+            else if (updateCounterSourceStr == "RTSI4") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI4;
+            }
+            else if (updateCounterSourceStr == "RTSI5") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI5;
+            }
+            else if (updateCounterSourceStr == "RTSI6") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI6;
+            }
+            else if (updateCounterSourceStr == "G0_OUT") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G0_OUT;
+            }
+            else if (updateCounterSourceStr == "G1_OUT") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G1_OUT;
+            }
+            else if (updateCounterSourceStr == "STAR_TRIGGER") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_STAR_TRIGGER;
+            }
+            else if (updateCounterSourceStr == "PFI10") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI10;
+            }
+            else if (updateCounterSourceStr == "PFI11") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI11;
+            }
+            else if (updateCounterSourceStr == "PFI12") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI12;
+            }
+            else if (updateCounterSourceStr == "PFI13") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI13;
+            }
+            else if (updateCounterSourceStr == "PFI14") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI14;
+            }
+            else if (updateCounterSourceStr == "PFI15") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI15;
+            }
+            else if (updateCounterSourceStr == "RTSI7") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI7;
+            }
+            else if (updateCounterSourceStr == "G2_OUT") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G2_OUT;
+            }
+            else if (updateCounterSourceStr == "G3_OUT") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G3_OUT;
+            }
+            else if (updateCounterSourceStr == "ANALOG_TRIGGER") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_ANALOG_TRIGGER;
+            }
+            else if (updateCounterSourceStr == "LOW") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_LOW;
+            }
+            else if (updateCounterSourceStr == "PXIE_DSTARA") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PXIE_DSTARA;
+            }
+            else if (updateCounterSourceStr == "PXIE_DSTARB") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PXIE_DSTARB;
+            }
+            else if (updateCounterSourceStr == "DIO_CHGDETECT") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_DIO_CHGDETECT;
+            }
+            else if (updateCounterSourceStr == "G0_SAMPLECLK") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G0_SAMPLECLK;
+            }
+            else if (updateCounterSourceStr == "G1_SAMPLECLK") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G1_SAMPLECLK;
+            }
+            else if (updateCounterSourceStr == "G2_SAMPLECLK") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G2_SAMPLECLK;
+            }
+            else if (updateCounterSourceStr == "G3_SAMPLECLK") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G3_SAMPLECLK;
+            }
+            else if (updateCounterSourceStr == "AI_CONVERT") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_AI_CONVERT;
+            }
+            else if (updateCounterSourceStr == "AI_START") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_AI_START;
+            }
+            else if (updateCounterSourceStr == "DI_CONVERT") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_DI_CONVERT;
+            }
+            else if (updateCounterSourceStr == "DO_UPDATE") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_DO_UPDATE;
+            }
+            else if (updateCounterSourceStr == "INTTRIGGERA0") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA0;
+            }
+            else if (updateCounterSourceStr == "INTTRIGGERA1") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA1;
+            }
+            else if (updateCounterSourceStr == "INTTRIGGERA2") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA2;
+            }
+            else if (updateCounterSourceStr == "INTTRIGGERA3") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA3;
+            }
+            else if (updateCounterSourceStr == "INTTRIGGERA4") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA4;
+            }
+            else if (updateCounterSourceStr == "INTTRIGGERA5") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA5;
+            }
+            else if (updateCounterSourceStr == "INTTRIGGERA6") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA6;
+            }
+            else if (updateCounterSourceStr == "INTTRIGGERA7") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA7;
+            }
+            else if (updateCounterSourceStr == "AUTOUPDATE") {
+                updateCounterSource = XSERIES_AO_UPDATE_COUNTER_AUTOUPDATE;
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid UpdateCounterSource specified");
+                ok = false;
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateCounterSource shall be specified");
+        }
+    }
+    if (ok) {
+        StreamString updateCounterPolarityStr;
+        ok = data.Read("UpdateCounterPolarity", updateCounterPolarityStr);
+        if (ok) {
+            if (updateCounterPolarityStr == "RISING_EDGE") {
+                updateCounterPolarity = XSERIES_AO_POLARITY_RISING_EDGE;
+            }
+            else if (updateCounterPolarityStr == "FALLING_EDGE") {
+                updateCounterPolarity = XSERIES_AO_POLARITY_FALLING_EDGE;
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid UpdateCounterPolarity specified");
+                ok = false;
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateCounterPolarity shall be specified");
+        }
+    }
+    if (ok) {
+        StreamString updateIntervalCounterSourceStr;
+        ok = data.Read("UpdateIntervalCounterSource", updateIntervalCounterSourceStr);
+        if (ok) {
+            if (updateIntervalCounterSourceStr == "TB3") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB3;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI0") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI0;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI1") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI1;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI2") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI2;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI3") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI3;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI4") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI4;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI5") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI5;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI6") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI6;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI7") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI7;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI8") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI8;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI9") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI9;
+            }
+            else if (updateIntervalCounterSourceStr == "RTSI0") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI0;
+            }
+            else if (updateIntervalCounterSourceStr == "RTSI1") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI1;
+            }
+            else if (updateIntervalCounterSourceStr == "RTSI2") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI2;
+            }
+            else if (updateIntervalCounterSourceStr == "RTSI3") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI3;
+            }
+            else if (updateIntervalCounterSourceStr == "RTSI4") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI4;
+            }
+            else if (updateIntervalCounterSourceStr == "RTSI5") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI5;
+            }
+            else if (updateIntervalCounterSourceStr == "RTSI6") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI6;
+            }
+            else if (updateIntervalCounterSourceStr == "DSTARA") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_DSTARA;
+            }
+            else if (updateIntervalCounterSourceStr == "TB2") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB2;
+            }
+            else if (updateIntervalCounterSourceStr == "STAR_TRIGGER") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_STAR_TRIGGER;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI10") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI10;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI11") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI11;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI12") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI12;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI13") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI13;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI14") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI14;
+            }
+            else if (updateIntervalCounterSourceStr == "PFI15") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI15;
+            }
+            else if (updateIntervalCounterSourceStr == "RTSI7") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI7;
+            }
+            else if (updateIntervalCounterSourceStr == "TB1") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB1;
+            }
+            else if (updateIntervalCounterSourceStr == "PXI_CLK10") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PXI_CLK10;
+            }
+            else if (updateIntervalCounterSourceStr == "ANALOG_TRIGGER") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_ANALOG_TRIGGER;
+            }
+            else if (updateIntervalCounterSourceStr == "DSTARB") {
+                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_DSTARB;
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid UpdateIntervalCounterSource specified");
+                ok = false;
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterSource shall be specified");
+        }
+    }
+    if (ok) {
+        StreamString updateIntervalCounterPolarityStr;
+        ok = data.Read("UpdateIntervalCounterPolarity", updateIntervalCounterPolarityStr);
+        if (ok) {
+            if (updateIntervalCounterPolarityStr == "RISING_EDGE") {
+                updateIntervalCounterPolarity = XSERIES_OUTTIMER_POLARITY_RISING_EDGE;
+            }
+            else if (updateIntervalCounterPolarityStr == "FALLING_EDGE") {
+                updateIntervalCounterPolarity = XSERIES_OUTTIMER_POLARITY_FALLING_EDGE;
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid UpdateIntervalCounterPolarity specified");
+                ok = false;
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterPolarity shall be specified");
+        }
+    }
+    if (ok) {
+        ok = data.Read("UpdateIntervalCounterPeriodDivisor", updateIntervalCounterPeriodDivisor);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterPeriodDivisor shall be specified");
+        }
+    }
+    if (ok) {
+        ok = (updateIntervalCounterPeriodDivisor > 0);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterPeriodDivisor shall be > 0");
+        }
+    }
+    if (ok) {
+        ok = data.Read("UpdateIntervalCounterDelay", updateIntervalCounterDelay);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterDelay shall be specified");
+        }
+    }
+    if (ok) {
+        ok = (updateIntervalCounterDelay > 0);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterDelay shall be > 0");
+        }
+    }
 
     //Get individual signal parameters
     uint32 i = 0u;
@@ -277,15 +802,28 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         for (i = 0u; (i < numberOfDACsEnabled) && (ok); i++) {
             ok = (GetSignalType(i) == Float32Bit);
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall be of type Float32Bit");
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall be of type Float32Bit");
+            }
+            uint32 nElements = 0u;
+            if (ok) {
+                ok = GetSignalNumberOfElements(i, nElements);
+                if (numberOfElements == 0u) {
+                    numberOfElements = nElements;
+                }
+                if (ok) {
+                    ok = (numberOfElements == nElements);
+                }
+            }
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall have the same number of elements");
+            }
         }
     }
 
     uint32 nOfFunctions = GetNumberOfFunctions();
     uint32 functionIdx;
-    //Check that the number of samples for all the signals is one
+    //Check that the number of elements for all the signals is consistent
     for (functionIdx = 0u; (functionIdx < nOfFunctions) && (ok); functionIdx++) {
         uint32 nOfSignals = 0u;
         ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfSignals);
@@ -293,20 +831,17 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
         for (i = 0u; (i < nOfSignals) && (ok); i++) {
             uint32 nSamples = 0u;
             ok = GetFunctionSignalSamples(OutputSignals, functionIdx, i, nSamples);
-            if (numberOfSamples == 0u) {
-                numberOfSamples = nSamples;
+            if (ok) {
+                ok = (nSamples == 1u);
             }
-            else {
-                if (numberOfSamples != nSamples) {
-                    ok = false;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall have the same number of samples");
-                }
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall have at most one sample");
             }
         }
     }
 
     StreamString fullDeviceName;
-    //Configure the board
+//Configure the board
     if (ok) {
         ok = fullDeviceName.Printf("%s.%d.ao", deviceName.Buffer(), boardId);
     }
@@ -331,6 +866,26 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     xseries_ao_conf_t dacConfiguration = xseries_static_ao();
+    if (ok) {
+        ok = (xseries_set_ao_start_trigger(&dacConfiguration, startTriggerSource, startTriggerPolarity, 1u) == 0);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_set_ao_start_trigger for device %s", fullDeviceName)
+        }
+    }
+    if (ok) {
+        ok = (xseries_set_ao_update_counter(&dacConfiguration, updateCounterSource, updateCounterPolarity) == 0);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_counter for device %s", fullDeviceName)
+        }
+    }
+    if (ok) {
+        ok = (xseries_set_ao_update_interval_counter(&dacConfiguration, updateIntervalCounterSource, updateIntervalCounterPolarity,
+                                                     updateIntervalCounterPeriodDivisor, updateIntervalCounterDelay) == 0);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_interval_counter for device %s", fullDeviceName)
+        }
+    }
+
     for (i = 0u; (i < NI6368DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
             ok = (xseries_add_ao_channel(&dacConfiguration, static_cast<uint8_t>(i), outputRange[i]) == 0);
@@ -355,7 +910,7 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
             if (dacEnabled[i]) {
                 if (ok) {
                     //Allocate memory
-                    channelsMemory[i] = new float32[numberOfSamples];
+                    channelsMemory[i] = new float32[numberOfElements];
                 }
                 StreamString channelDeviceName;
                 uint32 ii = i;
@@ -388,7 +943,7 @@ bool NI6368DAC::Synchronise() {
     for (i = 0u; (i < NI6368DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
             if (channelsMemory[i] != NULL_PTR(float32 *)) {
-                ok = (xseries_write_ao(channelsFileDescriptors[i], channelsMemory[i], static_cast<size_t>(numberOfSamples)) >= 0);
+                ok = (xseries_write_ao(channelsFileDescriptors[i], channelsMemory[i], static_cast<size_t>(numberOfElements)) >= 0);
             }
         }
     }

@@ -3304,35 +3304,6 @@ bool NI6368ADCTest::TestInitialise_InputRange() {
             ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_1V);
         }
     }
-#if 0
-    {
-        xseries_ai_conf_t conf;
-        if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", "0.5", &conf);
-        }
-        if (ok) {
-            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_500mV);
-        }
-    }
-    {
-        xseries_ai_conf_t conf;
-        if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", "0.2", &conf);
-        }
-        if (ok) {
-            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_200mV);
-        }
-    }
-    {
-        xseries_ai_conf_t conf;
-        if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0.Signals.ADC0_0", "InputRange", "0.1", &conf);
-        }
-        if (ok) {
-            ok = (conf.aichan_conf[0].range == XSERIES_INPUT_RANGE_100mV);
-        }
-    }
-#endif
     return ok;
 }
 

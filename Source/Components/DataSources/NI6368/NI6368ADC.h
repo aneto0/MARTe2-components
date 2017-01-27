@@ -73,7 +73,7 @@ const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
  *               Type = uint32 //int32 also supported.
  *          }
  *          ADC0_0 = { //At least one ADC input shall be specified.
- *              InputRange = 10 //Optional. Possible values: 0.1, 0.2, 0.5, 1, 2, 5, 10. Default value 10.
+ *              InputRange = 10 //Optional. Possible values: 1, 2, 5, 10. Default value 10.
  *              Type = uint16 //Mandatory. Only the uint16 type is supported.
  *              ChannelId = 0 //Mandatory. The channel number.
  *          }

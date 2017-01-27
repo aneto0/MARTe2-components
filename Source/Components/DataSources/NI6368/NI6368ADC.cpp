@@ -784,15 +784,6 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
                             else if ((range > 0.99) && (range < 1.01)) {
                                 inputRange[channelId] = XSERIES_INPUT_RANGE_1V;
                             }
-                            else if ((range > 0.499) && (range < 0.501)) {
-                                inputRange[channelId] = XSERIES_INPUT_RANGE_500mV;
-                            }
-                            else if ((range > 0.199) && (range < 0.201)) {
-                                inputRange[channelId] = XSERIES_INPUT_RANGE_200mV;
-                            }
-                            else if ((range > 0.099) && (range < 0.101)) {
-                                inputRange[channelId] = XSERIES_INPUT_RANGE_100mV;
-                            }
                             else {
                                 ok = false;
                                 REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported InputRange.");
