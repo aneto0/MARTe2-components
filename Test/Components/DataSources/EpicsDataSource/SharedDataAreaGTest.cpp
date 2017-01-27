@@ -51,17 +51,17 @@ TEST(SharedDataAreaGTest,TestConstructor) {
 
 TEST(SharedDataAreaGTest,TestProducerConsumerWithSingleThreadUsingIntegers) {
 	SharedDataAreaTest test;
-	ASSERT_TRUE(test.TestProducerConsumerInSingleThread<int>("TestProducerConsumerWithSingleThreadUsingIntegers"));
+	ASSERT_TRUE(test.TestProducerConsumerInSingleThread<int>("TestProducerConsumerWithSingleThreadUsingIntegers", 50));
 }
 
 TEST(SharedDataAreaGTest,TestProducerConsumerWithSingleThreadUsingDoubles) {
 	SharedDataAreaTest test;
-	ASSERT_TRUE(test.TestProducerConsumerInSingleThread<double>("TestProducerConsumerWithSingleThreadUsingDoubles"));
+	ASSERT_TRUE(test.TestProducerConsumerInSingleThread<double>("TestProducerConsumerWithSingleThreadUsingDoubles", 25));
 }
 
 TEST(SharedDataAreaGTest,TestProducerConsumerWithTwoThreadsUsingIntegers) {
 	SharedDataAreaTest test;
-	ASSERT_TRUE(test.TestProducerConsumerWithTwoThreads<int>("TestProducerConsumerWithTwoThreadsUsingIntegers"));
+	ASSERT_TRUE(test.TestProducerConsumerWithTwoThreads<int>("TestProducerConsumerWithTwoThreadsUsingIntegers", 75));
 }
 
 TEST(SharedDataAreaGTest,TestProducerConsumerWithTwoThreadsUsingDoubles) {
