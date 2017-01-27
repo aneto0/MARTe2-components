@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  EpicsInputDataSourceTest.x SharedDataAreaTest.x
+OBJSX +=  EpicsInputDataSourceTest.x EpicsOutputDataSourceTest.x SharedDataAreaTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
