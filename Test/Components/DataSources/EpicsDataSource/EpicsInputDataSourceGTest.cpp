@@ -36,6 +36,8 @@
 
 #include "EpicsInputDataSourceTest.h"
 
+#include "CompilerTypes.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -173,7 +175,7 @@ TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase_False_IntegerSignal2) 
 
 TEST(EpicsInputDataSourceGTest, Test1) {
 	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.Test1());
+    ASSERT_TRUE(test.Test1<MARTe::uint32>());
 }
 
 /*---------------------------------------------------------------------------*/

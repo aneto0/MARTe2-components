@@ -39,12 +39,13 @@
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
+#include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-#define INVARIANT(obj) (obj.GetNumberOfMemoryBuffers() == 0u)
+#define INVARIANT(obj) (obj.GetNumberOfMemoryBuffers() == 1u)
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -83,7 +84,7 @@ bool EpicsInputDataSourceTest::TestGetNumberOfMemoryBuffers() {
     bool ok = true;
     EpicsInputDataSource target;
     ok &= INVARIANT(target);
-    ok &= (target.GetNumberOfMemoryBuffers() == 0u);	//TODO: The postcondition of this method is the invariant of the class
+    ok &= (target.GetNumberOfMemoryBuffers() == 1u);	//TODO: The postcondition of this method is the invariant of the class
     ok &= INVARIANT(target);
     return ok;
 }
@@ -241,16 +242,19 @@ bool EpicsInputDataSourceTest::TestSetConfiguredDatabase_False_IntegerSignal2() 
 	return false;
 }
 
+
+
+
 #include <cstdio>
 
-static bool SetConfiguredDatabase(MARTe::EpicsInputDataSource& target) {
+bool SetConfiguredDatabase(MARTe::EpicsInputDataSource& target, const MARTe::uint32 numberOfSignals) {
 	using namespace MARTe;
     bool success = false;
     ConfigurationDatabase cdb;
 
     cdb.CreateRelative("Signals");
 
-    for (int i = 0; i < 5; i++) {
+    for (uint32 i = 0; i < numberOfSignals; i++) {
     	StreamString idx;
     	StreamString name;
     	const char type[] = "uint32";
@@ -261,7 +265,7 @@ static bool SetConfiguredDatabase(MARTe::EpicsInputDataSource& target) {
     	cdb.CreateRelative(idx.Buffer());
     	cdb.Write("QualifiedName", name);
     	cdb.Write("Type", type);
-    	cdb.Write("ByteSize", TypeDescriptor::GetTypeDescriptorFromTypeName(type).numberOfBits/8);
+    	cdb.Write("ByteSize", (TypeDescriptor::GetTypeDescriptorFromTypeName(type).numberOfBits / 8));
     	cdb.Write("NumberOfDimensions", 0);
     	cdb.Write("NumberOfElements", 1);
 
@@ -278,28 +282,4 @@ static bool SetConfiguredDatabase(MARTe::EpicsInputDataSource& target) {
     success = target.SetConfiguredDatabase(cdb);
 
     return success;
-}
-
-bool EpicsInputDataSourceTest::Test1() {
-    using namespace MARTe;
-    bool success = false;
-    EpicsInputDataSource target;
-
-    target.SetName("asfas");
-
-    //1:
-    success = SetConfiguredDatabase(target);
-    //2:
-    target.AllocateMemory();
-    //3:
-    //uint32 numberOfSignals = target.GetNumberOfSignals();
-    //get addresses ... target.GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress);
-    std::printf("target.GetNumberOfSignals() == %d\n", target.GetNumberOfSignals());
-    //4:
-    //write values
-    //5:
-    //target.Synchronise();
-    //6:
-    //check values
-	return success;
 }
