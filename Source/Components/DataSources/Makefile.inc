@@ -29,7 +29,7 @@ SPB    = LinuxTimer.x LoggerDataSource.x
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 # Current assumption is prior installation of CODAC Core System on the build node
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
-SPB   += SDNPublisher.x SDNSubscriber.x
+SPB   += SDN.x
 endif
 
 PACKAGE=Components
@@ -43,8 +43,7 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
-LIBRARIES_STATIC+=$(BUILD_DIR)/SDNPublisher/SDNPublisher$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/SDNSubscriber/SDNSubscriber$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/SDN/SDN$(LIBEXT)
 endif
 
 all: $(OBJS)  $(SUBPROJ)  \
