@@ -1,0 +1,15 @@
+#******************************************************************************
+#
+#      $Log$
+#
+#******************************************************************************
+
+TARGET=linux
+
+include Makefile.inc
+
+#LIBRARIES   += -L ../../../BaseLib2/$(TARGET) -lBaseLib2
+#LIBRARIES   += -L../../MarteSupportLib/$(TARGET) -lMarteSupLib 
+#
+#OPTIM= -G6 -O2 -Ob2
+

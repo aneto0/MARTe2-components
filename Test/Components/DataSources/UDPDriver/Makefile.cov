@@ -26,8 +26,9 @@
 
 TARGET=cov
 
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = UDPReceiverGTest.x UDPSenderGTest.x
+
 include Makefile.inc
 
-LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimerTest$(LIBEXT)
-LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSourceTest$(LIBEXT)
-LIBRARIES_STATIC+=UDPDriver/cov/UDPDataSource$(LIBEXT)

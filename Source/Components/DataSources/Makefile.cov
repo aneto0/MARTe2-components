@@ -28,4 +28,5 @@ include Makefile.inc
 
 LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
+LIBRARIES_STATIC+=UDPDriver/cov/UDPDrv$(LIBEXT)
 
