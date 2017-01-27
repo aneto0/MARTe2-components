@@ -31,7 +31,6 @@ LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
-LIBRARIES_STATIC+=SDNPublisher/cov/SDNPublisher$(LIBEXT)
-LIBRARIES_STATIC+=SDNPublisher/cov/SDNSubscriber$(LIBEXT)
+LIBRARIES_STATIC+=SDN/cov/SDN$(LIBEXT)
 endif
 
