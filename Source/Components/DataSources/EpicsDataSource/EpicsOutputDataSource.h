@@ -61,6 +61,8 @@ namespace MARTe {
  *
  * A signal will be added for each GAM signal that writes to this instance of
  * the DataSourceI.
+ *
+ * @invariant (GetNumberOfMemoryBuffers() == 1u)
  */
 class EpicsOutputDataSource: public DataSourceI {
 
@@ -99,6 +101,7 @@ public:
 
     /**
      * @see DataSourceI::GetNumberOfMemoryBuffers()
+     * @post (result == 1)
      */
     uint32 GetNumberOfMemoryBuffers();
 

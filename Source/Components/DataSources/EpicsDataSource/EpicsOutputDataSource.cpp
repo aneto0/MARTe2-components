@@ -155,7 +155,7 @@ bool EpicsOutputDataSource::AllocateMemory() {
 }
 
 uint32 EpicsOutputDataSource::GetNumberOfMemoryBuffers() {
-    return 0u;
+    return 1u;
 }
 
 bool EpicsOutputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) {

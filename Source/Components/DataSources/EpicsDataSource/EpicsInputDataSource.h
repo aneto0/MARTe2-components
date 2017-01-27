@@ -61,6 +61,8 @@ namespace MARTe {
  *
  * A signal will be added for each GAM signal that reads to this instance of
  * the DataSourceI.
+ *
+ * @invariant (GetNumberOfMemoryBuffers() == 1u)
  */
 class EpicsInputDataSource: public DataSourceI {
 
@@ -99,6 +101,7 @@ public:
 
     /**
      * @see DataSourceI::GetNumberOfMemoryBuffers()
+     * @post (result == 1)
      */
     uint32 GetNumberOfMemoryBuffers();
 
@@ -109,6 +112,8 @@ public:
 
     /**
      * @see DataSourceI::GetBrokerName()
+     * @post (direction == InputSignals => result == "MemoryMapSynchronisedInputBroker")
+     *       (direction == OutputSignals => result == "")
      * @note This method will return an empty string if the direction
      * is OutputSignals.
      */
@@ -121,6 +126,7 @@ public:
 
     /**
      * @see DataSourceI::GetOutputBrokers()
+     * @post (result == false)
      * @note This method has a null implementation, because this datasource
      * does not supply output brokers.
      */
