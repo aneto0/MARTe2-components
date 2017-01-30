@@ -37,6 +37,8 @@
 #include "ErrorInformation.h"
 #include "GlobalObjectsDatabase.h"
 #include "GAM.h"
+#include "MemoryMapOutputBroker.h"
+#include "MemoryMapSynchronisedOutputBroker.h"
 #include "SDNPublisher.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
@@ -44,54 +46,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-
-void vMessage2MARTe (Severity_t severity, const char* source, const char* message, va_list args) 
-{ 
-
-  if (severity > LOG_INFO) return;
-
-  using namespace MARTe;
-
-  ErrorManagement::ErrorType code;
-
-  switch (severity) 
-    {
-      default: 
-      case LOG_INFO:
-      case LOG_NOTICE:
-	code = ErrorManagement::Information; 
-	break;
-      case LOG_WARNING: 
-	code = ErrorManagement::Warning; 
-	break;
-      case LOG_ERR:
-	code = ErrorManagement::RecoverableError; 
-	break;
-      case LOG_CRIT:    
-      case LOG_ALERT:
-      case LOG_EMERG:
-	code = ErrorManagement::FatalError; 
-	break;
-    }
-
-  char buffer [1024] = STRING_UNDEFINED;
-  char* p_buf = (char*) buffer;
-  uint_t size = 1024;
-
-  if (IsUndefined(source) != true) snprintf(p_buf, size, "[%s] ", source);
-
-  /* Re-align pointer */
-  size -= strlen(p_buf); p_buf += strlen(p_buf); 
-
-  vsnprintf(p_buf, size, message, args); size -= strlen(p_buf); p_buf += strlen(p_buf); /* Re-align pointer */
-
-  REPORT_ERROR(code, buffer);
-
-  return; 
-
-};
-
-static ccs::log::Func_t org_cb = ccs::log::SetCallback(&vMessage2MARTe);
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -101,20 +55,15 @@ namespace MARTe {
 SDNPublisher::SDNPublisher() :
         DataSourceI() {
 
-    log_trace("SDNPublisher::SDNPublisher - Entering method");
-
     nOfSignals = 0u;
+    synchronizing = false;
 
     topic = NULL_PTR(sdn::Topic *);
     publisher = NULL_PTR(sdn::Publisher *);
 
-    log_trace("SDNPublisher::SDNPublisher - Leaving method");
-
 }
 
 SDNPublisher::~SDNPublisher() {
-
-    log_trace("SDNPublisher::~SDNPublisher - Entering method");
 
     if (publisher != NULL_PTR(sdn::Publisher *)) {
         delete publisher; publisher = NULL_PTR(sdn::Publisher *);
@@ -124,24 +73,18 @@ SDNPublisher::~SDNPublisher() {
         delete topic; topic = NULL_PTR(sdn::Topic *);
     }
 
-    log_trace("SDNPublisher::~SDNPublisher - Leaving method");
-
 }
 
 bool SDNPublisher::Initialise(StructuredDataI &data) {
 
-    log_trace("SDNPublisher::Initialise - Entering method");
-
     bool ok = DataSourceI::Initialise(data);
 
     if (!ok) {
-        log_error("SDNPublisher::SetConfiguredDatabase - Parent virtual method failed");
         REPORT_ERROR(ErrorManagement::InternalSetupError, "Parent virtual method failed");
     }
 
     // Retrieve and verify network interface name
     if (!data.Read("Interface", ifaceName)) {
-        log_error("SDNPublisher::Initialise - Interface attribute must be specified");
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be specified");
 	ok = false;
     } else {
@@ -149,7 +92,6 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
     } 
 
     if (!net_is_interface_valid(ifaceName.Buffer())) {
-        log_error("SDNPublisher::Initialise - Interface '%s' is not valid", ifaceName.Buffer());
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be a valid identifier");
 	ok = false;
     } else {
@@ -158,7 +100,6 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
 
     // Retrieve and verify topic name
     if (!data.Read("Topic", topicName)) {
-        log_error("SDNPublisher::Initialise - Topic must be specified");
         REPORT_ERROR(ErrorManagement::ParametersError, "Topic must be specified");
 	ok = false;
     } else {
@@ -169,10 +110,7 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
     // to a destination '<address>:<port>' can be explicitly defined
     if (data.Read("Address", destAddr)) {
 
-        log_info("SDNPublisher::Initialise - Explicit destination address '%s'", destAddr.Buffer());
-
 	if (!sdn_is_address_valid(destAddr.Buffer())) {
-	    log_error("SDNPublisher::Initialise - Address '%s' is not valid", destAddr.Buffer());
 	    REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
 	    ok = false;
 	} else {
@@ -188,12 +126,9 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
 
 bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
 
-    log_trace("SDNPublisher::SetConfiguredDatabase - Entering method");
-
     bool ok = DataSourceI::SetConfiguredDatabase(data);
 
     if (!ok) {
-        log_error("SDNPublisher::SetConfiguredDatabase - Parent virtual method failed");
         REPORT_ERROR(ErrorManagement::InternalSetupError, "Parent virtual method failed");
     }
 
@@ -202,20 +137,15 @@ bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
     ok = (nOfSignals > 0u);
 
     if (!ok) {
-        log_error("SDNPublisher::SetConfiguredDatabase - nOfSignals must be > 0u");
         REPORT_ERROR(ErrorManagement::ParametersError, "nOfSignals must be > 0u");
     } else {
         log_info("SDNPublisher::SetConfiguredDatabase - Number of signals '%u'", nOfSignals);
     }
       
-    log_trace("SDNPublisher::SetConfiguredDatabase - Leaving method");
-
     return ok;
 }
 
 bool SDNPublisher::AllocateMemory() {
-
-    log_trace("SDNPublisher::AllocateMemory - Entering method");
 
     // Instantiate a sdn::Metadata structure to configure the topic
     sdn::Metadata_t mdata; 
@@ -243,9 +173,8 @@ bool SDNPublisher::AllocateMemory() {
 	ok = GetSignalName(signalIndex, signalName);
 
 	if (!ok) {
-	  log_warning("SDNPublisher::AllocateMemory - Unable to query signal '%u' name", signalIndex);
 	  REPORT_ERROR(ErrorManagement::Warning, "Unable to query signal name");
-	  // This is actually not so important ... would synthetise signal name in this case ... if I knew how
+	  // This is actually not so important ... could synthesize signal name in this case ... if I knew how
 	  ok = true;
 	} 
 
@@ -293,8 +222,6 @@ bool SDNPublisher::AllocateMemory() {
         ok = (publisher->Configure() == STATUS_SUCCESS);
     }
 
-    log_trace("SDNPublisher::AllocateMemory - Leaving method");
-
     return ok;
 }
 
@@ -305,8 +232,6 @@ uint32 SDNPublisher::GetNumberOfMemoryBuffers() {
 bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          const uint32 bufferIdx,
                                          void*& signalAddress) {
-
-    log_trace("SDNPublisher::GetSignalMemoryBuffer - Entering method");
 
     bool ok = (signalIdx < nOfSignals);
 
@@ -323,19 +248,34 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
         log_info("SDNPublisher::GetSignalMemoryBuffer - Reference of signal '%u' if '%p'", signalIdx, signalAddress);
     }
 
-    log_trace("SDNPublisher::GetSignalMemoryBuffer - Leaving method");
-
     return ok;
 }
 
+// The method is called for each signal connected to the DataSource
 const char8* SDNPublisher::GetBrokerName(StructuredDataI& data,
                                          const SignalDirection direction) {
+
     const char8 *brokerName = NULL_PTR(const char8 *);
+
     if (direction == OutputSignals) {
-        brokerName = "MemoryMapSynchronisedOutputBroker";
+
+        uint32 trigger = 0u;
+
+        if (!data.Read("Trigger", trigger)) {
+            trigger = 0u;
+        }
+
+        if (trigger == 1u) {
+            brokerName = "MemoryMapSynchronisedOutputBroker";
+            synchronizing = true;
+        } else {
+            brokerName = "MemoryMapOutputBroker";
+        }
+
     } else {
         REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
     }
+
     return brokerName;
 }
 
@@ -350,18 +290,62 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
                                     const char8* const functionName,
                                     void* const gamMemPtr) {
 
-    log_trace("SDNPublisher::GetOutputBrokers - Entering method");
-#if 1
-    ReferenceT<BrokerI> broker("MemoryMapSynchronisedOutputBroker");
-#else
-    ReferenceT<BrokerI> broker("MemoryMapOutputBroker");
-#endif
-    bool ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
+    uint32 functionIdx = 0u;
+    uint32 nOfSignals = 0u; // Number of signals associated to the function
+    uint32 signalIndex = 0u;
+    uint32 trigger = 0u;
+    bool triggerGAM = false;
+    bool ok = GetFunctionIndex(functionIdx, functionName);
+
     if (ok) {
-        ok = outputBrokers.Insert(broker);
+        ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfSignals);
     }
 
-    log_trace("SDNPublisher::GetOutputBrokers - Leaving method");
+    // Test if there is a Trigger signal for this function.
+    for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok) && (!triggerGAM); signalIndex++) {
+        ok = GetFunctionSignalTrigger(OutputSignals, functionIdx, signalIndex, trigger);
+        triggerGAM = (trigger == 1u);
+    }
+
+    if (ok) {
+        if (triggerGAM) {
+            // Instantiate appropriate output broker
+            ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
+            ok = broker.IsValid();
+
+            // Associate all signals for this GAM which are compatible with broker (normally 1)
+            if (ok) {
+                ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
+            }
+            if (ok) {
+                ok = outputBrokers.Insert(broker);
+            }
+
+            // Must also add the signals which are not triggering but that belong to the same GAM...
+            if (ok) {
+                if (nOfSignals > 1u) {
+                    ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
+                    ok = brokerNotSync.IsValid();
+                    if (ok) {
+                        ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
+                    }
+                    if (ok) {
+                        ok = outputBrokers.Insert(brokerNotSync);
+                    }
+                }
+            }
+        } else {
+            // Instantiate appropriate output broker
+            ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
+            ok = brokerNotSync.IsValid();
+            if (ok) {
+                ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
+            }
+            if (ok) {
+                ok = outputBrokers.Insert(brokerNotSync);
+            }
+        }
+    }
 
     return ok;
 }

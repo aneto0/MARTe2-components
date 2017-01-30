@@ -97,6 +97,7 @@ public:
      * @post
      *   topic = NULL_PTR
      *   publisher = NULL_PTR
+     *   synchronizing = false
      */
     SDNPublisher();
 
@@ -210,6 +211,7 @@ private:
     StreamString destAddr;  // Configuration parameter (optional)
 
     uint32 nOfSignals; // Number of input signals
+    bool synchronizing;
 
     sdn::Topic *topic; // The topic reference
     sdn::Publisher *publisher; // The sdn::Publisher reference
