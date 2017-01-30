@@ -298,6 +298,7 @@ bool SDNPublisher::GetInputBrokers(ReferenceContainer& inputBrokers,
     return false;
 }
 
+// The method is called for each GAM connected to the DataSource
 bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
                                     const char8* const functionName,
                                     void* const gamMemPtr) {
@@ -320,7 +321,10 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
         if (ok) {
             triggerGAM = (trigger == 1u);
         }
+    }
 
+    // Test if there is a multi-sample signal for this function.
+    for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
         // This version does not support multi-sample signals
         uint32 samples = 0u;
         ok = GetFunctionSignalSamples(OutputSignals,functionIdx, signalIndex, samples);
@@ -339,7 +343,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
             /**
              * @warning The case where part of the GAM signals are non-synchronizing requires the
              * non-synchronizing broker to be inserted before the synchronizing one in order to make
-             * sure all the signals are copied before the synch. is performed.
+             * sure all the signals are copied before the synchronisation is performed.
              */
 
             // A synchronizing broker is inserted in case one signal at least is declared with
@@ -401,7 +405,6 @@ bool SDNPublisher::Synchronise() {
     bool ok = (publisher != NULL_PTR(sdn::Publisher *));
 
     if (!ok) {
-        log_error("SDNPublisher::Synchronise - sdn::Publisher has not been initiaised");
         REPORT_ERROR(ErrorManagement::FatalError, "sdn::Publisher has not been initiaised");
     }
 

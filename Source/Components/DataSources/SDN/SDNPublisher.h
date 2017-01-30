@@ -23,8 +23,6 @@
  * @todo Nothing prevents the SDNPublisher DataSource to make the signals available
  * as InputSignals to other GAMs. The implementation may be extended to return
  * InputBrokers.
- * @todo Extend the implementation to support multiple GAM OutputSignals and make use
- * of Trigger signal declaration.
  * @todo Extend the implementation to support asynchronous publication in own thread 
  * whereby the SDN topic may be published at configurable rate and phase regardless
  * of the RT thread activity.
@@ -79,12 +77,18 @@ namespace MARTe {
  *     }
  * }
  *
- * The data payload over the network is structured in the same way as the signal definition
+ * The DataSource relies on a MemoryMap(Synchrnised)OutputBroker to interface to GAM signals. 
+ * The DataSource does not allocate memory, rather maps directly the signals to the SDN message
+ * payload directly.
+ *
+ * @notice The DataSource requires that one and only one signal be identified as synchronisation
+ * point.
+ *
+ * @notice The DataSource does not support signal samples batching.
+ *
+ * @notice The data payload over the network is structured in the same way as the signal definition
  * order. Interoperability between distributed poarticipants require strict configuration control
  * of the payload definition.
- *
- * The DataSource relies on a MemoryMapOutputBroker to interface to GAM signals. The DataSource
- * does not allocate memory, rather maps directly the signals to the SDN message payload directly.
  */
 class SDNPublisher : public DataSourceI {
 
@@ -136,7 +140,8 @@ SDNPublisher();
      * @details The DataSource does not parse the attribute; rather, the method is overloaded to
      * perform signal validity checks outside the scope of the later SDNPublisher::AllocateMemory
      * which can be ensured that it is called with signal list previously validated.
-     * @return false in case no signals are being configured.
+     * @return false in case no signals are being configured, or in case there is no or more than 
+     * one signal declared as synchronisation point.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI& data);
 
@@ -165,8 +170,9 @@ SDNPublisher();
 
     /**
      * @brief See DataSourceI::GetBrokerName.
-     * @details The implementation is associated to a MemoryMapOutputBroker.
-     * @return MemoryMapOutputBroker.
+     * @details The implementation is associated to MemoryMapOutputBroker or
+     * MemoryMapSynchronisedOutputBroker depending on the signal properties.
+     * @return MemoryMapOutputBroker or MemoryMapSynchronisedOutputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
                                        const SignalDirection direction);
@@ -182,7 +188,9 @@ SDNPublisher();
 
     /**
      * @brief See DataSourceI::GetOutputBrokers.
-     * @details The implementation provides MemoryMapOutputBroker instances.
+     * @details The implementation provides MemoryMapOutputBroker instances
+     * for non-synchronising GAMs, it provides both one MemoryMapOutputBroker
+     * and one MemoryMapSynchronisedOutputBroker for the synchronising GAM.
      * @return true if the BrokerI::Init is successful.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
@@ -199,7 +207,11 @@ SDNPublisher();
     /**
      * @brief See DataSourceI::Synchronise.
      * @details The method calls sdn::Publisher::Publish and relies on the fact that SDN
-     * message payload has been previously modified by the OutputBroker instances.
+     * message payload has been previously completely modified by the OutputBroker instances.
+     * @notice It is for the application-specific configuration to ensureorganise ordering of the
+     * GAMs so as to ensure proper payload update prior to publication, e.g. the synchronising
+     * GAM is scheduled after all the non-synchronising GAMs contributing signals to the 
+     * DataSource.
      * @return true or false in case of error within the SDN core library.
      */
     virtual bool Synchronise();

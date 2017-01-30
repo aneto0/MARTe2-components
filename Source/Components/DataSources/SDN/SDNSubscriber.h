@@ -85,7 +85,15 @@ namespace MARTe {
  * samples were last received. This is currently the Default mode which can be left unspecified, or
  * explicitly selected with 'Default' or 'Caching' mode.
  *
- * @warning The data payload over the network is structured in the same way as the signal definition
+ * @notice The DataSource does not support more than one signal  identified as synchronisation point
+ * so as to ensure that the message payload is consistently provided to all GAMs associated to it. It
+ * does support however a signal 'caching' mode (non-synchronising) to cater for the cases where the
+ * application real-time threads are synchronised using an alternate source, in which case the
+ * DataSource only provides the last received payload, 
+ *
+ * @notice The DataSource does not support signal samples batching.
+ *
+ * @notice The data payload over the network is structured in the same way as the signal definition
  * order. Interoperability between distributed poarticipants require strict configuration control
  * of the payload definition.
  */
@@ -176,17 +184,19 @@ SDNSubscriber();
 
     /**
      * @brief See DataSourceI::GetBrokerName.
-     * @details The implementation is associated to a MemoryMapInputBroker or .
-     * MemoryMapSynchronisedInputBroker instances based on the DataSource synchronisation mode.
+     * @details The implementation is associated to MemoryMapInputBroker or
+     * MemoryMapSynchronisedInputBroker depending on the signal properties.
      * @return MemoryMapInputBroker or MemoryMapSynchronisedInputBroker.
      */
-    virtual const char8 *GetBrokerName(StructuredDataI &data,
+     virtual const char8 *GetBrokerName(StructuredDataI &data,
                                        const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
-     * @details The implementation provides MemoryMapInputBroker or
-     * MemoryMapSynchronisedInputBroker instances based on the DataSource synchronisation mode.
+     * @details The implementation provides MemoryMapInputBroker instances
+     * for non-synchronising GAMs. it provides both one MemoryMapInputBroker
+     * and one MemoryMapSynchronisedInputBroker in case one synchronising GAM
+     * is declared.
      * @return true if the BrokerI::Init is successful.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,

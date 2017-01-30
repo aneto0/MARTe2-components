@@ -328,7 +328,10 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
         if (ok) {
             synchGAM = (frequency > 0.F);
         }
+    }
 
+    // Test if there is a multi-sample signal for this function.
+    for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
         // This version does not support multi-sample signals
         uint32 samples = 0u;
         ok = GetFunctionSignalSamples(InputSignals, functionIdx, signalIndex, samples);
