@@ -2,11 +2,12 @@
  * Define the EFDA_MARTe_DIR to lint the BaseLib2GAM.
  * When this variable is not defined the GAM will not be linted.
  */
--dEFDA_MARTe_DIR=%EFDA_MARTe_DIR%
 -i%EFDA_MARTe_DIR%/Interfaces/BaseLib2Adapter/
+-i%SDN_CORE_INCLUDE_DIR%
 
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
+-i./Source/Components/DataSources/SDN/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper
@@ -18,3 +19,6 @@ LoggerDataSource.cpp
 LoggerBroker.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
+SDNPublisher.cpp
+SDNSubscriber.cpp
+ThreadedSDNSubscriber.cpp
