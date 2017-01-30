@@ -179,6 +179,21 @@ TEST(SDNSubscriberGTest, TestGetInputBrokers) {
     ASSERT_TRUE(test.TestGetInputBrokers());
 }
 
+TEST(SDNSubscriberGTest, TestGetInputBrokers_1) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers_1());
+}
+
+TEST(SDNSubscriberGTest, TestGetInputBrokers_2) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers_2());
+}
+
+TEST(SDNSubscriberGTest, TestGetInputBrokers_3) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers_3());
+}
+
 TEST(SDNSubscriberGTest, TestGetOutputBrokers) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestGetOutputBrokers());

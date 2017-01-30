@@ -577,8 +577,20 @@ bool SDNSubscriberTest::TestGetBrokerName_InputSignals() {
     using namespace MARTe;
     SDNSubscriber test;
     ConfigurationDatabase cdb;
-    StreamString brokerName = test.GetBrokerName(cdb, InputSignals);
-    bool ok = (brokerName == "MemoryMapInputBroker");
+    StreamString brokerName = test.GetBrokerName(cdb, OutputSignals);
+    bool ok = (brokerName == "");
+
+    if (ok) { // No trigger
+        brokerName = test.GetBrokerName(cdb, InputSignals);
+        ok = (brokerName == "MemoryMapInputBroker");
+    }
+
+    if (ok) { // With synchronisation
+        cdb.Write("Frequency", 1.0F);
+        brokerName = test.GetBrokerName(cdb, InputSignals);
+        ok = (brokerName == "MemoryMapSynchronisedInputBroker");
+    }
+
     return ok;
 }
 
@@ -593,6 +605,204 @@ bool SDNSubscriberTest::TestGetBrokerName_OutputSignals() {
 
 bool SDNSubscriberTest::TestGetInputBrokers() {
     return TestIntegratedInApplication(config_default);
+}
+
+bool SDNSubscriberTest::TestGetInputBrokers_1() {
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SinkGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            Timeout = 1000"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+    return ok;
+}
+
+bool SDNSubscriberTest::TestGetInputBrokers_2() {
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SinkGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                    Frequency = 1."
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            Timeout = 1000"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+    return ok;
+}
+
+bool SDNSubscriberTest::TestGetInputBrokers_3() {
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SinkGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                    Frequency = 1."
+            "                    Samples = 10"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            Timeout = 1000"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+    return !ok; // Expect failure
 }
 
 bool SDNSubscriberTest::TestGetOutputBrokers() {

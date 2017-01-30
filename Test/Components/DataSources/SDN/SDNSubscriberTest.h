@@ -184,6 +184,21 @@ public:
     bool TestGetInputBrokers();
 
     /**
+     * @brief Tests the GetInputBrokers method.
+     */
+    bool TestGetInputBrokers_1();
+
+    /**
+     * @brief Tests the GetInputBrokers method.
+     */
+    bool TestGetInputBrokers_2();
+
+    /**
+     * @brief Tests the GetInputBrokers method.
+     */
+    bool TestGetInputBrokers_3();
+
+    /**
      * @brief Tests the GetOutputBrokers method.
      */
     bool TestGetOutputBrokers();
