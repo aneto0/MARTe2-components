@@ -174,6 +174,46 @@ TEST(SDNPublisherGTest, TestGetOutputBrokers) {
     ASSERT_TRUE(test.TestGetOutputBrokers());
 }
 
+TEST(SDNPublisherGTest, TestGetOutputBrokers_1) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers_1());
+}
+
+TEST(SDNPublisherGTest, TestGetOutputBrokers_2) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers_2());
+}
+
+TEST(SDNPublisherGTest, TestGetOutputBrokers_3) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers_3());
+}
+
+TEST(SDNPublisherGTest, TestGetOutputBrokers_4) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers_4());
+}
+
+TEST(SDNPublisherGTest, TestGetOutputBrokers_5) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers_5());
+}
+
+TEST(SDNPublisherGTest, TestGetOutputBrokers_6) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers_6());
+}
+
+TEST(SDNPublisherGTest, TestGetOutputBrokers_7) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers_7());
+}
+
+TEST(SDNPublisherGTest, TestGetOutputBrokers_8) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers_8());
+}
+
 TEST(SDNPublisherGTest, TestPrepareNextState) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestPrepareNextState());

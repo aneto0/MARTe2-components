@@ -56,7 +56,7 @@ SDNPublisher::SDNPublisher() :
         DataSourceI() {
 
     nOfSignals = 0u;
-    synchronizing = false;
+    nOfTriggers = 0u;
 
     topic = NULL_PTR(sdn::Topic *);
     publisher = NULL_PTR(sdn::Publisher *);
@@ -141,7 +141,19 @@ bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
     } else {
         log_info("SDNPublisher::SetConfiguredDatabase - Number of signals '%u'", nOfSignals);
     }
-      
+
+    if (ok) {
+        ok = (nOfTriggers == 1u);
+    }
+
+    if (!ok) {
+        if (nOfTriggers == 0u) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Missing trigger signal");
+        } else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with multiple triggers");
+        }
+    }
+
     return ok;
 }
 
@@ -267,7 +279,7 @@ const char8* SDNPublisher::GetBrokerName(StructuredDataI& data,
 
         if (trigger == 1u) {
             brokerName = "MemoryMapSynchronisedOutputBroker";
-            synchronizing = true;
+            nOfTriggers++;
         } else {
             brokerName = "MemoryMapOutputBroker";
         }
@@ -304,11 +316,49 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
     // Test if there is a Trigger signal for this function.
     for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok) && (!triggerGAM); signalIndex++) {
         ok = GetFunctionSignalTrigger(OutputSignals, functionIdx, signalIndex, trigger);
-        triggerGAM = (trigger == 1u);
+
+        if (ok) {
+            triggerGAM = (trigger == 1u);
+        }
+
+        // This version does not support multi-sample signals
+        uint32 samples = 0u;
+        ok = GetFunctionSignalSamples(OutputSignals,functionIdx, signalIndex, samples);
+
+        if (ok) {
+            ok = (samples == 1u);
+        }
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Multi-sample signals are not supported");
+        }
     }
 
     if (ok) {
         if (triggerGAM) {
+
+            /**
+             * @warning The case where part of the GAM signals are non-synchronizing requires the
+             * non-synchronizing broker to be inserted before the synchronizing one in order to make
+             * sure all the signals are copied before the synch. is performed.
+             */
+
+            // A synchronizing broker is inserted in case one signal at least is declared with
+            // Trigger property. The GAM may also encompass non-synchronizing signals which require
+            // a standard broker.
+
+            // Must add the signals which are not triggering but that belong to the same GAM...
+            if (nOfSignals > 1u) {
+                ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
+                ok = brokerNotSync.IsValid();
+
+                if (ok) {
+                    ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
+                }
+                if (ok) {
+                    ok = outputBrokers.Insert(brokerNotSync);
+                }
+            }
+
             // Instantiate appropriate output broker
             ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
             ok = broker.IsValid();
@@ -320,24 +370,11 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
             if (ok) {
                 ok = outputBrokers.Insert(broker);
             }
-
-            // Must also add the signals which are not triggering but that belong to the same GAM...
-            if (ok) {
-                if (nOfSignals > 1u) {
-                    ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
-                    ok = brokerNotSync.IsValid();
-                    if (ok) {
-                        ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
-                    }
-                    if (ok) {
-                        ok = outputBrokers.Insert(brokerNotSync);
-                    }
-                }
-            }
         } else {
             // Instantiate appropriate output broker
             ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
             ok = brokerNotSync.IsValid();
+
             if (ok) {
                 ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
             }
@@ -358,8 +395,6 @@ bool SDNPublisher::PrepareNextState(const char8* const currentStateName,
 
 bool SDNPublisher::Synchronise() {
 
-    log_trace("SDNPublisher::Synchronise - Entering method");
-
     bool ok = (publisher != NULL_PTR(sdn::Publisher *));
 
     if (!ok) {
@@ -370,8 +405,6 @@ bool SDNPublisher::Synchronise() {
     if (ok) {
         ok = (publisher->Publish() == STATUS_SUCCESS);
     }
-
-    log_trace("SDNPublisher::Synchronise - Leaving method");
 
     return ok;
 }

@@ -211,7 +211,7 @@ private:
     StreamString destAddr;  // Configuration parameter (optional)
 
     uint32 nOfSignals; // Number of input signals
-    bool synchronizing;
+    uint32 nOfTriggers; // Number of input trigger signals
 
     sdn::Topic *topic; // The topic reference
     sdn::Publisher *publisher; // The sdn::Publisher reference

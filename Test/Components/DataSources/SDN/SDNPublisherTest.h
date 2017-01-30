@@ -179,6 +179,46 @@ public:
     bool TestGetOutputBrokers();
 
     /**
+     * @brief Tests the GetOutputBrokers method.
+     */
+    bool TestGetOutputBrokers_1();
+
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
+    bool TestGetOutputBrokers_2();
+
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
+    bool TestGetOutputBrokers_3();
+
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
+    bool TestGetOutputBrokers_4();
+
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
+    bool TestGetOutputBrokers_5();
+
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
+    bool TestGetOutputBrokers_6();
+
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
+    bool TestGetOutputBrokers_7();
+
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
+    bool TestGetOutputBrokers_8();
+
+    /**
      * @brief Tests the PrepareNextState method.
      */
     bool TestPrepareNextState();

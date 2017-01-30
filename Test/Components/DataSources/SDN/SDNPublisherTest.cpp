@@ -56,21 +56,15 @@ public:
 
     SDNPublisherTestGAM() : GAM() {
 
-        log_trace("SDNPublisherTestGAM::SDNPublisherTestGAM - Entering method");
-
         counter = 0lu;
         timestamp = 0lu;
 
-        log_trace("SDNPublisherTestGAM::SDNPublisherTestGAM - Leaving method");
     }
 
     ~SDNPublisherTestGAM() { }
 
     bool Execute() {
 
-        log_trace("SDNPublisherTestGAM::Execute - Entering method");
-
-        counter += 1;
 	MARTe::uint64 curr_time = get_time();
 	MARTe::uint64 till_time = ceil_time(curr_time, 100000000lu);
 	timestamp = wait_until(till_time);
@@ -83,17 +77,15 @@ public:
             MARTe::MemoryOperationsHelper::Copy(GetOutputSignalMemory(1u), &timestamp, sizeof(MARTe::uint64));
         }
 
-        log_trace("SDNPublisherTestGAM::Execute - Leaving method");
-
         return true;
     }
 
     bool Setup() {
+       return true;
+    }
 
-        log_trace("SDNPublisherTestGAM::Setup - Entering method");
-
-        log_trace("SDNPublisherTestGAM::Setup - Leaving method");
-
+    bool SetCounter(MARTe::uint64 counter) {
+        this->counter = counter;
         return true;
     }
 
@@ -103,6 +95,45 @@ public:
 };
 
 CLASS_REGISTER(SDNPublisherTestGAM, "1.0")
+
+
+class ConstantGAM: public MARTe::GAM {
+
+public:
+
+    CLASS_REGISTER_DECLARATION()
+
+    ConstantGAM() : GAM() { dflt = 0; }
+
+    ~ConstantGAM() {}
+
+    bool Execute() {
+
+        MARTe::uint32 nOfSignals = GetNumberOfOutputSignals();
+        MARTe::uint32 signalIndex = 0u;
+
+        for (signalIndex = 0; signalIndex < nOfSignals; signalIndex++) {
+            MARTe::uint32 byteSize = 0u; GetSignalByteSize(MARTe::OutputSignals, signalIndex, byteSize);
+            MARTe::MemoryOperationsHelper::Set(GetOutputSignalMemory(signalIndex), (MARTe::char8) dflt, byteSize);
+        }
+
+        return true;
+    }
+
+    bool Setup() {
+       return true;
+    }
+
+    bool SetDefault(MARTe::char8 dflt) {
+        this->dflt = dflt;
+        return true;
+    }
+
+    MARTe::char8 dflt;
+
+};
+
+CLASS_REGISTER(ConstantGAM, "1.0")
 
 /**
  * Starts a MARTe application that uses this driver instance.
@@ -141,6 +172,49 @@ bool ConfigureApplication(const MARTe::char8 * const config) {
     } else {
         ok = application->ConfigureApplication();
     }
+
+    return ok;
+
+}
+
+static inline bool StartApplication(const MARTe::char8 * const state = "Running") {
+
+    using namespace MARTe;
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ReferenceT<RealTimeApplication> application = god->Find("Test");;
+    bool ok = application.IsValid();
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+    } else {
+        ok = application->PrepareNextState(state);
+    }
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::PrepareNextState failed");
+    } else {
+        ok = application->StartNextStateExecution();
+    }
+
+    return ok;
+
+}
+
+static inline bool StopApplication() {
+
+    using namespace MARTe;
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ReferenceT<RealTimeApplication> application = god->Find("Test");;
+    bool ok = application.IsValid();
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+    } else {
+        ok = application->StopCurrentStateExecution();
+    }
+
+    god->Purge();
 
     return ok;
 
@@ -216,6 +290,7 @@ const MARTe::char8 * const config_default = ""
         "                Counter = {"
         "                    DataSource = SDNPub"
         "                    Type = uint64"
+        "                    Trigger = 1"
         "                }"
         "                Timestamp = {"
         "                    DataSource = SDNPub"
@@ -233,7 +308,7 @@ const MARTe::char8 * const config_default = ""
         "            Interface = lo"  
         "            Signals = {"  
         "                Counter = {"  
-        "                    Type = uint64"  
+        "                    Type = uint64"
         "                }"  
         "                Timestamp = {"  
         "                    Type = uint64"  
@@ -436,7 +511,7 @@ bool SDNPublisherTest::TestSetConfiguredDatabase_False_NOfSignals() {
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +Timer = {"
-        "            Class = SDNPublisherTestGAM"
+        "            Class = ConstantGAM"
         "            OutputSignals = {"
         "                Counter = {"
         "                    DataSource = DDB1"
@@ -522,8 +597,20 @@ bool SDNPublisherTest::TestGetBrokerName_OutputSignals() {
     using namespace MARTe;
     SDNPublisher test;
     ConfigurationDatabase cdb;
-    StreamString brokerName = test.GetBrokerName(cdb, OutputSignals);
-    bool ok = (brokerName == "MemoryMapSynchronisedOutputBroker");
+    StreamString brokerName = test.GetBrokerName(cdb, InputSignals);
+    bool ok = (brokerName == "");
+
+    if (ok) { // No trigger
+        brokerName = test.GetBrokerName(cdb, OutputSignals);
+        ok = (brokerName == "MemoryMapOutputBroker");
+    }
+
+    if (ok) { // With trigger
+        cdb.Write("Trigger", 1);
+        brokerName = test.GetBrokerName(cdb, OutputSignals);
+        ok = (brokerName == "MemoryMapSynchronisedOutputBroker");
+    }
+
     return ok;
 }
 
@@ -537,6 +624,590 @@ bool SDNPublisherTest::TestGetInputBrokers() {
 
 bool SDNPublisherTest::TestGetOutputBrokers() {
     return TestIntegratedInApplication(config_default);
+}
+
+bool SDNPublisherTest::TestGetOutputBrokers_1() {
+    // 1 input GAM, 1 signal, with trigger
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                    Trigger = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+    return ok;
+}
+
+bool SDNPublisherTest::TestGetOutputBrokers_2() {
+    // 1 input GAM, 1 signal, no trigger
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+    return !ok; // Expect failure
+}
+
+bool SDNPublisherTest::TestGetOutputBrokers_3() {
+    // 1 input GAM, 1 signal multi-samples, with trigger
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                    Trigger = 1"
+        "                    Samples = 10"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+    return !ok; // Expect failure
+}
+
+bool SDNPublisherTest::TestGetOutputBrokers_4() {
+    // 1 input GAM, 2 signals, with trigger
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                    Trigger = 1"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+    return ok;
+}
+
+bool SDNPublisherTest::TestGetOutputBrokers_5() {
+    // 2 input GAMs, 1 signal each, with trigger
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Counter = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                    Trigger = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timer = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = DDB1"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +DDB1 = {"
+        "            Class = GAMDataSource"
+        "        }"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Counter Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+    return ok;
+}
+
+bool SDNPublisherTest::TestGetOutputBrokers_6() {
+    // 2 input GAMs, 1 signal each, with trigger each
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Counter = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                    Trigger = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timer = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = DDB1"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                    Trigger = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +DDB1 = {"
+        "            Class = GAMDataSource"
+        "        }"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Counter Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+    return !ok; // Expect failure
+}
+
+bool SDNPublisherTest::TestGetOutputBrokers_7() {
+    // 2 input GAMs, 2 signals each, with trigger
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                    Trigger = 1"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +ADC = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Sample = {"
+        "                    DataSource = SDNPub"
+        "                    Type = float64"
+        "                }"
+        "                RMS = {"
+        "                    DataSource = SDNPub"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    Type = uint64"
+        "                }"
+        "                Sample = {"
+        "                    Type = float64"
+        "                }"
+        "                RMS = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {ADC Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+    return ok;
+}
+
+bool SDNPublisherTest::TestGetOutputBrokers_8() {
+    // 2 input GAMs, 2 signals each, with trigger
+    const MARTe::char8 * const config = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                    Trigger = 1"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "                ArrayInt32_1D = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint32"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +ADC = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Sample = {"
+        "                    DataSource = SDNPub"
+        "                    Type = float64"
+        "                }"
+        "                RMS = {"
+        "                    DataSource = SDNPub"
+        "                    Type = float64"
+        "                }"
+        "                ArrayFlt32_1D = {"
+        "                    DataSource = SDNPub"
+        "                    Type = float32"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    Type = uint64"
+        "                }"
+        "                Sample = {"
+        "                    Type = float64"
+        "                }"
+        "                RMS = {"
+        "                    Type = float64"
+        "                }"
+        "                ArrayInt32_1D = {"
+        "                    Type = uint32"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                ArrayFlt32_1D = {"
+        "                    Type = float32"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {ADC Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+    bool ok = ConfigureApplication(config);
+    return ok;
 }
 
 bool SDNPublisherTest::TestPrepareNextState() {
@@ -564,6 +1235,7 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_1() {
         "                Counter = {"
         "                    DataSource = SDNPub"
         "                    Type = uint64"
+        "                    Trigger = 1"
         "                }"
         "                Timestamp = {"
         "                    DataSource = SDNPub"
@@ -618,7 +1290,9 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_1() {
         ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
         ReferenceT<RealTimeApplication> application = god->Find("Test");
         ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
-	ok = publisher.IsValid();
+        ReferenceT<SDNPublisherTestGAM> timer = application->Find("Functions.Timer");
+
+        ok = ((publisher.IsValid()) && (timer.IsValid()));
 
 	if (ok) {
 	    // Instantiate a sdn::Metadata structure to configure the topic
@@ -658,7 +1332,35 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_1() {
 	    if (ok) {
 	        ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
 	    }
+	    // Set test value
+	    if (ok) {
+	        timer->SetCounter((MARTe::uint64) 10ul);
+	    }
+	    // Start Application
+	    if (ok) {
+	        log_info("Start application");
+	        ok = StartApplication();
+	    }
+	    // Let the application run
+	    if (ok) {
+	        wait_for(500000000ul);
+	    }
+	    // Test reception
+	    if (ok) {
+	        ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        MARTe::uint64 counter = 0ul;
+	        ok = (topic->GetAttribute(0u, &counter) == STATUS_SUCCESS);
+	        log_info("Received counter '%lu'", counter);
+	        ok = (counter == (MARTe::uint64) 10ul);
+	    }
 	} 
+    }
+
+    if (ok) {
+        log_info("Stop application");
+        ok = StopApplication();
     }
 
     return ok;
@@ -678,10 +1380,22 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_2() {
         "                Counter = {"
         "                    DataSource = SDNPub"
         "                    Type = uint64"
+        "                    Trigger = 1"
         "                }"
         "                Timestamp = {"
         "                    DataSource = SDNPub"
         "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +Arrays = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                ArrayInt32_1D = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint32"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
         "                }"
         "            }"
         "        }"
@@ -734,7 +1448,7 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_2() {
         "                Class = ReferenceContainer"
         "                +Thread = {"
         "                    Class = RealTimeThread"
-        "                    Functions = {Timer}"
+        "                    Functions = {Arrays Timer}"
         "                }"
         "            }"
         "        }"
@@ -752,18 +1466,34 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_2() {
         ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
         ReferenceT<RealTimeApplication> application = god->Find("Test");
         ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
-	ok = publisher.IsValid();
+        ReferenceT<SDNPublisherTestGAM> timer = application->Find("Functions.Timer");
+        ReferenceT<ConstantGAM> array = application->Find("Functions.Arrays");
+
+        ok = ((publisher.IsValid()) && (timer.IsValid()) && (array.IsValid()));
 
 	if (ok) {
 	    // Instantiate a sdn::Metadata structure to configure the topic (name, version and size)
-	    sdn::Metadata_t mdata; sdn::Topic_InitializeMetadata(mdata, "Default", 160u, 0u);
+	    sdn::Metadata_t mdata; sdn::Topic_InitializeMetadata(mdata, "Default", 0u, 0u);
 	    // Instantiate SDN topic from metadata specification
 	    sdn::Topic* topic = new sdn::Topic; topic->SetMetadata(mdata); 
 	    sdn::Subscriber* subscriber;
     
-	    topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10	    
-	    ok = (topic->Configure() == STATUS_SUCCESS);
-
+	    if (ok) {
+	        ok = (topic->AddAttribute(0u, "Counter", "uint64") == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        ok = (topic->AddAttribute(2u, "ArrayInt32_1D", "uint32", 10) == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        ok = (topic->AddAttribute(3u, "Reserved", "uint8", 104) == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+	        ok = (topic->Configure() == STATUS_SUCCESS);
+	    }
 	    if (ok) {
 	        ok = topic->IsInitialized();
 	    }
@@ -785,7 +1515,39 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_2() {
 	    if (ok) {
 	        ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
 	    }
-	} 
+	    // Set test value
+	    if (ok) {
+	        timer->SetCounter((MARTe::uint64) 10ul);
+	        array->SetDefault((MARTe::char8) 24u);
+	    }
+	    // Start Application
+	    if (ok) {
+	        log_info("Start application");
+	        ok = StartApplication();
+	    }
+	    // Let the application run
+	    if (ok) {
+	        wait_for(500000000ul);
+	    }
+	    // Test reception
+	    if (ok) {
+	        ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
+	    }
+	    if (ok) {
+	        MARTe::uint64 counter = 0ul;
+	        ok = (topic->GetAttribute(0u, &counter) == STATUS_SUCCESS);
+	        log_info("Received counter '%lu'", counter);
+	        ok = (counter == (MARTe::uint64) 10ul);
+	        MARTe::char8 byte = *((MARTe::char8 *) topic->GetTypeDefinition()->GetAttributeReference(2u));
+	        log_info("Received byte '%hhu'", byte);
+	        ok = (byte == (MARTe::char8) 24u);
+	    }
+        }
+    }
+
+    if (ok) {
+        log_info("Stop application");
+        ok = StopApplication();
     }
 
     return ok;
@@ -805,6 +1567,7 @@ bool SDNPublisherTest::TestSynchronise_UCAST_Topic_1() {
         "                Counter = {"
         "                    DataSource = SDNPub"
         "                    Type = uint64"
+        "                    Trigger = 1"
         "                }"
         "                Timestamp = {"
         "                    DataSource = SDNPub"
