@@ -89,6 +89,21 @@ TEST(SDNSubscriberGTest, TestInitialise_Timeout_10ms) {
     ASSERT_TRUE(test.TestInitialise_Timeout_10ms());
 }
 
+TEST(SDNSubscriberGTest, TestInitialise_Mode_Defaultl) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestInitialise_Mode_Default());
+}
+
+TEST(SDNSubscriberGTest, TestInitialise_Mode_Caching) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestInitialise_Mode_Default());
+}
+
+TEST(SDNSubscriberGTest, TestInitialise_Mode_Synchronising) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestInitialise_Mode_Default());
+}
+
 TEST(SDNSubscriberGTest, TestInitialise_Missing_Topic) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_Missing_Topic());
@@ -127,6 +142,11 @@ TEST(SDNSubscriberGTest, TestInitialise_False_Address_3) {
 TEST(SDNSubscriberGTest, TestInitialise_False_Address_4) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_False_Address_4());
+}
+
+TEST(SDNSubscriberGTest, TestInitialise_False_Mode) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Mode());
 }
 
 TEST(SDNSubscriberGTest, TestInitialise_False_Address_5) {

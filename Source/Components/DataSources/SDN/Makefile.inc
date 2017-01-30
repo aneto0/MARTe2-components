@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX=SDNLoggerCallback.x SDNPublisher.x SDNSubscriber.x ThreadedSDNSubscriber.x
+OBJSX=SDNLoggerCallback.x SDNPublisher.x SDNSubscriber.x
 
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../../

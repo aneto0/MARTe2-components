@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX += SDNPublisherTest.x SDNSubscriberTest.x ThreadedSDNSubscriberTest.x
+OBJSX += SDNPublisherTest.x SDNSubscriberTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..

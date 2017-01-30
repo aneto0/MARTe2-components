@@ -80,13 +80,13 @@ public:
 
     bool TestCounter(MARTe::uint64 value = 0ul) {
         bool ok = (counter == value);
-	log_info("SDNSubscriberTestGAM::TestCounter - '%lu %lu'", counter, value);
+log_info("SDNSubscriberTestGAM::TestCounter - '%lu %lu'", counter, value);
         return ok;
     }
 
     bool TestTimestamp(MARTe::uint64 value = 0ul) {
         bool ok = (timestamp == value);
-	log_info("SDNSubscriberTestGAM::TestTimestamp - '%lu %lu'", timestamp, value);
+log_info("SDNSubscriberTestGAM::TestTimestamp - '%lu %lu'", timestamp, value);
         return ok;
     }
 
@@ -229,7 +229,8 @@ const MARTe::char8 * const config_default = ""
         "            Class = SDNSubscriber"
         "            Topic = Default"  
         "            Interface = lo"  
-        "            Timeout = 100000000"  
+        "            Timeout = 100"
+        "            Mode = Synchronising"
         "            Signals = {"  
         "                Counter = {"  
         "                    Type = uint64"  
@@ -351,6 +352,36 @@ bool SDNSubscriberTest::TestInitialise_Timeout_10ms() {
     return test.Initialise(cdb);
 }
 
+bool SDNSubscriberTest::TestInitialise_Mode_Default() {
+    using namespace MARTe;
+    SDNSubscriber test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Topic", "Default");
+    cdb.Write("Interface", "lo");
+    cdb.Write("Mode", "Default");
+    return test.Initialise(cdb);
+}
+
+bool SDNSubscriberTest::TestInitialise_Mode_Caching() {
+    using namespace MARTe;
+    SDNSubscriber test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Topic", "Default");
+    cdb.Write("Interface", "lo");
+    cdb.Write("Mode", "Caching");
+    return test.Initialise(cdb);
+}
+
+bool SDNSubscriberTest::TestInitialise_Mode_Synchronising() {
+    using namespace MARTe;
+    SDNSubscriber test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Topic", "Default");
+    cdb.Write("Interface", "lo");
+    cdb.Write("Mode", "Synchronising");
+    return test.Initialise(cdb);
+}
+
 bool SDNSubscriberTest::TestInitialise_Missing_Topic() {
     using namespace MARTe;
     SDNSubscriber test;
@@ -445,6 +476,17 @@ bool SDNSubscriberTest::TestInitialise_False_Address_5() {
     return !ok; // Expect failure
 }
 
+bool SDNSubscriberTest::TestInitialise_False_Mode() {
+    using namespace MARTe;
+    SDNSubscriber test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Topic", "Default");
+    cdb.Write("Interface", "lo");
+    cdb.Write("Mode", "InvalidMode");
+    bool ok = test.Initialise(cdb);
+    return !ok; // Expect failure
+}
+
 bool SDNSubscriberTest::TestSetConfiguredDatabase() {
     return TestIntegratedInApplication(config_default);
 }
@@ -535,7 +577,7 @@ bool SDNSubscriberTest::TestGetBrokerName_InputSignals() {
     SDNSubscriber test;
     ConfigurationDatabase cdb;
     StreamString brokerName = test.GetBrokerName(cdb, InputSignals);
-    bool ok = (brokerName == "MemoryMapSynchronisedInputBroker");
+    bool ok = (brokerName == "MemoryMapInputBroker");
     return ok;
 }
 
@@ -600,7 +642,8 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_1() {
         "            Class = SDNSubscriber"
         "            Topic = Default"  
         "            Interface = lo"  
-        "            Timeout = 100000000"  
+        "            Mode = Synchronising"
+        "            Timeout = 1000"
         "            Signals = {"  
         "                Counter = {"  
         "                    Type = uint64"  
@@ -648,7 +691,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_1() {
         ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
     }
     if (ok) {
-      topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+        topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
         ok = (topic->Configure() == STATUS_SUCCESS);
     }
     if (ok) {
@@ -679,32 +722,32 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_1() {
         ReferenceT<RealTimeApplication> application = god->Find("Test");
         ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
         ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
-	ok = subscriber.IsValid();
+ok = subscriber.IsValid();
 
-	// Prepare data
-	MARTe::uint64 counter = 10ul;
-	MARTe::uint64 timestamp = get_time();
-	if (ok) {
-	    ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
-	}
-	if (ok) {
-	    ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
-	}
-	// Send data
-	if (ok) {
-	    ok = (publisher->Publish() == STATUS_SUCCESS);
-	}
-	// Let the application run
-	if (ok) {
-	    wait_for(100000000ul);
-	}
-	// Test reception
-	if (ok) {
-	    ok = sink->TestCounter(counter);
-	}
-	if (ok) {
-	    ok = sink->TestTimestamp(timestamp);
-	}
+// Prepare data
+MARTe::uint64 counter = 10ul;
+MARTe::uint64 timestamp = get_time();
+if (ok) {
+    ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
+}
+if (ok) {
+    ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
+}
+// Send data
+if (ok) {
+    ok = (publisher->Publish() == STATUS_SUCCESS);
+}
+// Let the application run
+if (ok) {
+    wait_for(100000000ul);
+}
+// Test reception
+if (ok) {
+    ok = sink->TestCounter(counter);
+}
+if (ok) {
+    ok = sink->TestTimestamp(timestamp);
+}
     } 
 
     if (ok) {
@@ -743,7 +786,8 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_2() {
         "            Class = SDNSubscriber"
         "            Topic = Default"  
         "            Interface = lo"  
-        "            Timeout = 100000000"  
+        "            Timeout = 1000"
+        "            Mode = Synchronising"
         "            Signals = {"  
         "                Counter = {"  
         "                    Type = uint64"  
@@ -811,7 +855,10 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_2() {
         ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
     }
     if (ok) {
-      topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+        ok = (topic->AddAttribute(2u, "Reserved", "uint8", 144) == STATUS_SUCCESS);
+    }
+    if (ok) {
+        topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
         ok = (topic->Configure() == STATUS_SUCCESS);
     }
     if (ok) {
@@ -842,32 +889,32 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_2() {
         ReferenceT<RealTimeApplication> application = god->Find("Test");
         ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
         ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
-	ok = subscriber.IsValid();
+ok = subscriber.IsValid();
 
-	// Prepare data
-	MARTe::uint64 counter = 10ul;
-	MARTe::uint64 timestamp = get_time();
-	if (ok) {
-	    ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
-	}
-	if (ok) {
-	    ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
-	}
-	// Send data
-	if (ok) {
-	    ok = (publisher->Publish() == STATUS_SUCCESS);
-	}
-	// Let the application run
-	if (ok) {
-	    wait_for(100000000ul);
-	}
-	// Test reception
-	if (ok) {
-	    ok = sink->TestCounter(counter);
-	}
-	if (ok) {
-	    ok = sink->TestTimestamp(timestamp);
-	}
+// Prepare data
+MARTe::uint64 counter = 10ul;
+MARTe::uint64 timestamp = get_time();
+if (ok) {
+    ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
+}
+if (ok) {
+    ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
+}
+// Send data
+if (ok) {
+    ok = (publisher->Publish() == STATUS_SUCCESS);
+}
+// Let the application run
+if (ok) {
+    wait_for(100000000ul);
+}
+// Test reception
+if (ok) {
+    ok = sink->TestCounter(counter);
+}
+if (ok) {
+    ok = sink->TestTimestamp(timestamp);
+}
     } 
 
     if (ok) {
@@ -907,7 +954,8 @@ bool SDNSubscriberTest::TestSynchronise_UCAST_Topic_1() {
         "            Topic = Default"  
         "            Interface = lo"  
         "            Address = \"127.0.0.1:60000\""  
-        "            Timeout = 100000000"  
+        "            Mode = Synchronising"
+        "            Timeout = 1000"
         "            Signals = {"  
         "                Counter = {"  
         "                    Type = uint64"  
@@ -955,7 +1003,7 @@ bool SDNSubscriberTest::TestSynchronise_UCAST_Topic_1() {
         ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
     }
     if (ok) {
-      topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+        topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
         ok = (topic->Configure() == STATUS_SUCCESS);
     }
     if (ok) {
@@ -986,32 +1034,32 @@ bool SDNSubscriberTest::TestSynchronise_UCAST_Topic_1() {
         ReferenceT<RealTimeApplication> application = god->Find("Test");
         ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
         ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
-	ok = subscriber.IsValid();
+ok = subscriber.IsValid();
 
-	// Prepare data
-	MARTe::uint64 counter = 10ul;
-	MARTe::uint64 timestamp = get_time();
-	if (ok) {
-	    ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
-	}
-	if (ok) {
-	    ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
-	}
-	// Send data
-	if (ok) {
-	    ok = (publisher->Publish() == STATUS_SUCCESS);
-	}
-	// Let the application run
-	if (ok) {
-	    wait_for(100000000ul);
-	}
-	// Test reception
-	if (ok) {
-	    ok = sink->TestCounter(counter);
-	}
-	if (ok) {
-	    ok = sink->TestTimestamp(timestamp);
-	}
+// Prepare data
+MARTe::uint64 counter = 10ul;
+MARTe::uint64 timestamp = get_time();
+if (ok) {
+    ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
+}
+if (ok) {
+    ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
+}
+// Send data
+if (ok) {
+    ok = (publisher->Publish() == STATUS_SUCCESS);
+}
+// Let the application run
+if (ok) {
+    wait_for(100000000ul);
+}
+// Test reception
+if (ok) {
+    ok = sink->TestCounter(counter);
+}
+if (ok) {
+    ok = sink->TestTimestamp(timestamp);
+}
     } 
 
     if (ok) {
