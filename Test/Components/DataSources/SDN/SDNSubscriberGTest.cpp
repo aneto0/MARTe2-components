@@ -224,6 +224,21 @@ TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_3) {
     ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_3());
 }
 
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_4) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_4());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_5) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_5());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_6) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_6());
+}
+
 TEST(SDNSubscriberGTest, TestSynchronise_UCAST_Topic_1) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise_UCAST_Topic_1());

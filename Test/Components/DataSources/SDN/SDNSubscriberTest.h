@@ -236,6 +236,16 @@ public:
     /**
      * @brief Tests the Synchronise method.
      */
+    bool TestSynchronise_MCAST_Topic_5();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_Topic_6();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
     bool TestSynchronise_UCAST_Topic_1();
 
     /**
