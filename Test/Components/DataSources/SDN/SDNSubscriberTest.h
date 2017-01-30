@@ -223,6 +223,16 @@ public:
      */
     bool TestSynchronise_UCAST_Topic_1();
 
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_UCAST_Topic_2();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_UCAST_Topic_3();
+
 };
 
 /*---------------------------------------------------------------------------*/

@@ -204,9 +204,24 @@ TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_2) {
     ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_2());
 }
 
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_3) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_3());
+}
+
 TEST(SDNSubscriberGTest, TestSynchronise_UCAST_Topic_1) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise_UCAST_Topic_1());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_UCAST_Topic_2) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_UCAST_Topic_2());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_UCAST_Topic_3) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_UCAST_Topic_3());
 }
 
 /*---------------------------------------------------------------------------*/

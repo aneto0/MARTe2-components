@@ -96,7 +96,6 @@ public:
 
 CLASS_REGISTER(SDNPublisherTestGAM, "1.0")
 
-
 class ConstantGAM: public MARTe::GAM {
 
 public:

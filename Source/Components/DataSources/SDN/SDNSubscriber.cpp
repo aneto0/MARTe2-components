@@ -429,6 +429,8 @@ bool SDNSubscriber::Synchronise() {
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "SDNSubscriber operates in caching mode");
+    } else {
+        log_trace("SDNSubscriber::Synchronise - Method called");
     }
 
     if (ok) {
