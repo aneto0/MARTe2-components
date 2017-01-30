@@ -92,14 +92,14 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-    /**
-     * @brief Default constructor.
-     * @post
-     *   topic = NULL_PTR
-     *   publisher = NULL_PTR
-     *   synchronizing = false
-     */
-    SDNPublisher();
+/**
+ * @brief Default constructor.
+ * @post
+ *   topic = NULL_PTR
+ *   publisher = NULL_PTR
+ *   synchronizing = false
+ */
+SDNPublisher();
 
     /**
      * @brief Destructor. Releases resources.
@@ -205,13 +205,13 @@ public:
     virtual bool Synchronise();
 
 private:
-    
+
     StreamString ifaceName; // Configuration parameter
     StreamString topicName; // Configuration parameter
     StreamString destAddr;  // Configuration parameter (optional)
 
     uint32 nOfSignals; // Number of input signals
-    uint32 nOfTriggers; // Number of input trigger signals
+    uint32 nOfTriggers; // Number of input synchronising signals
 
     sdn::Topic *topic; // The topic reference
     sdn::Publisher *publisher; // The sdn::Publisher reference

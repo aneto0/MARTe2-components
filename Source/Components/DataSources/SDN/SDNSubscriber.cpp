@@ -33,6 +33,8 @@
 
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
+#include "MemoryMapInputBroker.h"
+#include "MemoryMapSynchronisedInputBroker.h"
 #include "SDNSubscriber.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
@@ -47,14 +49,13 @@
 namespace MARTe {
 
 SDNSubscriber::SDNSubscriber() :
-        DataSourceI(),
-        EmbeddedServiceMethodBinderI(),
-        executor(*this) {
+                        DataSourceI(),
+                        EmbeddedServiceMethodBinderI(),
+                        executor(*this) {
 
-    log_trace("SDNSubscriber::SDNSubscriber - Entering method");
-
-    mode = Default;
     nOfSignals = 0u;
+    nOfTriggers = 0u;
+    synchronising = false;
     TTTimeout = TTInfiniteWait;
 
     topic = NULL_PTR(sdn::Topic *);
@@ -64,13 +65,9 @@ SDNSubscriber::SDNSubscriber() :
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem");
     }
 
-    log_trace("SDNSubscriber::SDNSubscriber - Leaving method");
-
 }
 
 SDNSubscriber::~SDNSubscriber() {
-
-    log_trace("SDNSubscriber::~SDNSubscriber - Entering method");
 
     if (!synchronisingSem.Post()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem");
@@ -88,43 +85,35 @@ SDNSubscriber::~SDNSubscriber() {
         delete topic; topic = NULL_PTR(sdn::Topic *);
     }
 
-    log_trace("SDNSubscriber::~SDNSubscriber - Leaving method");
-
 }
 
 bool SDNSubscriber::Initialise(StructuredDataI &data) {
 
-    log_trace("SDNSubscriber::Initialise - Entering method");
-
     bool ok = DataSourceI::Initialise(data);
 
     if (!ok) {
-        log_error("SDNSubscriber::SetConfiguredDatabase - Parent virtual method failed");
         REPORT_ERROR(ErrorManagement::InternalSetupError, "Parent virtual method failed");
     }
 
     // Retrieve and verify network interface name
     if (!data.Read("Interface", ifaceName)) {
-        log_error("SDNSubscriber::Initialise - Interface attribute must be specified");
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be specified");
-ok = false;
+        ok = false;
     } else {
         log_info("SDNSubscriber::Initialise - Interface is '%s'", ifaceName.Buffer());
     } 
 
     if (!net_is_interface_valid(ifaceName.Buffer())) {
-        log_error("SDNSubscriber::Initialise - Interface '%s' is not valid", ifaceName.Buffer());
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be a valid identifier");
-ok = false;
+        ok = false;
     } else {
         log_info("SDNSubscriber::Initialise - Interface '%s' is valid", ifaceName.Buffer());
     } 
 
     // Retrieve and verify topic name
     if (!data.Read("Topic", topicName)) {
-        log_error("SDNSubscriber::Initialise - Topic must be specified");
         REPORT_ERROR(ErrorManagement::ParametersError, "Topic must be specified");
-ok = false;
+        ok = false;
     } else {
         log_info("SDNSubscriber::Initialise - Topic name is '%s'", topicName.Buffer());
     }
@@ -135,13 +124,12 @@ ok = false;
 
         log_info("SDNSubscriber::Initialise - Explicit destination address '%s'", destAddr.Buffer());
 
-if (!sdn_is_address_valid(destAddr.Buffer())) {
-    log_error("SDNSubscriber::Initialise - Address '%s' is not valid", destAddr.Buffer());
-    REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
-    ok = false;
-} else {
-    log_info("SDNSubscriber::Initialise - Valid destination address '%s'", destAddr.Buffer());
-}
+        if (!sdn_is_address_valid(destAddr.Buffer())) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
+            ok = false;
+        } else {
+            log_info("SDNSubscriber::Initialise - Valid destination address '%s'", destAddr.Buffer());
+        }
 
     }
 
@@ -149,36 +137,17 @@ if (!sdn_is_address_valid(destAddr.Buffer())) {
     uint32 timeout;
     if (data.Read("Timeout", timeout)) {
         log_info("SDNSubscriber::Initialise - Explicit timeout '%u'", timeout);
-TTTimeout = timeout;
+        TTTimeout = timeout;
     }
-
-    // Synchronising mode parameter
-    if (data.Read("Mode", modeName)) {
-        log_info("SDNSubscriber::Initialise - Explicit synchronisation mode '%s'", modeName.Buffer());
-if ((modeName == "Default") || (modeName == "Caching")) {
-    mode = Default;
-} else if (modeName == "Synchronising") {
-    mode = Synchronising;
-} else {
-    log_error("SDNSubscriber::Initialise - Mode '%s' is not valid", modeName.Buffer());
-    REPORT_ERROR(ErrorManagement::ParametersError, "Mode must be a valid identifier, i.e. Default|Caching|Synchronising");
-    ok = false;
-}
-    }
-
-    log_trace("SDNSubscriber::Initialise - Leaving method");
 
     return ok;
 }
 
 bool SDNSubscriber::SetConfiguredDatabase(StructuredDataI& data) {
 
-    log_trace("SDNSubscriber::SetConfiguredDatabase - Entering method");
-
     bool ok = DataSourceI::SetConfiguredDatabase(data);
 
     if (!ok) {
-        log_error("SDNSubscriber::SetConfiguredDatabase - Parent virtual method failed");
         REPORT_ERROR(ErrorManagement::InternalSetupError, "Parent virtual method failed");
     }
 
@@ -187,24 +156,27 @@ bool SDNSubscriber::SetConfiguredDatabase(StructuredDataI& data) {
     ok = (nOfSignals > 0u);
 
     if (!ok) {
-        log_error("SDNSubscriber::SetConfiguredDatabase - nOfSignals must be > 0u");
         REPORT_ERROR(ErrorManagement::ParametersError, "nOfSignals must be > 0u");
     } else {
         log_info("SDNSubscriber::SetConfiguredDatabase - Number of signals '%u'", nOfSignals);
     }
-      
-    log_trace("SDNSubscriber::SetConfiguredDatabase - Leaving method");
+
+    if (ok) {
+        ok = (nOfTriggers <= 1u);
+    }
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with multiple synchronising signals");
+    }
 
     return ok;
 }
 
 bool SDNSubscriber::AllocateMemory() {
 
-    log_trace("SDNSubscriber::AllocateMemory - Entering method");
-
     // Instantiate a sdn::Metadata structure to configure the topic
     sdn::Metadata_t mdata; 
-    
+
     if (destAddr.Size() == 0) { // Topic defined by name
         sdn::Topic_InitializeMetadata(mdata, (const char*) topicName.Buffer(), 0);
     } else { // An address as been explicitly provided
@@ -213,7 +185,7 @@ bool SDNSubscriber::AllocateMemory() {
 
     // Instantiate SDN topic from metadata specification
     topic = new sdn::Topic; topic->SetMetadata(mdata);
-    
+
     bool ok = true;
     uint32 signalIndex = 0u;
 
@@ -221,38 +193,36 @@ bool SDNSubscriber::AllocateMemory() {
     for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
 
         TypeDescriptor signalType = GetSignalType(signalIndex);
-StreamString signalTypeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType);
-
+        StreamString signalTypeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType);
         StreamString signalName;
 
-ok = GetSignalName(signalIndex, signalName);
+        ok = GetSignalName(signalIndex, signalName);
 
-if (!ok) {
-  log_warning("SDNSubscriber::AllocateMemory - Unable to query signal '%u' name", signalIndex);
-  REPORT_ERROR(ErrorManagement::Warning, "Unable to query signal name");
-  // This is actually not so important ... would synthetise signal name in this case ... if I knew how
-  ok = true;
-}
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::Warning, "Unable to query signal name");
+            // This is actually not so important ... would synthesize signal name in this case ... if I knew how
+            ok = true;
+        }
 
-uint32 signalNOfElements;
+        uint32 signalNOfElements;
 
-if (ok) {
-    ok = GetSignalNumberOfElements(signalIndex, signalNOfElements);
-}
+        if (ok) {
+            ok = GetSignalNumberOfElements(signalIndex, signalNOfElements);
+        }
 
-uint8 signalNOfDimensions;
+        uint8 signalNOfDimensions;
 
-if (ok) {
-    ok = GetSignalNumberOfDimensions(signalIndex, signalNOfDimensions);
-}
+        if (ok) {
+            ok = GetSignalNumberOfDimensions(signalIndex, signalNOfDimensions);
+        }
 
-if (signalNOfDimensions > 1u) {
-    signalNOfElements *= signalNOfDimensions;
-}
+        if (signalNOfDimensions > 1u) {
+            signalNOfElements *= signalNOfDimensions;
+        }
 
-if (ok) {
-    ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
-}
+        if (ok) {
+            ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
+        }
 
     }
 
@@ -278,8 +248,6 @@ if (ok) {
         ok = (subscriber->Configure() == STATUS_SUCCESS);
     }
 
-    log_trace("SDNSubscriber::AllocateMemory - Leaving method");
-
     return ok;
 }
 
@@ -288,10 +256,8 @@ uint32 SDNSubscriber::GetNumberOfMemoryBuffers() {
 }
 
 bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx,
-  const uint32 bufferIdx,
-  void*& signalAddress) {
-
-    log_trace("SDNSubscriber::GetSignalMemoryBuffer - Entering method");
+                                          const uint32 bufferIdx,
+                                          void*& signalAddress) {
 
     bool ok = (signalIdx < nOfSignals);
 
@@ -308,86 +274,137 @@ bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx,
         log_info("SDNSubscriber::GetSignalMemoryBuffer - Reference of signal '%u' if '%p'", signalIdx, signalAddress);
     }
 
-    log_trace("SDNSubscriber::GetSignalMemoryBuffer - Leaving method");
-
     return ok;
 }
 
 const char8* SDNSubscriber::GetBrokerName(StructuredDataI& data,
-  const SignalDirection direction) {
+                                          const SignalDirection direction) {
+
     const char8 *brokerName = NULL_PTR(const char8 *);
+
     if (direction == InputSignals) {
-        if (mode == Default) { // Caching, non-synchronising for RT thread
+
+        float32 frequency = 0.F;
+
+        if (!data.Read("Frequency", frequency)) {
+            frequency = -1.F;
+        }
+
+        if (frequency > 0.F) {
+            brokerName = "MemoryMapSynchronisedInputBroker";
+            nOfTriggers++;
+            synchronising = true;
+        } else {
             brokerName = "MemoryMapInputBroker";
-} else { // Synchronising RT thread
-    brokerName = "MemoryMapSynchronisedInputBroker";
-}
+        }
+
     } else {
         REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with OutputSignals");
     }
+
     return brokerName;
 }
 
 bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
-    const char8* const functionName,
-    void* const gamMemPtr) {
+                                    const char8* const functionName,
+                                    void* const gamMemPtr) {
 
-    log_trace("SDNSubscriber::GetInputBrokers - Entering method");
+    // Check if this function has a synchronisation point (i.e. a signal which has Frequency > 0)
+    uint32 functionIdx = 0u;
+    uint32 nOfSignals = 0u;
+    uint32 signalIndex = 0u;
+    bool synchGAM = false;
+    bool ok = GetFunctionIndex(functionIdx, functionName);
 
-    bool ok = true;
-
-    if (mode == Default) { // Caching, non-synchronising for RT thread
-        ReferenceT<BrokerI> broker("MemoryMapInputBroker");
-
-if (ok) {
-    ok = broker.IsValid();
-}
-
-if (ok) {
-    ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
-}
-
-if (ok) {
-    ok = inputBrokers.Insert(broker);
-}
-    } else { // Synchronising RT thread
-        ReferenceT<BrokerI> broker("MemoryMapSynchronisedInputBroker");
-
-if (ok) {
-    ok = broker.IsValid();
-}
-
-if (ok) {
-    ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
-}
-
-if (ok) {
-    ok = inputBrokers.Insert(broker);
-}
+    if (ok) {
+        ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
     }
 
-    log_trace("SDNSubscriber::GetInputBrokers - Leaving method");
+    float32 frequency = 0.F;
+
+    for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok) && (!synchGAM); signalIndex++) {
+        ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, signalIndex, frequency);
+
+        if (ok) {
+            synchGAM = (frequency > 0.F);
+        }
+
+        // This version does not support multi-sample signals
+        uint32 samples = 0u;
+        ok = GetFunctionSignalSamples(InputSignals, functionIdx, signalIndex, samples);
+
+        if (ok) {
+            ok = (samples == 1u);
+        }
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Multi-sample signals are not supported");
+        }
+    }
+
+    if (ok) {
+        if (synchGAM) {
+
+            // A synchronizing broker is inserted in case one signal at least is declared with
+            // synchronising property. The GAM may also encompass non-synchronizing signals
+            // which require a standard broker.
+
+            ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");
+            ok = brokerSync.IsValid();
+
+            if (ok) {
+                ok = brokerSync->Init(InputSignals, *this, functionName, gamMemPtr);
+            }
+
+            if (ok) {
+                ok = inputBrokers.Insert(brokerSync);
+            }
+
+            // Must also add the signals which are not synchronous but that belong to the same GAM...
+            if (ok) {
+                if (nOfSignals > 1u) {
+                    ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
+                    ok = brokerNotSync.IsValid();
+
+                    if (ok) {
+                        ok = brokerNotSync->Init(InputSignals, *this, functionName, gamMemPtr);
+                    }
+
+                    if (ok) {
+                        ok = inputBrokers.Insert(brokerNotSync);
+                    }
+                }
+            }
+        } else {
+            ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
+            ok = broker.IsValid();
+
+            if (ok) {
+                ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+            }
+
+            if (ok) {
+                ok = inputBrokers.Insert(broker);
+            }
+        }
+    }
 
     return ok;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
 bool SDNSubscriber::GetOutputBrokers(ReferenceContainer& outputBrokers,
-     const char8* const functionName,
-     void* const gamMemPtr) {
+                                     const char8* const functionName,
+                                     void* const gamMemPtr) {
     return false;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns irrespectively of the input parameters.*/
 bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
-     const char8* const nextStateName) {
-
-    log_trace("SDNSubscriber::PrepareNextState - Entering method");
+                                     const char8* const nextStateName) {
 
     bool ok = (subscriber != NULL_PTR(sdn::Subscriber *));
 
     if (!ok) {
-        log_error("SDNSubscriber::PrepareNextState - sdn::Subscriber has not been initiaised");
         REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initiaised");
     }
 
@@ -400,23 +417,18 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
         if (executor.GetStatus() == EmbeddedThreadI::OffState) {
             // Start the SingleThreadService
             ok = executor.Start();
-}
+        }
     }
-
-    log_trace("SDNSubscriber::PrepareNextState - Leaving method");
 
     return ok;
 }
 
 bool SDNSubscriber::Synchronise() {
 
-    log_trace("SDNSubscriber::Synchronise - Entering method");
-
-    bool ok = (mode == Synchronising); // Synchronising RT thread
+    bool ok = synchronising; // DataSource is synchronising RT thread
 
     if (!ok) {
-        log_error("SDNSubscriber::Synchronise - Invalid method call for non-synchronising DataSourceI");
-        REPORT_ERROR(ErrorManagement::FatalError, "SDNSubscriber operates in Default (caching) mode");
+        REPORT_ERROR(ErrorManagement::FatalError, "SDNSubscriber operates in caching mode");
     }
 
     if (ok) {
@@ -424,8 +436,6 @@ bool SDNSubscriber::Synchronise() {
         ErrorManagement::ErrorType err = synchronisingSem.ResetWait(TTTimeout);
         ok = err.ErrorsCleared();
     }
-
-    log_trace("SDNSubscriber::Synchronise - Leaving method");
 
     return ok;
 }
@@ -439,17 +449,18 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(const ExecutionInfo& info) {
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initiaised");
-err.SetError(ErrorManagement::FatalError);
+        err.SetError(ErrorManagement::FatalError);
         Sleep::MSec(100u);
     }
 
     if (ok) {
         // Receive with timeout in order to avoid unresponsive thread
         ok = (subscriber->Receive(100000000ul) == STATUS_SUCCESS);
-if (!ok) {
+
+        if (!ok) {
             REPORT_ERROR(ErrorManagement::Timeout, "Failed to receive");
-    err.SetError(ErrorManagement::Timeout);
-}
+            err.SetError(ErrorManagement::Timeout);
+        }
     }
 
     if (ok) {

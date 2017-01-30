@@ -30,8 +30,9 @@ include Makefile.inc
 
 LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimerTest$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSourceTest$(LIBEXT)
+
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
-LIBRARIES_STATIC+=SDNPublisher/cov/SDNPublisherTest$(LIBEXT)
+LIBRARIES_STATIC+=SDN/cov/SDNTest$(LIBEXT)
 endif
 

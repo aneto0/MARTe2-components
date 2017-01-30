@@ -95,14 +95,14 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-    /**
-     * @brief Default constructor.
-     * @post
-     *   mode = Default
-     *   topic = NULL_PTR
-     *   subscriber = NULL_PTR
-     */
-    SDNSubscriber();
+/**
+ * @brief Default constructor.
+ * @post
+ *   mode = Default
+ *   topic = NULL_PTR
+ *   subscriber = NULL_PTR
+ */
+SDNSubscriber();
 
     /**
      * @brief Destructor. Releases resources.
@@ -230,26 +230,18 @@ public:
 
 private:
 
-    /**
-     * The two supported sleep natures.
-     */
-    enum SynchronisingMode {
-        Default = 0, // Caching, non-synchronising DataSource
-        Synchronising = 1,
-    };
-
     StreamString ifaceName; // Configuration parameter
     StreamString topicName; // Configuration parameter
     StreamString destAddr;  // Configuration parameter (optional)
-    StreamString modeName;  // Configuration parameter (optional)
 
     uint32 nOfSignals; // Number of input signals
+    uint32 nOfTriggers; // Number of synchronising signals
+    bool synchronising;
+
     TimeoutType TTTimeout; // Configurable timeout (msec)
 
     sdn::Topic *topic; // The topic reference
     sdn::Subscriber *subscriber; // The sdn::Subscriber reference
-
-    SynchronisingMode mode;
 
     /**
      * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.

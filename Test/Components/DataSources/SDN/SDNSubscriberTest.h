@@ -91,21 +91,6 @@ public:
     /**
      * @brief Tests the Initialise method with .
      */
-    bool TestInitialise_Mode_Default();
-
-    /**
-     * @brief Tests the Initialise method with .
-     */
-    bool TestInitialise_Mode_Caching();
-
-    /**
-     * @brief Tests the Initialise method with .
-     */
-    bool TestInitialise_Mode_Synchronising();
-
-    /**
-     * @brief Tests the Initialise method with .
-     */
     bool TestInitialise_Missing_Topic();
 
     /**
@@ -147,11 +132,6 @@ public:
      * @brief Tests the Initialise method with .
      */
     bool TestInitialise_False_Address_5();
-
-    /**
-     * @brief Tests the Initialise method with .
-     */
-    bool TestInitialise_False_Mode();
 
     /**
      * @brief Tests the AllocateMemory method.

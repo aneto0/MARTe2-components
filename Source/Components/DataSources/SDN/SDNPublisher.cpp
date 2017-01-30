@@ -53,7 +53,7 @@
 namespace MARTe {
 
 SDNPublisher::SDNPublisher() :
-        DataSourceI() {
+                DataSourceI() {
 
     nOfSignals = 0u;
     nOfTriggers = 0u;
@@ -86,14 +86,14 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
     // Retrieve and verify network interface name
     if (!data.Read("Interface", ifaceName)) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be specified");
-	ok = false;
+        ok = false;
     } else {
         log_info("SDNPublisher::Initialise - Interface is '%s'", ifaceName.Buffer());
     } 
 
     if (!net_is_interface_valid(ifaceName.Buffer())) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be a valid identifier");
-	ok = false;
+        ok = false;
     } else {
         log_info("SDNPublisher::Initialise - Interface '%s' is valid", ifaceName.Buffer());
     } 
@@ -101,7 +101,7 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
     // Retrieve and verify topic name
     if (!data.Read("Topic", topicName)) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Topic must be specified");
-	ok = false;
+        ok = false;
     } else {
         log_info("SDNPublisher::Initialise - Topic name is '%s'", topicName.Buffer());
     }
@@ -110,12 +110,12 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
     // to a destination '<address>:<port>' can be explicitly defined
     if (data.Read("Address", destAddr)) {
 
-	if (!sdn_is_address_valid(destAddr.Buffer())) {
-	    REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
-	    ok = false;
-	} else {
-	    log_info("SDNPublisher::Initialise - Valid destination address '%s'", destAddr.Buffer());
-	}
+        if (!sdn_is_address_valid(destAddr.Buffer())) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
+            ok = false;
+        } else {
+            log_info("SDNPublisher::Initialise - Valid destination address '%s'", destAddr.Buffer());
+        }
 
     }
 
@@ -150,7 +150,7 @@ bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
         if (nOfTriggers == 0u) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Missing trigger signal");
         } else {
-            REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with multiple triggers");
+            REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with multiple synchronising signals");
         }
     }
 
@@ -161,7 +161,7 @@ bool SDNPublisher::AllocateMemory() {
 
     // Instantiate a sdn::Metadata structure to configure the topic
     sdn::Metadata_t mdata; 
-    
+
     if (destAddr.Size() == 0) { // Topic defined by name
         sdn::Topic_InitializeMetadata(mdata, (const char*) topicName.Buffer(), 0);
     } else { // An address as been explicitly provided
@@ -170,7 +170,7 @@ bool SDNPublisher::AllocateMemory() {
 
     // Instantiate SDN topic from metadata specification
     topic = new sdn::Topic; topic->SetMetadata(mdata);
-    
+
     bool ok = true;
     uint32 signalIndex = 0u;
 
@@ -178,37 +178,37 @@ bool SDNPublisher::AllocateMemory() {
     for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
 
         TypeDescriptor signalType = GetSignalType(signalIndex);
-	StreamString signalTypeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType);
+        StreamString signalTypeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType);
 
         StreamString signalName;
 
-	ok = GetSignalName(signalIndex, signalName);
+        ok = GetSignalName(signalIndex, signalName);
 
-	if (!ok) {
-	  REPORT_ERROR(ErrorManagement::Warning, "Unable to query signal name");
-	  // This is actually not so important ... could synthesize signal name in this case ... if I knew how
-	  ok = true;
-	} 
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::Warning, "Unable to query signal name");
+            // This is actually not so important ... could synthesize signal name in this case ... if I knew how
+            ok = true;
+        }
 
-	uint32 signalNOfElements;
+        uint32 signalNOfElements;
 
-	if (ok) {
-	    ok = GetSignalNumberOfElements(signalIndex, signalNOfElements);
-	}
+        if (ok) {
+            ok = GetSignalNumberOfElements(signalIndex, signalNOfElements);
+        }
 
-	uint8 signalNOfDimensions;
+        uint8 signalNOfDimensions;
 
-	if (ok) {
-	    ok = GetSignalNumberOfDimensions(signalIndex, signalNOfDimensions);
-	}
+        if (ok) {
+            ok = GetSignalNumberOfDimensions(signalIndex, signalNOfDimensions);
+        }
 
-	if (signalNOfDimensions > 1u) {
-	    signalNOfElements *= signalNOfDimensions;
-	}
+        if (signalNOfDimensions > 1u) {
+            signalNOfElements *= signalNOfDimensions;
+        }
 
-	if (ok) {
-	    ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
-	}
+        if (ok) {
+            ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
+        }
 
     }
 
@@ -354,6 +354,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
                 if (ok) {
                     ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
                 }
+
                 if (ok) {
                     ok = outputBrokers.Insert(brokerNotSync);
                 }
@@ -367,6 +368,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
             if (ok) {
                 ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
             }
+
             if (ok) {
                 ok = outputBrokers.Insert(broker);
             }
@@ -378,6 +380,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
             if (ok) {
                 ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
             }
+
             if (ok) {
                 ok = outputBrokers.Insert(brokerNotSync);
             }
