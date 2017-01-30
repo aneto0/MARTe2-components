@@ -177,7 +177,7 @@ public:
 #include "SharedDataArea.h"
 #include "SharedDataAreaSupport.h"
 
-bool SetConfiguredDatabase(MARTe::EpicsOutputDataSource& target, const MARTe::uint32 numberOfSignals);
+#include "EpicsDataSourceSupport.h"
 
 template<typename SignalType>
 bool EpicsOutputDataSourceTest::Test1() {
@@ -218,41 +218,41 @@ bool EpicsOutputDataSourceTest::Test1() {
 	//Initialize items of dataset:
 	InitDataSet<SignalType>(dataset, numberOfSignals);
 
-	// Write all the sigblocks of the dataset to the shared data area, checking
-	// that they can be read by the input data source and have the same values
-	// than those from the dataset. They will be written and read taking turns
-	//(1 write, 1 read).
+	//Write all the sigblocks of the dataset to the output data source,
+	//checking that they can be read by the shared data area and have
+	//the same values than those from the dataset. They will be written
+	//and read taking turns (1 write, 1 read).
 	{
 		bool error = false;
 		unsigned int i = 0;
-		Sigblock* sigblock = NULL_PTR(Sigblock*);
-
-		//Allocate memory for sigblock:
-		sigblock = MallocSigblock(consumer->GetSigblockMetadata()->GetTotalSize());
 
 		//Write and read sigblocks taking turns:
 		while (i < dataset.size && !error) {
-			//5:
-			bool writingSucceeded;
-			//
-			{
-				for (uint32 i = 0; i < numberOfSignals; i++) {
-					std::memcpy(signals[i], &dataset.items[i], sizeof(SignalType));
-				}
+			bool writeOk;
+			//Write the sigblock on the position i of the dataset to the output data source:
+			for (uint32 j = 0; j < numberOfSignals; j++) {
+				std::memcpy(signals[j], &dataset.items[j], sizeof(SignalType));
 			}
 
 			//Synchronize the output data source with the shared data area
-			//(i.e. writes the signals as a sigblock to the shared data area):
-			writingSucceeded = target.Synchronise();
+			//(i.e. writes the signals of the output data source to the
+			//shared data area as a sigblock):
+			writeOk = target.Synchronise();
 
-			if (writingSucceeded) {
-				bool readingSucceeded;
+			if (writeOk) {
+				Sigblock* sigblock = NULL_PTR(Sigblock*);
+				bool readOk;
 
-				readingSucceeded = consumer->ReadSigblock(*sigblock);
+				//Allocate memory for sigblock:
+				sigblock = MallocSigblock(consumer->GetSigblockMetadata()->GetTotalSize());
 
-			    //Check values of the signals into the data source against
-				//those of the data set:
-				if (readingSucceeded) {
+				//Read the next sigblock available on the shared data area:
+				readOk = consumer->ReadSigblock(*sigblock);
+
+				if (readOk) {
+
+					//Check the values of the signals into the sigblock read
+					//from the shared data area against those of the data set:
 					unsigned int j = 0;
 				    while (j < numberOfSignals && !error) {
 				    	printf("signals[j] == %u\n", *(static_cast<uint32*>(signals[j])));
@@ -263,6 +263,9 @@ bool EpicsOutputDataSourceTest::Test1() {
 				else {
 					error = true;
 				}
+
+				//Free memory for sigblock:
+				FreeSigblock(sigblock);
 			}
 			else {
 				error = true;
@@ -270,9 +273,6 @@ bool EpicsOutputDataSourceTest::Test1() {
 			printf("EpicsOutputDataSourceTest::Test1 -- Write/Read dataset.items[%u] error=%u\n", i, error);
 			i++;
 		}
-
-		//Free memory for sigblock:
-		FreeSigblock(sigblock);
 
 		//Check execution's status:
 		success &= !error;

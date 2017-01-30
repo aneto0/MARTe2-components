@@ -177,7 +177,7 @@ public:
 #include "SharedDataArea.h"
 #include "SharedDataAreaSupport.h"
 
-bool SetConfiguredDatabase(MARTe::EpicsInputDataSource& target, const MARTe::uint32 numberOfSignals);
+#include "EpicsDataSourceSupport.h"
 
 template<typename SignalType>
 bool EpicsInputDataSourceTest::Test1() {
@@ -218,9 +218,9 @@ bool EpicsInputDataSourceTest::Test1() {
 	//Initialize items of dataset:
 	InitDataSet<SignalType>(dataset, numberOfSignals);
 
-	// Write all the sigblocks of the dataset to the shared data area, checking
-	// that they can be read by the input data source and have the same values
-	// than those from the dataset. They will be written and read taking turns
+	//Write all the sigblocks of the dataset to the shared data area, checking
+	//that they can be read by the input data source and have the same values
+	//than those from the dataset. They will be written and read taking turns
 	//(1 write, 1 read).
 	{
 		bool error = false;
@@ -228,20 +228,22 @@ bool EpicsInputDataSourceTest::Test1() {
 
 		//Write and read sigblocks taking turns:
 		while (i < dataset.size && !error) {
-			//5:
-			bool writingSucceeded;
-			writingSucceeded = producer->WriteSigblock(*(dataset.items[i]));
-			if (writingSucceeded) {
-				bool readingSucceeded;
+			bool writeOk;
+
+			//Write the sigblock on the position i of the dataset to the shared data area:
+			writeOk = producer->WriteSigblock(*(dataset.items[i]));
+
+			if (writeOk) {
+				bool readOk;
 
 			    //Synchronize the input data source with the shared data area
-				//(it reads a sigblock from the shared data area and make
-				//their values available to the clients of the data source):
-				readingSucceeded = target.Synchronise();
+				//(i.e. reads a sigblock from the shared data area and make
+				//their values available as signals of the input data source):
+				readOk = target.Synchronise();
 
-			    //Check values of the signals into the data source against
-				//those of the data set:
-				if (readingSucceeded) {
+				if (readOk) {
+					//Check the values of the signals into the data
+					//source against those of the data set:
 					unsigned int j = 0;
 				    while (j < numberOfSignals && !error) {
 				    	printf("signals[j] == %u\n", *(static_cast<uint32*>(signals[j])));
