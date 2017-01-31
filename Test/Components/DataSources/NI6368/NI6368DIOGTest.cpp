@@ -1,6 +1,6 @@
 /**
- * @file NI6259DIOGTest.cpp
- * @brief Source file for class NI6259DIOGTest
+ * @file NI6368DIOGTest.cpp
+ * @brief Source file for class NI6368DIOGTest
  * @date 30/1/2017
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class NI6259DIOGTest (public, protected, and private). Be aware that some
+ * the class NI6368DIOGTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -39,132 +39,132 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-TEST(NI6259DIOGTest,TestConstructor) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestConstructor) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(NI6259DIOGTest,TestAllocateMemory) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestAllocateMemory) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestAllocateMemory());
 }
 
-TEST(NI6259DIOGTest,TestGetNumberOfMemoryBuffers) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestGetNumberOfMemoryBuffers) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
 }
 
-TEST(NI6259DIOGTest,TestGetSignalMemoryBuffer_False) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestGetSignalMemoryBuffer_False) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
 }
 
-TEST(NI6259DIOGTest,TestGetSignalMemoryBuffer) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestGetSignalMemoryBuffer) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
 }
 
-TEST(NI6259DIOGTest,TestGetBrokerName) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestGetBrokerName) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestGetBrokerName());
 }
 
-TEST(NI6259DIOGTest,TestGetInputBrokers) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestGetInputBrokers) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestGetInputBrokers());
 }
 
-TEST(NI6259DIOGTest,TestGetOutputBrokers) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestGetOutputBrokers) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestGetOutputBrokers());
 }
 
-TEST(NI6259DIOGTest,TestGetOutputBrokers_NoTriggerGAM) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestGetOutputBrokers_NoTriggerGAM) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestGetOutputBrokers_NoTriggerGAM());
 }
 
-TEST(NI6259DIOGTest,TestSynchronise) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSynchronise) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSynchronise());
 }
 
-TEST(NI6259DIOGTest,TestPrepareNextState) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestPrepareNextState) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestPrepareNextState());
 }
 
-TEST(NI6259DIOGTest,TestInitialise) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestInitialise) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestInitialise());
 }
 
-TEST(NI6259DIOGTest,TestInitialise_False_NoDeviceName) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestInitialise_False_NoDeviceName) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestInitialise_False_NoDeviceName());
 }
 
-TEST(NI6259DIOGTest,TestInitialise_False_NoBoardId) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestInitialise_False_NoBoardId) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestInitialise_False_NoBoardId());
 }
 
-TEST(NI6259DIOGTest,TestInitialise_False_NoSignals) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestInitialise_False_NoSignals) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestInitialise_False_NoSignals());
 }
 
-TEST(NI6259DIOGTest,TestInitialise_False_BadPortId) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestInitialise_False_BadPortId) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestInitialise_False_BadPortId());
 }
 
-TEST(NI6259DIOGTest,TestSetConfiguredDatabasel) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSetConfiguredDatabasel) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
-TEST(NI6259DIOGTest,TestSetConfiguredDatabase_OnlyInputs) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSetConfiguredDatabase_OnlyInputs) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_OnlyInputs());
 }
 
-TEST(NI6259DIOGTest,TestSetConfiguredDatabase_OnlyOutputs) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSetConfiguredDatabase_OnlyOutputs) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_OnlyOutputs());
 }
 
-TEST(NI6259DIOGTest,TestSetConfiguredDatabase_AllChannels) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSetConfiguredDatabase_AllChannels) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_AllChannels());
 }
 
-TEST(NI6259DIOGTest,TestSetConfiguredDatabase_AllChannels_Parameters) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSetConfiguredDatabase_AllChannels_Parameters) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_AllChannels_Parameters());
 }
 
-TEST(NI6259DIOGTest,TestSetConfiguredDatabase_False_NoChannels) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSetConfiguredDatabase_False_NoChannels) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoChannels());
 }
 
-TEST(NI6259DIOGTest,TestSetConfiguredDatabase_False_SignalTypeMismatch) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSetConfiguredDatabase_False_SignalTypeMismatch) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_SignalTypeMismatch());
 }
 
-TEST(NI6259DIOGTest,TestSetConfiguredDatabase_False_SignalNumberOfSamplesGreaterThanOne) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSetConfiguredDatabase_False_SignalNumberOfSamplesGreaterThanOne) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_SignalNumberOfSamplesGreaterThanOne());
 }
 
-TEST(NI6259DIOGTest,TestSetConfiguredDatabase_False_WrongDeviceName) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSetConfiguredDatabase_False_WrongDeviceName) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_WrongDeviceName());
 }
 
-TEST(NI6259DIOGTest,TestSetConfiguredDatabase_False_NoTriggers) {
-    NI6259DIOTest test;
+TEST(NI6368DIOGTest,TestSetConfiguredDatabase_False_NoTriggers) {
+    NI6368DIOTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoTriggers());
 }
