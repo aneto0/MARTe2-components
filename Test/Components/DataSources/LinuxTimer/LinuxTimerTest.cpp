@@ -79,9 +79,7 @@ CLASS_REGISTER(LinuxTimerTestGAM, "1.0")
 /**
  * Starts a MARTe application that uses this driver instance.
  */
-bool TestIntegratedInApplication(const MARTe::char8 * const config,
-                                 bool checkVal1 = true,
-                                 bool checkVal2 = true) {
+static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool checkVal1 = true, bool checkVal2 = true) {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;

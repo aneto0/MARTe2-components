@@ -100,7 +100,7 @@ bool BaseLib2GAM::Initialise(StructuredDataI & data) {
 bool BaseLib2GAM::Setup() {
     BaseLib2::GAMAdapter *adapter = BaseLib2::GAMAdapter::Instance();
     uint32 numberOfInputs = GetNumberOfInputSignals();
-    uint32 numberOfOutputs = GetNumberOfInputSignals();
+    uint32 numberOfOutputs = GetNumberOfOutputSignals();
 
     uint32 i;
     bool ok = true;
@@ -218,5 +218,5 @@ bool BaseLib2GAM::TranslateSignalName(TypeDescriptor signalType,
     }
     return ok;
 }
-
+CLASS_REGISTER(BaseLib2GAM, "1.0")
 }
