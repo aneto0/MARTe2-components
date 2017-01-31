@@ -43,9 +43,6 @@
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 
-// Temporary deviation due to sdn-api.h above
-/*lint -e{1066} Justification: the methods are not defined as extern C.*/
-
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -232,6 +229,10 @@ bool SDNPublisher::AllocateMemory() {
         ok = (publisher->Configure() == STATUS_SUCCESS);
     }
 
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to Instantiate sdn::Topic and sdn::Publisher");
+    }
+
     return ok;
 }
 
@@ -259,6 +260,10 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
         log_info("SDNPublisher::GetSignalMemoryBuffer - Reference of signal '%u' if '%p'", signalIdx, signalAddress);
+    }
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to return signal memory buffer");
     }
 
     return ok;
@@ -352,7 +357,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
             // a standard broker.
 
             // Must add the signals which are not triggering but that belong to the same GAM...
-            if (nOfSignals > 1u) {
+            if (nOfFunctionSignals > 1u) {
                 ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
                 ok = brokerNotSync.IsValid();
 
@@ -395,6 +400,10 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
         }
     }
 
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to insert OutputBroker");
+    }
+
     return ok;
 }
 
@@ -417,9 +426,14 @@ bool SDNPublisher::Synchronise() {
         ok = (publisher->Publish() == STATUS_SUCCESS);
     }
 
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to publish");
+    }
+
     return ok;
 }
 
 CLASS_REGISTER(SDNPublisher, "1.0.10")
 
 } /* namespace MARTe */
+

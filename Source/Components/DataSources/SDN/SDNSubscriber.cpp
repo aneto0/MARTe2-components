@@ -39,9 +39,6 @@
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 
-// Temporary deviation due to sdn-api.h above
-/*lint -e{1066} Justification: the methods are not defined as extern C.*/
-
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
