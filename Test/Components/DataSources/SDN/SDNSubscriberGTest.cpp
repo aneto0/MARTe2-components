@@ -139,9 +139,14 @@ TEST(SDNSubscriberGTest, TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
-TEST(SDNSubscriberGTest, TestSetConfiguredDatabase_False_NOfSignals) {
+TEST(SDNSubscriberGTest, TestSetConfiguredDatabase_False_NOfSignals_1) {
     SDNSubscriberTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals_1());
+}
+
+TEST(SDNSubscriberGTest, TestSetConfiguredDatabase_False_NOfSignals_2) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals_2());
 }
 
 TEST(SDNSubscriberGTest,TestAllocateMemory) {
@@ -252,6 +257,11 @@ TEST(SDNSubscriberGTest, TestSynchronise_UCAST_Topic_2) {
 TEST(SDNSubscriberGTest, TestSynchronise_UCAST_Topic_3) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise_UCAST_Topic_3());
+}
+
+TEST(SDNSubscriberGTest, TestExecute_False) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestExecute_False());
 }
 
 /*---------------------------------------------------------------------------*/

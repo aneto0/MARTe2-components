@@ -49,9 +49,9 @@
 namespace MARTe {
 
 SDNSubscriber::SDNSubscriber() :
-                        DataSourceI(),
-                        EmbeddedServiceMethodBinderI(),
-                        executor(*this) {
+                                DataSourceI(),
+                                EmbeddedServiceMethodBinderI(),
+                                executor(*this) {
 
     nOfSignals = 0u;
     nOfTriggers = 0u;
@@ -92,10 +92,6 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
 
     bool ok = DataSourceI::Initialise(data);
 
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "Parent virtual method failed");
-    }
-
     // Retrieve and verify network interface name
     if (!data.Read("Interface", ifaceName)) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be specified");
@@ -123,8 +119,6 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     // to a destination '<address>:<port>' can be explicitly defined
     if (data.Read("Address", destAddr)) {
 
-        log_info("SDNSubscriber::Initialise - Explicit destination address '%s'", destAddr.Buffer());
-
         if (!sdn_is_address_valid(destAddr.Buffer())) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
             ok = false;
@@ -147,10 +141,6 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
 bool SDNSubscriber::SetConfiguredDatabase(StructuredDataI& data) {
 
     bool ok = DataSourceI::SetConfiguredDatabase(data);
-
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "Parent virtual method failed");
-    }
 
     nOfSignals = GetNumberOfSignals();
 
@@ -275,11 +265,6 @@ bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx,
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
-        log_info("SDNSubscriber::GetSignalMemoryBuffer - Reference of signal '%u' if '%p'", signalIdx, signalAddress);
-    }
-
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to return signal memory buffer");
     }
 
     return ok;
@@ -425,8 +410,8 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
 
     if (ok) {
         bool empty = false;
-        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         while (!empty) {
+            /*lint -e{613} The reference can not be NULL in this portion of the code.*/
             empty = (subscriber->Receive(0ul) != STATUS_SUCCESS);
         }
     }
@@ -444,10 +429,6 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
 bool SDNSubscriber::Synchronise() {
 
     bool ok = synchronising; // DataSource is synchronising RT thread
-
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::FatalError, "SDNSubscriber operates in caching mode");
-    }
 
     if (ok) {
         // Wait till next SDN topic is received
@@ -493,6 +474,6 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(const ExecutionInfo& info) {
     return err;
 }
 
-CLASS_REGISTER(SDNSubscriber, "1.0.10")
+CLASS_REGISTER(SDNSubscriber, "1.0.11")
 
 } /* namespace MARTe */

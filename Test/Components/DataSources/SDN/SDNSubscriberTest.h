@@ -146,7 +146,12 @@ public:
     /**
      * @brief Tests the SetConfiguredDatabase method without signals.
      */
-    bool TestSetConfiguredDatabase_False_NOfSignals();
+    bool TestSetConfiguredDatabase_False_NOfSignals_1();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method without signals.
+     */
+    bool TestSetConfiguredDatabase_False_NOfSignals_2();
 
     /**
      * @brief Tests the AllocateMemory method.
@@ -257,6 +262,11 @@ public:
      * @brief Tests the Synchronise method.
      */
     bool TestSynchronise_UCAST_Topic_3();
+
+    /**
+     * @brief Tests the Execute method.
+     */
+    bool TestExecute_False();
 
 };
 

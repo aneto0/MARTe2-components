@@ -103,14 +103,13 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-/**
- * @brief Default constructor.
- * @post
- *   mode = Default
- *   topic = NULL_PTR
- *   subscriber = NULL_PTR
- */
-SDNSubscriber();
+    /**
+     * @brief Default constructor.
+     * @post
+     *   topic = NULL_PTR
+     *   subscriber = NULL_PTR
+     */
+    SDNSubscriber();
 
     /**
      * @brief Destructor. Releases resources.
@@ -188,7 +187,7 @@ SDNSubscriber();
      * MemoryMapSynchronisedInputBroker depending on the signal properties.
      * @return MemoryMapInputBroker or MemoryMapSynchronisedInputBroker.
      */
-     virtual const char8 *GetBrokerName(StructuredDataI &data,
+    virtual const char8 *GetBrokerName(StructuredDataI &data,
                                        const SignalDirection direction);
 
     /**

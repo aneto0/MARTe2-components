@@ -250,7 +250,6 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
-        log_info("SDNPublisher::GetSignalMemoryBuffer - Reference of signal '%u' if '%p'", signalIdx, signalAddress);
     }
 
     return ok;
@@ -420,7 +419,7 @@ bool SDNPublisher::Synchronise() {
     return ok;
 }
 
-CLASS_REGISTER(SDNPublisher, "1.0.10")
+CLASS_REGISTER(SDNPublisher, "1.0.11")
 
 } /* namespace MARTe */
 

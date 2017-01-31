@@ -97,6 +97,44 @@ public:
 
 CLASS_REGISTER(SDNSubscriberTestGAM, "1.0")
 
+class SDNSubscriberTestConstantGAM: public MARTe::GAM {
+
+public:
+
+    CLASS_REGISTER_DECLARATION()
+
+    SDNSubscriberTestConstantGAM() : GAM() { dflt = 0; }
+
+    ~SDNSubscriberTestConstantGAM() {}
+
+    bool Execute() {
+
+        MARTe::uint32 nOfSignals = GetNumberOfOutputSignals();
+        MARTe::uint32 signalIndex = 0u;
+
+        for (signalIndex = 0; signalIndex < nOfSignals; signalIndex++) {
+            MARTe::uint32 byteSize = 0u; GetSignalByteSize(MARTe::OutputSignals, signalIndex, byteSize);
+            MARTe::MemoryOperationsHelper::Set(GetOutputSignalMemory(signalIndex), (MARTe::char8) dflt, byteSize);
+        }
+
+        return true;
+    }
+
+    bool Setup() {
+        return true;
+    }
+
+    bool SetDefault(MARTe::char8 dflt) {
+        this->dflt = dflt;
+        return true;
+    }
+
+    MARTe::char8 dflt;
+
+};
+
+CLASS_REGISTER(SDNSubscriberTestConstantGAM, "1.0")
+
 class SinkGAM: public MARTe::GAM {
 
 public:
@@ -120,7 +158,7 @@ public:
     }
 
     bool Setup() {
-       return true;
+        return true;
     }
 
     bool TestSignal(MARTe::uint32 signalIndex = 0u, MARTe::char8 value = 0u) {
@@ -174,7 +212,6 @@ static inline bool ConfigureApplication(const MARTe::char8 * const config) {
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
-        log_error("StandardParser::Parse failed with '%s'", err.Buffer());
     } else {
         god->Purge();
         ok = god->Initialise(cdb);
@@ -506,15 +543,28 @@ bool SDNSubscriberTest::TestSetConfiguredDatabase() {
     return TestIntegratedInApplication(config_default);
 }
 
-bool SDNSubscriberTest::TestSetConfiguredDatabase_False_NOfSignals() {
+bool SDNSubscriberTest::TestSetConfiguredDatabase_False_NOfSignals_1() {
     //Standard configuration for testing
     const MARTe::char8 * const config = ""
             "$Test = {"
             "    Class = RealTimeApplication"
             "    +Functions = {"
             "        Class = ReferenceContainer"
+            "        +Source = {"
+            "            Class = SDNSubscriberTestConstantGAM"
+            "            OutputSignals = {"
+            "                Counter = {"
+            "                    DataSource = DDB1"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = DDB1"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
             "        +Sink = {"
-            "            Class = SDNSubscriberTestGAM"
+            "            Class = SinkGAM"
             "            InputSignals = {"
             "                Counter = {"
             "                    DataSource = DDB1"
@@ -537,6 +587,72 @@ bool SDNSubscriberTest::TestSetConfiguredDatabase_False_NOfSignals() {
             "            Class = SDNSubscriber"
             "            Topic = Default"
             "            Interface = lo"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Source Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+    return !ok; // Expect failure
+}
+
+bool SDNSubscriberTest::TestSetConfiguredDatabase_False_NOfSignals_2() {
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SinkGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                    Frequency = 1."
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                    Frequency = 1."
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1809,7 +1925,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_6() {
             ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
         }
         if (ok) {
-	    *((MARTe::uint32 *) topic->GetTypeDefinition()->GetAttributeReference(2u)) = 101u;
+            *((MARTe::uint32 *) topic->GetTypeDefinition()->GetAttributeReference(2u)) = 101u;
         }
         // Send data
         if (ok) {
@@ -1827,7 +1943,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_6() {
             ok = sink->TestTimestamp(timestamp);
         }
         if (ok) {
-	    ok = dac->TestSignal(0u, (MARTe::uint32) 101u);
+            ok = dac->TestSignal(0u, (MARTe::uint32) 101u);
         }
     }
 
@@ -2287,4 +2403,13 @@ bool SDNSubscriberTest::TestSynchronise_UCAST_Topic_3() {
 
     return ok;
 }
+
+bool SDNSubscriberTest::TestExecute_False() {
+    using namespace MARTe;
+    SDNSubscriber test;
+    ExecutionInfo info;
+    bool ok = test.Execute(info);
+    return !ok; // Expect failure
+}
+
 
