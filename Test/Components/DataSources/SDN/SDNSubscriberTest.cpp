@@ -445,6 +445,17 @@ bool SDNSubscriberTest::TestInitialise_Timeout_10ms() {
     return test.Initialise(cdb);
 }
 
+bool SDNSubscriberTest::TestInitialise_CPUMask() {
+    using namespace MARTe;
+    SDNSubscriber test;
+    ConfigurationDatabase cdb;
+    uint32 cpumask = 1u;
+    cdb.Write("Topic", "Default");
+    cdb.Write("Interface", "lo");
+    cdb.Write("CPUs", cpumask);
+    return test.Initialise(cdb);
+}
+
 bool SDNSubscriberTest::TestInitialise_Missing_Topic() {
     using namespace MARTe;
     SDNSubscriber test;

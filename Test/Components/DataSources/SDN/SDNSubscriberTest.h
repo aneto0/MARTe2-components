@@ -89,6 +89,11 @@ public:
     bool TestInitialise_Timeout_10ms();
 
     /**
+     * @brief Tests the Initialise method  with .
+     */
+    bool TestInitialise_CPUMask();
+
+    /**
      * @brief Tests the Initialise method with .
      */
     bool TestInitialise_Missing_Topic();

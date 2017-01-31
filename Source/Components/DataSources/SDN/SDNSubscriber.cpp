@@ -56,6 +56,7 @@ SDNSubscriber::SDNSubscriber() :
     nOfSignals = 0u;
     nOfTriggers = 0u;
     synchronising = false;
+    cpuMask = 0u;
     TTTimeout = TTInfiniteWait;
 
     topic = NULL_PTR(sdn::Topic *);
@@ -133,6 +134,10 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     if (data.Read("Timeout", timeout)) {
         log_info("SDNSubscriber::Initialise - Explicit timeout '%u'", timeout);
         TTTimeout = timeout;
+    }
+
+    if (data.Read("CPUs", cpuMask)) {
+        log_info("SDNSubscriber::Initialise - Explicit affinity '%u'", cpuMask);
     }
 
     return ok;
@@ -420,6 +425,9 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
 
     if (ok) {
         if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+            if (cpuMask != 0u) {
+                executor.SetCPUMask(cpuMask);
+            }
             // Start the SingleThreadService
             ok = executor.Start();
         }
@@ -459,7 +467,7 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(const ExecutionInfo& info) {
         ok = (subscriber->Receive(100000000ul) == STATUS_SUCCESS);
 
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::Timeout, "Failed to receive");
+            log_debug("SDNSubscriber::Execute - Failed to receive topic '%s'", topicName.Buffer());
             err.SetError(ErrorManagement::Timeout);
         }
     }

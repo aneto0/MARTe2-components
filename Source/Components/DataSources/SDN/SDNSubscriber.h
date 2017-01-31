@@ -63,6 +63,7 @@ namespace MARTe {
  *     Interface = <name> // The network interface name to be used
  *     Address = <address>:<port> // Optional - Explicit destination address
  *     Timeout = <timeout_in_ms> // Optional - Used for synchronising mode semaphore
+ *     CPUs = <cpumask> // Optional - Explicit affinity for the thread
  *     Signals = {
  *         Counter = {
  *             Type = uint64
@@ -81,8 +82,7 @@ namespace MARTe {
  *
  * The DataSource can be used in asynchronous (caching) mode whereby the RT threads are
  * synchronized with an alternative method and the SDNSubscriber holds whichever signal
- * samples were last received. This is currently the Default mode which can be left unspecified, or
- * explicitly selected with 'Default' or 'Caching' mode.
+ * samples were last received.
  *
  * @notice The DataSource does not support more than one signal  identified as synchronisation point
  * so as to ensure that the message payload is consistently provided to all GAMs associated to it. It
@@ -126,6 +126,7 @@ public:
      *     Topic = <name> // The name is used to establish many-to-many communication channels
      *     Interface = <name> // The network interface name to be used, e.g. eth0
      *     Address = <address>:<port> // Optional - Explicit destination address
+     *     CPUs = <cpumask> // Optional - Explicit affinity for the thread
      * }
      * @details The configuration parameters are subject to the following criteria:
      * The topic <name> is mandatory and can be any string. The <name> is used to associate the
@@ -136,10 +137,10 @@ public:
      * which is purposeful to establish e.g. a unicast connection.
      * The interface <name> is mandatory and verified to correspond to a valid named interface on
      * the host, e.g. eth0.
-     * The synchronisation mode is used to discriminate between caching (the thread updated the
-     * signal memory with each received SDN message but the synchronisation of the RT thread is
-     * managed with an alternative mechanism) vs. synchronising behaviour (the activity of the RT
-     * thread is synchronised to the SDN reception).
+     * The DataSource operates in two modes, i.e. caching (the thread updates the signal memory with
+     * each received SDN message but the synchronisation of the RT thread is managed with an
+     * alternative mechanism) vs. synchronising behaviour (the activity of the RT thread is
+     * synchronised to the SDN reception).
      * @warning The unicast behaviour is selected by means of specifying any destination address
      * within the IPv4 unicast address range. The socket is bound to the named interface and the
      * address is not used.
@@ -259,6 +260,11 @@ private:
      * The EmbeddedThread where the Execute method waits for the SDN topic to be received.
      */
     SingleThreadService executor;
+
+    /**
+     * The thread CPUs mask.
+     */
+    uint32 cpuMask;
 
 };
 

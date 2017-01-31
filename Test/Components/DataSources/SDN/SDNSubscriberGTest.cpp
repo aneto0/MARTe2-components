@@ -89,6 +89,11 @@ TEST(SDNSubscriberGTest, TestInitialise_Timeout_10ms) {
     ASSERT_TRUE(test.TestInitialise_Timeout_10ms());
 }
 
+TEST(SDNSubscriberGTest, TestInitialise_CPUMask) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestInitialise_CPUMask());
+}
+
 TEST(SDNSubscriberGTest, TestInitialise_Missing_Topic) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestInitialise_Missing_Topic());
