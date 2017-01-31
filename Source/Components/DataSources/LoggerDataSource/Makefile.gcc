@@ -21,7 +21,8 @@
 # permissions and limitations under the Licence. 
 #
 #############################################################
-TARGET=linux
+
+
 
 include Makefile.inc
 

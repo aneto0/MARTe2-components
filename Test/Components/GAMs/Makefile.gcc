@@ -24,10 +24,6 @@
 #
 #############################################################
 
-TARGET=linux
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
-
-OBJSX = NI6259ADCGTest.x NI6259DACGTest.x NI6259DIOGTest.x
 
 include Makefile.inc
