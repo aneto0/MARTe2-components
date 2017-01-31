@@ -245,6 +245,10 @@ bool SDNSubscriber::AllocateMemory() {
         ok = (subscriber->Configure() == STATUS_SUCCESS);
     }
 
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to instantiate sdn::Subscriber");
+    }
+
     return ok;
 }
 
@@ -272,6 +276,10 @@ bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx,
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
         log_info("SDNSubscriber::GetSignalMemoryBuffer - Reference of signal '%u' if '%p'", signalIdx, signalAddress);
+    }
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to return signal memory buffer");
     }
 
     return ok;
@@ -364,7 +372,7 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
 
             // Must also add the signals which are not synchronous but that belong to the same GAM...
             if (ok) {
-                if (nOfSignals > 1u) {
+                if (nOfFunctionSignals > 1u) {
                     ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
                     ok = brokerNotSync.IsValid();
 
@@ -389,6 +397,10 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
                 ok = inputBrokers.Insert(broker);
             }
         }
+    }
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to insert InputBroker");
     }
 
     return ok;

@@ -230,7 +230,7 @@ bool SDNPublisher::AllocateMemory() {
     }
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to Instantiate sdn::Topic and sdn::Publisher");
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to instantiate sdn::Publisher");
     }
 
     return ok;
