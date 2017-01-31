@@ -124,7 +124,9 @@ bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
 
     nOfSignals = GetNumberOfSignals();
 
-    ok = (nOfSignals > 0u);
+    if (ok) {
+        ok = (nOfSignals > 0u);
+    }
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "nOfSignals must be > 0u");

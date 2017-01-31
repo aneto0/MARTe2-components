@@ -62,7 +62,6 @@ namespace MARTe {
  *     Topic = <name> // The name is used to establish many-to-many communication channels
  *     Interface = <name> // The network interface name to be used
  *     Address = <address>:<port> // Optional - Explicit destination address
- *     Mode = Default|Caching|Synchronising // Optional - Explicit synchronisation mode
  *     Timeout = <timeout_in_ms> // Optional - Used for synchronising mode semaphore
  *     Signals = {
  *         Counter = {
@@ -127,7 +126,6 @@ public:
      *     Topic = <name> // The name is used to establish many-to-many communication channels
      *     Interface = <name> // The network interface name to be used, e.g. eth0
      *     Address = <address>:<port> // Optional - Explicit destination address
-     *     Mode = Default|Caching|Synchronising // Optional - Explicit synchronisation mode
      * }
      * @details The configuration parameters are subject to the following criteria:
      * The topic <name> is mandatory and can be any string. The <name> is used to associate the

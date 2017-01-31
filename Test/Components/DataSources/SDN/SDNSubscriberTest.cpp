@@ -1079,7 +1079,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_1() {
         }
         // Let the application run
         if (ok) {
-            wait_for(100000000ul);
+            wait_for(500000000ul);
         }
         // Test reception
         if (ok) {
@@ -1245,7 +1245,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_2() {
         }
         // Let the application run
         if (ok) {
-            wait_for(100000000ul);
+            wait_for(500000000ul);
         }
         // Test reception
         if (ok) {
@@ -1412,7 +1412,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_3() {
         }
         // Let the application run
         if (ok) {
-            wait_for(100000000ul);
+            wait_for(500000000ul);
         }
         // Test reception
         if (ok) {
@@ -1570,7 +1570,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_4() {
         }
         // Let the application run
         if (ok) {
-            wait_for(100000000ul);
+            wait_for(500000000ul);
         }
         // Test reception
         if (ok) {
@@ -1749,7 +1749,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_5() {
         }
         // Let the application run
         if (ok) {
-            wait_for(100000000ul);
+            wait_for(500000000ul);
         }
         // Test reception
         if (ok) {
@@ -1933,7 +1933,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_6() {
         }
         // Let the application run
         if (ok) {
-            wait_for(100000000ul);
+            wait_for(500000000ul);
         }
         // Test reception
         if (ok) {
@@ -2080,7 +2080,7 @@ bool SDNSubscriberTest::TestSynchronise_UCAST_Topic_1() {
         }
         // Let the application run
         if (ok) {
-            wait_for(100000000ul);
+            wait_for(500000000ul);
         }
         // Test reception
         if (ok) {
@@ -2225,7 +2225,7 @@ bool SDNSubscriberTest::TestSynchronise_UCAST_Topic_2() {
         }
         // Let the application run
         if (ok) {
-            wait_for(100000000ul);
+            wait_for(500000000ul);
         }
         // Test reception
         if (ok) {
@@ -2384,7 +2384,7 @@ bool SDNSubscriberTest::TestSynchronise_UCAST_Topic_3() {
         }
         // Let the application run
         if (ok) {
-            wait_for(100000000ul);
+            wait_for(500000000ul);
         }
         // Test reception
         if (ok) {
