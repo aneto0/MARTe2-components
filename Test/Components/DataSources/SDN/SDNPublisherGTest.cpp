@@ -224,6 +224,11 @@ TEST(SDNPublisherGTest, TestSynchronise) {
     ASSERT_TRUE(test.TestSynchronise());
 }
 
+TEST(SDNPublisherGTest, TestSynchronise_False) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestSynchronise_False());
+}
+
 TEST(SDNPublisherGTest, TestSynchronise_MCAST_Topic_1) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_1());

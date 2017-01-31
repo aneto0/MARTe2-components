@@ -52,8 +52,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-SDNPublisher::SDNPublisher() :
-                DataSourceI() {
+SDNPublisher::SDNPublisher() : DataSourceI() {
 
     nOfSignals = 0u;
     nOfTriggers = 0u;
@@ -79,10 +78,6 @@ SDNPublisher::~SDNPublisher() {
 bool SDNPublisher::Initialise(StructuredDataI &data) {
 
     bool ok = DataSourceI::Initialise(data);
-
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "Parent virtual method failed");
-    }
 
     // Retrieve and verify network interface name
     if (!data.Read("Interface", ifaceName)) {
@@ -126,10 +121,6 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
 bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
 
     bool ok = DataSourceI::SetConfiguredDatabase(data);
-
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "Parent virtual method failed");
-    }
 
     nOfSignals = GetNumberOfSignals();
 
@@ -260,10 +251,6 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
         log_info("SDNPublisher::GetSignalMemoryBuffer - Reference of signal '%u' if '%p'", signalIdx, signalAddress);
-    }
-
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to return signal memory buffer");
     }
 
     return ok;

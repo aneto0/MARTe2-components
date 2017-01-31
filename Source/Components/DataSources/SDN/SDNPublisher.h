@@ -96,14 +96,14 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-/**
- * @brief Default constructor.
- * @post
- *   topic = NULL_PTR
- *   publisher = NULL_PTR
- *   synchronizing = false
- */
-SDNPublisher();
+    /**
+     * @brief Default constructor.
+     * @post
+     *   topic = NULL_PTR
+     *   publisher = NULL_PTR
+     *   synchronizing = false
+     */
+    SDNPublisher();
 
     /**
      * @brief Destructor. Releases resources.
