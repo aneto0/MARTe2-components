@@ -43,6 +43,9 @@
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 
+// Temporary deviation due to sdn-api.h above
+/*lint -e{1066} Justification: the methods are not defined as extern C.*/
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -63,6 +66,7 @@ SDNPublisher::SDNPublisher() :
 
 }
 
+/*lint -e{1551} the destructor must guarantee that all the SDN objects are destroyed.*/
 SDNPublisher::~SDNPublisher() {
 
     if (publisher != NULL_PTR(sdn::Publisher *)) {
@@ -119,8 +123,6 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
 
     }
 
-    log_trace("SDNPublisher::Initialise - Leaving method");
-
     return ok;
 }
 
@@ -162,17 +164,17 @@ bool SDNPublisher::AllocateMemory() {
     // Instantiate a sdn::Metadata structure to configure the topic
     sdn::Metadata_t mdata; 
 
-    if (destAddr.Size() == 0) { // Topic defined by name
-        sdn::Topic_InitializeMetadata(mdata, (const char*) topicName.Buffer(), 0);
+    if (destAddr.Size() == 0u) { // Topic defined by name
+        sdn::Topic_InitializeMetadata(mdata, topicName.Buffer(), 0u);
     } else { // An address as been explicitly provided
-        sdn::Topic_InitializeMetadata(mdata, (const char*) topicName.Buffer(), 0, (const char*) destAddr.Buffer());
+        sdn::Topic_InitializeMetadata(mdata, topicName.Buffer(), 0u, destAddr.Buffer());
     }
 
     // Instantiate SDN topic from metadata specification
     topic = new sdn::Topic; topic->SetMetadata(mdata);
 
     bool ok = true;
-    uint32 signalIndex = 0u;
+    uint32 signalIndex;
 
     // Create one topic attribute for each signal
     for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
@@ -184,19 +186,13 @@ bool SDNPublisher::AllocateMemory() {
 
         ok = GetSignalName(signalIndex, signalName);
 
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::Warning, "Unable to query signal name");
-            // This is actually not so important ... could synthesize signal name in this case ... if I knew how
-            ok = true;
-        }
-
-        uint32 signalNOfElements;
+        uint32 signalNOfElements = 0u;
 
         if (ok) {
             ok = GetSignalNumberOfElements(signalIndex, signalNOfElements);
         }
 
-        uint8 signalNOfDimensions;
+        uint8 signalNOfDimensions = 0u;
 
         if (ok) {
             ok = GetSignalNumberOfDimensions(signalIndex, signalNOfDimensions);
@@ -227,10 +223,12 @@ bool SDNPublisher::AllocateMemory() {
     }
 
     if (ok) {
-        ok = (publisher->SetInterface((char*) ifaceName.Buffer()) == STATUS_SUCCESS);
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
+        ok = (publisher->SetInterface(ifaceName.Buffer()) == STATUS_SUCCESS);
     }
 
     if (ok) {
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (publisher->Configure() == STATUS_SUCCESS);
     }
 
@@ -241,6 +239,7 @@ uint32 SDNPublisher::GetNumberOfMemoryBuffers() {
     return 1u;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
 bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          const uint32 bufferIdx,
                                          void*& signalAddress) {
@@ -252,10 +251,12 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
     }
 
     if (ok) {
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (topic->GetTypeDefinition() != NULL_PTR(sdn::base::AnyType *));
     }
 
     if (ok) {
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
         log_info("SDNPublisher::GetSignalMemoryBuffer - Reference of signal '%u' if '%p'", signalIdx, signalAddress);
     }
@@ -304,18 +305,18 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
                                     void* const gamMemPtr) {
 
     uint32 functionIdx = 0u;
-    uint32 nOfSignals = 0u; // Number of signals associated to the function
-    uint32 signalIndex = 0u;
+    uint32 nOfFunctionSignals = 0u; // Number of signals associated to the function
+    uint32 signalIndex;
     uint32 trigger = 0u;
     bool triggerGAM = false;
     bool ok = GetFunctionIndex(functionIdx, functionName);
 
     if (ok) {
-        ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfSignals);
+        ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfFunctionSignals);
     }
 
     // Test if there is a Trigger signal for this function.
-    for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok) && (!triggerGAM); signalIndex++) {
+    for (signalIndex = 0u; (signalIndex < nOfFunctionSignals) && (ok) && (!triggerGAM); signalIndex++) {
         ok = GetFunctionSignalTrigger(OutputSignals, functionIdx, signalIndex, trigger);
 
         if (ok) {
@@ -324,7 +325,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
     }
 
     // Test if there is a multi-sample signal for this function.
-    for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
+    for (signalIndex = 0u; (signalIndex < nOfFunctionSignals) && (ok); signalIndex++) {
         // This version does not support multi-sample signals
         uint32 samples = 0u;
         ok = GetFunctionSignalSamples(OutputSignals,functionIdx, signalIndex, samples);
@@ -366,7 +367,10 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
 
             // Instantiate appropriate output broker
             ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
-            ok = broker.IsValid();
+
+            if (ok) {
+                ok = broker.IsValid();
+            }
 
             // Associate all signals for this GAM which are compatible with broker (normally 1)
             if (ok) {
@@ -409,6 +413,7 @@ bool SDNPublisher::Synchronise() {
     }
 
     if (ok) {
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (publisher->Publish() == STATUS_SUCCESS);
     }
 

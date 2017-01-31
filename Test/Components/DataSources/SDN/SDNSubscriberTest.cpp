@@ -1655,7 +1655,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_5() {
 
 bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_6() {
     using namespace MARTe;
-    // Two redundant subscriber-consumer-thread, synchronising signal
+    // Two consumer, distinct portions of the payload, synchronising signal
     const MARTe::char8 * const config = ""
             "$Test = {"
             "    Class = RealTimeApplication"

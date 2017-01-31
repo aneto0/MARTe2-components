@@ -39,6 +39,9 @@
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 
+// Temporary deviation due to sdn-api.h above
+/*lint -e{1066} Justification: the methods are not defined as extern C.*/
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -67,6 +70,7 @@ SDNSubscriber::SDNSubscriber() :
 
 }
 
+/*lint -e{1551} the destructor must guarantee that the SDNSubscriber SingleThreadService is stopped and that all the SDN objects are destroyed.*/
 SDNSubscriber::~SDNSubscriber() {
 
     if (!synchronisingSem.Post()) {
@@ -177,17 +181,17 @@ bool SDNSubscriber::AllocateMemory() {
     // Instantiate a sdn::Metadata structure to configure the topic
     sdn::Metadata_t mdata; 
 
-    if (destAddr.Size() == 0) { // Topic defined by name
-        sdn::Topic_InitializeMetadata(mdata, (const char*) topicName.Buffer(), 0);
+    if (destAddr.Size() == 0u) { // Topic defined by name
+        sdn::Topic_InitializeMetadata(mdata, topicName.Buffer(), 0u);
     } else { // An address as been explicitly provided
-        sdn::Topic_InitializeMetadata(mdata, (const char*) topicName.Buffer(), 0, (const char*) destAddr.Buffer());
+        sdn::Topic_InitializeMetadata(mdata, topicName.Buffer(), 0u, destAddr.Buffer());
     }
 
     // Instantiate SDN topic from metadata specification
     topic = new sdn::Topic; topic->SetMetadata(mdata);
 
     bool ok = true;
-    uint32 signalIndex = 0u;
+    uint32 signalIndex;
 
     // Create one topic attribute for each signal
     for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
@@ -198,19 +202,13 @@ bool SDNSubscriber::AllocateMemory() {
 
         ok = GetSignalName(signalIndex, signalName);
 
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::Warning, "Unable to query signal name");
-            // This is actually not so important ... would synthesize signal name in this case ... if I knew how
-            ok = true;
-        }
-
-        uint32 signalNOfElements;
+        uint32 signalNOfElements = 0u;
 
         if (ok) {
             ok = GetSignalNumberOfElements(signalIndex, signalNOfElements);
         }
 
-        uint8 signalNOfDimensions;
+        uint8 signalNOfDimensions = 0u;
 
         if (ok) {
             ok = GetSignalNumberOfDimensions(signalIndex, signalNOfDimensions);
@@ -241,10 +239,12 @@ bool SDNSubscriber::AllocateMemory() {
     }
 
     if (ok) {
-        ok = (subscriber->SetInterface((char*) ifaceName.Buffer()) == STATUS_SUCCESS);
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
+        ok = (subscriber->SetInterface(ifaceName.Buffer()) == STATUS_SUCCESS);
     }
 
     if (ok) {
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (subscriber->Configure() == STATUS_SUCCESS);
     }
 
@@ -255,6 +255,7 @@ uint32 SDNSubscriber::GetNumberOfMemoryBuffers() {
     return 1u;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
 bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx,
                                           const uint32 bufferIdx,
                                           void*& signalAddress) {
@@ -266,10 +267,12 @@ bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx,
     }
 
     if (ok) {
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (topic->GetTypeDefinition() != NULL_PTR(sdn::base::AnyType *));
     }
 
     if (ok) {
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
         log_info("SDNSubscriber::GetSignalMemoryBuffer - Reference of signal '%u' if '%p'", signalIdx, signalAddress);
     }
@@ -311,18 +314,18 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
 
     // Check if this function has a synchronisation point (i.e. a signal which has Frequency > 0)
     uint32 functionIdx = 0u;
-    uint32 nOfSignals = 0u;
-    uint32 signalIndex = 0u;
+    uint32 nOfFunctionSignals = 0u;
+    uint32 signalIndex;
     bool synchGAM = false;
     bool ok = GetFunctionIndex(functionIdx, functionName);
 
     if (ok) {
-        ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
+        ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunctionSignals);
     }
 
     float32 frequency = 0.F;
 
-    for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok) && (!synchGAM); signalIndex++) {
+    for (signalIndex = 0u; (signalIndex < nOfFunctionSignals) && (ok) && (!synchGAM); signalIndex++) {
         ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, signalIndex, frequency);
 
         if (ok) {
@@ -331,7 +334,7 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
     }
 
     // Test if there is a multi-sample signal for this function.
-    for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
+    for (signalIndex = 0u; (signalIndex < nOfFunctionSignals) && (ok); signalIndex++) {
         // This version does not support multi-sample signals
         uint32 samples = 0u;
         ok = GetFunctionSignalSamples(InputSignals, functionIdx, signalIndex, samples);
@@ -408,12 +411,15 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
     bool ok = (subscriber != NULL_PTR(sdn::Subscriber *));
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initiaised");
+        REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initialised");
     }
 
     if (ok) {
-        // Empty the receive buffer (probably not necessary anymore since the embedded thread should take care of that)
-        while (subscriber->Receive(0ul) == STATUS_SUCCESS);
+        bool empty = false;
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
+        while (!empty) {
+            empty = (subscriber->Receive(0ul) != STATUS_SUCCESS);
+        }
     }
 
     if (ok) {
@@ -432,8 +438,6 @@ bool SDNSubscriber::Synchronise() {
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "SDNSubscriber operates in caching mode");
-    } else {
-        log_trace("SDNSubscriber::Synchronise - Method called");
     }
 
     if (ok) {
@@ -445,7 +449,7 @@ bool SDNSubscriber::Synchronise() {
     return ok;
 }
 
-/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the method operates regardles of the input parameter.*/
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the method operates regardless of the input parameter.*/
 ErrorManagement::ErrorType SDNSubscriber::Execute(const ExecutionInfo& info) {
 
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
@@ -455,11 +459,11 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(const ExecutionInfo& info) {
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initiaised");
         err.SetError(ErrorManagement::FatalError);
-        Sleep::MSec(100u);
+        Sleep::MSec(100);
     }
 
     if (ok) {
-        // Receive with timeout in order to avoid unresponsive thread
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (subscriber->Receive(100000000ul) == STATUS_SUCCESS);
 
         if (!ok) {
