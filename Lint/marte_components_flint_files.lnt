@@ -17,4 +17,3 @@ BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
 SDNPublisher.cpp
 SDNSubscriber.cpp
-ThreadedSDNSubscriber.cpp
