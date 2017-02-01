@@ -14,7 +14,6 @@
 #include "GlobalObjectsDatabase.h"
 #include "ConfigurationDatabase.h"
 
-#include "MemoryMapSynchronisedInputBroker.h"
 #include "MemoryMapInputBroker.h"
 
 #include "Threads.h"
@@ -32,13 +31,10 @@ UDPSocket server;
 uint32 memoryOffset = 0u;
 
 UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this){
-    sleepNature = Default;
     synchronising = true;
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
-    
-
 }
 
 /*
@@ -184,7 +180,7 @@ bool UDPReceiver::PrepareNextState(const char8* const currentStateName,
     } 
     UDPPacket.sequenceNumber = 0u;
     UDPPacket.timer = 0u;
-    UDPPacket.dataBuffer = NULL_PTR(AnyType*);
+    //UDPPacket.dataBuffer = NULL_PTR(AnyType*);
     return ok;
 }
 
@@ -205,9 +201,9 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         ok = (GetNumberOfSignals() > 1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "At least two signals shall be configured");
-        }
+    }
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::ParametersError, "At least two signals shall be configured");
     }
     if (ok) {
         ok = (GetSignalType(0u).numberOfBits == 32u);
@@ -331,4 +327,3 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
 CLASS_REGISTER(UDPReceiver, "1.0")
 
 }
-
