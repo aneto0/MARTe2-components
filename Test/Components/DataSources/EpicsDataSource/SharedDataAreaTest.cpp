@@ -145,7 +145,7 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
 	bool success = false;
 	unsigned int max = 512; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
 	const unsigned int numberOfSignals = 10;
-	Signal::Metadata sbd[numberOfSignals];
+	Signal::Metadata sbmd[numberOfSignals];
 	SharedDataArea sdaServer;
 	SharedDataArea::SigblockProducer* producer;
 	SharedDataArea sdaClient;
@@ -156,10 +156,10 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
 	success = (std::strcmp(shmName, "") != 0);
 
 	//Generate the metadata of the sigblocks to use in test:
-	GenerateMetadataForSigblock<SignalType>(sbd, numberOfSignals);
+	GenerateMetadataForSigblock<SignalType>(sbmd, numberOfSignals);
 
 	//Setup producer's interface to shared data area:
-	sdaServer = SharedDataArea::BuildSharedDataAreaForMARTe(shmName, numberOfSignals, sbd, max);
+	sdaServer = SharedDataArea::BuildSharedDataAreaForMARTe(shmName, numberOfSignals, sbmd, max);
 	producer = sdaServer.GetSigblockProducerInterface();
 
 	//Setup consumer's interface to shared data area:
@@ -234,7 +234,7 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
 	SharedContext context(10, maxTests);
 	ProducerThreadParams producerThreadParams;
 	ConsumerThreadParams consumerThreadParams;
-	Signal::Metadata sbd[context.numberOfSignals];
+	Signal::Metadata sbmd[context.numberOfSignals];
 	SharedDataArea sdaServer;
 	SharedDataArea::SigblockProducer* producer;
 	SharedDataArea sdaClient;
@@ -245,10 +245,10 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
 	success = (std::strcmp(shmName, "") != 0);
 
 	//Generate the metadata of the sigblocks to use in test:
-	GenerateMetadataForSigblock<SignalType>(sbd, context.numberOfSignals);
+	GenerateMetadataForSigblock<SignalType>(sbmd, context.numberOfSignals);
 
 	//Setup producer's interface to shared data area:
-	sdaServer = SharedDataArea::BuildSharedDataAreaForMARTe(shmName, context.numberOfSignals, sbd, max);
+	sdaServer = SharedDataArea::BuildSharedDataAreaForMARTe(shmName, context.numberOfSignals, sbmd, max);
 	producer = sdaServer.GetSigblockProducerInterface();
 
 	//Setup producer's parameters:

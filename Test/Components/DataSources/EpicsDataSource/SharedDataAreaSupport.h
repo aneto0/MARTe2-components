@@ -37,6 +37,9 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
+#include "CompilerTypes.h"
+#include "SharedDataArea.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -44,13 +47,8 @@
 struct DataSet {
 	Sigblock** items;
 	unsigned int size;
-	DataSet(const unsigned int size):
-		items(new Sigblock*[size]),
-		size(size) {
-	}
-	~DataSet() {
-		delete[] items;
-	}
+	DataSet(const unsigned int size);
+	~DataSet();
 };
 
 struct SharedContext {
@@ -59,34 +57,20 @@ struct SharedContext {
 	bool consumerThreadEnd;  //Assumption: bool is atomic on Intel
 	bool consumerThreadSuccess;  //Assumption: bool is atomic on Intel
 	DataSet dataset;
-	SharedContext(const unsigned int numberOfSignals, const unsigned int maxTests) :
-		numberOfSignals(numberOfSignals),
-		producerThreadEnd(false),
-		consumerThreadEnd(false),
-		consumerThreadSuccess(false),
-		dataset(maxTests)
-	{
-	}
-	~SharedContext() {
-	}
+	SharedContext(const unsigned int numberOfSignals, const unsigned int maxTests);
+	~SharedContext();
 };
 
 struct ProducerThreadParams {
 	SharedDataArea::SigblockProducer* output;
 	SharedContext* context;
-	ProducerThreadParams():
-		output(NULL_PTR(SharedDataArea::SigblockProducer*)),
-		context(NULL_PTR(SharedContext*)) {
-	}
+	ProducerThreadParams();
 };
 
 struct ConsumerThreadParams {
 	SharedDataArea::SigblockConsumer* input;
 	SharedContext* context;
-	ConsumerThreadParams():
-		input(NULL_PTR(SharedDataArea::SigblockConsumer*)),
-		context(NULL_PTR(SharedContext*)) {
-	}
+	ConsumerThreadParams();
 };
 
 Sigblock* MallocSigblock(std::size_t size);
@@ -97,7 +81,7 @@ template<typename SignalType>
 void InitSigblock(Sigblock* sigblock, const unsigned int numberOfSignals, const SignalType seedValue);
 
 template<typename SignalType>
-void GenerateMetadataForSigblock(Signal::Metadata sbd[], const unsigned int numberOfSignals);
+void GenerateMetadataForSigblock(Signal::Metadata sbmd[], const unsigned int numberOfSignals);
 
 void MallocDataSet(DataSet& dataset, std::size_t sigblockSize);
 
@@ -114,6 +98,36 @@ void SearchSigblockIntoDataSet(DataSet& dataset, Sigblock* sigblock, std::size_t
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+
+inline DataSet::DataSet(const unsigned int size):
+	items(new Sigblock*[size]),
+	size(size) {
+}
+
+inline DataSet::~DataSet() {
+	delete[] items;
+}
+
+inline SharedContext::SharedContext(const unsigned int numberOfSignals, const unsigned int maxTests) :
+	numberOfSignals(numberOfSignals),
+	producerThreadEnd(false),
+	consumerThreadEnd(false),
+	consumerThreadSuccess(false),
+	dataset(maxTests) {
+}
+
+inline SharedContext::~SharedContext() {
+}
+
+inline ProducerThreadParams::ProducerThreadParams():
+	output(NULL_PTR(SharedDataArea::SigblockProducer*)),
+	context(NULL_PTR(SharedContext*)) {
+}
+
+inline ConsumerThreadParams::ConsumerThreadParams():
+	input(NULL_PTR(SharedDataArea::SigblockConsumer*)),
+	context(NULL_PTR(SharedContext*)) {
+}
 
 inline Sigblock* MallocSigblock(std::size_t size) {
 	char* mem = new char[size];
@@ -141,12 +155,12 @@ void InitSigblock(Sigblock* sigblock, const unsigned int numberOfSignals, const 
 }
 
 template<typename SignalType>
-void GenerateMetadataForSigblock(Signal::Metadata sbd[], const unsigned int numberOfSignals) {
+void GenerateMetadataForSigblock(Signal::Metadata sbmd[], const unsigned int numberOfSignals) {
 	for (unsigned int  i = 0u; (i < numberOfSignals); i++) {
-		std::stringstream name;
+		std::stringstream name; //TODO: Use MARTe StreamString class, instead.
 		name << "Signal" << i;
-		std::strncpy(sbd[i].name, name.str().c_str(), Signal::Metadata::NAME_MAX_LEN);
-		sbd[i].size = sizeof(SignalType);
+		std::strncpy(sbmd[i].name, name.str().c_str(), Signal::Metadata::NAME_MAX_LEN);
+		sbmd[i].size = sizeof(SignalType);
 	}
 }
 
