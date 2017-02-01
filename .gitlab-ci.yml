@@ -1,0 +1,24 @@
+lcov:
+  stage: test
+  tags:
+    - MARTe2
+  script:
+    - /bin/bash EclipseLcov.sh
+  artifacts:
+    paths:
+      - Build/cov_html
+
+pages:
+  stage: deploy
+  tags:
+    - MARTe2
+  dependencies:
+    - lcov
+  script:
+    - mv Build/cov_html/ public/
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  only:
+    - develop-ccfe
