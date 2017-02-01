@@ -3,7 +3,7 @@ lcov:
   tags:
     - MARTe2
   script:
-    - ./EclipseLcov.sh
+    - /bin/bash EclipseLcov.sh
   artifacts:
     paths:
       - coverage/
