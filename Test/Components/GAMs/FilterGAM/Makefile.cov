@@ -26,11 +26,9 @@
 
 TARGET=cov
 
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = FilterGAMGTest.x
+
 include Makefile.inc
 
-LIBRARIES_STATIC=IOGAM/cov/IOGAMTest$(LIBEXT)
-LIBRARIES_STATIC=FilterGAM/cov/FilterGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=ConversionGAM/cov/ConversionGAMTest$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=BaseLib2GAM/cov/BaseLib2GAMTest$(LIBEXT)
-endif
