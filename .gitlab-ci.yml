@@ -10,6 +10,8 @@ lcov:
 
 pages:
   stage: deploy
+  tags:
+    - MARTe2
   dependencies:
     - lcov
   script:
