@@ -6,7 +6,7 @@ lcov:
     - /bin/bash EclipseLcov.sh
   artifacts:
     paths:
-      - coverage/
+      - Build/cov_html
 
 pages:
   stage: deploy
@@ -15,7 +15,7 @@ pages:
   dependencies:
     - lcov
   script:
-    - mv coverage/ public/
+    - mv Build/cov_html/ public/
   artifacts:
     paths:
       - public
