@@ -102,7 +102,19 @@ public:
 		 */
 		std::size_t GetTotalSize();
 
+	public:
+
+		/**
+		 * @brief Calculates the size needed to hold an instance of this class.
+		 */
+		static std::size_t SizeOf(const unsigned int signalsCount);
+
 	private:
+
+		/**
+		 * @brief Default constructor
+		 */
+		Metadata();
 
 		/**
 		 * @brief This class contains the meta properties of a signal and
@@ -140,6 +152,13 @@ public:
 	 * beginning of the sigblock.
 	 */
 	void* GetSignalAddress(std::size_t offset);
+
+private:
+
+	/**
+	 * @brief Default constructor
+	 */
+	Sigblock();
 };
 
 /*---------------------------------------------------------------------------*/

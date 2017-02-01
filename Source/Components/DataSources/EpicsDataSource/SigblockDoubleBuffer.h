@@ -89,6 +89,11 @@ public:
 private:
 
     /**
+     * @brief Default constructor
+     */
+    SigblockDoubleBuffer();
+
+    /**
      * The constant representing the number of buffers (actually two)
      */
 	static const unsigned int TWO = 2;

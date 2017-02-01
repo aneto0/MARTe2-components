@@ -107,7 +107,7 @@ void SharedDataArea::Representation::FillItems(const unsigned int bufferSize, st
 
 SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const char* const name, const unsigned int signalsCount, const Signal::Metadata signalsMetadata[], const unsigned int bufferSize) {
 	std::size_t sizeOfSigblock = CalculateSizeOfSigblock(signalsCount, signalsMetadata);
-	std::size_t sizeOfHeader = (sizeof(unsigned int) + (signalsCount * (sizeof(Signal::Metadata)+sizeof(std::size_t)))); //TODO: Abstract this private knowledge
+	std::size_t sizeOfHeader = Sigblock::Metadata::SizeOf(signalsCount);
 	std::size_t sizeOfItems = (bufferSize * sizeOfSigblock); //TODO: Abstract this private knowledge
 	std::size_t totalSize = (sizeof(SharedDataArea::Representation) + sizeOfHeader + sizeOfItems);
 //	SharedDataArea* obj = NULL;
@@ -176,7 +176,7 @@ bool SharedDataArea::SigblockProducer::WriteSigblock(const Sigblock& sb) {
 	if (IsOperational()) {
 		fret = Items()->Put(sb);
 		if (!fret) {
-			droppedWrites++;  //check overflow ...
+			droppedWrites++;  //TODO check overflow ...
 		}
 	}
 	else {

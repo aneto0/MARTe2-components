@@ -50,7 +50,7 @@ void Sigblock::Metadata::SetSignalsMetadata(const unsigned int signalsCount, con
 		std::strncpy(this->signalsMetadata[i].name, signalsMetadata[i].name, Signal::Metadata::NAME_MAX_LEN);
 		this->signalsMetadata[i].size = signalsMetadata[i].size;
 		this->signalsMetadata[i].offset = offset;
-		printf("Sigblock::Metadata::SetSignalsMetadata >>> i=%u offset=%zu this->signalsMetadata[i].offset=%zu\n", i, offset, this->signalsMetadata[i].offset);
+		printf("Sigblock::Metadata::SetSignalsMetadata >>> i=%u offset=%zu this->signalsMetadata[i].offset=%zu this->signalsMetadata[i].name=%s\n", i, offset, this->signalsMetadata[i].offset, this->signalsMetadata[i].name);
 		offset += signalsMetadata[i].size;
 	}
 	this->signalsCount = signalsCount;
@@ -90,6 +90,10 @@ std::size_t Sigblock::Metadata::GetSignalSizeByIndex(const int index) {
 
 std::size_t Sigblock::Metadata::GetTotalSize() {
 	return (sizeof(Signal::Metadata) * signalsCount);
+}
+
+std::size_t Sigblock::Metadata::SizeOf(const unsigned int signalsCount) {
+	return (sizeof(unsigned int) + (signalsCount * (sizeof(Signal::Metadata)+sizeof(std::size_t))));
 }
 
 void* Sigblock::GetSignalAddress(std::size_t offset) {

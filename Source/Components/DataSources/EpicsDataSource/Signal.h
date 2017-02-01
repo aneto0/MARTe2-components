@@ -68,11 +68,27 @@ public:
 		 * The size of the signal's representation.
 		 */
 		std::size_t size;
+
+		/**
+		 * @brief Default constructor
+		 */
+		Metadata();
 	};
+
+private:
+
+	/**
+	 * @brief Default constructor
+	 */
+	Signal();
 };
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+
+inline Signal::Metadata::Metadata(): size(0) {
+	name[0] = '\0';
+}
 
 #endif /* SIGNAL_H_ */
