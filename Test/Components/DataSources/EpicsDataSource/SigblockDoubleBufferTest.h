@@ -39,22 +39,23 @@
 class SigblockDoubleBufferTest {
 public:
 	/**
-	 * @brief TODO
+	 * @brief Tests the Reset method.
 	 */
 	bool TestReset();
 
 	/**
-	 * @brief TODO
+	 * @brief Tests the Get method.
 	 */
 	bool TestGet();
 
 	/**
-	 * @brief TODO
+	 * @brief Tests the Put method.
 	 */
 	bool TestPut();
 
 	/**
-	 * @brief TODO
+	 * @brief Test the interchange of data between a producer and a consumer
+	 * using one single thread.
 	 */
 	template<typename SignalType>
 	bool TestProducerConsumerInSingleThread(const char* const shmName, const unsigned int maxTests);

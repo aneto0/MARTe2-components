@@ -40,22 +40,22 @@ class PlatformTest {
 public:
 
 	/**
-	 * @brief TODO
+	 * @brief Tests the MakeShm method.
 	 */
 	bool TestMakeShm();
 
 	/**
-	 * @brief TODO
+	 * @brief Tests the JoinShm method.
 	 */
 	bool TestJoinShm();
 
 	/**
-	 * @brief TODO
+	 * @brief Tests the DettachShm method.
 	 */
 	bool TestDettachShm();
 
 	/**
-	 * @brief TODO
+	 * @brief Tests the DestroyShm method.
 	 */
 	bool TestDestroyShm();
 };

@@ -42,7 +42,7 @@ public:
 	class MetadataTest {
 	public:
 		/**
-		 * @brief TODO
+		 * @brief Tests the SetSignalsMetadata method.
 		 */
 		bool TestSetSignalsMetadata();
 	};
