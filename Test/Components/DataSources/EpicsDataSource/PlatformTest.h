@@ -58,6 +58,51 @@ public:
 	 * @brief Tests the DestroyShm method.
 	 */
 	bool TestDestroyShm(const char* const name, const char* const fullname);
+
+private:
+
+	/**
+	 * @brief DataSet class meant for unit tests.
+	 */
+	class DataSet {
+	public:
+		/**
+		 * @brief Default constructor.
+		 */
+		DataSet();
+		/**
+		 * @brief Gets a pointer to an immutable forward token .
+		 */
+		const char* GetForwardToken();
+		/**
+		 * @brief Gets a pointer to an immutable reverse token .
+		 */
+		const char* GetReverseToken();
+		/**
+		 * @brief Get the token's length.
+		 */
+		const size_t GetTokenLen();
+	private:
+		/**
+		 * The length of the token.
+		 */
+		const size_t tokenlen;
+		/*
+		 * An immutable forward token shared between all instances.
+		 */
+		static const char FTOKEN[];
+		/*
+		 * An immutable reverse token shared between all instances.
+		 */
+		static const char RTOKEN[];
+	};
+
+	/**
+	 * @brief Test the interchange of data between a master and a slave
+	 * executing on two different processes.
+	 */
+	bool TestMasterSlaveWithTwoProcesses(const char* const name, const char* const fullname);
+
 };
 
 /*---------------------------------------------------------------------------*/

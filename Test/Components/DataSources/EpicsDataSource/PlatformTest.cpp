@@ -44,24 +44,45 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+/**
+ * @brief Representation of the shared memory used by Platform class.
+ */
 struct ShmMapping {
 	size_t size;
 	char bytes[];
 };
 
+/**
+ * @brief Representation of the memory used for interchange test data.
+ */
 struct ShmData {
 	pid_t pid;
 	bool ok;
 	char token[];
 };
 
-static char TOKEN[] = "The quick brown fox jumps over the lazy dog";
-static char RTOKEN[] = "god yzal eht revo spmuj xof nworb kciuq ehT";
-static const size_t TOKENLEN = std::strlen(TOKEN);
+const char PlatformTest::DataSet::FTOKEN[] = "The quick brown fox jumps over the lazy dog";
 
-static bool MasterProcessPrologue(void*& shm, const char* const name, const char* const fullname) {
+const char PlatformTest::DataSet::RTOKEN[] = "god yzal eht revo spmuj xof nworb kciuq ehT";
 
-	static const size_t DATASIZE = (sizeof(ShmData) + TOKENLEN);
+PlatformTest::DataSet::DataSet(): tokenlen(std::strlen(FTOKEN)) {
+}
+
+const char* PlatformTest::DataSet::GetForwardToken() {
+	return FTOKEN;
+}
+
+const char* PlatformTest::DataSet::GetReverseToken() {
+	return RTOKEN;
+}
+
+const size_t PlatformTest::DataSet::GetTokenLen() {
+	return tokenlen;
+}
+
+static bool MasterProcessPrologue(void*& shm, const char* const name, const char* const fullname, const char* ftoken, const size_t tokenlen) {
+
+	static const size_t DATASIZE = (sizeof(ShmData) + tokenlen);
 	static unsigned int SHMSIZE = (sizeof(ShmMapping) + DATASIZE);
 
 	bool ok = false;
@@ -74,6 +95,7 @@ static bool MasterProcessPrologue(void*& shm, const char* const name, const char
 
 	if (ok) {
 		ShmMapping* map = NULL;
+
 		//Map a typed pointer to SHM:
 		map = reinterpret_cast<ShmMapping*>(shm);
 		ok &= (map->size == SHMSIZE);
@@ -85,27 +107,27 @@ static bool MasterProcessPrologue(void*& shm, const char* const name, const char
 			data = reinterpret_cast<ShmData*>(map->bytes);
 
 			//Check default token:
-			for (unsigned int i = 0; i < TOKENLEN; i++) {
+			for (unsigned int i = 0; i < tokenlen; i++) {
 				ok &= (data->token[i] == 72);
 			}
 
 			//Write original token:
-			for (unsigned int i = 0; i < TOKENLEN; i++) {
-				data->token[i] = TOKEN[i];
+			for (unsigned int i = 0; i < tokenlen; i++) {
+				data->token[i] = ftoken[i];
 			}
 
 			//Check original token:
-			for (unsigned int i = 0; i < TOKENLEN; i++) {
-				ok &= (data->token[i] == TOKEN[i]);
+			for (unsigned int i = 0; i < tokenlen; i++) {
+				ok &= (data->token[i] == ftoken[i]);
 			}
 		}
 	}
 	return ok;
 }
 
-static bool MasterProcessEpilogue(void* shm, const char* const name, const char* const fullname, pid_t pid) {
+static bool MasterProcessEpilogue(void* shm, const char* const name, const char* const fullname, pid_t pid, const char* rtoken, const size_t tokenlen) {
 
-	static const size_t DATASIZE = (sizeof(ShmData) + TOKENLEN);
+	static const size_t DATASIZE = (sizeof(ShmData) + tokenlen);
 	static unsigned int SHMSIZE = (sizeof(ShmMapping) + DATASIZE);
 
 	bool ok = false;
@@ -114,6 +136,7 @@ static bool MasterProcessEpilogue(void* shm, const char* const name, const char*
 
 	if (ok) {
 		ShmMapping* map = NULL;
+
 		//Map a typed pointer to SHM:
 		map = reinterpret_cast<ShmMapping*>(shm);
 		ok &= (map->size == SHMSIZE);
@@ -125,8 +148,8 @@ static bool MasterProcessEpilogue(void* shm, const char* const name, const char*
 			data = reinterpret_cast<ShmData*>(map->bytes);
 
 			//Check response token:
-			for (unsigned int i = 0; i < TOKENLEN; i++) {
-				ok &= (data->token[i] == RTOKEN[i]);
+			for (unsigned int i = 0; i < tokenlen; i++) {
+				ok &= (data->token[i] == rtoken[i]);
 			}
 
 			//check child's pid
@@ -147,9 +170,9 @@ static bool MasterProcessEpilogue(void* shm, const char* const name, const char*
 	return ok;
 }
 
-static void SlaveProcess(const char* const name, const char* const fullname) {
+static void SlaveProcess(const char* const name, const char* const fullname, const char* ftoken, const char* rtoken, const size_t tokenlen) {
 
-	static const size_t DATASIZE = (sizeof(ShmData) + TOKENLEN);
+	static const size_t DATASIZE = (sizeof(ShmData) + tokenlen);
 	static unsigned int SHMSIZE = (sizeof(ShmMapping) + DATASIZE);
 
 	bool ok = false;
@@ -165,6 +188,7 @@ static void SlaveProcess(const char* const name, const char* const fullname) {
 
 	if (ok) {
 		ShmMapping* map = NULL;
+
 		//Map a typed pointer to SHM:
 		map = reinterpret_cast<ShmMapping*>(shm);
 		ok &= (map->size == SHMSIZE);
@@ -175,13 +199,13 @@ static void SlaveProcess(const char* const name, const char* const fullname) {
 			data = reinterpret_cast<ShmData*>(map->bytes);
 
 			//Check original token:
-			for (unsigned int i = 0; i < TOKENLEN; i++) {
-				ok &= (data->token[i] == TOKEN[i]);
+			for (unsigned int i = 0; i < tokenlen; i++) {
+				ok &= (data->token[i] == ftoken[i]);
 			}
 
 			//Write response token:
-			for (unsigned int i = 0; i < TOKENLEN; i++) {
-				data->token[i] = RTOKEN[i];
+			for (unsigned int i = 0; i < tokenlen; i++) {
+				data->token[i] = rtoken[i];
 			}
 
 			//Write PID:
@@ -206,12 +230,14 @@ static void SlaveProcess(const char* const name, const char* const fullname) {
 //
 //}
 
-bool TestMasterSlaveWithTwoProcesses(const char* const name, const char* const fullname) {
+bool PlatformTest::TestMasterSlaveWithTwoProcesses(const char* const name, const char* const fullname) {
 	bool ok = false;
+
+	PlatformTest::DataSet dataset;
 
 	void* shm = NULL;
 
-	ok = MasterProcessPrologue(shm, name, fullname);
+	ok = MasterProcessPrologue(shm, name, fullname, dataset.GetForwardToken(), dataset.GetTokenLen());
 
 	pid_t pid = fork();
 
@@ -219,14 +245,14 @@ bool TestMasterSlaveWithTwoProcesses(const char* const name, const char* const f
 		ok = false;
 	}
 	else if (pid == 0) {
-		SlaveProcess(name, fullname);
+		SlaveProcess(name, fullname, dataset.GetForwardToken(), dataset.GetReverseToken(), dataset.GetTokenLen());
 		std::exit(EXIT_SUCCESS);
 	}
 	else {
 		int status;
 		(void)waitpid(pid, &status, 0);
 
-		ok &= MasterProcessEpilogue(shm, name, fullname, pid);
+		ok &= MasterProcessEpilogue(shm, name, fullname, pid, dataset.GetReverseToken(), dataset.GetTokenLen());
 	}
 	return ok;
 }
