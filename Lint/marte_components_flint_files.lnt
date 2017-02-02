@@ -4,6 +4,8 @@
  */
 -dEFDA_MARTe_DIR=%EFDA_MARTe_DIR%
 -i%EFDA_MARTe_DIR%/Interfaces/BaseLib2Adapter/
+-i%EFDA_MARTe_DIR%/Source/Core/FileSystem/L3Streams/
+-i%EFDA_MARTe_DIR%/Source/Core/FileSystem/L1Portability/
 
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
