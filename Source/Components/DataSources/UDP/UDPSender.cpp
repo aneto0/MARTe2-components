@@ -59,7 +59,7 @@ UDPSender::UDPSender():DataSourceI(){
     UDPPacket.dataBuffer = NULL_PTR(AnyType*);
 }
 
-
+/*lint -e{1551} the destructor must guarantee that the client sending is closed.*/
 UDPSender::~UDPSender(){
      if (!client.Close()){
          REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
@@ -75,7 +75,7 @@ bool UDPSender::Synchronise(){
     REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY data at %d with size %d with data before %d",p, signalByteSize, k);*/
     bool OK = true;
     const MARTe::uint32 udpServerExpectReadSize = nOfSignals * 8;
-    uint8 i;
+    uint32 i;
     uint8 udpServerWriteBuffer[udpServerExpectReadSize];
     uint32 signalOffset = 0;
     memoryOffset = 0u;
@@ -123,7 +123,7 @@ bool UDPSender::Synchronise(){
 
             uint32 j;
             for(j = 0; j < signalByteSize; j++){
-                udpServerWriteBuffer[j + signalOffset] = AnyTypetoUint8[j];
+                udpServerWriteBuffer[(uint32)(j + signalOffset)] = AnyTypetoUint8[j];
             }
             signalOffset += signalByteSize;
         }

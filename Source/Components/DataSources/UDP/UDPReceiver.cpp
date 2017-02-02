@@ -61,6 +61,7 @@ UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), execu
 /*
  * Destructor
  */
+/*lint -e{1551} the destructor must guarantee that the thread and servers are closed.*/
 UDPReceiver::~UDPReceiver(){
     if (!synchSem.Post()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem.");
@@ -318,7 +319,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                 uint8 dataConv[noOfBytesForSignal];
                 uint32 counter;
                 for (counter = 0; counter < noOfBytesForSignal; counter++){
-                    dataConv[counter] = udpServerBufferRead[signalOffset + counter];
+                    dataConv[counter] = udpServerBufferRead[(uint32)signalOffset + counter];
                 }
                 if (i == 0 || i == 1){
                     memcpy(AnytypeData.GetDataPointer(),dataConv,signalByteSize);
