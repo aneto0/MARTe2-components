@@ -1,8 +1,25 @@
-//******************************************************************************
-//
-//    $Log$
-//
-//******************************************************************************
+/**
+ * @file UDPReceiver.cpp
+ * @brief Source file for class UDPReceiver
+ * @date Jan 31, 2017 TODO Verify the value and format of the date
+ * @author Danny TODO Verify the name and format of the author
+ *
+ * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
+ * the Development of Fusion Energy ('Fusion for Energy').
+ * Licensed under the EUPL, Version 1.1 or - as soon they will be approved
+ * by the European Commission - subsequent versions of the EUPL (the "Licence")
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+ *
+ * @warning Unless required by applicable law or agreed to in writing, 
+ * software distributed under the Licence is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the Licence permissions and limitations under the Licence.
+
+ * @details This source file contains the definition of all the methods for
+ * the class UDPReceiver (public, protected, and private). Be aware that some 
+ * methods, such as those inline could be defined on the header file, instead.
+ */
 
 #include "UDPReceiver.h"
 #include "Endianity.h"
@@ -21,13 +38,12 @@
 
 namespace MARTe{
 
-static bool serverDone = false;
 static uint32 udpServerPort = 44488;
 static StreamString udpServerAddress = "127.0.0.1";
 static uint32 nOfSignals = 1;
 static uint32 totalPacketSize;
 UDPSocket server;
-uint32 memoryOffset = 0u;
+static uint32 memoryOffset = 0u;
 
 UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this){
     synchronising = true;
@@ -46,7 +62,7 @@ UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), execu
  * Destructor
  */
 UDPReceiver::~UDPReceiver(){
-   if (!synchSem.Post()) {
+    if (!synchSem.Post()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem.");
     }
     if (!executor.Stop()) {
@@ -56,7 +72,6 @@ UDPReceiver::~UDPReceiver(){
     }
     if (!server.Close()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP reciever server.");
-        serverDone = true;
     }
     
 }
@@ -93,8 +108,10 @@ bool UDPReceiver::AllocateMemory(){
         uint32 n;
         for (n = 2u; (n < nOfSignals) && (ok); n++){
             uint32 signalByteSize;
-            GetSignalByteSize(n, signalByteSize);
-            totalPacketSize += signalByteSize;
+            ok = GetSignalByteSize(n, signalByteSize);
+            if (ok){
+                totalPacketSize += signalByteSize;
+            }
         }
         UDPPacket.dataBuffer= new AnyType[totalPacketSize];
         uint32 i;
@@ -127,8 +144,10 @@ bool UDPReceiver::GetSignalMemoryBuffer(const uint32 signalIdx,
              uint32 i;
             for (i = 2u; i < signalIdx ; i++){      
                 uint32 signalByteSize;
-                GetSignalByteSize(i, signalByteSize);
-                memoryOffset += signalByteSize;
+                ok = GetSignalByteSize(i, signalByteSize);
+                if (ok){
+                    memoryOffset += signalByteSize;
+                }
             }
         signalAddress = (void *)(static_cast<char*>((UDPPacket.dataBuffer[signalIdx - 2u]).GetDataPointer()) + memoryOffset);
         }
@@ -198,7 +217,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         InternetHost thisHost(udpServerPort, udpServerAddress.Buffer());
-        ok &= server.Listen(thisHost.GetPort());
+        ok = server.Listen(thisHost.GetPort());
     }
     if (!ok){
         REPORT_ERROR(ErrorManagement::ParametersError, "Could not open the port!");
@@ -218,7 +237,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
                                     uint16(GetSignalType(0u).numberOfBits))
         }
-   }
+    }
     if (ok) {
         ok = (GetSignalType(0u).type == SignedInteger);
         if (!ok) {
@@ -282,43 +301,37 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         }else{
             uint8 signalOffset = 0u;
             memoryOffset = 0u;
-            bool OK = true;
-            for (i = 0; (i < nOfSignals) && keepRunning && OK; i++){
-                if (i >= 0 && OK){
-                    uint32 signalByteSize = GetSignalType(i).numberOfBits / 8;
-                    uint32 size = GetSignalType(i).numberOfBits;
-                    AnyType AnytypeData = new AnyType;
+            for (i = 0; (i < nOfSignals) && keepRunning ; i++){
+                uint32 signalByteSize = GetSignalType(i).numberOfBits / 8;
+                uint32 size = GetSignalType(i).numberOfBits;
+                AnyType AnytypeData = new AnyType;
 
-                    if (i == 0){
-                        AnytypeData = UDPPacket.sequenceNumber;
-                    }else if (i == 1){
-                        AnytypeData = UDPPacket.timer;                    
-                    }else if (i > 1){  
-                        AnytypeData = UDPPacket.dataBuffer[i -2];
-                    }
-
-                    uint32 noOfBytesForSignal = size/8;
-                    uint8 dataConv[noOfBytesForSignal];
-                    uint32 counter;
-                    for (counter = 0; counter < noOfBytesForSignal; counter++){
-                        dataConv[counter] = udpServerBufferRead[signalOffset + counter];
-                    }
-                    if (i == 0 || i == 1){
-                        memcpy(AnytypeData.GetDataPointer(),dataConv,signalByteSize);
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
-                    }else if (i >1){
-                        void *p = static_cast<char*>(AnytypeData.GetDataPointer()) + memoryOffset;
-                        memcpy(p,&dataConv,signalByteSize);
-                        uint32 test;
-                        memcpy(&test,p,signalByteSize);
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
-                        memoryOffset += signalByteSize;
-                    }
-                    signalOffset += noOfBytesForSignal;
-                }else{
-                    OK = false;
-                    REPORT_ERROR(ErrorManagement::FatalError, "Tried to access negative signal.");
+                if (i == 0){
+                    AnytypeData = UDPPacket.sequenceNumber;
+                }else if (i == 1){
+                    AnytypeData = UDPPacket.timer;                    
+                }else if (i > 1){  
+                    AnytypeData = UDPPacket.dataBuffer[i -2];
                 }
+
+                uint32 noOfBytesForSignal = size/8;
+                uint8 dataConv[noOfBytesForSignal];
+                uint32 counter;
+                for (counter = 0; counter < noOfBytesForSignal; counter++){
+                    dataConv[counter] = udpServerBufferRead[signalOffset + counter];
+                }
+                if (i == 0 || i == 1){
+                    memcpy(AnytypeData.GetDataPointer(),dataConv,signalByteSize);
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
+                }else if (i >1){
+                    void *p = static_cast<char*>(AnytypeData.GetDataPointer()) + memoryOffset;
+                    memcpy(p,dataConv,signalByteSize);
+                    uint32 test;
+                    memcpy(&test,p,signalByteSize);
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
+                    memoryOffset += signalByteSize;
+                }
+                signalOffset += noOfBytesForSignal;
             }
         }
     }

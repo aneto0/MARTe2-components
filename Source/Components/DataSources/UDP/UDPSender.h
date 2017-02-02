@@ -165,8 +165,6 @@ public:
 private:
 
     UDPMsgStruct UDPPacket;
-
-    uint32 previousCount;
 };
 }
 #endif
