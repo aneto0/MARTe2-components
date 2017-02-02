@@ -7,6 +7,7 @@
 
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
+-i./Source/Components/DataSources/UDP/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper
@@ -16,5 +17,7 @@ IOGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
+UDPReceiver.cpp
+UDPSender.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
