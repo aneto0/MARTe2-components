@@ -22,7 +22,6 @@
  */
 
 #include "UDPReceiver.h"
-#include "Endianity.h"
 #include "FastPollingMutexSem.h"
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
@@ -38,9 +37,9 @@
 
 namespace MARTe{
 
-static uint32 udpServerPort = 44488;
+static uint16 udpServerPort = 44488u;
 static StreamString udpServerAddress = "127.0.0.1";
-static uint32 nOfSignals = 1;
+static uint32 nOfSignals = 1u;
 static uint32 totalPacketSize;
 UDPSocket server;
 static uint32 memoryOffset = 0u;
@@ -93,7 +92,7 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
     keepRunning = true;
     bool found = data.Read("Port", udpServerPort);
     if (!found){
-        udpServerPort = 44488;
+        udpServerPort = 44488u;
         REPORT_ERROR(ErrorManagement::Information, "No port defined! Default to 44488");
     }
     return ok;
@@ -116,7 +115,7 @@ bool UDPReceiver::AllocateMemory(){
         }
         UDPPacket.dataBuffer= new AnyType[totalPacketSize];
         uint32 i;
-        for (i = 0u; i <nOfSignals - 2; i++ ){
+        for (i = 0u; i < (nOfSignals - 2u); i++ ){
             UDPPacket.dataBuffer[i] = 0u;
         }
         
@@ -130,19 +129,20 @@ uint32 UDPReceiver::GetNumberOfMemoryBuffers(){
     return 1u;
 }
 
+//lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
 bool UDPReceiver::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          const uint32 bufferIdx,
                                          void*& signalAddress) {
     bool ok = true;
-    if (signalIdx <= (GetNumberOfSignals() -1)){
+    if (signalIdx <= (GetNumberOfSignals() -1u)){
         if (signalIdx == 0u) {
             signalAddress = &UDPPacket.sequenceNumber;
         }
         else if (signalIdx == 1u) {
             signalAddress = &UDPPacket.timer;
         }
-        else if (signalIdx > 1u ) {
-             uint32 i;
+        else{
+            uint32 i;
             for (i = 2u; i < signalIdx ; i++){      
                 uint32 signalByteSize;
                 ok = GetSignalByteSize(i, signalByteSize);
@@ -150,10 +150,7 @@ bool UDPReceiver::GetSignalMemoryBuffer(const uint32 signalIdx,
                     memoryOffset += signalByteSize;
                 }
             }
-        signalAddress = (void *)(static_cast<char*>((UDPPacket.dataBuffer[signalIdx - 2u]).GetDataPointer()) + memoryOffset);
-        }
-        else{
-            ok = false;
+            signalAddress = static_cast<void *>(static_cast<char*>((UDPPacket.dataBuffer[signalIdx - 2u]).GetDataPointer()) + memoryOffset);
         }
     }
     else{
@@ -162,9 +159,10 @@ bool UDPReceiver::GetSignalMemoryBuffer(const uint32 signalIdx,
     return ok;
                                          }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the data is independent of the broker name.*/
 const char8* UDPReceiver::GetBrokerName(StructuredDataI& data,
                                          const SignalDirection direction) {
-        const char8 *brokerName = NULL_PTR(const char8 *);
+    const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == InputSignals) {
             brokerName = "MemoryMapInputBroker";
     }
@@ -188,12 +186,14 @@ bool UDPReceiver::GetInputBrokers(ReferenceContainer& inputBrokers,
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: THe output broker is not needed*/
 bool UDPReceiver::GetOutputBrokers(ReferenceContainer& outputBrokers,
                                     const char8* const functionName,
                                     void* const gamMemPtr) {
     return false;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the current and next state name are indepentent of the operation.*/
 bool UDPReceiver::PrepareNextState(const char8* const currentStateName,
                                     const char8* const nextStateName) {
     bool ok = true;
@@ -211,7 +211,7 @@ bool UDPReceiver::PrepareNextState(const char8* const currentStateName,
 bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok){
-    ok = server.Open();
+        ok = server.Open();
     }
     if (!ok){
         REPORT_ERROR(ErrorManagement::ParametersError, "Could not open the server!");
@@ -281,15 +281,13 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         keepRunning = false;
     }
     else{
-        uint32 udpServerExpectReadSize = totalPacketSize + (GetSignalType(0).numberOfBits/8) + (GetSignalType(1).numberOfBits/8);
+        uint32 udpServerExpectReadSize = totalPacketSize + static_cast<uint32>(GetSignalType(0u).numberOfBits/8u) + static_cast<uint32>(GetSignalType(1u).numberOfBits/8u);
         uint8 udpServerBufferRead[udpServerExpectReadSize];
+        memset(udpServerBufferRead, 0, sizeof(udpServerBufferRead));
         uint32 udpServerReadSize = udpServerExpectReadSize;
         uint8 i;
-        for (i = 0; (i < udpServerExpectReadSize)&& keepRunning; i++){
-            udpServerBufferRead[i] = 0;
-        }
         if (keepRunning) {
-            dataRecieved &= server.Read((char8 *) udpServerBufferRead, udpServerReadSize);
+            dataRecieved = server.Read(reinterpret_cast<char8 *>(udpServerBufferRead), udpServerReadSize);
         }
         dataRecieved = (udpServerReadSize > 0u);
         dataRecievedCorrectSize = (udpServerReadSize == udpServerExpectReadSize);
@@ -300,33 +298,34 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Recieved data of inccorect size, ignoring it.");
             Sleep::Sec(100e-6);
         }else{
-            uint8 signalOffset = 0u;
+            uint32 signalOffset = 0u;
             memoryOffset = 0u;
-            for (i = 0; (i < nOfSignals) && keepRunning ; i++){
-                uint32 signalByteSize = GetSignalType(i).numberOfBits / 8;
+            for (i = 0u; (i < nOfSignals) && keepRunning ; i++){
+                uint32 signalByteSize = GetSignalType(i).numberOfBits / 8u;
                 uint32 size = GetSignalType(i).numberOfBits;
                 AnyType AnytypeData = new AnyType;
 
-                if (i == 0){
+                if (i == 0u){
                     AnytypeData = UDPPacket.sequenceNumber;
-                }else if (i == 1){
+                }else if (i == 1u){
                     AnytypeData = UDPPacket.timer;                    
-                }else if (i > 1){  
+                }else{  
                     AnytypeData = UDPPacket.dataBuffer[i -2];
                 }
 
-                uint32 noOfBytesForSignal = size/8;
+                uint32 noOfBytesForSignal = size/8u;
                 uint8 dataConv[noOfBytesForSignal];
+                memset(dataConv, 0, sizeof(dataConv));
                 uint32 counter;
-                for (counter = 0; counter < noOfBytesForSignal; counter++){
-                    dataConv[counter] = udpServerBufferRead[(uint32)signalOffset + counter];
+                for (counter = 0u; counter < noOfBytesForSignal; counter++){
+                    dataConv[counter] = udpServerBufferRead[signalOffset + counter];
                 }
-                if (i == 0 || i == 1){
-                    memcpy(AnytypeData.GetDataPointer(),dataConv,signalByteSize);
+                if ((i == 0u) || (i == 1u)){
+                    memcpy(AnytypeData.GetDataPointer(),static_cast<void*>(dataConv),signalByteSize);
                     REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
-                }else if (i >1){
+                }else{
                     void *p = static_cast<char*>(AnytypeData.GetDataPointer()) + memoryOffset;
-                    memcpy(p,dataConv,signalByteSize);
+                    memcpy(p,static_cast<void*>(dataConv),signalByteSize);
                     uint32 test;
                     memcpy(&test,p,signalByteSize);
                     REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);

@@ -46,8 +46,8 @@
 
 namespace MARTe{
 
-static uint32 nOfSignals = 0;
-static uint32 udpServerPort;
+static uint32 nOfSignals = 0u;
+static uint16 udpServerPort;
 static StreamString udpServerAddress;
 static UDPSocket client;
 static uint64 timerAtStateChange = 0u;
@@ -74,56 +74,48 @@ bool UDPSender::Synchronise(){
     memcpy(&k,p,signalByteSize);
     REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY data at %d with size %d with data before %d",p, signalByteSize, k);*/
     bool OK = true;
-    const MARTe::uint32 udpServerExpectReadSize = nOfSignals * 8;
+    const MARTe::uint32 udpServerExpectReadSize = nOfSignals * 8u;
     uint32 i;
     uint8 udpServerWriteBuffer[udpServerExpectReadSize];
-    uint32 signalOffset = 0;
+    uint32 signalOffset = 0u;
     memoryOffset = 0u;
-    for (i = 0; i < udpServerExpectReadSize; i++){
+    for (i = 0u; i < udpServerExpectReadSize; i++){
         udpServerWriteBuffer[i] = 0u;
     }
-    for (i = 0; i < nOfSignals; i++){
+    for (i = 0u; i < nOfSignals; i++){
         AnyType dataConv = new AnyType;
-        if (i == 0){
+        if (i == 0u){
             dataConv = UDPPacket.sequenceNumber;
-        } else if (i == 1){
+        } else if (i == 1u){
             UDPPacket.timer=HighResolutionTimer::Counter() - timerAtStateChange;
             dataConv = UDPPacket.timer;
-        }else if (i > 1){
-            dataConv = UDPPacket.dataBuffer[i-2];
         }else{
-            OK = false;
-            REPORT_ERROR(ErrorManagement::FatalError, "Tried to access negative signal.");
+            dataConv = UDPPacket.dataBuffer[i-2u];
         }
 
         if (OK){
 
-            uint32 signalByteSize = GetSignalType(i).numberOfBits / 8;
+            uint32 signalByteSize = GetSignalType(i).numberOfBits / 8u;
 
-            uint64 k = 0;
+            uint64 k;
             uint8 AnyTypetoUint8 [signalByteSize];
-            for (k = 0u; k <signalByteSize; k++ ){
+            for (k = 0u; k < signalByteSize; k++ ){
                 AnyTypetoUint8[k] = 0u;
             }
-            if (i == 0 || i == 1){
-            memcpy(AnyTypetoUint8,dataConv.GetDataPointer(),signalByteSize);
-            memcpy(&k,static_cast<char*>(dataConv.GetDataPointer()),signalByteSize);
-
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
-            
-            }else if (i > 1){
-            void* p = static_cast<char*>(dataConv.GetDataPointer()) + memoryOffset;
-            memcpy(AnyTypetoUint8,p,signalByteSize);
-
-            memcpy(&k,p,signalByteSize);
-            memoryOffset += signalByteSize;
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d, located at memory loc: %d",k, p);
-    
+            if ((i == 0u) || (i == 1u)){
+                memcpy(static_cast<void*>(AnyTypetoUint8),dataConv.GetDataPointer(),signalByteSize);
+                memcpy(&k,static_cast<char*>(dataConv.GetDataPointer()),signalByteSize);
+                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
+            }else{
+                void* p = static_cast<char*>(dataConv.GetDataPointer()) + memoryOffset;
+                memcpy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
+                memcpy(&k,p,signalByteSize);
+                memoryOffset += signalByteSize;
+                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d, located at memory loc: %d",k, p);
             }
-
             uint32 j;
-            for(j = 0; j < signalByteSize; j++){
-                udpServerWriteBuffer[(uint32)(j + signalOffset)] = AnyTypetoUint8[j];
+            for(j = 0u; j < signalByteSize; j++){
+                udpServerWriteBuffer[static_cast<uint32>(j + signalOffset)] = AnyTypetoUint8[j];
             }
             signalOffset += signalByteSize;
         }
@@ -133,7 +125,6 @@ bool UDPSender::Synchronise(){
         uint32 bytesSent = udpServerExpectReadSize;
         OK = client.Write((char8 *) udpServerWriteBuffer, bytesSent);
         UDPPacket.sequenceNumber++;
-
     }
     return OK;
 }
@@ -147,7 +138,7 @@ bool UDPSender::Initialise(StructuredDataI &data) {
     }
     found = data.Read("Port", udpServerPort);
     if (!found){
-        udpServerPort = 44488;
+        udpServerPort = 44488u;
         REPORT_ERROR(ErrorManagement::Information, "No Port defined! Default to 44488");
     }
     return ok;
@@ -162,7 +153,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Could not open the client!");
     }
     if (ok){
-            ok = client.Connect((char8*)udpServerAddress.Buffer(), udpServerPort);
+            ok = client.Connect(const_cast<char8*>(udpServerAddress.Buffer()), udpServerPort);
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Could not connect the client to the server!");
@@ -234,7 +225,7 @@ bool UDPSender::AllocateMemory(){
         REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal data size %d",(totalPacketSize));
         UDPPacket.dataBuffer= new AnyType[totalPacketSize];
         uint32 i;
-        for (i = 0u; i < nOfSignals + 2; i++){
+        for (i = 0u; i < (nOfSignals + 2); i++){
             UDPPacket.dataBuffer[i] = 0;
         }
     }else{
@@ -247,6 +238,7 @@ uint32 UDPSender::GetNumberOfMemoryBuffers(){
     return 1u;
 }
 
+//lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
 bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          const uint32 bufferIdx,
                                          void*& signalAddress) {
@@ -254,7 +246,7 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
 
     memoryOffset = 0u;
     bool ok = true;
-    if (signalIdx <= (GetNumberOfSignals() -1)){
+    if (signalIdx <= (GetNumberOfSignals() -1u)){
         if (signalIdx == 0u) {
             signalAddress = &UDPPacket.sequenceNumber;
         }
@@ -287,11 +279,20 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
     return ok;
                                          }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the data is indepentent of the broker.*/
 const char8* UDPSender::GetBrokerName(StructuredDataI& data,
                                          const SignalDirection direction) {
-    return "MemoryMapSynchronisedOutputBroker";
+    const char8 *brokerName = NULL_PTR(const char8 *);
+    if (direction == OutputSignals) {
+            brokerName = "MemoryMapSynchronisedOutputBroker";
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
+    }
+    return brokerName;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: Input broker not used*/
 bool UDPSender::GetInputBrokers(ReferenceContainer& inputBrokers,
                                    const char8* const functionName,
                                    void* const gamMemPtr) {
@@ -309,6 +310,7 @@ bool UDPSender::GetOutputBrokers(ReferenceContainer& outputBrokers,
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the current and next state name are indepentent of the operation.*/
 bool UDPSender::PrepareNextState(const char8* const currentStateName,
                                     const char8* const nextStateName) {
     bool ok = true;
@@ -317,12 +319,12 @@ bool UDPSender::PrepareNextState(const char8* const currentStateName,
     UDPPacket.timer = 0u ;
     uint32 i;
     memoryOffset = 0u;
-        for (i = 0u; i < nOfSignals - 2; i++){
+        for (i = 0u; i < (nOfSignals - 2u); i++){
             uint64 k = 0u;
             uint32 signalByteSize;
             REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY OFFSET at %d ",memoryOffset);
             void* p = static_cast<char*>((UDPPacket.dataBuffer[i]).GetDataPointer()) + memoryOffset;
-            ok = GetSignalByteSize(i + 2, signalByteSize);
+            ok = GetSignalByteSize(i + 2u, signalByteSize);
             if (ok){
                 memcpy(&k,p,signalByteSize);
                 REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY data at %d with size %d with data before %d",p, signalByteSize, k);
