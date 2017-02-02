@@ -164,11 +164,6 @@ public:
 
 private:
 
-   /**
-     * Counter and timer since last state change
-     */
-    uint32 *counterAndTimer;
-
     UDPMsgStruct UDPPacket;
 
     uint32 previousCount;
