@@ -30,4 +30,4 @@ include Makefile.inc
 
 LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimerTest$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSourceTest$(LIBEXT)
-LIBRARIES_STATIC+=UDPDriver/cov/UDPDataSource$(LIBEXT)
+LIBRARIES_STATIC+=UDP/cov/UDPTests$(LIBEXT)

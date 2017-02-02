@@ -31,8 +31,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 
 
 all: $(OBJS) $(SUBPROJ) \
-    $(BUILD_DIR)/UDPDrv$(LIBEXT) \
-    $(BUILD_DIR)/UDPDrv$(DLLEXT) 
+    $(BUILD_DIR)/UDP$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

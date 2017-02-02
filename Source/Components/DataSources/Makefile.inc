@@ -24,7 +24,7 @@
 
 OBJSX= 
 
-SPB    = LinuxTimer.x LoggerDataSource.x UDPDriver.x
+SPB    = LinuxTimer.x LoggerDataSource.x UDP.x
 
 PACKAGE=Components
 ROOT_DIR=../../..
@@ -34,7 +34,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/UDPDriver/UDPDrv$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/UDP/UDP$(LIBEXT)
 
 all: $(OBJS)  $(SUBPROJ)  \
     $(BUILD_DIR)/DataSources$(LIBEXT) \

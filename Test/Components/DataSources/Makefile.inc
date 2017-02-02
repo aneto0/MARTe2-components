@@ -24,7 +24,7 @@
 #
 #############################################################
 
-SPB=  LinuxTimer.x LoggerDataSource.x UDPDriver.x
+SPB=  LinuxTimer.x LoggerDataSource.x UDP.x
 		
 PACKAGE=Components
 ROOT_DIR=../../..
@@ -34,7 +34,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/UDPDriver/UDPDataSource$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/UDP/UDPTests$(LIBEXT)
 
 all: $(OBJS) $(SUBPROJ) \
                 $(BUILD_DIR)/DataSourcesTests$(LIBEXT)
