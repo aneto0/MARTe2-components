@@ -53,26 +53,26 @@ struct ShmMapping {
 };
 
 /**
- * @brief Representation of the memory used for interchange test data.
+ * @brief Representation of the memory used for interchanging test data.
  */
 struct ShmData {
-	pid_t pid;
 	bool ok;
+	pid_t pid;
 	char token[];
 };
 
-const char PlatformTest::DataSet::FTOKEN[] = "The quick brown fox jumps over the lazy dog";
+const char PlatformTest::DataSet::QTOKEN[] = "The quick brown fox jumps over the lazy dog";
 
 const char PlatformTest::DataSet::RTOKEN[] = "god yzal eht revo spmuj xof nworb kciuq ehT";
 
-PlatformTest::DataSet::DataSet(): tokenlen(std::strlen(FTOKEN)) {
+PlatformTest::DataSet::DataSet(): tokenlen(std::strlen(QTOKEN)) {
 }
 
-const char* PlatformTest::DataSet::GetForwardToken() {
-	return FTOKEN;
+const char* PlatformTest::DataSet::GetQueryToken() {
+	return QTOKEN;
 }
 
-const char* PlatformTest::DataSet::GetReverseToken() {
+const char* PlatformTest::DataSet::GetResponseToken() {
 	return RTOKEN;
 }
 
@@ -80,7 +80,13 @@ const size_t PlatformTest::DataSet::GetTokenLen() {
 	return tokenlen;
 }
 
-static bool MasterProcessPrologue(void*& shm, const char* const name, const char* const fullname, const char* ftoken, const size_t tokenlen) {
+/**
+ * @brief Executes the test on the slave's side.
+ * @pre true
+ * @post A shared memory has been created which contains 3 fields (the process's
+ * status, the process' pid, and the query token).
+ */
+static bool MasterProcessPrologue(void*& shm, const char* const name, const char* const fullname, const char* qtoken, const size_t tokenlen) {
 
 	static const size_t DATASIZE = (sizeof(ShmData) + tokenlen);
 	static unsigned int SHMSIZE = (sizeof(ShmMapping) + DATASIZE);
@@ -102,6 +108,7 @@ static bool MasterProcessPrologue(void*& shm, const char* const name, const char
 
 		if (ok) {
 			ShmData* data = NULL;
+			pid_t pid = getpid();
 
 			//Map a typed pointer to data:
 			data = reinterpret_cast<ShmData*>(map->bytes);
@@ -111,21 +118,30 @@ static bool MasterProcessPrologue(void*& shm, const char* const name, const char
 				ok &= (data->token[i] == 72);
 			}
 
-			//Write original token:
-			for (unsigned int i = 0; i < tokenlen; i++) {
-				data->token[i] = ftoken[i];
-			}
+			//Write check status:
+			data->ok = ok;
 
-			//Check original token:
+			//Write process' pid:
+			data->pid = pid;
+
+			//Write query token:
 			for (unsigned int i = 0; i < tokenlen; i++) {
-				ok &= (data->token[i] == ftoken[i]);
+				data->token[i] = qtoken[i];
 			}
 		}
 	}
 	return ok;
 }
 
-static bool MasterProcessEpilogue(void* shm, const char* const name, const char* const fullname, pid_t pid, const char* rtoken, const size_t tokenlen) {
+/**
+ * @brief Executes the test on the master's side (epilogue stage).
+ * @return true if child's status, child's pid, and response token have the
+ * expected values.
+ * @pre The shared memory is properly initialized with 3 fields (the child's
+ * status, the child's pid, and the response token).
+ * @post The shared memory remains untouched.
+ */
+static bool MasterProcessEpilogue(void* shm, const char* const name, const char* const fullname, pid_t cpid, const char* rtoken, const size_t tokenlen) {
 
 	static const size_t DATASIZE = (sizeof(ShmData) + tokenlen);
 	static unsigned int SHMSIZE = (sizeof(ShmMapping) + DATASIZE);
@@ -147,16 +163,16 @@ static bool MasterProcessEpilogue(void* shm, const char* const name, const char*
 			//Map a typed pointer to data:
 			data = reinterpret_cast<ShmData*>(map->bytes);
 
+			//Check child's status:
+			ok &= (data->ok == true);
+
+			//Check child's pid:
+			ok &= (data->pid == cpid);
+
 			//Check response token:
 			for (unsigned int i = 0; i < tokenlen; i++) {
 				ok &= (data->token[i] == rtoken[i]);
 			}
-
-			//check child's pid
-			ok &= (data->pid == pid);
-
-			//check child's ok
-			ok &= (data->ok == true);
 
 			//Dettach SHM:
 			Platform::DettachShm(shm, map->size);
@@ -170,17 +186,20 @@ static bool MasterProcessEpilogue(void* shm, const char* const name, const char*
 	return ok;
 }
 
-static void SlaveProcess(const char* const name, const char* const fullname, const char* ftoken, const char* rtoken, const size_t tokenlen) {
+/**
+ * @brief Executes the test on the slave's side.
+ * @pre The shared memory is properly initialized with 3 fields (the parent's
+ * status, the parent's pid, and the query token).
+ * @post The shared memory has new values in its 3 fields (the child's status,
+ * the child's pid, and the response token).
+ */
+static void SlaveProcess(const char* const name, const char* const fullname, pid_t ppid, const char* qtoken, const char* rtoken, const size_t tokenlen) {
 
 	static const size_t DATASIZE = (sizeof(ShmData) + tokenlen);
 	static unsigned int SHMSIZE = (sizeof(ShmMapping) + DATASIZE);
 
 	bool ok = false;
 	void* shm = NULL;
-	//wait until shm ready
-	while (access(fullname, F_OK) == -1) {
-	}
-//	... perhaps not initialized, yet???
 
 	//Join an SHM and get a raw pointer to it:
 	shm = Platform::JoinShm(name);
@@ -198,37 +217,33 @@ static void SlaveProcess(const char* const name, const char* const fullname, con
 			//Map a typed pointer to data:
 			data = reinterpret_cast<ShmData*>(map->bytes);
 
-			//Check original token:
+			//Check parent's status:
+			ok &= (data->ok == true);
+
+			//Check parent's pid:
+			ok = (data->pid == ppid);
+
+			//Check query token:
 			for (unsigned int i = 0; i < tokenlen; i++) {
-				ok &= (data->token[i] == ftoken[i]);
+				ok &= (data->token[i] == qtoken[i]);
 			}
+
+			//Write check status:
+			data->ok = ok;
+
+			//Write process' pid:
+			data->pid = getpid();
 
 			//Write response token:
 			for (unsigned int i = 0; i < tokenlen; i++) {
 				data->token[i] = rtoken[i];
 			}
 
-			//Write PID:
-			data->pid = getpid();
-
-			//Write status
-			data->ok = ok;
-
 			//Dettach SHM:
 			Platform::DettachShm(shm, map->size);
 		}
 	}
 }
-
-//bool TestMasterSlaveInSingleThread(const char* const shmName, const unsigned int maxTests = 100) {
-//	void* shmMaster = NULL;
-//	void* shmSlave = NULL;
-//
-//}
-//
-//bool TestMasterSlaveWithTwoThreads(const char* const shmName, const unsigned int maxTests = 100) {
-//
-//}
 
 bool PlatformTest::TestMasterSlaveWithTwoProcesses(const char* const name, const char* const fullname) {
 	bool ok = false;
@@ -237,22 +252,22 @@ bool PlatformTest::TestMasterSlaveWithTwoProcesses(const char* const name, const
 
 	void* shm = NULL;
 
-	ok = MasterProcessPrologue(shm, name, fullname, dataset.GetForwardToken(), dataset.GetTokenLen());
+	ok = MasterProcessPrologue(shm, name, fullname, dataset.GetQueryToken(), dataset.GetTokenLen());
 
-	pid_t pid = fork();
+	pid_t pid = getpid();
+	pid_t cpid = fork();
 
-	if (pid == -1) {
+	if (cpid == -1) {
 		ok = false;
 	}
-	else if (pid == 0) {
-		SlaveProcess(name, fullname, dataset.GetForwardToken(), dataset.GetReverseToken(), dataset.GetTokenLen());
+	else if (cpid == 0) {
+		SlaveProcess(name, fullname, pid, dataset.GetQueryToken(), dataset.GetResponseToken(), dataset.GetTokenLen());
 		std::exit(EXIT_SUCCESS);
 	}
 	else {
 		int status;
-		(void)waitpid(pid, &status, 0);
-
-		ok &= MasterProcessEpilogue(shm, name, fullname, pid, dataset.GetReverseToken(), dataset.GetTokenLen());
+		ok = (waitpid(cpid, &status, 0) == cpid);
+		ok &= MasterProcessEpilogue(shm, name, fullname, cpid, dataset.GetResponseToken(), dataset.GetTokenLen());
 	}
 	return ok;
 }

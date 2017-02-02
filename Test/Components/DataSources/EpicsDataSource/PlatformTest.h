@@ -41,21 +41,33 @@ public:
 
 	/**
 	 * @brief Tests the MakeShm method.
+	 * @param[in] name The name of the shared area memory to create and use.
+	 * @param[in] fullname The absolute name of the file which holds the
+	 * shared area memory.
 	 */
 	bool TestMakeShm(const char* const name, const char* const fullname);
 
 	/**
 	 * @brief Tests the JoinShm method.
+	 * @param[in] name The name of the shared area memory to create and use.
+	 * @param[in] fullname The absolute name of the file which holds the
+	 * shared area memory.
 	 */
 	bool TestJoinShm(const char* const name, const char* const fullname);
 
 	/**
 	 * @brief Tests the DettachShm method.
+	 * @param[in] name The name of the shared area memory to create and use.
+	 * @param[in] fullname The absolute name of the file which holds the
+	 * shared area memory.
 	 */
 	bool TestDettachShm(const char* const name, const char* const fullname);
 
 	/**
 	 * @brief Tests the DestroyShm method.
+	 * @param[in] name The name of the shared area memory to create and use.
+	 * @param[in] fullname The absolute name of the file which holds the
+	 * shared area memory.
 	 */
 	bool TestDestroyShm(const char* const name, const char* const fullname);
 
@@ -71,13 +83,13 @@ private:
 		 */
 		DataSet();
 		/**
-		 * @brief Gets a pointer to an immutable forward token .
+		 * @brief Gets a pointer to an immutable query token .
 		 */
-		const char* GetForwardToken();
+		const char* GetQueryToken();
 		/**
-		 * @brief Gets a pointer to an immutable reverse token .
+		 * @brief Gets a pointer to an immutable response token .
 		 */
-		const char* GetReverseToken();
+		const char* GetResponseToken();
 		/**
 		 * @brief Get the token's length.
 		 */
@@ -90,7 +102,7 @@ private:
 		/*
 		 * An immutable forward token shared between all instances.
 		 */
-		static const char FTOKEN[];
+		static const char QTOKEN[];
 		/*
 		 * An immutable reverse token shared between all instances.
 		 */
@@ -98,8 +110,11 @@ private:
 	};
 
 	/**
-	 * @brief Test the interchange of data between a master and a slave
-	 * executing on two different processes.
+	 * @brief Test the interchange of data using the Platform methods between
+	 * a master and a slave tasks executing on two different processes.
+	 * @param[in] name The name of the shared area memory to create and use.
+	 * @param[in] fullname The absolute name of the file which holds the
+	 * shared area memory.
 	 */
 	bool TestMasterSlaveWithTwoProcesses(const char* const name, const char* const fullname);
 
