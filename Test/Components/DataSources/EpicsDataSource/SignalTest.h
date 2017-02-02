@@ -39,10 +39,13 @@
 class SignalTest {
 public:
 
-	/**
-	 * @brief TODO
-	 */
-	bool TestMetadataConstructor();
+	class MetadataTest {
+	public:
+		/**
+		 * @brief Tests the default Constructor.
+		 */
+		bool TestConstructor();
+	};
 
 };
 

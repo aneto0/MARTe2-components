@@ -44,7 +44,7 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-bool SignalTest::TestMetadataConstructor() {
+bool SignalTest::MetadataTest::TestConstructor() {
 	bool ok;
 	Signal::Metadata target;
 	ok = (std::strncmp(target.name, "", Signal::Metadata::NAME_MAX_LEN) == 0);

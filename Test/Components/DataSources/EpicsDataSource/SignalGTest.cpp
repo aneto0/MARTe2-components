@@ -46,9 +46,9 @@
 
 #include <cstdio>
 
-TEST(SignalGTest,TestMetadataConstructor) {
-	SignalTest test;
-    ASSERT_TRUE(test.TestMetadataConstructor());
+TEST(SignalGTest_MetadataTest,TestConstructor) {
+	SignalTest::MetadataTest test;
+    ASSERT_TRUE(test.TestConstructor());
 }
 
 /*---------------------------------------------------------------------------*/
