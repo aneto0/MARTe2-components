@@ -1,25 +1,9 @@
-/**
- * @file UDPReceiver.cpp
- * @brief Source file for class UDPReceiver
- * @date Jan 31, 2017 TODO Verify the value and format of the date
- * @author Danny TODO Verify the name and format of the author
- *
- * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
- * the Development of Fusion Energy ('Fusion for Energy').
- * Licensed under the EUPL, Version 1.1 or - as soon they will be approved
- * by the European Commission - subsequent versions of the EUPL (the "Licence")
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
- *
- * @warning Unless required by applicable law or agreed to in writing, 
- * software distributed under the Licence is distributed on an "AS IS"
- * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the Licence permissions and limitations under the Licence.
+//******************************************************************************
+//
+//    $Log$
+//
+//******************************************************************************
 
- * @details This source file contains the definition of all the methods for
- * the class UDPReceiver (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
- */
 #include "UDPReceiver.h"
 #include "Endianity.h"
 #include "FastPollingMutexSem.h"
@@ -37,7 +21,6 @@
 
 namespace MARTe{
 
-static bool serverOK = false;
 static bool serverDone = false;
 static uint32 udpServerPort = 44488;
 static StreamString udpServerAddress = "127.0.0.1";
@@ -48,6 +31,12 @@ uint32 memoryOffset = 0u;
 
 UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this){
     synchronising = true;
+    keepRunning = true;
+    dataRecievedCorrectSize = false;
+    dataRecieved = false;
+    UDPPacket.sequenceNumber = 0u;
+    UDPPacket.timer = 0u ;
+    UDPPacket.dataBuffer = NULL_PTR(AnyType*);
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
@@ -168,15 +157,14 @@ const char8* UDPReceiver::GetBrokerName(StructuredDataI& data,
 bool UDPReceiver::GetInputBrokers(ReferenceContainer& inputBrokers,
                                    const char8* const functionName,
                                    void* const gamMemPtr) {
-    bool ok = false;
-        ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
-        ok = broker.IsValid();
-        if (ok) {
-            ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
-        }
-        if (ok) {
-            ok = inputBrokers.Insert(broker);
-        }
+    ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
+    bool ok = broker.IsValid();
+    if (ok) {
+        ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+    }
+    if (ok) {
+        ok = inputBrokers.Insert(broker);
+    }
     return ok;
 }
 
@@ -277,7 +265,6 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         uint8 udpServerBufferRead[udpServerExpectReadSize];
         uint32 udpServerReadSize = udpServerExpectReadSize;
         uint8 i;
-        bool OK = true;
         for (i = 0; (i < udpServerExpectReadSize)&& keepRunning; i++){
             udpServerBufferRead[i] = 0;
         }
@@ -295,10 +282,10 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         }else{
             uint8 signalOffset = 0u;
             memoryOffset = 0u;
-            for (i = 0; (i < nOfSignals) && keepRunning; i++){
+            bool OK = true;
+            for (i = 0; (i < nOfSignals) && keepRunning && OK; i++){
                 if (i >= 0 && OK){
                     uint32 signalByteSize = GetSignalType(i).numberOfBits / 8;
-                    uint64 recievedData;
                     uint32 size = GetSignalType(i).numberOfBits;
                     AnyType AnytypeData = new AnyType;
 

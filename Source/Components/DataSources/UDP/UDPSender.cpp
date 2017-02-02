@@ -53,7 +53,11 @@ static UDPSocket client;
 static uint64 timerAtStateChange = 0u;
 static uint64 memoryOffset = 0u;
 
-UDPSender::UDPSender():DataSourceI(){}
+UDPSender::UDPSender():DataSourceI(){
+    UDPPacket.sequenceNumber = 0u;
+    UDPPacket.timer = 0u ;
+    UDPPacket.dataBuffer = NULL_PTR(AnyType*);
+}
 
 
 UDPSender::~UDPSender(){
