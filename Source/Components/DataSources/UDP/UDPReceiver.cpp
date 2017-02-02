@@ -103,7 +103,7 @@ bool UDPReceiver::AllocateMemory(){
 
     bool ok = (nOfSignals > 1u);
     totalPacketSize = 0u;
-    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "numb of reciving signals %d", nOfSignals);
+    //REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "numb of reciving signals %d", nOfSignals);
     if (ok){
         uint32 n;
         for (n = 2u; (n < nOfSignals) && (ok); n++){
@@ -197,7 +197,7 @@ bool UDPReceiver::GetOutputBrokers(ReferenceContainer& outputBrokers,
 bool UDPReceiver::PrepareNextState(const char8* const currentStateName,
                                     const char8* const nextStateName) {
     bool ok = true;
-    REPORT_ERROR(ErrorManagement::Information, "prepare next state");
+    //REPORT_ERROR(ErrorManagement::Information, "prepare next state");
     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
         keepRunning = true;
         ok = executor.Start();
@@ -322,13 +322,13 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                 }
                 if ((i == 0u) || (i == 1u)){
                     memcpy(AnytypeData.GetDataPointer(),static_cast<void*>(dataConv),signalByteSize);
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
+                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
                 }else{
                     void *p = static_cast<char*>(AnytypeData.GetDataPointer()) + memoryOffset;
                     memcpy(p,static_cast<void*>(dataConv),signalByteSize);
                     uint32 test;
                     memcpy(&test,p,signalByteSize);
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
+                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
                     memoryOffset += signalByteSize;
                 }
                 signalOffset += noOfBytesForSignal;

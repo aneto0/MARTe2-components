@@ -105,13 +105,13 @@ bool UDPSender::Synchronise(){
             if ((i == 0u) || (i == 1u)){
                 memcpy(static_cast<void*>(AnyTypetoUint8),dataConv.GetDataPointer(),signalByteSize);
                 memcpy(&k,static_cast<char*>(dataConv.GetDataPointer()),signalByteSize);
-                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
+                //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
             }else{
                 void* p = static_cast<char*>(dataConv.GetDataPointer()) + memoryOffset;
                 memcpy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
                 memcpy(&k,p,signalByteSize);
                 memoryOffset += signalByteSize;
-                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d, located at memory loc: %d",k, p);
+                //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d, located at memory loc: %d",k, p);
             }
             uint32 j;
             for(j = 0u; j < signalByteSize; j++){
@@ -208,7 +208,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
 bool UDPSender::AllocateMemory(){
 
     nOfSignals = GetNumberOfSignals();
-    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "numb of sending signals %d", nOfSignals);
+    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "numb of sending signals %d", nOfSignals);
 
     bool ok = (nOfSignals > 1u);
     uint32 totalPacketSize = 0u;
@@ -222,7 +222,7 @@ bool UDPSender::AllocateMemory(){
                 totalPacketSize += signalByteSize;
             }
         }
-        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal data size %d",(totalPacketSize));
+        //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal data size %d",(totalPacketSize));
         UDPPacket.dataBuffer= new AnyType[totalPacketSize];
         uint32 i;
         for (i = 0u; i < (nOfSignals + 2u); i++){
@@ -242,7 +242,7 @@ uint32 UDPSender::GetNumberOfMemoryBuffers(){
 bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          const uint32 bufferIdx,
                                          void*& signalAddress) {
-    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "no of signals =  %d",GetNumberOfSignals());
+    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "no of signals =  %d",GetNumberOfSignals());
 
     memoryOffset = 0u;
     bool ok = true;
@@ -263,9 +263,9 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                 }
             }
             signalAddress = static_cast<char*>((UDPPacket.dataBuffer[signalIdx - 2u]).GetDataPointer()) + memoryOffset;
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal =  %d",signalIdx);
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "pointer =  %d",(signalAddress));
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "memoryOffset =  %d",memoryOffset);
+            //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal =  %d",signalIdx);
+            //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "pointer =  %d",(signalAddress));
+            //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "memoryOffset =  %d",memoryOffset);
 
 
         }
@@ -322,15 +322,15 @@ bool UDPSender::PrepareNextState(const char8* const currentStateName,
         for (i = 0u; i < (nOfSignals - 2u); i++){
             uint64 k = 0u;
             uint32 signalByteSize;
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY OFFSET at %d ",memoryOffset);
+            //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY OFFSET at %d ",memoryOffset);
             void* p = static_cast<char*>((UDPPacket.dataBuffer[i]).GetDataPointer()) + memoryOffset;
             ok = GetSignalByteSize(i + 2u, signalByteSize);
             if (ok){
                 memcpy(&k,p,signalByteSize);
-                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY data at %d with size %d with data before %d",p, signalByteSize, k);
+                //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY data at %d with size %d with data before %d",p, signalByteSize, k);
                 memset(p, 0, signalByteSize);
                 memcpy(&k,p,signalByteSize);
-                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY data at %d with size %d with data after %d",p, signalByteSize, k);
+                //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY data at %d with size %d with data after %d",p, signalByteSize, k);
                 memoryOffset += signalByteSize;
             }
         }
