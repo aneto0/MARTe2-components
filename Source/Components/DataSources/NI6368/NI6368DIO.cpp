@@ -99,7 +99,7 @@ uint32 NI6368DIO::GetNumberOfMemoryBuffers() {
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
 bool NI6368DIO::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
     signalAddress = &portValue;
-    return true;
+    return (signalIdx == 0u);
 }
 
 const char8* NI6368DIO::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
@@ -303,7 +303,7 @@ bool NI6368DIO::Initialise(StructuredDataI& data) {
             clockSampleSource = XSERIES_DI_SAMPLE_CONVERT_CLOCK_AI_CONVERT;
         }
         else if (clockSampleSourceStr == "AO_UPDATE") {
-            clockSampleSource = XSERIES_DI_SAMPLE_CONVERT_CLOCK_DO_UPDATE;
+            clockSampleSource = XSERIES_DI_SAMPLE_CONVERT_CLOCK_AO_UPDATE;
         }
         else if (clockSampleSourceStr == "DO_UPDATE") {
             clockSampleSource = XSERIES_DI_SAMPLE_CONVERT_CLOCK_DO_UPDATE;
@@ -1025,8 +1025,7 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI& data) {
         ok = (nElements == 1u);
     }
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError,
-                     "All the DIO signals shall have one and only one element. (Input signals may have more than one sample).");
+        REPORT_ERROR(ErrorManagement::ParametersError, "All the DIO signals shall have one and only one element.");
     }
 
     uint32 nOfFunctions = GetNumberOfFunctions();
@@ -1167,7 +1166,7 @@ bool NI6368DIO::Synchronise() {
     if (ok) {
         //EAGAIN is OK
         ssize_t ret = xseries_read_di(boardFileDescriptor, &portValue, 1u);
-        if (ret != 0) {
+        if (ret != 1u) {
             ok = (ret == EAGAIN);
         }
     }
