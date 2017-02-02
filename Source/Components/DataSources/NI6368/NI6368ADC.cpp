@@ -758,8 +758,8 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
             //Do not allow to add signals in run-time
             ok = data.Write("Locked", 1);
         }
+        uint32 maxChannelId = 0;
         while ((i < (NI6368ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE)) && (ok)) {
-            //TODO CHECK THAT THE CHANNELID IS MONOTONIC AND IN ORDER. OTHERWISE THERE WILL BE A MISMATCH WITH THE DMA ORDER
             if (data.MoveRelative(data.GetChildName(i))) {
                 uint32 channelId;
                 if (data.Read("ChannelId", channelId)) {
@@ -768,6 +768,19 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "Invalid ChannelId specified.");
                     }
                     if (ok) {
+                        //Channel id must be specified monotonically increasing otherwise there will be a mismatch in the DMA.
+                        if (maxChannelId == 0) {
+                            ok = (channelId >= maxChannelId);
+                        }
+                        else {
+                            ok = (channelId > maxChannelId);
+                        }
+                        if (!ok) {
+                            REPORT_ERROR(ErrorManagement::ParametersError, "ChannelId must be monotonically increasing.");
+                        }
+                    }
+                    if (ok) {
+                        maxChannelId = channelId;
                         adcEnabled[channelId] = true;
                         float32 range;
                         numberOfADCsEnabled++;
@@ -1022,7 +1035,6 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        //TODO check if it is ok to use 0 here while using the DAC as well.
         dma = xseries_dma_init(boardId, 0);
         ok = (dma != NULL_PTR(struct xseries_dma *));
         if (!ok) {

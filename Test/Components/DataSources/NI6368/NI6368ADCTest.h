@@ -262,6 +262,11 @@ public:
     bool TestInitialise_False_BadChannelId();
 
     /**
+     * @brief Tests the Initialise method with a non monotonically increasing channel identifier.
+     */
+    bool TestInitialise_False_NotMonotonicallyIncreasingChannelId();
+
+    /**
      * @brief Tests the SetConfiguredDatabase method with one channel.
      */
     bool TestSetConfiguredDatabase_OneChannel();

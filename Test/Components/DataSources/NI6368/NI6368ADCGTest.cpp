@@ -250,6 +250,11 @@ TEST(NI6368ADCGTest,TestInitialise_False_BadChannelId) {
     ASSERT_TRUE(test.TestInitialise_False_BadChannelId());
 }
 
+TEST(NI6368ADCGTest,TestInitialise_False_NotMonotonicallyIncreasingChannelId) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NotMonotonicallyIncreasingChannelId());
+}
+
 TEST(NI6368ADCGTest,TestSetConfiguredDatabase_OneChannel) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_OneChannel());

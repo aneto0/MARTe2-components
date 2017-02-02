@@ -1496,6 +1496,94 @@ static const MARTe::char8 * const config14 = ""
         "        TimingDataSource = Timings"
         "    }"
         "}";
+
+//Not monotonically increasing channel identifier
+static const MARTe::char8 * const config15 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6368ADCTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = NI6368_0"
+        "                }"
+        "                Time = {"
+        "                    DataSource = NI6368_0"
+        "                }"
+        "                ADC0_0 = {"
+        "                    DataSource = NI6368_0"
+        "                    Type = int16"
+        "                    Samples = 2000"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6368_0 = {"
+        "            Class = NI6368ADC"
+        "            DeviceName = \"/dev/pxie-6368\""
+        "            BoardId = 0"
+        "            DMABufferSize = 1000"
+        "            ClockSampleSource = \"INTERNALTIMING\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"INTERNALTIMING\""
+        "            ClockConvertPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ScanIntervalCounterSource = \"COUNTER_TB3\""
+        "            ScanIntervalCounterPolarity = \"RISING_EDGE\""
+        "            ScanIntervalCounterPeriod = 50"
+        "            ScanIntervalCounterDelay = 2"
+        "            CPUs = 0xf"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                ADC0_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 0"
+        "                }"
+        "                ADC2_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 2"
+        "                }"
+        "                ADC1_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -3364,6 +3452,20 @@ bool NI6368ADCTest::TestInitialise_False_BadChannelId() {
     cdb.Delete("ChannelId");
     cdb.Write("ChannelId", "32");
     cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368ADCTest::TestInitialise_False_NotMonotonicallyIncreasingChannelId() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config15;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
     NI6368ADC test;
     if (ok) {
         ok = !test.Initialise(cdb);
