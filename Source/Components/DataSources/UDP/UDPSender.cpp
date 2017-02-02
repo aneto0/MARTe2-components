@@ -223,10 +223,12 @@ bool UDPSender::AllocateMemory(){
             }
         }
         //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal data size %d",(totalPacketSize));
-        UDPPacket.dataBuffer= new AnyType[totalPacketSize];
-        uint32 i;
-        for (i = 0u; i < (nOfSignals + 2u); i++){
-            UDPPacket.dataBuffer[i] = 0;
+        if (ok){
+            UDPPacket.dataBuffer= new AnyType[totalPacketSize];
+            uint32 i;
+            for (i = 0u; i < (nOfSignals + 2u); i++){
+                UDPPacket.dataBuffer[i] = 0;
+            }
         }
     }else{
         REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of two signals (counter and timer) must be specified!");
