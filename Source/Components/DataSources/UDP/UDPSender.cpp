@@ -123,7 +123,7 @@ bool UDPSender::Synchronise(){
     }
     if (OK){
         uint32 bytesSent = udpServerExpectReadSize;
-        OK = client.Write((char8 *) udpServerWriteBuffer, bytesSent);
+        OK = client.Write(reinterpret_cast<char8*>(udpServerWriteBuffer), bytesSent);
         UDPPacket.sequenceNumber++;
     }
     return OK;
@@ -225,7 +225,7 @@ bool UDPSender::AllocateMemory(){
         REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal data size %d",(totalPacketSize));
         UDPPacket.dataBuffer= new AnyType[totalPacketSize];
         uint32 i;
-        for (i = 0u; i < (nOfSignals + 2); i++){
+        for (i = 0u; i < (nOfSignals + 2u); i++){
             UDPPacket.dataBuffer[i] = 0;
         }
     }else{

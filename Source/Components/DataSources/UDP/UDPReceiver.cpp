@@ -283,7 +283,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
     else{
         uint32 udpServerExpectReadSize = totalPacketSize + static_cast<uint32>(GetSignalType(0u).numberOfBits/8u) + static_cast<uint32>(GetSignalType(1u).numberOfBits/8u);
         uint8 udpServerBufferRead[udpServerExpectReadSize];
-        memset(udpServerBufferRead, 0, sizeof(udpServerBufferRead));
+        memset(&udpServerBufferRead, 0, sizeof(udpServerBufferRead));
         uint32 udpServerReadSize = udpServerExpectReadSize;
         uint8 i;
         if (keepRunning) {
@@ -310,12 +310,12 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                 }else if (i == 1u){
                     AnytypeData = UDPPacket.timer;                    
                 }else{  
-                    AnytypeData = UDPPacket.dataBuffer[i -2];
+                    AnytypeData = UDPPacket.dataBuffer[i -2u];
                 }
 
                 uint32 noOfBytesForSignal = size/8u;
                 uint8 dataConv[noOfBytesForSignal];
-                memset(dataConv, 0, sizeof(dataConv));
+                memset(&dataConv, 0, sizeof(dataConv));
                 uint32 counter;
                 for (counter = 0u; counter < noOfBytesForSignal; counter++){
                     dataConv[counter] = udpServerBufferRead[signalOffset + counter];
