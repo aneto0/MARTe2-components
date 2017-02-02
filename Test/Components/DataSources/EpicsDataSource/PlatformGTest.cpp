@@ -39,28 +39,31 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+static char NAME[] = "MARTe_PlatformTest_TestMakeShm";
+static char FULL_NAME[] = "/dev/shm/MARTe_PlatformTest_TestMakeShm";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
 TEST(PlatformGTest,TestMakeShm) {
 	PlatformTest test;
-    ASSERT_TRUE(test.TestMakeShm());
+    ASSERT_TRUE(test.TestMakeShm(NAME, FULL_NAME));
 }
 
 TEST(PlatformGTest,TestJoinShm) {
 	PlatformTest test;
-    ASSERT_TRUE(test.TestJoinShm());
+    ASSERT_TRUE(test.TestJoinShm(NAME, FULL_NAME));
 }
 
 TEST(PlatformGTest,TestDettachShm) {
 	PlatformTest test;
-    ASSERT_TRUE(test.TestDettachShm());
+    ASSERT_TRUE(test.TestDettachShm(NAME, FULL_NAME));
 }
 
 TEST(PlatformGTest,TestDestroyShm) {
 	PlatformTest test;
-    ASSERT_TRUE(test.TestDestroyShm());
+    ASSERT_TRUE(test.TestDestroyShm(NAME, FULL_NAME));
 }
 
 /*---------------------------------------------------------------------------*/

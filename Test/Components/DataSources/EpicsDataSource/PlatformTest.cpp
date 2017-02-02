@@ -231,33 +231,30 @@ bool TestMasterSlaveWithTwoProcesses(const char* const name, const char* const f
 	return ok;
 }
 
-static char NAME[] = "MARTe_PlatformTest_TestMakeShm";
-static char FULL_NAME[] = "/dev/shm/MARTe_PlatformTest_TestMakeShm";
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-bool PlatformTest::TestMakeShm() {
+bool PlatformTest::TestMakeShm(const char* const name, const char* const fullname) {
 	bool ok = false;
-	ok = TestMasterSlaveWithTwoProcesses(NAME, FULL_NAME);
+	ok = TestMasterSlaveWithTwoProcesses(name, fullname);
 	return ok;
 }
 
-bool PlatformTest::TestJoinShm() {
+bool PlatformTest::TestJoinShm(const char* const name, const char* const fullname) {
 	bool ok = false;
-	ok = TestMasterSlaveWithTwoProcesses(NAME, FULL_NAME);
+	ok = TestMasterSlaveWithTwoProcesses(name, fullname);
 	return ok;
 }
 
-bool PlatformTest::TestDettachShm() {
+bool PlatformTest::TestDettachShm(const char* const name, const char* const fullname) {
 	bool ok = false;
-	ok = TestMasterSlaveWithTwoProcesses(NAME, FULL_NAME);
+	ok = TestMasterSlaveWithTwoProcesses(name, fullname);
 	return ok;
 }
 
-bool PlatformTest::TestDestroyShm() {
+bool PlatformTest::TestDestroyShm(const char* const name, const char* const fullname) {
 	bool ok = false;
-	ok = TestMasterSlaveWithTwoProcesses(NAME, FULL_NAME);
+	ok = TestMasterSlaveWithTwoProcesses(name, fullname);
 	return ok;
 }

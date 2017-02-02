@@ -42,22 +42,22 @@ public:
 	/**
 	 * @brief Tests the MakeShm method.
 	 */
-	bool TestMakeShm();
+	bool TestMakeShm(const char* const name, const char* const fullname);
 
 	/**
 	 * @brief Tests the JoinShm method.
 	 */
-	bool TestJoinShm();
+	bool TestJoinShm(const char* const name, const char* const fullname);
 
 	/**
 	 * @brief Tests the DettachShm method.
 	 */
-	bool TestDettachShm();
+	bool TestDettachShm(const char* const name, const char* const fullname);
 
 	/**
 	 * @brief Tests the DestroyShm method.
 	 */
-	bool TestDestroyShm();
+	bool TestDestroyShm(const char* const name, const char* const fullname);
 };
 
 /*---------------------------------------------------------------------------*/
