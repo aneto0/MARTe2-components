@@ -39,6 +39,7 @@
 
 #include "CompilerTypes.h"
 #include "SharedDataArea.h"
+#include "SigblockSupport.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -72,16 +73,6 @@ struct ConsumerThreadParams {
 	SharedContext* context;
 	ConsumerThreadParams();
 };
-
-Sigblock* MallocSigblock(std::size_t size);
-
-void FreeSigblock(Sigblock* sb);
-
-template<typename SignalType>
-void InitSigblock(Sigblock* sigblock, const unsigned int numberOfSignals, const SignalType seedValue);
-
-template<typename SignalType>
-void GenerateMetadataForSigblock(Signal::Metadata sbmd[], const unsigned int numberOfSignals);
 
 void MallocDataSet(DataSet& dataset, std::size_t sigblockSize);
 
@@ -127,41 +118,6 @@ inline ProducerThreadParams::ProducerThreadParams():
 inline ConsumerThreadParams::ConsumerThreadParams():
 	input(NULL_PTR(SharedDataArea::SigblockConsumer*)),
 	context(NULL_PTR(SharedContext*)) {
-}
-
-inline Sigblock* MallocSigblock(std::size_t size) {
-	char* mem = new char[size];
-	std::memset(mem, '\0', size);
-	return reinterpret_cast<Sigblock*>(mem);
-}
-
-inline void FreeSigblock(Sigblock* sb) {
-	char* mem = reinterpret_cast<char*>(sb);
-	delete[] mem;
-}
-
-template<typename SignalType>
-void InitSigblock(Sigblock* sigblock, const unsigned int numberOfSignals, const SignalType seedValue) {
-	char* rawPointer = reinterpret_cast<char*>(sigblock);
-	SignalType generatedValue = seedValue;
-	unsigned int index = 0;
-	while (index < numberOfSignals) {
-		SignalType* typedPointer = reinterpret_cast<SignalType*>(rawPointer);
-		*typedPointer = generatedValue;
-		rawPointer += sizeof(SignalType);
-		generatedValue++;
-		index++;
-	}
-}
-
-template<typename SignalType>
-void GenerateMetadataForSigblock(Signal::Metadata sbmd[], const unsigned int numberOfSignals) {
-	for (unsigned int  i = 0u; (i < numberOfSignals); i++) {
-		std::stringstream name; //TODO: Use MARTe StreamString class, instead.
-		name << "Signal" << i;
-		std::strncpy(sbmd[i].name, name.str().c_str(), Signal::Metadata::NAME_MAX_LEN);
-		sbmd[i].size = sizeof(SignalType);
-	}
 }
 
 inline void MallocDataSet(DataSet& dataset, std::size_t sigblockSize) {
