@@ -47,7 +47,9 @@
 bool SignalTest::MetadataTest::TestConstructor() {
 	bool ok;
 	Signal::Metadata target;
+	//Check name property:
 	ok = (std::strncmp(target.name, "", Signal::Metadata::NAME_MAX_LEN) == 0);
+	//Check size property:
 	ok = (target.size == 0);
 	return ok;
 }

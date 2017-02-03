@@ -36,6 +36,9 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+/**
+ * @brief Class for testing Signal
+ */
 class SignalTest {
 public:
 
