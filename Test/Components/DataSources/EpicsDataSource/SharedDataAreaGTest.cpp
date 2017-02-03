@@ -45,28 +45,28 @@
 /*---------------------------------------------------------------------------*/
 
 TEST(SharedDataAreaGTest,TestConstructor) {
-//	SharedDataAreaTest test;
-//    ASSERT_TRUE(test.TestConstructor());
+	SharedDataAreaTest test;
+    ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(SharedDataAreaGTest,TestProducerConsumerWithSingleThreadUsingIntegers) {
+TEST(SharedDataAreaGTest,TestGetSigblockProducerInterface) {
 	SharedDataAreaTest test;
-	ASSERT_TRUE(test.TestProducerConsumerInSingleThread<int>("TestProducerConsumerWithSingleThreadUsingIntegers", 50));
+    ASSERT_TRUE(test.TestGetSigblockProducerInterface());
 }
 
-TEST(SharedDataAreaGTest,TestProducerConsumerWithSingleThreadUsingDoubles) {
+TEST(SharedDataAreaGTest,TestGetSigblockConsumerInterface) {
 	SharedDataAreaTest test;
-	ASSERT_TRUE(test.TestProducerConsumerInSingleThread<double>("TestProducerConsumerWithSingleThreadUsingDoubles", 25));
+    ASSERT_TRUE(test.TestGetSigblockConsumerInterface());
 }
 
-TEST(SharedDataAreaGTest,TestProducerConsumerWithTwoThreadsUsingIntegers) {
+TEST(SharedDataAreaGTest,TestBuildSharedDataAreaForMARTe) {
 	SharedDataAreaTest test;
-	ASSERT_TRUE(test.TestProducerConsumerWithTwoThreads<int>("TestProducerConsumerWithTwoThreadsUsingIntegers", 75));
+    ASSERT_TRUE(test.TestBuildSharedDataAreaForMARTe());
 }
 
-TEST(SharedDataAreaGTest,TestProducerConsumerWithTwoThreadsUsingDoubles) {
+TEST(SharedDataAreaGTest,TestBuildSharedDataAreaForEPICS) {
 	SharedDataAreaTest test;
-	ASSERT_TRUE(test.TestProducerConsumerWithTwoThreads<double>("TestProducerConsumerWithTwoThreadsUsingDoubles"));
+    ASSERT_TRUE(test.TestBuildSharedDataAreaForEPICS());
 }
 
 /*---------------------------------------------------------------------------*/

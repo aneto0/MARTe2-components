@@ -117,7 +117,7 @@ static void consumerThreadFunction(ConsumerThreadParams* params) {
 			printf("consumerThreadFunction :: if isSigblockFilled=%u\n", isSigblockFilled);
 		}
 
-		//Free memory for sigblock:
+		//Free memory of sigblock:
 		FreeSigblock(sigblock);
 	}
 
@@ -136,7 +136,48 @@ static void consumerThreadFunction(ConsumerThreadParams* params) {
 /*---------------------------------------------------------------------------*/
 
 bool SharedDataAreaTest::TestConstructor() {
-	return true;
+	bool ok = false;
+	ok = TestProducerConsumerInSingleThread<int>("MARTe_TestConstructor_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
+	ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestConstructor_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
+	ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestConstructor_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
+	ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestConstructor_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
+	return ok;
+}
+
+bool SharedDataAreaTest::TestGetSigblockProducerInterface() {
+	bool ok = false;
+	ok = TestProducerConsumerInSingleThread<int>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
+	ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
+	ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
+	ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
+	return ok;
+}
+
+bool SharedDataAreaTest::TestGetSigblockConsumerInterface() {
+	bool ok = false;
+	ok = TestProducerConsumerInSingleThread<int>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
+	ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
+	ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
+	ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
+	return ok;
+}
+
+bool SharedDataAreaTest::TestBuildSharedDataAreaForMARTe() {
+	bool ok = false;
+	ok = TestProducerConsumerInSingleThread<int>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
+	ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
+	ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
+	ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
+	return ok;
+}
+
+bool SharedDataAreaTest::TestBuildSharedDataAreaForEPICS() {
+	bool ok = false;
+	ok = TestProducerConsumerInSingleThread<int>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
+	ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
+	ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
+	ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
+	return ok;
 }
 
 template<typename SignalType>

@@ -43,6 +43,9 @@
 //
 //}
 
+/**
+ * @brief Class for testing SharedDataArea.
+ */
 class SharedDataAreaTest {
 public:
 
@@ -51,6 +54,27 @@ public:
      */
 	bool TestConstructor();
 
+	/**
+	 * @brief Tests the GetSigblockProducerInterface method.
+	 */
+	bool TestGetSigblockProducerInterface();
+
+	/**
+	 * @brief Tests the GetSigblockConsumerInterface method.
+	 */
+	bool TestGetSigblockConsumerInterface();
+
+	/**
+	 * @brief Tests the BuildSharedDataAreaForMARTe method.
+	 */
+	bool TestBuildSharedDataAreaForMARTe();
+
+	/**
+	 * @brief Tests the BuildSharedDataAreaForEPICS method.
+	 */
+	bool TestBuildSharedDataAreaForEPICS();
+
+private:
 	/**
 	 * @brief Test the interchange of data between a producer and a consumer
 	 * using one single thread.
@@ -85,11 +109,6 @@ public:
 	template<typename SignalType>
 	bool TestProducerConsumerWithTwoThreads(const char* const shmName, const unsigned int maxTests = 100);
 
-	/**
-	 * @brief Test the interchange of data between a producer and a consumer
-	 * using two threads executing on different processes.
-	 */
-//	bool TestProducerConsumerWithTwoProcesses();
 };
 
 /*---------------------------------------------------------------------------*/
