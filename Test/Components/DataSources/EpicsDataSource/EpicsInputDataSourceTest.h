@@ -175,7 +175,7 @@ public:
 #include "CompilerTypes.h"
 #include "EpicsInputDataSource.h"
 #include "SharedDataArea.h"
-#include "SharedDataAreaSupport.h"
+#include "SigblockDoubleBufferSupport.h"
 
 #include "EpicsDataSourceSupport.h"
 

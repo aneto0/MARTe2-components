@@ -40,17 +40,11 @@
 #include "CompilerTypes.h"
 #include "SharedDataArea.h"
 #include "SigblockSupport.h"
+#include "SigblockDoubleBufferSupport.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
-struct DataSet {
-	Sigblock** items;
-	unsigned int size;
-	DataSet(const unsigned int size);
-	~DataSet();
-};
 
 struct SharedContext {
 	const unsigned int numberOfSignals;
@@ -74,30 +68,9 @@ struct ConsumerThreadParams {
 	ConsumerThreadParams();
 };
 
-void MallocDataSet(DataSet& dataset, std::size_t sigblockSize);
-
-void FreeDataSet(DataSet& dataset);
-
-template<typename SignalType>
-void InitDataSet(DataSet& dataset, const unsigned int numberOfSignals);
-
-/**
- * @brief search on dataset from last found
- */
-void SearchSigblockIntoDataSet(DataSet& dataset, Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound);
-
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
-
-inline DataSet::DataSet(const unsigned int size):
-	items(new Sigblock*[size]),
-	size(size) {
-}
-
-inline DataSet::~DataSet() {
-	delete[] items;
-}
 
 inline SharedContext::SharedContext(const unsigned int numberOfSignals, const unsigned int maxTests) :
 	numberOfSignals(numberOfSignals),
@@ -118,36 +91,6 @@ inline ProducerThreadParams::ProducerThreadParams():
 inline ConsumerThreadParams::ConsumerThreadParams():
 	input(NULL_PTR(SharedDataArea::SigblockConsumer*)),
 	context(NULL_PTR(SharedContext*)) {
-}
-
-inline void MallocDataSet(DataSet& dataset, std::size_t sigblockSize) {
-	for (unsigned int i = 0; i < dataset.size; i++) {
-		dataset.items[i] = MallocSigblock(sigblockSize);
-	}
-}
-
-inline void FreeDataSet(DataSet& dataset) {
-	for (unsigned int i = 0; i < dataset.size; i++) {
-		FreeSigblock(dataset.items[i]);
-	}
-}
-
-template<typename SignalType>
-void InitDataSet(DataSet& dataset, const unsigned int numberOfSignals) {
-	SignalType seedValue = 0;
-	for (unsigned int i = 0; i < dataset.size; i++) {
-		InitSigblock<SignalType>(dataset.items[i], numberOfSignals, seedValue);
-		seedValue += static_cast<SignalType>(numberOfSignals);
-	}
-	printf("InitDataSet :: Generated %u sigblocks on dataset\n", dataset.size);
-}
-
-inline void SearchSigblockIntoDataSet(DataSet& dataset, Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound) {
-	sigblockFound = false;
-	while (!sigblockFound && dataSetIndex < dataset.size) {
-		sigblockFound = (std::memcmp(sigblock, dataset.items[dataSetIndex], sigblockSize) == 0);
-		dataSetIndex++;
-	}
 }
 
 #endif /* SHAREDDATAAREASUPPORT_H_ */
