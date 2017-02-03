@@ -31,16 +31,17 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "SharedDataAreaSupport.h"
 #include "SigblockDoubleBuffer.h"
 #include "SigblockDoubleBufferTest.h"
+#include "SigblockDoubleBufferSupport.h"
+#include "SigblockSupport.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-template bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread<int>(const unsigned int);
-template bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread<double>(const unsigned int);
+template bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread<int>(const unsigned int, const unsigned int);
+template bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread<double>(const unsigned int, const unsigned int);
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -48,135 +49,132 @@ template bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread<doubl
 
 bool SigblockDoubleBufferTest::TestReset() {
 	bool ok = false;
-	ok = TestProducerConsumerInSingleThread<int>(25);
-	ok &= TestProducerConsumerInSingleThread<double>(25);
+	ok = TestProducerConsumerInSingleThread<int>(10, 25);
+	ok &= TestProducerConsumerInSingleThread<double>(10, 25);
 	return ok;
 }
 
 bool SigblockDoubleBufferTest::TestGet() {
 	bool ok = false;
-	ok = TestProducerConsumerInSingleThread<int>(25);
-	ok &= TestProducerConsumerInSingleThread<double>(25);
+	ok = TestProducerConsumerInSingleThread<int>(10, 25);
+	ok &= TestProducerConsumerInSingleThread<double>(10, 25);
 	return ok;
 }
 
 bool SigblockDoubleBufferTest::TestPut() {
 	bool ok = false;
-	ok = TestProducerConsumerInSingleThread<int>(25);
-	ok &= TestProducerConsumerInSingleThread<double>(25);
+	ok = TestProducerConsumerInSingleThread<int>(10, 25);
+	ok &= TestProducerConsumerInSingleThread<double>(10, 25);
 	return ok;
 }
 
 template<typename SignalType>
-bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread(const unsigned int maxTests) {
+bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread(const unsigned int numberOfSignals, const unsigned int maxTests) {
 	DataSet dataset(maxTests);
-	bool success = false;
-//!!!!!!!!!!	unsigned int max = 512; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
-	const unsigned int numberOfSignals = 10;
-	Signal::Metadata sbmd[numberOfSignals];
-//	SharedDataArea sdaServer;
-//	SharedDataArea::SigblockProducer* producer;
-//	SharedDataArea sdaClient;
-//	SharedDataArea::SigblockConsumer* consumer;
-	std::size_t size;
+	bool ok = false;
+	Signal::Metadata rawMetadata[numberOfSignals];
+	Sigblock::Metadata* metadata;
+	std::size_t sizeOfSigblock;
+	SigblockDoubleBuffer* buffer;
+	SigblockDoubleBuffer* producer;
+	SigblockDoubleBuffer* consumer;
 
-	//////////////////////////////////
-	char* rawmem;
-	SigblockDoubleBuffer* producerBis;
-	SigblockDoubleBuffer* consumerBis;
-	//////////////////////////////////
+	//Allocate memory for sigblock's metadata:
+	metadata = MallocSigblockMetadata(numberOfSignals);
 
-	//Generate the metadata of the sigblocks to use in test:
-	GenerateMetadataForSigblock<SignalType>(sbmd, numberOfSignals);
+	//Check allocation of sigblock's metadata:
+	ok = (metadata != NULL);
 
-	//////////////////////////////////
-	rawmem = new char[1000];
-	Sigblock::Metadata* header = reinterpret_cast<Sigblock::Metadata*>(rawmem);
-	header->SetSignalsMetadata(numberOfSignals, sbmd);
+	if (ok) {
 
-	rawmem = new char[1000];
-	SigblockDoubleBuffer* items = reinterpret_cast<SigblockDoubleBuffer*>(rawmem);
-	items->Reset(0, header->GetTotalSize());
-	producerBis = items;
-	consumerBis = items;
-	//////////////////////////////////
+		//Generate the metadata for the sigblocks to use in test:
+		GenerateMetadataForSigblock<SignalType>(rawMetadata, numberOfSignals);
 
-	//Setup producer's interface to shared data area:
-//	sdaServer = SharedDataArea::BuildSharedDataAreaForMARTe(shmName, numberOfSignals, sbmd, max);
-//	producer = sdaServer.GetSigblockProducerInterface();
+		//Set testing metadata values:
+		metadata->SetSignalsMetadata(numberOfSignals, rawMetadata);
 
-	//Setup consumer's interface to shared data area:
-//	sdaClient = SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
-//	consumer = sdaClient.GetSigblockConsumerInterface();
+		//Get sigblock's size:
+		sizeOfSigblock = metadata->GetTotalSize();
 
-	//Get sigblock's size:
-//	size = producer->GetSigblockMetadata()->GetTotalSize();
+		//Allocate memory for dataset:
+		MallocDataSet(dataset, sizeOfSigblock);
 
-	//////////////////////////////////
-	size = header->GetTotalSize();
-	//////////////////////////////////
+		//Initialize items of dataset:
+		InitDataSet<SignalType>(dataset, numberOfSignals);
 
-	//Check coherence of size:
-//	success &= (producer->GetSigblockMetadata()->GetTotalSize() == consumer->GetSigblockMetadata()->GetTotalSize());
+		//Allocate memory for shared sigblock double buffer:
+		buffer = MallocSigblockDoubleBuffer(sizeOfSigblock);
 
-	//Allocate memory for dataset:
-	MallocDataSet(dataset, size);
+		//Check allocation of shared sigblock double buffer:
+		ok = (buffer != NULL);
 
-	//Initialize items of dataset:
-	InitDataSet<SignalType>(dataset, numberOfSignals);
+		if (ok) {
 
-	// Write all the sigblocks of the dataset to the shared data area, checking
-	// that they can be read and have the same values than those from the
-	// dataset. They will be written and read taking turns (1 write, 1 read).
-	{
-		Sigblock* sigblock = NULL_PTR(Sigblock*);
-		unsigned int i = 0;
-		bool error = false;
+			//Initialize shared sigblock double buffer:
+			buffer->Reset(0, sizeOfSigblock);
 
-		//Allocate memory for sigblock:
-		sigblock = MallocSigblock(size);
+			//Setup producer's pointer to shared sigblock double buffer:
+			producer = buffer;
 
-		//Write and read sigblocks taking turns:
-		while (i < maxTests && !error) {
-			bool writingSucceeded;
-//			writingSucceeded = producer->WriteSigblock(*(dataset.items[i]));
-			//////////////////////////////////
-			writingSucceeded = producerBis->Put(*(dataset.items[i]));
-			//////////////////////////////////
-			if (writingSucceeded) {
-				bool readingSucceeded;
-//				readingSucceeded = consumer->ReadSigblock(*sigblock);
-				//////////////////////////////////
-				readingSucceeded = consumerBis->Get(*sigblock);
-				//////////////////////////////////
-				if (readingSucceeded) {
-					error = (std::memcmp(sigblock, dataset.items[i], size) != 0);
+			//Setup consumer's pointer to shared sigblock double buffer:
+			consumer = buffer;
+
+			//Write all the sigblocks of the dataset to the shared sigblock
+			//double buffer, checking that they can be read and have the same
+			//values than those from the dataset. They will be written and
+			//read taking turns (1 write, 1 read).
+			{
+				Sigblock* sigblock = NULL;
+				unsigned int i = 0;
+				bool error = false;
+
+				//Allocate memory for sigblock:
+				sigblock = MallocSigblock(sizeOfSigblock);
+
+				//Check allocation of sigblock:
+				ok = (sigblock != NULL);
+
+				if (ok) {
+					//Write and read sigblocks taking turns:
+					while (i < maxTests && !error) {
+						bool writingSucceeded;
+						writingSucceeded = producer->Put(*(dataset.items[i]));
+						if (writingSucceeded) {
+							bool readingSucceeded;
+							readingSucceeded = consumer->Get(*sigblock);
+							if (readingSucceeded) {
+								error = (std::memcmp(sigblock, dataset.items[i], sizeOfSigblock) != 0);
+							}
+							else {
+								error = true;
+							}
+						}
+						else {
+							error = true;
+						}
+						i++;
+					}
 				}
-				else {
-					error = true;
-				}
+
+				//Free memory for sigblock:
+				FreeSigblock(sigblock);
+
+				//Check execution's status:
+				ok &= !error;
 			}
-			else {
-				error = true;
-			}
-			printf("TestProducerConsumerWithSingleThread :: Write/Read dataset.items[%u] error=%u\n", i, error);
-			i++;
 		}
 
-		//Free memory for sigblock:
-		FreeSigblock(sigblock);
+		//Free memory of shared sigblock double buffer:
+		FreeSigblockDoubleBuffer(buffer);
 
-		//Check execution's status:
-		success = !error;
+		//Free memory of dataset:
+		FreeDataSet(dataset);
+
 	}
 
-	//////////////////////////////////
-	delete[] rawmem;
-	//////////////////////////////////
-
-	//Free memory of dataset:
-	FreeDataSet(dataset);
+	//Free memory of sigblock's metadata:
+	FreeSigblockMetadata(metadata);
 
 	//Return test's execution status:
-	return success;
+	return ok;
 }

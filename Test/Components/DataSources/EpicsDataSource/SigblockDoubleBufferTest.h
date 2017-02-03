@@ -36,8 +36,12 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+/**
+ * @brief Class for testing SigblockDoubleBuffer class.
+ */
 class SigblockDoubleBufferTest {
 public:
+
 	/**
 	 * @brief Tests the Reset method.
 	 */
@@ -54,14 +58,13 @@ public:
 	bool TestPut();
 
 private:
+
 	/**
 	 * @brief Test the interchange of data between a producer and a consumer
 	 * using one single thread.
 	 */
 	template<typename SignalType>
-	bool TestProducerConsumerInSingleThread(const unsigned int maxTests);
-
-private:
+	bool TestProducerConsumerInSingleThread(const unsigned int numberOfSignals, const unsigned int maxTests);
 };
 
 /*---------------------------------------------------------------------------*/
