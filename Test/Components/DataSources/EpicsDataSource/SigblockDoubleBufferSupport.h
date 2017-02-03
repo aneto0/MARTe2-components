@@ -64,6 +64,10 @@ void InitDataSet(DataSet& dataset, const unsigned int numberOfSignals);
  */
 void SearchSigblockIntoDataSet(DataSet& dataset, Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound);
 
+SigblockDoubleBuffer* MallocSigblockDoubleBuffer(std::size_t sizeOfSigblock);
+
+void FreeSigblockDoubleBuffer(SigblockDoubleBuffer*& sbdb);
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
@@ -105,6 +109,19 @@ inline void SearchSigblockIntoDataSet(DataSet& dataset, Sigblock* sigblock, std:
 		sigblockFound = (std::memcmp(sigblock, dataset.items[dataSetIndex], sigblockSize) == 0);
 		dataSetIndex++;
 	}
+}
+
+inline SigblockDoubleBuffer* MallocSigblockDoubleBuffer(std::size_t sizeOfSigblock) {
+	size_t fullsize = (sizeof(SigblockDoubleBuffer) + (sizeOfSigblock * 2));
+	char* mem = new char[fullsize];
+	std::memset(mem, '\0', fullsize);
+	return reinterpret_cast<SigblockDoubleBuffer*>(mem);
+}
+
+inline void FreeSigblockDoubleBuffer(SigblockDoubleBuffer*& sbdb) {
+	char* mem = reinterpret_cast<char*>(sbdb);
+	delete[] mem;
+	sbdb = NULL;
 }
 
 #endif /* SIGBLOCKDOUBLEBUFFERSUPPORT_H_ */
