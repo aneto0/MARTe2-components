@@ -58,11 +58,6 @@ TEST(SigblockDoubleBufferGTest,TestPut) {
 	ASSERT_TRUE(test.TestPut());
 }
 
-TEST(SigblockDoubleBufferGTest,TestProducerConsumerWithSingleThreadUsingDoubles) {
-	SigblockDoubleBufferTest test;
-	ASSERT_TRUE(test.TestProducerConsumerInSingleThread<double>("TestProducerConsumerWithSingleThreadUsingDoubles", 25));
-}
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
