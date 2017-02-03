@@ -27,7 +27,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
 #include "xseries-lib.h"
+/*lint -D__cplusplus */
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */

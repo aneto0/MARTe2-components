@@ -72,6 +72,7 @@ NI6368DIO::NI6368DIO() :
     portValue = 0u;
 }
 
+/*lint -e{1551} the destructor must guarantee that all the file descriptors are closed. */
 NI6368DIO::~NI6368DIO() {
     if (boardFileDescriptor != -1) {
         bool ok = (xseries_stop_di(boardFileDescriptor) == 0);
@@ -102,6 +103,7 @@ bool NI6368DIO::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
     return (signalIdx == 0u);
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The broker name depends only on the direction.*/
 const char8* NI6368DIO::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == OutputSignals) {
@@ -971,7 +973,7 @@ bool NI6368DIO::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (updateIntervalCounterPeriodDivisor > 0);
+        ok = (updateIntervalCounterPeriodDivisor > 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterPeriodDivisor shall be > 0");
         }
@@ -983,7 +985,7 @@ bool NI6368DIO::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (updateIntervalCounterDelay > 0);
+        ok = (updateIntervalCounterDelay > 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterDelay shall be > 0");
         }
@@ -1012,14 +1014,14 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI& data) {
     uint32 i;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
-        ok = (GetSignalType(0) == UnsignedInteger32Bit);
+        ok = (GetSignalType(0u) == UnsignedInteger32Bit);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "All the DIO signals shall be of type UnsignedInteger32Bit");
         }
     }
     uint32 nElements = 0u;
     if (ok) {
-        ok = (GetSignalNumberOfElements(0, nElements));
+        ok = (GetSignalNumberOfElements(0u, nElements));
     }
     if (ok) {
         ok = (nElements == 1u);
@@ -1162,11 +1164,11 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI& data) {
 }
 
 bool NI6368DIO::Synchronise() {
-    bool ok = (xseries_write_do(boardFileDescriptor, &portValue, 1u) == 1u);
+    bool ok = (xseries_write_do(boardFileDescriptor, &portValue, 1UL) == 1);
     if (ok) {
         //EAGAIN is OK
-        ssize_t ret = xseries_read_di(boardFileDescriptor, &portValue, 1u);
-        if (ret != 1u) {
+        ssize_t ret = xseries_read_di(boardFileDescriptor, &portValue, 1UL);
+        if (ret != 1) {
             ok = (ret == EAGAIN);
         }
     }

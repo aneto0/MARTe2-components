@@ -27,8 +27,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
 #include "xseries-lib.h"
-
+/*lint -D__cplusplus*/
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -42,8 +43,10 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 //Number of ADC channels
+/*lint -esym(551, MARTe::NI6368ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
 const uint32 NI6368ADC_MAX_CHANNELS = 16u;
 //Counter and timer
+/*lint -esym(551, MARTe::NI6368ADC_HEADER_SIZE) the symbol is used to define the size of one array below*/
 const uint32 NI6368ADC_HEADER_SIZE = 2u;
 //Sampling frequency
 const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
@@ -160,13 +163,13 @@ NI6368ADC    ();
      * @brief Gets the last index written by the DMA (can be either 0 or 1).
      * @return the last index written by the DMA.
      */
-    uint8 GetLastBufferIdx();
+    uint8 GetLastBufferIdx() const;
 
     /**
      * @brief Returns true if there is one GAM synchronising on this board.
      * @return true if there is one GAM synchronising on this board.
      */
-    bool IsSynchronising();
+    bool IsSynchronising() const;
 
     /**
      * @brief Starts the EmbeddedThread and sets the counter and the time to zero.
@@ -210,10 +213,10 @@ private:
      * @brief Copies from the DMA memory into the broker memory.
      * @details The DMA memory is organised in a different way (see xseries-lib.h) w.r.t. to the broker memory.
      * This function maps the DMA memory into the broker memory.
-     * @param numberOfSamples number of samples to copy between memories.
+     * @param numberOfSamplesFromDMA number of samples to copy between memories.
      * @return ErrorManagement::FatalError if the semaphore cannot be posted.
      */
-    ErrorManagement::ErrorType CopyFromDMA(uint32 numberOfSamples);
+    ErrorManagement::ErrorType CopyFromDMA(size_t numberOfSamplesFromDMA);
 
     /**
      * The counter value
@@ -238,7 +241,7 @@ private:
     /**
      * The board identifier
      */
-    uint32 boardId;
+    int32 boardId;
 
     /**
      * The board device name
@@ -318,7 +321,7 @@ private:
     /**
      * The memory DMA offset
      */
-    uint32 dmaOffset;
+    size_t dmaOffset;
 
     /**
      * The memory where the DMA is copied to.
@@ -328,12 +331,12 @@ private:
     /**
      * The current DMA channel being copied.
      */
-    uint32 dmaChannel;
+    size_t dmaChannel;
 
     /**
      * Total number of DMA bytes from the beginning
      */
-    uint32 nBytesInDMAFromStart;
+    size_t nBytesInDMAFromStart;
 
     /**
      * The last written buffer
@@ -353,7 +356,7 @@ private:
     /**
      * The number of enabled adcs
      */
-    uint32 numberOfADCsEnabled;
+    size_t numberOfADCsEnabled;
 
     /**
      * The DMA buffer size

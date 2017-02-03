@@ -27,7 +27,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
 #include "xseries-lib.h"
+/*lint -D__cplusplus */
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -230,11 +232,6 @@ private:
     xseries_output_range_t outputRange[NI6368DAC_MAX_CHANNELS];
 
     /**
-     * The number of samples
-     */
-    uint32 numberOfElements;
-
-    /**
      * The board file descriptor
      */
     int32 boardFileDescriptor;
@@ -248,6 +245,11 @@ private:
      * The signal memory
      */
     float32 *channelsMemory[NI6368DAC_MAX_CHANNELS];
+
+    /**
+     * The number of elements to write
+     */
+    size_t numberOfElements[NI6368DAC_MAX_CHANNELS];
 
     /**
      * The DACs that are enabled

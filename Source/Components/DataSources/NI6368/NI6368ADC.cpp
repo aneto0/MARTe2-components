@@ -33,7 +33,6 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "MemoryMapInputBroker.h"
-#include "MemoryMapSynchronisedInputBroker.h"
 #include "NI6368ADCInputBroker.h"
 
 /*---------------------------------------------------------------------------*/
@@ -49,7 +48,7 @@ NI6368ADC::NI6368ADC() :
         DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
     cycleFrequency = 0.F;
     numberOfSamples = 0u;
-    boardId = 0u;
+    boardId = 0;
     boardFileDescriptor = -1;
     deviceName = "";
     counter = 0u;
@@ -88,7 +87,7 @@ NI6368ADC::NI6368ADC() :
     }
 }
 
-/*lint -e{1551} the destructor must guarantee that the NI6368ADC SingleThreadService is stopped and that all the file descriptors are closed.*/
+/*lint -e{1551} -e{1740} the destructor must guarantee that the NI6368ADC SingleThreadService is stopped and that all the file descriptors are closed. The dma is freed by the xseries-lib*/
 NI6368ADC::~NI6368ADC() {
     if (!executor.Stop()) {
         if (!executor.Stop()) {
@@ -758,7 +757,7 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
             //Do not allow to add signals in run-time
             ok = data.Write("Locked", 1);
         }
-        uint32 maxChannelId = 0;
+        uint32 maxChannelId = 0u;
         while ((i < (NI6368ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE)) && (ok)) {
             if (data.MoveRelative(data.GetChildName(i))) {
                 uint32 channelId;
@@ -769,10 +768,7 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
                     }
                     if (ok) {
                         //Channel id must be specified monotonically increasing otherwise there will be a mismatch in the DMA.
-                        if (maxChannelId == 0) {
-                            ok = (channelId >= maxChannelId);
-                        }
-                        else {
+                        if (maxChannelId != 0u) {
                             ok = (channelId > maxChannelId);
                         }
                         if (!ok) {
@@ -1005,7 +1001,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
     }
 
     if (ok) {
-        uint32 retry = 0;
+        uint32 retry = 0u;
         const uint32 maxRetries = 10u;
         for (i = 0u; (i < NI6368ADC_MAX_CHANNELS) && (ok); i++) {
             if (adcEnabled[i]) {
@@ -1048,23 +1044,24 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        if (dma->ai.count > 0) {
+        //lint -e{613} dma cannot be null as otherwise ok would be false
+        if (dma->ai.count > 0u) {
             dmaReadBuffer = new int16[dma->ai.count];
         }
     }
     return ok;
 }
 
-uint8 NI6368ADC::GetLastBufferIdx() {
-    uint32 idx = (currentBufferIdx + 1u) % 2u;
+uint8 NI6368ADC::GetLastBufferIdx() const {
+    uint8 idx = (currentBufferIdx + 1u) % 2u;
     return idx;
 }
 
-bool NI6368ADC::IsSynchronising() {
+bool NI6368ADC::IsSynchronising() const {
     return synchronising;
 }
 
-ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(uint32 numberOfSamplesFromDMA) {
+ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFromDMA) {
     ErrorManagement::ErrorType err;
     uint32 s = 0u;
     if (dmaReadBuffer != NULL_PTR(int16 *)) {
@@ -1080,7 +1077,11 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(uint32 numberOfSamplesFromDMA)
                     currentBufferOffset = 0u;
                     currentBufferIdx = (currentBufferIdx + 1u) % 2u;
                     counter++;
-                    timeValue = counter * numberOfSamples * 1000000llu / NI6368ADC_SAMPLING_FREQUENCY;
+                    uint64 counterSamples = counter;
+                    counterSamples *= numberOfSamples;
+                    counterSamples *= 1000000LLU;
+                    counterSamples /= NI6368ADC_SAMPLING_FREQUENCY;
+                    timeValue = static_cast<uint32>(counterSamples);
                     if (synchronising) {
                         err = !synchSem.Post();
                     }
@@ -1098,39 +1099,43 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
     }
     else if (info.GetStage() == ExecutionInfo::StartupStage) {
         //Empty DMA buffer
-        int32 nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
-        while (nBytesInDMA > 0) {
-            dmaOffset = dmaOffset + nBytesInDMA;
-            dmaOffset %= dma->ai.count;
-            nBytesInDMAFromStart += nBytesInDMA;
-            dma->ai.last_transfer_count = nBytesInDMAFromStart;
-            dmaChannel = (dma->ai.last_transfer_count % numberOfADCsEnabled);
-            nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
-        }
-    }
-    else {
-        int32 nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
-        if (nBytesInDMA > 0) {
-            if (static_cast<uint32>(nBytesInDMA) > dma->ai.count) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Overflow while reading from the ADC");
-            }
-            else {
-                if ((dmaOffset + nBytesInDMA) > (dma->ai.count)) {
-                    //Right part of the DMA
-                    uint32 samplesToCopy = (dma->ai.count - dmaOffset);
-                    //Roll to the beginning
-                    uint32 samplesToCopyRoll = ((dmaOffset + nBytesInDMA) - dma->ai.count);
-                    memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * samplesToCopy));
-                    memcpy(&dmaReadBuffer[samplesToCopy], &dma->ai.data[0], (sizeof(int16) * samplesToCopyRoll));
-                }
-                else {
-                    memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nBytesInDMA));
-                }
-                err = CopyFromDMA(nBytesInDMA);
+        size_t nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
+        if ((dma != NULL_PTR(struct xseries_dma *)) && (numberOfADCsEnabled > 0u)) {
+            while (nBytesInDMA > 0u) {
                 dmaOffset = dmaOffset + nBytesInDMA;
                 dmaOffset %= dma->ai.count;
                 nBytesInDMAFromStart += nBytesInDMA;
                 dma->ai.last_transfer_count = nBytesInDMAFromStart;
+                dmaChannel = (dma->ai.last_transfer_count % numberOfADCsEnabled);
+                nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
+            }
+        }
+    }
+    else {
+        if ((dma != NULL_PTR(struct xseries_dma *)) && (dmaReadBuffer != NULL_PTR(int16 *))) {
+            size_t nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
+            if (nBytesInDMA > 0u) {
+                if (nBytesInDMA > dma->ai.count) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Overflow while reading from the ADC");
+                }
+                else {
+                    if ((dmaOffset + nBytesInDMA) > (dma->ai.count)) {
+                        //Right part of the DMA
+                        size_t samplesToCopy = (dma->ai.count - dmaOffset);
+                        //Roll to the beginning
+                        size_t samplesToCopyRoll = ((dmaOffset + nBytesInDMA) - dma->ai.count);
+                        memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * samplesToCopy));
+                        memcpy(&dmaReadBuffer[samplesToCopy], &dma->ai.data[0], (sizeof(int16) * samplesToCopyRoll));
+                    }
+                    else {
+                        memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nBytesInDMA));
+                    }
+                    err = CopyFromDMA(nBytesInDMA);
+                    dmaOffset = dmaOffset + nBytesInDMA;
+                    dmaOffset %= dma->ai.count;
+                    nBytesInDMAFromStart += nBytesInDMA;
+                    dma->ai.last_transfer_count = nBytesInDMAFromStart;
+                }
             }
         }
     }

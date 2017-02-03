@@ -4,6 +4,7 @@
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
 -i./Source/Components/DataSources/NI6259/
+-i./Source/Components/DataSources/NI6368/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConversionGAM/
 -i./Source/Components/GAMs/IOGAM/
@@ -21,3 +22,7 @@ LoggerBroker.cpp
 NI6259ADC.cpp
 NI6259DAC.cpp
 NI6259DIO.cpp
+NI6368ADC.cpp
+NI6368ADCInputBroker.cpp
+NI6368DAC.cpp
+NI6368DIO.cpp

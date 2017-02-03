@@ -39,14 +39,17 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-NI6368ADCInputBroker::NI6368ADCInputBroker() {
+NI6368ADCInputBroker::NI6368ADCInputBroker() :
+        MemoryMapStatefulBroker() {
     adcBoard = NULL_PTR(NI6368ADC *);
 }
 
-NI6368ADCInputBroker::NI6368ADCInputBroker(NI6368ADC *adcBoardIn) :
-        adcBoard(adcBoardIn) {
+NI6368ADCInputBroker::NI6368ADCInputBroker(NI6368ADC * const adcBoardIn) :
+        MemoryMapStatefulBroker() {
+    adcBoard = adcBoardIn;
 }
 
+/*lint -e{1540} the adcBoard is freed by the DataSource*/
 NI6368ADCInputBroker::~NI6368ADCInputBroker() {
 
 }
@@ -60,10 +63,11 @@ bool NI6368ADCInputBroker::Execute() {
         }
 
         uint32 idx = adcBoard->GetLastBufferIdx();
-        char8 *dataSourceSignalPointer;
+        void *dataSourceSignalPointer;
         for (n = 0u; (n < numberOfCopies) && (ret); n++) {
             if (copyTable != NULL_PTR(MemoryMapStatefulBrokerCopyTableEntry *)) {
-                dataSourceSignalPointer = reinterpret_cast<char8 *>(copyTable[n].dataSourcePointer[idx]);
+                /*lint -e{9025}  [MISRA C++ Rule 5-0-19]. Justification: two pointer indirection required to access the address of the variable that holds the final address of the double buffer*/
+                dataSourceSignalPointer = copyTable[n].dataSourcePointer[idx];
                 ret = MemoryOperationsHelper::Copy(copyTable[n].gamPointer, dataSourceSignalPointer, copyTable[n].copySize);
             }
         }

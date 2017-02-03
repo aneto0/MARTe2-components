@@ -50,7 +50,6 @@ NI6368DAC::NI6368DAC() :
     deviceName = "";
     numberOfDACsEnabled = 0u;
     triggerSet = false;
-    numberOfElements = 0u;
 
     startTriggerSource = XSERIES_AO_START_TRIGGER_SW_PULSE;
     startTriggerPolarity = XSERIES_AO_POLARITY_RISING_EDGE;
@@ -66,6 +65,7 @@ NI6368DAC::NI6368DAC() :
         outputRange[n] = XSERIES_OUTPUT_RANGE_10V;
         dacEnabled[n] = false;
         channelsFileDescriptors[n] = -1;
+        numberOfElements[n] = 1u;
         channelsMemory[n] = NULL_PTR(float32 *);
     }
 }
@@ -709,7 +709,7 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (updateIntervalCounterPeriodDivisor > 0);
+        ok = (updateIntervalCounterPeriodDivisor > 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterPeriodDivisor shall be > 0");
         }
@@ -721,7 +721,7 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (updateIntervalCounterDelay > 0);
+        ok = (updateIntervalCounterDelay > 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterDelay shall be > 0");
         }
@@ -738,6 +738,7 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
             //Do not allow to add signals in run-time
             ok = data.Write("Locked", 1);
         }
+        uint32 maxChannelId = 0u;
         while ((i < NI6368DAC_MAX_CHANNELS) && (ok)) {
             if (data.MoveRelative(data.GetChildName(i))) {
                 uint32 channelId;
@@ -745,6 +746,15 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
                     ok = (channelId < NI6368DAC_MAX_CHANNELS);
                     if (!ok) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "Invalid ChannelId specified.");
+                    }
+                    if (ok) {
+                        //Channel id must be specified monotonically increasing otherwise there will be a mismatch between the signal memory and the order by which the channels are opened.
+                        if (maxChannelId != 0u) {
+                            ok = (channelId > maxChannelId);
+                        }
+                        if (!ok) {
+                            REPORT_ERROR(ErrorManagement::ParametersError, "ChannelId must be monotonically increasing.");
+                        }
                     }
                     if (ok) {
                         dacEnabled[channelId] = true;
@@ -800,23 +810,19 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "At least one Trigger signal shall be set.");
     }
     if (ok) {
-        for (i = 0u; (i < numberOfDACsEnabled) && (ok); i++) {
-            ok = (GetSignalType(i) == Float32Bit);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall be of type Float32Bit");
-            }
-            uint32 nElements = 0u;
-            if (ok) {
-                ok = GetSignalNumberOfElements(i, nElements);
-                if (numberOfElements == 0u) {
-                    numberOfElements = nElements;
+        uint32 j = 0u;
+        for (i = 0u; (i < NI6368DAC_MAX_CHANNELS) && (ok); i++) {
+            if (dacEnabled[i]) {
+                ok = (GetSignalType(j) == Float32Bit);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall be of type Float32Bit");
                 }
+                uint32 nElements = 0u;
                 if (ok) {
-                    ok = (numberOfElements == nElements);
+                    ok = GetSignalNumberOfElements(j, nElements);
+                    numberOfElements[i] = nElements;
                 }
-            }
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall have the same number of elements");
+                j++;
             }
         }
     }
@@ -906,12 +912,9 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
         //Required to wait for devices to be available in /dev!
         Sleep::Sec(1.0);
         for (i = 0u; (i < NI6368DAC_MAX_CHANNELS) && (ok); i++) {
-            //TODO CHECK THAT THE CHANNELID IS MONOTONIC AND IN ORDER. OTHERWISE THERE WILL BE A MISMATCH WITH THE DMA ORDER
             if (dacEnabled[i]) {
-                if (ok) {
-                    //Allocate memory
-                    channelsMemory[i] = new float32[numberOfElements];
-                }
+                //Allocate memory
+                channelsMemory[i] = new float32[numberOfElements[i]];
                 StreamString channelDeviceName;
                 uint32 ii = i;
                 ok = channelDeviceName.Printf("%s.%d", fullDeviceName.Buffer(), ii);
@@ -942,8 +945,17 @@ bool NI6368DAC::Synchronise() {
     bool ok = true;
     for (i = 0u; (i < NI6368DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
+            size_t samplesToWrite = numberOfElements[i];
             if (channelsMemory[i] != NULL_PTR(float32 *)) {
-                ok = (xseries_write_ao(channelsFileDescriptors[i], channelsMemory[i], static_cast<size_t>(numberOfElements)) >= 0);
+                while ((samplesToWrite > 0u) && (ok)) {
+                    ssize_t samplesWritten = xseries_write_ao(channelsFileDescriptors[i], channelsMemory[i], samplesToWrite);
+                    if (samplesWritten < 0) {
+                        ok = false;
+                    }
+                    else {
+                        samplesToWrite -= reinterpret_cast<size_t>(samplesWritten);
+                    }
+                }
             }
         }
     }
