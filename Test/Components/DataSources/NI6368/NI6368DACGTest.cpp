@@ -149,21 +149,6 @@ TEST(NI6368DACGTest,TestInitialise_False_BadStartTriggerSource) {
     ASSERT_TRUE(test.TestInitialise_False_BadStartTriggerSource());
 }
 
-TEST(NI6368DACGTest,TestInitialise_StartTriggerPolarity) {
-    NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_StartTriggerPolarity());
-}
-
-TEST(NI6368DACGTest,TestInitialise_False_NoStartTriggerPolarity) {
-    NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoStartTriggerPolarity());
-}
-
-TEST(NI6368DACGTest,TestInitialise_False_BadStartTriggerPolarity) {
-    NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadStartTriggerPolarity());
-}
-
 TEST(NI6368DACGTest,TestInitialise_UpdateCounterSource) {
     NI6368DACTest test;
     ASSERT_TRUE(test.TestInitialise_UpdateCounterSource());
@@ -245,9 +230,9 @@ TEST(NI6368DACGTest,TestInitialise_False_InvalidUpdateIntervalCounterDelay) {
     ASSERT_TRUE(test.TestInitialise_False_InvalidUpdateIntervalCounterDelay());
 }
 
-TEST(NI6368DACGTest,TestSetConfiguredDatabase_False_DifferentElements) {
+TEST(NI6368DACGTest,TestInitialise_False_NotMonotonicallyIncreasingChannelId) {
     NI6368DACTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_DifferentElements());
+    ASSERT_TRUE(test.TestInitialise_False_NotMonotonicallyIncreasingChannelId());
 }
 
 TEST(NI6368DACGTest,TestSetConfiguredDatabase_False_MoreThanOneSample) {

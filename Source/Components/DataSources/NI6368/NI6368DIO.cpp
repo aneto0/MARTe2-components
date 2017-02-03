@@ -638,25 +638,6 @@ bool NI6368DIO::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        StreamString startTriggerPolarityStr;
-        ok = data.Read("StartTriggerPolarity", startTriggerPolarityStr);
-        if (ok) {
-            if (startTriggerPolarityStr == "RISING_EDGE") {
-                startTriggerPolarity = XSERIES_DO_POLARITY_RISING_EDGE;
-            }
-            else if (startTriggerPolarityStr == "FALLING_EDGE") {
-                startTriggerPolarity = XSERIES_DO_POLARITY_FALLING_EDGE;
-            }
-            else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid StartTriggerPolarity specified");
-                ok = false;
-            }
-        }
-        else {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The StartTriggerPolarity shall be specified");
-        }
-    }
-    if (ok) {
         StreamString updateCounterSourceStr;
         ok = data.Read("UpdateCounterSource", updateCounterSourceStr);
         if (ok) {

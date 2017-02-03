@@ -191,21 +191,6 @@ TEST(NI6368DIOGTest,TestInitialise_False_BadStartTriggerSource) {
     ASSERT_TRUE(test.TestInitialise_False_BadStartTriggerSource());
 }
 
-TEST(NI6368DIOGTest,TestInitialise_StartTriggerPolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_StartTriggerPolarity());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoStartTriggerPolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoStartTriggerPolarity());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_BadStartTriggerPolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadStartTriggerPolarity());
-}
-
 TEST(NI6368DIOGTest,TestInitialise_UpdateCounterSource) {
     NI6368DIOTest test;
     ASSERT_TRUE(test.TestInitialise_UpdateCounterSource());

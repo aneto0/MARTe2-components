@@ -368,25 +368,6 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        StreamString startTriggerPolarityStr;
-        ok = data.Read("StartTriggerPolarity", startTriggerPolarityStr);
-        if (ok) {
-            if (startTriggerPolarityStr == "RISING_EDGE") {
-                startTriggerPolarity = XSERIES_AO_POLARITY_RISING_EDGE;
-            }
-            else if (startTriggerPolarityStr == "FALLING_EDGE") {
-                startTriggerPolarity = XSERIES_AO_POLARITY_FALLING_EDGE;
-            }
-            else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid StartTriggerPolarity specified");
-                ok = false;
-            }
-        }
-        else {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The StartTriggerPolarity shall be specified");
-        }
-    }
-    if (ok) {
         StreamString updateCounterSourceStr;
         ok = data.Read("UpdateCounterSource", updateCounterSourceStr);
         if (ok) {
@@ -757,6 +738,7 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
                         }
                     }
                     if (ok) {
+                        maxChannelId = channelId;
                         dacEnabled[channelId] = true;
                         numberOfDACsEnabled++;
                         StreamString range;
@@ -953,7 +935,7 @@ bool NI6368DAC::Synchronise() {
                         ok = false;
                     }
                     else {
-                        samplesToWrite -= reinterpret_cast<size_t>(samplesWritten);
+                        samplesToWrite -= static_cast<size_t>(samplesWritten);
                     }
                 }
             }

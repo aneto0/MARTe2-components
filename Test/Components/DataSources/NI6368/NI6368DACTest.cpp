@@ -198,7 +198,6 @@ static const MARTe::char8 * const config1 = ""
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -277,7 +276,6 @@ static const MARTe::char8 * const config2 = ""
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -356,7 +354,6 @@ static const MARTe::char8 * const config3 = ""
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -376,7 +373,6 @@ static const MARTe::char8 * const config3 = ""
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 1"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -440,7 +436,6 @@ static const MARTe::char8 * const config4 = ""
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -504,7 +499,6 @@ static const MARTe::char8 * const config5 = ""
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -568,7 +562,6 @@ static const MARTe::char8 * const config6 = ""
         "            DeviceName = \"/tmp/pxie-6368\""
         "            BoardId = 0"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -642,7 +635,6 @@ static const MARTe::char8 * const config7 = ""
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -710,7 +702,6 @@ static const MARTe::char8 * const config8 = ""
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -781,7 +772,6 @@ static const MARTe::char8 * const config9 = ""
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -791,12 +781,12 @@ static const MARTe::char8 * const config9 = ""
         "            Signals = {"
         "                DAC0_0 = {"
         "                   Type = float32"
-        "                   ChannelId = 0"
+        "                   ChannelId = 1"
         "                   OutputRange = 10"
         "                }"
         "                DAC1_0 = {"
         "                   Type = float32"
-        "                   ChannelId = 1"
+        "                   ChannelId = 0"
         "                   OutputRange = 10"
         "                }"
         "            }"
@@ -857,7 +847,6 @@ static const MARTe::char8 * const config10 = ""
         "            DeviceName = \"/dev/pxie-6368\""
         "            BoardId = 0"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -1625,66 +1614,6 @@ bool NI6368DACTest::TestInitialise_False_BadStartTriggerSource() {
     cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
     cdb.Delete("StartTriggerSource");
     cdb.Write("StartTriggerSource", "INVALID");
-    NI6368DAC test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
-
-bool NI6368DACTest::TestInitialise_StartTriggerPolarity() {
-    using namespace MARTe;
-    bool ok = true;
-    {
-        xseries_ao_conf_t conf;
-        if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerPolarity", "RISING_EDGE", &conf);
-        }
-        if (ok) {
-            ok = (conf.start1_polarity == XSERIES_AO_POLARITY_RISING_EDGE);
-        }
-    }
-    //TODO check that FALLING_EDGE is indeed not supported
-#if 0
-    {
-        xseries_ao_conf_t conf;
-        if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerPolarity", "FALLING_EDGE", &conf);
-        }
-        if (ok) {
-            ok = (conf.start1_polarity == XSERIES_AO_POLARITY_FALLING_EDGE);
-        }
-    }
-#endif
-    return ok;
-}
-
-bool NI6368DACTest::TestInitialise_False_NoStartTriggerPolarity() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("StartTriggerPolarity");
-    NI6368DAC test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
-
-bool NI6368DACTest::TestInitialise_False_BadStartTriggerPolarity() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("StartTriggerPolarity");
-    cdb.Write("StartTriggerPolarity", "INVALID");
     NI6368DAC test;
     if (ok) {
         ok = !test.Initialise(cdb);
@@ -2794,7 +2723,7 @@ bool NI6368DACTest::TestSetConfiguredDatabase_False_NoTriggers() {
     return !TestIntegratedInApplication(config8);
 }
 
-bool NI6368DACTest::TestSetConfiguredDatabase_False_DifferentElements() {
+bool NI6368DACTest::TestInitialise_False_NotMonotonicallyIncreasingChannelId() {
     return !TestIntegratedInApplication(config9);
 }
 

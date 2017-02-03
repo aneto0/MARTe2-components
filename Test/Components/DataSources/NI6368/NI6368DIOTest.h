@@ -193,21 +193,6 @@ public:
     bool TestInitialise_False_BadStartTriggerSource();
 
     /**
-     * @brief Tests the Initialise method with all the possible start trigger polarities.
-     */
-    bool TestInitialise_StartTriggerPolarity();
-
-    /**
-     * @brief Tests the Initialise method without specifying a start trigger polarity.
-     */
-    bool TestInitialise_False_NoStartTriggerPolarity();
-
-    /**
-     * @brief Tests the Initialise method with an invalid start trigger polarity.
-     */
-    bool TestInitialise_False_BadStartTriggerPolarity();
-
-    /**
      * @brief Tests the Initialise method with all the possible update counter sources.
      */
     bool TestInitialise_UpdateCounterSource();

@@ -282,9 +282,9 @@ public:
     bool TestSetConfiguredDatabase_False_NoTriggers();
 
     /**
-     * @brief Tests the SetConfiguredDatabase specifying an inconsistent number of elements.
+     * @brief Tests the Initialise method with a non monotonically increasing channel identifier.
      */
-    bool TestSetConfiguredDatabase_False_DifferentElements();
+    bool TestInitialise_False_NotMonotonicallyIncreasingChannelId();
 
     /**
      * @brief Tests the SetConfiguredDatabase specifying more than one sample.

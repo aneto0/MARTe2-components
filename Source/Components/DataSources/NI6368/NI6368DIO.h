@@ -44,9 +44,8 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 /**
- * TODO CHECK
  * @brief A DataSource which provides a digital input/output interface to the NI6368 boards.
- * @details The DataSource shall always be ...
+ * @details The configuration syntax is (names are only given as an example):
  *
  * +NI6368_0_DIO = {
  *     Class = NI6368::NI6368DIO
@@ -59,7 +58,6 @@ namespace MARTe {
  *     ScanIntervalCounterPeriod = 50 //Mandatory. Period of the scan interval.
  *     ScanIntervalCounterDelay = 2 //Mandatory. Minimum delay after the start trigger.
  *     StartTriggerSource = "SW_PULSE" //Mandatory. Start trigger source. Possible values: SW_PULSE, PFI0, ..., PFI15, RTSI0, ..., RTSI7, AI_START1, AI_START2, STAR_TRIGGER, PXIE_DSTARA, PXIE_DSTARB, ANALOG_TRIGGER, LOW, G0_OUT, ..., G3_OUT, DIO_CHGDETECT, DI_START1, DI_START2, INTTRIGGERA0, ..., INTTRIGGERA7, FIFOCONDITION
- *     StartTriggerPolarity = "RISING_EDGE" //Mandatory. Start trigger polarity.  RISING_EDGE, FALLING_EDGE
  *     UpdateCounterSource = "UI_TC" //Mandatory. Possible values: UI_TC, PFI0, PFI1, PFI2, PFI3, PFI4, PFI5, PFI6, PFI7, PFI8, PFI9, RTSI0, RTSI1, RTSI2, RTSI3, RTSI4, RTSI5, RTSI6, G0_OUT, G1_OUT, STAR_TRIGGER, PFI10, PFI11, PFI12, PFI13, PFI14, PFI15, RTSI7, G2_OUT, G3_OUT, ANALOG_TRIGGER, LOW, PXIE_DSTARA, PXIE_DSTARB, DIO_CHGDETECT, G0_SAMPLECLK, G1_SAMPLECLK, G2_SAMPLECLK, G3_SAMPLECLK, AI_CONVERT, AI_START, DI_CONVERT, INTTRIGGERA0, INTTRIGGERA1, INTTRIGGERA2, INTTRIGGERA3, INTTRIGGERA4, INTTRIGGERA5, INTTRIGGERA6, INTTRIGGERA7
  *     UpdateCounterPolarity = "RISING_EDGE" //Mandatory. Update counter polarity.  RISING_EDGE, FALLING_EDGE
  *     UpdateIntervalCounterSource = "TB3" //Mandatory. Possible values:TB3, PFI0, PFI1, PFI2, PFI3, PFI4, PFI5, PFI6, PFI7, PFI8, PFI9, RTSI0, RTSI1, RTSI2, RTSI3, RTSI4, RTSI5, RTSI6, DSTARA, TB2, STAR_TRIGGER, PFI10, PFI11, PFI12, PFI13, PFI14, PFI15, RTSI7, TB1, PXI_CLK10, ANALOG_TRIGGER, DSTARB
@@ -69,13 +67,12 @@ namespace MARTe {
  *     Signals = {
  *         DIO0_0 = {
  *             Type = uint32 //Mandatory. Only type that is supported.
- *             PortId = 0 //Mandatory. The port number in the range [0, 2]
- *             Mask = 0x1 //Mandatory. A mask where each bit defines if the pin is an input (bit=0) or an output (bit=1).
+ *             InputPortMask = 0x1 //Mandatory. A mask where each bit defines if the pin is an input (bit=0) or an output (bit=1).
+ *             OutputPortMask = 0x1 //Mandatory. A mask where each bit defines if the pin is an input (bit=0) or an output (bit=1).
  *         }
  *     }
  * }
  *
- * Note that at least one of the GAMs writing to this DataSource must have set one of the signals with Trigger=1 (which forces the writing of all the signals to the DIO ports).
  */
 
 class NI6368DIO: public DataSourceI {
@@ -114,7 +111,7 @@ NI6368DIO    ();
 
     /**
      * @brief See DataSourceI::GetBrokerName.
-     * @return For OutputSignals: MemoryMapSynchronisedOutputBroker if Trigger == 1 for any of the signals, MemoryMapOutputBroker otherwise.
+     * @return For OutputSignals: MemoryMapSynchronisedOutputBroker.
      * For InputSignals: MemoryMapSynchronisedInputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
@@ -134,9 +131,7 @@ NI6368DIO    ();
 
     /**
      * @brief See DataSourceI::GetOutputBrokers.
-     * @details If the functionName is one of the functions which requested a Trigger,
-     * it adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers,
-     * otherwise it adds a MemoryMapOutputBroker instance to the outputBrokers.
+     * @details Adds a MemoryMapSynchronisedOutputBroker instance to the inputBrokers.
      * @param[out] outputBrokers where the BrokerI instances have to be added to.
      * @param[in] functionName name of the function being queried.
      * @param[in] gamMemPtr the GAM memory where the signals will be read from.
@@ -165,9 +160,9 @@ NI6368DIO    ();
      * @details This method verifies that all the parameters (e.g. number of samples) requested by the GAMs interacting with this DataSource
      *  are valid and consistent with the board parameters set during the initialisation phase.
      * In particular the following conditions shall be met:
-     * - At least one triggering signal was requested by a GAM which wants to write to this board (with the property Trigger = 1)
-     * - All the DIO channels have type uint32.
-     * - The number of samples of all the DIO channels is exactly one.
+     * - The DIO channel has type uint32.
+     * - The number of samples of the DIO channel is exactly one.
+     * - The number of elements of the DIO channel is exactly one.
      * @return true if all the parameters are valid and consistent with the board parameters and if the board can be successfully configured with
      *  these parameters.
      */

@@ -3606,7 +3606,7 @@ bool NI6368ADCTest::TestIntegrated() {
         application->PrepareNextState("State1");
 
         application->StartNextStateExecution();
-        while (testGAM->totalSamples < 100000)
+        while (testGAM->totalSamples < 500000)
             ;
         uint16 rms = testGAM->rms;
         if (testGAM->totalSamples > 0) {

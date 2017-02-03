@@ -221,7 +221,6 @@ static const MARTe::char8 * const config1 = ""
         "            ScanIntervalCounterPeriod = 50"
         "            ScanIntervalCounterDelay = 2"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -294,7 +293,6 @@ static const MARTe::char8 * const config4 = ""
         "            ScanIntervalCounterPeriod = 50"
         "            ScanIntervalCounterDelay = 2"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -373,7 +371,6 @@ static const MARTe::char8 * const config5 = ""
         "            ScanIntervalCounterPeriod = 50"
         "            ScanIntervalCounterDelay = 2"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -441,7 +438,6 @@ static const MARTe::char8 * const config6 = ""
         "            ScanIntervalCounterPeriod = 50"
         "            ScanIntervalCounterDelay = 2"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -514,7 +510,6 @@ static const MARTe::char8 * const config7 = ""
         "            ScanIntervalCounterPeriod = 50"
         "            ScanIntervalCounterDelay = 2"
         "            StartTriggerSource = \"SW_PULSE\""
-        "            StartTriggerPolarity = \"RISING_EDGE\""
         "            UpdateCounterSource = \"UI_TC\""
         "            UpdateCounterPolarity = \"RISING_EDGE\""
         "            UpdateIntervalCounterSource = \"TB3\""
@@ -2084,66 +2079,6 @@ bool NI6368DIOTest::TestInitialise_False_BadStartTriggerSource() {
     cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
     cdb.Delete("StartTriggerSource");
     cdb.Write("StartTriggerSource", "INVALID");
-    NI6368DIO test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
-
-bool NI6368DIOTest::TestInitialise_StartTriggerPolarity() {
-    using namespace MARTe;
-    bool ok = true;
-    {
-        xseries_do_conf_t conf;
-        if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerPolarity", "RISING_EDGE", NULL, &conf);
-        }
-        if (ok) {
-            ok = (conf.start1_polarity == XSERIES_DO_POLARITY_RISING_EDGE);
-        }
-    }
-    //TODO check that FALLING_EDGE is indeed not supported
-#if 0
-    {
-        xseries_do_conf_t conf;
-        if (ok) {
-            ok = PatchConfiguration(config1, "$Test.+Data.+NI6368_0", "StartTriggerPolarity", "FALLING_EDGE", NULL, &conf);
-        }
-        if (ok) {
-            ok = (conf.start1_polarity == XSERIES_DO_POLARITY_FALLING_EDGE);
-        }
-    }
-#endif
-    return ok;
-}
-
-bool NI6368DIOTest::TestInitialise_False_NoStartTriggerPolarity() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("StartTriggerPolarity");
-    NI6368DIO test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
-
-bool NI6368DIOTest::TestInitialise_False_BadStartTriggerPolarity() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("StartTriggerPolarity");
-    cdb.Write("StartTriggerPolarity", "INVALID");
     NI6368DIO test;
     if (ok) {
         ok = !test.Initialise(cdb);
