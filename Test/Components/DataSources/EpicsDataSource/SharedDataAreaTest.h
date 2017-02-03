@@ -36,13 +36,6 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-//Objective of the test: Initialization and use of DataSharedArea objects for interchange of Sigblocks between threads (better processes for assuring different memory spaces??)
-//  1) Sigblocks made of sequences of integers (variations on number of signals per sigblock)
-//  2) Sigblocks made of sequences of doubles (variations on number of signals per sigblock)
-//static void InitServerEnvironment() {
-//
-//}
-
 /**
  * @brief Class for testing SharedDataArea.
  */
