@@ -36,6 +36,9 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+/**
+ * @brief Class for testing Sigblock class.
+ */
 class SigblockTest {
 public:
 
@@ -50,7 +53,8 @@ public:
 	/**
 	 * @brief Tests the GetSignalAddress method.
 	 */
-	bool TestGetSignalAddress();
+	template<typename SignalType>
+	bool TestGetSignalAddress(const SignalType value);
 
 };
 

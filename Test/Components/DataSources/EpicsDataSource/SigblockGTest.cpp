@@ -50,7 +50,8 @@ TEST(SigblockGTest_MetadataTest,TestSetSignalsMetadata) {
 
 TEST(SigblockGTest,TestGetSignalAddress) {
 	SigblockTest test;
-	ASSERT_TRUE(test.TestGetSignalAddress());
+	ASSERT_TRUE(test.TestGetSignalAddress<int>(1));
+	ASSERT_TRUE(test.TestGetSignalAddress<double>(1.0));
 }
 
 /*---------------------------------------------------------------------------*/

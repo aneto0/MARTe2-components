@@ -35,93 +35,153 @@
 
 #include "Sigblock.h"
 #include "SigblockTest.h"
+#include "SigblockSupport.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-//struct DataSet {
-//	Sigblock::Metadata** items;
-//	unsigned int size;
-//	DataSet(const unsigned int size):
-//		items(new Sigblock::Metadata*[size]),
-//		size(size) {
-//	}
-//	~DataSet() {
-//		delete[] items;
-//	}
-//};
-
-
-
-
-void MakeDataSet(unsigned int& signalsCount, Signal::Metadata* signalsMetadata) {
-	std::size_t sizes[] = { 4, 2, 8, 4, 10 };
-	unsigned int i = 0;
-	while (i < signalsCount) {
-		std::strncpy(signalsMetadata[i].name, "Signal0", Signal::Metadata::NAME_MAX_LEN);
-		signalsMetadata[i].size = sizes[i];
-		i++;
-	}
-}
-
+template bool SigblockTest::TestGetSignalAddress<int>(const int value);
+template bool SigblockTest::TestGetSignalAddress<double>(const double value);
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-#include "SharedDataAreaSupport.h"
-
 bool SigblockTest::MetadataTest::TestSetSignalsMetadata() {
 	bool ok = false;
 	unsigned int signalsCount = 2;
-	char rawmem[Sigblock::Metadata::SizeOf(signalsCount)];
-	Sigblock::Metadata* target = reinterpret_cast<Sigblock::Metadata*>(&rawmem);
+	Sigblock::Metadata* target;
 
-	Signal::Metadata signalsMetadata[signalsCount];
+	//Allocate memory for sigblock's metadata:
+	target = MallocSigblockMetadata(signalsCount);
 
-//	MakeDataSet(signalsCount, signalsMetadata);
+	//Check allocation of sigblock's metadata:
+	ok = (target != NULL);
 
-	GenerateMetadataForSigblock<double>(signalsMetadata, signalsCount);
+	if (ok) {
+		Signal::Metadata rawMetadata[signalsCount];
 
-	target->SetSignalsMetadata(signalsCount, signalsMetadata);
-	ok = (target->GetSignalsCount() == signalsCount);
+		//Generate metadata values for testing:
+		GenerateMetadataForSigblock<double>(rawMetadata, signalsCount);
 
-	std::size_t offset = 0;
-	for (unsigned int  i = 0u; (i < signalsCount); i++) {
-		std::stringstream name; //TODO: Use MARTe StreamString class, instead.
-		name << "Signal" << i;
-		ok &= (target->GetSignalIndex(signalsMetadata[i].name) == static_cast<int>(i));
-		ok &= (std::strncmp(target->GetSignalName(i), signalsMetadata[i].name, Signal::Metadata::NAME_MAX_LEN) == 0);
-		ok &= (target->GetSignalOffsetByIndex(i) == static_cast<int>(offset));
-		ok &= (target->GetSignalSizeByIndex(i) == signalsMetadata[i].size);
-		offset += signalsMetadata[i].size;
+		//Set testing metadata values:
+		target->SetSignalsMetadata(signalsCount, rawMetadata);
+
+		//Check signals count:
+		ok &= (target->GetSignalsCount() == signalsCount);
+
+		//Check total size:
+		ok &= (target->GetTotalSize() == (sizeof(Signal::Metadata) * signalsCount));
+
+		//Check signal metadata for each signal:
+		{
+			std::size_t offset = 0;
+			for (unsigned int  i = 0u; (i < signalsCount); i++) {
+				//Check signal index:
+				ok &= (target->GetSignalIndex(rawMetadata[i].name) == static_cast<int>(i));
+				//Check signal name:
+				ok &= (std::strncmp(target->GetSignalName(i), rawMetadata[i].name, Signal::Metadata::NAME_MAX_LEN) == 0);
+				//Check signal offset:
+				ok &= (target->GetSignalOffsetByIndex(i) == static_cast<int>(offset));
+				//Check signal size:
+				ok &= (target->GetSignalSizeByIndex(i) == rawMetadata[i].size);
+				//Update signal offset:
+				offset += rawMetadata[i].size;
+			}
+		}
 	}
 
-	ok &= (target->GetTotalSize() == (sizeof(Signal::Metadata) * signalsCount));
+	//Free memory of sigblock's metadata:
+	FreeSigblockMetadata(target);
+
+	//Check release of sigblock's metadata:
+	ok &= (target == NULL);
 
 	return ok;
 }
 
-bool SigblockTest::TestGetSignalAddress() {
-	bool ok;
-	char rawmem[10];
-	Sigblock* target = reinterpret_cast<Sigblock*>(&rawmem);
-	ok = (target->GetSignalAddress(0) == (target + 0));
-	ok &= (target->GetSignalAddress(4) == (target + 4));
-	ok &= (target->GetSignalAddress(8) == (target + 8));
-	ok &= (target->GetSignalAddress(10) == (target + 10));
+template<typename SignalType>
+bool SigblockTest::TestGetSignalAddress(const SignalType value) {
+	const unsigned int signalsCount = 10;
+	bool ok = false;
+	Sigblock* target = NULL;
+	Sigblock::Metadata* metadata = NULL;
+	void* addresses[signalsCount];
 
-	unsigned int signalsCount = 10;
-	Signal::Metadata signalsMetadata[signalsCount];
-	char rawmem2[Sigblock::Metadata::SizeOf(signalsCount)];
-	Sigblock::Metadata* sbmd = reinterpret_cast<Sigblock::Metadata*>(&rawmem2);
-	GenerateMetadataForSigblock<double>(signalsMetadata, signalsCount);
-	sbmd->SetSignalsMetadata(signalsCount, signalsMetadata);
-	std::size_t offset = 0;
-	for (unsigned int  i = 0u; (i < signalsCount); i++) {
-		ok &= (target->GetSignalAddress(sbmd->GetSignalOffsetByIndex(i)) == (target + offset));
-		offset += signalsMetadata[i].size;
+	//Allocate memory for sigblock's metadata:
+	metadata = MallocSigblockMetadata(signalsCount);
+
+	//Check allocation of sigblock's metadata:
+	ok = (metadata != NULL);
+
+	if (ok) {
+		Signal::Metadata rawMetadata[signalsCount];
+
+		//Generate metadata values for testing:
+		GenerateMetadataForSigblock<SignalType>(rawMetadata, signalsCount);
+
+		//Set testing metadata values:
+		metadata->SetSignalsMetadata(signalsCount, rawMetadata);
+
+		//Allocate memory for sigblock:
+		target = MallocSigblock(metadata->GetTotalSize());
+
+		//Check allocation of sigblock:
+		ok = (target != NULL);
+
+		if (ok) {
+
+			//Collect signals' addresses:
+			{
+				for (unsigned int  i = 0u; i < signalsCount; i++) {
+					addresses[i] = target->GetSignalAddress(metadata->GetSignalOffsetByIndex(i));
+				}
+			}
+
+			//Check addresses' offsets:
+			{
+				std::size_t offset = 0;
+				for (unsigned int  i = 0u; i < signalsCount; i++) {
+					ok &= (addresses[i] == (target + offset));
+					offset += metadata->GetSignalSizeByIndex(i);
+				}
+				ok &= ((target + offset) == (target + (sizeof(SignalType) * signalsCount)));
+			}
+
+			if (ok) {
+
+				//Store testing values:
+				{
+					for (unsigned int  i = 0u; i < signalsCount; i++) {
+						SignalType* signal = static_cast<SignalType*>(addresses[i]);
+						*signal = value;
+					}
+				}
+
+				//Check testing values:
+				{
+					for (unsigned int  i = 0u; i < signalsCount; i++) {
+						SignalType* signal = static_cast<SignalType*>(addresses[i]);
+						ok &= (*signal == value);
+					}
+				}
+
+			}
+		}
 	}
+
+	//Free memory of sigblock:
+	FreeSigblock(target);
+
+	//Check release of sigblock:
+	ok &= (target == NULL);
+
+	//Free memory of sigblock's metadata:
+	FreeSigblockMetadata(metadata);
+
+	//Check release of sigblock's metadata:
+	ok &= (metadata == NULL);
+
 	return ok;
 }
