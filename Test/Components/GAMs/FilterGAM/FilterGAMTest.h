@@ -2,7 +2,7 @@
  * @file FilterGAMTest.h
  * @brief Header file for class FilterGAMTest
  * @date Jan 30, 2017 TODO Verify the value and format of the date
- * @author codac TODO Verify the name and format of the author
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -94,6 +94,100 @@ public:
      * @return true when initailise fails due to CheckNormalisation fails
      */
     bool TestFailNormalise();
+
+    /**
+     * @brief Tests a correct default setup works
+     * @return true  if Setup returns true.
+     */
+    bool TestSetup();
+
+    /**
+     * @brief Tests errors regarding to wrong GAM input setup
+     * @details call the function Setup() without initialising the inputs in the database.
+     * @return true if the Setup() fails.
+     */
+    bool TestSetupFailInputs();
+
+    /**
+     * @brief Tests errors regarding to wrong GAM output setup
+     * @details call the function Setup() without initialising the GAM output in the database.
+     * @return true if the Setup() fails.
+     */
+    bool TestSetupFailOutputs();
+
+    /**
+     * @brief Tests errors.
+     * @details call the function Setup() initialising the input with 0 elements
+     * @return true if the Setup() fails.
+     */
+    bool TestSetup0NumberOfElements();
+
+    /**
+     * @brief Tests errors
+     * @details tests the fail with samples > 1 and Elements > 1.
+     * @return true if Setup() fails.
+     */
+    bool TestSetupFailNumberOfSamples();
+
+    /**
+     * @brief Tests errors.
+     * @details call the function Setup() after initialising the input and the outputs of the
+     * GAM with different number of elements.
+     * @return true if Setup() fails.
+     */
+    bool TestSetupDifferentInputOutputSamples();
+
+    /**
+     * @brief test the Execute() with a simple average filter.
+     * @details first Initialise() and Setup() the filter. Using a constant input, tests Execute() comparing the
+     * output against the expected values.
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteFIRConstantInput();
+
+    /**
+     * @brief test the Execute() with a simple average filter.
+     * @details first Initialise() and Setup() the filter. Using a ramp input, tests Execute() comparing the
+     * output against the expected values.
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteFIRRampInput();
+
+
+    /**
+     * @brief test the Execute() with a simple average filter.
+     * @details first Initialise() and Setup() the filter. Using a constant input, tests Execute() comparing the
+     * output against the expected values. In this case Execute() is called twice in order to check that the last
+     * state is correctly remembered.
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteFIRConstantInput2();
+
+    /**
+     * @brief test the Execute() with a simple average filter.
+     * @details first Initialise() and Setup() the filter. Using a ramp input, tests Execute() comparing the
+     * output against the expected values. In this case Execute() is called twice in order to check that the last
+     * state is correctly remembered.
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteFIRRampInput2();
+
+    /**
+     * @brief test the Execute() with a simple integrater (sum(inputs) .
+     * @details first Initialise() and Setup() the filter. Using a constant input, tests Execute() comparing the
+     * output against the expected values. Notice he output is a ramp.
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteIIRConstant();
+
+    /**
+     * @brief test the Execute() with a simple integrater (sum(inputs) .
+     * @details first Initialise() and Setup() the filter. Using a constant input, tests Execute() comparing the
+     * output against the expected values. n this case Execute() is called twice in order to check that the last
+     * state is correctly remembered
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteIIRConstant2();
 };
 
 /*---------------------------------------------------------------------------*/

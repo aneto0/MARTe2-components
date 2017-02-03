@@ -2,7 +2,7 @@
  * @file FilterGAM.h
  * @brief Header file for class FilterGAM
  * @date Jan 30, 2017 TODO Verify the value and format of the date
- * @author codac TODO Verify the name and format of the author
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -105,6 +105,12 @@ public:
      * @return true on succeed
      */
     virtual bool Initialise(StructuredDataI & data);
+
+    /**
+     * @brief Setup the input and the output of the GAM and verify the correctness and consistency of the parameters
+     * @details Checks that the input and output pointers are correctly obtained and the number of input and
+     * output parameters are equal and non zero.
+     */
     virtual bool Setup();
 
     /**
@@ -123,71 +129,42 @@ public:
      * @brief makes available the numberOfNumCoeff
      * @return numberOfNumCoeff
      */
-    uint32 GetNumberOfNumCoeff() {
-        return numberOfNumCoeff;
-    }
+    uint32 GetNumberOfNumCoeff();
 
     /**
      * @brief makes available the numberOfDenCoeff
      * @return numberOfDenCoeff
      */
-    uint32 GetNumberOfDenCoeff() {
-        return numberOfDenCoeff;
-    }
+    uint32 GetNumberOfDenCoeff();
 
     /**
      * @brief makes available the numerator coefficients
      * @param[in] coeff pointer where the coefficients will be copied
      * @return true of num is not a NULL pointer
      */
-    bool GetNumCoeff(float *coeff) {
-        bool ret = false;
-        if (num != NULL_PTR(float32 *)) {
-            for (uint32 i = 0; i < numberOfNumCoeff; i++) {
-                coeff[i] = num[i];
-            }
-            ret = true;
-        }
-        return ret;
-    }
+    bool GetNumCoeff(float *coeff);
 
     /**
      * @brief makes available the denominator coefficients
      * @param[in] coeff pointer where the coefficients will be copied
      * @return true of den is not a NULL pointer
      */
-    bool GetDenCoeff(float *coeff) {
-        bool ret = false;
-        if (den != NULL_PTR(float32 *)) {
-            for (uint32 i = 0; i < numberOfDenCoeff; i++) {
-                coeff[i] = den[i];
-            }
-            ret = true;
-        }
-        return ret;
-    }
+    bool GetDenCoeff(float *coeff);
 
     /**
      * @brief Checks that the coefficients are normalized
      * @details checks that den[0] = 1
      * @return true if the coefficients are normalized
      */
-    bool CheckNormalisation() {
-        bool ret = false;
-        if (den != NULL_PTR(float32 *)) {
-            ret = (1 == den[0]);
-        }
-        return ret;
-    }
+    bool CheckNormalisation();
 
     /**
      * @brief Makes the staticGain available
      * @details staticGain= SUM(num)/SUM(den)
      * @return the staticGain
      */
-    float32 GetStaticGain() {
-        return staticGain;
-    }
+    float32 GetStaticGain();
+
 private:
     /* pointer to the numerator coefficients */
     float32 *num;
@@ -203,6 +180,10 @@ private:
     float32 *lastOutputs;
     /*Holds the the static gain of the filter computed from its coefficients */
     float32 staticGain;
+
+    float32 *input;
+    float32 *output;
+    uint32 numberOfSamples;
 };
 
 }

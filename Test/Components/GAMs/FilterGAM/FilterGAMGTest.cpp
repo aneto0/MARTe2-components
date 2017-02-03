@@ -2,7 +2,7 @@
  * @file FilterGAMGTest.cpp
  * @brief Source file for class FilterGAMGTest
  * @date Jan 30, 2017 TODO Verify the value and format of the date
- * @author codac TODO Verify the name and format of the author
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -87,6 +87,68 @@ TEST(FilterGAMGTest,TestFailNormalise) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestFailNormalise());
 }
+
+TEST(FilterGAMGTest,TestSetup) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetup());
+}
+
+TEST(FilterGAMGTest,TestSetupFailInputs) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupFailInputs());
+}
+
+TEST(FilterGAMGTest,TestSetupFailOutputs) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupFailOutputs());
+}
+
+TEST(FilterGAMGTest,TestSetup0NumberOfElements) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetup0NumberOfElements());
+}
+
+TEST(FilterGAMGTest,TestSetupDifferentInputOutputSamples) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupDifferentInputOutputSamples());
+}
+
+
+TEST(FilterGAMGTest,TestSetupFailNumberOfSamples) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupFailNumberOfSamples());
+}
+
+TEST(FilterGAMGTest,TestExecuteFIRConstantInput) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteFIRConstantInput());
+}
+
+TEST(FilterGAMGTest,TestExecuteFIRRampInput) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteFIRRampInput());
+}
+
+TEST(FilterGAMGTest,TestExecuteFIRConstantInput2) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteFIRConstantInput2());
+}
+
+TEST(FilterGAMGTest,TestExecuteFIRRampInput2) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteFIRRampInput2());
+}
+
+TEST(FilterGAMGTest,TestExecuteIIRConstant) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteIIRConstant());
+}
+
+TEST(FilterGAMGTest,TestExecuteIIRConstant2) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteIIRConstant2());
+}
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

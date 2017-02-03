@@ -2,7 +2,7 @@
  * @file FilterGAM.cpp
  * @brief Source file for class FilterGAM
  * @date Jan 30, 2017 TODO Verify the value and format of the date
- * @author codac TODO Verify the name and format of the author
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -50,6 +50,9 @@ FilterGAM::FilterGAM() {
     lastInputs = NULL_PTR(float32 *);
     lastOutputs = NULL_PTR(float32 *);
     staticGain = 0;
+    numberOfSamples = 0;
+    output = NULL_PTR(float32 *);
+    input = NULL_PTR(float32 *);
 }
 
 FilterGAM::~FilterGAM() {
@@ -81,11 +84,11 @@ bool FilterGAM::Initialise(StructuredDataI& data) {
         Vector<float32> numVector(num, numberOfNumCoeff);
         ok = (data.Read("Num", numVector));
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Error reading numerator %s", GetName())
+            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::Error reading numerator", GetName())
         }
     }
     else {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "No numerator defined %s", GetName())
+        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::No numerator defined", GetName())
     }
     ret &= ok;
 
@@ -102,18 +105,18 @@ bool FilterGAM::Initialise(StructuredDataI& data) {
         Vector<float32> denVector(den, numberOfDenCoeff);
         data.Read("Den", denVector);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Error reading denominator %s", GetName());
+            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::Error reading denominator", GetName());
         }
         else {
             ok &= CheckNormalisation();
             if (!ok) {
                 REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError,
-                                        "The coefficients of the filter must be normalised before being introduced into the GAM %s", GetName());
+                                        "%s::The coefficients of the filter must be normalised before being introduced into the GAM", GetName());
             }
         }
     }
     else {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "No denominator defined %s", GetName())
+        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::No denominator defined", GetName())
     }
     //Update the ret value
     ret &= ok;
@@ -141,46 +144,174 @@ bool FilterGAM::Initialise(StructuredDataI& data) {
 }
 
 bool FilterGAM::Setup() {
-    return true;
+    bool errorDetected = false;
+    uint32 numberOfInputSignals = GetNumberOfInputSignals();
+    bool ok = (numberOfInputSignals == 1u);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfInputSignals = %u. The number of input signals must be one", GetName(),
+                                numberOfInputSignals);
+        errorDetected = true;
+    }
+    uint32 numberOfOutputSignals = GetNumberOfOutputSignals();
+    ok = (numberOfOutputSignals == 1u);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::NumberOfOutputSignals = %u. The number of output signals must be one", GetName(),
+                                numberOfOutputSignals);
+        errorDetected = true;
+    }
+
+    uint32 numberOfSamplesInput;
+    uint32 numberOfElementsInput;
+    uint32 numberOfSamplesOutput;
+    uint32 numberOfElementsOutput;
+    ok = GetSignalNumberOfSamples(InputSignals, 0u, numberOfSamplesInput);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfSamples for the inputs failed", GetName());
+        errorDetected = true;
+    }
+    ok = GetSignalNumberOfSamples(OutputSignals, 0u, numberOfSamplesOutput);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfSamples for the outputs failed ", GetName());
+        errorDetected = true;
+    }
+    ok = GetSignalNumberOfElements(InputSignals, 0, numberOfElementsInput);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfElements for the inputs failed ", GetName());
+        errorDetected = true;
+    }
+    ok = GetSignalNumberOfElements(OutputSignals, 0, numberOfElementsOutput);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfElements for the outputs failed ", GetName());
+        errorDetected = true;
+    }
+    ok = (numberOfSamplesOutput == 1u);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamplesOutput must be 1 ", GetName());
+        errorDetected = true;
+    }
+
+    if (numberOfSamplesInput == 1u) {
+        numberOfSamples = numberOfElementsInput;
+    }
+    else {
+        ok = (numberOfElementsInput == 1);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamplesInput = %u and numberOfElementsInput = %u (should be 1) ", GetName(),
+                                    numberOfSamplesInput, numberOfElementsInput);
+            errorDetected = true;
+        }
+        numberOfSamples = numberOfSamplesInput;
+    }
+    //Input and output size must be the same
+    ok = (numberOfSamples == numberOfElementsOutput);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::number of input samples = %d != %d = number of output samples", GetName(),
+                                numberOfSamples, numberOfElementsOutput);
+        errorDetected = true;
+    }
+    uint32 inputDimension;
+    ok = GetSignalNumberOfDimensions(InputSignals, 0u, inputDimension);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfDimensions for InputSignals fails", GetName());
+        errorDetected = true;
+        ok = true;
+    }
+    uint32 outputDimension;
+    ok = GetSignalNumberOfDimensions(OutputSignals, 0u, outputDimension);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfDimensions for OutputSignals fails", GetName());
+        errorDetected = true;
+    }
+    ok = (numberOfSamples > 0u);
+    if (!ok) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamples is 0", GetName());
+        errorDetected = true;
+        ok = true;
+    }
+    if (!errorDetected) {
+        input = static_cast<float32 *>(GetInputSignalMemory(0));
+        output = static_cast<float32 *>(GetOutputSignalMemory(0));
+    }
+    return !errorDetected;
 }
 
 bool FilterGAM::Execute() {
-    /*
-     int32 n = 0;
-     float32 accumulator = 0;
-     while (n < numberOfSamples) {
-     accumulator = 0;
-     //sum inputs
-     for (int32 k = 0; k < numberOfNumCoeff; k++) {
-     if (n >= k) {
-     accumulator += input[n - k] * num[k];
-     }
-     else {
-     accumulator += lastInputs[k - n - 1] * num[k];
-     }
-     }
-     //Sum outputs
-     for (int32 k = 1; k < numberOfDenCoeff; k++) {
-     if (n >= k) {
-     accumulator -= output[n - k] * den[k];
-     }
-     else {
-     accumulator -= lastOutputs[k - n - 1] * den[k];
-     }
-     }
-     output[n] = accumulator;
-     n++;
-     }
+    uint32 n = 0u;
+    float32 accumulator = 0.0;
+    while (n < numberOfSamples) {
+        accumulator = 0;
+        //sum inputs
+        for (uint32 k = 0u; k < numberOfNumCoeff; k++) {
+            if (n >= k) {
+                accumulator += input[n - k] * num[k];
+            }
+            else {
+                accumulator += lastInputs[k - n - 1] * num[k];
+            }
+        }
+        //Sum outputs
+        for (uint32 k = 1u; k < numberOfDenCoeff; k++) {
+            if (n >= k) {
+                accumulator -= output[n - k] * den[k];
+            }
+            else {
+                accumulator -= lastOutputs[k - n - 1] * den[k];
+            }
+        }
+        output[n] = accumulator;
+        n++;
+    }
 
-     //update the last values
-     for (int32 k = 0; k < numberOfNumCoeff - 1; k++) {
-     lastInputs[k] = input[numberOfSamples - 1 - k];
-     }
-     for (int32 k = 0; k < numberOfDenCoeff - 1; k++) {
-     lastOutputs[k] = output[numberOfSamples - 1 - k];
-     }
-     */
+    //update the last values
+    for (uint32 k = 0; k < numberOfNumCoeff - 1; k++) {
+        lastInputs[k] = input[numberOfSamples - 1 - k];
+    }
+    for (uint32 k = 0; k < numberOfDenCoeff - 1; k++) {
+        lastOutputs[k] = output[numberOfSamples - 1u - k];
+    }
     return true;
+}
+
+uint32 FilterGAM::GetNumberOfNumCoeff() {
+    return numberOfNumCoeff;
+}
+
+uint32 FilterGAM::GetNumberOfDenCoeff() {
+    return numberOfDenCoeff;
+}
+
+bool FilterGAM::GetNumCoeff(float *coeff) {
+    bool ret = false;
+    if (num != NULL_PTR(float32 *)) {
+        for (uint32 i = 0; i < numberOfNumCoeff; i++) {
+            coeff[i] = num[i];
+        }
+        ret = true;
+    }
+    return ret;
+}
+
+bool FilterGAM::GetDenCoeff(float *coeff) {
+    bool ret = false;
+    if (den != NULL_PTR(float32 *)) {
+        for (uint32 i = 0; i < numberOfDenCoeff; i++) {
+            coeff[i] = den[i];
+        }
+        ret = true;
+    }
+    return ret;
+}
+
+bool FilterGAM::CheckNormalisation() {
+    bool ret = false;
+    if (den != NULL_PTR(float32 *)) {
+        ret = (1 == den[0]);
+    }
+    return ret;
+}
+
+float32 FilterGAM::GetStaticGain() {
+    return staticGain;
 }
 
 }
