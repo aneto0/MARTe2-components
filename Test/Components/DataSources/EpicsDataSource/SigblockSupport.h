@@ -69,8 +69,9 @@ inline Sigblock* MallocSigblock(std::size_t size) {
 }
 
 inline Sigblock::Metadata* MallocSigblockMetadata(unsigned int count) {
-	char* mem = new char[Sigblock::Metadata::SizeOf(count)];
-	std::memset(mem, '\0', Sigblock::Metadata::SizeOf(count));
+	size_t size = Sigblock::Metadata::SizeOf(count);
+	char* mem = new char[size];
+	std::memset(mem, '\0', size);
 	return reinterpret_cast<Sigblock::Metadata*>(mem);
 }
 
