@@ -198,6 +198,9 @@ private:
 
 
     bool dataRecieved;
+
+    TimeoutType timeout;
+
 };
 }
 #endif

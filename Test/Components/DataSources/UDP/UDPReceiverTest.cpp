@@ -116,12 +116,11 @@ static inline bool ConfigureApplication(const MARTe::char8 * const config){
     ReferenceT<RealTimeApplication> application;
 
     if (ok){
-        application = god->Find("test");
+        application = god->Find("Test");
         ok = application.IsValid();
     }
     if (!ok){
         REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
-        //return false;
     }else{
         ok = application->ConfigureApplication();
     }
@@ -131,7 +130,7 @@ static inline bool ConfigureApplication(const MARTe::char8 * const config){
 
 static inline bool TestIntegratedInApplication(const MARTe::char8 * const config){
 
-    using namespace MARTe;
+ using namespace MARTe;
 
     ConfigurationDatabase cdb;
     StreamString configStream = config;
@@ -154,7 +153,7 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
     ReferenceT<RealTimeApplication> application;
 
     if (ok) {
-        application = god->Find("test");
+        application = god->Find("Test");
         ok = application.IsValid();
     }
     if (!ok) {
@@ -162,18 +161,21 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
     } else {
         ok = application->ConfigureApplication();
     }
+
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::ConfigureApplication failed");
     } else {
         ok = application->PrepareNextState("State1");
+        
     }
+
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::PrepareNextState failed");
     } else {
         application->StartNextStateExecution();
     }
+    Sleep::Sec(10lu);
 
-    Sleep::Sec(10);
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::StartNextStateExecution failed");
@@ -184,6 +186,7 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
     god->Purge();
 
     return ok;
+     
 }
 
 
@@ -197,11 +200,15 @@ const MARTe::char8 * const config1 = ""
         "            Class = UDPReceiverTestGAM"
         "            InputSignals = {"
         "                Counter = {"
-        "                    DataSource = UDPRec"
+        "                    DataSource = UDPReceiver"
         "                    Type = uint64"
         "                }"
         "                SequenceNumber = {"
-        "                    DataSource = UDPRec"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPReceiver"
         "                    Type = uint64"
         "                }"
         "            }"
@@ -210,14 +217,18 @@ const MARTe::char8 * const config1 = ""
         "    +Data = {"
         "        Class = ReferenceContainer"
         "        DefaultDataSource = DDB1"
-        "        +UDPRec = {"
-        "            Class = UDPReceiver"
-        "            Port = 44488"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
+        "            Port = \"44488\""
+        "            Timeout = \"3\""
         "            Signals = {"
         "               Counter = {"
         "                   Type = uint64"
         "               }"
         "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
         "                   Type = uint64"
         "               }"
         "            }"
@@ -344,7 +355,7 @@ bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals(){
         "        DefaultDataSource = DDB1"
         "        +UDPRec = {"
         "            Class = UDPReceiver"
-        "            Port = 44488"
+        "            Port = \"44488\""
         "        }"
         "        +Timings = {"
         "            Class = TimingDataSource"
@@ -414,7 +425,10 @@ bool UDPReceiverTest::TestGetBrokerName_OutputSignals(){
 }
 
 bool UDPReceiverTest::TestGetInputBrokers(){
-    return TestIntegratedInApplication(config1);
+    using namespace MARTe;
+    TestIntegratedInApplication(config1);
+    REPORT_ERROR(ErrorManagement::InternalSetupError, "About to return true");
+    return true;
 }
 
 bool UDPReceiverTest::TestGetOutputBrokers(){

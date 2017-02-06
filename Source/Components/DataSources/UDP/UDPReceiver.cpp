@@ -89,11 +89,23 @@ bool UDPReceiver::Synchronise(){
 
 bool UDPReceiver::Initialise(StructuredDataI &data) {
     bool ok = DataSourceI::Initialise(data);
+    float64 timeout_input;
     keepRunning = true;
     bool found = data.Read("Port", udpServerPort);
     if (!found){
         udpServerPort = 44488u;
         REPORT_ERROR(ErrorManagement::Information, "No port defined! Default to 44488");
+    }
+    found = data.Read("Timeout", timeout_input);
+    if (!found){
+        timeout = TTInfiniteWait;
+        REPORT_ERROR(ErrorManagement::Information, "No timeout defined! Default to infinite");
+    }else{
+        if(timeout_input == 0){
+            timeout = TTInfiniteWait;
+        }else{
+            timeout.SetTimeoutSec(timeout_input);
+        }
     }
     return ok;
 }
@@ -150,7 +162,7 @@ bool UDPReceiver::GetSignalMemoryBuffer(const uint32 signalIdx,
                     memoryOffset += signalByteSize;
                 }
             }
-            signalAddress = static_cast<void *>(static_cast<char*>((UDPPacket.dataBuffer[signalIdx - 2u]).GetDataPointer()) + memoryOffset);
+            signalAddress = static_cast<void *>(static_cast<char*>((UDPPacket.dataBuffer[0]).GetDataPointer()) + memoryOffset);
         }
     }
     else{
@@ -287,10 +299,11 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         uint32 udpServerReadSize = udpServerExpectReadSize;
         uint8 i;
         if (keepRunning) {
-            dataRecieved = server.Read(reinterpret_cast<char8 *>(udpServerBufferRead), udpServerReadSize);
+            dataRecieved = server.Read(reinterpret_cast<char8 *>(udpServerBufferRead), udpServerReadSize,  timeout);
         }
         dataRecieved = (udpServerReadSize > 0u);
         dataRecievedCorrectSize = (udpServerReadSize == udpServerExpectReadSize);
+
         if (!dataRecieved){
             REPORT_ERROR(ErrorManagement::ParametersError, "No data recieved");
             Sleep::Sec(20e-6);
@@ -298,6 +311,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Recieved data of inccorect size, ignoring it.");
             Sleep::Sec(100e-6);
         }else{
+
             uint32 signalOffset = 0u;
             memoryOffset = 0u;
             for (i = 0u; (i < nOfSignals) && keepRunning ; i++){
@@ -310,7 +324,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                 }else if (i == 1u){
                     AnytypeData = UDPPacket.timer;                    
                 }else{  
-                    AnytypeData = UDPPacket.dataBuffer[i -2u];
+                    AnytypeData = UDPPacket.dataBuffer[0];
                 }
 
                 uint32 noOfBytesForSignal = size/8u;
@@ -318,23 +332,25 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                 memset(static_cast<void*>(dataConv), 0, sizeof(dataConv));
                 uint32 counter;
                 for (counter = 0u; counter < noOfBytesForSignal; counter++){
+
                     dataConv[counter] = udpServerBufferRead[signalOffset + counter];
                 }
                 if ((i == 0u) || (i == 1u)){
                     memcpy(AnytypeData.GetDataPointer(),static_cast<void*>(dataConv),signalByteSize);
-                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
                 }else{
                     void *p = static_cast<char*>(AnytypeData.GetDataPointer()) + memoryOffset;
                     memcpy(p,static_cast<void*>(dataConv),signalByteSize);
                     uint32 test;
                     memcpy(&test,p,signalByteSize);
-                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
                     memoryOffset += signalByteSize;
                 }
                 signalOffset += noOfBytesForSignal;
             }
         }
     }
+
     if (synchronising) {
             err = !synchSem.Post();
     }
