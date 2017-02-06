@@ -149,6 +149,16 @@ TEST(FilterGAMGTest,TestExecuteIIRConstant2) {
     ASSERT_TRUE(test.TestExecuteIIRConstant2());
 }
 
+TEST(FilterGAMGTest,TestExecuteIIRConstantDimArray1) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteIIRConstantDimArray1());
+}
+
+TEST(FilterGAMGTest,TestExecuteElements1Samples10) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteElements1Samples10());
+}
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

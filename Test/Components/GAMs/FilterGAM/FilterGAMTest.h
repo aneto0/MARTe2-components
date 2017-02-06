@@ -181,13 +181,26 @@ public:
     bool TestExecuteIIRConstant();
 
     /**
-     * @brief test the Execute() with a simple integrater (sum(inputs) .
+     * @brief test the Execute() with a simple integrator (sum(inputs)) .
      * @details first Initialise() and Setup() the filter. Using a constant input, tests Execute() comparing the
      * output against the expected values. n this case Execute() is called twice in order to check that the last
      * state is correctly remembered
      * @return true when the output is as expected.
      */
     bool TestExecuteIIRConstant2();
+
+    /**
+     * @brief Test the Execute with dimension input array = 1
+     * @return true when the output is as expected
+     */
+    bool TestExecuteIIRConstantDimArray1();
+
+    /**
+     * @brief Tests Execute with input elements 1 and input samples 10
+     * @detail the filterGAM configuration output supported is always with samples = 1
+     * @return true if the data output is as expected.
+     */
+    bool TestExecuteElements1Samples10();
 };
 
 /*---------------------------------------------------------------------------*/
