@@ -48,7 +48,6 @@ namespace MARTe{
 
 static uint32 nOfSignals = 0u;
 static uint16 udpServerPort;
-static StreamString udpServerAddress;
 static UDPSocket client;
 static uint64 timerAtStateChange = 0u;
 static uint32 memoryOffset = 0u;
@@ -90,11 +89,10 @@ bool UDPSender::Synchronise(){
             UDPPacket.timer=HighResolutionTimer::Counter() - timerAtStateChange;
             dataConv = UDPPacket.timer;
         }else{
-            dataConv = UDPPacket.dataBuffer[i-2u];
+            dataConv = UDPPacket.dataBuffer[0];
         }
 
         if (OK){
-
             uint32 signalByteSize = GetSignalType(i).numberOfBits / 8u;
 
             uint64 k;
@@ -131,6 +129,7 @@ bool UDPSender::Synchronise(){
 
 bool UDPSender::Initialise(StructuredDataI &data) {
     bool ok = DataSourceI::Initialise(data);
+       
     bool found = data.Read("TargetAddress", udpServerAddress);
     if (!found){
         udpServerAddress = "127.0.0.1";
@@ -210,7 +209,7 @@ bool UDPSender::AllocateMemory(){
     nOfSignals = GetNumberOfSignals();
     //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "numb of sending signals %d", nOfSignals);
 
-    bool ok = (nOfSignals > 1u);
+    bool ok = (nOfSignals > 2u);
     uint32 totalPacketSize = 0u;
 
     if (ok){
@@ -226,13 +225,14 @@ bool UDPSender::AllocateMemory(){
         if (ok){
             UDPPacket.dataBuffer= new AnyType[totalPacketSize];
             uint32 i;
-            for (i = 0u; i < (nOfSignals + 2u); i++){
+            for (i = 0u; i < (nOfSignals - 2u); i++){
                 UDPPacket.dataBuffer[i] = 0;
             }
         }
     }else{
-        REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of two signals (counter and timer) must be specified!");
+        REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timer and one other signal) must be specified!");
     }
+    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "i am ok with AllocateMemory =  %d",ok);
     return ok;
 }
 
@@ -255,7 +255,7 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
         else if (signalIdx == 1u) {
             signalAddress = &UDPPacket.timer;
         }
-        else if (signalIdx > 1u ) {
+        else {
             uint32 i;
             for (i = 2u; i < signalIdx ; i++){      
                 uint32 signalByteSize = 0u;
@@ -264,15 +264,12 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                     memoryOffset += signalByteSize;
                 }
             }
-            signalAddress = static_cast<char*>((UDPPacket.dataBuffer[signalIdx - 2u]).GetDataPointer()) + memoryOffset;
+            signalAddress = static_cast<char*>((UDPPacket.dataBuffer[0]).GetDataPointer()) + memoryOffset;
             //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal =  %d",signalIdx);
             //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "pointer =  %d",(signalAddress));
             //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "memoryOffset =  %d",memoryOffset);
 
 
-        }
-        else{
-            ok = false;
         }
     }
     else{
@@ -285,8 +282,11 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
 const char8* UDPSender::GetBrokerName(StructuredDataI& data,
                                          const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
+    //REPORT_ERROR(ErrorManagement::Information, " I am going to get a broker:");
     if (direction == OutputSignals) {
             brokerName = "MemoryMapSynchronisedOutputBroker";
+            //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am a broker: %s", brokerName);
+
     }
     else {
         REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
@@ -309,6 +309,7 @@ bool UDPSender::GetOutputBrokers(ReferenceContainer& outputBrokers,
     if (ok) {
         ok = outputBrokers.Insert(broker);
     }
+    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am ok: %d", ok);
     return ok;
 }
 
@@ -319,13 +320,14 @@ bool UDPSender::PrepareNextState(const char8* const currentStateName,
     UDPPacket.sequenceNumber = 0u;
     timerAtStateChange = HighResolutionTimer::Counter();
     UDPPacket.timer = 0u ;
-    uint32 i;
+    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " preparing next state: %d", ok);
+ /*   uint32 i;
     memoryOffset = 0u;
         for (i = 0u; i < (nOfSignals - 2u); i++){
             uint64 k = 0u;
             uint32 signalByteSize;
             //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY OFFSET at %d ",memoryOffset);
-            void* p = static_cast<char*>((UDPPacket.dataBuffer[i]).GetDataPointer()) + memoryOffset;
+            void* p = static_cast<char*>((UDPPacket.dataBuffer[0]).GetDataPointer()) + memoryOffset;
             ok = GetSignalByteSize(i + 2u, signalByteSize);
             if (ok){
                 memcpy(&k,p,signalByteSize);
@@ -335,7 +337,7 @@ bool UDPSender::PrepareNextState(const char8* const currentStateName,
                 //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "MEMORY data at %d with size %d with data after %d",p, signalByteSize, k);
                 memoryOffset += signalByteSize;
             }
-        }
+        }*/
 /*    uint64 k = 0u;
     uint32 signalByteSize;
     void* p = static_cast<char*>((UDPPacket.dataBuffer[0]).GetDataPointer());

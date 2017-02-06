@@ -165,6 +165,8 @@ public:
 private:
 
     UDPMsgStruct UDPPacket;
+    StreamString udpServerAddress;
+
 };
 }
 #endif

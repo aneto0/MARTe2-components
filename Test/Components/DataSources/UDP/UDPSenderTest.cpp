@@ -56,11 +56,11 @@ UDPSenderTestGAM    () : GAM() {
     }
 
     bool Execute() {
-        if(GetNumberOfInputSignals() > 0u) {
-            MARTe::MemoryOperationsHelper::Copy(&counter, GetInputSignalMemory(0u), sizeof(MARTe::uint64));
+        if(GetNumberOfOutputSignals() > 0u) {
+            MARTe::MemoryOperationsHelper::Copy(GetOutputSignalMemory(0u), &counter, sizeof(MARTe::uint64));
         }
-        if(GetNumberOfInputSignals() > 1u) {
-            MARTe::MemoryOperationsHelper::Copy(&timer, GetInputSignalMemory(1u), sizeof(MARTe::uint64));
+        if(GetNumberOfOutputSignals() > 1u) {
+            MARTe::MemoryOperationsHelper::Copy(GetOutputSignalMemory(1u), &timer, sizeof(MARTe::uint64));
         }
 
         return true;
@@ -115,56 +115,77 @@ static inline bool ConfigureApplication(const MARTe::char8 * const config){
     ReferenceT<RealTimeApplication> application;
 
     if (ok){
-        application = god->Find("test");
+        application = god->Find("Test");
         ok = application.IsValid();
     }
     if (!ok){
         REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
-        return false;
     }else{
         ok = application->ConfigureApplication();
     }
     return ok;
 }
 
-static inline bool StartApplication(const MARTe::char8 * const state = "Running"){
-    using namespace MARTe;
-
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-    ReferenceT<RealTimeApplication> application = god->Find("Test");;
-    bool ok = application.IsValid();
-
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
-    }else{
-        ok = application->PrepareNextState(state);
-    }
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::PrepareNextState failed");
-    }else{
-        ok = application->StartNextStateExecution();
-    }
-
-    return ok;
-
-}
 
 static inline bool TestIntegratedInApplication(const MARTe::char8 * const config){
 
-    using namespace MARTe;
+ using namespace MARTe;
 
-    bool ok = ConfigureApplication(config);
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    StreamString err;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb, &err);
 
-    if (ok){
-        ok = StartApplication();
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    bool ok = parser.Parse();
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
+        //log_error("StandardParser::Parse failed with '%s'", err.Buffer());
+    } else {
+        god->Purge();
+        ok = god->Initialise(cdb);
     }
 
-     Sleep::Sec(10lu);
+    ReferenceT<RealTimeApplication> application;
 
-    if (ok){
-        ok = StartApplication();
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
     }
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+    } else {
+        ok = application->ConfigureApplication();
+    }
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::ConfigureApplication failed");
+    } else {
+        ok = application->PrepareNextState("State1");
+        
+    }
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::PrepareNextState failed");
+    } else {
+        application->StartNextStateExecution();
+    }
+    Sleep::Sec(10lu);
+
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::StartNextStateExecution failed");
+    } else {
+        application->StopCurrentStateExecution();
+    }
+
+    god->Purge();
+
     return ok;
+     
 }
 
 
@@ -176,13 +197,17 @@ const MARTe::char8 * const config1 = ""
         "        Class = ReferenceContainer"
         "        +GAMA = {"
         "            Class = UDPSenderTestGAM"
-        "            InputSignals = {"
+        "            OutputSignals = {"
         "                Counter = {"
-        "                    DataSource = UDPRec"
+        "                    DataSource = UDPSender"
         "                    Type = uint64"
         "                }"
         "                SequenceNumber = {"
-        "                    DataSource = UDPRec"
+        "                    DataSource = UDPSender"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPSender"
         "                    Type = uint64"
         "                }"
         "            }"
@@ -191,15 +216,18 @@ const MARTe::char8 * const config1 = ""
         "    +Data = {"
         "        Class = ReferenceContainer"
         "        DefaultDataSource = DDB1"
-        "        +UDPRec = {"
-        "            Class = UDPSender"
-        "            Address = 127.0.0.1"
-        "            Port = 44488"
+        "        +UDPSender = {"
+        "            Class = UDPDrv::UDPSender"
+        "            TargetAddress = \"127.0.0.1\""
+        "            Port = \"44488\""
         "            Signals = {"
         "               Counter = {"
         "                   Type = uint64"
         "               }"
         "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
         "                   Type = uint64"
         "               }"
         "            }"
@@ -214,7 +242,7 @@ const MARTe::char8 * const config1 = ""
         "            Class = RealTimeState"
         "            +Threads = {"
         "                Class = ReferenceContainer"
-        "                +Thread1 = {"
+        "                +Thread = {"
         "                    Class = RealTimeThread"
         "                    Functions = {GAMA}"
         "                }"
@@ -362,13 +390,13 @@ bool UDPSenderTest::TestSetConfiguredDatabase_False_NOfSignals(){
         "        Class = ReferenceContainer"
         "        +GAMA = {"
         "            Class = UDPSenderTestGAM"
-        "            InputSignals = {"
+        "            OutputSignals = {"
         "                Counter = {"
-        "                    DataSource = UDPRec"
+        "                    DataSource = DDB1"
         "                    Type = uint64"
         "                }"
         "                SequenceNumber = {"
-        "                    DataSource = UDPRec"
+        "                    DataSource = DDB1"
         "                    Type = uint64"
         "                }"
         "            }"
@@ -377,10 +405,10 @@ bool UDPSenderTest::TestSetConfiguredDatabase_False_NOfSignals(){
         "    +Data = {"
         "        Class = ReferenceContainer"
         "        DefaultDataSource = DDB1"
-        "        +UDPRec = {"
+        "        +UDPSend = {"
         "            Class = UDPSender"
-        "            Address = 127.0.0.1"
-        "            Port = 44488"
+        "            TargetAddress = \"127.0.0.1\""
+        "            Port = \"44488\""
         "        }"
         "        +Timings = {"
         "            Class = TimingDataSource"
@@ -445,7 +473,7 @@ bool UDPSenderTest::TestGetBrokerName_OutputSignals(){
     UDPSender test;
     ConfigurationDatabase cdb;
     StreamString brokerName = test.GetBrokerName(cdb, OutputSignals);
-    bool ok = (brokerName == "MemoryMapOutputBroker");
+    bool ok = (brokerName == "MemoryMapSynchronisedOutputBroker");
     return ok;
 }
 
@@ -464,9 +492,8 @@ bool UDPSenderTest::TestGetInputBrokers(){
 bool UDPSenderTest::TestPrepareNextState(){
     using namespace MARTe;
     UDPSender test;
-    //bool ok = (test.PrepareNextState("FromCurrent", "ToNext"));
-    bool ok = false;
-    return !ok;
+    bool ok = (test.PrepareNextState("FromCurrent", "ToNext"));
+    return ok;
 }
 
 bool UDPSenderTest::TestSynchronise(){
