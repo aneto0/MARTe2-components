@@ -51,89 +51,9 @@ TEST(EpicsInputDataSourceGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-/*
 TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase) {
 	EpicsInputDataSourceTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
-}
-
-TEST(EpicsInputDataSourceGTest, TestSynchronise) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestSynchronise());
-}
-
-TEST(EpicsInputDataSourceGTest,TestAllocateMemory) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestAllocateMemory());
-}
-*/
-
-TEST(EpicsInputDataSourceGTest,TestGetNumberOfMemoryBuffers) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
-}
-
-/*
-
-TEST(EpicsInputDataSourceGTest,TestGetSignalMemoryBuffer) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
-}
-
-TEST(EpicsInputDataSourceGTest,TestGetSignalMemoryBuffer_False) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
-}
-*/
-TEST(EpicsInputDataSourceGTest,TestGetBrokerName) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestGetBrokerName());
-}
-/*
-TEST(EpicsInputDataSourceGTest, TestGetInputBrokers) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestGetInputBrokers());
-}
-*/
-TEST(EpicsInputDataSourceGTest, TestGetOutputBrokers) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestGetOutputBrokers());
-}
-
-TEST(EpicsInputDataSourceGTest, TestPrepareNextState) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestPrepareNextState());
-}
-
-/*
-TEST(EpicsInputDataSourceGTest, TestExecute) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestExecute());
-}
-
-TEST(EpicsInputDataSourceGTest, TestExecute_Busy) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestExecute_Busy());
-}
-
-TEST(EpicsInputDataSourceGTest, TestInitialise_Default) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_Default());
-}
-
-TEST(EpicsInputDataSourceGTest, TestInitialise_Busy) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_Busy());
-}
-
-TEST(EpicsInputDataSourceGTest, TestInitialise_Empty) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_Empty());
-}
-
-TEST(EpicsInputDataSourceGTest, TestInitialise_False) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_False());
 }
 
 TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase_False_MoreThan2Signals) {
@@ -171,11 +91,70 @@ TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase_False_IntegerSignal2) 
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_IntegerSignal2());
 }
 
-*/
-
-TEST(EpicsInputDataSourceGTest, Test1) {
+TEST(EpicsInputDataSourceGTest, TestSynchronise) {
 	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.Test1<MARTe::uint32>());
+    ASSERT_TRUE(test.TestSynchronise<MARTe::uint32>());
+//    ASSERT_TRUE(test.TestSynchronise<MARTe::float32>());
+}
+
+//TEST(EpicsInputDataSourceGTest,TestAllocateMemory) {
+//	EpicsInputDataSourceTest test;
+//    ASSERT_TRUE(test.TestAllocateMemory());
+//}
+
+TEST(EpicsInputDataSourceGTest,TestGetNumberOfMemoryBuffers) {
+	EpicsInputDataSourceTest test;
+    ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
+}
+
+//TEST(EpicsInputDataSourceGTest,TestGetSignalMemoryBuffer) {
+//	EpicsInputDataSourceTest test;
+//    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+//}
+
+//TEST(EpicsInputDataSourceGTest,TestGetSignalMemoryBuffer_False) {
+//	EpicsInputDataSourceTest test;
+//    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
+//}
+
+TEST(EpicsInputDataSourceGTest,TestGetBrokerName) {
+	EpicsInputDataSourceTest test;
+    ASSERT_TRUE(test.TestGetBrokerName());
+}
+
+TEST(EpicsInputDataSourceGTest, TestGetInputBrokers) {
+	EpicsInputDataSourceTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers());
+}
+
+TEST(EpicsInputDataSourceGTest, TestGetOutputBrokers) {
+	EpicsInputDataSourceTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers());
+}
+
+TEST(EpicsInputDataSourceGTest, TestPrepareNextState) {
+	EpicsInputDataSourceTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
+}
+
+TEST(EpicsInputDataSourceGTest, TestInitialise_Default) {
+	EpicsInputDataSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_Default());
+}
+
+TEST(EpicsInputDataSourceGTest, TestInitialise_Busy) {
+	EpicsInputDataSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_Busy());
+}
+
+TEST(EpicsInputDataSourceGTest, TestInitialise_Empty) {
+	EpicsInputDataSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_Empty());
+}
+
+TEST(EpicsInputDataSourceGTest, TestInitialise_False) {
+	EpicsInputDataSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False());
 }
 
 /*---------------------------------------------------------------------------*/

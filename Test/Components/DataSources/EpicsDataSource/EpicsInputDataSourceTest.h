@@ -47,81 +47,6 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the AllocateMemory method.
-     */
-    bool TestAllocateMemory();
-
-    /**
-     * @brief Tests the GetNumberOfMemoryBuffers method.
-     */
-    bool TestGetNumberOfMemoryBuffers();
-
-    /**
-     * @brief Tests the GetSignalMemoryBuffer method.
-     */
-    bool TestGetSignalMemoryBuffer();
-
-    /**
-     * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
-     */
-    bool TestGetSignalMemoryBuffer_False();
-
-    /**
-     * @brief Tests the GetBrokerName method.
-     */
-    bool TestGetBrokerName();
-
-    /**
-     * @brief Tests the GetInputBrokers method.
-     */
-    bool TestGetInputBrokers();
-
-    /**
-     * @brief Tests the GetOutputBrokers method.
-     */
-    bool TestGetOutputBrokers();
-
-    /**
-     * @brief Tests the Synchronise method.
-     */
-    bool TestSynchronise();
-
-    /**
-     * @brief Tests the Execute method.
-     */
-    bool TestExecute();
-
-    /**
-     * @brief Tests the Execute method with Busy sleep.
-     */
-    bool TestExecute_Busy();
-
-    /**
-     * @brief Tests the PrepareNextState method.
-     */
-    bool TestPrepareNextState();
-
-    /**
-     * @brief Tests the Initialise method with an empty StructuredDataI.
-     */
-    bool TestInitialise_Empty();
-
-    /**
-     * @brief Tests the Initialise method with a Default SleepNature.
-     */
-    bool TestInitialise_Default();
-
-    /**
-     * @brief Tests the Initialise method  with a Busy SleepNature.
-     */
-    bool TestInitialise_Busy();
-
-    /**
-     * @brief Tests the Initialise method with an invalid SleepNature..
-     */
-    bool TestInitialise_False();
-
-    /**
      * @brief Tests the SetConfiguredDatabase method.
      */
     bool TestSetConfiguredDatabase();
@@ -162,114 +87,74 @@ public:
     bool TestSetConfiguredDatabase_False_NoFrequencySet();
 
     /**
-     * @brief Tests ...
+     * @brief Tests the Synchronise method.
      */
     template<typename SignalType>
-    bool Test1();
+    bool TestSynchronise();
+
+    /**
+     * @brief Tests the AllocateMemory method.
+     */
+    bool TestAllocateMemory();
+
+    /**
+     * @brief Tests the GetNumberOfMemoryBuffers method.
+     */
+    bool TestGetNumberOfMemoryBuffers();
+
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method.
+     */
+    bool TestGetSignalMemoryBuffer();
+
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
+     */
+    bool TestGetSignalMemoryBuffer_False();
+
+    /**
+     * @brief Tests the GetBrokerName method.
+     */
+    bool TestGetBrokerName();
+
+    /**
+     * @brief Tests the GetInputBrokers method.
+     */
+    bool TestGetInputBrokers();
+
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
+    bool TestGetOutputBrokers();
+
+    /**
+     * @brief Tests the PrepareNextState method.
+     */
+    bool TestPrepareNextState();
+
+    /**
+     * @brief Tests the Initialise method with an empty StructuredDataI.
+     */
+    bool TestInitialise_Empty();
+
+    /**
+     * @brief Tests the Initialise method with a Default SleepNature.
+     */
+    bool TestInitialise_Default();
+
+    /**
+     * @brief Tests the Initialise method  with a Busy SleepNature.
+     */
+    bool TestInitialise_Busy();
+
+    /**
+     * @brief Tests the Initialise method with an invalid SleepNature..
+     */
+    bool TestInitialise_False();
 };
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
-
-#include "CompilerTypes.h"
-#include "EpicsInputDataSource.h"
-#include "SharedDataArea.h"
-#include "SigblockDoubleBufferSupport.h"
-
-#include "EpicsDataSourceSupport.h"
-
-template<typename SignalType>
-bool EpicsInputDataSourceTest::Test1() {
-    using namespace MARTe;
-    bool success = false;
-    const unsigned int maxTests = 30;
-    const char targetName[] = "EpicsInputDataSourceTest_Test1";
-    EpicsInputDataSource target;
-	DataSet dataset(maxTests);
-	SharedDataArea sdaClient;
-	SharedDataArea::SigblockProducer* producer;
-	const uint32 numberOfSignals = 5;
-	void* signals[numberOfSignals];
-
-	//Initialize the name of the data source:
-    target.SetName(targetName);
-
-    //Initialize signals configuration on data source:
-    success = SetConfiguredDatabase(target, numberOfSignals);
-
-    //Allocate memory of data source (it setups the shared data area):
-    target.AllocateMemory();
-
-    //Cache an array of pointers to the signal's addresses:
-    for (uint32 i = 0; i < numberOfSignals; i++) {
-    	target.GetSignalMemoryBuffer(i, 0, signals[i]);
-    }
-
-	//Setup producers's interface to shared data area:
-    StreamString shmName;
-    shmName.Printf("MARTe_%s", targetName);
-	sdaClient = SharedDataArea::BuildSharedDataAreaForEPICS(shmName.Buffer());
-	producer = sdaClient.GetSigblockProducerInterface();
-
-	//Allocate memory for dataset:
-	MallocDataSet(dataset, producer->GetSigblockMetadata()->GetTotalSize());
-
-	//Initialize items of dataset:
-	InitDataSet<SignalType>(dataset, numberOfSignals);
-
-	//Write all the sigblocks of the dataset to the shared data area, checking
-	//that they can be read by the input data source and have the same values
-	//than those from the dataset. They will be written and read taking turns
-	//(1 write, 1 read).
-	{
-		bool error = false;
-		unsigned int i = 0;
-
-		//Write and read sigblocks taking turns:
-		while (i < dataset.size && !error) {
-			bool writeOk;
-
-			//Write the sigblock on the position i of the dataset to the shared data area:
-			writeOk = producer->WriteSigblock(*(dataset.items[i]));
-
-			if (writeOk) {
-				bool readOk;
-
-			    //Synchronize the input data source with the shared data area
-				//(i.e. reads a sigblock from the shared data area and make
-				//their values available as signals of the input data source):
-				readOk = target.Synchronise();
-
-				if (readOk) {
-					//Check the values of the signals into the data
-					//source against those of the data set:
-					unsigned int j = 0;
-				    while (j < numberOfSignals && !error) {
-				    	printf("signals[j] == %u\n", *(static_cast<uint32*>(signals[j])));
-				    	error = (std::memcmp(signals[j], dataset.items[i] + producer->GetSigblockMetadata()->GetSignalOffsetByIndex(j), sizeof(SignalType)) != 0);
-				    	j++;
-				    }
-				}
-				else {
-					error = true;
-				}
-			}
-			else {
-				error = true;
-			}
-			printf("EpicsInputDataSourceTest::Test1 -- Write/Read dataset.items[%u] error=%u\n", i, error);
-			i++;
-		}
-
-		//Check execution's status:
-		success &= !error;
-	}
-
-	//Free memory of dataset:
-	FreeDataSet(dataset);
-
-	return success;
-}
 
 #endif /* EPICSINPUTDATASOURCETEST_H_ */

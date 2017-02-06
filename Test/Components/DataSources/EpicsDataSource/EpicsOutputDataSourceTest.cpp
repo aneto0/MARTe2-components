@@ -31,15 +31,22 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
+#include "CompilerTypes.h"
 #include "GAM.h"
 #include "GAMScheduler.h"
+#include "EpicsDataSourceSupport.h"
 #include "EpicsOutputDataSource.h"
 #include "EpicsOutputDataSourceTest.h"
 #include "MemoryOperationsHelper.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
+#include "SharedDataArea.h"
+#include "SigblockDoubleBufferSupport.h"
 #include "StandardParser.h"
 #include "StreamString.h"
+
+template bool EpicsOutputDataSourceTest::TestSynchronise<MARTe::uint32>();
+template bool EpicsOutputDataSourceTest::TestSynchronise<MARTe::float32>();
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -64,8 +71,137 @@ bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase() {
 	return false;
 }
 
-bool EpicsOutputDataSourceTest::TestSynchronise() {
+bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_One_Signal_Per_GAM() {
 	return false;
+}
+
+bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_MoreThan2Signals() {
+	return false;
+}
+
+bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_No32BitsSignal1() {
+	return false;
+}
+
+bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_No32BitsSignal2() {
+	return false;
+}
+
+bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_NoFrequencySet() {
+	return false;
+}
+
+bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_IntegerSignal1() {
+	return false;
+}
+
+bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_IntegerSignal2() {
+	return false;
+}
+
+template<typename SignalType>
+bool EpicsOutputDataSourceTest::TestSynchronise() {
+    using namespace MARTe;
+    bool success = false;
+    const unsigned int maxTests = 30;
+    const char targetName[] = "EpicsOutputDataSourceTest_Test1";
+    EpicsOutputDataSource target;
+	DataSet dataset(maxTests);
+	SharedDataArea sdaClient;
+	SharedDataArea::SigblockConsumer* consumer;
+	const uint32 numberOfSignals = 5;
+	void* signals[numberOfSignals];
+
+	//Initialize the name of the data source:
+    target.SetName(targetName);
+
+    //Initialize signals configuration on data source:
+    success = SetConfiguredDatabase(target, numberOfSignals);
+
+    //Allocate memory of data source (it setups the shared data area):
+    target.AllocateMemory();
+
+    //Cache an array of pointers to the signal's addresses:
+    for (uint32 i = 0; i < numberOfSignals; i++) {
+    	target.GetSignalMemoryBuffer(i, 0, signals[i]);
+    }
+
+	//Setup producers's interface to shared data area:
+    StreamString shmName;
+    shmName.Printf("MARTe_%s", targetName);
+	sdaClient = SharedDataArea::BuildSharedDataAreaForEPICS(shmName.Buffer());
+	consumer = sdaClient.GetSigblockConsumerInterface();
+
+	//Allocate memory for dataset:
+	MallocDataSet(dataset, consumer->GetSigblockMetadata()->GetTotalSize());
+
+	//Initialize items of dataset:
+	InitDataSet<SignalType>(dataset, numberOfSignals);
+
+	//Write all the sigblocks of the dataset to the output data source,
+	//checking that they can be read by the shared data area and have
+	//the same values than those from the dataset. They will be written
+	//and read taking turns (1 write, 1 read).
+	{
+		bool error = false;
+		unsigned int i = 0;
+
+		//Write and read sigblocks taking turns:
+		while (i < dataset.size && !error) {
+			bool writeOk;
+			//Write the sigblock on the position i of the dataset to the output data source:
+			for (uint32 j = 0; j < numberOfSignals; j++) {
+				std::memcpy(signals[j], &dataset.items[j], sizeof(SignalType));
+			}
+
+			//Synchronise the output data source with the shared data area
+			//(i.e. writes the signals of the output data source to the
+			//shared data area as a sigblock):
+			writeOk = target.Synchronise();
+
+			if (writeOk) {
+				Sigblock* sigblock = NULL_PTR(Sigblock*);
+				bool readOk;
+
+				//Allocate memory for sigblock:
+				sigblock = MallocSigblock(consumer->GetSigblockMetadata()->GetTotalSize());
+
+				//Read the next sigblock available on the shared data area:
+				readOk = consumer->ReadSigblock(*sigblock);
+
+				if (readOk) {
+
+					//Check the values of the signals into the sigblock read
+					//from the shared data area against those of the data set:
+					unsigned int j = 0;
+				    while (j < numberOfSignals && !error) {
+				    	printf("signals[j] == %u\n", *(static_cast<uint32*>(signals[j])));
+				    	error = (std::memcmp(signals[j], sigblock + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j), sizeof(SignalType)) != 0);
+				    	j++;
+				    }
+				}
+				else {
+					error = true;
+				}
+
+				//Free memory for sigblock:
+				FreeSigblock(sigblock);
+			}
+			else {
+				error = true;
+			}
+			printf("EpicsOutputDataSourceTest::Test1 -- Write/Read dataset.items[%u] error=%u\n", i, error);
+			i++;
+		}
+
+		//Check execution's status:
+		success &= !error;
+	}
+
+	//Free memory of dataset:
+	FreeDataSet(dataset);
+
+	return success;
 }
 
 bool EpicsOutputDataSourceTest::TestAllocateMemory() {
@@ -135,15 +271,13 @@ bool EpicsOutputDataSourceTest::TestGetBrokerName() {
 bool EpicsOutputDataSourceTest::TestGetInputBrokers() {
     using namespace MARTe;
     bool ok = true;
-    char name[] = "Dummy"; //TODO: Add this function to *this, otherwise the call to GetInputBrokers() fails.
-    char buffer[25];
     ReferenceContainer inputBrokers;
-    char8* functionName = static_cast<char8*>(name);
-    void* gamMemPtr = static_cast<void*>(buffer);
+    char8* functionName = NULL_PTR(char8*);
+    void* gamMemPtr = NULL_PTR(void*);
     EpicsOutputDataSource target;
     ok &= INVARIANT(target);
-    ok &= (target.GetInputBrokers(inputBrokers, functionName, gamMemPtr) == true);
-    ok &= (inputBrokers.Size() == 1);
+    ok &= (target.GetInputBrokers(inputBrokers, functionName, gamMemPtr) == false);
+    ok &= (inputBrokers.Size() == 0);
     ok &= INVARIANT(target);
     return ok;
 }
@@ -151,13 +285,15 @@ bool EpicsOutputDataSourceTest::TestGetInputBrokers() {
 bool EpicsOutputDataSourceTest::TestGetOutputBrokers() {
     using namespace MARTe;
     bool ok = true;
+    char name[] = "Dummy"; //TODO: Add this function to *this, otherwise the call to GetInputBrokers() fails.
+    char buffer[25];
     ReferenceContainer outputBrokers;
-    char8* functionName = NULL_PTR(char8*);
-    void* gamMemPtr = NULL_PTR(void*);
+    char8* functionName = static_cast<char8*>(name);
+    void* gamMemPtr = static_cast<void*>(buffer);
     EpicsOutputDataSource target;
     ok &= INVARIANT(target);
-    ok &= (target.GetOutputBrokers(outputBrokers, functionName, gamMemPtr) == false);
-    ok &= (outputBrokers.Size() == 0);
+    ok &= (target.GetOutputBrokers(outputBrokers, functionName, gamMemPtr) == true);
+    ok &= (outputBrokers.Size() == 1);
     ok &= INVARIANT(target);
     return ok;
 }
@@ -173,14 +309,6 @@ bool EpicsOutputDataSourceTest::TestPrepareNextState() {
     //TODO: Check postcondition
     ok &= INVARIANT(target);
     return ok;
-}
-
-bool EpicsOutputDataSourceTest::TestExecute() {
-	return false;
-}
-
-bool EpicsOutputDataSourceTest::TestExecute_Busy() {
-	return false;
 }
 
 bool EpicsOutputDataSourceTest::TestInitialise_Empty() {
@@ -212,32 +340,4 @@ bool EpicsOutputDataSourceTest::TestInitialise_False() {
     ConfigurationDatabase cdb;
     cdb.Write("SleepNature", "False");
     return !test.Initialise(cdb);
-}
-
-bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_One_Signal_Per_GAM() {
-	return false;
-}
-
-bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_MoreThan2Signals() {
-	return false;
-}
-
-bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_No32BitsSignal1() {
-	return false;
-}
-
-bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_No32BitsSignal2() {
-	return false;
-}
-
-bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_NoFrequencySet() {
-	return false;
-}
-
-bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_IntegerSignal1() {
-	return false;
-}
-
-bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_IntegerSignal2() {
-	return false;
 }
