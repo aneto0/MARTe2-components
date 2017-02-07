@@ -15,7 +15,7 @@ pages:
   dependencies:
     - lcov
   script:
-    - scp -r Build/cov_html/ dsortino@freia003.hpc.l:/home/dsortino/www
+    - scp -r Build/cov_html/ dsortino@freia003.hpc.l:/home/dsortino/www/cov
     - mv Build/cov_html/ public/
   artifacts:
     paths:
