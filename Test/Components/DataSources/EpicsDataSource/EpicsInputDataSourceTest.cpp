@@ -116,7 +116,9 @@ bool EpicsInputDataSourceTest::TestSynchronise() {
     target.SetName(targetName);
 
     //Initialize signals configuration on data source:
-    success = SetConfiguredDatabase(target, numberOfSignals);
+    ConfigurationDatabase cdb;
+    success = BuildConfigurationDatabase(cdb, numberOfSignals);
+    success &= target.SetConfiguredDatabase(cdb);
 
     //Allocate memory of data source (it setups the shared data area):
     target.AllocateMemory();
@@ -259,16 +261,41 @@ bool EpicsInputDataSourceTest::TestGetBrokerName() {
 bool EpicsInputDataSourceTest::TestGetInputBrokers() {
     using namespace MARTe;
     bool ok = true;
-    char name[] = "Dummy"; //TODO: Add this function to *this, otherwise the call to GetInputBrokers() fails.
-    char buffer[25];
-    ReferenceContainer inputBrokers;
-    char8* functionName = static_cast<char8*>(name);
+    const uint32 numberOfSignals = 3;
+    const uint32 numberOfFunctions = 5;
+    char buffer[0]; //Size of buffer not relevant in this test.
     void* gamMemPtr = static_cast<void*>(buffer);
     EpicsInputDataSource target;
-    ok &= INVARIANT(target);
-    ok &= (target.GetInputBrokers(inputBrokers, functionName, gamMemPtr) == true);
-    ok &= (inputBrokers.Size() == 1);
-    ok &= INVARIANT(target);
+
+    //Initialize signals/functions configuration on data source:
+    ConfigurationDatabase cdb;
+    ok &= BuildConfigurationDatabase(cdb, numberOfSignals, numberOfFunctions);
+    ok &= target.SetConfiguredDatabase(cdb);
+
+    //Allocate memory for signals (it will be needed by brokers):
+    ok &= target.AllocateMemory();
+
+    //Check datasource's input broker retrieval for each function:
+    for (uint32 i = 0; i < numberOfFunctions; i++) {
+    	StreamString name;
+    	ReferenceContainer inputBrokers;
+
+    	//Set function name:
+    	ok &= name.Printf("Function_%d", i);
+
+    	//Check class invariant:
+    	ok &= INVARIANT(target);
+
+    	//Execute the target method:
+    	ok &= (target.GetInputBrokers(inputBrokers, name.Buffer(), gamMemPtr) == true);
+
+    	//check postcondition:
+    	ok &= (inputBrokers.Size() == 1);
+
+    	//Check class invariant:
+    	ok &= INVARIANT(target);
+    }
+
     return ok;
 }
 
@@ -293,8 +320,7 @@ bool EpicsInputDataSourceTest::TestPrepareNextState() {
     char8* nextStateName = NULL_PTR(char8*);
     EpicsInputDataSource target;
     ok &= INVARIANT(target);
-    ok &= target.PrepareNextState(currentStateName, nextStateName);
-    //TODO: Check postcondition
+    ok &= (target.PrepareNextState(currentStateName, nextStateName) == true);
     ok &= INVARIANT(target);
     return ok;
 }
