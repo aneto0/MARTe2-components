@@ -48,29 +48,9 @@ TEST(FilterGAMGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
-TEST(FilterGAMGTest,TestValuesOfNumCoeff) {
-    FilterGAMTest test;
-    ASSERT_TRUE(test.TestValuesOfNumCoeff());
-}
-
-TEST(FilterGAMGTest,TestNumberOfNumCoeff) {
-    FilterGAMTest test;
-    ASSERT_TRUE(test.TestNumberOfNumCoeff());
-}
-
 TEST(FilterGAMGTest,TestInitialiseNum0) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestInitialiseNum0());
-}
-
-TEST(FilterGAMGTest,TestNumberOfDenCoeff) {
-    FilterGAMTest test;
-    ASSERT_TRUE(test.TestNumberOfDenCoeff());
-}
-
-TEST(FilterGAMGTest,TestValuesOfDenCoeff) {
-    FilterGAMTest test;
-    ASSERT_TRUE(test.TestValuesOfDenCoeff());
 }
 
 TEST(FilterGAMGTest,TestInitialiseDen0) {
@@ -78,9 +58,14 @@ TEST(FilterGAMGTest,TestInitialiseDen0) {
     ASSERT_TRUE(test.TestInitialiseDen0());
 }
 
-TEST(FilterGAMGTest,TestStaticGain) {
+TEST(FilterGAMGTest,TestStaticGainFIR) {
     FilterGAMTest test;
-    ASSERT_TRUE(test.TestStaticGain());
+    ASSERT_TRUE(test.TestStaticGainFIR());
+}
+
+TEST(FilterGAMGTest,TestStaticGainIIR) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestStaticGainIIR());
 }
 
 TEST(FilterGAMGTest,TestFailNormalise) {
@@ -93,16 +78,40 @@ TEST(FilterGAMGTest,TestSetup) {
     ASSERT_TRUE(test.TestSetup());
 }
 
-TEST(FilterGAMGTest,TestSetupFailInputs) {
+TEST(FilterGAMGTest,TestSetupNoInputSignal) {
     FilterGAMTest test;
-    ASSERT_TRUE(test.TestSetupFailInputs());
+    ASSERT_TRUE(test.TestSetupNoInputSignal());
 }
 
-TEST(FilterGAMGTest,TestSetupFailOutputs) {
+TEST(FilterGAMGTest,TestSetupNoOutputSignal) {
     FilterGAMTest test;
-    ASSERT_TRUE(test.TestSetupFailOutputs());
+    ASSERT_TRUE(test.TestSetupNoOutputSignal());
 }
 
+TEST(FilterGAMGTest,TestSetupNoInputSamples) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoInputSamples());
+}
+
+TEST(FilterGAMGTest,TestSetupNoOutputSamples) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoOutputSamples());
+}
+
+TEST(FilterGAMGTest,TestSetupNoNumberOfElementsInput) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoNumberOfElementsInput());
+}
+
+TEST(FilterGAMGTest,TestSetupNoNumberOfElementsOutput) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoNumberOfElementsOutput());
+}
+
+TEST(FilterGAMGTest,TestSetupNumberOfSamplesOutput2) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupNumberOfSamplesOutput2());
+}
 TEST(FilterGAMGTest,TestSetup0NumberOfElements) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestSetup0NumberOfElements());
@@ -157,6 +166,32 @@ TEST(FilterGAMGTest,TestExecuteIIRConstantDimArray1) {
 TEST(FilterGAMGTest,TestExecuteElements1Samples10) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestExecuteElements1Samples10());
+}
+
+TEST(FilterGAMGTest,TestSetupSeveralSignals) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupSeveralSignals());
+}
+
+TEST(FilterGAMGTest,TestSetupSeveralSignalsDiffNumberOfInputElements) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupSeveralSignalsDiffNumberOfInputElements());
+}
+
+TEST(FilterGAMGTest,TestSetupSeveralSignalsDiffNumberOfOutputElements) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupSeveralSignalsDiffNumberOfOutputElements());
+}
+
+
+TEST(FilterGAMGTest,TestSetupSeveralSignalsDiffInputSamples) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupSeveralSignalsDiffInputSamples());
+}
+
+TEST(FilterGAMGTest,TestExecuteSeveralSignalsFIR) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteSeveralSignalsFIR());
 }
 
 

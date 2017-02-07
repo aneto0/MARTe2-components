@@ -26,7 +26,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-
+#include <limits>
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -45,21 +45,237 @@ class FilterGAMTestHelper: public MARTe::FilterGAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
-FilterGAMTestHelper    () {
-
+FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
+        numberOfElements = elements;
+        numberOfSamples = samples;
+        if(numberOfElements > numberOfSamples) {
+            byteSize = numberOfElements * sizeof(MARTe::float32);
+        }
+        else {
+            byteSize = numberOfSamples * sizeof(MARTe::float32);
+        }
+        numH = NULL;
+        denH = NULL;
+        isInitialised = false;
     }
 
     virtual ~FilterGAMTestHelper () {
+
+        if(numH != NULL) {
+            delete[] numH;
+        }
+        if(denH != NULL) {
+            delete[] denH;
+        }
 
     }
 
     void *GetInputSignalsMemory() {
         return MARTe::GAM::GetInputSignalsMemory();
     }
-
     void *GetOutputSignalsMemory() {
         return MARTe::GAM::GetOutputSignalsMemory();
     }
+    void *GetInputSignalsMemory(MARTe::uint32 idx) {
+        return MARTe::GAM::GetInputSignalMemory(idx);
+    }
+
+    void *GetOutputSignalsMemory(MARTe::uint32 idx) {
+        return MARTe::GAM::GetOutputSignalMemory(idx);
+    }
+    bool InitialiseFilterFIR() {
+        bool ret = true;
+        if(isInitialised == false) {
+            numH = new MARTe::float32[2];
+            numH[0] = 0.5;
+            numH[1] = 0.5;
+            denH = new MARTe::float32[1];
+            denH[0] = 1;
+            MARTe::Vector<MARTe::float32> numVec(numH, 2);
+            MARTe::Vector<MARTe::float32> denVec(denH, 1);
+            ret &= config.Write("Num", numVec);
+            ret &= config.Write("Den", denVec);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
+    }
+    bool InitialiseFilterIIR() {
+        bool ret = true;
+        if(isInitialised == false) {
+            numH = new MARTe::float32[1];
+            numH[0] = 1;
+            denH = new MARTe::float32[2];
+            denH[0] = 1;
+            denH[1] = -1;
+            MARTe::Vector<MARTe::float32> numVec(numH, 1);
+            MARTe::Vector<MARTe::float32> denVec(denH, 2);
+            ret &= config.Write("Num", numVec);
+            ret &= config.Write("Den", denVec);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
+    }
+
+    bool IsInitialised() {
+        return isInitialised;
+    }
+    bool InitialiseConfigDataBaseSignal1() {
+        bool ok = true;
+        MARTe::uint32 totalByteSize = byteSize;
+        ok &= configSignals.CreateAbsolute("Signals.InputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("QualifiedName", "InputSignal1");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type", "float32");
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+        ok &= configSignals.Write("NumberOfElements", numberOfElements);
+        ok &= configSignals.Write("ByteSize", byteSize);
+
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.Write("ByteSize", totalByteSize);
+
+        ok &= configSignals.MoveToRoot();
+        ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("QualifiedName", "OutputSignal1");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type", "float32");
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+        if(numberOfSamples > numberOfElements) {
+            ok &= configSignals.Write("NumberOfElements", numberOfSamples);
+        }
+        else {
+            ok &= configSignals.Write("NumberOfElements", numberOfElements);
+        }
+        ok &= configSignals.Write("ByteSize", byteSize);
+
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.Write("ByteSize", totalByteSize);
+
+        ok &= configSignals.MoveToRoot();
+
+        ok &= configSignals.CreateAbsolute("Memory.InputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.CreateRelative("Signals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("Samples", numberOfSamples);
+
+        ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.CreateRelative("Signals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("Samples", 1);
+
+        ok &= configSignals.MoveToRoot();
+        return ok;
+    }
+
+    bool InitialiseConfigDataBaseSignal2() {
+        using namespace MARTe;
+        bool ok = true;
+
+        uint32 numberOfSignals = 2;
+        uint32 totalByteSize = byteSize * numberOfSignals;
+        ok &= configSignals.CreateAbsolute("Signals.InputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("QualifiedName", "InputSignal1");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type", "float32");
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+        ok &= configSignals.Write("NumberOfElements", numberOfElements);
+        ok &= configSignals.Write("ByteSize", byteSize);
+
+        ok &= configSignals.MoveAbsolute("Signals.InputSignals");
+        ok &= configSignals.CreateRelative("1");
+        ok &= configSignals.Write("QualifiedName", "InputSignal2");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type", "float32");
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+        ok &= configSignals.Write("NumberOfElements", numberOfElements);
+        ok &= configSignals.Write("ByteSize", byteSize);
+
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.Write("ByteSize", totalByteSize);
+
+        ok &= configSignals.MoveToRoot();
+        ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("QualifiedName", "OutputSignal1");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type", "float32");
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+        //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
+        if(numberOfSamples > numberOfElements) {
+            ok &= configSignals.Write("NumberOfElements", numberOfSamples);
+        }
+        else {
+            ok &= configSignals.Write("NumberOfElements", numberOfElements);
+        }
+        ok &= configSignals.Write("ByteSize", byteSize);
+
+        ok &= configSignals.MoveAbsolute("Signals.OutputSignals");
+        ok &= configSignals.CreateRelative("1");
+        ok &= configSignals.Write("QualifiedName", "OutputSignal2");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type", "float32");
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+        //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
+        if(numberOfSamples > numberOfElements) {
+            ok &= configSignals.Write("NumberOfElements", numberOfSamples);
+        }
+        else {
+            ok &= configSignals.Write("NumberOfElements", numberOfElements);
+        }
+        ok &= configSignals.Write("ByteSize", byteSize);
+
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.Write("ByteSize", totalByteSize);
+
+        ok &= configSignals.MoveToRoot();
+
+        ok &= configSignals.CreateAbsolute("Memory.InputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.CreateRelative("Signals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("Samples", numberOfSamples);
+
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.CreateRelative("1");
+        ok &= configSignals.Write("Samples", numberOfSamples);
+
+        ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.CreateRelative("Signals");
+        ok &= configSignals.CreateRelative("0");
+        //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
+        ok &= configSignals.Write("Samples", 1);
+
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.CreateRelative("1");
+        ok &= configSignals.Write("Samples", 1);
+
+        ok &= configSignals.MoveToRoot();
+        return ok;
+    }
+    MARTe::uint32 numberOfElements;
+    MARTe::uint32 numberOfSamples;
+    MARTe::uint32 byteSize;
+    MARTe::ConfigurationDatabase configSignals;
+    MARTe::ConfigurationDatabase config;
+    MARTe::float32 *numH;
+    MARTe::float32 *denH;
+private:
+    bool isInitialised;
 };
 CLASS_REGISTER(FilterGAMTestHelper, "1.0")
 
@@ -91,101 +307,55 @@ bool FilterGAMTest::TestConstructor() {
         num[i] = 0;
         den[i] = 0;
     }
-
-//try to get the num and denominator vales of the filter
+    //try to get the num and denominator vales of the filter
     ok &= !gam.GetNumCoeff(num);
     ok &= !gam.GetDenCoeff(den);
-
-//Check that the values are not changed
+    //Check that the values are not changed
     for (uint32 i = 0; i < sizeMem; i++) {
         ok &= (num[i] == 0);
         ok &= (den[i] == 0);
     }
-
-//Check that the static gain is 0
+    //Check that the static gain is 0
     ok &= (0 == gam.GetStaticGain());
-//Check that the number of numerator coefficients is 0
+    //Check that the number of numerator coefficients is 0
     ok &= (0 == gam.GetNumberOfNumCoeff());
-// Idem denominator
+    // Idem denominator
     ok &= (0 == gam.GetNumberOfDenCoeff());
-//Check normalisation
+    //Check normalisation
     ok &= !gam.CheckNormalisation();
-
+    ok &= (0 == gam.GetNumberOfSamples());
+    ok &= (0 == gam.GetNumberOfSignals());
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
 bool FilterGAMTest::TestInitialise() {
     using namespace MARTe;
-    FilterGAM gam;
+    FilterGAMTestHelper gam;
     gam.SetName("Test");
-    ConfigurationDatabase config;
-    float32 *num = new float32[2];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    float32 *den = new float32[1];
-    den[0] = 1;
-    Vector<float32> numVec(num, 2);
-    Vector<float32> denVec(den, 1);
-    bool ok = config.Write("Num", numVec);
-    ok &= config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
-    delete[] num;
-    delete[] den;
-    return ok;
-}
+    bool ok = true;
 
-bool FilterGAMTest::TestNumberOfNumCoeff() {
-    using namespace MARTe;
-    FilterGAM gam;
-    gam.SetName("Test");
-    ConfigurationDatabase config;
-    uint32 numberOfNumCoeff = 2;
-    uint32 numberOfDenCoeff = 1;
-    float32 *num = new float32[numberOfNumCoeff];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    Vector<float32> numVec(num, numberOfNumCoeff);
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
 
-    float32 *den = new float32[numberOfDenCoeff];
-    den[0] = 1;
-    Vector<float32> denVec(den, numberOfDenCoeff);
-
-    bool ok = config.Write("Num", numVec);
-    ok &= config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
-    ok &= (gam.GetNumberOfNumCoeff() == (numberOfNumCoeff));
-    delete[] num;
-    delete[] den;
-    return ok;
-}
-
-bool FilterGAMTest::TestValuesOfNumCoeff() {
-    using namespace MARTe;
-    FilterGAM gam;
-    gam.SetName("Test");
-    ConfigurationDatabase config;
-    uint32 numberOfNumCoeff = 2;
-    uint32 numberOfDenCoeff = 1;
-    float32 *num = new float32[numberOfNumCoeff];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    Vector<float32> numVec(num, numberOfNumCoeff);
-
-    float32 *den = new float32[numberOfDenCoeff];
-    den[0] = 1;
-    Vector<float32> denVec(den, numberOfDenCoeff);
-
-    bool ok = config.Write("Num", numVec);
-    ok &= config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
-    float32 *numRet = new float32[numberOfNumCoeff];
-    gam.GetNumCoeff(numRet);
-    for (uint32 i = 0; i < numberOfNumCoeff; i++) {
-        ok &= (num[i] == numRet[i]);
+    ok &= gam.GetNumberOfNumCoeff() == 2;
+    ok &= gam.GetNumberOfDenCoeff() == 1;
+    float32 *retNum = new float32[2];
+    float32 *retDen = new float32[1];
+    ok &= gam.GetNumCoeff(retNum);
+    for (uint32 i = 0; i < 2; i++) {
+        ok &= (retNum[i] == gam.numH[i]);
     }
-    delete[] num;
-    delete[] numRet;
-    delete[] den;
+    ok &= gam.GetDenCoeff(retDen);
+    for (uint32 i = 0u; i < 1; i++) {
+        ok &= (retDen[i] == gam.denH[i]);
+    }
+    ok &= (1 == gam.GetStaticGain());
+    ok &= (0 == gam.GetNumberOfSamples());
+    ok &= (0 == gam.GetNumberOfSignals());
+    delete[] retNum;
+    delete[] retDen;
     return ok;
 }
 
@@ -208,62 +378,6 @@ bool FilterGAMTest::TestInitialiseNum0() {
     return !ok;
 }
 
-bool FilterGAMTest::TestNumberOfDenCoeff() {
-    using namespace MARTe;
-    FilterGAM gam;
-    gam.SetName("Test");
-    ConfigurationDatabase config;
-    uint32 numberOfNumCoeff = 2;
-    uint32 numberOfDenCoeff = 1;
-    float32 *num = new float32[numberOfNumCoeff];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    Vector<float32> numVec(num, numberOfNumCoeff);
-
-    float32 *den = new float32[numberOfDenCoeff];
-    den[0] = 1;
-    Vector<float32> denVec(den, numberOfDenCoeff);
-
-    bool ok = config.Write("Num", numVec);
-    ok &= config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
-    ok &= (gam.GetNumberOfDenCoeff() == (numberOfDenCoeff));
-    delete[] num;
-    delete[] den;
-    return ok;
-}
-
-bool FilterGAMTest::TestValuesOfDenCoeff() {
-    using namespace MARTe;
-    FilterGAM gam;
-    gam.SetName("Test");
-    ConfigurationDatabase config;
-    uint32 numberOfNumCoeff = 2;
-    uint32 numberOfDenCoeff = 2;
-    float32 *num = new float32[numberOfNumCoeff];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    Vector<float32> numVec(num, numberOfNumCoeff);
-
-    float32 *den = new float32[numberOfDenCoeff];
-    den[0] = 1;
-    den[1] = 2;
-    Vector<float32> denVec(den, numberOfDenCoeff);
-
-    float32 *denRet = new float32[numberOfDenCoeff];
-    bool ok = config.Write("Num", numVec);
-    ok &= config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
-    gam.GetDenCoeff(denRet);
-    for (uint32 i = 0; i < numberOfDenCoeff; i++) {
-        ok &= (den[i] == denRet[i]);
-    }
-    delete[] num;
-    delete[] den;
-    delete[] denRet;
-    return ok;
-}
-
 bool FilterGAMTest::TestInitialiseDen0() {
     using namespace MARTe;
     FilterGAM gam;
@@ -281,27 +395,30 @@ bool FilterGAMTest::TestInitialiseDen0() {
     return !ok;
 }
 
-bool FilterGAMTest::TestStaticGain() {
+bool FilterGAMTest::TestStaticGainFIR() {
     using namespace MARTe;
-    FilterGAM gam;
+    FilterGAMTestHelper gam;
     gam.SetName("Test");
     bool ok = true;
-    ConfigurationDatabase config;
-    uint32 numberOfNumCoeff = 2;
-    uint32 numberOfDenCoeff = 1;
-    float32 *num = new float32[numberOfNumCoeff];
-    float32 *den = new float32[numberOfDenCoeff];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    den[0] = 1;
-    Vector<float32> numVec(num, numberOfNumCoeff);
-    Vector<float32> denVec(den, numberOfDenCoeff);
-    ok &= config.Write("Num", numVec);
-    ok &= config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+    //Check static gain
     ok &= (1 == gam.GetStaticGain());
-    delete[] num;
-    delete[] den;
+
+    return ok;
+}
+
+bool FilterGAMTest::TestStaticGainIIR() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterIIR();
+    ok &= gam.Initialise(gam.config);
+    //Check static gain
+    ok &= (std::numeric_limits<float32>::infinity() == gam.GetStaticGain());
     return ok;
 }
 
@@ -333,75 +450,26 @@ bool FilterGAMTest::TestSetup() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
     gam.SetName("Test");
-    ConfigurationDatabase config;
-    float32 *num = new float32[2];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    float32 *den = new float32[1];
-    den[0] = 1;
-    Vector<float32> numVec(num, 2);
-    Vector<float32> denVec(den, 1);
-    bool ok = config.Write("Num", numVec);
-    ok &= config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
-    uint32 numberOfElements = 10;
-    uint32 numberOfSamples = 1;
-    uint32 byteSize = numberOfElements * sizeof(float32);
-    uint32 totalByteSize = byteSize;
-    ConfigurationDatabase configSignals;
-    configSignals.CreateAbsolute("Signals.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "InputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("Samples", numberOfSamples);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    bool ok = true;
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
 
-    configSignals.MoveToRoot();
-    configSignals.CreateAbsolute("Signals.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "OutputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("Samples", numberOfSamples);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
-
-    configSignals.MoveToRoot();
-
-    configSignals.CreateAbsolute("Memory.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", 1);
-
-    configSignals.CreateAbsolute("Memory.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", 1);
-
-    configSignals.MoveToRoot();
-
-    ok &= gam.SetConfiguredDatabase(configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
+
     ok &= gam.Setup();
+
+    //Verify post-conditions
+    ok &= (gam.GetNumberOfSamples() == gam.numberOfElements);
+    ok &= (gam.GetNumberOfSignals() == 1);
     return ok;
 }
 
-bool FilterGAMTest::TestSetupFailInputs() {
+bool FilterGAMTest::TestSetupNoInputSignal() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
     gam.SetName("Test");
@@ -416,7 +484,7 @@ bool FilterGAMTest::TestSetupFailInputs() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= gam.Initialise(config);
-    uint32 numberOfSamples = 1;
+//    uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
     uint32 byteSize = numberOfElements * sizeof(float32);
     uint32 totalByteSize = byteSize;
@@ -428,7 +496,6 @@ bool FilterGAMTest::TestSetupFailInputs() {
      configSignals.Write("DataSource", "TestDataSource");
      configSignals.Write("Type", "float32");
      configSignals.Write("NumberOfDimensions", 1);
-     configSignals.Write("Samples", numberOfSamples);
      configSignals.Write("NumberOfElements", numberOfElements);
      configSignals.Write("ByteSize", byteSize);
      */
@@ -442,7 +509,6 @@ bool FilterGAMTest::TestSetupFailInputs() {
     configSignals.Write("DataSource", "TestDataSource");
     configSignals.Write("Type", "float32");
     configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("Samples", numberOfSamples);
     configSignals.Write("NumberOfElements", numberOfElements);
     configSignals.Write("ByteSize", byteSize);
 
@@ -474,7 +540,221 @@ bool FilterGAMTest::TestSetupFailInputs() {
     return ok;
 }
 
-bool FilterGAMTest::TestSetupFailOutputs() {
+bool FilterGAMTest::TestSetupNoOutputSignal() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    num[0] = 0.5;
+    num[1] = 0.5;
+    float32 *den = new float32[1];
+    den[0] = 1;
+    Vector<float32> numVec(num, 2);
+    Vector<float32> denVec(den, 1);
+    bool ok = config.Write("Num", numVec);
+    ok &= config.Write("Den", denVec);
+    ok &= gam.Initialise(config);
+//    uint32 numberOfSamples = 1;
+    uint32 numberOfElements = 10;
+    uint32 byteSize = numberOfElements * sizeof(float32);
+    uint32 totalByteSize = byteSize;
+    ConfigurationDatabase configSignals;
+    configSignals.CreateAbsolute("Signals.InputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("QualifiedName", "InputSignal1");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.Write("Type", "float32");
+    configSignals.Write("NumberOfDimensions", 1);
+    configSignals.Write("NumberOfElements", numberOfElements);
+    configSignals.Write("ByteSize", byteSize);
+
+    configSignals.MoveToAncestor(1u);
+    configSignals.Write("ByteSize", totalByteSize);
+    /*
+     configSignals.MoveToRoot();
+     configSignals.CreateAbsolute("Signals.OutputSignals");
+     configSignals.CreateRelative("0");
+     configSignals.Write("QualifiedName", "OutputSignal1");
+     configSignals.Write("DataSource", "TestDataSource");
+     configSignals.Write("Type", "float32");
+     configSignals.Write("NumberOfDimensions", 1);
+     configSignals.Write("NumberOfElements", numberOfElements);
+     configSignals.Write("ByteSize", byteSize);
+
+     configSignals.MoveToAncestor(1u);
+     configSignals.Write("ByteSize", totalByteSize);
+     */
+
+    configSignals.MoveToRoot();
+
+    configSignals.CreateAbsolute("Memory.InputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.CreateRelative("Signals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("Samples", 1);
+    /*
+     configSignals.CreateAbsolute("Memory.OutputSignals");
+     configSignals.CreateRelative("0");
+     configSignals.Write("DataSource", "TestDataSource");
+     configSignals.CreateRelative("Signals");
+     configSignals.CreateRelative("0");
+     configSignals.Write("Samples", 1);
+     */
+    configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= !gam.Setup();
+    return ok;
+}
+
+bool FilterGAMTest::TestSetupNoInputSamples() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    num[0] = 0.5;
+    num[1] = 0.5;
+    float32 *den = new float32[1];
+    den[0] = 1;
+    Vector<float32> numVec(num, 2);
+    Vector<float32> denVec(den, 1);
+    bool ok = config.Write("Num", numVec);
+    ok &= config.Write("Den", denVec);
+    ok &= gam.Initialise(config);
+//    uint32 numberOfSamples = 1;
+    uint32 numberOfElements = 10;
+    uint32 byteSize = numberOfElements * sizeof(float32);
+    uint32 totalByteSize = byteSize;
+    ConfigurationDatabase configSignals;
+    configSignals.CreateAbsolute("Signals.InputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("QualifiedName", "InputSignal1");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.Write("Type", "float32");
+    configSignals.Write("NumberOfDimensions", 1);
+    configSignals.Write("NumberOfElements", numberOfElements);
+    configSignals.Write("ByteSize", byteSize);
+
+    configSignals.MoveToAncestor(1u);
+    configSignals.Write("ByteSize", totalByteSize);
+
+    configSignals.MoveToRoot();
+    configSignals.CreateAbsolute("Signals.OutputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("QualifiedName", "OutputSignal1");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.Write("Type", "float32");
+    configSignals.Write("NumberOfDimensions", 1);
+    configSignals.Write("NumberOfElements", numberOfElements);
+    configSignals.Write("ByteSize", byteSize);
+
+    configSignals.MoveToAncestor(1u);
+    configSignals.Write("ByteSize", totalByteSize);
+
+    configSignals.MoveToRoot();
+    /*
+     configSignals.CreateAbsolute("Memory.InputSignals");
+     configSignals.CreateRelative("0");
+     configSignals.Write("DataSource", "TestDataSource");
+     configSignals.CreateRelative("Signals");
+     configSignals.CreateRelative("0");
+     configSignals.Write("Samples", 1);
+
+     configSignals.CreateAbsolute("Memory.OutputSignals");
+     configSignals.CreateRelative("0");
+     configSignals.Write("DataSource", "TestDataSource");
+     configSignals.CreateRelative("Signals");
+     configSignals.CreateRelative("0");
+     configSignals.Write("Samples", 1);
+     */
+    configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= !gam.Setup();
+    return ok;
+}
+
+bool FilterGAMTest::TestSetupNoOutputSamples() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    num[0] = 0.5;
+    num[1] = 0.5;
+    float32 *den = new float32[1];
+    den[0] = 1;
+    Vector<float32> numVec(num, 2);
+    Vector<float32> denVec(den, 1);
+    bool ok = config.Write("Num", numVec);
+    ok &= config.Write("Den", denVec);
+    ok &= gam.Initialise(config);
+//    uint32 numberOfSamples = 1;
+    uint32 numberOfElements = 10;
+    uint32 byteSize = numberOfElements * sizeof(float32);
+    uint32 totalByteSize = byteSize;
+    ConfigurationDatabase configSignals;
+    configSignals.CreateAbsolute("Signals.InputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("QualifiedName", "InputSignal1");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.Write("Type", "float32");
+    configSignals.Write("NumberOfDimensions", 1);
+    configSignals.Write("NumberOfElements", numberOfElements);
+    configSignals.Write("ByteSize", byteSize);
+
+    configSignals.MoveToAncestor(1u);
+    configSignals.Write("ByteSize", totalByteSize);
+
+    configSignals.MoveToRoot();
+    configSignals.CreateAbsolute("Signals.OutputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("QualifiedName", "OutputSignal1");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.Write("Type", "float32");
+    configSignals.Write("NumberOfDimensions", 1);
+    configSignals.Write("NumberOfElements", numberOfElements);
+    configSignals.Write("ByteSize", byteSize);
+
+    configSignals.MoveToAncestor(1u);
+    configSignals.Write("ByteSize", totalByteSize);
+
+    configSignals.MoveToRoot();
+
+    configSignals.CreateAbsolute("Memory.InputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.CreateRelative("Signals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("Samples", 1);
+    /*
+     configSignals.CreateAbsolute("Memory.OutputSignals");
+     configSignals.CreateRelative("0");
+     configSignals.Write("DataSource", "TestDataSource");
+     configSignals.CreateRelative("Signals");
+     configSignals.CreateRelative("0");
+     configSignals.Write("Samples", 1);
+     */
+    configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= !gam.Setup();
+    return ok;
+}
+
+bool FilterGAMTest::TestSetupNoNumberOfElementsInput() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
     gam.SetName("Test");
@@ -500,27 +780,23 @@ bool FilterGAMTest::TestSetupFailOutputs() {
     configSignals.Write("DataSource", "TestDataSource");
     configSignals.Write("Type", "float32");
     configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("Samples", numberOfSamples);
+    configSignals.Write("ByteSize", byteSize);
+
+    configSignals.MoveToAncestor(1u);
+    configSignals.Write("ByteSize", totalByteSize);
+
+    configSignals.MoveToRoot();
+    configSignals.CreateAbsolute("Signals.OutputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("QualifiedName", "OutputSignal1");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.Write("Type", "float32");
+    configSignals.Write("NumberOfDimensions", 1);
     configSignals.Write("NumberOfElements", numberOfElements);
     configSignals.Write("ByteSize", byteSize);
 
     configSignals.MoveToAncestor(1u);
     configSignals.Write("ByteSize", totalByteSize);
-    /*
-     configSignals.MoveToRoot();
-     configSignals.CreateAbsolute("Signals.OutputSignals");
-     configSignals.CreateRelative("0");
-     configSignals.Write("QualifiedName", "OutputSignal1");
-     configSignals.Write("DataSource", "TestDataSource");
-     configSignals.Write("Type", "float32");
-     configSignals.Write("NumberOfDimensions", 1);
-     configSignals.Write("Samples", numberOfSamples);
-     configSignals.Write("NumberOfElements", numberOfElements);
-     configSignals.Write("ByteSize", byteSize);
-
-     configSignals.MoveToAncestor(1u);
-     configSignals.Write("ByteSize", totalByteSize);
-     */
 
     configSignals.MoveToRoot();
 
@@ -529,15 +805,157 @@ bool FilterGAMTest::TestSetupFailOutputs() {
     configSignals.Write("DataSource", "TestDataSource");
     configSignals.CreateRelative("Signals");
     configSignals.CreateRelative("0");
+    configSignals.Write("Samples", numberOfSamples);
+
+    configSignals.CreateAbsolute("Memory.OutputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.CreateRelative("Signals");
+    configSignals.CreateRelative("0");
     configSignals.Write("Samples", 1);
-    /*
-     configSignals.CreateAbsolute("Memory.OutputSignals");
-     configSignals.CreateRelative("0");
-     configSignals.Write("DataSource", "TestDataSource");
-     configSignals.CreateRelative("Signals");
-     configSignals.CreateRelative("0");
-     configSignals.Write("Samples", 1);
-     */
+
+    configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= !gam.Setup();
+    return ok;
+}
+
+bool FilterGAMTest::TestSetupNoNumberOfElementsOutput() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    num[0] = 0.5;
+    num[1] = 0.5;
+    float32 *den = new float32[1];
+    den[0] = 1;
+    Vector<float32> numVec(num, 2);
+    Vector<float32> denVec(den, 1);
+    bool ok = config.Write("Num", numVec);
+    ok &= config.Write("Den", denVec);
+    ok &= gam.Initialise(config);
+    uint32 numberOfSamples = 1;
+    uint32 numberOfElements = 10;
+    uint32 byteSize = numberOfElements * sizeof(float32);
+    uint32 totalByteSize = byteSize;
+    ConfigurationDatabase configSignals;
+    configSignals.CreateAbsolute("Signals.InputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("QualifiedName", "InputSignal1");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.Write("Type", "float32");
+    configSignals.Write("NumberOfDimensions", 1);
+    configSignals.Write("NumberOfElements", numberOfElements);
+    configSignals.Write("ByteSize", byteSize);
+
+    configSignals.MoveToAncestor(1u);
+    configSignals.Write("ByteSize", totalByteSize);
+
+    configSignals.MoveToRoot();
+    configSignals.CreateAbsolute("Signals.OutputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("QualifiedName", "OutputSignal1");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.Write("Type", "float32");
+    configSignals.Write("NumberOfDimensions", 1);
+    configSignals.Write("ByteSize", byteSize);
+
+    configSignals.MoveToAncestor(1u);
+    configSignals.Write("ByteSize", totalByteSize);
+
+    configSignals.MoveToRoot();
+
+    configSignals.CreateAbsolute("Memory.InputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.CreateRelative("Signals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("Samples", numberOfSamples);
+
+    configSignals.CreateAbsolute("Memory.OutputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.CreateRelative("Signals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("Samples", 1);
+
+    configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= !gam.Setup();
+    return ok;
+}
+
+bool FilterGAMTest::TestSetupNumberOfSamplesOutput2() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    num[0] = 0.5;
+    num[1] = 0.5;
+    float32 *den = new float32[1];
+    den[0] = 1;
+    Vector<float32> numVec(num, 2);
+    Vector<float32> denVec(den, 1);
+    bool ok = config.Write("Num", numVec);
+    ok &= config.Write("Den", denVec);
+    ok &= gam.Initialise(config);
+    uint32 numberOfSamples = 1;
+    uint32 numberOfElements = 10;
+    uint32 byteSize = numberOfElements * sizeof(float32);
+    uint32 totalByteSize = byteSize;
+    ConfigurationDatabase configSignals;
+    configSignals.CreateAbsolute("Signals.InputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("QualifiedName", "InputSignal1");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.Write("Type", "float32");
+    configSignals.Write("NumberOfDimensions", 1);
+    configSignals.Write("NumberOfElements", numberOfElements);
+    configSignals.Write("ByteSize", byteSize);
+
+    configSignals.MoveToAncestor(1u);
+    configSignals.Write("ByteSize", totalByteSize);
+
+    configSignals.MoveToRoot();
+    configSignals.CreateAbsolute("Signals.OutputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("QualifiedName", "OutputSignal1");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.Write("Type", "float32");
+    configSignals.Write("NumberOfDimensions", 1);
+    configSignals.Write("NumberOfElements", numberOfElements);
+    configSignals.Write("ByteSize", byteSize);
+
+    configSignals.MoveToAncestor(1u);
+    configSignals.Write("ByteSize", totalByteSize);
+
+    configSignals.MoveToRoot();
+
+    configSignals.CreateAbsolute("Memory.InputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.CreateRelative("Signals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("Samples", numberOfSamples);
+
+    configSignals.CreateAbsolute("Memory.OutputSignals");
+    configSignals.CreateRelative("0");
+    configSignals.Write("DataSource", "TestDataSource");
+    configSignals.CreateRelative("Signals");
+    configSignals.CreateRelative("0");
+    //Wrong number of output samples
+    configSignals.Write("Samples", 2);
+
     configSignals.MoveToRoot();
 
     ok &= gam.SetConfiguredDatabase(configSignals);
@@ -608,7 +1026,7 @@ bool FilterGAMTest::TestSetup0NumberOfElements() {
     configSignals.Write("DataSource", "TestDataSource");
     configSignals.CreateRelative("Signals");
     configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
+    configSignals.Write("Samples", 1);
 
     configSignals.MoveToRoot();
 
@@ -759,75 +1177,23 @@ bool FilterGAMTest::TestExecuteFIRConstantInput() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
     gam.SetName("Test");
-    ConfigurationDatabase config;
-    float32 *num = new float32[2];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    float32 *den = new float32[1];
-    den[0] = 1;
-    Vector<float32> numVec(num, 2);
-    Vector<float32> denVec(den, 1);
-    bool ok = config.Write("Num", numVec);
-    ok = config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
+    bool ok = true;
 
-    uint32 numberOfSamples = 1;
-    uint32 numberOfElements = 10;
-    uint32 byteSize = numberOfElements * sizeof(float32);
-    uint32 totalByteSize = byteSize;
-    ConfigurationDatabase configSignals;
-    configSignals.CreateAbsolute("Signals.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "InputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
 
-    configSignals.MoveToRoot();
-    configSignals.CreateAbsolute("Signals.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "OutputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
-
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
-
-    configSignals.MoveToRoot();
-
-    configSignals.CreateAbsolute("Memory.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.CreateAbsolute("Memory.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.MoveToRoot();
-
-    ok &= gam.SetConfiguredDatabase(configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
+
     ok &= gam.Setup();
 
     float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
     float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
     //assign inputs and outputs
-    for (uint32 i = 0u; i < numberOfElements; i++) {
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = 1;
         gamMemoryOut[i] = 0;
     }
@@ -835,12 +1201,9 @@ bool FilterGAMTest::TestExecuteFIRConstantInput() {
         gam.Execute();
     }
     ok &= (gamMemoryOut[0] == 0.5);
-    for (uint32 i = 1u; i < numberOfElements; i++) {
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == 1.0);
     }
-
-    delete[] num;
-    delete[] den;
     return ok;
 }
 
@@ -848,74 +1211,24 @@ bool FilterGAMTest::TestExecuteFIRRampInput() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
     gam.SetName("Test");
-    ConfigurationDatabase config;
-    float32 *num = new float32[2];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    float32 *den = new float32[1];
-    den[0] = 1;
-    Vector<float32> numVec(num, 2);
-    Vector<float32> denVec(den, 1);
-    bool ok = config.Write("Num", numVec);
-    ok = config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
-    uint32 numberOfSamples = 1;
-    uint32 numberOfElements = 10;
-    uint32 byteSize = numberOfElements * sizeof(float32);
-    uint32 totalByteSize = byteSize;
-    ConfigurationDatabase configSignals;
-    configSignals.CreateAbsolute("Signals.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "InputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    bool ok = true;
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
 
-    configSignals.MoveToRoot();
-    configSignals.CreateAbsolute("Signals.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "OutputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
-
-    configSignals.MoveToRoot();
-
-    configSignals.CreateAbsolute("Memory.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.CreateAbsolute("Memory.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.MoveToRoot();
-
-    ok &= gam.SetConfiguredDatabase(configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
+
     ok &= gam.Setup();
 
     float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
     float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+
     //assign inputs and outputs
-    for (uint32 i = 0u; i < numberOfSamples; i++) {
+    for (uint32 i = 0u; i < gam.numberOfSamples; i++) {
         gamMemoryIn[i] = i;
         gamMemoryOut[i] = 0;
     }
@@ -923,12 +1236,9 @@ bool FilterGAMTest::TestExecuteFIRRampInput() {
         gam.Execute();
     }
     ok &= (gamMemoryOut[0] == 0);
-    for (uint32 i = 1u; i < numberOfSamples; i++) {
+    for (uint32 i = 1u; i < gam.numberOfSamples; i++) {
         ok &= (gamMemoryOut[i] == i - 0.5);
     }
-
-    delete[] num;
-    delete[] den;
     return ok;
 }
 
@@ -936,74 +1246,24 @@ bool FilterGAMTest::TestExecuteFIRConstantInput2() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
     gam.SetName("Test");
-    ConfigurationDatabase config;
-    float32 *num = new float32[2];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    float32 *den = new float32[1];
-    den[0] = 1;
-    Vector<float32> numVec(num, 2);
-    Vector<float32> denVec(den, 1);
-    bool ok = config.Write("Num", numVec);
-    ok = config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
-    uint32 numberOfElements = 10;
-    uint32 numberOfSamples = 1;
-    uint32 byteSize = numberOfElements * sizeof(float32);
-    uint32 totalByteSize = byteSize;
-    ConfigurationDatabase configSignals;
-    configSignals.CreateAbsolute("Signals.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "InputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    bool ok = true;
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
 
-    configSignals.MoveToRoot();
-    configSignals.CreateAbsolute("Signals.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "OutputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
-
-    configSignals.MoveToRoot();
-
-    configSignals.CreateAbsolute("Memory.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.CreateAbsolute("Memory.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.MoveToRoot();
-
-    ok &= gam.SetConfiguredDatabase(configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
+
     ok &= gam.Setup();
 
     float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
     float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+
     //assign inputs and outputs
-    for (uint32 i = 0u; i < numberOfElements; i++) {
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = 1;
         gamMemoryOut[i] = 0;
     }
@@ -1011,15 +1271,14 @@ bool FilterGAMTest::TestExecuteFIRConstantInput2() {
         gam.Execute();
     }
     ok &= (gamMemoryOut[0] == 0.5);
-    for (uint32 i = 1u; i < numberOfElements; i++) {
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == 1.0);
     }
     gam.Execute();
-    for (uint32 i = 0u; i < numberOfElements; i++) {
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == 1.0);
     }
-    delete[] num;
-    delete[] den;
+
     return ok;
 }
 
@@ -1027,75 +1286,23 @@ bool FilterGAMTest::TestExecuteFIRRampInput2() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
     gam.SetName("Test");
-    ConfigurationDatabase config;
-    float32 *num = new float32[2];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    float32 *den = new float32[1];
-    den[0] = 1;
-    Vector<float32> numVec(num, 2);
-    Vector<float32> denVec(den, 1);
-    bool ok = config.Write("Num", numVec);
-    ok = config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
+    bool ok = true;
 
-    uint32 numberOfSamples = 1;
-    uint32 numberOfElements = 10;
-    uint32 byteSize = numberOfElements * sizeof(float32);
-    uint32 totalByteSize = byteSize;
-    ConfigurationDatabase configSignals;
-    configSignals.CreateAbsolute("Signals.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "InputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
 
-    configSignals.MoveToRoot();
-    configSignals.CreateAbsolute("Signals.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "OutputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
-
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
-
-    configSignals.MoveToRoot();
-
-    configSignals.CreateAbsolute("Memory.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.CreateAbsolute("Memory.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.MoveToRoot();
-
-    ok &= gam.SetConfiguredDatabase(configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
+
     ok &= gam.Setup();
 
     float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
     float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
     //assign inputs and outputs
-    for (uint32 i = 0u; i < numberOfElements; i++) {
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = i;
         gamMemoryOut[i] = 0;
     }
@@ -1103,20 +1310,17 @@ bool FilterGAMTest::TestExecuteFIRRampInput2() {
         gam.Execute();
     }
     ok &= (gamMemoryOut[0] == 0);
-    for (uint32 i = 1u; i < numberOfElements; i++) {
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == i - 0.5);
     }
-    for (uint32 i = 0u; i < numberOfElements; i++) {
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = i + 10;
         //gamMemoryOut[i] = 0;
     }
     gam.Execute();
-    for (uint32 i = 0u; i < numberOfElements; i++) {
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == 10 + i - 0.5);
     }
-
-    delete[] num;
-    delete[] den;
     return ok;
 }
 
@@ -1124,74 +1328,23 @@ bool FilterGAMTest::TestExecuteIIRConstant() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
     gam.SetName("Test");
-    ConfigurationDatabase config;
-    float32 *num = new float32[1];
-    num[0] = 1;
-    float32 *den = new float32[2];
-    den[0] = 1;
-    den[1] = -1;
-    Vector<float32> numVec(num, 1);
-    Vector<float32> denVec(den, 2);
-    bool ok = config.Write("Num", numVec);
-    ok = config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
-    uint32 numberOfSamples = 1;
-    uint32 numberOfElements = 10;
-    uint32 byteSize = numberOfElements * sizeof(float32);
-    uint32 totalByteSize = byteSize;
-    ConfigurationDatabase configSignals;
-    configSignals.CreateAbsolute("Signals.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "InputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    bool ok = true;
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
+    ok &= gam.InitialiseFilterIIR();
+    ok &= gam.Initialise(gam.config);
 
-    configSignals.MoveToRoot();
-    configSignals.CreateAbsolute("Signals.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "OutputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
-
-    configSignals.MoveToRoot();
-
-    configSignals.CreateAbsolute("Memory.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.CreateAbsolute("Memory.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.MoveToRoot();
-
-    ok &= gam.SetConfiguredDatabase(configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
+
     ok &= gam.Setup();
 
     float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
     float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
     //assign inputs and outputs
-    for (uint32 i = 0u; i < numberOfElements; i++) {
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = 1;
         gamMemoryOut[i] = 0;
     }
@@ -1199,11 +1352,9 @@ bool FilterGAMTest::TestExecuteIIRConstant() {
         gam.Execute();
     }
     ok &= (gamMemoryOut[0] == 1);
-    for (uint32 i = 1u; i < numberOfElements; i++) {
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == 1 + i);
     }
-    delete[] num;
-    delete[] den;
     return ok;
 }
 
@@ -1211,74 +1362,23 @@ bool FilterGAMTest::TestExecuteIIRConstant2() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
     gam.SetName("Test");
-    ConfigurationDatabase config;
-    float32 *num = new float32[1];
-    num[0] = 1;
-    float32 *den = new float32[2];
-    den[0] = 1;
-    den[1] = -1;
-    Vector<float32> numVec(num, 1);
-    Vector<float32> denVec(den, 2);
-    bool ok = config.Write("Num", numVec);
-    ok = config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
-    uint32 numberOfElements = 10;
-    uint32 numberOfSamples = 1;
-    uint32 byteSize = numberOfElements * sizeof(float32);
-    uint32 totalByteSize = byteSize;
-    ConfigurationDatabase configSignals;
-    configSignals.CreateAbsolute("Signals.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "InputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    bool ok = true;
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
+    ok &= gam.InitialiseFilterIIR();
+    ok &= gam.Initialise(gam.config);
 
-    configSignals.MoveToRoot();
-    configSignals.CreateAbsolute("Signals.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "OutputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
-
-    configSignals.MoveToRoot();
-
-    configSignals.CreateAbsolute("Memory.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.CreateAbsolute("Memory.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.MoveToRoot();
-
-    ok &= gam.SetConfiguredDatabase(configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
+
     ok &= gam.Setup();
 
     float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
     float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
     //assign inputs and outputs
-    for (uint32 i = 0u; i < numberOfElements; i++) {
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = 1;
         gamMemoryOut[i] = 0;
     }
@@ -1286,15 +1386,13 @@ bool FilterGAMTest::TestExecuteIIRConstant2() {
         gam.Execute();
     }
     ok &= (gamMemoryOut[0] == 1);
-    for (uint32 i = 1u; i < numberOfElements; i++) {
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == 1 + i);
     }
     gam.Execute();
-    for (uint32 i = 0u; i < numberOfElements; i++) {
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == 10 + 1 + i);
     }
-    delete[] num;
-    delete[] den;
     return ok;
 }
 
@@ -1393,79 +1491,27 @@ bool FilterGAMTest::TestExecuteIIRConstantDimArray1() {
 
 bool FilterGAMTest::TestExecuteElements1Samples10() {
     using namespace MARTe;
-    FilterGAMTestHelper gam;
+    FilterGAMTestHelper gam(1, 10);
     gam.SetName("Test");
-    ConfigurationDatabase config;
-    float32 *num = new float32[2];
-    num[0] = 0.5;
-    num[1] = 0.5;
-    float32 *den = new float32[1];
-    den[0] = 1;
-    Vector<float32> numVec(num, 2);
-    Vector<float32> denVec(den, 1);
-    bool ok = config.Write("Num", numVec);
-    ok = config.Write("Den", denVec);
-    ok &= gam.Initialise(config);
+    bool ok = true;
 
-    uint32 numberOfSamples = 10;
-    uint32 numberOfElements = 1;
-    uint32 byteSize = numberOfSamples * sizeof(float32);
-    uint32 totalByteSize = byteSize;
-    ConfigurationDatabase configSignals;
-    configSignals.CreateAbsolute("Signals.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "InputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    configSignals.Write("NumberOfElements", numberOfElements);
-    configSignals.Write("ByteSize", byteSize);
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
+    ok &= gam.InitialiseConfigDataBaseSignal1();
 
-    configSignals.MoveToRoot();
-    configSignals.CreateAbsolute("Signals.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("QualifiedName", "OutputSignal1");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.Write("Type", "float32");
-    configSignals.Write("NumberOfDimensions", 1);
-    //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
-    configSignals.Write("NumberOfElements", numberOfSamples);
-    configSignals.Write("ByteSize", byteSize);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
 
-    configSignals.MoveToAncestor(1u);
-    configSignals.Write("ByteSize", totalByteSize);
-
-    configSignals.MoveToRoot();
-
-    configSignals.CreateAbsolute("Memory.InputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("Samples", numberOfSamples);
-
-    configSignals.CreateAbsolute("Memory.OutputSignals");
-    configSignals.CreateRelative("0");
-    configSignals.Write("DataSource", "TestDataSource");
-    configSignals.CreateRelative("Signals");
-    configSignals.CreateRelative("0");
-    //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
-    configSignals.Write("Samples", 1);
-
-    configSignals.MoveToRoot();
-
-    ok &= gam.SetConfiguredDatabase(configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
+
     ok &= gam.Setup();
 
     float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
     float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+
     //assign inputs and outputs
-    for (uint32 i = 0u; i < numberOfSamples; i++) {
+    for (uint32 i = 0u; i < gam.numberOfSamples; i++) {
         gamMemoryIn[i] = i;
         gamMemoryOut[i] = 0;
     }
@@ -1473,23 +1519,383 @@ bool FilterGAMTest::TestExecuteElements1Samples10() {
         gam.Execute();
     }
     ok &= (gamMemoryOut[0] == 0);
-    for (uint32 i = 1u; i < numberOfSamples; i++) {
+    for (uint32 i = 1u; i < gam.numberOfSamples; i++) {
         ok &= (gamMemoryOut[i] == i - 0.5);
     }
-    for (uint32 i = 0u; i < numberOfSamples; i++) {
+    for (uint32 i = 0u; i < gam.numberOfSamples; i++) {
         gamMemoryIn[i] = i + 10;
         //gamMemoryOut[i] = 0;
     }
-    if(ok){
+    if (ok) {
         gam.Execute();
     }
-    for (uint32 i = 0u; i < numberOfSamples; i++) {
+    for (uint32 i = 0u; i < gam.numberOfSamples; i++) {
         ok &= (gamMemoryOut[i] == 10 + i - 0.5);
     }
-
-    delete[] num;
-    delete[] den;
+    //Check size elements input or output (they are the same)
+    ok &= (gam.GetNumberOfSamples() == 10);
     return ok;
 }
 
+bool FilterGAMTest::TestSetupSeveralSignals() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal2();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+    ok &= (gam.GetNumberOfInputSignals() == 2);
+    ok &= (gam.GetNumberOfSamples() == gam.numberOfElements);
+    return ok;
+}
+
+bool FilterGAMTest::TestSetupSeveralSignalsDiffNumberOfInputElements() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+
+    uint32 numberOfElements = 10;
+    uint32 numberOfSamples = 1;
+    uint32 byteSize = numberOfElements * sizeof(float32);
+    uint32 numberOfElements1 = 11;
+    uint32 byteSize1 = numberOfElements1 * sizeof(float32);
+    uint32 totalByteSize = byteSize + byteSize1;
+    ConfigurationDatabase configSignals;
+
+    ok &= configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveAbsolute("Signals.InputSignals");
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("QualifiedName", "InputSignal2");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements1);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.Write("ByteSize", totalByteSize);
+
+    ok &= configSignals.MoveToRoot();
+    ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveAbsolute("Signals.OutputSignals");
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements1);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.Write("ByteSize", totalByteSize);
+
+    ok &= configSignals.MoveToRoot();
+
+    ok &= configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.CreateRelative("Signals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("Samples", numberOfSamples);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("Samples", numberOfSamples);
+
+    ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.CreateRelative("Signals");
+    ok &= configSignals.CreateRelative("0");
+    //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
+    ok &= configSignals.Write("Samples", 1);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("Samples", 1);
+
+    ok &= configSignals.MoveToRoot();
+    ok &= gam.SetConfiguredDatabase(configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= !gam.Setup();
+
+    return ok;
+}
+
+
+bool FilterGAMTest::TestSetupSeveralSignalsDiffNumberOfOutputElements() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+
+    uint32 numberOfElements = 10;
+    uint32 numberOfSamples = 1;
+    uint32 byteSize = numberOfElements * sizeof(float32);
+    uint32 numberOfElements1 = 11;
+    uint32 byteSize1 = numberOfElements1 * sizeof(float32);
+    uint32 totalByteSize = byteSize + byteSize1;
+    ConfigurationDatabase configSignals;
+
+    ok &= configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveAbsolute("Signals.InputSignals");
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("QualifiedName", "InputSignal2");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.Write("ByteSize", totalByteSize);
+
+    ok &= configSignals.MoveToRoot();
+    ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveAbsolute("Signals.OutputSignals");
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements1);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.Write("ByteSize", totalByteSize);
+
+    ok &= configSignals.MoveToRoot();
+
+    ok &= configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.CreateRelative("Signals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("Samples", numberOfSamples);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("Samples", numberOfSamples);
+
+    ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.CreateRelative("Signals");
+    ok &= configSignals.CreateRelative("0");
+    //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
+    ok &= configSignals.Write("Samples", 1);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("Samples", 1);
+
+    ok &= configSignals.MoveToRoot();
+    ok &= gam.SetConfiguredDatabase(configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= !gam.Setup();
+
+    return ok;
+}
+
+
+bool FilterGAMTest::TestSetupSeveralSignalsDiffInputSamples() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+
+    uint32 numberOfElements = 10;
+    uint32 numberOfSamples = 1;
+    uint32 byteSize = numberOfElements * sizeof(float32);
+    uint32 numberOfElements1 = 11;
+    uint32 numberOfSamples1 = 2;
+    uint32 byteSize1 = numberOfElements1 * sizeof(float32);
+    uint32 totalByteSize = byteSize + byteSize1;
+    ConfigurationDatabase configSignals;
+
+    ok &= configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveAbsolute("Signals.InputSignals");
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("QualifiedName", "InputSignal2");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.Write("ByteSize", totalByteSize);
+
+    ok &= configSignals.MoveToRoot();
+    ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveAbsolute("Signals.OutputSignals");
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.Write("Type", "float32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.Write("NumberOfElements", numberOfElements);
+    ok &= configSignals.Write("ByteSize", byteSize);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.Write("ByteSize", totalByteSize);
+
+    ok &= configSignals.MoveToRoot();
+
+    ok &= configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.CreateRelative("Signals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("Samples", numberOfSamples);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("Samples", numberOfSamples1);
+
+    ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("DataSource", "TestDataSource");
+    ok &= configSignals.CreateRelative("Signals");
+    ok &= configSignals.CreateRelative("0");
+    //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
+    ok &= configSignals.Write("Samples", 1);
+
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("Samples", 1);
+
+    ok &= configSignals.MoveToRoot();
+    ok &= gam.SetConfiguredDatabase(configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= !gam.Setup();
+
+    return ok;
+}
+
+bool FilterGAMTest::TestExecuteSeveralSignalsFIR() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal2();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i;
+        gamMemoryOut0[i] = 0;
+        gamMemoryIn1[i] = 1;
+        gamMemoryOut1[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    ok &= (gamMemoryOut0[0] == 0);
+    ok &= (gamMemoryOut1[0] == 0.5);
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == i - 0.5);
+        ok &= (gamMemoryOut1[i] == 1);
+    }
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i + 10;
+        gamMemoryIn1[i] = 1;
+        //gamMemoryOut[i] = 0;
+    }
+    gam.Execute();
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == 10 + i - 0.5);
+        ok &= (gamMemoryOut1[i] == 1);
+    }
+    return ok;
+}
 

@@ -48,19 +48,11 @@ public:
      */
     bool TestConstructor();
     /**
-     * @brief Tests an arbitrary initialisation works
+     * @brief Tests an arbitrary initialisation configuration.
+     * @details Verifies the post-conditions
+     * @return true on succeed.
      */
     bool TestInitialise();
-
-    /**
-     * @brief Tests the number which indicates the quantity of coefficients of the numerator is correctly set.
-     */
-    bool TestNumberOfNumCoeff();
-
-    /**
-     * @brief Tests the values of the numerator coefficients are properly set.
-     */
-    bool TestValuesOfNumCoeff();
 
     /**
      * @brief Tests an initialization with no numerator coefficients.
@@ -69,25 +61,20 @@ public:
     bool TestInitialiseNum0();
 
     /**
-     * @brief Tests the number which indicates the quantity of coefficients of the denominator is correctly set.
-     */
-    bool TestNumberOfDenCoeff();
-
-    /**
-     * @brief Tests the values of the denominator coefficients are properly set.
-     */
-    bool TestValuesOfDenCoeff();
-
-    /**
      * @brief Tests an initialization with no denominator coefficients.
      * @return true if the initialization fails.
      */
     bool TestInitialiseDen0();
 
     /**
-     * @brief Tests that the static gain is set properly
+     * @brief Tests that the static gain is set properly with FIR filter
      */
-    bool TestStaticGain();
+    bool TestStaticGainFIR();
+
+    /**
+     * @brief Tests that the static gain is set properly with IIR filter
+     */
+    bool TestStaticGainIIR();
 
     /**
      * @brief Tests the error normalise
@@ -96,7 +83,8 @@ public:
     bool TestFailNormalise();
 
     /**
-     * @brief Tests a correct default setup works
+     * @brief Tests that a correct default setup works
+     * @details Verify the post-conditions
      * @return true  if Setup returns true.
      */
     bool TestSetup();
@@ -106,14 +94,24 @@ public:
      * @details call the function Setup() without initialising the inputs in the database.
      * @return true if the Setup() fails.
      */
-    bool TestSetupFailInputs();
+    bool TestSetupNoInputSignal();
 
     /**
      * @brief Tests errors regarding to wrong GAM output setup
      * @details call the function Setup() without initialising the GAM output in the database.
      * @return true if the Setup() fails.
      */
-    bool TestSetupFailOutputs();
+    bool TestSetupNoOutputSignal();
+
+    bool TestSetupNoInputSamples();
+
+    bool TestSetupNoOutputSamples();
+
+    bool TestSetupNoNumberOfElementsInput();
+
+    bool TestSetupNoNumberOfElementsOutput();
+
+    bool TestSetupNumberOfSamplesOutput2();
 
     /**
      * @brief Tests errors.
@@ -197,10 +195,20 @@ public:
 
     /**
      * @brief Tests Execute with input elements 1 and input samples 10
-     * @detail the filterGAM configuration output supported is always with samples = 1
+     * @detail the filterGAM output configuration  supported is samples = 1
      * @return true if the data output is as expected.
      */
     bool TestExecuteElements1Samples10();
+
+    bool TestSetupSeveralSignals();
+
+    bool TestSetupSeveralSignalsDiffNumberOfInputElements();
+
+    bool TestSetupSeveralSignalsDiffNumberOfOutputElements();
+
+    bool TestSetupSeveralSignalsDiffInputSamples();
+
+    bool TestExecuteSeveralSignalsFIR();
 };
 
 /*---------------------------------------------------------------------------*/

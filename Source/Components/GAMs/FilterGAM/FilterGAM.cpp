@@ -47,12 +47,13 @@ FilterGAM::FilterGAM() {
     den = NULL_PTR(float32 *);
     numberOfNumCoeff = 0;
     numberOfDenCoeff = 0;
-    lastInputs = NULL_PTR(float32 *);
-    lastOutputs = NULL_PTR(float32 *);
     staticGain = 0;
     numberOfSamples = 0;
-    output = NULL_PTR(float32 *);
-    input = NULL_PTR(float32 *);
+    lastInputs = NULL_PTR(float32 **);
+    lastOutputs = NULL_PTR(float32 **);
+    output = NULL_PTR(float32 **);
+    input = NULL_PTR(float32 **);
+    numberOfSignals = 0;
 }
 
 FilterGAM::~FilterGAM() {
@@ -62,10 +63,20 @@ FilterGAM::~FilterGAM() {
     if (den != NULL_PTR(float32 *)) {
         delete[] den;
     }
-    if (lastInputs != NULL_PTR(float32 *)) {
+    if (lastInputs != NULL_PTR(float32 **)) {
+        for (uint32 i = 0; i < numberOfSignals; i++) {
+            if (lastInputs[i] != NULL_PTR(float32 *)) {
+                delete[] lastInputs[i];
+            }
+        }
         delete[] lastInputs;
     }
-    if (lastOutputs != NULL_PTR(float32 *)) {
+    if (lastOutputs != NULL_PTR(float32 **)) {
+        for (uint32 i = 0; i < numberOfSignals; i++) {
+            if (lastOutputs[i] != NULL_PTR(float32 *)) {
+                delete[] lastOutputs[i];
+            }
+        }
         delete[] lastOutputs;
     }
 }
@@ -130,107 +141,216 @@ bool FilterGAM::Initialise(StructuredDataI& data) {
             sumDenominator += den[i];
         }
         staticGain = sumNumerator / sumDenominator;
-        //initialise lastInputs & lastOutputs
-        lastInputs = new float32[numberOfNumCoeff - 1u];
-        lastOutputs = new float32[numberOfDenCoeff - 1u];
-        for (uint32 i = 0; i < numberOfDenCoeff - 1u; i++) {
-            lastOutputs[i] = 0.0;
-        }
-        for (uint32 i = 0; i < numberOfNumCoeff - 1u; i++) {
-            lastInputs[i] = 0.0;
-        }
     }
     return ret;
 }
 
 bool FilterGAM::Setup() {
+
     bool errorDetected = false;
-    uint32 numberOfInputSignals = GetNumberOfInputSignals();
-    bool ok = (numberOfInputSignals == 1u);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfInputSignals = %u. The number of input signals must be one", GetName(),
-                                numberOfInputSignals);
+    bool ok = true;
+    numberOfSignals = GetNumberOfInputSignals();
+    if (numberOfSignals == 0) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSignals must be positive", GetName());
         errorDetected = true;
     }
-    uint32 numberOfOutputSignals = GetNumberOfOutputSignals();
-    ok = (numberOfOutputSignals == 1u);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::NumberOfOutputSignals = %u. The number of output signals must be one", GetName(),
-                                numberOfOutputSignals);
-        errorDetected = true;
-    }
-
-    uint32 numberOfSamplesInput;
-    uint32 numberOfElementsInput;
-    uint32 numberOfSamplesOutput;
-    uint32 numberOfElementsOutput;
-    ok = GetSignalNumberOfSamples(InputSignals, 0u, numberOfSamplesInput);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfSamples for the inputs failed", GetName());
-        errorDetected = true;
-    }
-    ok = GetSignalNumberOfSamples(OutputSignals, 0u, numberOfSamplesOutput);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfSamples for the outputs failed ", GetName());
-        errorDetected = true;
-    }
-    ok = GetSignalNumberOfElements(InputSignals, 0, numberOfElementsInput);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfElements for the inputs failed ", GetName());
-        errorDetected = true;
-    }
-    ok = GetSignalNumberOfElements(OutputSignals, 0, numberOfElementsOutput);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfElements for the outputs failed ", GetName());
-        errorDetected = true;
-    }
-    ok = (numberOfSamplesOutput == 1u);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamplesOutput must be 1 ", GetName());
-        errorDetected = true;
-    }
-
-    if (numberOfSamplesInput == 1u) {
-        numberOfSamples = numberOfElementsInput;
-    }
-    else {
-        ok = (numberOfElementsInput == 1);
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamplesInput = %u and numberOfElementsInput = %u (should be 1) ", GetName(),
-                                    numberOfSamplesInput, numberOfElementsInput);
+    uint32 numberOfOutputSignals;
+    if (!errorDetected) {
+        numberOfOutputSignals = GetNumberOfOutputSignals();
+        if (numberOfOutputSignals != numberOfSignals) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfOutputSignals = %u != %u = numberOfInputSignals", GetName(),
+                                    numberOfOutputSignals, numberOfSignals);
             errorDetected = true;
         }
-        numberOfSamples = numberOfSamplesInput;
     }
-    //Input and output size must be the same
-    ok = (numberOfSamples == numberOfElementsOutput);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::number of input samples = %d != %d = number of output samples", GetName(),
-                                numberOfSamples, numberOfElementsOutput);
-        errorDetected = true;
+    //initialise lastInputs & lastOutputs
+    if (!errorDetected) {
+        lastInputs = new float32 *[numberOfSignals];
+        lastOutputs = new float32*[numberOfSignals];
+        if (lastInputs == NULL_PTR(float32 **) || lastOutputs == NULL_PTR(float32 **)) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for lastInputs & outputs array pointers", GetName());
+            errorDetected = true;
+        }
+        for (uint32 m = 0; m < numberOfSignals && !errorDetected; m++) {
+            lastInputs[m] = new float32[numberOfNumCoeff - 1u];
+            lastOutputs[m] = new float32[numberOfDenCoeff - 1u];
+            if (lastInputs[m] == NULL_PTR(float32 *) || lastOutputs[m] == NULL_PTR(float32 *)) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for lastInputs & outputs values", GetName());
+                errorDetected = true;
+            }
+            else {
+                for (uint32 i = 0; i < numberOfDenCoeff - 1u; i++) {
+                    lastOutputs[m][i] = 0.0;
+                }
+                for (uint32 i = 0; i < numberOfNumCoeff - 1u; i++) {
+                    lastInputs[m][i] = 0.0;
+                }
+            }
+        }
     }
-    uint32 inputDimension;
-    ok = GetSignalNumberOfDimensions(InputSignals, 0u, inputDimension);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfDimensions for InputSignals fails", GetName());
-        errorDetected = true;
-        ok = true;
-    }
-    uint32 outputDimension;
-    ok = GetSignalNumberOfDimensions(OutputSignals, 0u, outputDimension);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfDimensions for OutputSignals fails", GetName());
-        errorDetected = true;
-    }
-    ok = (numberOfSamples > 0u);
-    if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamples is 0", GetName());
-        errorDetected = true;
-        ok = true;
+
+    uint32 *numberOfSamplesInput = NULL_PTR(uint32 *);
+    uint32 *numberOfElementsInput = NULL_PTR(uint32 *);
+    uint32 *numberOfSamplesOutput = NULL_PTR(uint32 *);
+    uint32 *numberOfElementsOutput = NULL_PTR(uint32 *);
+    if (!errorDetected) {
+        numberOfSamplesInput = new uint32[numberOfSignals];
+        if (numberOfSamplesInput == NULL_PTR(uint32 *)) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for numberOfSamplesInput", GetName());
+            errorDetected = true;
+        }
     }
     if (!errorDetected) {
-        input = static_cast<float32 *>(GetInputSignalMemory(0));
-        output = static_cast<float32 *>(GetOutputSignalMemory(0));
+        numberOfElementsInput = new uint32[numberOfSignals];
+        if (numberOfElementsInput == NULL_PTR(uint32 *)) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for numberOfElementsInput", GetName());
+            errorDetected = true;
+        }
+    }
+    if (!errorDetected) {
+        numberOfSamplesOutput = new uint32[numberOfSignals];
+        if (numberOfSamplesOutput == NULL_PTR(uint32 *)) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for numberOfSamplesOutput", GetName());
+            errorDetected = true;
+        }
+    }
+    if (!errorDetected) {
+        numberOfElementsOutput = new uint32[numberOfSignals];
+        if (numberOfElementsOutput == NULL_PTR(uint32 *)) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for numberOfElementsOutput", GetName());
+            errorDetected = true;
+        }
+    }
+
+    //Read input-output samples and elements for each signal.
+    if (!errorDetected) {
+        for (uint32 i = 0; i < numberOfSignals; i++) {
+            ok = GetSignalNumberOfSamples(InputSignals, i, numberOfSamplesInput[i]);
+            if (!ok && !errorDetected) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfSamples for the input signal %u failed", GetName(), i);
+                errorDetected = true;
+            }
+            ok = GetSignalNumberOfSamples(OutputSignals, i, numberOfSamplesOutput[i]);
+            if (!ok && !errorDetected) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfSamples for the output signal %u failed ", GetName(), i);
+                errorDetected = true;
+            }
+            ok = GetSignalNumberOfElements(InputSignals, i, numberOfElementsInput[i]);
+            if (!ok & !errorDetected) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfElements for the input signal %u failed ", GetName(), i);
+                errorDetected = true;
+            }
+            ok = GetSignalNumberOfElements(OutputSignals, i, numberOfElementsOutput[i]);
+            if (!ok && !errorDetected) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfElements for the output signal %u failed ", GetName(), i);
+                errorDetected = true;
+            }
+            ok = (numberOfSamplesOutput[i] == 1u);
+            if (!ok && !errorDetected) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamplesOutput must be 1 ", GetName());
+                errorDetected = true;
+            }
+        }
+    }
+    //Check that all the input signals have the same numberOfElementsInput
+    ok = true;
+    for (uint32 i = 1; i < numberOfSignals && !errorDetected; i++) {
+        ok &= (numberOfElementsInput[0] == numberOfElementsInput[i]);
+    }
+    if (!ok && !errorDetected) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfElementsInput is not the same for each input signal ", GetName());
+        errorDetected = true;
+    }
+    //Check that all the output signals have the same numberOfElementsOutput
+    ok = true;
+    for (uint32 i = 1; i < numberOfSignals && !errorDetected; i++) {
+        ok &= (numberOfElementsOutput[0] == numberOfElementsOutput[i]);
+    }
+    if (!ok && !errorDetected) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfElementsOutput is not the same for each signal ", GetName());
+        errorDetected = true;
+    }
+    //Check that all the input signals have the same numberOfSamplesInput
+    ok = true;
+    for (uint32 i = 1; i < numberOfSignals && !errorDetected; i++) {
+        ok &= numberOfSamplesInput[0] == numberOfSamplesInput[i];
+    }
+    if (!ok && !errorDetected) {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamplesInput is not the same for each signal ", GetName());
+        errorDetected = true;
+    }
+    //Only the numberOfSamplesInput[0] have to be checked because, previously, it is check that the input dimensions etc are the same for each input signal.
+    if (!errorDetected) {
+        if (numberOfSamplesInput[0] == 1u) {
+            numberOfSamples = numberOfElementsInput[0];
+        }
+        else {
+            ok = (numberOfElementsInput[0] == 1);
+            if (!ok) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamplesInput = %u and numberOfElementsInput = %u (should be 1) ",
+                                        GetName(), numberOfSamplesInput[0], numberOfElementsInput[0]);
+                errorDetected = true;
+            }
+            numberOfSamples = numberOfSamplesInput[0];
+        }
+    }
+    //Input and output size must be the same
+    //Check that all the signals have the same number of input & outputs
+    ok = true;
+    for (uint32 i = 0; i < numberOfSignals && !errorDetected; i++) {
+        ok &= (numberOfSamples == numberOfElementsOutput[i]);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Different input and output array size.", GetName());
+            errorDetected = true;
+        }
+    }
+    uint32 inputDimension;
+    for (uint32 i = 0; i < numberOfSignals && !errorDetected; i++) {
+        ok = GetSignalNumberOfDimensions(InputSignals, i, inputDimension);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfDimensions for InputSignals fails", GetName());
+            errorDetected = true;
+        }
+        ok = (inputDimension == 1);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::InputDimension = %u. Must be 1 (array)", GetName(), inputDimension);
+            errorDetected = true;
+        }
+    }
+    uint32 outputDimension;
+    for (uint32 i = 0; i < numberOfSignals && !errorDetected; i++) {
+        ok = GetSignalNumberOfDimensions(OutputSignals, 0u, outputDimension);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::GetSignalNumberOfDimensions for OutputSignals fails", GetName());
+            errorDetected = true;
+        }
+        ok = (outputDimension == 1);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::InputDimension = %u. Must be 1 (array)", GetName(), outputDimension);
+            errorDetected = true;
+        }
+    }
+    if (!errorDetected) {
+        ok = (numberOfSamples > 0u);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamples is 0", GetName());
+            errorDetected = true;
+            ok = true;
+        }
+    }
+    if (!errorDetected) {
+        input = new float32 *[numberOfSignals];
+        output = new float32 *[numberOfSignals];
+        if (input == NULL_PTR(float32 **) || output == NULL_PTR(float32 **)) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamples is 0", GetName());
+            errorDetected = true;
+        }
+        else {
+            for (uint32 i = 0; i < numberOfSignals; i++) {
+                input[i] = static_cast<float32 *>(GetInputSignalMemory(i));
+                output[i] = static_cast<float32 *>(GetOutputSignalMemory(i));
+            }
+        }
     }
     return !errorDetected;
 }
@@ -238,36 +358,39 @@ bool FilterGAM::Setup() {
 bool FilterGAM::Execute() {
     uint32 n = 0u;
     float32 accumulator = 0.0;
-    while (n < numberOfSamples) {
-        accumulator = 0;
-        //sum inputs
-        for (uint32 k = 0u; k < numberOfNumCoeff; k++) {
-            if (n >= k) {
-                accumulator += input[n - k] * num[k];
+    for (uint32 i = 0; i < numberOfSignals; i++) {
+        n = 0u;
+        while (n < numberOfSamples) {
+            accumulator = 0.0;
+            //sum inputs
+            for (uint32 k = 0u; k < numberOfNumCoeff; k++) {
+                if (n >= k) {
+                    accumulator += input[i][n - k] * num[k];
+                }
+                else {
+                    accumulator += lastInputs[i][k - n - 1] * num[k];
+                }
             }
-            else {
-                accumulator += lastInputs[k - n - 1] * num[k];
+            //Sum outputs
+            for (uint32 k = 1u; k < numberOfDenCoeff; k++) {
+                if (n >= k) {
+                    accumulator -= output[i][n - k] * den[k];
+                }
+                else {
+                    accumulator -= lastOutputs[i][k - n - 1] * den[k];
+                }
             }
+            output[i][n] = accumulator;
+            n++;
         }
-        //Sum outputs
-        for (uint32 k = 1u; k < numberOfDenCoeff; k++) {
-            if (n >= k) {
-                accumulator -= output[n - k] * den[k];
-            }
-            else {
-                accumulator -= lastOutputs[k - n - 1] * den[k];
-            }
-        }
-        output[n] = accumulator;
-        n++;
-    }
 
-    //update the last values
-    for (uint32 k = 0; k < numberOfNumCoeff - 1; k++) {
-        lastInputs[k] = input[numberOfSamples - 1 - k];
-    }
-    for (uint32 k = 0; k < numberOfDenCoeff - 1; k++) {
-        lastOutputs[k] = output[numberOfSamples - 1u - k];
+        //update the last values
+        for (uint32 k = 0; k < numberOfNumCoeff - 1; k++) {
+            lastInputs[i][k] = input[i][numberOfSamples - 1 - k];
+        }
+        for (uint32 k = 0; k < numberOfDenCoeff - 1; k++) {
+            lastOutputs[i][k] = output[i][numberOfSamples - 1u - k];
+        }
     }
     return true;
 }
@@ -314,5 +437,11 @@ float32 FilterGAM::GetStaticGain() {
     return staticGain;
 }
 
+uint32 FilterGAM::GetNumberOfSignals() {
+    return numberOfSignals;
+}
+uint32 FilterGAM::GetNumberOfSamples() {
+    return numberOfSamples;
+}
 }
 

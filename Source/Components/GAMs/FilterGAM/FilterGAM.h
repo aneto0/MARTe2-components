@@ -70,7 +70,9 @@ public:
      *   GetNumCoeff(float32 *n) = false
      *   GetDenCoeff(float32 *d) = false
      *   CheckNormalisation()    = false
-     *   GetStaticGain           = 0
+     *   GetStaticGain()         = 0
+     *   GetNumberOfSamples()    = 0
+     *   GetNumberOfSignals()    = 0
      */
     FilterGAM();
 
@@ -84,8 +86,8 @@ public:
     /**
      * @brief initialise the GAM from a configuration file
      * @details allocate memory for the numerator and denominator coefficients and load their values.
-     * Allocate memory for the last inputs and outputs (final state)
-     * Check that the coefficients are normalized
+     * Allocate memory for the last input and output values (final state)
+     * Check that the coefficients are normalized.
      * @pre
      *   GetNumberOfNumCoeff()   = 0
      *   GetNumberOfDenCoeff()   = 0
@@ -93,6 +95,8 @@ public:
      *   GetDenCoeff(float32 *d) = false
      *   CheckNormalisation()    = false
      *   GetStaticGain()         = 0
+     *   GetNumberOfSamples()    = 0
+     *   GetNumberOfSignals()    = 0
      * @post if Initialise() = true; then
      *   GetNumberOfNumCoeff()   = numberOfNumCoeff
      *   GetNumberOfDenCoeff()   = numberOfDenCoeff
@@ -100,6 +104,8 @@ public:
      *   GetDenCoeff(float32 *d) = true
      *   CheckNormalisation()    = true
      *   GetStaticGain()         = staticGain
+     *   GetNumberOfSamples()    = 0
+     *   GetNumberOfSignals()    = 0
      * @param[in] data configuration file
      *
      * @return true on succeed
@@ -110,6 +116,16 @@ public:
      * @brief Setup the input and the output of the GAM and verify the correctness and consistency of the parameters
      * @details Checks that the input and output pointers are correctly obtained and the number of input and
      * output parameters are equal and non zero.
+     * @pre
+     *    Initialise() = true;
+     * @post
+     *    GetNumberOfSamples() = numberOfSamples
+     *    GetNumberOfSignals() = numberOfSignals
+     *    input != NULL
+     *    output != NULL
+     *    lastInputs != NULL
+     *    lastOutputs != NULL
+     * @return true if succeed.
      */
     virtual bool Setup();
 
@@ -165,8 +181,12 @@ public:
      */
     float32 GetStaticGain();
 
+    uint32 GetNumberOfSamples();
+
+    uint32 GetNumberOfSignals();
+
 private:
-    /* pointer to the numerator coefficients */
+    /* Pointers to the numerator coefficients. */
     float32 *num;
     /* pointer to the denominator coefficients */
     float32 *den;
@@ -174,16 +194,20 @@ private:
     uint32 numberOfNumCoeff;
     /* Holds the number of denominator coefficients */
     uint32 numberOfDenCoeff;
-    /* Pointer to the last input values */
-    float32 *lastInputs;
-    /*Pointer to the last outpt values */
-    float32 *lastOutputs;
+    /*Array of pointer to the last input values */
+    float32 **lastInputs;
+    /*Array of pointers to the last outpt values */
+    float32 **lastOutputs;
     /*Holds the the static gain of the filter computed from its coefficients */
     float32 staticGain;
-
-    float32 *input;
-    float32 *output;
+    /*Array of pointers to the input buffers*/
+    float32 **input;
+    /*Array of pointers to the output buffers*/
+    float32 **output;
+    /*Number of values of each array. All arrays has the same numberOfSamples*/
     uint32 numberOfSamples;
+    /*Number of signals*/
+    uint32 numberOfSignals;
 };
 
 }
