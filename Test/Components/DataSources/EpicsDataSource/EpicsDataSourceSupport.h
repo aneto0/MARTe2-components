@@ -38,7 +38,16 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-bool SetConfiguredDatabase(MARTe::DataSourceI& target, const MARTe::uint32 numberOfSignals);
+/**
+ * @brief Builds a configuration database as needed by DataSourceI::
+ * SetConfiguredDatabase.
+ * @details The configuration database will contain two root nodes, one called
+ * "Signals" and another called "Functions" as specified in DataSourceI::
+ * SetConfiguredDatabase. The "Signals" node will contain numberOfSignals
+ * signals of type uint32, while "Functions" will contain numberOfFunctions
+ * functions.
+ */
+bool BuildConfigurationDatabase(MARTe::ConfigurationDatabase& cdb, const MARTe::uint32 numberOfSignals, const MARTe::uint32 numberOfFunctions = 0);
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

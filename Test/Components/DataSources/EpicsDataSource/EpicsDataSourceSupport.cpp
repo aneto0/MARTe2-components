@@ -26,12 +26,13 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-
+#include <cstdio>
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
 #include "EpicsDataSourceSupport.h"
+#include "Matrix.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -41,37 +42,108 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-bool SetConfiguredDatabase(MARTe::DataSourceI& target, const MARTe::uint32 numberOfSignals) {
+bool BuildConfigurationDatabase(MARTe::ConfigurationDatabase& cdb, const MARTe::uint32 numberOfSignals, const MARTe::uint32 numberOfFunctions) {
 	using namespace MARTe;
-    bool success = false;
-    ConfigurationDatabase cdb;
+    bool ok = true;
 
-    cdb.CreateRelative("Signals");
+    ok = cdb.CreateRelative("Signals");
 
     for (uint32 i = 0; i < numberOfSignals; i++) {
+    	const char type[] = "uint32";
     	StreamString idx;
     	StreamString name;
-    	const char type[] = "uint32";
 
-    	idx.Printf("%d", i);
-    	name.Printf("Signal_%d", i);
-
-    	cdb.CreateRelative(idx.Buffer());
-    	cdb.Write("QualifiedName", name);
-    	cdb.Write("Type", type);
-    	cdb.Write("ByteSize", (TypeDescriptor::GetTypeDescriptorFromTypeName(type).numberOfBits / 8));
-    	cdb.Write("NumberOfDimensions", 0);
-    	cdb.Write("NumberOfElements", 1);
-
-    	cdb.MoveToAncestor(1);
+    	ok &= idx.Printf("%d", i);
+    	ok &= name.Printf("Signal_%d", i);
+    	{
+    		ok &= cdb.CreateRelative(idx.Buffer());
+    		ok &= cdb.Write("QualifiedName", name);
+    		ok &= cdb.Write("Type", type);
+    		ok &= cdb.Write("ByteSize", (TypeDescriptor::GetTypeDescriptorFromTypeName(type).numberOfBits / 8));
+    		ok &= cdb.Write("NumberOfDimensions", 0);
+    		ok &= cdb.Write("NumberOfElements", 1);
+    		ok &= cdb.MoveToAncestor(1);
+    	}
     }
 
-    cdb.MoveToRoot();
+    ok &= cdb.MoveToAncestor(1);
 
-    StreamString toPrintf;
-    toPrintf.Printf("%!\n", cdb);
+    ok &= cdb.CreateRelative("Functions");
 
-    success = target.SetConfiguredDatabase(cdb);
+    for (uint32 i = 0; i < numberOfFunctions; i++) {
+    	const char type[] = "uint32";
+    	StreamString idx;
+    	StreamString name;
 
-    return success;
+    	ok &= idx.Printf("%d", i);
+    	ok &= name.Printf("Function_%d", i);
+
+    	ok &= cdb.CreateRelative(idx.Buffer());
+    	ok &= cdb.Write("QualifiedName", name);
+    	ok &= cdb.Write("ByteSize", (TypeDescriptor::GetTypeDescriptorFromTypeName(type).numberOfBits / 8));
+    	ok &= cdb.Write("GAMMemoryOffset", 0);
+
+    	{
+    		ok &= cdb.CreateRelative("InputSignals");
+    		uint32 rawByteOffset[][2] = { { 0, 4 } };
+    		Matrix<uint32> ByteOffset(rawByteOffset);
+    		uint32 bytesize = 0;
+    		for (uint32 i = 0; i < numberOfSignals; i++) {
+    			StreamString idx;
+    			StreamString name;
+
+    			ok &= idx.Printf("%d", i);
+    			ok &= name.Printf("Signal_%d", i);
+    			{
+    				ok &= cdb.CreateRelative(idx.Buffer());
+    				ok &= cdb.Write("QualifiedName", name);
+    				ok &= cdb.Write("Alias", name);
+    				ok &= cdb.Write("Frequency", -1);
+    				ok &= cdb.Write("Trigger", 0);
+    				ok &= cdb.Write("Samples", 1);
+    				ok &= cdb.Write("ByteOffset", ByteOffset);
+    				ok &= cdb.Write("GAMMemoryOffset", 0);
+    				ok &= cdb.Write("Broker", "MemoryMapSynchronisedInputBroker");
+    				ok &= cdb.MoveToAncestor(1);
+    			}
+    			bytesize += (TypeDescriptor::GetTypeDescriptorFromTypeName(type).numberOfBits / 8);
+    		}
+    		ok &= cdb.Write("ByteSize", bytesize);
+    		ok &= cdb.MoveToAncestor(1);
+    	}
+
+    	{
+    		ok &= cdb.CreateRelative("OutputSignals");
+    		uint32 rawByteOffset[][2] = { { 0, 4 } };
+    		Matrix<uint32> ByteOffset(rawByteOffset);
+    		uint32 bytesize = 0;
+    		for (uint32 i = 0; i < numberOfSignals; i++) {
+    			StreamString idx;
+    			StreamString name;
+
+    			ok &= idx.Printf("%d", i);
+    			ok &= name.Printf("Signal_%d", i);
+    			{
+    				ok &= cdb.CreateRelative(idx.Buffer());
+    				ok &= cdb.Write("QualifiedName", name);
+    				ok &= cdb.Write("Alias", name);
+    				ok &= cdb.Write("Frequency", -1);
+    				ok &= cdb.Write("Trigger", 0);
+    				ok &= cdb.Write("Samples", 1);
+    				ok &= cdb.Write("ByteOffset", ByteOffset);
+    				ok &= cdb.Write("GAMMemoryOffset", 0);
+    				ok &= cdb.Write("Broker", "MemoryMapSynchronisedOutputBroker");
+    				ok &= cdb.MoveToAncestor(1);
+    			}
+    			bytesize += (TypeDescriptor::GetTypeDescriptorFromTypeName(type).numberOfBits / 8);
+    		}
+    		ok &= cdb.Write("ByteSize", bytesize);
+    		ok &= cdb.MoveToAncestor(1);
+    	}
+    	ok &= cdb.MoveToAncestor(1);
+    }
+
+    ok &= cdb.MoveToRoot();
+
+    return ok;
 }
