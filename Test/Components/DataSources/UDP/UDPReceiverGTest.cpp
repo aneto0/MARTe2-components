@@ -81,6 +81,11 @@ TEST(UDPReceiverGTest, TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
+TEST(UDPReceiverGTest, TestSetConfiguredDatabase_More_Minimum_Signals) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_More_Minimum_Signals());
+}
+
 TEST(UDPReceiverGTest, TestSetConfiguredDatabase_False_NOfSignals) {
     UDPReceiverTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals());

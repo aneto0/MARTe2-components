@@ -92,9 +92,15 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
     float64 timeout_input;
     keepRunning = true;
     bool found = data.Read("Port", udpServerPort);
-    if (!found){
+        if ((!found) || (udpServerPort <= 0u) || (udpServerPort > 65535u)){
         udpServerPort = 44488u;
-        REPORT_ERROR(ErrorManagement::Information, "No port defined! Default to 44488");
+        REPORT_ERROR(ErrorManagement::Information, "No valid Port defined! Default to 44488");
+    }else{
+        if (udpServerPort <= 1024u){
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, requires admin access", udpServerPort);
+        }else{
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port is set to %d", udpServerPort);
+        }
     }
     found = data.Read("Timeout", timeout_input);
     if (!found){
@@ -103,8 +109,10 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
     }else{
         if(timeout_input == 0){
             timeout = TTInfiniteWait;
+            REPORT_ERROR(ErrorManagement::Information, "Timeout set to infinite");
         }else{
             timeout.SetTimeoutSec(timeout_input);
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Timeout set to infinite %d", timeout_input);
         }
     }
     return ok;
@@ -236,10 +244,10 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Could not open the port!");
     }
     if (ok) {
-        ok = (GetNumberOfSignals() > 1u);
+        ok = (GetNumberOfSignals() > 2u);
     }
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "At least two signals shall be configured");
+        REPORT_ERROR(ErrorManagement::ParametersError, "At least three signals shall be configured");
     }
     if (ok) {
         ok = (GetSignalType(0u).numberOfBits == 32u);

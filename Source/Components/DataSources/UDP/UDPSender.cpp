@@ -134,11 +134,19 @@ bool UDPSender::Initialise(StructuredDataI &data) {
     if (!found){
         udpServerAddress = "127.0.0.1";
         REPORT_ERROR(ErrorManagement::Information, "No TargetAddress defined! Default to 127.0.0.1");
+    }else{
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "TargetAddress set to %s", udpServerAddress.Buffer());
     }
     found = data.Read("Port", udpServerPort);
-    if (!found){
+    if ((!found) || (udpServerPort <= 0u) || (udpServerPort > 65535u)){
         udpServerPort = 44488u;
-        REPORT_ERROR(ErrorManagement::Information, "No Port defined! Default to 44488");
+        REPORT_ERROR(ErrorManagement::Information, "No valid Port defined! Default to 44488");
+    }else{
+        if (udpServerPort <= 1024u){
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, requires admin access", udpServerPort);
+        }else{
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port is set to %d", udpServerPort);
+        }
     }
     return ok;
 }
@@ -158,10 +166,10 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Could not connect the client to the server!");
     }
     if (ok) {
-        ok = (GetNumberOfSignals() > 1u);
+        ok = (GetNumberOfSignals() > 2u);
     }
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "At least two signals shall be configured");
+        REPORT_ERROR(ErrorManagement::ParametersError, "At least three signals shall be configured");
     }
     if (ok) {
         ok = (GetSignalType(0u).numberOfBits == 32u);

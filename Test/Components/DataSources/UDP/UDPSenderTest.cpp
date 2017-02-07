@@ -288,7 +288,7 @@ bool UDPSenderTest::TestInitialise_False_Port_1(){
     ConfigurationDatabase cdb;
     cdb.Write("Port", "");
     bool ok = test.Initialise(cdb);
-    return !ok;
+    return ok;
 }
 
 bool UDPSenderTest::TestInitialise_False_Port_2(){

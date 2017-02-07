@@ -290,7 +290,7 @@ bool UDPReceiverTest::TestInitialise_False_Port_1(){
     ConfigurationDatabase cdb;
     cdb.Write("Port", "");
     bool ok = test.Initialise(cdb);
-    return !ok;
+    return ok;
 }
 
 bool UDPReceiverTest::TestInitialise_False_Port_2(){
@@ -330,7 +330,8 @@ bool UDPReceiverTest::TestSetConfiguredDatabase(){
     return TestIntegratedInApplication(config1);
 }
 
-bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals(){
+bool UDPReceiverTest::TestSetConfiguredDatabase_More_Minimum_Signals(){
+    using namespace MARTe;
     const MARTe::char8 * const config2 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
@@ -340,11 +341,19 @@ bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals(){
         "            Class = UDPReceiverTestGAM"
         "            InputSignals = {"
         "                Counter = {"
-        "                    DataSource = UDPRec"
+        "                    DataSource = UDPReceiver"
         "                    Type = uint64"
         "                }"
         "                Time = {"
-        "                    DataSource = UDPRec"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                Signal2 = {"
+        "                    DataSource = UDPReceiver"
         "                    Type = uint64"
         "                }"
         "            }"
@@ -353,9 +362,78 @@ bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals(){
         "    +Data = {"
         "        Class = ReferenceContainer"
         "        DefaultDataSource = DDB1"
-        "        +UDPRec = {"
-        "            Class = UDPReceiver"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
         "            Port = \"44488\""
+        "            Timeout = \"3\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal2 = {"
+        "                   Type = uint64"
+        "               }"
+        "           }"
+        "       }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+        return TestIntegratedInApplication(config2);
+}
+
+bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals(){
+    using namespace MARTe;
+    const MARTe::char8 * const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = UDPReceiverTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                Time = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
+        "            Port = \"44488\""
+        "            Timeout = \"3\""
         "        }"
         "        +Timings = {"
         "            Class = TimingDataSource"
@@ -443,7 +521,7 @@ bool UDPReceiverTest::TestPrepareNextState(){
     using namespace MARTe;
     UDPReceiver test;
     bool ok = (test.PrepareNextState("FromCurrent", "ToNext"));
-    return !ok;
+    return ok;
 }
 
 bool UDPReceiverTest::TestSynchronise(){

@@ -58,6 +58,8 @@ public:
     bool TestInitialise_False_Port_4();
 
     bool TestSetConfiguredDatabase();
+    
+    bool TestSetConfiguredDatabase_More_Minimum_Signals();
 
     bool TestSetConfiguredDatabase_False_NOfSignals();
 
