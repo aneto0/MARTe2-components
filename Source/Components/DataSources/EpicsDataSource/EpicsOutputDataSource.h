@@ -72,6 +72,10 @@ public:
 
 	/**
 	 * @brief Default constructor
+	 * @post
+	 *  (std::strcmp(target.GetBrokerName(cfg, InputSignals), "") == 0) and
+	 * 	(std::strcmp(target.GetBrokerName(cfg, OutputSignals), "MemoryMapSynchronisedOutputBroker") == 0) and
+	 * 	(target.GetSharedDataAreaName().Size() == 0)
 	 */
 	EpicsOutputDataSource();
 
@@ -135,6 +139,12 @@ public:
     virtual bool PrepareNextState(const char8 * const currentStateName,
             const char8 * const nextStateName);
 
+    /**
+     * @brief Returns the name of the shared data area connected
+     * to this data source.
+     */
+    virtual MARTe::StreamString GetSharedDataAreaName() const;
+
 private:
 
     /**
@@ -147,6 +157,12 @@ private:
      * The pointer to the local allocated sigblock.
      */
     Sigblock* signals;
+
+    /**
+     * The name of the shared data area.
+     */
+    MARTe::StreamString sharedDataAreaName;
+
 };
 
 }

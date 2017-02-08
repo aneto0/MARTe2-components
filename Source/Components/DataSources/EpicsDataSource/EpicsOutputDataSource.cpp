@@ -70,6 +70,9 @@ static MARTe::StreamString GetApplicationName() {
     		result = rtApp->GetName();
     	}
     }
+	if (!found) {
+		result = "MARTeApp";
+	}
 	return result;
 }
 
@@ -125,7 +128,7 @@ bool EpicsOutputDataSource::Synchronise() {
 bool EpicsOutputDataSource::AllocateMemory() {
 	bool ret = true;
 	uint32 numberOfSignals = GetNumberOfSignals();
-    StreamString shmId = BuildSharedMemoryIdentifier(GetName());
+	sharedDataAreaName = BuildSharedMemoryIdentifier(GetName());
 	unsigned int max = 512; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
 	Signal::Metadata smd_for_init[numberOfSignals]; //sigblock description for initialization;
 
@@ -144,7 +147,7 @@ bool EpicsOutputDataSource::AllocateMemory() {
 		}
 	}
 
-	SharedDataArea sbpm = SharedDataArea::BuildSharedDataAreaForMARTe(shmId.Buffer(), numberOfSignals, smd_for_init, max);
+	SharedDataArea sbpm = SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numberOfSignals, smd_for_init, max);
 	producer = sbpm.GetSigblockProducerInterface();
 	Sigblock::Metadata* sbmd = producer->GetSigblockMetadata();
 	void* mem = HeapManager::Malloc(sbmd->GetTotalSize());
@@ -197,6 +200,10 @@ bool EpicsOutputDataSource::SetConfiguredDatabase(StructuredDataI & data) {
 
 bool EpicsOutputDataSource::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
     return true;
+}
+
+MARTe::StreamString EpicsOutputDataSource::GetSharedDataAreaName() const {
+	return sharedDataAreaName;
 }
 
 CLASS_REGISTER(EpicsOutputDataSource, "1.0")
