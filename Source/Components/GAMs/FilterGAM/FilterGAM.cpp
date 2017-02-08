@@ -1,7 +1,7 @@
 /**
  * @file FilterGAM.cpp
  * @brief Source file for class FilterGAM
- * @date Jan 30, 2017 TODO Verify the value and format of the date
+ * @date 30/01/2017
  * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -312,8 +312,8 @@ bool FilterGAM::Setup() {
             errorDetected = true;
         }
         ok = (inputDimension == 1);
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::InputDimension = %u. Must be 1 (array)", GetName(), inputDimension);
+        if (!ok && !errorDetected) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::InputDimension = %u. It must be 1 (array)", GetName(), inputDimension);
             errorDetected = true;
         }
     }
@@ -325,8 +325,8 @@ bool FilterGAM::Setup() {
             errorDetected = true;
         }
         ok = (outputDimension == 1);
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::InputDimension = %u. Must be 1 (array)", GetName(), outputDimension);
+        if (!ok && !errorDetected) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::OutputDimension = %u. It must be 1 (array)", GetName(), outputDimension);
             errorDetected = true;
         }
     }
@@ -342,7 +342,7 @@ bool FilterGAM::Setup() {
         input = new float32 *[numberOfSignals];
         output = new float32 *[numberOfSignals];
         if (input == NULL_PTR(float32 **) || output == NULL_PTR(float32 **)) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::numberOfSamples is 0", GetName());
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for input or output", GetName());
             errorDetected = true;
         }
         else {
@@ -443,5 +443,6 @@ uint32 FilterGAM::GetNumberOfSignals() {
 uint32 FilterGAM::GetNumberOfSamples() {
     return numberOfSamples;
 }
+CLASS_REGISTER(FilterGAM, "1.0")
 }
 

@@ -128,6 +128,26 @@ TEST(FilterGAMGTest,TestSetupFailNumberOfSamples) {
     ASSERT_TRUE(test.TestSetupFailNumberOfSamples());
 }
 
+TEST(FilterGAMGTest,TestSetupNoInputDimension) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoInputDimension());
+}
+
+TEST(FilterGAMGTest,TestSetupWrongInputDimension) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongInputDimension());
+}
+
+TEST(FilterGAMGTest,TestSetupNoOutputDimension) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoOutputDimension());
+}
+
+TEST(FilterGAMGTest,TestSetupWrongOutputDimension) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongOutputDimension());
+}
+
 TEST(FilterGAMGTest,TestExecuteFIRConstantInput) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestExecuteFIRConstantInput());

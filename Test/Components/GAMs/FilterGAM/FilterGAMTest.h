@@ -103,14 +103,39 @@ public:
      */
     bool TestSetupNoOutputSignal();
 
+    /**
+     * @brief Tests errors
+     * @details Configure the GAM without input samples field
+     * @return True if Setup() fails.
+     */
     bool TestSetupNoInputSamples();
 
+    /**
+     * @brief Test errors.
+     * @details Configure the GAM without output samples field.
+     * @return True if Setup() fails.
+     */
     bool TestSetupNoOutputSamples();
 
+    /**
+     * @brief Tests errors
+     * @details Configure the GAM without input number of elements field
+     * @return True if Setup() fails.
+     */
     bool TestSetupNoNumberOfElementsInput();
 
+    /**
+     * @brief Tests errors
+     * @details Configure the GAM without output number of elements field
+     * @return True if Setup() fails.
+     */
     bool TestSetupNoNumberOfElementsOutput();
 
+    /**
+     * @brief Tests errors
+     * @details Configure the GAM with wrong number of output samples.
+     * @return True if Setup() fails.
+     */
     bool TestSetupNumberOfSamplesOutput2();
 
     /**
@@ -134,6 +159,34 @@ public:
      * @return true if Setup() fails.
      */
     bool TestSetupDifferentInputOutputSamples();
+
+    /**
+     * @brief Tests errors.
+     * @details initialise the GAM without input dimension.
+     * @return true if Setup() fails.
+     */
+    bool TestSetupNoInputDimension();
+
+    /**
+     * @brief Tests errors.
+     * @details initialise the GAM with a wrong input dimension. the dimension supported is 1 (array)
+     * @return true if Setup() fails.
+     */
+    bool TestSetupWrongInputDimension();
+
+    /**
+     * @brief Tests errors.
+     * @details initialise the GAM without output dimension.
+     * @return true if Setup() fails.
+     */
+    bool TestSetupNoOutputDimension();
+
+    /**
+     * @brief Tests errors.
+     * @details initialise the GAM with a wrong output dimension. the dimension supported is 1 (array)
+     * @return true if Setup() fails.
+     */
+    bool TestSetupWrongOutputDimension();
 
     /**
      * @brief test the Execute() with a simple average filter.
@@ -195,19 +248,44 @@ public:
 
     /**
      * @brief Tests Execute with input elements 1 and input samples 10
-     * @detail the filterGAM output configuration  supported is samples = 1
+     * @details the filterGAM output configuration  supported is samples = 1
      * @return true if the data output is as expected.
      */
     bool TestExecuteElements1Samples10();
 
+    /**
+     * @brief Tests arbitrary GAM configuration with two input (and output) signals.
+     * @return true on succeed.
+     */
     bool TestSetupSeveralSignals();
 
+    /**
+     * @brief Tests errors with two input signals.
+     * @details Configure the GAM with different number of input elements.
+     * @return True if Setup() fails.
+     */
     bool TestSetupSeveralSignalsDiffNumberOfInputElements();
 
+    /**
+     * @brief Tests errors with two input signals.
+     * @details Configure the GAM with different number of output elements.
+     * @return True if Setup()fails.
+     */
     bool TestSetupSeveralSignalsDiffNumberOfOutputElements();
 
+    /**
+     * @brief Tests errors with two input signals.
+     * @details Configure the GAM with different number of input samples.
+     * @return True if Setup()fails.
+     */
     bool TestSetupSeveralSignalsDiffInputSamples();
 
+    /**
+     * @brief Tests a FIR filter with 2 input signals.
+     * @details Apply two times the Execute() with different input signals and then compare the
+     * output against the expected values.
+     * @return True if the output is as expected.
+     */
     bool TestExecuteSeveralSignalsFIR();
 };
 

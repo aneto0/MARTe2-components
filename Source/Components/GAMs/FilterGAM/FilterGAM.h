@@ -1,7 +1,7 @@
 /**
  * @file FilterGAM.h
  * @brief Header file for class FilterGAM
- * @date Jan 30, 2017 TODO Verify the value and format of the date
+ * @date 30/01/2017
  * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef SOURCE_COMPONENTS_GAMS_FILTERGAM_FILTERGAM_H_
-#define SOURCE_COMPONENTS_GAMS_FILTERGAM_FILTERGAM_H_
+#ifndef FILTERGAM_H_
+#define FILTERGAM_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -40,46 +40,60 @@
 
 namespace MARTe {
 /**
- * @brief GAM which allows to implement FIR & IIR filter with floats
- * @details The GAM loads its on configuration from a configuration file. It must have
- * the Num and Den defined and normalized. If FIR filter is implemented the Den = 1;
+ * @brief GAM which allows to implement FIR & IIR filter with float32 type.
+ * @details The GAM loads its own configuration from a configuration file. the coefficients of the filter must have
+ * the numerator (num) and denominator (den) defined and normalized. If a FIR filter is implemented the den = 1;
  *
  * The filter returns the solution to the following linear,
  * time-invariant difference equation:
- * y[n] = SUM(k=0 to M-1)num[k]*x[n-k]-SUM(k=1 to N-1)den[k]*y[n-k]
+ *
+ * \f$
+ * y[n] = \sum_{k=0}^{M-1}num[k]*x[n-k]-\sum_{k=1}^{N-1}den[k]*y[n-k]
+ * \f$
+ *
  * where N is the number of denominator coefficients, M is the number of numerator
  * coefficients, X is the input vector of the filter and Y is the output vector of the
- * filter the Z transform of the filter is:
- * H(z)=SUM(k=0 to M-1) num[k]*z^(-k)/(1+SUM(k=1 to N-1) den[k]*z^(-k))
+ * filter
  *
- * Currently the type filter supported is float32.
+ * The Z transform of the filter is:
  *
- * The class hold the coefficients and the last state for the next iteration.
+ * \f$
+ * H(z)=\frac{\sum_{k=0}^{M-1} num[k]*z^{(-k)}}{1+\sum_{k=1}^{N-1} den[k]*z^{-k}}
+ * \f$
  *
- * @pre The filter must be normalized (den[0] = 1)
- *  the dimension of the numerator and the denominator must be at least 1;
+ * The GAM supports a multiple input signals (and output signal) only if the characteristics of the input arrays are the same
+ * (i.e. The input signals have the same number of elements, the same number of samples and the same type).Currently, the type supported is float32.
+ *
+ * The inputs and outputs must be arrays (could be arrays of 1 elements).
+ *
+ * The class holds the coefficients and the last states (if more than one input signal is configured) for the next iteration.
+ *
+ * @pre The filter must be normalized (den[0] = 1).
+ *
+ * The size of the numerator and the denominator must be at least 1;
  * @post The output is the input filtered.
  */
 class FilterGAM: public GAM {
 public:
+    CLASS_REGISTER_DECLARATION()
     /**
-     * @brief Constructor
-     * @post
-     *   GetNumberOfNumCoeff()   = 0
-     *   GetNumberOfDenCoeff()   = 0
-     *   GetNumCoeff(float32 *n) = false
-     *   GetDenCoeff(float32 *d) = false
-     *   CheckNormalisation()    = false
-     *   GetStaticGain()         = 0
-     *   GetNumberOfSamples()    = 0
-     *   GetNumberOfSignals()    = 0
+     * @brief Default constructor.
+     *
+     * @post GetNumberOfNumCoeff() = 0
+     * @post GetNumberOfDenCoeff()   = 0
+     * @post GetNumCoeff(float *coeff) = false
+     * @post GetDenCoeff(float *coeff) = false
+     * @post CheckNormalisation()    = false
+     * @post GetStaticGain()         = 0
+     * @post GetNumberOfSamples()    = 0
+     * @post GetNumberOfSignals()    = 0
      */
     FilterGAM();
 
     /**
-     * @brief free the allocated memory
-     * @details if num, den, lastInputs and lastOutputs is not NULL
-     * then delete memory.
+     * @brief Free the allocated memory
+     * @details If num, den, lastInputs and/or lastOutputs is not NULL
+     * then free memory.
      */
     virtual ~FilterGAM();
 
@@ -88,101 +102,122 @@ public:
      * @details allocate memory for the numerator and denominator coefficients and load their values.
      * Allocate memory for the last input and output values (final state)
      * Check that the coefficients are normalized.
-     * @pre
-     *   GetNumberOfNumCoeff()   = 0
-     *   GetNumberOfDenCoeff()   = 0
-     *   GetNumCoeff(float32 *n) = false
-     *   GetDenCoeff(float32 *d) = false
-     *   CheckNormalisation()    = false
-     *   GetStaticGain()         = 0
-     *   GetNumberOfSamples()    = 0
-     *   GetNumberOfSignals()    = 0
-     * @post if Initialise() = true; then
-     *   GetNumberOfNumCoeff()   = numberOfNumCoeff
-     *   GetNumberOfDenCoeff()   = numberOfDenCoeff
-     *   GetNumCoeff(float32 *n) = true
-     *   GetDenCoeff(float32 *d) = true
-     *   CheckNormalisation()    = true
-     *   GetStaticGain()         = staticGain
-     *   GetNumberOfSamples()    = 0
-     *   GetNumberOfSignals()    = 0
-     * @param[in] data configuration file
+     *
+     * @pre GetNumberOfNumCoeff() = 0
+     * @pre GetNumberOfDenCoeff()   = 0
+     * @pre GetNumCoeff(float *coeff) = false
+     * @pre GetDenCoeff(float *coeff) = false
+     * @pre CheckNormalisation()    = false
+     * @pre GetStaticGain()         = 0
+     * @pre GetNumberOfSamples()    = 0
+     * @pre GetNumberOfSignals()    = 0
+     *
+     * @post GetNumberOfNumCoeff()   = numberOfNumCoeff
+     * @post GetNumberOfDenCoeff()   = numberOfDenCoeff
+     * @post GetNumCoeff(float *coeff) = true
+     * @post GetDenCoeff(float *coeff) = true
+     * @post CheckNormalisation()    = true
+     * @post GetStaticGain()         = staticGain
+     * @post GetNumberOfSamples()    = 0
+     * @post GetNumberOfSignals()    = 0
+     *
+     * @param[in] data Configuration file
      *
      * @return true on succeed
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief Setup the input and the output of the GAM and verify the correctness and consistency of the parameters
+     * @brief Setup the inputs and the outputs of the GAM. Additionally, it verifies the correctness and consistency of the parameters.
      * @details Checks that the input and output pointers are correctly obtained and the number of input and
      * output parameters are equal and non zero.
-     * @pre
-     *    Initialise() = true;
-     * @post
-     *    GetNumberOfSamples() = numberOfSamples
-     *    GetNumberOfSignals() = numberOfSignals
-     *    input != NULL
-     *    output != NULL
-     *    lastInputs != NULL
-     *    lastOutputs != NULL
-     * @return true if succeed.
+     *
+     * @pre Initialise() = true;
+     *
+     * @post GetNumberOfSamples() = numberOfSamples
+     * @post GetNumberOfSignals() = numberOfSignals
+     * @post input != NULL
+     * @post output != NULL
+     * @post lastInputs != NULL
+     * @post lastOutputs != NULL
+     * @return true on succeed.
      */
     virtual bool Setup();
 
     /**
      * @brief Perform the filtering
-     * @details Computes the following operations:
-     * y[n] = SUM(k=0 to M-1)num[k]*x[n-k]-SUM(k=1 to N-1)den[k]*y[n-k]
-     * where N is the number of denominator coefficients, M is the number of numerator coefficients, X is the input vector
-     * of the filter and Y is the output vector of the filter
-     * @pre
-     *   Initialise(StructuredDataI & data) = true
+     * @details Computes the following operations for each signal:
+     *
+     * \f$
+     * y[n] = \sum_{k=0}^{M-1}num[k]*x[n-k]-\sum_{k=1}^{N-1}den[k]*y[n-k]
+     * \f$
+     *
+     * where N is the number of denominator coefficients, M is the number of numerator
+     * coefficients, X is the input vector of the filter and Y is the output vector of the
+     * filter
+     *
+     * @pre Initialise(StructuredDataI & data) = true
+     * @pre Setup() = true
      * @return true
      */
     virtual bool Execute();
 
     /**
-     * @brief makes available the numberOfNumCoeff
+     * @brief Makes available the numberOfNumCoeff
      * @return numberOfNumCoeff
      */
     uint32 GetNumberOfNumCoeff();
 
     /**
-     * @brief makes available the numberOfDenCoeff
-     * @return numberOfDenCoeff
+     * @brief Makes available the numberOfDenCoeff.
+     * @return numberOfDenCoeff.
      */
     uint32 GetNumberOfDenCoeff();
 
     /**
-     * @brief makes available the numerator coefficients
-     * @param[in] coeff pointer where the coefficients will be copied
-     * @return true of num is not a NULL pointer
+     * @brief Makes available the numerator coefficients.
+     * @param[in] coeff pointer to where the coefficients will be copied.
+     *
+     * @pre Setup() = true.
+     *
+     * @return true if num != NULL pointer.
      */
     bool GetNumCoeff(float *coeff);
 
     /**
-     * @brief makes available the denominator coefficients
-     * @param[in] coeff pointer where the coefficients will be copied
-     * @return true of den is not a NULL pointer
+     * @brief Makes available the denominator coefficients.
+     * @param[in] coeff Pointer to where the coefficients will be copied.
+     * @pre Setup() = true
+     * @return true if den != NULL pointer.
      */
     bool GetDenCoeff(float *coeff);
 
     /**
-     * @brief Checks that the coefficients are normalized
-     * @details checks that den[0] = 1
-     * @return true if the coefficients are normalized
+     * @brief Checks that the coefficients are normalized.
+     * @details Checks that den[0] = 1.
+     * @pre Initialise(StructuredDataI & data) = true.
+     * @return true if the coefficients are normalized.
      */
     bool CheckNormalisation();
 
     /**
-     * @brief Makes the staticGain available
-     * @details staticGain= SUM(num)/SUM(den)
-     * @return the staticGain
+     * @brief Makes the staticGain available.
+     * @details staticGain= SUM(num)/SUM(den).
+     * @return the staticGain.
      */
     float32 GetStaticGain();
 
+    /**
+     * @brief Query the number of samples for each signal.
+     * @return the number of samples.
+     */
     uint32 GetNumberOfSamples();
 
+    /**
+     * @brief Query the number of signals configured.
+     * @pre Setup() = true.
+     * @return the number of signals configured.
+     */
     uint32 GetNumberOfSignals();
 
 private:
@@ -216,5 +251,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* SOURCE_COMPONENTS_GAMS_FILTERGAM_FILTERGAM_H_ */
+#endif /* FILTERGAM_H_ */
 
