@@ -348,7 +348,7 @@ bool UDPReceiverTest::TestSetConfiguredDatabase_More_Minimum_Signals(){
         "                    DataSource = UDPReceiver"
         "                    Type = uint64"
         "                }"
-        "                Time = {"
+        "                SequenceNumber = {"
         "                    DataSource = UDPReceiver"
         "                    Type = uint64"
         "                }"
@@ -508,9 +508,7 @@ bool UDPReceiverTest::TestGetBrokerName_OutputSignals(){
 
 bool UDPReceiverTest::TestGetInputBrokers(){
     using namespace MARTe;
-    TestIntegratedInApplication(config1);
-    REPORT_ERROR(ErrorManagement::InternalSetupError, "About to return true");
-    return true;
+    return TestIntegratedInApplication(config1);
 }
 
 bool UDPReceiverTest::TestGetOutputBrokers(){
