@@ -49,13 +49,14 @@ namespace MARTe{
 static uint32 nOfSignals = 0u;
 static uint16 udpServerPort;
 static UDPSocket client;
-static uint64 timerAtStateChange = 0u;
 static uint32 memoryOffset = 0u;
 
 UDPSender::UDPSender():DataSourceI(){
     UDPPacket.sequenceNumber = 0u;
     UDPPacket.timer = 0u ;
     UDPPacket.dataBuffer = NULL_PTR(AnyType*);
+    timerAtStateChange = 0u;
+    udpServerAddress = "";
 }
 
 /*lint -e{1551} the destructor must guarantee that the client sending is closed.*/
@@ -87,6 +88,7 @@ bool UDPSender::Synchronise(){
             dataConv = UDPPacket.sequenceNumber;
         } else if (i == 1u){
             UDPPacket.timer=HighResolutionTimer::Counter() - timerAtStateChange;
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " data being sent:%d time now:%d time before:%d", UDPPacket.timer, HighResolutionTimer::Counter(), timerAtStateChange);
             dataConv = UDPPacket.timer;
         }else{
             dataConv = UDPPacket.dataBuffer[0];
@@ -103,7 +105,7 @@ bool UDPSender::Synchronise(){
             if ((i == 0u) || (i == 1u)){
                 memcpy(static_cast<void*>(AnyTypetoUint8),dataConv.GetDataPointer(),signalByteSize);
                 memcpy(&k,static_cast<char*>(dataConv.GetDataPointer()),signalByteSize);
-                //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
+                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
             }else{
                 void* p = static_cast<char*>(dataConv.GetDataPointer()) + memoryOffset;
                 memcpy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);

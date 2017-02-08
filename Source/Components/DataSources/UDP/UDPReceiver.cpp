@@ -307,6 +307,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         uint32 udpServerReadSize = udpServerExpectReadSize;
         uint8 i;
         if (keepRunning) {
+            //REPORT_ERROR(ErrorManagement::ParametersError, "Waiting to recieve data");
             dataRecieved = server.Read(reinterpret_cast<char8 *>(udpServerBufferRead), udpServerReadSize,  timeout);
         }
         dataRecieved = (udpServerReadSize > 0u);
@@ -316,6 +317,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
             REPORT_ERROR(ErrorManagement::ParametersError, "No data recieved");
             Sleep::Sec(20e-6);
         }else if(!dataRecievedCorrectSize){
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data of size!!!! = %d, but i expected size %d", udpServerReadSize, udpServerExpectReadSize);
             REPORT_ERROR(ErrorManagement::ParametersError, "Recieved data of inccorect size, ignoring it.");
             Sleep::Sec(100e-6);
         }else{
@@ -351,7 +353,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                     memcpy(p,static_cast<void*>(dataConv),signalByteSize);
                     uint32 test;
                     memcpy(&test,p,signalByteSize);
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
+                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
                     memoryOffset += signalByteSize;
                 }
                 signalOffset += noOfBytesForSignal;

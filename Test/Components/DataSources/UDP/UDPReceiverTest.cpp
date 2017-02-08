@@ -176,15 +176,19 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
     }
     Sleep::Sec(10lu);
 
+    REPORT_ERROR(ErrorManagement::InternalSetupError, "About to stop execution");
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::StartNextStateExecution failed");
     } else {
         application->StopCurrentStateExecution();
     }
+    REPORT_ERROR(ErrorManagement::InternalSetupError, "About to purge");
 
     god->Purge();
 
+    REPORT_ERROR(ErrorManagement::InternalSetupError, "after to purge");
+    
     return ok;
      
 }
@@ -526,4 +530,106 @@ bool UDPReceiverTest::TestPrepareNextState(){
 
 bool UDPReceiverTest::TestSynchronise(){
     return TestIntegratedInApplication(config1);
+}
+
+bool UDPReceiverTest::TestReceiving(){
+        using namespace MARTe;
+    const MARTe::char8 * const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = UDPReceiverTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAMB = {"
+        "            Class = UDPSenderTestGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPSender"
+        "                    Type = uint64"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPSender"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPSender"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"        
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
+        "            Port = \"44488\""
+        "            Timeout = \"3\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "           }"
+        "       }"
+        "        +UDPSender = {"
+        "            Class = UDPDrv::UDPSender"
+        "            TargetAddress = \"127.0.0.1\""
+        "            Port = \"44488\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA GAMB}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+        return TestIntegratedInApplication(config2);
 }

@@ -166,6 +166,7 @@ private:
 
     UDPMsgStruct UDPPacket;
     StreamString udpServerAddress;
+    uint64 timerAtStateChange;
 
 };
 }
