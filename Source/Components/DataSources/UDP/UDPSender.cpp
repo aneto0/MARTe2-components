@@ -105,7 +105,7 @@ bool UDPSender::Synchronise(){
             if ((i == 0u) || (i == 1u)){
                 memcpy(static_cast<void*>(AnyTypetoUint8),dataConv.GetDataPointer(),signalByteSize);
                 memcpy(&k,static_cast<char*>(dataConv.GetDataPointer()),signalByteSize);
-                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
+                //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
             }else{
                 void* p = static_cast<char*>(dataConv.GetDataPointer()) + memoryOffset;
                 memcpy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);

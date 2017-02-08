@@ -347,7 +347,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                 }
                 if ((i == 0u) || (i == 1u)){
                     memcpy(AnytypeData.GetDataPointer(),static_cast<void*>(dataConv),signalByteSize);
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
+                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
                 }else{
                     void *p = static_cast<char*>(AnytypeData.GetDataPointer()) + memoryOffset;
                     memcpy(p,static_cast<void*>(dataConv),signalByteSize);
