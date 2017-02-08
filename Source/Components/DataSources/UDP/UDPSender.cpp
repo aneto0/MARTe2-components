@@ -88,7 +88,7 @@ bool UDPSender::Synchronise(){
             dataConv = UDPPacket.sequenceNumber;
         } else if (i == 1u){
             UDPPacket.timer=HighResolutionTimer::Counter() - timerAtStateChange;
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " data being sent:%d time now:%d time before:%d", UDPPacket.timer, HighResolutionTimer::Counter(), timerAtStateChange);
+            //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " data being sent:%d time now:%d time before:%d", UDPPacket.timer, HighResolutionTimer::Counter(), timerAtStateChange);
             dataConv = UDPPacket.timer;
         }else{
             dataConv = UDPPacket.dataBuffer[0];
