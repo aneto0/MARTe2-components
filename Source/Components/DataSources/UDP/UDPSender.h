@@ -167,7 +167,7 @@ private:
     UDPMsgStruct UDPPacket;
     StreamString udpServerAddress;
     uint64 timerAtStateChange;
-
+    uint64 maximumMemoryAccess;
 };
 }
 #endif

@@ -49,7 +49,6 @@ namespace MARTe{
 static uint32 nOfSignals = 0u;
 static uint16 udpServerPort;
 static UDPSocket client;
-static uint32 memoryOffset = 0u;
 
 UDPSender::UDPSender():DataSourceI(){
     UDPPacket.sequenceNumber = 0u;
@@ -78,7 +77,7 @@ bool UDPSender::Synchronise(){
     uint32 i;
     uint8 udpServerWriteBuffer[udpServerExpectReadSize];
     uint32 signalOffset = 0u;
-    memoryOffset = 0u;
+    uint32 memoryOffset = 0u;
     for (i = 0u; i < udpServerExpectReadSize; i++){
         udpServerWriteBuffer[i] = 0u;
     }
@@ -107,10 +106,14 @@ bool UDPSender::Synchronise(){
                 memcpy(&k,static_cast<char*>(dataConv.GetDataPointer()),signalByteSize);
                 //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
             }else{
-                void* p = static_cast<char*>(dataConv.GetDataPointer()) + memoryOffset;
-                memcpy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
-                memcpy(&k,p,signalByteSize);
-                memoryOffset += signalByteSize;
+                if (memoryOffset <= maximumMemoryAccess){
+                    void* p = static_cast<char*>(dataConv.GetDataPointer()) + memoryOffset;
+                    memcpy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
+                    memcpy(&k,p,signalByteSize);
+                    memoryOffset += signalByteSize;
+                }else{
+                    REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
+                }
                 //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d, located at memory loc: %d",k, p);
             }
             uint32 j;
@@ -224,8 +227,8 @@ bool UDPSender::AllocateMemory(){
 
     if (ok){
         uint32 n;
+        uint32 signalByteSize;
         for (n = 2u; (n < nOfSignals) && (ok); n++){
-            uint32 signalByteSize;
             ok = GetSignalByteSize(n, signalByteSize);
             if (ok){
                 totalPacketSize += signalByteSize;
@@ -234,6 +237,7 @@ bool UDPSender::AllocateMemory(){
         //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal data size %d",(totalPacketSize));
         if (ok){
             UDPPacket.dataBuffer= new AnyType[totalPacketSize];
+            maximumMemoryAccess = totalPacketSize - signalByteSize;
             uint32 i;
             for (i = 0u; i < (nOfSignals - 2u); i++){
                 UDPPacket.dataBuffer[i] = 0;
@@ -256,7 +260,7 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          void*& signalAddress) {
     //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "no of signals =  %d",GetNumberOfSignals());
 
-    memoryOffset = 0u;
+    uint32 memoryOffset = 0u;
     bool ok = true;
     if (signalIdx <= (GetNumberOfSignals() -1u)){
         if (signalIdx == 0u) {
@@ -274,7 +278,12 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                     memoryOffset += signalByteSize;
                 }
             }
-            signalAddress = static_cast<char*>((UDPPacket.dataBuffer[0]).GetDataPointer()) + memoryOffset;
+            if (memoryOffset <= maximumMemoryAccess){
+                signalAddress = static_cast<char*>((UDPPacket.dataBuffer[0]).GetDataPointer()) + memoryOffset;
+            } else{
+                ok = false;
+                REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
+            }
             //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal =  %d",signalIdx);
             //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "pointer =  %d",(signalAddress));
             //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "memoryOffset =  %d",memoryOffset);

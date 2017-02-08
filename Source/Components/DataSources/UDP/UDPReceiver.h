@@ -201,6 +201,8 @@ private:
 
     TimeoutType timeout;
 
+    uint64 maximumMemoryAccess;
+
 };
 }
 #endif
