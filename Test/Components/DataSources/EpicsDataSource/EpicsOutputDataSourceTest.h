@@ -133,6 +133,11 @@ public:
     bool TestPrepareNextState();
 
     /**
+     * @brief Tests the GetSharedDataAreaName method.
+     */
+    bool TestGetSharedDataAreaName();
+
+    /**
      * @brief Tests the Initialise method with an empty StructuredDataI.
      */
     bool TestInitialise_Empty();

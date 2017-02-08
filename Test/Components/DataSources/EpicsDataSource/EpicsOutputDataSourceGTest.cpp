@@ -94,7 +94,7 @@ TEST(EpicsOutputDataSourceGTest, TestSetConfiguredDatabase_False_IntegerSignal2)
 TEST(EpicsOutputDataSourceGTest, TestSynchronise) {
 	EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestSynchronise<MARTe::uint32>());
-//    ASSERT_TRUE(test.TestSynchronise<MARTe::float32>());
+    ASSERT_TRUE(test.TestSynchronise<MARTe::float32>());
 }
 
 TEST(EpicsOutputDataSourceGTest,TestAllocateMemory) {
@@ -135,6 +135,11 @@ TEST(EpicsOutputDataSourceGTest, TestGetOutputBrokers) {
 TEST(EpicsOutputDataSourceGTest, TestPrepareNextState) {
 	EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestPrepareNextState());
+}
+
+TEST(EpicsOutputDataSourceGTest, TestGetSharedDataAreaName) {
+	EpicsOutputDataSourceTest test;
+    ASSERT_TRUE(test.TestGetSharedDataAreaName());
 }
 
 TEST(EpicsOutputDataSourceGTest, TestInitialise_Default) {
