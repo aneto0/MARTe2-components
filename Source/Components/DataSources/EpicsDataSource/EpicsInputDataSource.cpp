@@ -162,10 +162,17 @@ uint32 EpicsInputDataSource::GetNumberOfMemoryBuffers() {
 }
 
 bool EpicsInputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) {
-	Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
-	signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
-	REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsInputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
-	return true;
+	bool ok = false;
+
+	ok = ((signalIdx < GetNumberOfSignals()) && (bufferIdx < GetNumberOfMemoryBuffers()));
+
+    if (ok) {
+    	Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
+    	signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
+    	REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsInputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
+    }
+
+	return ok;
 }
 
 const char8 *EpicsInputDataSource::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
