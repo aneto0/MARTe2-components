@@ -49,6 +49,8 @@ public:
 
     bool TestInitialise_Port();
 
+    bool TestInitialise_Restricted_Port();
+
     bool TestInitialise_False_Port_1();
 
     bool TestInitialise_False_Port_2();
@@ -57,11 +59,35 @@ public:
 
     bool TestInitialise_False_Port_4();
 
+    bool TestInitialise_Timeout();
+
+    bool TestInitialise_Timeout_Infinite();
+
+    bool TestInitialise_Timeout_NotDefined();
+
+    bool TestInitialise_False_Timeout_1();
+
+    bool TestInitialise_False_Timeout_2();
+
+    bool TestInitialise_False_Timeout_3();
+
     bool TestSetConfiguredDatabase();
     
     bool TestSetConfiguredDatabase_More_Minimum_Signals();
 
-    bool TestSetConfiguredDatabase_False_NOfSignals();
+    bool TestSetConfiguredDatabase_False_NOfSignals1();
+
+    bool TestSetConfiguredDatabase_False_NOfSignals2();
+
+    bool TestSetConfiguredDatabase_False_NOfSignals3();
+
+    bool TestSetConfiguredDatabase_Incorrect_Signal_Size1();
+
+    bool TestSetConfiguredDatabase_Incorrect_Signal_Size2();
+
+    bool TestSetConfiguredDatabase_Incorrect_Signal_Type1();
+
+    bool TestSetConfiguredDatabase_Incorrect_Signal_Type2();
 
     /**
      * @brief Tests the AllocateMemory method.

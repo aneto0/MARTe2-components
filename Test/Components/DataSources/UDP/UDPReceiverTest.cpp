@@ -288,6 +288,15 @@ bool UDPReceiverTest::TestInitialise_Port(){
     return ok;
 }
 
+bool UDPReceiverTest::TestInitialise_Restricted_Port(){
+    using namespace MARTe;
+    UDPReceiver test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Port", "666");
+    bool ok = test.Initialise(cdb);
+    return ok;
+}
+
 bool UDPReceiverTest::TestInitialise_False_Port_1(){
     using namespace MARTe;
     UDPReceiver test;
@@ -329,6 +338,60 @@ bool UDPReceiverTest::TestInitialise_False_Port_4(){
     bool ok = test.Initialise(cdb);
     return ok;
 }
+
+bool UDPReceiverTest::TestInitialise_Timeout(){
+    using namespace MARTe;
+    UDPReceiver test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Timeout", "5.3");
+    bool ok = test.Initialise(cdb);
+    return ok;
+}
+
+bool UDPReceiverTest::TestInitialise_Timeout_Infinite(){
+    using namespace MARTe;
+    UDPReceiver test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Timeout", "0");
+    bool ok = test.Initialise(cdb);
+    return ok;
+}
+
+bool UDPReceiverTest::TestInitialise_Timeout_NotDefined(){
+    using namespace MARTe;
+    UDPReceiver test;
+    ConfigurationDatabase cdb;
+    bool ok = test.Initialise(cdb);
+    return ok;
+}
+
+bool UDPReceiverTest::TestInitialise_False_Timeout_1(){
+    using namespace MARTe;
+    UDPReceiver test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Timeout", "-4");
+    bool ok = test.Initialise(cdb);
+    return ok;
+}
+
+bool UDPReceiverTest::TestInitialise_False_Timeout_2(){
+    using namespace MARTe;
+    UDPReceiver test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Timeout", "");
+    bool ok = test.Initialise(cdb);
+    return ok;
+}
+
+bool UDPReceiverTest::TestInitialise_False_Timeout_3(){
+    using namespace MARTe;
+    UDPReceiver test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Timeout", "I am not a timeout value");
+    bool ok = test.Initialise(cdb);
+    return ok;
+}
+
 
 bool UDPReceiverTest::TestSetConfiguredDatabase(){
     return TestIntegratedInApplication(config1);
@@ -410,7 +473,7 @@ bool UDPReceiverTest::TestSetConfiguredDatabase_More_Minimum_Signals(){
         return TestIntegratedInApplication(config2);
 }
 
-bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals(){
+bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals1(){
     using namespace MARTe;
     const MARTe::char8 * const config2 = ""
         "$Test = {"
@@ -462,8 +525,494 @@ bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals(){
         "    }"
         "}";
 
-        bool ok = ConfigureApplication(config2);
-        return !ok;
+        return !ConfigureApplication(config2);
+}
+
+bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals2(){
+    using namespace MARTe;
+    const MARTe::char8 * const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = UDPReceiverTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAMB = {"
+        "            Class = UDPSenderTestGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPSender"
+        "                    Type = uint64"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPSender"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPSender"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"        
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
+        "            Port = \"44488\""
+        "            Timeout = \"3\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal2 = {"
+        "                   Type = uint64"
+        "               }"
+        "           }"
+        "       }"
+        "        +UDPSender = {"
+        "            Class = UDPDrv::UDPSender"
+        "            TargetAddress = \"127.0.0.1\""
+        "            Port = \"44488\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA GAMB}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+        return !TestIntegratedInApplication(config2);
+}
+
+bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals3(){
+    using namespace MARTe;
+    const MARTe::char8 * const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = UDPReceiverTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAMB = {"
+        "            Class = UDPSenderTestGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPSender"
+        "                    Type = uint64"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPSender"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPSender"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"        
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
+        "            Port = \"44488\""
+        "            Timeout = \"3\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "           }"
+        "       }"
+        "        +UDPSender = {"
+        "            Class = UDPDrv::UDPSender"
+        "            TargetAddress = \"127.0.0.1\""
+        "            Port = \"44488\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal2 = {"
+        "                   Type = uint64"
+        "               }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA GAMB}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+        return !TestIntegratedInApplication(config2);
+}
+
+bool UDPReceiverTest::TestSetConfiguredDatabase_Incorrect_Signal_Size1(){
+    using namespace MARTe;
+    const MARTe::char8 * const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = UDPReceiverTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint16"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
+        "            Port = \"44488\""
+        "            Timeout = \"3\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint16"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "           }"
+        "       }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+        return !ConfigureApplication(config2);
+}
+
+bool UDPReceiverTest::TestSetConfiguredDatabase_Incorrect_Signal_Size2(){
+    using namespace MARTe;
+    const MARTe::char8 * const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = UDPReceiverTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint16"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
+        "            Port = \"44488\""
+        "            Timeout = \"3\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint16"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "           }"
+        "       }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+        return !ConfigureApplication(config2);
+}
+
+bool UDPReceiverTest::TestSetConfiguredDatabase_Incorrect_Signal_Type1(){
+    using namespace MARTe;
+    const MARTe::char8 * const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = UDPReceiverTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = float64"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
+        "            Port = \"44488\""
+        "            Timeout = \"3\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = float64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "           }"
+        "       }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+        return !ConfigureApplication(config2);
+}
+
+bool UDPReceiverTest::TestSetConfiguredDatabase_Incorrect_Signal_Type2(){
+    using namespace MARTe;
+    const MARTe::char8 * const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = UDPReceiverTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = float64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
+        "            Port = \"44488\""
+        "            Timeout = \"3\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = float64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "           }"
+        "       }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+        return !ConfigureApplication(config2);
 }
 
 bool UDPReceiverTest::TestAllocateMemory(){

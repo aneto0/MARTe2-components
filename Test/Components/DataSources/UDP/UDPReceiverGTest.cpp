@@ -56,6 +56,11 @@ TEST(UDPReceiverGTest,TestInitialise_Port) {
     ASSERT_TRUE(test.TestInitialise_Port());
 }
 
+TEST(UDPReceiverGTest, TestInitialise_Restricted_Port) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_Restricted_Port());
+}
+
 TEST(UDPReceiverGTest,TestInitialise_False_Port_1) {
     UDPReceiverTest test;
     ASSERT_TRUE(test.TestInitialise_False_Port_1());
@@ -76,6 +81,36 @@ TEST(UDPReceiverGTest, TestInitialise_False_Port_4) {
     ASSERT_TRUE(test.TestInitialise_False_Port_4());
 }
 
+TEST(UDPReceiverGTest, TestInitialise_Timeout) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_Timeout());
+}
+
+TEST(UDPReceiverGTest, TestInitialise_Timeout_Infinite) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_Timeout_Infinite());
+}
+
+TEST(UDPReceiverGTest, TestInitialise_Timeout_NotDefined) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_Timeout_NotDefined());
+}
+
+TEST(UDPReceiverGTest, TestInitialise_False_Timeout_1) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Timeout_1());
+}
+
+TEST(UDPReceiverGTest, TestInitialise_False_Timeout_2) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Timeout_2());
+}
+
+TEST(UDPReceiverGTest, TestInitialise_False_Timeout_3) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Timeout_3());
+}
+
 TEST(UDPReceiverGTest, TestSetConfiguredDatabase) {
     UDPReceiverTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
@@ -86,9 +121,39 @@ TEST(UDPReceiverGTest, TestSetConfiguredDatabase_More_Minimum_Signals) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_More_Minimum_Signals());
 }
 
-TEST(UDPReceiverGTest, TestSetConfiguredDatabase_False_NOfSignals) {
+TEST(UDPReceiverGTest, TestSetConfiguredDatabase_False_NOfSignals1) {
     UDPReceiverTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals1());
+}
+
+TEST(UDPReceiverGTest, TestSetConfiguredDatabase_False_NOfSignals2) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals2());
+}
+
+TEST(UDPReceiverGTest, TestSetConfiguredDatabase_False_NOfSignals3) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals3());
+}
+
+TEST(UDPReceiverGTest, TestSetConfiguredDatabase_Incorrect_Signal_Size1) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Incorrect_Signal_Size1());
+}
+
+TEST(UDPReceiverGTest, TestSetConfiguredDatabase_Incorrect_Signal_Size2) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Incorrect_Signal_Size2());
+}
+
+TEST(UDPReceiverGTest, TestSetConfiguredDatabase_Incorrect_Signal_Type1) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Incorrect_Signal_Type1());
+}
+
+TEST(UDPReceiverGTest, TestSetConfiguredDatabase_Incorrect_Signal_Type2) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Incorrect_Signal_Type2());
 }
 
 TEST(UDPReceiverGTest, TestAllocateMemory) {
