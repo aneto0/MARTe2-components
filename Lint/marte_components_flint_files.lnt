@@ -6,6 +6,7 @@
 -i./Source/Components/DataSources/NI6259/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConversionGAM/
+-i./Source/Components/GAMs/FilterGAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper
 
@@ -14,6 +15,7 @@ BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
 ConversionGAM.cpp
 ConversionHelper.cpp
+FilterGAM.cpp
 IOGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
