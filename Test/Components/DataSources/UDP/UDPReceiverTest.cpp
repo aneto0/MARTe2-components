@@ -631,7 +631,7 @@ bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals2(){
         "    }"
         "}";
 
-        return !TestIntegratedInApplication(config2);
+        return TestIntegratedInApplication(config2);
 }
 
 bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals3(){
@@ -736,7 +736,7 @@ bool UDPReceiverTest::TestSetConfiguredDatabase_False_NOfSignals3(){
         "        TimingDataSource = Timings"
         "    }"
         "}";
-        return !TestIntegratedInApplication(config2);
+        return TestIntegratedInApplication(config2);
 }
 
 bool UDPReceiverTest::TestSetConfiguredDatabase_Incorrect_Signal_Size1(){
