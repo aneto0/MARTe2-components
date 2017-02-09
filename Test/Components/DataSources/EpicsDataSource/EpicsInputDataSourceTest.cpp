@@ -79,38 +79,6 @@ bool EpicsInputDataSourceTest::TestConstructor() {
     return ok;
 }
 
-bool EpicsInputDataSourceTest::TestSetConfiguredDatabase() {
-	return false;
-}
-
-bool EpicsInputDataSourceTest::TestSetConfiguredDatabase_One_Signal_Per_GAM() {
-	return false;
-}
-
-bool EpicsInputDataSourceTest::TestSetConfiguredDatabase_False_MoreThan2Signals() {
-	return false;
-}
-
-bool EpicsInputDataSourceTest::TestSetConfiguredDatabase_False_No32BitsSignal1() {
-	return false;
-}
-
-bool EpicsInputDataSourceTest::TestSetConfiguredDatabase_False_No32BitsSignal2() {
-	return false;
-}
-
-bool EpicsInputDataSourceTest::TestSetConfiguredDatabase_False_NoFrequencySet() {
-	return false;
-}
-
-bool EpicsInputDataSourceTest::TestSetConfiguredDatabase_False_IntegerSignal1() {
-	return false;
-}
-
-bool EpicsInputDataSourceTest::TestSetConfiguredDatabase_False_IntegerSignal2() {
-	return false;
-}
-
 template<typename SignalType>
 bool EpicsInputDataSourceTest::TestSynchronise() {
     using namespace MARTe;

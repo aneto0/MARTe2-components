@@ -51,46 +51,6 @@ TEST(EpicsInputDataSourceGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase());
-}
-
-TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase_False_MoreThan2Signals) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThan2Signals());
-}
-
-TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase_False_No32BitsSignal1) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_No32BitsSignal1());
-}
-
-TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase_False_No32BitsSignal2) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_No32BitsSignal2());
-}
-
-TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase_False_NoFrequencySet) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoFrequencySet());
-}
-
-TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase_One_Signal_Per_GAM) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_One_Signal_Per_GAM());
-}
-
-TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase_False_IntegerSignal1) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_IntegerSignal1());
-}
-
-TEST(EpicsInputDataSourceGTest, TestSetConfiguredDatabase_False_IntegerSignal2) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_IntegerSignal2());
-}
-
 TEST(EpicsInputDataSourceGTest, TestSynchronise) {
 	EpicsInputDataSourceTest test;
     ASSERT_TRUE(test.TestSynchronise<MARTe::uint32>());

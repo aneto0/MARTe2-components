@@ -85,11 +85,6 @@ public:
     virtual ~EpicsOutputDataSource();
 
     /**
-     * @see DataSourceI::SetConfiguredDatabase()
-     */
-    virtual bool SetConfiguredDatabase(StructuredDataI & data);
-
-    /**
      * @see DataSourceI::Synchronise()
      * @note This method will set the signals' values of the shared
      * memory area reading them from the datasource.

@@ -47,46 +47,6 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method.
-     */
-    bool TestSetConfiguredDatabase();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase method with only one signal specified on each GAM.
-     */
-    bool TestSetConfiguredDatabase_One_Signal_Per_GAM();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase method specifying more than two signals.
-     */
-    bool TestSetConfiguredDatabase_False_MoreThan2Signals();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase method specifying with a first signal that has more than 32 bits.
-     */
-    bool TestSetConfiguredDatabase_False_No32BitsSignal1();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase method specifying with a first signal that is not (Un)SignedInteged.
-     */
-    bool TestSetConfiguredDatabase_False_IntegerSignal1();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase method specifying with a second signal that has more than 32 bits.
-     */
-    bool TestSetConfiguredDatabase_False_No32BitsSignal2();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase method specifying with a second signal that is not (Un)SignedInteged.
-     */
-    bool TestSetConfiguredDatabase_False_IntegerSignal2();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase without setting any frequency.
-     */
-    bool TestSetConfiguredDatabase_False_NoFrequencySet();
-
-    /**
      * @brief Tests the Synchronise method.
      */
     template<typename SignalType>
@@ -106,11 +66,6 @@ public:
      * @brief Tests the GetSignalMemoryBuffer method.
      */
     bool TestGetSignalMemoryBuffer();
-
-    /**
-     * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
-     */
-    bool TestGetSignalMemoryBuffer_False();
 
     /**
      * @brief Tests the GetBrokerName method.

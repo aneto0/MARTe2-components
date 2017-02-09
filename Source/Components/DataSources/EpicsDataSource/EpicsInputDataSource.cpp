@@ -200,11 +200,6 @@ bool EpicsInputDataSource::GetOutputBrokers(ReferenceContainer &outputBrokers, c
 	return false;
 }
 
-bool EpicsInputDataSource::SetConfiguredDatabase(StructuredDataI & data) {
-    bool ret = DataSourceI::SetConfiguredDatabase(data);
-    return ret;
-}
-
 bool EpicsInputDataSource::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
     return true;
 }
