@@ -91,7 +91,7 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
     float64 timeout_input;
     keepRunning = true;
     bool found = data.Read("Port", udpServerPort);
-        if ((!found) || (udpServerPort <= 0u) || (udpServerPort > 65535u)){
+    if ((!found) || (udpServerPort == 0u)){
         udpServerPort = 44488u;
         REPORT_ERROR(ErrorManagement::Information, "No valid Port defined! Default to 44488");
     }else{
@@ -106,11 +106,12 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
         timeout = TTInfiniteWait;
         REPORT_ERROR(ErrorManagement::Information, "No timeout defined! Default to infinite");
     }else{
-        if(timeout_input == 0){
+        if(timeout_input == 0.000000){
             timeout = TTInfiniteWait;
             REPORT_ERROR(ErrorManagement::Information, "Timeout set to infinite");
         }else{
             timeout.SetTimeoutSec(timeout_input);
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Timeout is set to %f seconds", timeout_input);
         }
     }
     return ok;
@@ -344,21 +345,25 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
 
                 uint32 noOfBytesForSignal = size/8u;
                 uint8 dataConv[noOfBytesForSignal];
-                memset(static_cast<void*>(dataConv), 0, sizeof(dataConv));
+                //memset(static_cast<void*>(dataConv), 0, sizeof(dataConv));
                 uint32 counter;
                 for (counter = 0u; counter < noOfBytesForSignal; counter++){
 
                     dataConv[counter] = udpServerBufferRead[signalOffset + counter];
                 }
                 if ((i == 0u) || (i == 1u)){
+                    //REPORT_ERROR(ErrorManagement::ParametersError, "Doing memcpy1");
                     memcpy(AnytypeData.GetDataPointer(),static_cast<void*>(dataConv),signalByteSize);
+                    //REPORT_ERROR(ErrorManagement::ParametersError, "Done memcpy1");
                     //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
                 }else{
                     if (memoryOffset <= maximumMemoryAccess){
                     void *p = static_cast<char*>(AnytypeData.GetDataPointer()) + memoryOffset;
+                    //REPORT_ERROR(ErrorManagement::ParametersError, "Doing memcpy2");
                     memcpy(p,static_cast<void*>(dataConv),signalByteSize);
-                    uint32 test;
-                    memcpy(&test,p,signalByteSize);
+                    //REPORT_ERROR(ErrorManagement::ParametersError, "finished memcpy2");
+                    //uint32 test;
+                    //memcpy(&test,p,signalByteSize);
                     //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
                     memoryOffset += signalByteSize;
                     }else{

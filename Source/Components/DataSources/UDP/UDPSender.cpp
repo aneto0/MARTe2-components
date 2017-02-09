@@ -56,6 +56,7 @@ UDPSender::UDPSender():DataSourceI(){
     UDPPacket.dataBuffer = NULL_PTR(AnyType*);
     timerAtStateChange = 0u;
     udpServerAddress = "";
+    maximumMemoryAccess = 0u;
 }
 
 /*lint -e{1551} the destructor must guarantee that the client sending is closed.*/
@@ -143,7 +144,7 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "TargetAddress set to %s", udpServerAddress.Buffer());
     }
     found = data.Read("Port", udpServerPort);
-    if ((!found) || (udpServerPort <= 0u) || (udpServerPort > 65535u)){
+    if ((!found) || (udpServerPort == 0u)){
         udpServerPort = 44488u;
         REPORT_ERROR(ErrorManagement::Information, "No valid Port defined! Default to 44488");
     }else{
