@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#if !defined  (_UDP_SENDER)
-#define _UDP_SENDER
+#if !defined  (UDP_SENDER_H_)
+#define UDP_SENDER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -167,7 +167,7 @@ private:
     UDPMsgStruct UDPPacket;
     StreamString udpServerAddress;
     uint64 timerAtStateChange;
-    uint64 maximumMemoryAccess;
+    uint32 maximumMemoryAccess;
 };
 }
 #endif

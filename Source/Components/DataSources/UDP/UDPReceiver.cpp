@@ -125,7 +125,7 @@ bool UDPReceiver::AllocateMemory(){
     //REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "numb of reciving signals %d", nOfSignals);
     if (ok){
         uint32 n;
-        uint32 signalByteSize = 0;
+        uint32 signalByteSize = 0u;
         for (n = 2u; (n < nOfSignals) && (ok); n++){
             ok = GetSignalByteSize(n, signalByteSize);
             if (ok){
@@ -345,7 +345,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
 
                 uint32 noOfBytesForSignal = size/8u;
                 uint8 dataConv[noOfBytesForSignal];
-                //memset(static_cast<void*>(dataConv), 0, sizeof(dataConv));
+                memset(static_cast<void*>(dataConv), 0, sizeof(dataConv));
                 uint32 counter;
                 for (counter = 0u; counter < noOfBytesForSignal; counter++){
 
@@ -358,14 +358,14 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                     //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
                 }else{
                     if (memoryOffset <= maximumMemoryAccess){
-                    void *p = static_cast<char*>(AnytypeData.GetDataPointer()) + memoryOffset;
-                    //REPORT_ERROR(ErrorManagement::ParametersError, "Doing memcpy2");
-                    memcpy(p,static_cast<void*>(dataConv),signalByteSize);
-                    //REPORT_ERROR(ErrorManagement::ParametersError, "finished memcpy2");
-                    //uint32 test;
-                    //memcpy(&test,p,signalByteSize);
-                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
-                    memoryOffset += signalByteSize;
+                        void *p = static_cast<char*>(AnytypeData.GetDataPointer()) + memoryOffset;
+                        //REPORT_ERROR(ErrorManagement::ParametersError, "Doing memcpy2");
+                        memcpy(p,static_cast<void*>(dataConv),signalByteSize);
+                        //REPORT_ERROR(ErrorManagement::ParametersError, "finished memcpy2");
+                        //uint32 test;
+                        //memcpy(&test,p,signalByteSize);
+                        //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
+                        memoryOffset += signalByteSize;
                     }else{
                         REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
                     }

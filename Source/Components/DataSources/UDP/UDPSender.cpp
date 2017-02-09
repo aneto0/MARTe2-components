@@ -96,32 +96,33 @@ bool UDPSender::Synchronise(){
 
         if (OK){
             uint32 signalByteSize = GetSignalType(i).numberOfBits / 8u;
-
-            uint64 k;
-            uint8 AnyTypetoUint8 [signalByteSize];
-            for (k = 0u; k < signalByteSize; k++ ){
-                AnyTypetoUint8[k] = 0u;
-            }
-            if ((i == 0u) || (i == 1u)){
-                memcpy(static_cast<void*>(AnyTypetoUint8),dataConv.GetDataPointer(),signalByteSize);
-                memcpy(&k,static_cast<char*>(dataConv.GetDataPointer()),signalByteSize);
-                //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
-            }else{
-                if (memoryOffset <= maximumMemoryAccess){
-                    void* p = static_cast<char*>(dataConv.GetDataPointer()) + memoryOffset;
-                    memcpy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
-                    memcpy(&k,p,signalByteSize);
-                    memoryOffset += signalByteSize;
-                }else{
-                    REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
+            if (signalByteSize > 0u){
+                uint64 k;
+                uint8 AnyTypetoUint8 [signalByteSize];
+                for (k = 0u; k < signalByteSize; k++ ){
+                    AnyTypetoUint8[k] = 0u;
                 }
-                //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d, located at memory loc: %d",k, p);
+                if ((i == 0u) || (i == 1u)){
+                    memcpy(static_cast<void*>(AnyTypetoUint8),dataConv.GetDataPointer(),signalByteSize);
+                    memcpy(&k,static_cast<char*>(dataConv.GetDataPointer()),signalByteSize);
+                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
+                }else{
+                    if (memoryOffset <= maximumMemoryAccess){
+                        void* p = static_cast<char*>(dataConv.GetDataPointer()) + memoryOffset;
+                        memcpy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
+                        memcpy(&k,p,signalByteSize);
+                        memoryOffset += signalByteSize;
+                    }else{
+                        REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
+                    }
+                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d, located at memory loc: %d",k, p);
+                }
+                uint32 j;
+                for(j = 0u; j < signalByteSize; j++){
+                    udpServerWriteBuffer[static_cast<uint32>(j + signalOffset)] = AnyTypetoUint8[j];
+                }
+                signalOffset += signalByteSize;
             }
-            uint32 j;
-            for(j = 0u; j < signalByteSize; j++){
-                udpServerWriteBuffer[static_cast<uint32>(j + signalOffset)] = AnyTypetoUint8[j];
-            }
-            signalOffset += signalByteSize;
         }
 
     }
@@ -228,7 +229,7 @@ bool UDPSender::AllocateMemory(){
 
     if (ok){
         uint32 n;
-        uint32 signalByteSize;
+        uint32 signalByteSize = 0u;
         for (n = 2u; (n < nOfSignals) && (ok); n++){
             ok = GetSignalByteSize(n, signalByteSize);
             if (ok){

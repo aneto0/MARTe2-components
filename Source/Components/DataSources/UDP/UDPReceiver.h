@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#if !defined (_UDP_RECEIVER)
-#define _UDP_RECEIVER
+#if !defined (UDP_RECEIVER_H_)
+#define UDP_RECEIVER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -201,7 +201,7 @@ private:
 
     TimeoutType timeout;
 
-    uint64 maximumMemoryAccess;
+    uint32 maximumMemoryAccess;
 
 };
 }
