@@ -114,7 +114,7 @@ bool EpicsOutputDataSourceTest::TestSetConfiguredDatabase_False_IntegerSignal2()
 template<typename SignalType>
 bool EpicsOutputDataSourceTest::TestSynchronise() {
     using namespace MARTe;
-    bool success = false;
+    bool ok = false;
     MARTe::StreamString tmp_SharedDataAreaName; //TODO: Remove this when autorelease will be added to EpicsOutputDataSourceTest.
 
     {
@@ -132,8 +132,8 @@ bool EpicsOutputDataSourceTest::TestSynchronise() {
 
     	//Initialize signals configuration on data source:
     	ConfigurationDatabase cdb;
-    	success = BuildConfigurationDatabase(cdb, numberOfSignals);
-    	success &= target.SetConfiguredDatabase(cdb);
+    	ok = BuildConfigurationDatabase(cdb, numberOfSignals);
+    	ok &= target.SetConfiguredDatabase(cdb);
 
     	//Allocate memory of data source (it setups the shared data area):
     	target.AllocateMemory();
@@ -214,7 +214,7 @@ bool EpicsOutputDataSourceTest::TestSynchronise() {
     		}
 
     		//Check execution's status:
-    		success &= !error;
+    		ok &= !error;
     	}
 
     	//Free memory of dataset:
@@ -225,7 +225,7 @@ bool EpicsOutputDataSourceTest::TestSynchronise() {
     //Release shared data area: //TODO: Remove this when autorelease will be added to EpicsOutputDataSourceTest.
 	Platform::DestroyShm(tmp_SharedDataAreaName.Buffer());
 
-	return success;
+	return ok;
 }
 
 bool EpicsOutputDataSourceTest::TestAllocateMemory() {
@@ -297,13 +297,13 @@ bool EpicsOutputDataSourceTest::TestGetSignalMemoryBuffer_False() {
 
 bool EpicsOutputDataSourceTest::TestGetBrokerName() {
     using namespace MARTe;
-    bool ok = true;
+    bool ok = false;
     //Check broker name for input signals:
     {
     	ConfigurationDatabase config;
     	StreamString brokerName;
     	EpicsOutputDataSource target;
-    	ok &= INVARIANT(target);
+    	ok = INVARIANT(target);
     	brokerName = target.GetBrokerName(config, InputSignals);
     	ok &= (brokerName == "");
     	ok &= INVARIANT(target);
@@ -323,21 +323,30 @@ bool EpicsOutputDataSourceTest::TestGetBrokerName() {
 
 bool EpicsOutputDataSourceTest::TestGetInputBrokers() {
     using namespace MARTe;
-    bool ok = true;
+    bool ok = false;
     ReferenceContainer inputBrokers;
     char8* functionName = NULL_PTR(char8*);
     void* gamMemPtr = NULL_PTR(void*);
     EpicsOutputDataSource target;
-    ok &= INVARIANT(target);
+
+	//Check class invariant:
+    ok = INVARIANT(target);
+
+	//Execute target method:
     ok &= (target.GetInputBrokers(inputBrokers, functionName, gamMemPtr) == false);
+
+	//check postcondition:
     ok &= (inputBrokers.Size() == 0);
+
+	//Check class invariant:
     ok &= INVARIANT(target);
+
     return ok;
 }
 
 bool EpicsOutputDataSourceTest::TestGetOutputBrokers() {
     using namespace MARTe;
-    bool ok = true;
+    bool ok = false;
     const char targetName[] = "EpicsOutputDataSourceTest_TestGetOutputBrokers";
     const uint32 numberOfSignals = 3;
     const uint32 numberOfFunctions = 5;
@@ -350,7 +359,7 @@ bool EpicsOutputDataSourceTest::TestGetOutputBrokers() {
 
     //Initialize signals/functions configuration on data source:
     ConfigurationDatabase cdb;
-    ok &= BuildConfigurationDatabase(cdb, numberOfSignals, numberOfFunctions);
+    ok = BuildConfigurationDatabase(cdb, numberOfSignals, numberOfFunctions);
     ok &= target.SetConfiguredDatabase(cdb);
 
     //Allocate memory for signals (it will be needed by brokers):
@@ -382,11 +391,11 @@ bool EpicsOutputDataSourceTest::TestGetOutputBrokers() {
 
 bool EpicsOutputDataSourceTest::TestPrepareNextState() {
     using namespace MARTe;
-    bool ok = true;
+    bool ok = false;
     char8* currentStateName = NULL_PTR(char8*);
     char8* nextStateName = NULL_PTR(char8*);
     EpicsOutputDataSource target;
-    ok &= INVARIANT(target);
+    ok = INVARIANT(target);
     ok &= (target.PrepareNextState(currentStateName, nextStateName) == true);
     ok &= INVARIANT(target);
     return ok;

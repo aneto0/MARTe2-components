@@ -114,7 +114,7 @@ bool EpicsInputDataSourceTest::TestSetConfiguredDatabase_False_IntegerSignal2() 
 template<typename SignalType>
 bool EpicsInputDataSourceTest::TestSynchronise() {
     using namespace MARTe;
-    bool success = false;
+    bool ok = false;
     MARTe::StreamString tmp_SharedDataAreaName; //TODO: Remove this when autorelease will be added to EpicsInputDataSourceTest.
 
     {
@@ -132,8 +132,8 @@ bool EpicsInputDataSourceTest::TestSynchronise() {
 
     	//Initialize signals configuration on data source:
     	ConfigurationDatabase cdb;
-    	success = BuildConfigurationDatabase(cdb, numberOfSignals);
-    	success &= target.SetConfiguredDatabase(cdb);
+    	ok = BuildConfigurationDatabase(cdb, numberOfSignals);
+    	ok &= target.SetConfiguredDatabase(cdb);
 
     	//Allocate memory of data source (it setups the shared data area):
     	target.AllocateMemory();
@@ -199,7 +199,7 @@ bool EpicsInputDataSourceTest::TestSynchronise() {
     		}
 
     		//Check execution's status:
-    		success &= !error;
+    		ok &= !error;
     	}
 
     	//Free memory of dataset:
@@ -210,7 +210,7 @@ bool EpicsInputDataSourceTest::TestSynchronise() {
     //Release shared data area: //TODO: Remove this when autorelease will be added to EpicsInputDataSourceTest.
 	Platform::DestroyShm(tmp_SharedDataAreaName.Buffer());
 
-	return success;
+	return ok;
 }
 
 bool EpicsInputDataSourceTest::TestAllocateMemory() {
@@ -282,13 +282,13 @@ bool EpicsInputDataSourceTest::TestGetSignalMemoryBuffer_False() {
 
 bool EpicsInputDataSourceTest::TestGetBrokerName() {
     using namespace MARTe;
-    bool ok = true;
+    bool ok = false;
     //Check broker name for input signals:
     {
     	ConfigurationDatabase config;
     	StreamString brokerName;
     	EpicsInputDataSource target;
-    	ok &= INVARIANT(target);
+    	ok = INVARIANT(target);
     	brokerName = target.GetBrokerName(config, InputSignals);
     	ok &= (brokerName == "MemoryMapSynchronisedInputBroker");
     	ok &= INVARIANT(target);
@@ -308,7 +308,7 @@ bool EpicsInputDataSourceTest::TestGetBrokerName() {
 
 bool EpicsInputDataSourceTest::TestGetInputBrokers() {
     using namespace MARTe;
-    bool ok = true;
+    bool ok = false;
     const char targetName[] = "EpicsInputDataSourceTest_TestGetInputBrokers";
     const uint32 numberOfSignals = 3;
     const uint32 numberOfFunctions = 5;
@@ -321,7 +321,7 @@ bool EpicsInputDataSourceTest::TestGetInputBrokers() {
 
     //Initialize signals/functions configuration on data source:
     ConfigurationDatabase cdb;
-    ok &= BuildConfigurationDatabase(cdb, numberOfSignals, numberOfFunctions);
+    ok = BuildConfigurationDatabase(cdb, numberOfSignals, numberOfFunctions);
     ok &= target.SetConfiguredDatabase(cdb);
 
     //Allocate memory for signals (it will be needed by brokers):
@@ -338,7 +338,7 @@ bool EpicsInputDataSourceTest::TestGetInputBrokers() {
     	//Check class invariant:
     	ok &= INVARIANT(target);
 
-    	//Execute the target method:
+    	//Execute target method:
     	ok &= (target.GetInputBrokers(inputBrokers, name.Buffer(), gamMemPtr) == true);
 
     	//check postcondition:
@@ -353,25 +353,34 @@ bool EpicsInputDataSourceTest::TestGetInputBrokers() {
 
 bool EpicsInputDataSourceTest::TestGetOutputBrokers() {
     using namespace MARTe;
-    bool ok = true;
+    bool ok = false;
     ReferenceContainer outputBrokers;
     char8* functionName = NULL_PTR(char8*);
     void* gamMemPtr = NULL_PTR(void*);
     EpicsInputDataSource target;
-    ok &= INVARIANT(target);
+
+	//Check class invariant:
+    ok = INVARIANT(target);
+
+	//Execute target method:
     ok &= (target.GetOutputBrokers(outputBrokers, functionName, gamMemPtr) == false);
+
+	//check postcondition:
     ok &= (outputBrokers.Size() == 0);
+
+	//Check class invariant:
     ok &= INVARIANT(target);
+
     return ok;
 }
 
 bool EpicsInputDataSourceTest::TestPrepareNextState() {
     using namespace MARTe;
-    bool ok = true;
+    bool ok = false;
     char8* currentStateName = NULL_PTR(char8*);
     char8* nextStateName = NULL_PTR(char8*);
     EpicsInputDataSource target;
-    ok &= INVARIANT(target);
+    ok = INVARIANT(target);
     ok &= (target.PrepareNextState(currentStateName, nextStateName) == true);
     ok &= INVARIANT(target);
     return ok;
