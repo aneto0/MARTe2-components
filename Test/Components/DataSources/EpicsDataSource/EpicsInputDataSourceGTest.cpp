@@ -107,15 +107,10 @@ TEST(EpicsInputDataSourceGTest,TestGetNumberOfMemoryBuffers) {
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
 }
 
-//TEST(EpicsInputDataSourceGTest,TestGetSignalMemoryBuffer) {
-//	EpicsInputDataSourceTest test;
-//    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
-//}
-
-//TEST(EpicsInputDataSourceGTest,TestGetSignalMemoryBuffer_False) {
-//	EpicsInputDataSourceTest test;
-//    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
-//}
+TEST(EpicsInputDataSourceGTest,TestGetSignalMemoryBuffer) {
+	EpicsInputDataSourceTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+}
 
 TEST(EpicsInputDataSourceGTest,TestGetBrokerName) {
 	EpicsInputDataSourceTest test;

@@ -258,26 +258,56 @@ bool EpicsInputDataSourceTest::TestGetNumberOfMemoryBuffers() {
 
 	//Check class invariant:
     ok &= INVARIANT(target);
+
     return ok;
 }
 
 bool EpicsInputDataSourceTest::TestGetSignalMemoryBuffer() {
     using namespace MARTe;
-    EpicsInputDataSource test;
-    uint32 *counter;
-    uint32 *timer;
-    test.GetSignalMemoryBuffer(0, 0, (void *&) counter);
-    test.GetSignalMemoryBuffer(1, 0, (void *&) timer);
-    bool ok = (*counter == 0);
-    ok &= (*timer == 0);
-    return ok;
-}
 
-bool EpicsInputDataSourceTest::TestGetSignalMemoryBuffer_False() {
-    using namespace MARTe;
-    EpicsInputDataSource test;
-    uint32 *ptr;
-    return !test.GetSignalMemoryBuffer(2, 0, (void *&) ptr);
+    //Declare and initialise variables:
+	const char targetName[] = "EpicsInputDataSourceTest_TestGetSignalMemoryBuffer";
+	bool ok;
+	EpicsInputDataSource target;
+	const uint32 numberOfSignals = 5;
+	void* signals[numberOfSignals];
+
+	//Initialize the name of the data source:
+	target.SetName(targetName);
+
+	//Initialize signals configuration on data source:
+	ConfigurationDatabase cdb;
+	ok = BuildConfigurationDatabase(cdb, numberOfSignals);
+	ok &= target.SetConfiguredDatabase(cdb);
+
+	//Allocate memory of data source (it setups the shared data area):
+	target.AllocateMemory();
+
+	//Cache an array of pointers to the signal's addresses:
+	for (uint32 i = 0; i < numberOfSignals && ok; i++) {
+		ok &= target.GetSignalMemoryBuffer(i, 0, signals[i]);
+	}
+
+	//Set values to signal:
+	for (uint32 i = 0; i < numberOfSignals; i++) {
+		uint32* signal = reinterpret_cast<uint32*>(signals[i]);
+		*signal = i;
+	}
+
+	//Check values of signals:
+	for (uint32 i = 0; i < numberOfSignals && ok; i++) {
+		uint32* signal = reinterpret_cast<uint32*>(signals[i]);
+		ok &= (*signal == i);
+	}
+
+	//Check out of bounds preconditions:
+	{
+		void* signal = NULL;
+		ok &= !(target.GetSignalMemoryBuffer(numberOfSignals+1, 0, signal));
+		ok &= !(target.GetSignalMemoryBuffer(0, 1, signal));
+	}
+
+    return ok;
 }
 
 bool EpicsInputDataSourceTest::TestGetBrokerName() {
