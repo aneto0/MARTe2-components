@@ -144,7 +144,6 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
-        //log_error("StandardParser::Parse failed with '%s'", err.Buffer());
     } else {
         god->Purge();
         ok = god->Initialise(cdb);
@@ -174,7 +173,7 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
     } else {
         application->StartNextStateExecution();
     }
-    Sleep::Sec(10lu);
+            Sleep::Sec(5lu);
 
     REPORT_ERROR(ErrorManagement::InternalSetupError, "About to stop execution");
 
@@ -188,6 +187,7 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
     god->Purge();
 
     REPORT_ERROR(ErrorManagement::InternalSetupError, "after to purge");
+
     
     return ok;
      
