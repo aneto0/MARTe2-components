@@ -283,24 +283,42 @@ bool EpicsInputDataSourceTest::TestGetSignalMemoryBuffer_False() {
 bool EpicsInputDataSourceTest::TestGetBrokerName() {
     using namespace MARTe;
     bool ok = false;
+
     //Check broker name for input signals:
     {
     	ConfigurationDatabase config;
     	StreamString brokerName;
+
+    	//Check class invariant:
     	EpicsInputDataSource target;
     	ok = INVARIANT(target);
+
+        //Execute the target method:
     	brokerName = target.GetBrokerName(config, InputSignals);
+
+        //Check postcondition:
     	ok &= (brokerName == "MemoryMapSynchronisedInputBroker");
+
+    	//Check class invariant:
     	ok &= INVARIANT(target);
     }
+
     //Check broker name for output signals:
     {
     	ConfigurationDatabase config;
     	StreamString brokerName;
     	EpicsInputDataSource target;
+
+    	//Check class invariant:
     	ok &= INVARIANT(target);
+
+        //Execute the target method:
     	brokerName = target.GetBrokerName(config, OutputSignals);
+
+        //Check postcondition:
     	ok &= (brokerName == "");
+
+    	//Check class invariant:
     	ok &= INVARIANT(target);
     }
     return ok;
@@ -380,8 +398,14 @@ bool EpicsInputDataSourceTest::TestPrepareNextState() {
     char8* currentStateName = NULL_PTR(char8*);
     char8* nextStateName = NULL_PTR(char8*);
     EpicsInputDataSource target;
+
+	//Check class invariant:
     ok = INVARIANT(target);
+
+	//Execute target method:
     ok &= (target.PrepareNextState(currentStateName, nextStateName) == true);
+
+	//Check class invariant:
     ok &= INVARIANT(target);
     return ok;
 }

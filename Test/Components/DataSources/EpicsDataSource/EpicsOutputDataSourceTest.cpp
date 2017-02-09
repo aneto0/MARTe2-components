@@ -303,9 +303,17 @@ bool EpicsOutputDataSourceTest::TestGetBrokerName() {
     	ConfigurationDatabase config;
     	StreamString brokerName;
     	EpicsOutputDataSource target;
+
+    	//Check class invariant:
     	ok = INVARIANT(target);
+
+        //Execute the target method:
     	brokerName = target.GetBrokerName(config, InputSignals);
+
+        //Check postcondition:
     	ok &= (brokerName == "");
+
+    	//Check class invariant:
     	ok &= INVARIANT(target);
     }
     //Check broker name for output signals:
@@ -313,9 +321,17 @@ bool EpicsOutputDataSourceTest::TestGetBrokerName() {
     	ConfigurationDatabase config;
     	StreamString brokerName;
     	EpicsOutputDataSource target;
+
+    	//Check class invariant:
     	ok &= INVARIANT(target);
+
+        //Execute the target method:
     	brokerName = target.GetBrokerName(config, OutputSignals);
+
+        //Check postcondition:
     	ok &= (brokerName == "MemoryMapSynchronisedOutputBroker");
+
+    	//Check class invariant:
     	ok &= INVARIANT(target);
     }
     return ok;
@@ -395,8 +411,14 @@ bool EpicsOutputDataSourceTest::TestPrepareNextState() {
     char8* currentStateName = NULL_PTR(char8*);
     char8* nextStateName = NULL_PTR(char8*);
     EpicsOutputDataSource target;
+
+	//Check class invariant:
     ok = INVARIANT(target);
+
+	//Execute target method:
     ok &= (target.PrepareNextState(currentStateName, nextStateName) == true);
+
+	//Check class invariant:
     ok &= INVARIANT(target);
     return ok;
 }
