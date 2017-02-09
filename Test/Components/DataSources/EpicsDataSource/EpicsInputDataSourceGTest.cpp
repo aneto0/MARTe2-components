@@ -97,26 +97,6 @@ TEST(EpicsInputDataSourceGTest, TestGetSharedDataAreaName) {
     ASSERT_TRUE(test.TestGetSharedDataAreaName());
 }
 
-TEST(EpicsInputDataSourceGTest, TestInitialise_Default) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_Default());
-}
-
-TEST(EpicsInputDataSourceGTest, TestInitialise_Busy) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_Busy());
-}
-
-TEST(EpicsInputDataSourceGTest, TestInitialise_Empty) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_Empty());
-}
-
-TEST(EpicsInputDataSourceGTest, TestInitialise_False) {
-	EpicsInputDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_False());
-}
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

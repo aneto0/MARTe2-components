@@ -91,26 +91,6 @@ public:
      * @brief Tests the GetSharedDataAreaName method.
      */
     bool TestGetSharedDataAreaName();
-
-    /**
-     * @brief Tests the Initialise method with an empty StructuredDataI.
-     */
-    bool TestInitialise_Empty();
-
-    /**
-     * @brief Tests the Initialise method with a Default SleepNature.
-     */
-    bool TestInitialise_Default();
-
-    /**
-     * @brief Tests the Initialise method  with a Busy SleepNature.
-     */
-    bool TestInitialise_Busy();
-
-    /**
-     * @brief Tests the Initialise method with an invalid SleepNature..
-     */
-    bool TestInitialise_False();
 };
 
 /*---------------------------------------------------------------------------*/

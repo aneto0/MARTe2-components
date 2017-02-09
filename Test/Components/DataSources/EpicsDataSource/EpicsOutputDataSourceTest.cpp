@@ -446,34 +446,3 @@ bool EpicsOutputDataSourceTest::TestGetSharedDataAreaName() {
 
     return ok;
 }
-
-bool EpicsOutputDataSourceTest::TestInitialise_Empty() {
-    using namespace MARTe;
-    EpicsOutputDataSource test;
-    ConfigurationDatabase cdb;
-    return test.Initialise(cdb);
-}
-
-bool EpicsOutputDataSourceTest::TestInitialise_Default() {
-    using namespace MARTe;
-    EpicsOutputDataSource test;
-    ConfigurationDatabase cdb;
-    cdb.Write("SleepNature", "Default");
-    return test.Initialise(cdb);
-}
-
-bool EpicsOutputDataSourceTest::TestInitialise_Busy() {
-    using namespace MARTe;
-    EpicsOutputDataSource test;
-    ConfigurationDatabase cdb;
-    cdb.Write("SleepNature", "Busy");
-    return test.Initialise(cdb);
-}
-
-bool EpicsOutputDataSourceTest::TestInitialise_False() {
-    using namespace MARTe;
-    EpicsOutputDataSource test;
-    ConfigurationDatabase cdb;
-    cdb.Write("SleepNature", "False");
-    return !test.Initialise(cdb);
-}
