@@ -53,7 +53,13 @@ template bool EpicsOutputDataSourceTest::TestSynchronise<MARTe::float32>();
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-#define INVARIANT(obj) (obj.GetNumberOfMemoryBuffers() == 1u)
+static MARTe::ConfigurationDatabase INV_CDB;
+
+#define INVARIANT(obj) ( \
+(obj.GetNumberOfMemoryBuffers() == 1u) and \
+(std::strcmp(obj.GetBrokerName(INV_CDB, InputSignals), "") == 0) and \
+(std::strcmp(obj.GetBrokerName(INV_CDB, OutputSignals), "MemoryMapSynchronisedOutputBroker") == 0) \
+)
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -61,14 +67,11 @@ template bool EpicsOutputDataSourceTest::TestSynchronise<MARTe::float32>();
 
 bool EpicsOutputDataSourceTest::TestConstructor() {
     using namespace MARTe;
-    bool ok = true;
+    bool ok = false;
     EpicsOutputDataSource target;
 
     //Check postcondition:
-    ConfigurationDatabase cfg;
-	ok &= (std::strcmp(target.GetBrokerName(cfg, InputSignals), "") == 0);
-	ok &= (std::strcmp(target.GetBrokerName(cfg, OutputSignals), "MemoryMapSynchronisedOutputBroker") == 0);
-    ok &= (target.GetSharedDataAreaName().Size() == 0);
+    ok = (target.GetSharedDataAreaName().Size() == 0);
 
     //Check invariant:
     ok &= INVARIANT(target);
@@ -256,10 +259,19 @@ bool EpicsOutputDataSourceTest::TestAllocateMemory() {
 
 bool EpicsOutputDataSourceTest::TestGetNumberOfMemoryBuffers() {
     using namespace MARTe;
-    bool ok = true;
+    bool ok = false;
     EpicsOutputDataSource target;
-    ok &= INVARIANT(target);
-    ok &= (target.GetNumberOfMemoryBuffers() == 1u);	//TODO: The postcondition of this method is the invariant of the class
+
+	//Check class invariant:
+    ok = INVARIANT(target);
+
+    //Execute the target method:
+    ok &= (target.GetNumberOfMemoryBuffers() == 1u);
+
+    //Check postcondition:
+    ok &= (target.GetNumberOfMemoryBuffers() == 1u);
+
+	//Check class invariant:
     ok &= INVARIANT(target);
     return ok;
 }

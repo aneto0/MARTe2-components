@@ -62,7 +62,9 @@ namespace MARTe {
  * A signal will be added for each GAM signal that writes to this instance of
  * the DataSourceI.
  *
- * @invariant (GetNumberOfMemoryBuffers() == 1u)
+ * @invariant (GetNumberOfMemoryBuffers() == 1u) and
+ * (std::strcmp(GetBrokerName(INV_CDB, InputSignals), "") == 0) and
+ * (std::strcmp(GetBrokerName(INV_CDB, OutputSignals), "MemoryMapSynchronisedOutputBroker") == 0) \
  */
 class EpicsOutputDataSource: public DataSourceI {
 
@@ -73,8 +75,6 @@ public:
 	/**
 	 * @brief Default constructor
 	 * @post
-	 *  (std::strcmp(target.GetBrokerName(cfg, InputSignals), "") == 0) and
-	 * 	(std::strcmp(target.GetBrokerName(cfg, OutputSignals), "MemoryMapSynchronisedOutputBroker") == 0) and
 	 * 	(target.GetSharedDataAreaName().Size() == 0)
 	 */
 	EpicsOutputDataSource();
