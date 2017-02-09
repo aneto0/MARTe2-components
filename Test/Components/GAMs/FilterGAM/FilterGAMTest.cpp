@@ -26,7 +26,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <limits>
+#include "math.h"
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -89,6 +89,26 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
             numH = new MARTe::float32[2];
             numH[0] = 0.5;
             numH[1] = 0.5;
+            denH = new MARTe::float32[1];
+            denH[0] = 1;
+            MARTe::Vector<MARTe::float32> numVec(numH, 2);
+            MARTe::Vector<MARTe::float32> denVec(denH, 1);
+            ret &= config.Write("Num", numVec);
+            ret &= config.Write("Den", denVec);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
+    }
+
+    bool InitialiseFilterFIR2() {
+        bool ret = true;
+        if(isInitialised == false) {
+            numH = new MARTe::float32[2];
+            numH[0] = 0.6;
+            numH[1] = 0.4;
             denH = new MARTe::float32[1];
             denH[0] = 1;
             MARTe::Vector<MARTe::float32> numVec(numH, 2);
@@ -315,8 +335,10 @@ bool FilterGAMTest::TestConstructor() {
         ok &= (num[i] == 0);
         ok &= (den[i] == 0);
     }
+    bool isInfinite;
     //Check that the static gain is 0
-    ok &= (0 == gam.GetStaticGain());
+    ok &= (0 == gam.GetStaticGain(isInfinite));
+    ok &= !isInfinite;
     //Check that the number of numerator coefficients is 0
     ok &= (0 == gam.GetNumberOfNumCoeff());
     // Idem denominator
@@ -351,7 +373,9 @@ bool FilterGAMTest::TestInitialise() {
     for (uint32 i = 0u; i < 1; i++) {
         ok &= (retDen[i] == gam.denH[i]);
     }
-    ok &= (1 == gam.GetStaticGain());
+    bool isInfinite;
+    ok &= (1 == gam.GetStaticGain(isInfinite));
+    ok &= !isInfinite;
     ok &= (0 == gam.GetNumberOfSamples());
     ok &= (0 == gam.GetNumberOfSignals());
     delete[] retNum;
@@ -359,7 +383,7 @@ bool FilterGAMTest::TestInitialise() {
     return ok;
 }
 
-bool FilterGAMTest::TestInitialiseNum0() {
+bool FilterGAMTest::TestInitialiseNoNum() {
     using namespace MARTe;
     FilterGAM gam;
     gam.SetName("Test");
@@ -378,7 +402,26 @@ bool FilterGAMTest::TestInitialiseNum0() {
     return !ok;
 }
 
-bool FilterGAMTest::TestInitialiseDen0() {
+bool FilterGAMTest::TestInitialiseWrongNumType() {
+    using namespace MARTe;
+    FilterGAM gam;
+    gam.SetName("Test");
+    bool ok = true;
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    float32 *den = new float32[1];
+    den[0] = 1;
+    Vector<float32> numVec(num, 0);
+    Vector<float32> denVec(den, 1);
+    ok &= config.Write("Num", ok);
+    ok &= config.Write("Den", denVec);
+    ok &= gam.Initialise(config);
+    delete[] num;
+    delete[] den;
+    return !ok;
+}
+
+bool FilterGAMTest::TestInitialiseNoDen() {
     using namespace MARTe;
     FilterGAM gam;
     gam.SetName("Test");
@@ -395,6 +438,25 @@ bool FilterGAMTest::TestInitialiseDen0() {
     return !ok;
 }
 
+bool FilterGAMTest::TestInitialiseWrongDenType() {
+    using namespace MARTe;
+    FilterGAM gam;
+    gam.SetName("Test");
+    bool ok = true;
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    float32 *den = new float32[1];
+    den[0] = 1;
+    Vector<float32> numVec(num, 2);
+    Vector<float32> denVec(den, 1);
+    ok &= config.Write("Num", numVec);
+    ok &= config.Write("Den", ok);
+    ok &= gam.Initialise(config);
+    delete[] num;
+    delete[] den;
+    return !ok;
+}
+
 bool FilterGAMTest::TestStaticGainFIR() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
@@ -404,7 +466,9 @@ bool FilterGAMTest::TestStaticGainFIR() {
     ok &= gam.InitialiseFilterFIR();
     ok &= gam.Initialise(gam.config);
     //Check static gain
-    ok &= (1 == gam.GetStaticGain());
+    bool isInfinite = true;
+    ok &= (1 == gam.GetStaticGain(isInfinite));
+    ok &= !isInfinite;
 
     return ok;
 }
@@ -418,7 +482,9 @@ bool FilterGAMTest::TestStaticGainIIR() {
     ok &= gam.InitialiseFilterIIR();
     ok &= gam.Initialise(gam.config);
     //Check static gain
-    ok &= (std::numeric_limits<float32>::infinity() == gam.GetStaticGain());
+    bool isInfinite = false;
+    ok = (gam.GetStaticGain(isInfinite) == 0);
+    ok &= isInfinite;
     return ok;
 }
 
@@ -1591,6 +1657,51 @@ bool FilterGAMTest::TestExecuteFIRRampInput2() {
     gam.Execute();
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == 10 + i - 0.5);
+    }
+    return ok;
+}
+
+bool FilterGAMTest::TestExecuteFIRRampInput2DiffCoef() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR2();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn[i] = i;
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    ok &= (gamMemoryOut[0] == 0);
+    float32 refValue = 0;
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
+        refValue = (i*0.6F )+(i-1)*0.4F;
+        ok &= IsEqual(gamMemoryOut[i], refValue);
+    }
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn[i] = i + 10;
+        //gamMemoryOut[i] = 0;
+    }
+    gam.Execute();
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
+        refValue = ((i+ 10)*0.6 )+(i+9)*0.4;
+        ok &= IsEqual(gamMemoryOut[i], refValue);
     }
     return ok;
 }

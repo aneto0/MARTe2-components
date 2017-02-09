@@ -58,13 +58,27 @@ public:
      * @brief Tests an initialization with no numerator coefficients.
      * @return true if the initialization fails.
      */
-    bool TestInitialiseNum0();
+    bool TestInitialiseNoNum();
+
+    /**
+     * @brief Tests Initialise() errors
+     * @details Configure the numerator with a boolean value.
+     * @return true if Initialise() fails.
+     */
+    bool TestInitialiseWrongNumType();
 
     /**
      * @brief Tests an initialization with no denominator coefficients.
      * @return true if the initialization fails.
      */
-    bool TestInitialiseDen0();
+    bool TestInitialiseNoDen();
+
+    /**
+     * @brief Tests Initialise() errors
+     * @details Configure the denominator with a boolean value.
+     * @return true if Initialise() fails.
+     */
+    bool TestInitialiseWrongDenType();
 
     /**
      * @brief Tests that the static gain is set properly with FIR filter
@@ -222,6 +236,15 @@ public:
      * @return true when the output is as expected.
      */
     bool TestExecuteFIRRampInput2();
+
+    /**
+     * @brief test the Execute() with a simple FIR low pass filter with different coefficients (num[0] != num[1].
+     * @details first Initialise() and Setup() the filter. Using a ramp input, tests Execute() comparing the
+     * output against the expected values. In this case Execute() is called twice in order to check that the last
+     * state is correctly remembered.
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteFIRRampInput2DiffCoef();
 
     /**
      * @brief test the Execute() with a simple integrater (sum(inputs) .

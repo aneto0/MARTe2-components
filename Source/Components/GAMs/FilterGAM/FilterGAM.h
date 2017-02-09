@@ -81,8 +81,8 @@ public:
      *
      * @post GetNumberOfNumCoeff() = 0
      * @post GetNumberOfDenCoeff()   = 0
-     * @post GetNumCoeff(float *coeff) = false
-     * @post GetDenCoeff(float *coeff) = false
+     * @post GetNumCoeff(float32 *coeff) = false
+     * @post GetDenCoeff(float32 *coeff) = false
      * @post CheckNormalisation()    = false
      * @post GetStaticGain()         = 0
      * @post GetNumberOfSamples()    = 0
@@ -105,8 +105,8 @@ public:
      *
      * @pre GetNumberOfNumCoeff() = 0
      * @pre GetNumberOfDenCoeff()   = 0
-     * @pre GetNumCoeff(float *coeff) = false
-     * @pre GetDenCoeff(float *coeff) = false
+     * @pre GetNumCoeff(float32 *coeff) = false
+     * @pre GetDenCoeff(float32 *coeff) = false
      * @pre CheckNormalisation()    = false
      * @pre GetStaticGain()         = 0
      * @pre GetNumberOfSamples()    = 0
@@ -114,8 +114,8 @@ public:
      *
      * @post GetNumberOfNumCoeff()   = numberOfNumCoeff
      * @post GetNumberOfDenCoeff()   = numberOfDenCoeff
-     * @post GetNumCoeff(float *coeff) = true
-     * @post GetDenCoeff(float *coeff) = true
+     * @post GetNumCoeff(float32 *coeff) = true
+     * @post GetDenCoeff(float32 *coeff) = true
      * @post CheckNormalisation()    = true
      * @post GetStaticGain()         = staticGain
      * @post GetNumberOfSamples()    = 0
@@ -166,13 +166,13 @@ public:
      * @brief Makes available the numberOfNumCoeff
      * @return numberOfNumCoeff
      */
-    uint32 GetNumberOfNumCoeff();
+    uint32 GetNumberOfNumCoeff() const;
 
     /**
      * @brief Makes available the numberOfDenCoeff.
      * @return numberOfDenCoeff.
      */
-    uint32 GetNumberOfDenCoeff();
+    uint32 GetNumberOfDenCoeff() const;
 
     /**
      * @brief Makes available the numerator coefficients.
@@ -182,7 +182,7 @@ public:
      *
      * @return true if num != NULL pointer.
      */
-    bool GetNumCoeff(float *coeff);
+    bool GetNumCoeff(float32 * const coeff) const;
 
     /**
      * @brief Makes available the denominator coefficients.
@@ -190,7 +190,7 @@ public:
      * @pre Setup() = true
      * @return true if den != NULL pointer.
      */
-    bool GetDenCoeff(float *coeff);
+    bool GetDenCoeff(float32 * const coeff) const;
 
     /**
      * @brief Checks that the coefficients are normalized.
@@ -198,27 +198,28 @@ public:
      * @pre Initialise(StructuredDataI & data) = true.
      * @return true if the coefficients are normalized.
      */
-    bool CheckNormalisation();
+    bool CheckNormalisation() const;
 
     /**
      * @brief Makes the staticGain available.
-     * @details staticGain= SUM(num)/SUM(den).
+     * @details staticGain= SUM(num)/SUM(den). If the gain is infinite the static gain is 0 and the variable isInfinite is set true
+     * @param[in] isInfinite indicates if the gain is infinite.
      * @return the staticGain.
      */
-    float32 GetStaticGain();
+    float32 GetStaticGain(bool &isInfinite) const;
 
     /**
      * @brief Query the number of samples for each signal.
      * @return the number of samples.
      */
-    uint32 GetNumberOfSamples();
+    uint32 GetNumberOfSamples() const;
 
     /**
      * @brief Query the number of signals configured.
      * @pre Setup() = true.
      * @return the number of signals configured.
      */
-    uint32 GetNumberOfSignals();
+    uint32 GetNumberOfSignals() const;
 
 private:
     /* Pointers to the numerator coefficients. */
@@ -243,6 +244,8 @@ private:
     uint32 numberOfSamples;
     /*Number of signals*/
     uint32 numberOfSignals;
+    /*When the gain is infinite it is set to 1 */
+    bool gainInfinite;
 };
 
 }

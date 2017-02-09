@@ -48,14 +48,24 @@ TEST(FilterGAMGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
-TEST(FilterGAMGTest,TestInitialiseNum0) {
+TEST(FilterGAMGTest,TestInitialiseNoNum) {
     FilterGAMTest test;
-    ASSERT_TRUE(test.TestInitialiseNum0());
+    ASSERT_TRUE(test.TestInitialiseNoNum());
 }
 
-TEST(FilterGAMGTest,TestInitialiseDen0) {
+TEST(FilterGAMGTest,TestInitialiseWrongNumType) {
     FilterGAMTest test;
-    ASSERT_TRUE(test.TestInitialiseDen0());
+    ASSERT_TRUE(test.TestInitialiseWrongNumType());
+}
+
+TEST(FilterGAMGTest,TestInitialiseNoDen) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseNoDen());
+}
+
+TEST(FilterGAMGTest,TestInitialiseWrongDenType) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseWrongDenType());
 }
 
 TEST(FilterGAMGTest,TestStaticGainFIR) {
@@ -166,6 +176,11 @@ TEST(FilterGAMGTest,TestExecuteFIRConstantInput2) {
 TEST(FilterGAMGTest,TestExecuteFIRRampInput2) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestExecuteFIRRampInput2());
+}
+
+TEST(FilterGAMGTest,TestExecuteFIRRampInput2DiffCoef) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteFIRRampInput2DiffCoef());
 }
 
 TEST(FilterGAMGTest,TestExecuteIIRConstant) {
