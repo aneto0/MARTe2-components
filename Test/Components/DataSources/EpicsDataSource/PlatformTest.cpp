@@ -97,7 +97,7 @@ static bool MasterProcessPrologue(void*& shm, const char* const name, const char
 	shm = Platform::MakeShm(name, SHMSIZE);
 
 	ok = (shm != NULL);
-	ok &= (access(fullname, R_OK | W_OK) == 0);
+	ok &= (access(fullname, R_OK | W_OK) == 0);	//TODO: An alternative to access would be shm_open with O_RDONLY.
 
 	if (ok) {
 		ShmMapping* map = NULL;

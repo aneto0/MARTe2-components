@@ -46,7 +46,7 @@
 /*---------------------------------------------------------------------------*/
 
 void SigblockDoubleBuffer::Reset(const unsigned int bufferSize, const std::size_t sizeOfSigblock) {
-	//this->bufferSize = bufferSize;
+	//this->bufferSize = bufferSize;	//TODO: Purge this field.
 	this->sizeOfSigblock = sizeOfSigblock;
 	frontbuffer = 0;
 	status = FREE;

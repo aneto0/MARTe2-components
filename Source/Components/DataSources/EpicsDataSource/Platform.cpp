@@ -76,7 +76,7 @@ void* Platform::MakeShm(const char* name, const size_t size) {
     	exit(EXIT_FAILURE);
     }
 
-    std::memset(result, 72, size);	//memset to 0!!
+    std::memset(result, 72, size);	//TODO: memset to 0!!
 
     *((size_t*)result) = size;
 
@@ -94,7 +94,7 @@ void* Platform::JoinShm(const char* name) {
     shm_fd = shm_open(name, O_RDWR, 0666);
     if (shm_fd == -1) {
     	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
-         exit(EXIT_FAILURE);
+         exit(EXIT_FAILURE);	//TODO: Return status instead of halting program.
     }
 
     void* tmp = mmap(0, sizeof(size_t), PROT_READ /*| PROT_WRITE*/, MAP_SHARED, shm_fd, 0);

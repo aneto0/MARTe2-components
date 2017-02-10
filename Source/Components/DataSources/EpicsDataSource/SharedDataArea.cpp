@@ -143,7 +143,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const char* const nam
     else {
     	tmp_shm_ptr = static_cast<SharedDataArea::Representation*>(raw_shm_ptr);
 
-		//try CAS of hasReader to true
+		//TODO: try CAS of hasReader to true
 		//tmp_shm_ptr->hasReader = true;
 
 	    //if it was already true, return not success
