@@ -22,41 +22,8 @@
 #
 #############################################################
 
-OBJSX= 
+TARGET=cov
 
-SPB    = LinuxTimer.x LoggerDataSource.x
+include Makefile.inc
 
-ifdef CODAC_ROOT
-SPB    += NI6259.x
-endif
-
-
-ifdef MDSPLUS_DIR
-SPB    += MDSWriter.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
-
-ifdef CODAC_ROOT
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259$(LIBEXT)
-endif
-
-ifdef MDSPLUS_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriter$(LIBEXT)
-endif
-
-all: $(OBJS)  $(SUBPROJ)  \
-    $(BUILD_DIR)/DataSources$(LIBEXT) \
-    $(BUILD_DIR)/DataSources$(DLLEXT)
-	echo  $(OBJS)
-
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
-
+LIBRARIES_STATIC += $(MDSPLUS_DIR)/lib64/libMdsObjectsCppShr.a

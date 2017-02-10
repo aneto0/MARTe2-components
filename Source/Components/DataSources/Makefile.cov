@@ -31,3 +31,6 @@ LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=NI6259/cov/NI6259$(LIBEXT)
 endif
+ifdef MDSPLUS_DIR
+LIBRARIES_STATIC+=MDSWriter/cov/MDSWriter$(LIBEXT)
+end
