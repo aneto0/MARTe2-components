@@ -45,8 +45,8 @@
 /*---------------------------------------------------------------------------*/
 
 void Sigblock::Metadata::SetSignalsMetadata(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]) {
-	std::size_t offset = 0;
-	for (SDA::uint32 i = 0; i < signalsCount; i++) {
+	std::size_t offset = 0u;
+	for (SDA::uint32 i = 0u; i < signalsCount; i++) {
 		std::strncpy(this->signalsMetadata[i].name, signalsMetadata[i].name, Signal::Metadata::NAME_MAX_LEN);
 		this->signalsMetadata[i].size = signalsMetadata[i].size;
 		this->signalsMetadata[i].offset = offset;
@@ -62,7 +62,7 @@ SDA::uint32 Sigblock::Metadata::GetSignalsCount() {
 
 SDA::int32 Sigblock::Metadata::GetSignalIndex(const SDA::char8* name) {
 	SDA::int32 result = -1;
-    SDA::uint32 i = 0;
+    SDA::uint32 i = 0u;
     SDA::int32 found = false;
 	while (i < signalsCount && !found) {
 		if (std::strncmp(signalsMetadata[i].name, name, Signal::Metadata::NAME_MAX_LEN) == 0) {

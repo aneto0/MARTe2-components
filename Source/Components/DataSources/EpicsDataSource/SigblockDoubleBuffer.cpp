@@ -69,7 +69,7 @@ bool SigblockDoubleBuffer::Get(Sigblock& sb) {
 
 bool SigblockDoubleBuffer::Put(const Sigblock& sb) {
 	bool fret = true;
-	SDA::uint32 backbuffer = ((frontbuffer + 1) % TWO);
+	SDA::uint32 backbuffer = ((frontbuffer + 1u) % TWO);
 	std::memcpy(&(buffer[sizeOfSigblock * backbuffer]), &sb, sizeOfSigblock);
 	bool acquired = (CAS<SDA::uint32>(&status, FREE, WRITING) || CAS<SDA::uint32>(&status, FULL, WRITING));
 	if (acquired) {

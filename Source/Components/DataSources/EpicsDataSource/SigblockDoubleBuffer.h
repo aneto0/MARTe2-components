@@ -97,7 +97,7 @@ private:
     /**
      * The constant representing the number of buffers (actually two)
      */
-	static const SDA::uint32 TWO = 2;
+	static const SDA::uint32 TWO = 2u;
 
 	/**
 	 * Enumeration for tracking the buffer status

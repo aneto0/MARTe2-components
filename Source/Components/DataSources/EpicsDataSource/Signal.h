@@ -89,7 +89,7 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-inline Signal::Metadata::Metadata(): size(0) {
+inline Signal::Metadata::Metadata(): size(0u) {
 	name[0] = '\0';
 }
 
