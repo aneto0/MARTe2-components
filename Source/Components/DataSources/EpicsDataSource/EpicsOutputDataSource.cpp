@@ -44,6 +44,7 @@
 #include "RealTimeApplication.h"
 #include "SharedDataArea.h"
 #include "Threads.h"
+#include "Types.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -129,7 +130,7 @@ bool EpicsOutputDataSource::AllocateMemory() {
 	bool ret = true;
 	uint32 numberOfSignals = GetNumberOfSignals();
 	sharedDataAreaName = BuildSharedMemoryIdentifier(GetName());
-	unsigned int max = 512; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
+	SDA::uint32 max = 512; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
 	Signal::Metadata smd_for_init[numberOfSignals]; //sigblock description for initialization;
 
 	//{for all signals in datasource add it to smd}

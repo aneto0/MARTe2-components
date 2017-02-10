@@ -36,6 +36,7 @@
 
 #include "Platform.h"
 #include "SharedDataArea.h"
+#include "Types.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -51,9 +52,9 @@ namespace {
  * @post Result == sum of size for all elements into signalsMetadata array
  * @returns Result
  */
-static std::size_t CalculateSizeOfSigblock(const unsigned int signalsCount, const Signal::Metadata signalsMetadata[]) {
+static std::size_t CalculateSizeOfSigblock(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]) {
 	std::size_t sigblockSize = 0;
-	for (unsigned int i = 0; i < signalsCount; i++) {
+	for (SDA::uint32 i = 0; i < signalsCount; i++) {
 		sigblockSize += signalsMetadata[i].size;
 	}
 	return sigblockSize;
@@ -95,17 +96,17 @@ void SharedDataArea::Representation::FillPreHeader(std::size_t sizeOfHeader, std
     offsetOfItems = sizeOfHeader;
 }
 
-void SharedDataArea::Representation::FillHeader(const unsigned int signalsCount, const Signal::Metadata signalsMetadata[]) {
+void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]) {
 	Sigblock::Metadata* header = Header();
 	header->SetSignalsMetadata(signalsCount, signalsMetadata);
 }
 
-void SharedDataArea::Representation::FillItems(const unsigned int bufferSize, std::size_t sizeOfSigblock) {
+void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, std::size_t sizeOfSigblock) {
 	SigblockDoubleBuffer* items = Items();
 	items->Reset(bufferSize, sizeOfSigblock);
 }
 
-SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const char* const name, const unsigned int signalsCount, const Signal::Metadata signalsMetadata[], const unsigned int bufferSize) {
+SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize) {
 	std::size_t sizeOfSigblock = CalculateSizeOfSigblock(signalsCount, signalsMetadata);
 	std::size_t sizeOfHeader = Sigblock::Metadata::SizeOf(signalsCount);
 	std::size_t sizeOfItems = (bufferSize * sizeOfSigblock); //TODO: Abstract this private knowledge
@@ -132,7 +133,7 @@ std::memset(tmp_shm_ptr->Items(), 90, sizeOfItems);
     return SharedDataArea(tmp_shm_ptr);
 }
 
-SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const char* const name) {
+SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const SDA::char8* const name) {
 	void* raw_shm_ptr = NULL;
 //	SharedDataArea* obj = NULL;
 	SharedDataArea::Representation* tmp_shm_ptr = NULL;
@@ -189,6 +190,6 @@ Sigblock::Metadata* SharedDataArea::SigblockProducer::GetSigblockMetadata() {
 	return Header();
 }
 
-unsigned long SharedDataArea::SigblockProducer::DroppedWrites() const {
+SDA::uint64 SharedDataArea::SigblockProducer::DroppedWrites() const {
 	return SharedDataArea::Representation::droppedWrites;
 }

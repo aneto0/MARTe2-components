@@ -44,9 +44,9 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-void Sigblock::Metadata::SetSignalsMetadata(const unsigned int signalsCount, const Signal::Metadata signalsMetadata[]) {
+void Sigblock::Metadata::SetSignalsMetadata(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]) {
 	std::size_t offset = 0;
-	for (unsigned int i = 0; i < signalsCount; i++) {
+	for (SDA::uint32 i = 0; i < signalsCount; i++) {
 		std::strncpy(this->signalsMetadata[i].name, signalsMetadata[i].name, Signal::Metadata::NAME_MAX_LEN);
 		this->signalsMetadata[i].size = signalsMetadata[i].size;
 		this->signalsMetadata[i].offset = offset;
@@ -56,14 +56,14 @@ void Sigblock::Metadata::SetSignalsMetadata(const unsigned int signalsCount, con
 	this->signalsCount = signalsCount;
 }
 
-unsigned int Sigblock::Metadata::GetSignalsCount() {
+SDA::uint32 Sigblock::Metadata::GetSignalsCount() {
 	return signalsCount;
 }
 
-int Sigblock::Metadata::GetSignalIndex(const char* name) {
-    int result = -1;
-	unsigned int i = 0;
-	int found = false;
+SDA::int32 Sigblock::Metadata::GetSignalIndex(const SDA::char8* name) {
+	SDA::int32 result = -1;
+    SDA::uint32 i = 0;
+    SDA::int32 found = false;
 	while (i < signalsCount && !found) {
 		if (std::strncmp(signalsMetadata[i].name, name, Signal::Metadata::NAME_MAX_LEN) == 0) {
             found = true;
@@ -76,15 +76,15 @@ int Sigblock::Metadata::GetSignalIndex(const char* name) {
 	return result;
 }
 
-char* Sigblock::Metadata::GetSignalName(const int index) {
+SDA::char8* Sigblock::Metadata::GetSignalName(const SDA::int32 index) {
     return signalsMetadata[index].name;
 }
 
-int Sigblock::Metadata::GetSignalOffsetByIndex(const int index) {
+SDA::int32 Sigblock::Metadata::GetSignalOffsetByIndex(const SDA::int32 index) {
 	return signalsMetadata[index].offset;
 }
 
-std::size_t Sigblock::Metadata::GetSignalSizeByIndex(const int index) {
+std::size_t Sigblock::Metadata::GetSignalSizeByIndex(const SDA::int32 index) {
 	return signalsMetadata[index].size;
 }
 
@@ -92,8 +92,8 @@ std::size_t Sigblock::Metadata::GetTotalSize() {
 	return (sizeof(Signal::Metadata) * signalsCount);
 }
 
-std::size_t Sigblock::Metadata::SizeOf(const unsigned int signalsCount) {
-	return (sizeof(unsigned int) + (signalsCount * (sizeof(Signal::Metadata)+sizeof(std::size_t))));
+std::size_t Sigblock::Metadata::SizeOf(const SDA::uint32 signalsCount) {
+	return (sizeof(SDA::uint32) + (signalsCount * (sizeof(Signal::Metadata)+sizeof(std::size_t))));
 }
 
 void* Sigblock::GetSignalAddress(std::size_t offset) {

@@ -1,7 +1,7 @@
 /**
- * @file Signal.h
- * @brief Header file for class Signal
- * @date 01/12/2016
+ * @file Types.h
+ * @brief Header file for class Types
+ * @date 10/02/2017
  * @author Ivan Herrero Molina
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,81 +16,57 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class Signal
+ * @details This header file contains the declaration of the class Types
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef SIGNAL_H_
-#define SIGNAL_H_
+#ifndef TYPES_H_
+#define TYPES_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include <cstddef>
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
-#include "Types.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-/**
- * @brief This class represents the concept of a signal.
- * @details This class is not going to have any member because its content
- * depends on the type of the actual signal and it is not expected to provide
- * any standard access to its contents. Nevertheless it is helpful as a recall
- * of the signal concept and as a namespace for its metadata class.
- */
-class Signal {
-public:
+namespace SDA {
 
 	/**
-	 * @brief This class contains the meta properties of a signal.
+	 * Type alias for unsigned integers
 	 */
-	class Metadata {
-	public:
-
-		/**
-		 * The maximum length of the signal's name.
-		 */
-		static const SDA::uint32 NAME_MAX_LEN = 30u;
-
-		/**
-		 * The name of the signal.
-		 */
-		SDA::char8 name[NAME_MAX_LEN];
-
-		/**
-		 * The size of the signal's representation.
-		 */
-		std::size_t size;
-
-		/**
-		 * @brief Default constructor
-		 */
-		Metadata();
-	};
-
-private:
+	typedef unsigned int uint32;
 
 	/**
-	 * @brief Default constructor
+	 * Type alias for unsigned integers
 	 */
-	Signal();
+	typedef int int32;
+
+	/**
+	 * Type alias for unsigned integers
+	 */
+	typedef unsigned long long int uint64; //(since C++11)
+
+	/**
+	 * Type alias for characters
+	 */
+	typedef char char8;
+
+	/**
+	 * Type alias for bytes
+	 */
+	typedef char byte;
+
 };
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-inline Signal::Metadata::Metadata(): size(0) {
-	name[0] = '\0';
-}
-
-#endif /* SIGNAL_H_ */
+#endif /* TYPES_H_ */

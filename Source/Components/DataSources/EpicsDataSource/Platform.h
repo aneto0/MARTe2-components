@@ -34,6 +34,8 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
+#include "Types.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -56,14 +58,14 @@ public:
 	 * which is mapped to the current process memory space, and returns its
 	 * base memory address.
 	 */
-	static void* MakeShm(const char* name, const size_t size);
+	static void* MakeShm(const SDA::char8* name, const size_t size);
 
 	/**
 	 * @brief Joins an interprocess shared memory.
 	 * @details Maps an existing interprocess shared memory to the current
 	 * process memory space and returns its base memory address.
 	 */
-	static void* JoinShm(const char* name);
+	static void* JoinShm(const SDA::char8* name);
 
 	/**
 	 * @brief Unmaps an interprocess shared memory identified by its base
@@ -75,7 +77,7 @@ public:
 	 * @brief Deletes an interprocess shared memory from the system,
 	 * identified by its system wide unique name.
 	 */
-	static void DestroyShm(const char* name);
+	static void DestroyShm(const SDA::char8* name);
 };
 
 /*---------------------------------------------------------------------------*/

@@ -35,6 +35,7 @@
 /*---------------------------------------------------------------------------*/
 
 #include "Sigblock.h"
+#include "Types.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -70,7 +71,7 @@ public:
 	 * @param[in] bufferSize //TODO document it or purge it
 	 * @param[in] sizeOfSigblock The size of the sigblock
 	 */
-    void Reset(const unsigned int bufferSize, const std::size_t sizeOfSigblock);
+    void Reset(const SDA::uint32 bufferSize, const std::size_t sizeOfSigblock);
 
     /**
      * @brief Gets a sigblock from the double buffer.
@@ -96,7 +97,7 @@ private:
     /**
      * The constant representing the number of buffers (actually two)
      */
-	static const unsigned int TWO = 2;
+	static const SDA::uint32 TWO = 2;
 
 	/**
 	 * Enumeration for tracking the buffer status
@@ -111,17 +112,17 @@ private:
     /**
      * Index of the current front buffer
      */
-    unsigned int frontbuffer;
+    SDA::uint32 frontbuffer;
 
     /**
      * Status of the frontbuffer.
      */
-    unsigned int status;  //TODO Better BufferStatus as type?
+    SDA::uint32 status;  //TODO Better BufferStatus as type?
 
     /**
      * Memory holder for the two sigblocks
      */
-    char buffer[];
+    SDA::char8 buffer[];
 };
 
 /*---------------------------------------------------------------------------*/

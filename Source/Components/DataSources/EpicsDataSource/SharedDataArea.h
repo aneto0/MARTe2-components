@@ -37,6 +37,7 @@
 #include "Signal.h"
 #include "Sigblock.h"
 #include "SigblockDoubleBuffer.h"
+#include "Types.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -74,7 +75,7 @@ private:
 	 *   area. That implies that no instances of them are going to be created,
 	 *   instead they are mapped to the shared memory area itself.
 	 *   Trick nº2: The Representation structure has a tail data member that
-	 *   is an array of chars with no elements (char member[]), which does
+	 *   is an array of chars with no elements (SDA::char8 member[]), which does
 	 *   not increase the size of the structure, but it allows to access the
 	 *   memory allocated beyond the end of the structure. This is needed
 	 *   because the number of signals is unknown at compile time and extra
@@ -103,23 +104,23 @@ private:
 	 */
 	class Representation {
 	public:
-		char* RawHeader();
-		char* RawItems();
+		SDA::char8* RawHeader();
+		SDA::char8* RawItems();
 		Sigblock::Metadata* Header();
 		SigblockDoubleBuffer* Items();
 		bool IsOperational() const;
 		void FillPreHeader(std::size_t sizeOfHeader, std::size_t sizeOfItems);
-		void FillHeader(const unsigned int signalsCount, const Signal::Metadata signalsMetadata[]);
-		void FillItems(const unsigned int bufferSize, std::size_t sizeOfSigblock);
+		void FillHeader(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]);
+		void FillItems(const SDA::uint32 bufferSize, std::size_t sizeOfSigblock);
 	public:
 		const std::size_t size;
 		bool hasReader;
 		bool hasWriter;
-		unsigned long droppedWrites;	//TODO PURGE??
-		unsigned long missedReads;	//TODO PURGE??
+		SDA::uint64 droppedWrites;	//TODO PURGE??
+		SDA::uint64 missedReads;	//TODO PURGE??
 		std::size_t offsetOfHeader;
 		std::size_t offsetOfItems;
-		char rawmem[];
+		SDA::char8 rawmem[];
 	};
 
 public:
@@ -179,7 +180,7 @@ public:
 	    /**
 	     * @brief TODO Document it or purge the method
 	     */
-	    unsigned long DroppedWrites() const;
+	    SDA::uint64 DroppedWrites() const;
 
 	private:
 
@@ -232,7 +233,7 @@ public:
 	 * memory, which is identified by the name parameter and conforms to the
 	 * representation expected by a SharedDataArea object.
 	 */
-	static SharedDataArea BuildSharedDataAreaForMARTe(const char* const name, const unsigned int signalsCount, const Signal::Metadata signalsMetadata[], const unsigned int bufferSize);
+	static SharedDataArea BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize);
 
 	/**
 	 * @brief This static method joins an existent interprocess shared memory
@@ -249,7 +250,7 @@ public:
 	 * shared memory, which is identified by the name parameter and conforms
 	 * to the representation expected by a SharedDataArea object.
 	 */
-	static SharedDataArea BuildSharedDataAreaForEPICS(const char* const name);
+	static SharedDataArea BuildSharedDataAreaForEPICS(const SDA::char8* const name);
 
 private:
 
@@ -271,11 +272,11 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-inline char* SharedDataArea::Representation::RawHeader() {
+inline SDA::char8* SharedDataArea::Representation::RawHeader() {
 	return (rawmem + offsetOfHeader);
 }
 
-inline char* SharedDataArea::Representation::RawItems() {
+inline SDA::char8* SharedDataArea::Representation::RawItems() {
 	return (rawmem + offsetOfItems);
 }
 

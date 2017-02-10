@@ -51,11 +51,11 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-void* Platform::MakeShm(const char* name, const size_t size) {
+void* Platform::MakeShm(const SDA::char8* name, const size_t size) {
 
     void* result = NULL;
 
-    int shm_fd = -1;
+    SDA::int32 shm_fd = -1;
 
     shm_fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0666);
     if (shm_fd == -1) {
@@ -63,7 +63,7 @@ void* Platform::MakeShm(const char* name, const size_t size) {
     	exit(EXIT_FAILURE);
     }
 
-    int fret;
+    SDA::int32 fret;
     fret = ftruncate(shm_fd, size);
     if (fret == -1) {
     	printf("*** ftruncate error (server)  [%s]***\n", strerror(errno));
@@ -83,11 +83,11 @@ void* Platform::MakeShm(const char* name, const size_t size) {
     return result;
 }
 
-void* Platform::JoinShm(const char* name) {
+void* Platform::JoinShm(const SDA::char8* name) {
 
     void* result = NULL;
 
-    int shm_fd = -1;
+    SDA::int32 shm_fd = -1;
 
     size_t size = 0; //Size of allocated shared memory, including the the size value itself.
 
@@ -105,7 +105,7 @@ void* Platform::JoinShm(const char* name) {
 
     size = *((size_t*)tmp);
 
-	int fret;
+    SDA::int32 fret;
     fret = munmap(tmp, sizeof(size_t));
     if (fret == -1) {
     	printf("***pre munmap error (server)  [%s]***\n", strerror(errno));
@@ -122,7 +122,7 @@ void* Platform::JoinShm(const char* name) {
 }
 
 void Platform::DettachShm(void* shm_ptr, size_t shm_size) {
-	int fret;
+	SDA::int32 fret;
     fret = munmap(shm_ptr, shm_size);
     if (fret == -1) {
     	printf("*** munmap error (server)  [%s]***\n", strerror(errno));
@@ -130,6 +130,6 @@ void Platform::DettachShm(void* shm_ptr, size_t shm_size) {
     }
 }
 
-void Platform::DestroyShm(const char* name) {
+void Platform::DestroyShm(const SDA::char8* name) {
     shm_unlink(name);
 }

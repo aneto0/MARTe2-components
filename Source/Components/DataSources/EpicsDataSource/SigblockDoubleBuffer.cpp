@@ -45,7 +45,7 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-void SigblockDoubleBuffer::Reset(const unsigned int bufferSize, const std::size_t sizeOfSigblock) {
+void SigblockDoubleBuffer::Reset(const SDA::uint32 bufferSize, const std::size_t sizeOfSigblock) {
 	//this->bufferSize = bufferSize;	//TODO: Purge this field.
 	this->sizeOfSigblock = sizeOfSigblock;
 	frontbuffer = 0;
@@ -55,11 +55,11 @@ void SigblockDoubleBuffer::Reset(const unsigned int bufferSize, const std::size_
 
 bool SigblockDoubleBuffer::Get(Sigblock& sb) {
 	bool fret = true;
-	bool acquired = CAS<unsigned int>(&status, FULL, READING);
+	bool acquired = CAS<SDA::uint32>(&status, FULL, READING);
 	if (acquired) {
 		//[[assert: status == READING]]
 		std::memcpy(&sb, &(buffer[sizeOfSigblock * (frontbuffer)]), sizeOfSigblock);
-		XCHG<unsigned int>(&status, FREE);
+		XCHG<SDA::uint32>(&status, FREE);
 	}
 	else {
 		fret = false;
@@ -69,13 +69,13 @@ bool SigblockDoubleBuffer::Get(Sigblock& sb) {
 
 bool SigblockDoubleBuffer::Put(const Sigblock& sb) {
 	bool fret = true;
-	unsigned int backbuffer = ((frontbuffer + 1) % TWO);
+	SDA::uint32 backbuffer = ((frontbuffer + 1) % TWO);
 	std::memcpy(&(buffer[sizeOfSigblock * backbuffer]), &sb, sizeOfSigblock);
-	bool acquired = (CAS<unsigned int>(&status, FREE, WRITING) || CAS<unsigned int>(&status, FULL, WRITING));
+	bool acquired = (CAS<SDA::uint32>(&status, FREE, WRITING) || CAS<SDA::uint32>(&status, FULL, WRITING));
 	if (acquired) {
 		//[[assert: status == WRITING]]
 		frontbuffer = backbuffer;
-		XCHG<unsigned int>(&status, FULL);
+		XCHG<SDA::uint32>(&status, FULL);
 	}
 	else {
 		fret = false;

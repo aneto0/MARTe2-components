@@ -66,36 +66,36 @@ public:
 		 * @param[in] signalsMetadata[] Array with the description of each
 		 * signal present in the sigblock.
 		 */
-		void SetSignalsMetadata(const unsigned int signalsCount, const Signal::Metadata signalsMetadata[]);
+		void SetSignalsMetadata(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]);
 
 		/**
 		 * @brief Gets the signals count.
 		 */
-		unsigned int GetSignalsCount();
+		SDA::uint32 GetSignalsCount();
 
 		/**
 		 * @brief Gets the signal's index from its name.
 		 * @param[in] name The name of the signal.
 		 */
-		int GetSignalIndex(const char* name);
+		SDA::int32 GetSignalIndex(const SDA::char8* name);
 
 		/**
 		 * @brief Gets the signal's name from its index.
 		 * @param[in] The index of the signal.
 		 */
-		char* GetSignalName(const int index);
+		SDA::char8* GetSignalName(const SDA::int32 index);
 
 		/**
 		 * @brief Gets the signal's offset from its index.
 		 * @param[in] The index of the signal.
 		 */
-		int GetSignalOffsetByIndex(const int index);
+		SDA::int32 GetSignalOffsetByIndex(const SDA::int32 index);
 
 		/**
 		 * @brief Gets the signal's size from its index.
 		 * @param[in] The index of the signal.
 		 */
-		std::size_t GetSignalSizeByIndex(const int index);
+		std::size_t GetSignalSizeByIndex(const SDA::int32 index);
 
 		/**
 		 * @brief Gets the total size of the sigblock.
@@ -107,7 +107,7 @@ public:
 		/**
 		 * @brief Calculates the size needed to hold an instance of this class.
 		 */
-		static std::size_t SizeOf(const unsigned int signalsCount);
+		static std::size_t SizeOf(const SDA::uint32 signalsCount);
 
 	private:
 
@@ -135,7 +135,7 @@ public:
 		 * The number of signals described (i.e. the number
 		 * of elements in the signalsMetadata array)
 		 */
-		unsigned int signalsCount;
+		SDA::uint32 signalsCount;
 
 		/**
 		 * Array which holds the list of signals' metadata (one
