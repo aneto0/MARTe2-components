@@ -49,6 +49,7 @@ namespace MARTe{
 static uint32 nOfSignals = 0u;
 static uint16 udpServerPort;
 static UDPSocket client;
+static uint32 signalByteSize[];
 
 UDPSender::UDPSender():DataSourceI(){
     UDPPacket.sequenceNumber = 0u;
@@ -95,7 +96,7 @@ bool UDPSender::Synchronise(){
         }
 
         if (OK){
-            uint32 signalByteSize = GetSignalType(i).numberOfBits / 8u;
+            uint32 signalByteSize = signalByteSize[i] / 8u;
             if (signalByteSize > 0u){
                 uint64 k;
                 uint8 AnyTypetoUint8 [signalByteSize];
@@ -179,13 +180,18 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "At least three signals shall be configured");
     }
     if (ok) {
-        ok = (GetSignalType(0u).numberOfBits == 32u);
+        uint16 i;
+        signalByteSize = new uint16[GetNumberOfSignals()]
+        for (i = 0u; i < GetNumberOfSignals(); i++{
+            signalByteSize[i] = GetSignalType(0u).numberOfBits;
+        })
+        ok = (signalByteSize[0u] == 32u);
         if (!ok) {
-            ok = (GetSignalType(0u).numberOfBits == 64u);
+            ok = (signalByteSize[0u]  == 64u);
             }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
-                                    uint16(GetSignalType(0u).numberOfBits))
+                                    uint16(signalByteSize[0u] ))
         }
     }
     if (ok) {
@@ -198,13 +204,13 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (GetSignalType(1u).numberOfBits == 32u);
+        ok = (signalByteSize[1u] == 32u);
         if (!ok) {
-            ok = (GetSignalType(1u).numberOfBits == 64u);
+            ok = (signalByteSize[1u] == 64u);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits or 64 bits and %d were specified",
-                                            uint16(GetSignalType(1u).numberOfBits))
+                                            uint16(signalByteSize[1u]))
         }
     }
     if (ok) {
