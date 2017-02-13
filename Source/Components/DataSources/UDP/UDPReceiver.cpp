@@ -41,6 +41,7 @@ static uint16 udpServerPort = 44488u;
 static StreamString udpServerAddress = "127.0.0.1";
 static uint32 nOfSignals = 1u;
 static uint32 totalPacketSize;
+static uint32 *signalsByteSize;
 UDPSocket server;
 
 UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this){
@@ -256,13 +257,18 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "At least three signals shall be configured");
     }
     if (ok) {
-        ok = (GetSignalType(0u).numberOfBits == 32u);
+        uint16 i;
+        signalsByteSize = new uint32[GetNumberOfSignals()];
+        for (i = 0u; i < GetNumberOfSignals(); i++){
+            signalsByteSize[i] = GetSignalType(i).numberOfBits;
+        }
+        ok = (signalsByteSize[0u] == 32u);
         if (!ok) {
-            ok = (GetSignalType(0u).numberOfBits == 64u);
+            ok = (signalsByteSize[0u] == 64u);
             }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
-                                    uint16(GetSignalType(0u).numberOfBits))
+                                    uint16(signalsByteSize[0u]))
         }
     }
     if (ok) {
@@ -275,13 +281,13 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (GetSignalType(1u).numberOfBits == 32u);
+        ok = (signalsByteSize[1u] == 32u);
         if (!ok) {
-            ok = (GetSignalType(1u).numberOfBits == 64u);
+            ok = (signalsByteSize[1u] == 64u);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits or 64 bits and %d were specified",
-                                            uint16(GetSignalType(1u).numberOfBits))
+                                            uint16(signalsByteSize[1u]))
         }
     }
     if (ok) {
@@ -307,7 +313,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         keepRunning = false;
     }
     else{
-        uint32 udpServerExpectReadSize = totalPacketSize + static_cast<uint32>(GetSignalType(0u).numberOfBits/8u) + static_cast<uint32>(GetSignalType(1u).numberOfBits/8u);
+        uint32 udpServerExpectReadSize = totalPacketSize + static_cast<uint32>(signalsByteSize[0u]/8u) + static_cast<uint32>(signalsByteSize[1u]/8u);
         uint8 udpServerBufferRead[udpServerExpectReadSize];
         memset(static_cast<void*>(udpServerBufferRead), 0, sizeof(udpServerBufferRead));
         uint32 udpServerReadSize = udpServerExpectReadSize;
@@ -331,8 +337,8 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
             uint32 signalOffset = 0u;
             uint32 memoryOffset = 0u;
             for (i = 0u; (i < nOfSignals) && keepRunning ; i++){
-                uint32 signalByteSize = GetSignalType(i).numberOfBits / 8u;
-                uint32 size = GetSignalType(i).numberOfBits;
+                uint32 size = signalsByteSize[i];
+                uint32 signalByteSize = size / 8u;
                 AnyType AnytypeData = new AnyType;
 
                 if (i == 0u){
