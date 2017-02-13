@@ -124,7 +124,6 @@ bool UDPReceiver::AllocateMemory(){
 
     bool ok = (nOfSignals > 2u);
     totalPacketSize = 0u;
-    //REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "numb of reciving signals %d", nOfSignals);
     if (ok){
         uint32 n;
         uint32 signalByteSize = 0u;
@@ -137,9 +136,6 @@ bool UDPReceiver::AllocateMemory(){
         UDPPacket.dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalPacketSize);
         maximumMemoryAccess = totalPacketSize - signalByteSize;
         uint32 i;
-/*        for (i = 0u; i < (nOfSignals - 2u); i++ ){
-            UDPPacket.dataBuffer[i] = 0u;
-        }*/
         
     }else{
         REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timer and another signal) must be specified!");
@@ -225,14 +221,12 @@ bool UDPReceiver::GetOutputBrokers(ReferenceContainer& outputBrokers,
 bool UDPReceiver::PrepareNextState(const char8* const currentStateName,
                                     const char8* const nextStateName) {
     bool ok = true;
-    //REPORT_ERROR(ErrorManagement::Information, "prepare next state");
     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
         keepRunning = true;
         ok = executor.Start();
     } 
     UDPPacket.sequenceNumber = 0u;
     UDPPacket.timer = 0u;
-    //UDPPacket.dataBuffer = NULL_PTR(AnyType*);
     return ok;
 }
 
@@ -320,7 +314,6 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         uint32 udpServerReadSize = udpServerExpectReadSize;
         uint8 i;
         if (keepRunning) {
-            //REPORT_ERROR(ErrorManagement::ParametersError, "Waiting to recieve data");
             dataRecieved = server.Read(reinterpret_cast<char8 *>(udpServerBufferRead), udpServerReadSize,  timeout);
         }
         dataRecieved = (udpServerReadSize > 0u);
@@ -330,7 +323,6 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
             REPORT_ERROR(ErrorManagement::ParametersError, "No data recieved");
             Sleep::Sec(20e-6);
         }else if(!dataRecievedCorrectSize){
-            //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data of size!!!! = %d, but i expected size %d", udpServerReadSize, udpServerExpectReadSize);
             REPORT_ERROR(ErrorManagement::ParametersError, "Recieved data of inccorect size, ignoring it.");
             Sleep::Sec(100e-6);
         }else{
@@ -359,19 +351,11 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                     dataConv[counter] = udpServerBufferRead[signalOffset + counter];
                 }
                 if ((i == 0u) || (i == 1u)){
-                    //REPORT_ERROR(ErrorManagement::ParametersError, "Doing memcpy1");
                     memcpy(AnytypeData,static_cast<void*>(dataConv),signalByteSize);
-                    //REPORT_ERROR(ErrorManagement::ParametersError, "Done memcpy1");
-                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
                 }else{
                     if (memoryOffset <= maximumMemoryAccess){
                         void *p = static_cast<char*>(AnytypeData) + memoryOffset;
-                        //REPORT_ERROR(ErrorManagement::ParametersError, "Doing memcpy2");
                         memcpy(p,static_cast<void*>(dataConv),signalByteSize);
-                        //REPORT_ERROR(ErrorManagement::ParametersError, "finished memcpy2");
-                        uint32 test;
-                        memcpy(&test,p,signalByteSize);
-                        //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
                         memoryOffset += signalByteSize;
                     }else{
                         REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
