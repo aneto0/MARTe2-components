@@ -150,7 +150,7 @@ private:
      * The interface to the shared data area, as a SigblockConsumer, which
      * will be used to read the signals from the shared data area.
      */
-    SharedDataArea::SigblockConsumer* consumer;
+    SDA::SharedDataArea::SigblockConsumer* consumer;
 
     /**
      * The pointer to the local allocated sigblock.

@@ -180,10 +180,10 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
 	const unsigned int max = 512; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
 	const unsigned int numberOfSignals = 10;
 	SDA::Signal::Metadata sbmd[numberOfSignals];
-	SharedDataArea sdaServer;
-	SharedDataArea::SigblockProducer* producer;
-	SharedDataArea sdaClient;
-	SharedDataArea::SigblockConsumer* consumer;
+	SDA::SharedDataArea sdaServer;
+	SDA::SharedDataArea::SigblockProducer* producer;
+	SDA::SharedDataArea sdaClient;
+	SDA::SharedDataArea::SigblockConsumer* consumer;
 	std::size_t size;
 
 	//Check SHM's name:
@@ -193,7 +193,7 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
 	GenerateMetadataForSigblock<SignalType>(sbmd, numberOfSignals);
 
 	//Build the shared data area as server:
-	sdaServer = SharedDataArea::BuildSharedDataAreaForMARTe(shmName, numberOfSignals, sbmd, max);
+	sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, numberOfSignals, sbmd, max);
 
 	//Check building of shared data area:
 	//ok &= (...) //TODO: Write an expression for checking the server.
@@ -202,7 +202,7 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
 	producer = sdaServer.GetSigblockProducerInterface();
 
 	//Build the shared data area as client:
-	sdaClient = SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
+	sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
 
 	//Check building of shared data area:
 	//ok &= (...) //TODO: Write an expression for checking the client.
@@ -278,10 +278,10 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
 	ProducerThreadParams producerThreadParams;
 	ConsumerThreadParams consumerThreadParams;
 	SDA::Signal::Metadata sbmd[context.numberOfSignals];
-	SharedDataArea sdaServer;
-	SharedDataArea::SigblockProducer* producer;
-	SharedDataArea sdaClient;
-	SharedDataArea::SigblockConsumer* consumer;
+	SDA::SharedDataArea sdaServer;
+	SDA::SharedDataArea::SigblockProducer* producer;
+	SDA::SharedDataArea sdaClient;
+	SDA::SharedDataArea::SigblockConsumer* consumer;
 	std::size_t size;
 	MARTe::ThreadIdentifier producerThreadId;
 	MARTe::ThreadIdentifier consumerThreadId;
@@ -293,7 +293,7 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
 	GenerateMetadataForSigblock<SignalType>(sbmd, context.numberOfSignals);
 
 	//Build the shared data area as server:
-	sdaServer = SharedDataArea::BuildSharedDataAreaForMARTe(shmName, context.numberOfSignals, sbmd, max);
+	sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, context.numberOfSignals, sbmd, max);
 
 	//Check building of shared data area:
 	//ok &= (...) //TODO: Write an expression for checking the server.
@@ -306,7 +306,7 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
 	producerThreadParams.context = &context;
 
 	//Build the shared data area as client:
-	sdaClient = SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
+	sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
 
 	//Check building of shared data area:
 	//ok &= (...) //TODO: Write an expression for checking the client.

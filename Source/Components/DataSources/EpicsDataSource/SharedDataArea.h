@@ -43,6 +43,8 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+namespace SDA {
+
 /**
  * @brief Interprocess shared data area handle.
  *
@@ -268,9 +270,13 @@ private:
 	Representation* shm;
 };
 
+}
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+
+namespace SDA {
 
 inline SDA::char8* SharedDataArea::Representation::RawHeader() {
 	return (rawmem + offsetOfHeader);
@@ -291,5 +297,7 @@ inline SDA::SigblockDoubleBuffer* SharedDataArea::Representation::Items() {
 inline bool SharedDataArea::Representation::IsOperational() const {
 	return (hasReader && hasWriter);
 };
+
+}
 
 #endif /* SIGBLOCKPIPE_H_ */

@@ -66,6 +66,8 @@ static std::size_t CalculateSizeOfSigblock(const SDA::uint32 signalsCount, const
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+namespace SDA {
+
 SharedDataArea::SharedDataArea(): shm(NULL) {
 
 }
@@ -192,4 +194,6 @@ SDA::Sigblock::Metadata* SharedDataArea::SigblockProducer::GetSigblockMetadata()
 
 SDA::uint64 SharedDataArea::SigblockProducer::DroppedWrites() const {
 	return SharedDataArea::Representation::droppedWrites;
+}
+
 }

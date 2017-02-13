@@ -57,13 +57,13 @@ struct SharedContext {
 };
 
 struct ProducerThreadParams {
-	SharedDataArea::SigblockProducer* output;
+	SDA::SharedDataArea::SigblockProducer* output;
 	SharedContext* context;
 	ProducerThreadParams();
 };
 
 struct ConsumerThreadParams {
-	SharedDataArea::SigblockConsumer* input;
+	SDA::SharedDataArea::SigblockConsumer* input;
 	SharedContext* context;
 	ConsumerThreadParams();
 };
@@ -84,12 +84,12 @@ inline SharedContext::~SharedContext() {
 }
 
 inline ProducerThreadParams::ProducerThreadParams():
-	output(NULL_PTR(SharedDataArea::SigblockProducer*)),
+	output(NULL_PTR(SDA::SharedDataArea::SigblockProducer*)),
 	context(NULL_PTR(SharedContext*)) {
 }
 
 inline ConsumerThreadParams::ConsumerThreadParams():
-	input(NULL_PTR(SharedDataArea::SigblockConsumer*)),
+	input(NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)),
 	context(NULL_PTR(SharedContext*)) {
 }
 

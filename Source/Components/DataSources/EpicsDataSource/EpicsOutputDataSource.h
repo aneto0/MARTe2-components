@@ -146,7 +146,7 @@ private:
      * The interface to the shared data area, as a SigblockProducer, which
      * will be used to write the signals to the shared data area.
      */
-    SharedDataArea::SigblockProducer* producer;
+    SDA::SharedDataArea::SigblockProducer* producer;
 
     /**
      * The pointer to the local allocated sigblock.

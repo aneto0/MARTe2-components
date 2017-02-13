@@ -103,7 +103,7 @@ static MARTe::StreamString BuildSharedMemoryIdentifier(const MARTe::StreamString
 namespace MARTe {
 
 EpicsInputDataSource::EpicsInputDataSource() :
-    DataSourceI(), consumer(NULL_PTR(SharedDataArea::SigblockConsumer*)), signals(NULL_PTR(SDA::Sigblock*)) {
+    DataSourceI(), consumer(NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)), signals(NULL_PTR(SDA::Sigblock*)) {
 }
 
 EpicsInputDataSource::~EpicsInputDataSource() {
@@ -113,9 +113,9 @@ EpicsInputDataSource::~EpicsInputDataSource() {
 		HeapManager::Free(mem);
 		signals = static_cast<SDA::Sigblock*>(mem);
     }
-    if (consumer != NULL_PTR(SharedDataArea::SigblockConsumer*)) {
+    if (consumer != NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) {
     	//TODO: Release interprocess shared memory?
-    	consumer = NULL_PTR(SharedDataArea::SigblockConsumer*);
+    	consumer = NULL_PTR(SDA::SharedDataArea::SigblockConsumer*);
     }
 }
 
@@ -147,7 +147,7 @@ bool EpicsInputDataSource::AllocateMemory() {
 		}
 	}
 
-	SharedDataArea sbpm = SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numberOfSignals, smd_for_init, max);
+	SDA::SharedDataArea sbpm = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numberOfSignals, smd_for_init, max);
 	consumer = sbpm.GetSigblockConsumerInterface();
 	SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
 	void* mem = HeapManager::Malloc(sbmd->GetTotalSize());

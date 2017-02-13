@@ -90,8 +90,8 @@ bool EpicsOutputDataSourceTest::TestSynchronise() {
     	const char targetName[] = "EpicsOutputDataSourceTest_TestSynchronise";
     	EpicsOutputDataSource target;
     	DataSet dataset(maxTests);
-    	SharedDataArea sdaClient;
-    	SharedDataArea::SigblockConsumer* consumer;
+    	SDA::SharedDataArea sdaClient;
+    	SDA::SharedDataArea::SigblockConsumer* consumer;
     	const uint32 numberOfSignals = 5;
     	void* signals[numberOfSignals];
 
@@ -113,7 +113,7 @@ bool EpicsOutputDataSourceTest::TestSynchronise() {
     	}
 
     	//Setup producers's interface to shared data area:
-    	sdaClient = SharedDataArea::BuildSharedDataAreaForEPICS(target.GetSharedDataAreaName().Buffer());
+    	sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(target.GetSharedDataAreaName().Buffer());
     	consumer = sdaClient.GetSigblockConsumerInterface();
 
     	//Allocate memory for dataset:
@@ -217,7 +217,7 @@ bool EpicsOutputDataSourceTest::TestAllocateMemory() {
     ok &= target.AllocateMemory();
 
     //Check postcondition:
-	SharedDataArea::BuildSharedDataAreaForEPICS(target.GetSharedDataAreaName().Buffer());
+    SDA::SharedDataArea::BuildSharedDataAreaForEPICS(target.GetSharedDataAreaName().Buffer());
 
 	//Check class invariant:
     ok &= INVARIANT(target);
