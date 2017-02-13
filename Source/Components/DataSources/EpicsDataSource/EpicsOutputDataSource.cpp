@@ -177,12 +177,14 @@ bool EpicsOutputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const 
 }
 
 const char8 *EpicsOutputDataSource::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
+    const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == InputSignals) {
-       return "";
+    	brokerName = "";
     }
     else {
-       return "MemoryMapSynchronisedOutputBroker";
+    	brokerName = "MemoryMapSynchronisedOutputBroker";
     }
+    return brokerName;
 }
 
 bool EpicsOutputDataSource::GetInputBrokers(ReferenceContainer &inputBrokers, const char8* const functionName, void * const gamMemPtr) {
