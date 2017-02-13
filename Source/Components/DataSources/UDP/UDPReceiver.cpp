@@ -51,7 +51,7 @@ UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), execu
     dataRecieved = false;
     UDPPacket.sequenceNumber = 0u;
     UDPPacket.timer = 0u ;
-    UDPPacket.dataBuffer = NULL_PTR(AnyType*);
+    UDPPacket.dataBuffer = NULL_PTR(void*);
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
@@ -133,12 +133,12 @@ bool UDPReceiver::AllocateMemory(){
                 totalPacketSize += signalByteSize;
             }
         }
-        UDPPacket.dataBuffer= new AnyType[totalPacketSize];
+        UDPPacket.dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalPacketSize);
         maximumMemoryAccess = totalPacketSize - signalByteSize;
         uint32 i;
-        for (i = 0u; i < (nOfSignals - 2u); i++ ){
+/*        for (i = 0u; i < (nOfSignals - 2u); i++ ){
             UDPPacket.dataBuffer[i] = 0u;
-        }
+        }*/
         
     }else{
         REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timer and another signal) must be specified!");
@@ -173,7 +173,7 @@ bool UDPReceiver::GetSignalMemoryBuffer(const uint32 signalIdx,
                 }
             }
             if (memoryOffset <= maximumMemoryAccess){
-                signalAddress = static_cast<void *>(static_cast<char*>((UDPPacket.dataBuffer[0]).GetDataPointer()) + memoryOffset);
+                signalAddress = static_cast<void *>(static_cast<char*>(UDPPacket.dataBuffer) + memoryOffset);
             }else{
                 ok = false;
                 REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
@@ -346,7 +346,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                 }else if (i == 1u){
                     AnytypeData = UDPPacket.timer;                    
                 }else{  
-                    AnytypeData = UDPPacket.dataBuffer[0];
+                    AnytypeData = UDPPacket.dataBuffer;
                 }
 
                 uint32 noOfBytesForSignal = size/8u;

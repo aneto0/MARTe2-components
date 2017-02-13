@@ -54,7 +54,7 @@ static uint32 *signalsByteSize;
 UDPSender::UDPSender():DataSourceI(){
     UDPPacket.sequenceNumber = 0u;
     UDPPacket.timer = 0u ;
-    UDPPacket.dataBuffer = NULL_PTR(AnyType*);
+    UDPPacket.dataBuffer = NULL_PTR(void*);
     timerAtStateChange = 0u;
     udpServerAddress = "";
     maximumMemoryAccess = 0u;
@@ -92,7 +92,7 @@ bool UDPSender::Synchronise(){
             //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " data being sent:%d time now:%d time before:%d", UDPPacket.timer, HighResolutionTimer::Counter(), timerAtStateChange);
             dataConv = UDPPacket.timer;
         }else{
-            dataConv = UDPPacket.dataBuffer[0];
+            dataConv = UDPPacket.dataBuffer;
         }
 
         if (OK){
@@ -244,12 +244,12 @@ bool UDPSender::AllocateMemory(){
         }
         //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signal data size %d",(totalPacketSize));
         if (ok){
-            UDPPacket.dataBuffer= new AnyType[totalPacketSize];
+            UDPPacket.dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalPacketSize);
             maximumMemoryAccess = totalPacketSize - signalByteSize;
             uint32 i;
-            for (i = 0u; i < (nOfSignals - 2u); i++){
-                UDPPacket.dataBuffer[i] = 0;
-            }
+/*            for (i = 2u; i < nOfSignals; i++){
+               static_cast<char*>(UDPPacket.dataBuffer) + signalsByteSize[i] = 0;
+            }*/
         }
     }else{
         REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timer and one other signal) must be specified!");
@@ -287,7 +287,7 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                 }
             }
             if (memoryOffset <= maximumMemoryAccess){
-                signalAddress = static_cast<char*>((UDPPacket.dataBuffer[0]).GetDataPointer()) + memoryOffset;
+                signalAddress = static_cast<void*>(static_cast<char*>(UDPPacket.dataBuffer) + memoryOffset);
             } else{
                 ok = false;
                 REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");

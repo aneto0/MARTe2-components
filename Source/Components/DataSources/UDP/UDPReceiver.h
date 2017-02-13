@@ -76,7 +76,7 @@ public:
     struct UDPMsgStruct{
     uint64 sequenceNumber;
     uint64 timer;
-    AnyType *dataBuffer;
+    void *dataBuffer;
     };   
     
     /**
