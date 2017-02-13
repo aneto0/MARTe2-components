@@ -62,10 +62,12 @@ UDPSender::UDPSender():DataSourceI(){
 
 /*lint -e{1551} the destructor must guarantee that the client sending is closed.*/
 UDPSender::~UDPSender(){
-     if (!client.Close()){
-         REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
-     }
-     free(UDPPacket.dataBuffer);
+    if (!client.Close()){
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
+    }
+    if (!(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(UDPPacket.dataBuffer))){
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not free memory.");
+    }
 }
 
 bool UDPSender::Synchronise(){
@@ -235,7 +237,6 @@ bool UDPSender::AllocateMemory(){
         if (ok){
             UDPPacket.dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalPacketSize);
             maximumMemoryAccess = totalPacketSize - signalByteSize;
-            uint32 i;
         }
     }else{
         REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timer and one other signal) must be specified!");

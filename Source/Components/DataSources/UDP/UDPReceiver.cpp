@@ -73,8 +73,9 @@ UDPReceiver::~UDPReceiver(){
     if (!server.Close()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP reciever server.");
     }
-    free(UDPPacket.dataBuffer);
-    
+    if (!(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(UDPPacket.dataBuffer))){
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not free memory.");
+    }
 }
 
 /**
@@ -134,9 +135,7 @@ bool UDPReceiver::AllocateMemory(){
             }
         }
         UDPPacket.dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalPacketSize);
-        maximumMemoryAccess = totalPacketSize - signalByteSize;
-        uint32 i;
-        
+        maximumMemoryAccess = totalPacketSize - signalByteSize;        
     }else{
         REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timer and another signal) must be specified!");
     }
