@@ -168,8 +168,9 @@ uint32 EpicsOutputDataSource::GetNumberOfMemoryBuffers() {
 }
 
 bool EpicsOutputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) {
-	bool ok = false;
+	bool ok;
 
+	/*lint --e{9007} GetNumberOfMemoryBuffers() has no side effects*/
 	ok = ((signalIdx < GetNumberOfSignals()) && (bufferIdx < GetNumberOfMemoryBuffers()));
 
 	if (ok) {
