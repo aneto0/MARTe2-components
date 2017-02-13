@@ -95,6 +95,7 @@ SharedDataArea::SigblockConsumer* SharedDataArea::GetSigblockConsumerInterface()
 }
 
 void SharedDataArea::Representation::FillPreHeader(const std::size_t sizeOfHeader, const std::size_t sizeOfItems) {
+    //TODO: Purge sizeOfItems parameter.
 	hasReader = false;
 	hasWriter = false;
 	droppedWrites = 0;

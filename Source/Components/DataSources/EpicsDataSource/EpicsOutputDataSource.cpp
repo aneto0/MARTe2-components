@@ -191,6 +191,7 @@ bool EpicsOutputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const 
     return ok;
 }
 
+/*lint -e{715} parameter data not used in this implementation*/
 const char8 *EpicsOutputDataSource::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == InputSignals) {
@@ -202,6 +203,7 @@ const char8 *EpicsOutputDataSource::GetBrokerName(StructuredDataI &data, const S
     return brokerName;
 }
 
+/*lint -e{715} parameters inputBrokers, functionName, and gamMemPtr not used in this implementation*/
 bool EpicsOutputDataSource::GetInputBrokers(ReferenceContainer &inputBrokers, const char8* const functionName, void * const gamMemPtr) {
 	return false;
 }
@@ -218,6 +220,7 @@ bool EpicsOutputDataSource::GetOutputBrokers(ReferenceContainer &outputBrokers, 
 	return ret;
 }
 
+/*lint -e{715} parameters currentStateName and nextStateName not used in this implementation*/
 bool EpicsOutputDataSource::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
     return true;
 }
