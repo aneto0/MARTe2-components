@@ -116,7 +116,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* con
 //	SharedDataArea* obj = NULL;
 	SharedDataArea::Representation* tmp_shm_ptr = NULL;
 
-	printf("*** SharedDataArea::BuildSharedDataAreaForMARTe name=%s sizeOfHeader=%lu, sizeOfSigblock=%lu, sizeOfItems=%lu, totalSize=%lu ***\n", name, sizeOfHeader, sizeOfSigblock, sizeOfItems, totalSize);
+//	printf("*** SharedDataArea::BuildSharedDataAreaForMARTe name=%s sizeOfHeader=%lu, sizeOfSigblock=%lu, sizeOfItems=%lu, totalSize=%lu ***\n", name, sizeOfHeader, sizeOfSigblock, sizeOfItems, totalSize);
 	void* raw_shm_ptr = SDA::Platform::MakeShm(name, totalSize);
     if (raw_shm_ptr == NULL) {
     	//error
@@ -125,7 +125,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* con
     	tmp_shm_ptr = static_cast<SharedDataArea::Representation*>(raw_shm_ptr);
 std::memset(tmp_shm_ptr+sizeof(size_t), 88, totalSize);
 		tmp_shm_ptr->FillPreHeader(sizeOfHeader, sizeOfItems);
-		printf("*** SharedDataArea::BuildSharedDataAreaForMARTe tmp_shm_ptr->rawmem=%p tmp_shm_ptr->Header()=%p, tmp_shm_ptr->Items()=%p ***\n", tmp_shm_ptr->rawmem, tmp_shm_ptr->Header(), tmp_shm_ptr->Items());
+//		printf("*** SharedDataArea::BuildSharedDataAreaForMARTe tmp_shm_ptr->rawmem=%p tmp_shm_ptr->Header()=%p, tmp_shm_ptr->Items()=%p ***\n", tmp_shm_ptr->rawmem, tmp_shm_ptr->Header(), tmp_shm_ptr->Items());
 std::memset(tmp_shm_ptr->Header(), 89, sizeOfHeader);
 std::memset(tmp_shm_ptr->Items(), 90, sizeOfItems);
 		tmp_shm_ptr->FillHeader(signalsCount, signalsMetadata);
@@ -153,7 +153,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const SDA::char8* con
 	    //it was false, return the address of the SharedData
 
 //	    obj = reinterpret_cast<SharedDataArea*>(tmp_shm_ptr);
-    	printf("The device has joined the shared data area \"%s\"\n", name);
+//    	printf("The device has joined the shared data area \"%s\"\n", name);
     }
 //	printf("*** SharedDataArea::BuildSharedDataAreaForEPICS obj=%p ***\n", obj);
     return SharedDataArea(tmp_shm_ptr);

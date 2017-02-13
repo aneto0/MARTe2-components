@@ -61,20 +61,20 @@ void* Platform::MakeShm(const SDA::char8* const name, const size_t size) {
 
     shm_fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0666);
     if (shm_fd == -1) {
-    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
+//    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
     }
 
     SDA::int32 fret;
     fret = ftruncate(shm_fd, size);
     if (fret == -1) {
-    	printf("*** ftruncate error (server)  [%s]***\n", strerror(errno));
+//    	printf("*** ftruncate error (server)  [%s]***\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
 
     result = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (result == MAP_FAILED) {
-    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
+//    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
     }
 
@@ -95,13 +95,13 @@ void* Platform::JoinShm(const SDA::char8* const name) {
 
     shm_fd = shm_open(name, O_RDWR, 0666);
     if (shm_fd == -1) {
-    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
+//    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
          exit(EXIT_FAILURE);	//TODO: Return status instead of halting program.
     }
 
     void* tmp = mmap(0, sizeof(size_t), PROT_READ /*| PROT_WRITE*/, MAP_SHARED, shm_fd, 0);
     if (result == MAP_FAILED) {
-    	printf("***pre mmap error (server)  [%s]***\n", strerror(errno));
+//    	printf("***pre mmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
     }
 
@@ -110,13 +110,13 @@ void* Platform::JoinShm(const SDA::char8* const name) {
     SDA::int32 fret;
     fret = munmap(tmp, sizeof(size_t));
     if (fret == -1) {
-    	printf("***pre munmap error (server)  [%s]***\n", strerror(errno));
+//    	printf("***pre munmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
     }
 
     result = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (result == MAP_FAILED) {
-    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
+//    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
     }
 
@@ -127,7 +127,7 @@ void Platform::DettachShm(void* const shm_ptr, const size_t shm_size) {
 	SDA::int32 fret;
     fret = munmap(shm_ptr, shm_size);
     if (fret == -1) {
-    	printf("*** munmap error (server)  [%s]***\n", strerror(errno));
+//    	printf("*** munmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
     }
 }

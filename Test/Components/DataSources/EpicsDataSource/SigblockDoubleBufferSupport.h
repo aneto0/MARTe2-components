@@ -100,7 +100,7 @@ void InitDataSet(DataSet& dataset, const unsigned int numberOfSignals) {
 		InitSigblock<SignalType>(dataset.items[i], numberOfSignals, seedValue);
 		seedValue += static_cast<SignalType>(numberOfSignals);
 	}
-	printf("InitDataSet :: Generated %u sigblocks on dataset\n", dataset.size);
+//	printf("InitDataSet :: Generated %u sigblocks on dataset\n", dataset.size);
 }
 
 inline void SearchSigblockIntoDataSet(DataSet& dataset, SDA::Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound) {

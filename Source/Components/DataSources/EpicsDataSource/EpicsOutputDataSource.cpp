@@ -108,7 +108,7 @@ EpicsOutputDataSource::EpicsOutputDataSource() :
 }
 
 EpicsOutputDataSource::~EpicsOutputDataSource() {
-    printf("EpicsOutputDataSource::~EpicsOutputDataSource()\n");
+//    printf("EpicsOutputDataSource::~EpicsOutputDataSource()\n");
     if (signals != NULL_PTR(SDA::Sigblock*)) {
     	void* mem = reinterpret_cast<void*>(signals);
 		HeapManager::Free(mem);
@@ -170,7 +170,7 @@ bool EpicsOutputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const 
     if (ok) {
     	SDA::Sigblock::Metadata* sbmd = producer->GetSigblockMetadata();
     	signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
-    	REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsOutputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
+//    	REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsOutputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
     }
 
 	return ok;
