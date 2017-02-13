@@ -32,11 +32,13 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
+#include "MDSWriterNode.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+
 /**
  * @brief TODO
  */
@@ -149,6 +151,57 @@ MDSWriter    ();
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
 private:
+
+    //TODO
+    bool storeOnTrigger;
+
+    //TODO
+    uint32 numberOfPreTriggers;
+
+    //TODO
+    uint32 numberOfPostTriggers;
+
+    //TODO
+    uint32 numberOfBuffers;
+
+    //TODO
+    uint32 numberOfMDSSignals;
+
+    //TODO
+    MDSWriterNode **nodes;
+
+    //TODO
+    int32 timeSignalIdx;
+
+    //TODO
+    uint32 *offsets;
+
+    //TODO
+    uint32 totalSignalMemory;
+
+    //TODO
+    char8 *dataSourceMemory;
+
+    //TODO
+    ProcessorType cpuMask;
+
+    //TODO
+    uint32 stackSize;
+
+    //TODO
+    StreamString treeName;
+
+    //TODO
+    int32 pulseNumber;
+
+    //TODO
+    StreamString eventName;
+
+    //TODO
+    uint32 timeRefresh;
+
+    //TODO
+    MDSplus::Tree *tree;
 
 };
 }

@@ -33,7 +33,7 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 INCLUDES += -I.
-INCLUDES += -I$(CODAC_ROOT)/include/
+INCLUDES += -I$(MDSPLUS_DIR)/include/
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
@@ -45,6 +45,9 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
+
+#Temporary to fix problem in mdsplus include
+CPPFLAGS += -Wno-error=sign-compare
 
 all: $(OBJS)    \
     $(BUILD_DIR)/MDSWriter$(LIBEXT) \
