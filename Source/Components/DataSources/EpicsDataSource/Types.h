@@ -63,7 +63,7 @@ namespace SDA {
 	 */
 	typedef char byte;
 
-};
+}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
