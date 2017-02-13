@@ -40,6 +40,8 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+namespace SDA {
+
 /**
  * @brief Shared memory manager
  * @details This class is a platform specific collection of static methods for
@@ -79,6 +81,8 @@ public:
 	 */
 	static void DestroyShm(const SDA::char8* name);
 };
+
+}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

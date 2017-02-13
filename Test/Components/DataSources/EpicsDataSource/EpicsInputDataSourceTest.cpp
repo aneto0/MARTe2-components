@@ -176,7 +176,7 @@ bool EpicsInputDataSourceTest::TestSynchronise() {
     }
 
     //Release shared data area: //TODO: Remove this when autorelease will be added to EpicsInputDataSourceTest.
-	Platform::DestroyShm(tmp_SharedDataAreaName.Buffer());
+    SDA::Platform::DestroyShm(tmp_SharedDataAreaName.Buffer());
 
 	return ok;
 }

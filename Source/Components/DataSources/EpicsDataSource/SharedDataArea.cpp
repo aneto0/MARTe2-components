@@ -115,7 +115,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* con
 	SharedDataArea::Representation* tmp_shm_ptr = NULL;
 
 	printf("*** SharedDataArea::BuildSharedDataAreaForMARTe name=%s sizeOfHeader=%lu, sizeOfSigblock=%lu, sizeOfItems=%lu, totalSize=%lu ***\n", name, sizeOfHeader, sizeOfSigblock, sizeOfItems, totalSize);
-	void* raw_shm_ptr = Platform::MakeShm(name, totalSize);
+	void* raw_shm_ptr = SDA::Platform::MakeShm(name, totalSize);
     if (raw_shm_ptr == NULL) {
     	//error
     }
@@ -137,7 +137,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const SDA::char8* con
 	void* raw_shm_ptr = NULL;
 //	SharedDataArea* obj = NULL;
 	SharedDataArea::Representation* tmp_shm_ptr = NULL;
-    raw_shm_ptr = Platform::JoinShm(name);
+    raw_shm_ptr = SDA::Platform::JoinShm(name);
     if (raw_shm_ptr == NULL) {
     	//error
     }

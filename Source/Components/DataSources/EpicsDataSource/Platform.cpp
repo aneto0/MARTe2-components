@@ -51,6 +51,8 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+namespace SDA {
+
 void* Platform::MakeShm(const SDA::char8* name, const size_t size) {
 
     void* result = NULL;
@@ -132,4 +134,6 @@ void Platform::DettachShm(void* shm_ptr, size_t shm_size) {
 
 void Platform::DestroyShm(const SDA::char8* name) {
     shm_unlink(name);
+}
+
 }

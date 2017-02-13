@@ -94,7 +94,7 @@ static bool MasterProcessPrologue(void*& shm, const char* const name, const char
 	bool ok = false;
 
 	//Create an SHM and get a raw pointer to it:
-	shm = Platform::MakeShm(name, SHMSIZE);
+	shm = SDA::Platform::MakeShm(name, SHMSIZE);
 
 	ok = (shm != NULL);
 	ok &= (access(fullname, R_OK | W_OK) == 0);	//TODO: An alternative to access would be shm_open with O_RDONLY.
@@ -175,10 +175,10 @@ static bool MasterProcessEpilogue(void* shm, const char* const name, const char*
 			}
 
 			//Dettach SHM:
-			Platform::DettachShm(shm, map->size);
+			SDA::Platform::DettachShm(shm, map->size);
 
 			//Destroy SHM:
-			Platform::DestroyShm(name);
+			SDA::Platform::DestroyShm(name);
 			ok &= (access(fullname, R_OK | W_OK) == -1);
 		}
 	}
@@ -202,7 +202,7 @@ static void SlaveProcess(const char* const name, const char* const fullname, pid
 	void* shm = NULL;
 
 	//Join an SHM and get a raw pointer to it:
-	shm = Platform::JoinShm(name);
+	shm = SDA::Platform::JoinShm(name);
 	ok = (shm != NULL);
 
 	if (ok) {
@@ -240,7 +240,7 @@ static void SlaveProcess(const char* const name, const char* const fullname, pid
 			}
 
 			//Dettach SHM:
-			Platform::DettachShm(shm, map->size);
+			SDA::Platform::DettachShm(shm, map->size);
 		}
 	}
 }
