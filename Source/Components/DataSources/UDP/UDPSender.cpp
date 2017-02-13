@@ -65,6 +65,7 @@ UDPSender::~UDPSender(){
      if (!client.Close()){
          REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
      }
+     free(UDPPacket.dataBuffer);
 }
 
 bool UDPSender::Synchronise(){
@@ -84,13 +85,13 @@ bool UDPSender::Synchronise(){
         udpServerWriteBuffer[i] = 0u;
     }
     for (i = 0u; i < nOfSignals; i++){
-        AnyType dataConv = new AnyType;
+        void* dataConv;
         if (i == 0u){
-            dataConv = UDPPacket.sequenceNumber;
+            dataConv = &UDPPacket.sequenceNumber;
         } else if (i == 1u){
             UDPPacket.timer=HighResolutionTimer::Counter() - timerAtStateChange;
             //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " data being sent:%d time now:%d time before:%d", UDPPacket.timer, HighResolutionTimer::Counter(), timerAtStateChange);
-            dataConv = UDPPacket.timer;
+            dataConv = &UDPPacket.timer;
         }else{
             dataConv = UDPPacket.dataBuffer;
         }
@@ -104,19 +105,20 @@ bool UDPSender::Synchronise(){
                     AnyTypetoUint8[k] = 0u;
                 }
                 if ((i == 0u) || (i == 1u)){
-                    memcpy(static_cast<void*>(AnyTypetoUint8),dataConv.GetDataPointer(),signalByteSize);
-                    memcpy(&k,static_cast<char*>(dataConv.GetDataPointer()),signalByteSize);
-                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d",k);
+                    memcpy(static_cast<void*>(AnyTypetoUint8),dataConv,signalByteSize);
+                    memcpy(&k,static_cast<char*>(dataConv),signalByteSize);
+
+                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d, and meant to be sending %d, %d",k, (uint32*)dataConv,UDPPacket.timer);
                 }else{
                     if (memoryOffset <= maximumMemoryAccess){
-                        void* p = static_cast<char*>(dataConv.GetDataPointer()) + memoryOffset;
+                        void* p = static_cast<char*>(dataConv) + memoryOffset;
                         memcpy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
-                        memcpy(&k,p,signalByteSize);
+                        memcpy(&k,static_cast<char*>(p),signalByteSize);
                         memoryOffset += signalByteSize;
+                        //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d, located at memory loc: %d",k, p);
                     }else{
                         REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
                     }
-                    //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, " I am sending data: %d, located at memory loc: %d",k, p);
                 }
                 uint32 j;
                 for(j = 0u; j < signalByteSize; j++){

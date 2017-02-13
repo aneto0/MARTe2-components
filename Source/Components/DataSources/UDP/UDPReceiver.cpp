@@ -73,6 +73,7 @@ UDPReceiver::~UDPReceiver(){
     if (!server.Close()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP reciever server.");
     }
+    free(UDPPacket.dataBuffer);
     
 }
 
@@ -339,12 +340,12 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
             for (i = 0u; (i < nOfSignals) && keepRunning ; i++){
                 uint32 size = signalsByteSize[i];
                 uint32 signalByteSize = size / 8u;
-                AnyType AnytypeData = new AnyType;
+                void* AnytypeData;
 
                 if (i == 0u){
-                    AnytypeData = UDPPacket.sequenceNumber;
+                    AnytypeData = &UDPPacket.sequenceNumber;
                 }else if (i == 1u){
-                    AnytypeData = UDPPacket.timer;                    
+                    AnytypeData = &UDPPacket.timer;                    
                 }else{  
                     AnytypeData = UDPPacket.dataBuffer;
                 }
@@ -359,17 +360,17 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                 }
                 if ((i == 0u) || (i == 1u)){
                     //REPORT_ERROR(ErrorManagement::ParametersError, "Doing memcpy1");
-                    memcpy(AnytypeData.GetDataPointer(),static_cast<void*>(dataConv),signalByteSize);
+                    memcpy(AnytypeData,static_cast<void*>(dataConv),signalByteSize);
                     //REPORT_ERROR(ErrorManagement::ParametersError, "Done memcpy1");
                     //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", AnytypeData);
                 }else{
                     if (memoryOffset <= maximumMemoryAccess){
-                        void *p = static_cast<char*>(AnytypeData.GetDataPointer()) + memoryOffset;
+                        void *p = static_cast<char*>(AnytypeData) + memoryOffset;
                         //REPORT_ERROR(ErrorManagement::ParametersError, "Doing memcpy2");
                         memcpy(p,static_cast<void*>(dataConv),signalByteSize);
                         //REPORT_ERROR(ErrorManagement::ParametersError, "finished memcpy2");
-                        //uint32 test;
-                        //memcpy(&test,p,signalByteSize);
+                        uint32 test;
+                        memcpy(&test,p,signalByteSize);
                         //REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "I recieved UDP data!!!! = %d", test);
                         memoryOffset += signalByteSize;
                     }else{
