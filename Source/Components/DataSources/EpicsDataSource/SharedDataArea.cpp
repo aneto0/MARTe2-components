@@ -52,7 +52,7 @@ namespace {
  * @post Result == sum of size for all elements into signalsMetadata array
  * @returns Result
  */
-static std::size_t CalculateSizeOfSigblock(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]) {
+static std::size_t CalculateSizeOfSigblock(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
 	std::size_t sigblockSize = 0;
 	for (SDA::uint32 i = 0; i < signalsCount; i++) {
 		sigblockSize += signalsMetadata[i].size;
@@ -96,7 +96,7 @@ void SharedDataArea::Representation::FillPreHeader(std::size_t sizeOfHeader, std
     offsetOfItems = sizeOfHeader;
 }
 
-void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]) {
+void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
 	Sigblock::Metadata* header = Header();
 	header->SetSignalsMetadata(signalsCount, signalsMetadata);
 }
@@ -106,7 +106,7 @@ void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, std
 	items->Reset(bufferSize, sizeOfSigblock);
 }
 
-SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize) {
+SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize) {
 	std::size_t sizeOfSigblock = CalculateSizeOfSigblock(signalsCount, signalsMetadata);
 	std::size_t sizeOfHeader = Sigblock::Metadata::SizeOf(signalsCount);
 	std::size_t sizeOfItems = (bufferSize * sizeOfSigblock); //TODO: Abstract this private knowledge

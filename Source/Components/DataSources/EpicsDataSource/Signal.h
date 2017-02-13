@@ -40,6 +40,8 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+namespace SDA {
+
 /**
  * @brief This class represents the concept of a signal.
  * @details This class is not going to have any member because its content
@@ -85,11 +87,13 @@ private:
 	Signal();
 };
 
+}
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-inline Signal::Metadata::Metadata(): size(0u) {
+inline SDA::Signal::Metadata::Metadata(): size(0u) {
 	name[0] = '\0';
 }
 

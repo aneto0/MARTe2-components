@@ -66,7 +66,7 @@ public:
 		 * @param[in] signalsMetadata[] Array with the description of each
 		 * signal present in the sigblock.
 		 */
-		void SetSignalsMetadata(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]);
+		void SetSignalsMetadata(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]);
 
 		/**
 		 * @brief Gets the signals count.
@@ -120,7 +120,7 @@ public:
 		 * @brief This class contains the meta properties of a signal and
 		 * extra properties relative to their inclusion into a sigblock.
 		 */
-		class SignalMetadataEx: public Signal::Metadata {
+		class SignalMetadataEx: public SDA::Signal::Metadata {
 		public:
 
 			/**

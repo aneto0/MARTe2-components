@@ -56,7 +56,7 @@ template<typename SignalType>
 void InitSigblock(Sigblock* sigblock, const unsigned int numberOfSignals, const SignalType seedValue);
 
 template<typename SignalType>
-void GenerateMetadataForSigblock(Signal::Metadata sbmd[], const unsigned int numberOfSignals);
+void GenerateMetadataForSigblock(SDA::Signal::Metadata sbmd[], const unsigned int numberOfSignals);
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
@@ -102,11 +102,11 @@ void InitSigblock(Sigblock* sigblock, const unsigned int numberOfSignals, const 
 }
 
 template<typename SignalType>
-void GenerateMetadataForSigblock(Signal::Metadata sbmd[], const unsigned int numberOfSignals) {
+void GenerateMetadataForSigblock(SDA::Signal::Metadata sbmd[], const unsigned int numberOfSignals) {
 	for (unsigned int  i = 0u; (i < numberOfSignals); i++) {
 		std::stringstream name; //TODO: Use MARTe StreamString class, instead.
 		name << "Signal" << i;
-		std::strncpy(sbmd[i].name, name.str().c_str(), Signal::Metadata::NAME_MAX_LEN);
+		std::strncpy(sbmd[i].name, name.str().c_str(), SDA::Signal::Metadata::NAME_MAX_LEN);
 		sbmd[i].size = sizeof(SignalType);
 	}
 }

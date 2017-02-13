@@ -130,7 +130,7 @@ bool EpicsInputDataSource::AllocateMemory() {
 	uint32 numberOfSignals = GetNumberOfSignals();
 	sharedDataAreaName = BuildSharedMemoryIdentifier(GetName());
 	unsigned int max = 512; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
-	Signal::Metadata smd_for_init[numberOfSignals]; //sigblock description for initialization;
+	SDA::Signal::Metadata smd_for_init[numberOfSignals]; //sigblock description for initialization;
 
 	//{for all signals in datasource add it to smd_for_init}
 	ret = (numberOfSignals > 0u);
@@ -142,7 +142,7 @@ bool EpicsInputDataSource::AllocateMemory() {
 			StreamString signalName;
 			GetSignalName(i, signalName);
 
-			std::strncpy(smd_for_init[i].name, signalName.Buffer(), Signal::Metadata::NAME_MAX_LEN);  //TODO Use MARTe strcpy
+			std::strncpy(smd_for_init[i].name, signalName.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);  //TODO Use MARTe strcpy
 			smd_for_init[i].size = memorySize;
 		}
 	}

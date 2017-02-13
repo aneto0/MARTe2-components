@@ -179,7 +179,7 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
 	bool ok = false;
 	const unsigned int max = 512; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
 	const unsigned int numberOfSignals = 10;
-	Signal::Metadata sbmd[numberOfSignals];
+	SDA::Signal::Metadata sbmd[numberOfSignals];
 	SharedDataArea sdaServer;
 	SharedDataArea::SigblockProducer* producer;
 	SharedDataArea sdaClient;
@@ -277,7 +277,7 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
 	SharedContext context(10, maxTests);
 	ProducerThreadParams producerThreadParams;
 	ConsumerThreadParams consumerThreadParams;
-	Signal::Metadata sbmd[context.numberOfSignals];
+	SDA::Signal::Metadata sbmd[context.numberOfSignals];
 	SharedDataArea sdaServer;
 	SharedDataArea::SigblockProducer* producer;
 	SharedDataArea sdaClient;

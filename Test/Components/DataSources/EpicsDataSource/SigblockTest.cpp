@@ -60,7 +60,7 @@ bool SigblockTest::MetadataTest::TestSetSignalsMetadata() {
 	ok = (target != NULL);
 
 	if (ok) {
-		Signal::Metadata rawMetadata[signalsCount];
+		SDA::Signal::Metadata rawMetadata[signalsCount];
 
 		//Generate metadata values for testing:
 		GenerateMetadataForSigblock<double>(rawMetadata, signalsCount);
@@ -72,7 +72,7 @@ bool SigblockTest::MetadataTest::TestSetSignalsMetadata() {
 		ok &= (target->GetSignalsCount() == signalsCount);
 
 		//Check total size:
-		ok &= (target->GetTotalSize() == (sizeof(Signal::Metadata) * signalsCount));
+		ok &= (target->GetTotalSize() == (sizeof(SDA::Signal::Metadata) * signalsCount));
 
 		//Check signal metadata for each signal:
 		{
@@ -81,7 +81,7 @@ bool SigblockTest::MetadataTest::TestSetSignalsMetadata() {
 				//Check signal index:
 				ok &= (target->GetSignalIndex(rawMetadata[i].name) == static_cast<int>(i));
 				//Check signal name:
-				ok &= (std::strncmp(target->GetSignalName(i), rawMetadata[i].name, Signal::Metadata::NAME_MAX_LEN) == 0);
+				ok &= (std::strncmp(target->GetSignalName(i), rawMetadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN) == 0);
 				//Check signal offset:
 				ok &= (target->GetSignalOffsetByIndex(i) == static_cast<int>(offset));
 				//Check signal size:
@@ -116,7 +116,7 @@ bool SigblockTest::TestGetSignalAddress(const SignalType value) {
 	ok = (metadata != NULL);
 
 	if (ok) {
-		Signal::Metadata rawMetadata[signalsCount];
+		SDA::Signal::Metadata rawMetadata[signalsCount];
 
 		//Generate metadata values for testing:
 		GenerateMetadataForSigblock<SignalType>(rawMetadata, signalsCount);

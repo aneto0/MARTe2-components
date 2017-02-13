@@ -44,10 +44,10 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-void Sigblock::Metadata::SetSignalsMetadata(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]) {
+void Sigblock::Metadata::SetSignalsMetadata(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
 	std::size_t offset = 0u;
 	for (SDA::uint32 i = 0u; i < signalsCount; i++) {
-		std::strncpy(this->signalsMetadata[i].name, signalsMetadata[i].name, Signal::Metadata::NAME_MAX_LEN);
+		std::strncpy(this->signalsMetadata[i].name, signalsMetadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN);
 		this->signalsMetadata[i].size = signalsMetadata[i].size;
 		this->signalsMetadata[i].offset = offset;
 		printf("Sigblock::Metadata::SetSignalsMetadata >>> i=%u offset=%zu this->signalsMetadata[i].offset=%zu this->signalsMetadata[i].name=%s\n", i, offset, this->signalsMetadata[i].offset, this->signalsMetadata[i].name);
@@ -65,7 +65,7 @@ SDA::int32 Sigblock::Metadata::GetSignalIndex(const SDA::char8* name) {
     SDA::uint32 i = 0u;
     SDA::int32 found = false;
 	while (i < signalsCount && !found) {
-		if (std::strncmp(signalsMetadata[i].name, name, Signal::Metadata::NAME_MAX_LEN) == 0) {
+		if (std::strncmp(signalsMetadata[i].name, name, SDA::Signal::Metadata::NAME_MAX_LEN) == 0) {
             found = true;
         }
 		i++;
@@ -89,11 +89,11 @@ std::size_t Sigblock::Metadata::GetSignalSizeByIndex(const SDA::int32 index) {
 }
 
 std::size_t Sigblock::Metadata::GetTotalSize() {
-	return (sizeof(Signal::Metadata) * signalsCount);
+	return (sizeof(SDA::Signal::Metadata) * signalsCount);
 }
 
 std::size_t Sigblock::Metadata::SizeOf(const SDA::uint32 signalsCount) {
-	return (sizeof(SDA::uint32) + (signalsCount * (sizeof(Signal::Metadata)+sizeof(std::size_t))));
+	return (sizeof(SDA::uint32) + (signalsCount * (sizeof(SDA::Signal::Metadata)+sizeof(std::size_t))));
 }
 
 void* Sigblock::GetSignalAddress(std::size_t offset) {

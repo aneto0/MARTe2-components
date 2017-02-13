@@ -72,7 +72,7 @@ template<typename SignalType>
 bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread(const unsigned int numberOfSignals, const unsigned int maxTests) {
 	DataSet dataset(maxTests);
 	bool ok = false;
-	Signal::Metadata rawMetadata[numberOfSignals];
+	SDA::Signal::Metadata rawMetadata[numberOfSignals];
 	Sigblock::Metadata* metadata;
 	std::size_t sizeOfSigblock;
 	SigblockDoubleBuffer* buffer;

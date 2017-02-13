@@ -110,7 +110,7 @@ private:
 		SigblockDoubleBuffer* Items();
 		bool IsOperational() const;
 		void FillPreHeader(std::size_t sizeOfHeader, std::size_t sizeOfItems);
-		void FillHeader(const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[]);
+		void FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]);
 		void FillItems(const SDA::uint32 bufferSize, std::size_t sizeOfSigblock);
 	public:
 		const std::size_t size;
@@ -233,7 +233,7 @@ public:
 	 * memory, which is identified by the name parameter and conforms to the
 	 * representation expected by a SharedDataArea object.
 	 */
-	static SharedDataArea BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize);
+	static SharedDataArea BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize);
 
 	/**
 	 * @brief This static method joins an existent interprocess shared memory
