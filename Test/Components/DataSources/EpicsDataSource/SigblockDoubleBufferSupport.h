@@ -64,9 +64,9 @@ void InitDataSet(DataSet& dataset, const unsigned int numberOfSignals);
  */
 void SearchSigblockIntoDataSet(DataSet& dataset, SDA::Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound);
 
-SigblockDoubleBuffer* MallocSigblockDoubleBuffer(std::size_t sizeOfSigblock);
+SDA::SigblockDoubleBuffer* MallocSigblockDoubleBuffer(std::size_t sizeOfSigblock);
 
-void FreeSigblockDoubleBuffer(SigblockDoubleBuffer*& sbdb);
+void FreeSigblockDoubleBuffer(SDA::SigblockDoubleBuffer*& sbdb);
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
@@ -111,14 +111,14 @@ inline void SearchSigblockIntoDataSet(DataSet& dataset, SDA::Sigblock* sigblock,
 	}
 }
 
-inline SigblockDoubleBuffer* MallocSigblockDoubleBuffer(std::size_t sizeOfSigblock) {
-	size_t fullsize = (sizeof(SigblockDoubleBuffer) + (sizeOfSigblock * 2));
+inline SDA::SigblockDoubleBuffer* MallocSigblockDoubleBuffer(std::size_t sizeOfSigblock) {
+	size_t fullsize = (sizeof(SDA::SigblockDoubleBuffer) + (sizeOfSigblock * 2));
 	char* mem = new char[fullsize];
 	std::memset(mem, '\0', fullsize);
-	return reinterpret_cast<SigblockDoubleBuffer*>(mem);
+	return reinterpret_cast<SDA::SigblockDoubleBuffer*>(mem);
 }
 
-inline void FreeSigblockDoubleBuffer(SigblockDoubleBuffer*& sbdb) {
+inline void FreeSigblockDoubleBuffer(SDA::SigblockDoubleBuffer*& sbdb) {
 	char* mem = reinterpret_cast<char*>(sbdb);
 	delete[] mem;
 	sbdb = NULL;

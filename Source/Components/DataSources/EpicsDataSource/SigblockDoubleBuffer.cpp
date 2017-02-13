@@ -45,6 +45,8 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+namespace SDA {
+
 void SigblockDoubleBuffer::Reset(const SDA::uint32 bufferSize, const std::size_t sizeOfSigblock) {
 	//this->bufferSize = bufferSize;	//TODO: Purge this field.
 	this->sizeOfSigblock = sizeOfSigblock;
@@ -81,4 +83,6 @@ bool SigblockDoubleBuffer::Put(const SDA::Sigblock& sb) {
 		fret = false;
 	}
 	return fret;
+}
+
 }

@@ -107,7 +107,7 @@ private:
 		SDA::char8* RawHeader();
 		SDA::char8* RawItems();
 		SDA::Sigblock::Metadata* Header();
-		SigblockDoubleBuffer* Items();
+		SDA::SigblockDoubleBuffer* Items();
 		bool IsOperational() const;
 		void FillPreHeader(std::size_t sizeOfHeader, std::size_t sizeOfItems);
 		void FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]);
@@ -284,8 +284,8 @@ inline SDA::Sigblock::Metadata* SharedDataArea::Representation::Header() {
 	return reinterpret_cast<SDA::Sigblock::Metadata*>(RawHeader());
 }
 
-inline SigblockDoubleBuffer* SharedDataArea::Representation::Items() {
-	return reinterpret_cast<SigblockDoubleBuffer*>(RawItems());
+inline SDA::SigblockDoubleBuffer* SharedDataArea::Representation::Items() {
+	return reinterpret_cast<SDA::SigblockDoubleBuffer*>(RawItems());
 }
 
 inline bool SharedDataArea::Representation::IsOperational() const {

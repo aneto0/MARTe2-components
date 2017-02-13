@@ -41,6 +41,8 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+namespace SDA {
+
 /**
  * @brief Double buffer of sigblocks
  *
@@ -124,6 +126,8 @@ private:
      */
     SDA::char8 buffer[];
 };
+
+}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

@@ -75,9 +75,9 @@ bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread(const unsigned
 	SDA::Signal::Metadata rawMetadata[numberOfSignals];
 	SDA::Sigblock::Metadata* metadata;
 	std::size_t sizeOfSigblock;
-	SigblockDoubleBuffer* buffer;
-	SigblockDoubleBuffer* producer;
-	SigblockDoubleBuffer* consumer;
+	SDA::SigblockDoubleBuffer* buffer;
+	SDA::SigblockDoubleBuffer* producer;
+	SDA::SigblockDoubleBuffer* consumer;
 
 	//Allocate memory for sigblock's metadata:
 	metadata = MallocSigblockMetadata(numberOfSignals);

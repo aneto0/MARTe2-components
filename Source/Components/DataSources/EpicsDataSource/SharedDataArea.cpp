@@ -102,7 +102,7 @@ void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, 
 }
 
 void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, std::size_t sizeOfSigblock) {
-	SigblockDoubleBuffer* items = Items();
+	SDA::SigblockDoubleBuffer* items = Items();
 	items->Reset(bufferSize, sizeOfSigblock);
 }
 
