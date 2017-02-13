@@ -77,17 +77,21 @@ SharedDataArea::SharedDataArea(SharedDataArea::Representation* const shm):
 }
 
 SharedDataArea::SigblockProducer* SharedDataArea::GetSigblockProducerInterface() {
-	//Check if it has already a writer registered
-	//try CAS of hasReader to true
-	shm->hasWriter = true;
-	return reinterpret_cast<SigblockProducer*>(shm);
+    //TODO: Check if it has already a writer registered
+    //try CAS of hasReader to true
+    if (shm != NULL) {
+        shm->hasWriter = true;
+    }
+    return reinterpret_cast<SigblockProducer*>(shm);
 }
 
 SharedDataArea::SigblockConsumer* SharedDataArea::GetSigblockConsumerInterface() {
-	//Check if it has already a reader registered
-	//try CAS of hasReader to true
-	shm->hasReader = true;
-	return reinterpret_cast<SigblockConsumer*>(shm);
+    //TODO: Check if it has already a reader registered
+    //try CAS of hasReader to true
+    if (shm != NULL) {
+        shm->hasReader = true;
+    }
+    return reinterpret_cast<SigblockConsumer*>(shm);
 }
 
 void SharedDataArea::Representation::FillPreHeader(const std::size_t sizeOfHeader, const std::size_t sizeOfItems) {

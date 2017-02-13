@@ -121,8 +121,13 @@ EpicsInputDataSource::~EpicsInputDataSource() {
 
 bool EpicsInputDataSource::Synchronise() {
 	bool ok;
-	ok = consumer->ReadSigblock(*signals);
-	return ok;
+    if ((consumer != NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) && (signals != NULL_PTR(SDA::Sigblock*))) {
+    	ok = consumer->ReadSigblock(*signals);
+    }
+    else {
+    	ok = false;
+    }
+    return ok;
 }
 
 bool EpicsInputDataSource::AllocateMemory() {
@@ -166,11 +171,21 @@ bool EpicsInputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const u
 
 	ok = ((signalIdx < GetNumberOfSignals()) && (bufferIdx < GetNumberOfMemoryBuffers()));
 
-    if (ok) {
-    	SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
-    	signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
-//    	REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsInputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
-    }
+	if (ok) {
+	    if (consumer != NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) {
+	        SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
+	        if ((signals != NULL_PTR(SDA::Sigblock*)) && (sbmd != NULL_PTR(SDA::Sigblock::Metadata*))) {
+	            signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
+//      		REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsInputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
+	        }
+	        else {
+	            ok = false;
+	        }
+	    }
+	    else {
+	        ok = false;
+	    }
+	}
 
     return ok;
 }
