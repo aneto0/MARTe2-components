@@ -73,14 +73,14 @@ void* Platform::MakeShm(const SDA::char8* const name, const size_t size) {
     }
 
     result = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
-    if (result == MAP_FAILED) {
+    if (result == /*lint -e(1924)*/MAP_FAILED) {
 //    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
     }
 
     std::memset(result, 72, size);	//TODO: memset to 0!!
 
-    *((size_t*)result) = size;
+    *(static_cast<size_t*>(result)) = size;
 
     return result;
 }
@@ -100,12 +100,12 @@ void* Platform::JoinShm(const SDA::char8* const name) {
     }
 
     void* tmp = mmap(0, sizeof(size_t), PROT_READ /*| PROT_WRITE*/, MAP_SHARED, shm_fd, 0);
-    if (result == MAP_FAILED) {
+    if (tmp == /*lint -e(1924)*/MAP_FAILED) {
 //    	printf("***pre mmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
     }
 
-    size = *((size_t*)tmp);
+    size = *(static_cast<size_t*>(tmp));
 
     SDA::int32 fret;
     fret = munmap(tmp, sizeof(size_t));
@@ -115,7 +115,7 @@ void* Platform::JoinShm(const SDA::char8* const name) {
     }
 
     result = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
-    if (result == MAP_FAILED) {
+    if (result == /*lint -e(1924)*/MAP_FAILED) {
 //    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
     }
