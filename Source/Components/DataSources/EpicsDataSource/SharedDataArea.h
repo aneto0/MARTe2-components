@@ -290,10 +290,12 @@ inline SDA::char8* SharedDataArea::Representation::RawItems() {
 }
 
 inline SDA::Sigblock::Metadata* SharedDataArea::Representation::Header() {
+	/*lint -e{927} -e{826} [MISRA C++ Rule 5-2-7] cast from pointer to pointer needed in this case*/
 	return reinterpret_cast<SDA::Sigblock::Metadata*>(RawHeader());
 }
 
 inline SDA::SigblockDoubleBuffer* SharedDataArea::Representation::Items() {
+	/*lint -e{927} -e{826} [MISRA C++ Rule 5-2-7] cast from pointer to pointer needed in this case*/
 	return reinterpret_cast<SDA::SigblockDoubleBuffer*>(RawItems());
 }
 
