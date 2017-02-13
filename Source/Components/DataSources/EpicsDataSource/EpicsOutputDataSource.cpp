@@ -71,10 +71,10 @@ static MARTe::StreamString GetApplicationName() {
     		result = rtApp->GetName();
     	}
     }
-	if (!found) {
+    if (!found) {
 		result = "MARTeApp";
 	}
-	return result;
+    return result;
 }
 
 /**
@@ -173,7 +173,7 @@ bool EpicsOutputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const 
 //    	REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsOutputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
     }
 
-	return ok;
+    return ok;
 }
 
 const char8 *EpicsOutputDataSource::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
