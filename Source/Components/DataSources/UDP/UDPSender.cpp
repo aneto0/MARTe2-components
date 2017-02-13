@@ -49,7 +49,7 @@ namespace MARTe{
 static uint32 nOfSignals = 0u;
 static uint16 udpServerPort;
 static UDPSocket client;
-static uint32 signalByteSize[];
+static uint32 *signalsByteSize;
 
 UDPSender::UDPSender():DataSourceI(){
     UDPPacket.sequenceNumber = 0u;
@@ -96,7 +96,7 @@ bool UDPSender::Synchronise(){
         }
 
         if (OK){
-            uint32 signalByteSize = signalByteSize[i] / 8u;
+            uint32 signalByteSize = signalsByteSize[i] / 8u;
             if (signalByteSize > 0u){
                 uint64 k;
                 uint8 AnyTypetoUint8 [signalByteSize];
@@ -181,17 +181,17 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         uint16 i;
-        signalByteSize = new uint16[GetNumberOfSignals()]
-        for (i = 0u; i < GetNumberOfSignals(); i++{
-            signalByteSize[i] = GetSignalType(0u).numberOfBits;
-        })
-        ok = (signalByteSize[0u] == 32u);
+        signalsByteSize = new uint32[GetNumberOfSignals()];
+        for (i = 0u; i < GetNumberOfSignals(); i++){
+            signalsByteSize[i] = GetSignalType(i).numberOfBits;
+        }
+        ok = (signalsByteSize[0u] == 32u);
         if (!ok) {
-            ok = (signalByteSize[0u]  == 64u);
+            ok = (signalsByteSize[0u]  == 64u);
             }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
-                                    uint16(signalByteSize[0u] ))
+                                    uint16(signalsByteSize[0u] ))
         }
     }
     if (ok) {
@@ -204,13 +204,13 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (signalByteSize[1u] == 32u);
+        ok = (signalsByteSize[1u] == 32u);
         if (!ok) {
-            ok = (signalByteSize[1u] == 64u);
+            ok = (signalsByteSize[1u] == 64u);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits or 64 bits and %d were specified",
-                                            uint16(signalByteSize[1u]))
+                                            uint16(signalsByteSize[1u]))
         }
     }
     if (ok) {

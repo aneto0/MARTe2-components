@@ -48,6 +48,8 @@ public:
     bool TestInitialise_Empty();
 
     bool TestInitialise_Port();
+    
+    bool TestInitialise_Restricted_Port();
 
     bool TestInitialise_False_Port_1();
 
