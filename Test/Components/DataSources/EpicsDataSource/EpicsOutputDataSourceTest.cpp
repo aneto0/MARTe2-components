@@ -147,7 +147,7 @@ bool EpicsOutputDataSourceTest::TestSynchronise() {
     			writeOk = target.Synchronise();
 
     			if (writeOk) {
-    				Sigblock* sigblock = NULL_PTR(Sigblock*);
+    				SDA::Sigblock* sigblock = NULL_PTR(SDA::Sigblock*);
     				bool readOk;
 
     				//Allocate memory for sigblock:

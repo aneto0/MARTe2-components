@@ -103,15 +103,15 @@ static MARTe::StreamString BuildSharedMemoryIdentifier(const MARTe::StreamString
 namespace MARTe {
 
 EpicsInputDataSource::EpicsInputDataSource() :
-    DataSourceI(), consumer(NULL_PTR(SharedDataArea::SigblockConsumer*)), signals(NULL_PTR(Sigblock*)) {
+    DataSourceI(), consumer(NULL_PTR(SharedDataArea::SigblockConsumer*)), signals(NULL_PTR(SDA::Sigblock*)) {
 }
 
 EpicsInputDataSource::~EpicsInputDataSource() {
     printf("EpicsInputDataSource::~EpicsInputDataSource()\n");
-    if (signals != NULL_PTR(Sigblock*)) {
+    if (signals != NULL_PTR(SDA::Sigblock*)) {
     	void* mem = reinterpret_cast<void*>(signals);
 		HeapManager::Free(mem);
-		signals = static_cast<Sigblock*>(mem);
+		signals = static_cast<SDA::Sigblock*>(mem);
     }
     if (consumer != NULL_PTR(SharedDataArea::SigblockConsumer*)) {
     	//TODO: Release interprocess shared memory?
@@ -149,10 +149,10 @@ bool EpicsInputDataSource::AllocateMemory() {
 
 	SharedDataArea sbpm = SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numberOfSignals, smd_for_init, max);
 	consumer = sbpm.GetSigblockConsumerInterface();
-	Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
+	SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
 	void* mem = HeapManager::Malloc(sbmd->GetTotalSize());
 	MemoryOperationsHelper::Set(mem, '\0', sbmd->GetTotalSize());
-	signals = static_cast<Sigblock*>(mem);
+	signals = static_cast<SDA::Sigblock*>(mem);
 
 	return ret;
 }
@@ -167,7 +167,7 @@ bool EpicsInputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const u
 	ok = ((signalIdx < GetNumberOfSignals()) && (bufferIdx < GetNumberOfMemoryBuffers()));
 
     if (ok) {
-    	Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
+    	SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
     	signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
     	REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsInputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
     }

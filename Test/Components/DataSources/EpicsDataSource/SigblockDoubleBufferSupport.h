@@ -46,7 +46,7 @@
 /*---------------------------------------------------------------------------*/
 
 struct DataSet {
-	Sigblock** items;
+	SDA::Sigblock** items;
 	unsigned int size;
 	DataSet(const unsigned int size);
 	~DataSet();
@@ -62,7 +62,7 @@ void InitDataSet(DataSet& dataset, const unsigned int numberOfSignals);
 /**
  * @brief search on dataset from last found
  */
-void SearchSigblockIntoDataSet(DataSet& dataset, Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound);
+void SearchSigblockIntoDataSet(DataSet& dataset, SDA::Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound);
 
 SigblockDoubleBuffer* MallocSigblockDoubleBuffer(std::size_t sizeOfSigblock);
 
@@ -73,7 +73,7 @@ void FreeSigblockDoubleBuffer(SigblockDoubleBuffer*& sbdb);
 /*---------------------------------------------------------------------------*/
 
 inline DataSet::DataSet(const unsigned int size):
-	items(new Sigblock*[size]),
+	items(new SDA::Sigblock*[size]),
 	size(size) {
 }
 
@@ -103,7 +103,7 @@ void InitDataSet(DataSet& dataset, const unsigned int numberOfSignals) {
 	printf("InitDataSet :: Generated %u sigblocks on dataset\n", dataset.size);
 }
 
-inline void SearchSigblockIntoDataSet(DataSet& dataset, Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound) {
+inline void SearchSigblockIntoDataSet(DataSet& dataset, SDA::Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound) {
 	sigblockFound = false;
 	while (!sigblockFound && dataSetIndex < dataset.size) {
 		sigblockFound = (std::memcmp(sigblock, dataset.items[dataSetIndex], sigblockSize) == 0);

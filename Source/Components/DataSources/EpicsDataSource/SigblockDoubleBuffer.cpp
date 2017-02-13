@@ -53,7 +53,7 @@ void SigblockDoubleBuffer::Reset(const SDA::uint32 bufferSize, const std::size_t
 	std::memset(buffer, 0, sizeOfSigblock*2);
 }
 
-bool SigblockDoubleBuffer::Get(Sigblock& sb) {
+bool SigblockDoubleBuffer::Get(SDA::Sigblock& sb) {
 	bool fret = true;
 	bool acquired = CAS<SDA::uint32>(&status, FULL, READING);
 	if (acquired) {
@@ -67,7 +67,7 @@ bool SigblockDoubleBuffer::Get(Sigblock& sb) {
 	return fret;
 }
 
-bool SigblockDoubleBuffer::Put(const Sigblock& sb) {
+bool SigblockDoubleBuffer::Put(const SDA::Sigblock& sb) {
 	bool fret = true;
 	SDA::uint32 backbuffer = ((frontbuffer + 1u) % TWO);
 	std::memcpy(&(buffer[sizeOfSigblock * backbuffer]), &sb, sizeOfSigblock);

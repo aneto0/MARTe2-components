@@ -155,7 +155,7 @@ private:
     /**
      * The pointer to the local allocated sigblock.
      */
-    Sigblock* signals;
+    SDA::Sigblock* signals;
 
     /**
      * The name of the shared data area.

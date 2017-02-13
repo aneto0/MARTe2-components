@@ -106,7 +106,7 @@ private:
 	public:
 		SDA::char8* RawHeader();
 		SDA::char8* RawItems();
-		Sigblock::Metadata* Header();
+		SDA::Sigblock::Metadata* Header();
 		SigblockDoubleBuffer* Items();
 		bool IsOperational() const;
 		void FillPreHeader(std::size_t sizeOfHeader, std::size_t sizeOfItems);
@@ -139,12 +139,12 @@ public:
 		 * @param[out] sb The sigblock holder where the signals from the
 		 * shared data area must be written.
 		 */
-	    bool ReadSigblock(Sigblock& sb);
+	    bool ReadSigblock(SDA::Sigblock& sb);
 
 	    /**
 	     * @brief Gets a pointer to sigblock's metadata.
 	     */
-	    Sigblock::Metadata* GetSigblockMetadata();
+	    SDA::Sigblock::Metadata* GetSigblockMetadata();
 
 	private:
 
@@ -168,13 +168,13 @@ public:
 		 * @param[in] sb The sigblock container of the signals which must
 		 * written to the shared data area.
 		 */
-	    bool WriteSigblock(const Sigblock& sb);
+	    bool WriteSigblock(const SDA::Sigblock& sb);
 
 
 	    /**
 	     * @brief Gets a pointer to sigblock's metadata.
 	     */
-	    Sigblock::Metadata* GetSigblockMetadata();
+	    SDA::Sigblock::Metadata* GetSigblockMetadata();
 
 
 	    /**
@@ -280,8 +280,8 @@ inline SDA::char8* SharedDataArea::Representation::RawItems() {
 	return (rawmem + offsetOfItems);
 }
 
-inline Sigblock::Metadata* SharedDataArea::Representation::Header() {
-	return reinterpret_cast<Sigblock::Metadata*>(RawHeader());
+inline SDA::Sigblock::Metadata* SharedDataArea::Representation::Header() {
+	return reinterpret_cast<SDA::Sigblock::Metadata*>(RawHeader());
 }
 
 inline SigblockDoubleBuffer* SharedDataArea::Representation::Items() {

@@ -40,6 +40,8 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+namespace SDA {
+
 /**
  * @brief This class represents the concept of a block of signals.
  * @details The signals hold by the sigblock do not have a pre-established
@@ -160,6 +162,8 @@ private:
 	 */
 	Sigblock();
 };
+
+}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

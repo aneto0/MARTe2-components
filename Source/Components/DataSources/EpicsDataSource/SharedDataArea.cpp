@@ -97,7 +97,7 @@ void SharedDataArea::Representation::FillPreHeader(std::size_t sizeOfHeader, std
 }
 
 void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
-	Sigblock::Metadata* header = Header();
+	SDA::Sigblock::Metadata* header = Header();
 	header->SetSignalsMetadata(signalsCount, signalsMetadata);
 }
 
@@ -108,7 +108,7 @@ void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, std
 
 SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize) {
 	std::size_t sizeOfSigblock = CalculateSizeOfSigblock(signalsCount, signalsMetadata);
-	std::size_t sizeOfHeader = Sigblock::Metadata::SizeOf(signalsCount);
+	std::size_t sizeOfHeader = SDA::Sigblock::Metadata::SizeOf(signalsCount);
 	std::size_t sizeOfItems = (bufferSize * sizeOfSigblock); //TODO: Abstract this private knowledge
 	std::size_t totalSize = (sizeof(SharedDataArea::Representation) + sizeOfHeader + sizeOfItems);
 //	SharedDataArea* obj = NULL;
@@ -157,7 +157,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const SDA::char8* con
     return SharedDataArea(tmp_shm_ptr);
 }
 
-bool SharedDataArea::SigblockConsumer::ReadSigblock(Sigblock& sb) {
+bool SharedDataArea::SigblockConsumer::ReadSigblock(SDA::Sigblock& sb) {
 	bool fret = true;
 	if (IsOperational()) {
 		fret = Items()->Get(sb);
@@ -168,11 +168,11 @@ bool SharedDataArea::SigblockConsumer::ReadSigblock(Sigblock& sb) {
 	return fret;
 }
 
-Sigblock::Metadata* SharedDataArea::SigblockConsumer::GetSigblockMetadata() {
+SDA::Sigblock::Metadata* SharedDataArea::SigblockConsumer::GetSigblockMetadata() {
 	return Header();
 }
 
-bool SharedDataArea::SigblockProducer::WriteSigblock(const Sigblock& sb) {
+bool SharedDataArea::SigblockProducer::WriteSigblock(const SDA::Sigblock& sb) {
 	bool fret = true;
 	if (IsOperational()) {
 		fret = Items()->Put(sb);
@@ -186,7 +186,7 @@ bool SharedDataArea::SigblockProducer::WriteSigblock(const Sigblock& sb) {
 	return (fret);
 }
 
-Sigblock::Metadata* SharedDataArea::SigblockProducer::GetSigblockMetadata() {
+SDA::Sigblock::Metadata* SharedDataArea::SigblockProducer::GetSigblockMetadata() {
 	return Header();
 }
 

@@ -73,7 +73,7 @@ bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread(const unsigned
 	DataSet dataset(maxTests);
 	bool ok = false;
 	SDA::Signal::Metadata rawMetadata[numberOfSignals];
-	Sigblock::Metadata* metadata;
+	SDA::Sigblock::Metadata* metadata;
 	std::size_t sizeOfSigblock;
 	SigblockDoubleBuffer* buffer;
 	SigblockDoubleBuffer* producer;
@@ -124,7 +124,7 @@ bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread(const unsigned
 			//values than those from the dataset. They will be written and
 			//read taking turns (1 write, 1 read).
 			{
-				Sigblock* sigblock = NULL;
+				SDA::Sigblock* sigblock = NULL;
 				unsigned int i = 0;
 				bool error = false;
 

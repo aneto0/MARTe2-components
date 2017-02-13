@@ -44,13 +44,15 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+namespace SDA {
+
 void Sigblock::Metadata::SetSignalsMetadata(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
 	std::size_t offset = 0u;
 	for (SDA::uint32 i = 0u; i < signalsCount; i++) {
 		std::strncpy(this->signalsMetadata[i].name, signalsMetadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN);
 		this->signalsMetadata[i].size = signalsMetadata[i].size;
 		this->signalsMetadata[i].offset = offset;
-		printf("Sigblock::Metadata::SetSignalsMetadata >>> i=%u offset=%zu this->signalsMetadata[i].offset=%zu this->signalsMetadata[i].name=%s\n", i, offset, this->signalsMetadata[i].offset, this->signalsMetadata[i].name);
+		printf("SDA::Sigblock::Metadata::SetSignalsMetadata >>> i=%u offset=%zu this->signalsMetadata[i].offset=%zu this->signalsMetadata[i].name=%s\n", i, offset, this->signalsMetadata[i].offset, this->signalsMetadata[i].name);
 		offset += signalsMetadata[i].size;
 	}
 	this->signalsCount = signalsCount;
@@ -98,4 +100,6 @@ std::size_t Sigblock::Metadata::SizeOf(const SDA::uint32 signalsCount) {
 
 void* Sigblock::GetSignalAddress(std::size_t offset) {
 	return this + offset;
+}
+
 }

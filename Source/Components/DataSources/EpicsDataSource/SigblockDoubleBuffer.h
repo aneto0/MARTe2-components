@@ -78,14 +78,14 @@ public:
      * @param[out] sb The sigblock holder where the signals
      * from the double buffer must be written.
      */
-    bool Get(Sigblock& item);
+    bool Get(SDA::Sigblock& item);
 
     /**
      * @brief Puts a sigblock into the double buffer.
 	 * @param[in] sb The sigblock container of the signals
 	 * which must written to the double buffer.
      */
-    bool Put(const Sigblock& item);
+    bool Put(const SDA::Sigblock& item);
 
 private:
 

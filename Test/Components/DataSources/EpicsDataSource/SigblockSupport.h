@@ -44,16 +44,16 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-Sigblock* MallocSigblock(std::size_t size);
+SDA::Sigblock* MallocSigblock(std::size_t size);
 
-Sigblock::Metadata* MallocSigblockMetadata(std::size_t size);
+SDA::Sigblock::Metadata* MallocSigblockMetadata(std::size_t size);
 
-void FreeSigblock(Sigblock*& sb);
+void FreeSigblock(SDA::Sigblock*& sb);
 
-void FreeSigblockMetadata(Sigblock::Metadata*& sbmd);
+void FreeSigblockMetadata(SDA::Sigblock::Metadata*& sbmd);
 
 template<typename SignalType>
-void InitSigblock(Sigblock* sigblock, const unsigned int numberOfSignals, const SignalType seedValue);
+void InitSigblock(SDA::Sigblock* sigblock, const unsigned int numberOfSignals, const SignalType seedValue);
 
 template<typename SignalType>
 void GenerateMetadataForSigblock(SDA::Signal::Metadata sbmd[], const unsigned int numberOfSignals);
@@ -62,33 +62,33 @@ void GenerateMetadataForSigblock(SDA::Signal::Metadata sbmd[], const unsigned in
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-inline Sigblock* MallocSigblock(std::size_t size) {
+inline SDA::Sigblock* MallocSigblock(std::size_t size) {
 	char* mem = new char[size];
 	std::memset(mem, '\0', size);
-	return reinterpret_cast<Sigblock*>(mem);
+	return reinterpret_cast<SDA::Sigblock*>(mem);
 }
 
-inline Sigblock::Metadata* MallocSigblockMetadata(unsigned int count) {
-	size_t size = Sigblock::Metadata::SizeOf(count);
+inline SDA::Sigblock::Metadata* MallocSigblockMetadata(unsigned int count) {
+	size_t size = SDA::Sigblock::Metadata::SizeOf(count);
 	char* mem = new char[size];
 	std::memset(mem, '\0', size);
-	return reinterpret_cast<Sigblock::Metadata*>(mem);
+	return reinterpret_cast<SDA::Sigblock::Metadata*>(mem);
 }
 
-inline void FreeSigblock(Sigblock*& sb) {
+inline void FreeSigblock(SDA::Sigblock*& sb) {
 	char* mem = reinterpret_cast<char*>(sb);
 	delete[] mem;
 	sb = NULL;
 }
 
-inline void FreeSigblockMetadata(Sigblock::Metadata*& sbmd) {
+inline void FreeSigblockMetadata(SDA::Sigblock::Metadata*& sbmd) {
 	char* mem = reinterpret_cast<char*>(sbmd);
 	delete[] mem;
 	sbmd = NULL;
 }
 
 template<typename SignalType>
-void InitSigblock(Sigblock* sigblock, const unsigned int numberOfSignals, const SignalType seedValue) {
+void InitSigblock(SDA::Sigblock* sigblock, const unsigned int numberOfSignals, const SignalType seedValue) {
 	char* rawPointer = reinterpret_cast<char*>(sigblock);
 	SignalType generatedValue = seedValue;
 	unsigned int index = 0;

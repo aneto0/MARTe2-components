@@ -51,7 +51,7 @@ template bool SigblockTest::TestGetSignalAddress<double>(const double value);
 bool SigblockTest::MetadataTest::TestSetSignalsMetadata() {
 	bool ok = false;
 	unsigned int signalsCount = 2;
-	Sigblock::Metadata* target;
+	SDA::Sigblock::Metadata* target;
 
 	//Allocate memory for sigblock's metadata:
 	target = MallocSigblockMetadata(signalsCount);
@@ -105,8 +105,8 @@ template<typename SignalType>
 bool SigblockTest::TestGetSignalAddress(const SignalType value) {
 	const unsigned int signalsCount = 10;
 	bool ok = false;
-	Sigblock* target = NULL;
-	Sigblock::Metadata* metadata = NULL;
+	SDA::Sigblock* target = NULL;
+	SDA::Sigblock::Metadata* metadata = NULL;
 	void* addresses[signalsCount];
 
 	//Allocate memory for sigblock's metadata:
