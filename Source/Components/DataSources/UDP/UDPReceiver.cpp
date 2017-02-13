@@ -73,9 +73,7 @@ UDPReceiver::~UDPReceiver(){
     if (!server.Close()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP reciever server.");
     }
-    if (!(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(UDPPacket.dataBuffer))){
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not free memory.");
-    }
+    GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(UDPPacket.dataBuffer);
 }
 
 /**

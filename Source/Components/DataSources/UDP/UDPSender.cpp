@@ -65,9 +65,7 @@ UDPSender::~UDPSender(){
     if (!client.Close()){
         REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
     }
-    if (!(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(UDPPacket.dataBuffer))){
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not free memory.");
-    }
+    GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(UDPPacket.dataBuffer);
 }
 
 bool UDPSender::Synchronise(){
