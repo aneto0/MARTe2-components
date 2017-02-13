@@ -280,10 +280,12 @@ private:
 namespace SDA {
 
 inline SDA::char8* SharedDataArea::Representation::RawHeader() {
+	/*lint -e{9016} [MISRA C++ Rule 5-0-15] pointer arithmetic is needed in this case*/
 	return (rawmem + offsetOfHeader);
 }
 
 inline SDA::char8* SharedDataArea::Representation::RawItems() {
+	/*lint -e{9016} [MISRA C++ Rule 5-0-15] pointer arithmetic is needed in this case*/
 	return (rawmem + offsetOfItems);
 }
 

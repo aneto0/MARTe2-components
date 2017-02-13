@@ -99,6 +99,7 @@ std::size_t Sigblock::Metadata::SizeOf(const SDA::uint32 signalsCount) {
 }
 
 void* Sigblock::GetSignalAddress(const std::size_t offset) {
+	/*lint -e{9016} [MISRA C++ Rule 5-0-15] pointer arithmetic is needed in this case*/
 	return this + offset;
 }
 
