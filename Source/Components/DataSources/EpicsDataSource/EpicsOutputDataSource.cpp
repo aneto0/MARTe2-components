@@ -28,7 +28,6 @@
 /*---------------------------------------------------------------------------*/
 
 #include <cstdio>
-#include <cstring>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -43,6 +42,7 @@
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "SharedDataArea.h"
+#include "StringHelper.h"
 #include "Threads.h"
 #include "Types.h"
 
@@ -143,7 +143,7 @@ bool EpicsOutputDataSource::AllocateMemory() {
 			StreamString signalName;
 			GetSignalName(i, signalName);
 
-			std::strncpy(smd_for_init[i].name, signalName.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);  //Use MARTe strcpy
+			MARTe::StringHelper::CopyN(smd_for_init[i].name, signalName.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);
 			smd_for_init[i].size = memorySize;
 		}
 	}
