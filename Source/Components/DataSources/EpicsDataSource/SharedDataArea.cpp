@@ -72,7 +72,7 @@ SharedDataArea::SharedDataArea(): shm(NULL) {
 
 }
 
-SharedDataArea::SharedDataArea(SharedDataArea::Representation* shm):
+SharedDataArea::SharedDataArea(SharedDataArea::Representation* const shm):
 		shm(shm) {
 }
 
@@ -90,7 +90,7 @@ SharedDataArea::SigblockConsumer* SharedDataArea::GetSigblockConsumerInterface()
 	return reinterpret_cast<SigblockConsumer*>(shm);
 }
 
-void SharedDataArea::Representation::FillPreHeader(std::size_t sizeOfHeader, std::size_t sizeOfItems) {
+void SharedDataArea::Representation::FillPreHeader(const std::size_t sizeOfHeader, const std::size_t sizeOfItems) {
 	hasReader = false;
 	hasWriter = false;
 	droppedWrites = 0;
@@ -103,7 +103,7 @@ void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, 
 	header->SetSignalsMetadata(signalsCount, signalsMetadata);
 }
 
-void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, std::size_t sizeOfSigblock) {
+void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, const std::size_t sizeOfSigblock) {
 	SDA::SigblockDoubleBuffer* items = Items();
 	items->Reset(bufferSize, sizeOfSigblock);
 }

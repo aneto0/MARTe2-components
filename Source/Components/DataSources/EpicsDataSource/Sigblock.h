@@ -79,7 +79,7 @@ public:
 		 * @brief Gets the signal's index from its name.
 		 * @param[in] name The name of the signal.
 		 */
-		SDA::int32 GetSignalIndex(const SDA::char8* name);
+		SDA::int32 GetSignalIndex(const SDA::char8* const name);
 
 		/**
 		 * @brief Gets the signal's name from its index.
@@ -150,7 +150,7 @@ public:
 	 * @param[in] offset The offset of the signal in bytes, relative to the
 	 * beginning of the sigblock.
 	 */
-	void* GetSignalAddress(std::size_t offset);
+	void* GetSignalAddress(const std::size_t offset);
 
 private:
 

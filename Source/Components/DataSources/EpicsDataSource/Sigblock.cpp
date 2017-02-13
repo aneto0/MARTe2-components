@@ -62,7 +62,7 @@ SDA::uint32 Sigblock::Metadata::GetSignalsCount() {
 	return signalsCount;
 }
 
-SDA::int32 Sigblock::Metadata::GetSignalIndex(const SDA::char8* name) {
+SDA::int32 Sigblock::Metadata::GetSignalIndex(const SDA::char8* const name) {
 	SDA::int32 result = -1;
     SDA::uint32 i = 0u;
     SDA::int32 found = false;
@@ -98,7 +98,7 @@ std::size_t Sigblock::Metadata::SizeOf(const SDA::uint32 signalsCount) {
 	return (sizeof(SDA::uint32) + (signalsCount * (sizeof(SDA::Signal::Metadata)+sizeof(std::size_t))));
 }
 
-void* Sigblock::GetSignalAddress(std::size_t offset) {
+void* Sigblock::GetSignalAddress(const std::size_t offset) {
 	return this + offset;
 }
 

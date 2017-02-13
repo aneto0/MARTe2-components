@@ -111,9 +111,9 @@ private:
 		SDA::Sigblock::Metadata* Header();
 		SDA::SigblockDoubleBuffer* Items();
 		bool IsOperational() const;
-		void FillPreHeader(std::size_t sizeOfHeader, std::size_t sizeOfItems);
+		void FillPreHeader(const std::size_t sizeOfHeader, const std::size_t sizeOfItems);
 		void FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]);
-		void FillItems(const SDA::uint32 bufferSize, std::size_t sizeOfSigblock);
+		void FillItems(const SDA::uint32 bufferSize, const std::size_t sizeOfSigblock);
 		const std::size_t size;
 		bool hasReader;
 		bool hasWriter;
@@ -260,7 +260,7 @@ private:
 	 * @param[in] shm The pointer to the shared memory which honors the
 	 * representation specified by the structure Representation.
 	 */
-	SharedDataArea(Representation* shm);
+	SharedDataArea(Representation* const shm);
 
 	/**
 	 * The pointer to the shared memory area which conforms to the representation.

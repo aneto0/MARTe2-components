@@ -53,7 +53,7 @@
 
 namespace SDA {
 
-void* Platform::MakeShm(const SDA::char8* name, const size_t size) {
+void* Platform::MakeShm(const SDA::char8* const name, const size_t size) {
 
     void* result = NULL;
 
@@ -85,7 +85,7 @@ void* Platform::MakeShm(const SDA::char8* name, const size_t size) {
     return result;
 }
 
-void* Platform::JoinShm(const SDA::char8* name) {
+void* Platform::JoinShm(const SDA::char8* const name) {
 
     void* result = NULL;
 
@@ -123,7 +123,7 @@ void* Platform::JoinShm(const SDA::char8* name) {
     return result;
 }
 
-void Platform::DettachShm(void* shm_ptr, size_t shm_size) {
+void Platform::DettachShm(void* const shm_ptr, const size_t shm_size) {
 	SDA::int32 fret;
     fret = munmap(shm_ptr, shm_size);
     if (fret == -1) {
@@ -132,7 +132,7 @@ void Platform::DettachShm(void* shm_ptr, size_t shm_size) {
     }
 }
 
-void Platform::DestroyShm(const SDA::char8* name) {
+void Platform::DestroyShm(const SDA::char8* const name) {
     shm_unlink(name);
 }
 
