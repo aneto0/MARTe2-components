@@ -114,7 +114,6 @@ private:
 		void FillPreHeader(std::size_t sizeOfHeader, std::size_t sizeOfItems);
 		void FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]);
 		void FillItems(const SDA::uint32 bufferSize, std::size_t sizeOfSigblock);
-	public:
 		const std::size_t size;
 		bool hasReader;
 		bool hasWriter;
@@ -192,8 +191,6 @@ public:
 	    SigblockProducer();
 	};
 
-public:
-
 	/**
 	 * @brief Gets an interface pointer to the shared data area as a sigblock
 	 * producer, that will be valid as long as the shared data area is alive.
@@ -214,8 +211,6 @@ public:
 	 * @brief Default constructor
 	 */
 	SharedDataArea();
-
-public:
 
 	/**
 	 * @brief This static method creates an interprocess shared memory and

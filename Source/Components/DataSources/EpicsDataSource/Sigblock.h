@@ -104,8 +104,6 @@ public:
 		 */
 		std::size_t GetTotalSize();
 
-	public:
-
 		/**
 		 * @brief Calculates the size needed to hold an instance of this class.
 		 */
@@ -131,8 +129,6 @@ public:
 			std::size_t offset;
 		};
 
-	private:
-
 		/**
 		 * The number of signals described (i.e. the number
 		 * of elements in the signalsMetadata array)
@@ -145,8 +141,6 @@ public:
 		 */
 		SignalMetadataEx signalsMetadata[];
 	};
-
-public:
 
 	/**
 	 * @brief Gets the pointer of a signal into the sigblock from an offset.
