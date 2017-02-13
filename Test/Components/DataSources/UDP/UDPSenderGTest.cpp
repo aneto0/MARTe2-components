@@ -56,6 +56,11 @@ TEST(UDPSenderGTest,TestInitialise_Port) {
     ASSERT_TRUE(test.TestInitialise_Port());
 }
 
+TEST(UDPSenderGTest,TestInitialise_Restricted_Port) {
+    UDPSenderTest test;
+    ASSERT_TRUE(test.TestInitialise_Restricted_Port());
+}
+
 TEST(UDPSenderGTest,TestInitialise_False_Port_1) {
     UDPSenderTest test;
     ASSERT_TRUE(test.TestInitialise_False_Port_1());

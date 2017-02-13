@@ -282,6 +282,16 @@ bool UDPSenderTest::TestInitialise_Port(){
     return ok;
 }
 
+bool UDPSenderTest::TestInitialise_Restricted_Port(){
+    using namespace MARTe;
+    UDPSender test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Port", "666");
+    bool ok = test.Initialise(cdb);
+    return ok;
+}
+
+
 bool UDPSenderTest::TestInitialise_False_Port_1(){
     using namespace MARTe;
     UDPSender test;
