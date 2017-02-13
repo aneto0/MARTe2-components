@@ -94,6 +94,7 @@ private:
     /**
      * @brief Default constructor
      */
+    /*lint -e{1704} instances of this class are not instantiable*/
     SigblockDoubleBuffer();
 
     /**

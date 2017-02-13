@@ -84,6 +84,7 @@ private:
 	/**
 	 * @brief Default constructor
 	 */
+    /*lint -e{1704} instances of this class are not instantiable*/
 	Signal();
 };
 
@@ -93,8 +94,12 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-inline SDA::Signal::Metadata::Metadata(): size(0u) {
+namespace SDA {
+
+inline Signal::Metadata::Metadata(): size(0u) {
 	name[0] = '\0';
+}
+
 }
 
 #endif /* SIGNAL_H_ */

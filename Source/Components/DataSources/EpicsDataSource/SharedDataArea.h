@@ -155,6 +155,7 @@ public:
 	    /**
 	     * @brief Default constructor
 	     */
+	    /*lint -e{1704} instances of this class are not instantiable*/
 	    SigblockConsumer();
 	};
 
@@ -191,6 +192,7 @@ public:
 	    /**
 	     * @brief Default constructor
 	     */
+	    /*lint -e{1704} instances of this class are not instantiable*/
 	    SigblockProducer();
 	};
 
@@ -260,6 +262,7 @@ private:
 	 * @param[in] shm The pointer to the shared memory which honors the
 	 * representation specified by the structure Representation.
 	 */
+    /*lint -e{1704} instances of this class are not instantiable*/
 	SharedDataArea(Representation* const shm);
 
 	/**
