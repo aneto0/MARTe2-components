@@ -89,25 +89,25 @@ public:
      * @note This method will set the signals' values of the shared
      * memory area reading them from the datasource.
      */
-    bool Synchronise();
+    virtual bool Synchronise();
 
     /**
      * @see DataSourceI::AllocateMemory()
      * @note This method will allocate and configure the shared memory
      * area based on the signals owned by the datasource itself.
      */
-    bool AllocateMemory();
+    virtual bool AllocateMemory();
 
     /**
      * @see DataSourceI::GetNumberOfMemoryBuffers()
      * @post (result == 1)
      */
-    uint32 GetNumberOfMemoryBuffers();
+    virtual uint32 GetNumberOfMemoryBuffers();
 
     /**
      * @see DataSourceI::GetSignalMemoryBuffer
      */
-    bool GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress);
+    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress);
 
     /**
      * @see DataSourceI::GetBrokerName()
