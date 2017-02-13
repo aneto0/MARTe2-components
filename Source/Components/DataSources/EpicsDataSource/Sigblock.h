@@ -139,6 +139,9 @@ public:
 		 * Array which holds the list of signals' metadata (one
 		 * metadata element for each signal).
 		 */
+		/*lint -e{1501} The following data member has no size because it is
+		 * mapped onto a previously allocated memory, whose size is unknown
+		 * at compile time.*/
 		SignalMetadataEx signalsMetadata[];
 	};
 

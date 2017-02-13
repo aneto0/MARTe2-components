@@ -124,6 +124,9 @@ private:
     /**
      * Memory holder for the two sigblocks
      */
+	/*lint -e{1501} The following data member has no size because it is
+	 * mapped onto a previously allocated memory, whose size is unknown
+	 * at compile time.*/
     SDA::char8 buffer[];
 };
 
