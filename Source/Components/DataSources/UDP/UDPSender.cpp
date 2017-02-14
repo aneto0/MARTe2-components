@@ -104,7 +104,8 @@ bool UDPSender::Synchronise(){
                     }
                 }else{
                     if (memoryOffset <= maximumMemoryAccess){
-                        void* p = static_cast<char8*>(dataConv) + memoryOffset;
+                        char8 *dataConvChar= static_cast<char8*>(dataConv);
+                        void *p = static_cast<void *>(&dataConvChar[memoryOffset]);
                         OK = MemoryOperationsHelper::Copy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
                         if (!OK){
                             REPORT_ERROR(ErrorManagement::FatalError, "Memory copy failed");
@@ -274,7 +275,8 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                 }
             }
             if (memoryOffset <= maximumMemoryAccess){
-                signalAddress = static_cast<void*>(static_cast<char8*>(UDPPacket.dataBuffer) + memoryOffset);
+                char8 *dataBufferChar = static_cast<char8*>(UDPPacket.dataBuffer);
+                signalAddress = static_cast<void *>(&dataBufferChar[memoryOffset]);
             } else{
                 ok = false;
                 REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");

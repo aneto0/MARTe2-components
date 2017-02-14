@@ -167,7 +167,8 @@ bool UDPReceiver::GetSignalMemoryBuffer(const uint32 signalIdx,
                 }
             }
             if (memoryOffset <= maximumMemoryAccess){
-                signalAddress = static_cast<void *>(static_cast<char8*>(UDPPacket.dataBuffer) + memoryOffset);
+                char8 *dataBufferChar = static_cast<char8*>(UDPPacket.dataBuffer);
+                signalAddress = static_cast<void *>(&dataBufferChar[memoryOffset]);
             }else{
                 ok = false;
                 REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
@@ -329,14 +330,14 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
             for (i = 0u; (i < nOfSignals) && keepRunning ; i++){
                 uint32 size = signalsByteSize[i];
                 uint32 signalByteSize = size / 8u;
-                void* AnytypeData;
-                bool ok;
+                void* receivedSignal;
+                bool ok = true;
                 if (i == 0u){
-                    AnytypeData = &UDPPacket.sequenceNumber;
+                    receivedSignal = &UDPPacket.sequenceNumber;
                 }else if (i == 1u){
-                    AnytypeData = &UDPPacket.timer;                    
+                    receivedSignal = &UDPPacket.timer;                    
                 }else{  
-                    AnytypeData = UDPPacket.dataBuffer;
+                    receivedSignal = UDPPacket.dataBuffer;
                 }
 
                 uint32 noOfBytesForSignal = size/8u;
@@ -348,13 +349,14 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                     dataConv[counter] = udpServerBufferRead[readBufferPointer];
                 }
                 if ((i == 0u) || (i == 1u)){
-                    ok = MemoryOperationsHelper::Copy(AnytypeData,static_cast<void*>(dataConv),signalByteSize);
+                    ok = MemoryOperationsHelper::Copy(receivedSignal,static_cast<void*>(dataConv),signalByteSize);
                     if (!ok){
                         REPORT_ERROR(ErrorManagement::FatalError, "Memory copy failed");
                     }
                 }else{
                     if (memoryOffset <= maximumMemoryAccess){
-                        void *p = static_cast<char8*>(AnytypeData) + memoryOffset;
+                        char8 *receivedSignalChar= static_cast<char8*>(receivedSignal);
+                        void *p = static_cast<void *>(&receivedSignalChar[memoryOffset]);
                         ok = MemoryOperationsHelper::Copy(p,static_cast<void*>(dataConv),signalByteSize);
                         if (!ok){
                             REPORT_ERROR(ErrorManagement::FatalError, "Memory copy failed");
