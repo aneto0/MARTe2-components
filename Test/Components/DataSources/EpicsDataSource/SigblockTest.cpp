@@ -77,13 +77,13 @@ bool SigblockTest::MetadataTest::TestSetSignalsMetadata() {
 		//Check signal metadata for each signal:
 		{
 			std::size_t offset = 0;
-			for (unsigned int  i = 0u; (i < signalsCount); i++) {
+			for (SDA::uint32 i = 0u; (i < signalsCount); i++) {
 				//Check signal index:
-				ok &= (target->GetSignalIndex(rawMetadata[i].name) == static_cast<int>(i));
+				ok &= (target->GetSignalIndex(rawMetadata[i].name) == i);
 				//Check signal name:
 				ok &= (std::strncmp(target->GetSignalName(i), rawMetadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN) == 0);
 				//Check signal offset:
-				ok &= (target->GetSignalOffsetByIndex(i) == static_cast<int>(offset));
+				ok &= (target->GetSignalOffsetByIndex(i) == static_cast<SDA::uint32>(offset));
 				//Check signal size:
 				ok &= (target->GetSignalSizeByIndex(i) == rawMetadata[i].size);
 				//Update signal offset:

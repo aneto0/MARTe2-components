@@ -62,18 +62,18 @@ SDA::uint32 Sigblock::Metadata::GetSignalsCount() {
 	return signalsCount;
 }
 
-SDA::int32 Sigblock::Metadata::GetSignalIndex(const SDA::char8* const name) {
-	SDA::int32 result = -1;
+SDA::uint32 Sigblock::Metadata::GetSignalIndex(const SDA::char8* const name) {
+	SDA::uint32 result = SDA::MAX_UINT32;
     SDA::uint32 i = 0u;
     bool found = false;
 	while ((i < signalsCount) && (!found)) {
 		if (std::strncmp(signalsMetadata[i].name, name, SDA::Signal::Metadata::NAME_MAX_LEN) == 0) {
-            found = true;
-        }
+		    found = true;
+		}
 		i++;
 	}
 	if (found) {
-		result = (i-1);
+		result = (i-1u);
 	}
 	return result;
 }
@@ -82,7 +82,7 @@ SDA::char8* Sigblock::Metadata::GetSignalName(const SDA::int32 index) {
     return signalsMetadata[index].name;
 }
 
-SDA::int32 Sigblock::Metadata::GetSignalOffsetByIndex(const SDA::int32 index) {
+SDA::uint32 Sigblock::Metadata::GetSignalOffsetByIndex(const SDA::uint32 index) {
 	return signalsMetadata[index].offset;
 }
 

@@ -60,14 +60,14 @@ void* Platform::MakeShm(const SDA::char8* const name, const size_t size) {
     SDA::int32 shm_fd = -1;
 
     /*lint -e{9130} the oflag argument of shm_open is defined as int and it can not be changed*/
-    shm_fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0666);
+    shm_fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0666u);
     if (shm_fd == -1) {
 //    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
     }
 
     SDA::int32 fret;
-    fret = ftruncate(shm_fd, size);
+    fret = ftruncate(shm_fd, static_cast<off_t>(size));
     if (fret == -1) {
 //    	printf("*** ftruncate error (server)  [%s]***\n", strerror(errno));
         exit(EXIT_FAILURE);
@@ -93,9 +93,9 @@ void* Platform::JoinShm(const SDA::char8* const name) {
 
     SDA::int32 shm_fd = -1;
 
-    size_t size = 0; //Size of allocated shared memory, including the the size value itself.
+    size_t size = 0u; //Size of allocated shared memory, including the the size value itself.
 
-    shm_fd = shm_open(name, O_RDWR, 0666);
+    shm_fd = shm_open(name, O_RDWR, 0666u);
     if (shm_fd == -1) {
 //    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
          exit(EXIT_FAILURE);	//TODO: Return status instead of halting program.

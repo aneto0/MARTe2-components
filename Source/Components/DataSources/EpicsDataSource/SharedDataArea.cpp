@@ -53,8 +53,8 @@ namespace {
  * @returns Result
  */
 static std::size_t CalculateSizeOfSigblock(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
-	std::size_t sigblockSize = 0;
-	for (SDA::uint32 i = 0; i < signalsCount; i++) {
+	std::size_t sigblockSize = 0u;
+	for (SDA::uint32 i = 0u; i < signalsCount; i++) {
 		sigblockSize += signalsMetadata[i].size;
 	}
 	return sigblockSize;
@@ -98,8 +98,8 @@ void SharedDataArea::Representation::FillPreHeader(const std::size_t sizeOfHeade
     //TODO: Purge sizeOfItems parameter.
 	hasReader = false;
 	hasWriter = false;
-	droppedWrites = 0;
-    offsetOfHeader = 0;
+	droppedWrites = 0u;
+    offsetOfHeader = 0u;
     offsetOfItems = sizeOfHeader;
 }
 
