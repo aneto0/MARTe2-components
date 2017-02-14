@@ -42,7 +42,7 @@ namespace MARTe {
 /**
  * @brief GAM which allows to implement FIR & IIR filter with float32 type.
  * @details The GAM loads its own configuration from a configuration file. the coefficients of the filter must have
- * the numerator (num) and denominator (den) defined and normalized. If a FIR filter is implemented the den = 1;
+ * the numerator (num) and denominator (den) defined and normalized. If a FIR filter is implemented the Den = 1;
  *
  * The filter returns the solution to the following linear,
  * time-invariant difference equation:
@@ -66,14 +66,15 @@ namespace MARTe {
  *
  * The inputs and outputs must be arrays (could be arrays of 1 elements).
  *
- * The class holds the coefficients and the last states (if more than one input signal is configured) for the next iteration.
+ * The class holds the coefficients and the last states for the next iteration. The filter can be reset (see PrepareNextState())
+ *
+ * Moreover the function offers the method StaticGain() in order to make available the real gain of the filter (after converting in floats).
  *
  * @pre The filter must be normalized (den[0] = 1).
- *
- * The size of the numerator and the denominator must be at least 1;
+ * @pre The size of the numerator and the denominator must be at least 1;
  * @post The output is the input filtered.
  */
-class FilterGAM: public GAM {
+class FilterGAM: public GAM, public StatefulI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
@@ -81,12 +82,13 @@ public:
      *
      * @post GetNumberOfNumCoeff() = 0
      * @post GetNumberOfDenCoeff()   = 0
-     * @post GetNumCoeff(float32 *coeff) = false
-     * @post GetDenCoeff(float32 *coeff) = false
+     * @post GetNumCoeff(float32 *coeff) const = false
+     * @post GetDenCoeff(float32 *coeff) const = false
      * @post CheckNormalisation()    = false
      * @post GetStaticGain()         = 0
      * @post GetNumberOfSamples()    = 0
      * @post GetNumberOfSignals()    = 0
+     * @post GetResetInEachState()   = true
      */
     FilterGAM();
 
@@ -105,21 +107,21 @@ public:
      *
      * @pre GetNumberOfNumCoeff() = 0
      * @pre GetNumberOfDenCoeff()   = 0
-     * @pre GetNumCoeff(float32 *coeff) = false
-     * @pre GetDenCoeff(float32 *coeff) = false
+     * @pre GetNumCoeff(float32 *coeff) const = false
+     * @pre GetDenCoeff(float32 *coeff) const = false
      * @pre CheckNormalisation()    = false
      * @pre GetStaticGain()         = 0
      * @pre GetNumberOfSamples()    = 0
      * @pre GetNumberOfSignals()    = 0
      *
-     * @post GetNumberOfNumCoeff()   = numberOfNumCoeff
-     * @post GetNumberOfDenCoeff()   = numberOfDenCoeff
-     * @post GetNumCoeff(float32 *coeff) = true
-     * @post GetDenCoeff(float32 *coeff) = true
-     * @post CheckNormalisation()    = true
-     * @post GetStaticGain()         = staticGain
-     * @post GetNumberOfSamples()    = 0
-     * @post GetNumberOfSignals()    = 0
+     * @post GetNumberOfNumCoeff()             = numberOfNumCoeff
+     * @post GetNumberOfDenCoeff()             = numberOfDenCoeff
+     * @post GetNumCoeff(float32 *coeff) const = true
+     * @post GetDenCoeff(float32 *coeff) const = true
+     * @post CheckNormalisation()              = true
+     * @post GetStaticGain()                   = staticGain
+     * @post GetNumberOfSamples()              = 0
+     * @post GetNumberOfSignals()              = 0
      *
      * @param[in] data Configuration file
      *
@@ -134,8 +136,8 @@ public:
      *
      * @pre Initialise() = true;
      *
-     * @post GetNumberOfSamples() = numberOfSamples
-     * @post GetNumberOfSignals() = numberOfSignals
+     * @post GetNumberOfSamples() const = numberOfSamples
+     * @post GetNumberOfSignals() const = numberOfSignals
      * @post input != NULL
      * @post output != NULL
      * @post lastInputs != NULL
@@ -161,6 +163,27 @@ public:
      * @return true
      */
     virtual bool Execute();
+
+    /**
+     * @brief Queries the value of resetInEachState
+     * @return resetInEachState
+     */
+    bool GetResetInEachState () const;
+
+    /**
+     * @brief reset the the lastInputs and lastOutputs if necessary.
+     * @details The behavior of this function can be configurated in order to reset every time
+     * it is called or when in the previous state the Execute() was not called and the filter was not applied.
+     * @pre lastInputs != NULL
+     * @pre lastOutput != NULL
+     *
+     * @post lastInputs[m][n] = 0
+     * @post lastOutput[m][n] = 0
+     * where m denote the signal index and the n one of the last state of the signal m.
+     * @return true if preconditions are met.
+     */
+    virtual bool PrepareNextState(const char8 * const currentStateName,
+                                  const char8 * const nextStateName);
 
     /**
      * @brief Makes available the numberOfNumCoeff
@@ -246,6 +269,10 @@ private:
     uint32 numberOfSignals;
     /*When the gain is infinite it is set to 1 */
     bool gainInfinite;
+    /*Indicates in which last state the filter was executed */
+    StreamString lastStateExecuted;
+    /*allows to choose between reset the filter every time the state changes or only when in the previous state the filter was not executed. */
+    bool resetInEachState;
 };
 
 }

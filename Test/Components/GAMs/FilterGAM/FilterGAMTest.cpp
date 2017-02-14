@@ -95,6 +95,7 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
             MARTe::Vector<MARTe::float32> denVec(denH, 1);
             ret &= config.Write("Num", numVec);
             ret &= config.Write("Den", denVec);
+            ret &= config.Write("ResetInEachState", false);
             isInitialised = ret;
         }
         else {
@@ -115,6 +116,8 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
             MARTe::Vector<MARTe::float32> denVec(denH, 1);
             ret &= config.Write("Num", numVec);
             ret &= config.Write("Den", denVec);
+            bool resetInEachState = 0;
+            ret &= config.Write("ResetInEachState", resetInEachState);
             isInitialised = ret;
         }
         else {
@@ -134,6 +137,8 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
             MARTe::Vector<MARTe::float32> denVec(denH, 2);
             ret &= config.Write("Num", numVec);
             ret &= config.Write("Den", denVec);
+            bool resetInEachState = 0;
+            ret &= config.Write("ResetInEachState", resetInEachState);
             isInitialised = ret;
         }
         else {
@@ -347,6 +352,8 @@ bool FilterGAMTest::TestConstructor() {
     ok &= !gam.CheckNormalisation();
     ok &= (0 == gam.GetNumberOfSamples());
     ok &= (0 == gam.GetNumberOfSignals());
+    //The constructor initialise resetInEachState = true
+    ok &= gam.GetResetInEachState();
     delete[] num;
     delete[] den;
     return ok;
@@ -360,7 +367,17 @@ bool FilterGAMTest::TestInitialise() {
 
     ok &= gam.InitialiseFilterFIR();
     ok &= gam.Initialise(gam.config);
-
+    StreamString a;
+    //example how to print a ConfigurationDatabase
+    /*
+     gam.config.MoveToRoot();
+     printf("size of a %llu\n",a.Size());
+     printf("%d\n",a.Printf("%!", gam.config));
+     printf("size of a %llu\n",a.Size());
+     printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+     printf("%s\n", a.Buffer());
+     printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+     */
     ok &= gam.GetNumberOfNumCoeff() == 2;
     ok &= gam.GetNumberOfDenCoeff() == 1;
     float32 *retNum = new float32[2];
@@ -378,8 +395,49 @@ bool FilterGAMTest::TestInitialise() {
     ok &= !isInfinite;
     ok &= (0 == gam.GetNumberOfSamples());
     ok &= (0 == gam.GetNumberOfSignals());
+    ok &= !gam.GetResetInEachState();
     delete[] retNum;
     delete[] retDen;
+    return ok;
+}
+
+bool FilterGAMTest::TestInitialiseNoResetInEachState() {
+    using namespace MARTe;
+    FilterGAM gam;
+    gam.SetName("Test");
+    bool ok = true;
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    float32 *den = new float32[1];
+    den[0] = 1;
+    Vector<float32> numVec(num, 2);
+    Vector<float32> denVec(den, 1);
+    ok &= config.Write("Num", numVec);
+    ok &= config.Write("Den", denVec);
+    ok &= gam.Initialise(config);
+    ok &= gam.GetResetInEachState();
+    delete[] num;
+    delete[] den;
+    return ok;
+}
+
+bool FilterGAMTest::TestInitialiseWrongResetInEachState() {
+    using namespace MARTe;
+    FilterGAM gam;
+    gam.SetName("Test");
+    bool ok = true;
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    float32 *den = new float32[1];
+    den[0] = 1;
+    Vector<float32> numVec(num, 2);
+    Vector<float32> denVec(den, 1);
+    ok &= config.Write("Num", numVec);
+    ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", 3);
+    ok &= !gam.Initialise(config);
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -549,6 +607,7 @@ bool FilterGAMTest::TestSetupNoInputSignal() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
 //    uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -620,7 +679,9 @@ bool FilterGAMTest::TestSetupNoOutputSignal() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
+    ok &= config.Write("ResetInEachState", false);
 //    uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
     uint32 byteSize = numberOfElements * sizeof(float32);
@@ -692,6 +753,7 @@ bool FilterGAMTest::TestSetupNoInputSamples() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
 //    uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -763,6 +825,7 @@ bool FilterGAMTest::TestSetupNoOutputSamples() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
 //    uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -834,6 +897,7 @@ bool FilterGAMTest::TestSetupNoNumberOfElementsInput() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -904,6 +968,7 @@ bool FilterGAMTest::TestSetupNoNumberOfElementsOutput() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -974,6 +1039,7 @@ bool FilterGAMTest::TestSetupNumberOfSamplesOutput2() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -1046,6 +1112,7 @@ bool FilterGAMTest::TestSetup0NumberOfElements() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 0;
@@ -1117,6 +1184,7 @@ bool FilterGAMTest::TestSetupFailNumberOfSamples() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 2;
     uint32 numberOfElements = 9;
@@ -1185,6 +1253,7 @@ bool FilterGAMTest::TestSetupDifferentInputOutputSamples() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 9;
@@ -1253,6 +1322,7 @@ bool FilterGAMTest::TestSetupNoInputDimension() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 9;
@@ -1321,6 +1391,7 @@ bool FilterGAMTest::TestSetupWrongInputDimension() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 9;
@@ -1388,6 +1459,7 @@ bool FilterGAMTest::TestSetupNoOutputDimension() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 9;
@@ -1456,6 +1528,7 @@ bool FilterGAMTest::TestSetupWrongOutputDimension() {
     Vector<float32> denVec(den, 1);
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 9;
@@ -1691,7 +1764,7 @@ bool FilterGAMTest::TestExecuteFIRRampInput2DiffCoef() {
     ok &= (gamMemoryOut[0] == 0);
     float32 refValue = 0;
     for (uint32 i = 1u; i < gam.numberOfElements; i++) {
-        refValue = (i*0.6F )+(i-1)*0.4F;
+        refValue = (i * 0.6F) + (i - 1) * 0.4F;
         ok &= IsEqual(gamMemoryOut[i], refValue);
     }
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
@@ -1700,7 +1773,7 @@ bool FilterGAMTest::TestExecuteFIRRampInput2DiffCoef() {
     }
     gam.Execute();
     for (uint32 i = 1u; i < gam.numberOfElements; i++) {
-        refValue = ((i+ 10)*0.6 )+(i+9)*0.4;
+        refValue = ((i + 10) * 0.6) + (i + 9) * 0.4;
         ok &= IsEqual(gamMemoryOut[i], refValue);
     }
     return ok;
@@ -1792,6 +1865,7 @@ bool FilterGAMTest::TestExecuteIIRConstantDimArray1() {
     Vector<float32> denVec(den, 2);
     bool ok = config.Write("Num", numVec);
     ok = config.Write("Den", denVec);
+    ok &= config.Write("ResetInEachState", false);
     ok &= gam.Initialise(config);
     uint32 numberOfElements = 1;
     uint32 numberOfSamples = 1;
@@ -2036,7 +2110,6 @@ bool FilterGAMTest::TestSetupSeveralSignalsDiffNumberOfInputElements() {
     return ok;
 }
 
-
 bool FilterGAMTest::TestSetupSeveralSignalsDiffNumberOfOutputElements() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
@@ -2132,7 +2205,6 @@ bool FilterGAMTest::TestSetupSeveralSignalsDiffNumberOfOutputElements() {
 
     return ok;
 }
-
 
 bool FilterGAMTest::TestSetupSeveralSignalsDiffInputSamples() {
     using namespace MARTe;
@@ -2277,6 +2349,340 @@ bool FilterGAMTest::TestExecuteSeveralSignalsFIR() {
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut0[i] == 10 + i - 0.5);
         ok &= (gamMemoryOut1[i] == 1);
+    }
+    return ok;
+}
+
+bool FilterGAMTest::TestAlwaysResetFIR() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+    //gam.config.Write("ResetInEachState", true); set the value to true, then the gam.InitialiseFilterFIR() set the value to false,
+    //however the read stops at the first ResetInEachState
+    ok &= gam.config.Write("ResetInEachState", true);
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal2();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i;
+        gamMemoryOut0[i] = 0;
+        gamMemoryIn1[i] = 1;
+        gamMemoryOut1[i] = 0;
+    }
+    if (ok) {
+        gam.PrepareNextState("", "A");
+        gam.Execute();
+    }
+    ok &= (gamMemoryOut0[0] == 0);
+    ok &= (gamMemoryOut1[0] == 0.5);
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == i - 0.5);
+        ok &= (gamMemoryOut1[i] == 1);
+    }
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i;
+        gamMemoryIn1[i] = 1;
+        //gamMemoryOut[i] = 0;
+    }
+    gam.PrepareNextState("A", "B");
+    gam.Execute();
+    ok &= (gamMemoryOut0[0] == 0);
+    ok &= (gamMemoryOut1[0] == 0.5);
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == i - 0.5);
+        ok &= (gamMemoryOut1[i] == 1);
+    }
+    return ok;
+}
+
+bool FilterGAMTest::TestAlwaysResetIIR() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+    //gam.config.Write("ResetInEachState", true); set the value to true, then the gam.InitialiseFilterFIR() set the value to false,
+    //however the read stops at the first ResetInEachState
+    ok &= gam.config.Write("ResetInEachState", true);
+    ok &= gam.InitialiseFilterIIR();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal2();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = 1.0F;
+        gamMemoryOut0[i] = 0;
+        gamMemoryIn1[i] = 1.0F;
+        gamMemoryOut1[i] = 0;
+    }
+    if (ok) {
+        gam.PrepareNextState("", "A");
+        gam.Execute();
+    }
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == i + 1.0F);
+        ok &= (gamMemoryOut1[i] == i + 1.0F);
+    }
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = 1;
+        gamMemoryIn1[i] = 1;
+        //gamMemoryOut[i] = 0;
+    }
+    gam.PrepareNextState("A", "B");
+    gam.Execute();
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == i + 1.0F);
+        ok &= (gamMemoryOut1[i] == i + 1.0F);
+    }
+    return ok;
+}
+
+bool FilterGAMTest::TestAlwaysResetMemoryNotInt() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+    //gam.config.Write("ResetInEachState", true); set the value to true, then the gam.InitialiseFilterFIR() set the value to false,
+    //however the read stops at the first ResetInEachState
+    ok &= gam.config.Write("ResetInEachState", true);
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal2();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i;
+        gamMemoryOut0[i] = 0;
+        gamMemoryIn1[i] = 1;
+        gamMemoryOut1[i] = 0;
+    }
+    if (ok) {
+        ok &= !gam.PrepareNextState("", "A");
+
+    }
+    return ok;
+}
+
+bool FilterGAMTest::TestResetOnlyWhenRequired() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal2();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i;
+        gamMemoryOut0[i] = 0;
+        gamMemoryIn1[i] = 1;
+        gamMemoryOut1[i] = 0;
+    }
+    if (ok) {
+        gam.PrepareNextState("", "A");
+        gam.Execute();
+    }
+    ok &= (gamMemoryOut0[0] == 0);
+    ok &= (gamMemoryOut1[0] == 0.5);
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == i - 0.5);
+        ok &= (gamMemoryOut1[i] == 1);
+    }
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i;
+        gamMemoryIn1[i] = 1;
+        //gamMemoryOut[i] = 0;
+    }
+    gam.PrepareNextState("A", "B");
+    gam.Execute();
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i + 10;
+        gamMemoryIn1[i] = 1;
+        //gamMemoryOut[i] = 0;
+    }
+    gam.Execute();
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == 10 + i - 0.5);
+        ok &= (gamMemoryOut1[i] == 1);
+    }
+    return ok;
+}
+
+bool FilterGAMTest::TestResetOnlyWhenRequired2() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal2();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i;
+        gamMemoryOut0[i] = 0;
+        gamMemoryIn1[i] = 1;
+        gamMemoryOut1[i] = 0;
+    }
+    if (ok) {
+        gam.PrepareNextState("", "A");
+        gam.Execute();
+    }
+    ok &= (gamMemoryOut0[0] == 0);
+    ok &= (gamMemoryOut1[0] == 0.5);
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == i - 0.5);
+        ok &= (gamMemoryOut1[i] == 1);
+    }
+
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i;
+        gamMemoryIn1[i] = 1;
+        //gamMemoryOut[i] = 0;
+    }
+    gam.PrepareNextState("B", "C");
+    gam.Execute();
+    ok &= (gamMemoryOut0[0] == 0);
+    ok &= (gamMemoryOut1[0] == 0.5);
+    for (uint32 i = 1u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == i - 0.5);
+        ok &= (gamMemoryOut1[i] == 1);
+    }
+    return ok;
+}
+
+bool FilterGAMTest::TestResetOnlyWhenRequired3() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterIIR();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal2();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = 1;
+        gamMemoryOut0[i] = 0;
+        gamMemoryIn1[i] = 1;
+        gamMemoryOut1[i] = 0;
+    }
+    if (ok) {
+        gam.PrepareNextState("", "A");
+        gam.Execute();
+    }
+    //Check output
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == i + 1.0F);
+        ok &= (gamMemoryOut1[i] == i + 1.0F);
+    }
+
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = 1;
+        gamMemoryIn1[i] = 1;
+        //gamMemoryOut[i] = 0;
+    }
+    gam.PrepareNextState("B", "C");
+    gam.Execute();
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut0[i] == i + 1.0F);
+        ok &= (gamMemoryOut1[i] == i + 1.0F);
+    }
+    return ok;
+}
+
+bool FilterGAMTest::TestResetOnlyWhenRequiredMemoryNotInit() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal2();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn0[i] = i;
+        gamMemoryOut0[i] = 0;
+        gamMemoryIn1[i] = 1;
+        gamMemoryOut1[i] = 0;
+    }
+    if (ok) {
+        ok &= gam.PrepareNextState("", "A");
+        ok &= !gam.PrepareNextState("B", "C");
     }
     return ok;
 }

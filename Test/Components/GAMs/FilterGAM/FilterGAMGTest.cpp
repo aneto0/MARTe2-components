@@ -48,6 +48,16 @@ TEST(FilterGAMGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
+TEST(FilterGAMGTest,TestInitialiseNoResetInEachState) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseNoResetInEachState());
+}
+
+TEST(FilterGAMGTest,TestInitialiseWrongResetInEachState) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseWrongResetInEachState());
+}
+
 TEST(FilterGAMGTest,TestInitialiseNoNum) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestInitialiseNoNum());
@@ -227,6 +237,41 @@ TEST(FilterGAMGTest,TestSetupSeveralSignalsDiffInputSamples) {
 TEST(FilterGAMGTest,TestExecuteSeveralSignalsFIR) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestExecuteSeveralSignalsFIR());
+}
+
+TEST(FilterGAMGTest,TestAlwaysResetFIR) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestAlwaysResetFIR());
+}
+
+TEST(FilterGAMGTest,TestAlwaysResetIIR) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestAlwaysResetIIR());
+}
+
+TEST(FilterGAMGTest,TestAlwaysResetMemoryNotInt) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestAlwaysResetMemoryNotInt());
+}
+
+TEST(FilterGAMGTest,TestResetOnlyWhenRequired) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestResetOnlyWhenRequired());
+}
+
+TEST(FilterGAMGTest,TestResetOnlyWhenRequired2) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestResetOnlyWhenRequired2());
+}
+
+TEST(FilterGAMGTest,TestResetOnlyWhenRequired3) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestResetOnlyWhenRequired3());
+}
+
+TEST(FilterGAMGTest,TestResetOnlyWhenRequiredMemoryNotInit) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestResetOnlyWhenRequiredMemoryNotInit());
 }
 
 

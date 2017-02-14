@@ -56,6 +56,7 @@ FilterGAM::FilterGAM() :
     input = NULL_PTR(float32 **);
     numberOfSignals = 0u;
     gainInfinite = false;
+    resetInEachState = true;
 }
 
 FilterGAM::~FilterGAM() {
@@ -103,7 +104,7 @@ bool FilterGAM::Initialise(StructuredDataI& data) {
     AnyType functionsArray = data.GetType("Num");
     bool errorDetected = false;
     bool ok = (functionsArray.GetDataPointer() != NULL);
-    if(!ok){
+    if (!ok) {
         REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::Error getting pointer to the numerator", GetName())
         errorDetected = true;
     }
@@ -129,7 +130,7 @@ bool FilterGAM::Initialise(StructuredDataI& data) {
     if (ok) {
         ok = (functionsArray1.GetDataPointer() != NULL);
     }
-    if((!ok) && (!errorDetected)){
+    if ((!ok) && (!errorDetected)) {
         REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::Error getting pointer to the denominator", GetName())
         errorDetected = true;
     }
@@ -179,6 +180,27 @@ bool FilterGAM::Initialise(StructuredDataI& data) {
         }
         else {
             gainInfinite = true;
+        }
+    }
+    if (ok) {
+        uint32 aux;
+        ok = data.Read("ResetInEachState", aux);
+        if (!ok) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "%s::ResetInEachState not specified. resetInEachState = true by default ", GetName())
+        }
+        else {
+            if (aux == 1u) {
+                resetInEachState = true;
+            }
+            else if (aux == 0u) {
+                resetInEachState = false;
+            }
+            else {
+                if (!errorDetected) {
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::Wrong value for ResetInEachState (expected values 0 or 1)", GetName())
+                    errorDetected = true;
+                }
+            }
         }
     }
     return !errorDetected;
@@ -487,6 +509,75 @@ bool FilterGAM::Execute() {
         }
     }
     return true;
+}
+
+bool FilterGAM::GetResetInEachState() const {
+    return resetInEachState;
+}
+bool FilterGAM::PrepareNextState(const char8 * const currentStateName,
+                                 const char8 * const nextStateName) {
+    bool ret = true;
+    if (resetInEachState) {
+        if ((lastInputs != NULL_PTR(float32 **)) && (lastOutputs != NULL_PTR(float32 **))) {
+            for (uint32 i = 0u; i < numberOfSignals; i++) {
+                if (lastInputs[i] != NULL_PTR(float32 *)) {
+                    for (uint32 n = 0u; n < (numberOfNumCoeff - 1u); n++) {
+                        lastInputs[i][n] = 0.0F;
+                    }
+                }
+                else {
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::lastInputs[i] = NULL ", GetName())
+                    ret = false;
+                }
+                if (lastOutputs[i] != NULL_PTR(float32 *)) {
+                    for (uint32 n = 0u; n < (numberOfDenCoeff - 1u); n++) {
+                        lastOutputs[i][n] = 0.0F;
+                    }
+                }
+                else {
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::lastOutputs[i] = NULL ", GetName())
+                    ret = false;
+                }
+            }
+        }
+        else {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::lastInputs or lastOutputs = NULL ", GetName())
+            ret = false;
+        }
+    }
+    else {
+        //If the currentStateName and lastStateExecuted are different-> rest values
+        if (lastStateExecuted != currentStateName) {
+            if ((lastInputs != NULL_PTR(float32 **)) && (lastOutputs != NULL_PTR(float32 **))) {
+                for (uint32 i = 0u; i < numberOfSignals; i++) {
+                    if (lastInputs[i] != NULL_PTR(float32 *)) {
+                        for (uint32 n = 0u; n < (numberOfNumCoeff - 1u); n++) {
+                            lastInputs[i][n] = 0.0F;
+                        }
+                    }
+                    else {
+                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::lastInputs[i] = NULL ", GetName())
+                        ret = false;
+                    }
+                    if (lastOutputs[i] != NULL_PTR(float32 *)) {
+                        for (uint32 n = 0u; n < (numberOfDenCoeff - 1u); n++) {
+                            lastOutputs[i][n] = 0.0F;
+                        }
+                    }
+                    else {
+                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::lastOutputs[i] = NULL ", GetName())
+                        ret = false;
+                    }
+                }
+            }
+            else {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::lastInputs or lastOutputs = NULL ", GetName())
+                ret = false;
+            }
+        }
+        lastStateExecuted = nextStateName;
+    }
+    return ret;
 }
 
 uint32 FilterGAM::GetNumberOfNumCoeff() const {

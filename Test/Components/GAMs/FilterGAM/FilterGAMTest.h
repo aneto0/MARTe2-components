@@ -55,6 +55,17 @@ public:
     bool TestInitialise();
 
     /**
+     * @brief Tests an initialization with no ResetInEachState.
+     * @return true if the initialization succeed & ResetInEachState = true (but a warning must be lunched).
+     */
+    bool TestInitialiseNoResetInEachState();
+    /**
+     * @brief Tests an initialization with a wrong ResetInEachState.
+     * @return true if the initialization fails.
+     */
+    bool TestInitialiseWrongResetInEachState();
+
+    /**
      * @brief Tests an initialization with no numerator coefficients.
      * @return true if the initialization fails.
      */
@@ -218,7 +229,6 @@ public:
      */
     bool TestExecuteFIRRampInput();
 
-
     /**
      * @brief test the Execute() with a simple average filter.
      * @details first Initialise() and Setup() the filter. Using a constant input, tests Execute() comparing the
@@ -310,6 +320,60 @@ public:
      * @return True if the output is as expected.
      */
     bool TestExecuteSeveralSignalsFIR();
+
+    /**
+     * @brief Tests the reset FIR filter with resetInEachState = true;
+     * @details The sequence tested is filter, reset filter and then filter again. The output of
+     * the filter is check against the expected values
+     * @return true if the output values are as expected.
+     */
+    bool TestAlwaysResetFIR();
+
+    /**
+     * @brief Tests the reset IIR filter with resetInEachState = true;
+     * @detail The sequence tested is filter, reset filter and then filter again. The output of
+     * the filter is check against the expected values
+     * @return true if the output values are as expected.
+     */
+    bool TestAlwaysResetIIR();
+
+    /**
+     * @brief Tests errors resetInEachState = true.
+     * @details Call function PrepareNextState() without allocating memory for the last state.
+     * @return true if PrepareNextState() fails.
+     */
+    bool TestAlwaysResetMemoryNotInt();
+
+    /**
+     * @brief Tests the reset FIR filter with resetInEachState = false;
+     * @details The sequence tested is filter, reset filter and then filter again. The output of
+     * the filter is check against the expected values. The simulated state machin is ""->"A"->"B". Consequently the filter should no be reset
+     * @return true if the output values are as expected.
+     */
+    bool TestResetOnlyWhenRequired();
+
+    /**
+     * @brief Tests the reset FIR filter with resetInEachState = false;
+     * @details The sequence tested is filter, reset filter and then filter again. The output of
+     * the filter is check against the expected values. The simulated state machin is ""->"A"->"C". Consequently the filter should be reset
+     * @return true if the output values are as expected.
+     */
+    bool TestResetOnlyWhenRequired2();
+
+    /**
+     * @brief Tests the reset IIR filter with resetInEachState = false
+     * @details The sequence tested is filter, reset filter and then filter again. The output of
+     * the filter is check against the expected values. The simulated state machin is ""->"A"->"C". Consequently the filter should be reset
+     * @return true if the output values are as expected.
+     */
+    bool TestResetOnlyWhenRequired3();
+
+    /**
+     * @brief Tests errors with resetInEachState = false
+     * @details Call function PrepareNextState() without allocating memory for the last state.
+     * @return true if PrepareNextState() fails.
+     */
+    bool TestResetOnlyWhenRequiredMemoryNotInit();
 };
 
 /*---------------------------------------------------------------------------*/
