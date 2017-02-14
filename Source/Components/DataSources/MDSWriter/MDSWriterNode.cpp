@@ -42,7 +42,7 @@ namespace MARTe {
 MDSWriterNode::MDSWriterNode() {
     nodeName = "";
     nodeType = 0u;
-    numberOfSamples = 0u;
+    numberOfElements = 0u;
     period = 0.f;
     phaseShift = 0u;
     node = NULL_PTR(MDSplus::TreeNode *);
@@ -52,7 +52,7 @@ MDSWriterNode::MDSWriterNode() {
     decimatedMinMax = false;
     decimatedNodeName = "";
     decimatedNode = NULL_PTR(MDSplus::TreeNode *);
-    numberOfWords = 0u;
+    typeMultiplier = 0u;
 
     bufferedData = NULL_PTR(char8 *);
     currentBuffer = 0u;
@@ -64,16 +64,19 @@ MDSWriterNode::MDSWriterNode() {
     lastWriteTimeSignal = 0u;
     periodMicroSecond = 0u;
     useTimeVector = false;
+
+    start = 0.F;
+    flush = false;
 }
 
 MDSWriterNode::~MDSWriterNode() {
     if (node != NULL) {
         //TODO check if the node should be deleted, or if this is done by the tree...
-        //delete node;
+        delete node;
     }
     if (decimatedNode != NULL) {
         //TODO check if the node should be deleted, or if this is done by the tree...
-        //delete node;
+        delete decimatedNode;
     }
     if (bufferedData != NULL) {
         free((void *&) bufferedData);
@@ -94,41 +97,53 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
             }
         }
     }
-    StreamString typeOfData;
+    TypeDescriptor signalTypeDescriptor;
+    StreamString signalType;
     if (ok) {
-        ok = (data.Read("NodeType", typeOfData));
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "NodeType shall be specified");
-        }
-        if (typeOfData == "int32") {
-            nodeType = DTYPE_L;
-        }
-        else if (typeOfData == "int16") {
+        ok = data.Read("Type", signalType);
+    }
+    if (ok) {
+        signalTypeDescriptor = TypeDescriptor::GetTypeDescriptorFromTypeName(signalType.Buffer());
+    }
+    if (ok) {
+        if (signalTypeDescriptor == SignedInteger16Bit) {
             nodeType = DTYPE_W;
         }
-        else if (typeOfData == "int64") {
+        else if (signalTypeDescriptor == SignedInteger32Bit) {
+            nodeType = DTYPE_L;
+        }
+        else if (signalTypeDescriptor == SignedInteger64Bit) {
             nodeType = DTYPE_Q;
         }
-        else if (typeOfData == "float") {
+        else if (signalTypeDescriptor == UnsignedInteger16Bit) {
+            nodeType = DTYPE_WU;
+        }
+        else if (signalTypeDescriptor == UnsignedInteger32Bit) {
+            nodeType = DTYPE_LU;
+        }
+        else if (signalTypeDescriptor == UnsignedInteger64Bit) {
+            nodeType = DTYPE_QU;
+        }
+        else if (signalTypeDescriptor == Float32Bit) {
             nodeType = DTYPE_FLOAT;
         }
-        else if (typeOfData == "double") {
+        else if (signalTypeDescriptor == Float64Bit) {
             nodeType = DTYPE_DOUBLE;
         }
         else {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "NodeType %s not supported for node with name %s", typeOfData.Buffer(), nodeName.Buffer())
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "NodeType %s not supported for node with name %s", signalType.Buffer(), nodeName.Buffer())
             ok = false;
         }
     }
     if (ok) {
-        ok = (data.Read("NumberOfElements", numberOfSamples));
+        ok = (data.Read("NumberOfElements", numberOfElements));
 
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfElements shall be specified");
         }
     }
     if (ok) {
-        ok = (numberOfSamples > 0u);
+        ok = (numberOfElements > 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfElements shall be > 0");
         }
@@ -161,39 +176,36 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         }
     }
     if (ok) {
-        ok = (numberOfSamples > 0u);
+        ok = (makeSegmentAfterNWrites > 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "MakeSegmentAfterNWrites shall be > 0");
         }
     }
     if (ok) {
-        uint32 typeMultiplier = 0u;
-
-        if (nodeType == DTYPE_L) {
-            typeMultiplier = 1;
+        if ((nodeType == DTYPE_W) || (nodeType == DTYPE_WU)) {
+            typeMultiplier = sizeof(uint16);
         }
-        else if (nodeType == DTYPE_W) {
-            typeMultiplier = 1;
+        else if ((nodeType == DTYPE_L) || (nodeType == DTYPE_LU)) {
+            typeMultiplier = sizeof(uint32);
         }
-        else if (nodeType == DTYPE_Q) {
-            typeMultiplier = sizeof(uint64) / sizeof(uint32);
+        else if ((nodeType == DTYPE_Q) || (nodeType == DTYPE_QU)) {
+            typeMultiplier = sizeof(uint64);
         }
         else if (nodeType == DTYPE_FLOAT) {
-            typeMultiplier = sizeof(float) / sizeof(uint32);
+            typeMultiplier = sizeof(float32);
         }
         else if (nodeType == DTYPE_DOUBLE) {
-            typeMultiplier = sizeof(double) / sizeof(uint32);
+            typeMultiplier = sizeof(float64);
         }
-        numberOfWords = numberOfSamples * typeMultiplier;
-        bufferedData = reinterpret_cast<char *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(
-                makeSegmentAfterNWrites * numberOfWords * sizeof(int32)));
 
-        //Note that we have to multiply by two because the minimum size is one word (sizeof(int32))
-        if (nodeType == DTYPE_W) {
-            numberOfSamples *= 2;
-        }
-        numberOfSamples *= makeSegmentAfterNWrites;
+        uint32 bufferedDataSize = typeMultiplier;
+        bufferedDataSize *= numberOfElements * makeSegmentAfterNWrites;
+
+        bufferedData = reinterpret_cast<char *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufferedDataSize));
+
         periodMicroSecond = period * 1e6;
+
+        Reset();
     }
     return true;
 }
@@ -215,11 +227,23 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree *tree) {
     return ok;
 }
 
+bool MDSWriterNode::Flush() {
+    flush = true;
+    return Execute();
+}
+
+void MDSWriterNode::Reset() {
+    start = phaseShift * period;
+}
+
 bool MDSWriterNode::Execute() {
     bool ok = true;
-    if (currentBuffer < makeSegmentAfterNWrites) {
-        ok = MemoryOperationsHelper::Copy(&bufferedData[currentBuffer * numberOfWords * sizeof(int32)], signalMemory, numberOfWords * sizeof(int32));
-        currentBuffer++;
+    if (!flush) {
+        if (currentBuffer < makeSegmentAfterNWrites) {
+            ok = MemoryOperationsHelper::Copy(&bufferedData[currentBuffer * numberOfElements * typeMultiplier], signalMemory,
+                                              numberOfElements * typeMultiplier);
+            currentBuffer++;
+        }
     }
 
     //If the number of writes is sufficient to create a segment do it.
@@ -233,39 +257,53 @@ bool MDSWriterNode::Execute() {
         }
         lastWriteTimeSignal = *timeSignalMemory;
     }
-
+    //If the data has to be flushed for the storeNow
+    if (flush) {
+        storeNow = true;
+    }
     //Sufficient data to make a segment
     if (storeNow) {
+        uint32 numberOfElementsPerSegment = numberOfElements * currentBuffer;
         currentBuffer = 0;
-        double start = 0.;
+
+        //If we are using a triggering source get the signal from a time source, as samples might not be continuous
         if (useTimeVector) {
-            start = *timeSignalMemory;
-        }
-        else {
-            start = nOfWriteCalls * numberOfSamples * period;
-            start += phaseShift * period;
+            start = (*timeSignalMemory) * 1e-6;
         }
 
-        double end = start + ((numberOfSamples - 1) * period);
+        double end = start + ((numberOfElementsPerSegment - 1) * period);
         MDSplus::Data *startD = new MDSplus::Float64(start);
         MDSplus::Data *endD = new MDSplus::Float64(end);
         MDSplus::Data *dimension = new MDSplus::Range(startD, endD, new MDSplus::Float64(period));
         MDSplus::Array *array = NULL;
 
+        if (!useTimeVector) {
+            start += numberOfElementsPerSegment * period;
+        }
+
         if (nodeType == DTYPE_W) {
-            array = new MDSplus::Int16Array((int16 *) bufferedData, numberOfSamples);
+            array = new MDSplus::Int16Array((int16 *) bufferedData, numberOfElementsPerSegment);
+        }
+        else if (nodeType == DTYPE_WU) {
+            array = new MDSplus::Uint16Array((uint16 *) bufferedData, numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_L) {
-            array = new MDSplus::Int32Array(((int32 *) bufferedData), numberOfSamples);
+            array = new MDSplus::Int32Array(((int32 *) bufferedData), numberOfElementsPerSegment);
+        }
+        else if (nodeType == DTYPE_LU) {
+            array = new MDSplus::Uint32Array(((uint32 *) bufferedData), numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_Q) {
-            array = new MDSplus::Int64Array((int64_t *) bufferedData, numberOfSamples);
+            array = new MDSplus::Int64Array((int64_t *) bufferedData, numberOfElementsPerSegment);
+        }
+        else if (nodeType == DTYPE_QU) {
+            array = new MDSplus::Uint64Array((uint64_t *) bufferedData, numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_FLOAT) {
-            array = new MDSplus::Float32Array((float *) bufferedData, numberOfSamples);
+            array = new MDSplus::Float32Array((float *) bufferedData, numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_DOUBLE) {
-            array = new MDSplus::Float64Array((double *) bufferedData, numberOfSamples);
+            array = new MDSplus::Float64Array((double *) bufferedData, numberOfElementsPerSegment);
         }
         if (array != NULL) {
             if (decimatedMinMax) {
@@ -279,6 +317,7 @@ bool MDSWriterNode::Execute() {
         MDSplus::deleteData(dimension);
         nOfWriteCalls++;
     }
+
     return ok;
 }
 

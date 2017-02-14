@@ -29,7 +29,11 @@ SPB=  LinuxTimer.x LoggerDataSource.x
 ifdef CODAC_ROOT
 SPB+=NI6259.x
 endif
-		
+
+ifdef MDSPLUS_DIR
+SPB+=MDSWriter.x
+endif
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -41,6 +45,10 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259Test$(LIBEXT)
+endif
+
+ifdef MDSPLUS_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriterTest$(LIBEXT)
 endif
 
 all: $(OBJS) $(SUBPROJ) \

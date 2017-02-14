@@ -32,7 +32,10 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
+#include "ProcessorType.h"
 #include "MDSWriterNode.h"
+#include "MessageI.h"
+#include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -42,7 +45,7 @@ namespace MARTe {
 /**
  * @brief TODO
  */
-class MDSWriter: public DataSourceI {
+class MDSWriter: public DataSourceI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
@@ -150,7 +153,17 @@ MDSWriter    ();
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
+    /**
+     * TODO
+     */
+    ErrorManagement::ErrorType FlushSegments();
+
 private:
+
+    /**
+     * TODO
+     */
+    bool OpenTree();
 
     //TODO
     bool storeOnTrigger;
@@ -203,6 +216,13 @@ private:
     //TODO
     MDSplus::Tree *tree;
 
+    //TODO
+    ConfigurationDatabase originalSignalInformation;
+
+    /**
+     * Filter to receive the RPC
+     */
+    ReferenceT<RegisteredMethodsMessageFilter> filter;
 };
 }
 

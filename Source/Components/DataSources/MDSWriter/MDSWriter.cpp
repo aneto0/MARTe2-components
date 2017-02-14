@@ -29,6 +29,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
+#include "CLASSMETHODREGISTER.h"
 #include "MemoryMapAsyncOutputBroker.h"
 #include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "MDSWriter.h"
@@ -42,7 +43,8 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-MDSWriter::MDSWriter() {
+MDSWriter::MDSWriter() :
+        MessageI() {
     storeOnTrigger = false;
     numberOfPreTriggers = 0u;
     numberOfPostTriggers = 0u;
@@ -60,9 +62,18 @@ MDSWriter::MDSWriter() {
     eventName = "";
     pulseNumber = 0;
     timeRefresh = 0u;
+    filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    filter->SetDestination(this);
+    ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
+    if (!ret.ErrorsCleared()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
+    }
 }
 
 MDSWriter::~MDSWriter() {
+    if (FlushSegments() != ErrorManagement::NoError) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
+    }
     if (nodes != NULL_PTR(MDSWriterNode **)) {
         uint32 n;
         for (n = 0u; (n < numberOfMDSSignals); n++) {
@@ -90,6 +101,8 @@ uint32 MDSWriter::GetNumberOfMemoryBuffers() {
 }
 
 bool MDSWriter::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
+    char8 *memPtr = &dataSourceMemory[offsets[signalIdx]];
+    signalAddress = reinterpret_cast<void *&>(memPtr);
     return true;
 }
 
@@ -106,10 +119,9 @@ bool MDSWriter::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
 }
 
 bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync;
-    ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger;
     bool ok = true;
     if (storeOnTrigger) {
+        ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger("MemoryMapAsyncTriggerOutputBroker");
         ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
                                                            numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
@@ -117,6 +129,7 @@ bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
         }
     }
     else {
+        ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
         ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsync);
@@ -126,7 +139,7 @@ bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
 }
 
 bool MDSWriter::Synchronise() {
-    bool ok;
+    bool ok = true;
     uint32 n;
     if (nodes != NULL_PTR(MDSWriterNode **)) {
         for (n = 0u; (n < numberOfMDSSignals) && (ok); n++) {
@@ -187,48 +200,231 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
     if (storeOnTrigger) {
         if (ok) {
             ok = data.Read("NumberOfPreTriggers", numberOfPreTriggers);
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPreTriggers shall be specified");
+
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPreTriggers shall be specified");
+            }
         }
         if (ok) {
             ok = data.Read("NumberOfPostTriggers", numberOfPostTriggers);
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPostTriggers shall be specified");
+
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPostTriggers shall be specified");
+            }
         }
     }
     if (ok) {
         ok = data.Read("TreeName", treeName);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "TreeName shall be specified");
-    }
-    if (ok) {
-        ok = data.Read("PulseNumber", pulseNumber);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "PulseNumber shall be specified");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "TreeName shall be specified");
+        }
     }
     if (ok) {
         ok = data.Read("EventName", eventName);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "EventName shall be specified");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "EventName shall be specified");
+        }
     }
     if (ok) {
         ok = data.Read("EventName", eventName);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "EventName shall be specified");
+
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "EventName shall be specified");
+        }
     }
     if (ok) {
         ok = data.Read("TimeRefresh", timeRefresh);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "TimeRefresh shall be specified");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "TimeRefresh shall be specified");
+        }
     }
 
+    if (ok) {
+        if (data.Read("PulseNumber", pulseNumber)) {
+            ok = OpenTree();
+        }
+    }
+    if (ok) {
+        ok = data.MoveRelative("Signals");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
+        }
+        if (ok) {
+            //Do not allow to add signals in run-time
+            ok = data.Write("Locked", 1);
+        }
+        if (ok) {
+            ok = data.Copy(originalSignalInformation);
+        }
+        if (ok) {
+            ok = originalSignalInformation.MoveToRoot();
+        }
+    }
+    if (ok) {
+        ok = data.MoveToAncestor(1u);
+    }
+    return ok;
+}
+
+bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
+    bool ok = DataSourceI::SetConfiguredDatabase(data);
+    if (ok) {
+        ok = data.MoveRelative("Signals");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
+        }
+    }
+    //Check signal properties and compute memory
+    if (ok) {
+        //Do not allow samples
+        uint32 functionNumberOfSignals = 0u;
+        uint32 n;
+        if (GetFunctionNumberOfSignals(OutputSignals, 0u, functionNumberOfSignals)) {
+            for (n = 0u; (n < functionNumberOfSignals) && (ok); n++) {
+                uint32 nSamples;
+                ok = GetFunctionSignalSamples(OutputSignals, 0u, n, nSamples);
+                if (ok) {
+                    ok = (nSamples == 1u);
+                }
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples shall be exactly 1");
+                }
+            }
+        }
+
+        offsets = new uint32[GetNumberOfSignals()];
+        uint32 numberOfSignals = GetNumberOfSignals();
+        //Count the number of bytes
+        for (n = 0u; (n < numberOfSignals) && (ok); n++) {
+            offsets[n] = totalSignalMemory;
+            uint32 nBytes = 0u;
+            ok = GetSignalByteSize(n, nBytes);
+            totalSignalMemory += nBytes;
+        }
+    }
+    //Allocate memory
+    if (ok) {
+        dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalSignalMemory));
+    }
+
+    //Check the signal index of the timing signal.
+    int32 timeSignalIdx = -1;
+    uint32 numberOfSignals = GetNumberOfSignals();
+    if (ok) {
+        //Count the number of MDS+ signals
+        uint32 n;
+        for (n = 0u; (n < numberOfSignals) && (ok); n++) {
+            ok = data.MoveRelative(data.GetChildName(n));
+            if (ok) {
+                //Have to mix and match between the original setting of the DataSource signal (i.e. the one MDS+ related)
+                //and the ones which are later added by the RealTimeApplicationConfigurationBuilder
+                ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(n));
+            }
+            StreamString nodeName;
+            StreamString nodeType;
+            if (ok) {
+                ok = data.Read("Type", nodeType);
+            }
+            if (ok) {
+                ok = originalSignalInformation.Write("Type", nodeType.Buffer());
+            }
+            if (ok) {
+                uint32 nElements;
+                ok = GetSignalNumberOfElements(n, nElements);
+                if (ok) {
+                    ok = originalSignalInformation.Write("NumberOfElements", nElements);
+                }
+            }
+            if (originalSignalInformation.Read("NodeName", nodeName)) {
+
+                //Dynamically add MDSWriteNodes to the list
+                MDSWriterNode **tempNodes = new MDSWriterNode*[numberOfMDSSignals + 1u];
+                uint32 t;
+                for (t = 0u; t < numberOfMDSSignals; t++) {
+                    tempNodes[t] = nodes[t];
+                }
+                tempNodes[numberOfMDSSignals] = new MDSWriterNode();
+                ok = tempNodes[numberOfMDSSignals]->Initialise(originalSignalInformation);
+                if (ok) {
+                    tempNodes[numberOfMDSSignals]->SetSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[n]]));
+                    tempNodes[numberOfMDSSignals]->AllocateTreeNode(tree);
+                }
+                delete[] nodes;
+                nodes = tempNodes;
+                numberOfMDSSignals++;
+            }
+            //Check if the signal is defined as a TimeSignal
+            uint32 timeSignal;
+            if (originalSignalInformation.Read("TimeSignal", timeSignal)) {
+                if (timeSignalIdx != -1) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Only one TimeSignal shall be defined");
+                    ok = false;
+                }
+                if (timeSignal > 0) {
+                    timeSignalIdx = static_cast<int32>(n);
+                }
+            }
+            if (ok) {
+                ok = originalSignalInformation.MoveToAncestor(1u);
+            }
+            if (ok) {
+                ok = data.MoveToAncestor(1u);
+            }
+        }
+    }
+
+    if (ok) {
+        ok = data.MoveToAncestor(1u);
+    }
+    if (ok) {
+        ok = (numberOfMDSSignals > 0u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The numberOfMDSSignals shall be > 0");
+        }
+    }
+    //Only one and one GAM allowed to interact with this DataSourceI
+    if (ok) {
+        ok = (GetNumberOfFunctions() == 1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one Function allowed to interact with this DataSourceI");
+        }
+    }
+
+    //Check if a time signal was set
+    if (storeOnTrigger) {
+        if (ok) {
+            ok = (timeSignalIdx > -1);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger was specified but no TimeSignal was found");
+            }
+        }
+        if (ok) {
+            ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == UnsignedInteger32Bit);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall have type uint32");
+            }
+        }
+        if (ok) {
+            uint32 n;
+            for (n = 0u; n < numberOfMDSSignals; n++) {
+                nodes[n]->SetTimeSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[timeSignalIdx]]));
+            }
+        }
+    }
+    else {
+        if (ok) {
+            ok = (timeSignalIdx == -1);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger was not specified but a TimeSignal was found");
+            }
+        }
+    }
+
+    return ok;
+}
+
+bool MDSWriter::OpenTree() {
+    bool ok = true;
     //Check for the latest pulse number
     if (pulseNumber == -1) {
         try {
@@ -285,145 +481,22 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
     return ok;
 }
 
-bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
-    bool ok = DataSourceI::Initialise(data);
-    if (ok) {
-        ok = data.MoveRelative("Signals");
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
-        }
-        if (ok) {
-            //Do not allow to add signals in run-time
-            ok = data.Write("Locked", 1);
-        }
-    }
-    //Check signal properties and compute memory
-    if (ok) {
-        //Do not allow samples
-        uint32 functionNumberOfSignals = 0u;
-        uint32 n;
-        if (GetFunctionNumberOfSignals(OutputSignals, 0u, functionNumberOfSignals)) {
-            for (n = 0u; (n < functionNumberOfSignals) && (ok); n++) {
-                uint32 nSamples;
-                ok = GetFunctionSignalSamples(OutputSignals, 0u, n, nSamples);
-                if (ok) {
-                    ok = (nSamples == 1u);
-                }
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples shall be exactly 1");
-                }
-            }
-        }
-
-        offsets = new uint32[GetNumberOfSignals()];
-        uint32 numberOfSignals = GetNumberOfSignals();
-        //Count the number of bytes
-        for (n = 0u; (n < numberOfSignals) && (ok); n++) {
-            offsets[n] = totalSignalMemory;
-            uint32 nBytes = 0u;
-            ok = GetSignalByteSize(n, nBytes);
-            totalSignalMemory += nBytes;
-        }
-    }
-    //Allocate memory
-    if (ok) {
-        dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalSignalMemory));
-    }
-
-    //Check the signal index of the timing signal.
-    int32 timeSignalIdx = -1;
-    uint32 numberOfSignals = GetNumberOfSignals();
-    if (ok) {
-        //Count the number of MDS+ signals
-        uint32 n;
-        for (n = 0u; (n < numberOfSignals) && (ok); n++) {
-            if (data.MoveRelative(data.GetChildName(n))) {
-                StreamString nodeName;
-                if (data.Read("NodeName", nodeName)) {
-                    //Dynamically add MDSWriteNodes to the list
-                    MDSWriterNode **tempNodes = new MDSWriterNode*[numberOfMDSSignals + 1u];
-                    uint32 t;
-                    for (t = 0u; t < numberOfMDSSignals; t++) {
-                        tempNodes[t] = nodes[t];
-                    }
-                    tempNodes[numberOfMDSSignals] = new MDSWriterNode();
-                    ok = tempNodes[numberOfMDSSignals]->Initialise(data);
-                    if (ok) {
-                        tempNodes[numberOfMDSSignals]->SetSignalMemory(reinterpret_cast<void *>(dataSourceMemory[offsets[n]]));
-                        tempNodes[numberOfMDSSignals]->AllocateTreeNode(tree);
-                    }
-                    delete[] nodes;
-                    nodes = tempNodes;
-                    numberOfMDSSignals++;
-                }
-                //Check if the signal is defined as a TimeSignal
-                uint32 timeSignal;
-                if (data.Read("TimeSignal", timeSignal)) {
-                    if (timeSignalIdx != -1) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Only one TimeSignal shall be defined");
-                        ok = false;
-                    }
-                    if (timeSignal > 0) {
-                        timeSignalIdx = static_cast<int32>(n);
-                    }
-                }
-            }
-            if (ok) {
-                ok = data.MoveToAncestor(1u);
+ErrorManagement::ErrorType MDSWriter::FlushSegments() {
+    uint32 n;
+    bool ok = true;
+    if (nodes != NULL_PTR(MDSWriterNode **)) {
+        for (n = 0u; ((n < numberOfMDSSignals) && (ok)); n++) {
+            ok = nodes[n]->Flush();
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Failed to flush MDSWriterNode");
             }
         }
     }
-
-    if (ok) {
-        ok = data.MoveToAncestor(1u);
-    }
-    if (ok) {
-        ok = (numberOfMDSSignals > 0u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The numberOfMDSSignals > 0");
-        }
-    }
-    //Only one and one GAM allowed to interact with this DataSourceI
-    if (ok) {
-        ok = (GetNumberOfFunctions() == 1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one Function allowed to interact with this DataSourceI");
-        }
-    }
-
-    //Check if a time signal was set
-    if (storeOnTrigger) {
-        if (ok) {
-            ok = (timeSignalIdx > -1);
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger was specified but no TimeSignal was found");
-        }
-        if (ok) {
-            ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == UnsignedInteger32Bit);
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall have type uint32");
-        }
-        if (ok) {
-            uint32 n;
-            for (n = 0u; n < numberOfMDSSignals; n++) {
-                nodes[n]->SetTimeSignalMemory(reinterpret_cast<void *>(dataSourceMemory[offsets[static_cast<uint32>(timeSignalIdx)]]));
-            }
-        }
-    }
-    else {
-        if (ok) {
-            ok = (timeSignalIdx == -1);
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger was not specified but a TimeSignal was found");
-        }
-    }
-
-    return ok;
+    ErrorManagement::ErrorType err(ok);
+    return err;
 }
 
 CLASS_REGISTER(MDSWriter, "1.0")
+CLASS_METHOD_REGISTER(MDSWriter, FlushSegments)
 
 }

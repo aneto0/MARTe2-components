@@ -73,6 +73,16 @@ public:
      */
     bool AllocateTreeNode(MDSplus::Tree *tree);
 
+    /**
+     * TODO
+     */
+    bool Flush();
+
+    /**
+     * TODO
+     */
+    void Reset();
+
 private:
     /**
      * The name of the MDSplus node
@@ -87,12 +97,20 @@ private:
     /**
      * Number of samples to be stored on each write operation
      */
-    uint32 numberOfSamples;
+    uint32 numberOfElements;
+
+    /**
+     *
+     */
+    float64 start;
 
     /**
      * Period between samples
      */
-    double period;
+    float64 period;
+
+    //TODo
+    uint32 typeMultiplier;
 
     /**
      * Period in micro-seconds
@@ -131,11 +149,6 @@ private:
     MDSplus::TreeNode *decimatedNode;
 
     /**
-     * the number of Words allocated by this node (i.e. numberOfSamples * sizeof(nodeType) / sizeof(int32))
-     */
-    uint32 numberOfWords;
-
-    /**
      * Data is stored in this buffer before triggering a makeSegment/makeSegmentMinMax
      */
     char *bufferedData;
@@ -153,6 +166,9 @@ private:
      */
     uint32 *timeSignalMemory;
     uint32 lastWriteTimeSignal;
+
+    //TODO
+    bool flush;
 };
 }
 
