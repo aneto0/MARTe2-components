@@ -55,16 +55,14 @@ namespace {
  * @brief Gets the application's name.
  */
 static MARTe::StreamString GetApplicationName() {
-	using namespace MARTe;
-	StreamString result;
-    ObjectRegistryDatabase *objDb = NULL_PTR(ObjectRegistryDatabase *);
-    objDb = ObjectRegistryDatabase::Instance();
+    MARTe::StreamString result;
+    MARTe::ObjectRegistryDatabase *objDb = NULL_PTR(MARTe::ObjectRegistryDatabase *);
+    objDb = MARTe::ObjectRegistryDatabase::Instance();
     //TODO: Check objDb
-    uint32 nOfObjs = objDb->Size();
-    uint32 i;
+    MARTe::uint32 nOfObjs = objDb->Size();
     bool found = false;
-    for (i = 0u; (i < nOfObjs) && (!found); i++) {
-    	ReferenceT < RealTimeApplication > rtApp = objDb->Get(i);
+    for (MARTe::uint32 i = 0u; (i < nOfObjs) && (!found); i++) {
+        MARTe::ReferenceT<MARTe::RealTimeApplication> rtApp = objDb->Get(i);
     	found = rtApp.IsValid();
     	if (found) {
     		result = rtApp->GetName();
@@ -81,8 +79,7 @@ static MARTe::StreamString GetApplicationName() {
  * name and name passed as parameter.
  */
 static MARTe::StreamString BuildSharedMemoryIdentifier(const MARTe::StreamString& name) {
-	using namespace MARTe;
-	StreamString result;
+    MARTe::StreamString result;
 	//Add the initial mark:
 	result += "/";
 	//Add the MARTe's application name as prefix:
