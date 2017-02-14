@@ -89,13 +89,13 @@ void WRITE(volatile T* const b, const T v);
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-/*lint -estring(1795,"*READ*") [MISRA C++ Rule 14-7-1] The READ function is offered as per library basis.*/
+/*lint -estring(1795,READ) [MISRA C++ Rule 14-7-1] The READ function is offered as per library basis.*/
 
-/*lint -estring(1795,"*WRITE*") [MISRA C++ Rule 14-7-1] The WRITE function is offered as per library basis.*/
+/*lint -estring(1795,WRITE) [MISRA C++ Rule 14-7-1] The WRITE function is offered as per library basis.*/
 
-/*lint -estring(526,"*__sync_bool_compare_and_swap*") -estring(628,"*__sync_bool_compare_and_swap*") -estring(746,"*__sync_bool_compare_and_swap*") -estring(1055,"*__sync_bool_compare_and_swap*") The __sync_bool_compare_and_swap function is a GCC built-in function, so it does not have declaration.*/
+/*lint -estring(526,__sync_bool_compare_and_swap) -estring(628,__sync_bool_compare_and_swap) -estring(746,__sync_bool_compare_and_swap) -estring(1055,__sync_bool_compare_and_swap) The __sync_bool_compare_and_swap function is a GCC built-in function, so it does not have declaration.*/
 
-/*lint -estring(526,"*__sync_lock_test_and_set*") -estring(628,"*__sync_lock_test_and_set*") -estring(746,"*__sync_lock_test_and_set*") -estring(1055,"*__sync_lock_test_and_set*") The __sync_lock_test_and_set function is a GCC built-in function, so it does not have declaration.*/
+/*lint -estring(526,__sync_lock_test_and_set) -estring(628,__sync_lock_test_and_set) -estring(746,__sync_lock_test_and_set) -estring(1055,__sync_lock_test_and_set) The __sync_lock_test_and_set function is a GCC built-in function, so it does not have declaration.*/
 
 /*
  * Note: In GCC, CAS is mapped to the __sync_bool_compare_and_swap function,
