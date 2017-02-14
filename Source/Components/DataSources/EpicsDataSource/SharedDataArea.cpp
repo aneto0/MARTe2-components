@@ -68,7 +68,7 @@ static std::size_t CalculateSizeOfSigblock(const SDA::uint32 signalsCount, const
 
 namespace SDA {
 
-SharedDataArea::SharedDataArea(): shm(NULL) {
+SharedDataArea::SharedDataArea(): shm(NULL_PTR(Representation*)) {
 
 }
 
@@ -119,7 +119,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* con
 	std::size_t sizeOfItems = (bufferSize * sizeOfSigblock); //TODO: Abstract this private knowledge
 	std::size_t totalSize = (sizeof(SharedDataArea::Representation) + sizeOfHeader + sizeOfItems);
 //	SharedDataArea* obj = NULL;
-	SharedDataArea::Representation* tmp_shm_ptr = NULL;
+	Representation* tmp_shm_ptr = NULL_PTR(Representation*);
 
 //	printf("*** SharedDataArea::BuildSharedDataAreaForMARTe name=%s sizeOfHeader=%lu, sizeOfSigblock=%lu, sizeOfItems=%lu, totalSize=%lu ***\n", name, sizeOfHeader, sizeOfSigblock, sizeOfItems, totalSize);
 	void* raw_shm_ptr = SDA::Platform::MakeShm(name, totalSize);
@@ -141,9 +141,9 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* con
 }
 
 SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const SDA::char8* const name) {
-	void* raw_shm_ptr = NULL;
+	void* raw_shm_ptr = NULL_PTR(void*);
 //	SharedDataArea* obj = NULL;
-	SharedDataArea::Representation* tmp_shm_ptr = NULL;
+	Representation* tmp_shm_ptr = NULL_PTR(Representation*);
     raw_shm_ptr = SDA::Platform::JoinShm(name);
     if (raw_shm_ptr == NULL) {
     	//error

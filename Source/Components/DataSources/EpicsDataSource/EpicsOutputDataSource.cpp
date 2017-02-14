@@ -58,7 +58,7 @@ namespace {
 static MARTe::StreamString GetApplicationName() {
 	using namespace MARTe;
 	StreamString result;
-    ObjectRegistryDatabase *objDb = NULL;
+    ObjectRegistryDatabase *objDb = NULL_PTR(ObjectRegistryDatabase *);
     objDb = ObjectRegistryDatabase::Instance();
     //TODO: Check objDb
     uint32 nOfObjs = objDb->Size();
