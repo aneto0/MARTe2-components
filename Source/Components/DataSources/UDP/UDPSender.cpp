@@ -98,14 +98,19 @@ bool UDPSender::Synchronise(){
                     AnyTypetoUint8[k] = 0u;
                 }
                 if ((i == 0u) || (i == 1u)){
-                    MemoryOperationsHelper::Copy(static_cast<void*>(AnyTypetoUint8),dataConv,signalByteSize);
-                    MemoryOperationsHelper::Copy(&k,static_cast<char8*>(dataConv),signalByteSize);
+                    OK = MemoryOperationsHelper::Copy(static_cast<void*>(AnyTypetoUint8),dataConv,signalByteSize);
+                    if (!OK){
+                        REPORT_ERROR(ErrorManagement::FatalError, "Memory copy failed");
+                    }
                 }else{
                     if (memoryOffset <= maximumMemoryAccess){
                         void* p = static_cast<char8*>(dataConv) + memoryOffset;
-                        MemoryOperationsHelper::Copy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
-                        MemoryOperationsHelper::Copy(&k,static_cast<char8*>(p),signalByteSize);
-                        memoryOffset += signalByteSize;
+                        OK = MemoryOperationsHelper::Copy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
+                        if (!OK){
+                            REPORT_ERROR(ErrorManagement::FatalError, "Memory copy failed");
+                        }else{
+                            memoryOffset += signalByteSize;
+                        }
                     }else{
                         REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
                     }
