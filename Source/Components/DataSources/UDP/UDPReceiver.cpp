@@ -89,7 +89,7 @@ bool UDPReceiver::Synchronise(){
 
 bool UDPReceiver::Initialise(StructuredDataI &data) {
     bool ok = DataSourceI::Initialise(data);
-    float64 timeout_input;
+    float64 timeoutInput;
     keepRunning = true;
     bool found = data.Read("Port", udpServerPort);
     if ((!found) || (udpServerPort == 0u)){
@@ -97,22 +97,22 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
         REPORT_ERROR(ErrorManagement::Information, "No valid Port defined! Default to 44488");
     }else{
         if (udpServerPort <= 1024u){
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, requires admin access", udpServerPort);
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, requires admin access", udpServerPort)
         }else{
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port is set to %d", udpServerPort);
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port is set to %d", udpServerPort)
         }
     }
-    found = data.Read("Timeout", timeout_input);
+    found = data.Read("Timeout", timeoutInput);
     if (!found){
         timeout = TTInfiniteWait;
         REPORT_ERROR(ErrorManagement::Information, "No timeout defined! Default to infinite");
     }else{
-        if(timeout_input == 0.000000){
+        if(timeoutInput < 1e-7){
             timeout = TTInfiniteWait;
             REPORT_ERROR(ErrorManagement::Information, "Timeout set to infinite");
         }else{
-            timeout.SetTimeoutSec(timeout_input);
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Timeout is set to %f seconds", timeout_input);
+            timeout.SetTimeoutSec(timeoutInput);
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Timeout is set to %f seconds", timeoutInput)
         }
     }
     return ok;
@@ -344,15 +344,15 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
                 memset(static_cast<void*>(dataConv), 0, sizeof(dataConv));
                 uint32 counter;
                 for (counter = 0u; counter < noOfBytesForSignal; counter++){
-
-                    dataConv[counter] = udpServerBufferRead[signalOffset + counter];
+                    uint32 readBufferPointer = signalOffset + counter;
+                    dataConv[counter] = udpServerBufferRead[readBufferPointer];
                 }
                 if ((i == 0u) || (i == 1u)){
-                    memcpy(AnytypeData,static_cast<void*>(dataConv),signalByteSize);
+                    MemoryOperationsHelper::Copy(AnytypeData,static_cast<void*>(dataConv),signalByteSize);
                 }else{
                     if (memoryOffset <= maximumMemoryAccess){
-                        void *p = static_cast<char*>(AnytypeData) + memoryOffset;
-                        memcpy(p,static_cast<void*>(dataConv),signalByteSize);
+                        void *p = static_cast<char8*>(AnytypeData) + memoryOffset;
+                        MemoryOperationsHelper::Copy(p,static_cast<void*>(dataConv),signalByteSize);
                         memoryOffset += signalByteSize;
                     }else{
                         REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");

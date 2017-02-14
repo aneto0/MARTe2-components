@@ -98,13 +98,13 @@ bool UDPSender::Synchronise(){
                     AnyTypetoUint8[k] = 0u;
                 }
                 if ((i == 0u) || (i == 1u)){
-                    memcpy(static_cast<void*>(AnyTypetoUint8),dataConv,signalByteSize);
-                    memcpy(&k,static_cast<char*>(dataConv),signalByteSize);
+                    MemoryOperationsHelper::Copy(static_cast<void*>(AnyTypetoUint8),dataConv,signalByteSize);
+                    MemoryOperationsHelper::Copy(&k,static_cast<char8*>(dataConv),signalByteSize);
                 }else{
                     if (memoryOffset <= maximumMemoryAccess){
-                        void* p = static_cast<char*>(dataConv) + memoryOffset;
-                        memcpy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
-                        memcpy(&k,static_cast<char*>(p),signalByteSize);
+                        void* p = static_cast<char8*>(dataConv) + memoryOffset;
+                        MemoryOperationsHelper::Copy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
+                        MemoryOperationsHelper::Copy(&k,static_cast<char8*>(p),signalByteSize);
                         memoryOffset += signalByteSize;
                     }else{
                         REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
@@ -135,7 +135,7 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         udpServerAddress = "127.0.0.1";
         REPORT_ERROR(ErrorManagement::Information, "No TargetAddress defined! Default to 127.0.0.1");
     }else{
-        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "TargetAddress set to %s", udpServerAddress.Buffer());
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "TargetAddress set to %s", udpServerAddress.Buffer())
     }
     found = data.Read("Port", udpServerPort);
     if ((!found) || (udpServerPort == 0u)){
@@ -143,9 +143,9 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         REPORT_ERROR(ErrorManagement::Information, "No valid Port defined! Default to 44488");
     }else{
         if (udpServerPort <= 1024u){
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, requires admin access", udpServerPort);
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, requires admin access", udpServerPort)
         }else{
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port is set to %d", udpServerPort);
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port is set to %d", udpServerPort)
         }
     }
     return ok;
@@ -269,7 +269,7 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                 }
             }
             if (memoryOffset <= maximumMemoryAccess){
-                signalAddress = static_cast<void*>(static_cast<char*>(UDPPacket.dataBuffer) + memoryOffset);
+                signalAddress = static_cast<void*>(static_cast<char8*>(UDPPacket.dataBuffer) + memoryOffset);
             } else{
                 ok = false;
                 REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
