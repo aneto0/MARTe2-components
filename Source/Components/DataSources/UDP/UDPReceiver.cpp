@@ -308,7 +308,7 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
     else{
         uint32 udpServerExpectReadSize = totalPacketSize + static_cast<uint32>(signalsByteSize[0u]/8u) + static_cast<uint32>(signalsByteSize[1u]/8u);
         uint8 udpServerBufferRead[udpServerExpectReadSize];
-        memset(static_cast<void*>(udpServerBufferRead), 0, sizeof(udpServerBufferRead));
+        MemoryOperationsHelper::Set(static_cast<void*>(udpServerBufferRead), 0, sizeof(udpServerBufferRead));
         uint32 udpServerReadSize = udpServerExpectReadSize;
         uint8 i;
         if (keepRunning) {

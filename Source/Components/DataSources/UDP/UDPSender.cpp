@@ -72,9 +72,10 @@ bool UDPSender::Synchronise(){
     bool OK = true;
     const MARTe::uint32 udpServerExpectReadSize = nOfSignals * 8u;
     uint32 i;
-    uint8 udpServerWriteBuffer[udpServerExpectReadSize];
+    uint8 *udpServerWriteBuffer = new uint8[udpServerExpectReadSize];
     uint32 signalOffset = 0u;
     uint32 memoryOffset = 0u;
+    MemoryOperationsHelper::Set(static_cast<void*>(udpServerWriteBuffer), 0, sizeof(udpServerWriteBuffer));
     for (i = 0u; i < udpServerExpectReadSize; i++){
         udpServerWriteBuffer[i] = 0u;
     }
@@ -93,12 +94,13 @@ bool UDPSender::Synchronise(){
             uint32 signalByteSize = signalsByteSize[i] / 8u;
             if (signalByteSize > 0u){
                 uint64 k;
-                uint8 AnyTypetoUint8 [signalByteSize];
+                uint8 *signalDataToUint8 = new uint8[signalByteSize];
+                MemoryOperationsHelper::Set(static_cast<void*>(signalDataToUint8), 0, sizeof(signalDataToUint8));
                 for (k = 0u; k < signalByteSize; k++ ){
-                    AnyTypetoUint8[k] = 0u;
+                    signalDataToUint8[k] = 0u;
                 }
                 if ((i == 0u) || (i == 1u)){
-                    OK = MemoryOperationsHelper::Copy(static_cast<void*>(AnyTypetoUint8),dataConv,signalByteSize);
+                    OK = MemoryOperationsHelper::Copy(static_cast<void*>(signalDataToUint8),dataConv,signalByteSize);
                     if (!OK){
                         REPORT_ERROR(ErrorManagement::FatalError, "Memory copy failed");
                     }
@@ -106,7 +108,7 @@ bool UDPSender::Synchronise(){
                     if (memoryOffset <= maximumMemoryAccess){
                         char8 *dataConvChar= static_cast<char8*>(dataConv);
                         void *p = static_cast<void *>(&dataConvChar[memoryOffset]);
-                        OK = MemoryOperationsHelper::Copy(static_cast<void*>(AnyTypetoUint8),p,signalByteSize);
+                        OK = MemoryOperationsHelper::Copy(static_cast<void*>(signalDataToUint8),p,signalByteSize);
                         if (!OK){
                             REPORT_ERROR(ErrorManagement::FatalError, "Memory copy failed");
                         }else{
@@ -118,7 +120,7 @@ bool UDPSender::Synchronise(){
                 }
                 uint32 j;
                 for(j = 0u; j < signalByteSize; j++){
-                    udpServerWriteBuffer[static_cast<uint32>(j + signalOffset)] = AnyTypetoUint8[j];
+                    udpServerWriteBuffer[static_cast<uint32>(j + signalOffset)] = signalDataToUint8[j];
                 }
                 signalOffset += signalByteSize;
             }
