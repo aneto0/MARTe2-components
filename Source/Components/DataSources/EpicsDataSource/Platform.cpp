@@ -74,7 +74,7 @@ void* Platform::MakeShm(const SDA::char8* const name, const size_t size) {
     }
 
     /*lint -e{9130} the prot argument of mmap is defined as int and it can not be changed*/
-    result = mmap(NULL_PTR(void*), size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    result = mmap(NULL_PTR(void*), size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, static_cast<off_t>(0));
     if (result == /*lint -e(1924) -e(923)*/MAP_FAILED) {
 //    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
@@ -101,7 +101,7 @@ void* Platform::JoinShm(const SDA::char8* const name) {
          exit(EXIT_FAILURE);	//TODO: Return status instead of halting program.
     }
 
-    void* tmp = mmap(NULL_PTR(void*), sizeof(size_t), PROT_READ /*| PROT_WRITE*/, MAP_SHARED, shm_fd, 0);
+    void* tmp = mmap(NULL_PTR(void*), sizeof(size_t), PROT_READ /*| PROT_WRITE*/, MAP_SHARED, shm_fd, static_cast<off_t>(0));
     if (tmp == /*lint -e(1924) -e(923)*/MAP_FAILED) {
 //    	printf("***pre mmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
@@ -117,7 +117,7 @@ void* Platform::JoinShm(const SDA::char8* const name) {
     }
 
     /*lint -e{9130} the prot argument of mmap is defined as int and it can not be changed*/
-    result = mmap(NULL_PTR(void*), size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    result = mmap(NULL_PTR(void*), size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, static_cast<off_t>(0));
     if (result == /*lint -e(1924) -e(923)*/MAP_FAILED) {
 //    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
     	exit(EXIT_FAILURE);
