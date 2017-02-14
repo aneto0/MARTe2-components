@@ -75,7 +75,7 @@ namespace SDA {
     /**
      * Maximum value for unsigned integers of 32 bits
      */
-    static const uint32 MAX_UINT32 = 0xFFFFFFFF;
+    static const uint32 MAX_UINT32 = 0xFFFFFFFFU;
 
 }
 
