@@ -59,6 +59,7 @@ void* Platform::MakeShm(const SDA::char8* const name, const size_t size) {
 
     SDA::int32 shm_fd = -1;
 
+    /*lint -e{9130} the oflag argument of shm_open is defined as int and it can not be changed*/
     shm_fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0666);
     if (shm_fd == -1) {
 //    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
@@ -72,6 +73,7 @@ void* Platform::MakeShm(const SDA::char8* const name, const size_t size) {
         exit(EXIT_FAILURE);
     }
 
+    /*lint -e{9130} the prot argument of mmap is defined as int and it can not be changed*/
     result = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (result == /*lint -e(1924)*/MAP_FAILED) {
 //    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
@@ -114,6 +116,7 @@ void* Platform::JoinShm(const SDA::char8* const name) {
     	exit(EXIT_FAILURE);
     }
 
+    /*lint -e{9130} the prot argument of mmap is defined as int and it can not be changed*/
     result = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (result == /*lint -e(1924)*/MAP_FAILED) {
 //    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
