@@ -5,12 +5,21 @@
 -dEFDA_MARTe_DIR=%EFDA_MARTe_DIR%
 -i%EFDA_MARTe_DIR%/Interfaces/BaseLib2Adapter/
 
+-i./Source/Components/DataSources/EpicsDataSource/
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper
 
+EpicsInputDataSource.cpp
+EpicsOutputDataSource.cpp
+SigblockDoubleBuffer.cpp
+SharedDataArea.cpp
+Sigblock.cpp
+Platform.cpp
+Signal.h
+Atomic.h
 BaseLib2GAM.cpp
 IOGAM.cpp
 LinuxTimer.cpp
