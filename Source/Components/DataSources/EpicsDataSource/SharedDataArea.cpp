@@ -141,7 +141,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* con
 }
 
 SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const SDA::char8* const name) {
-	void* raw_shm_ptr = NULL_PTR(void*);
+	void* raw_shm_ptr;
 //	SharedDataArea* obj = NULL;
 	Representation* tmp_shm_ptr = NULL_PTR(Representation*);
     raw_shm_ptr = SDA::Platform::JoinShm(name);

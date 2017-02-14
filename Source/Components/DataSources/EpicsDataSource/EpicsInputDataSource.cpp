@@ -56,7 +56,7 @@ namespace {
  */
 static MARTe::StreamString GetApplicationName() {
     MARTe::StreamString result;
-    MARTe::ObjectRegistryDatabase *objDb = NULL_PTR(MARTe::ObjectRegistryDatabase *);
+    MARTe::ObjectRegistryDatabase *objDb;
     objDb = MARTe::ObjectRegistryDatabase::Instance();
     //TODO: Check objDb
     MARTe::uint32 nOfObjs = objDb->Size();
@@ -128,7 +128,7 @@ bool EpicsInputDataSource::Synchronise() {
 }
 
 bool EpicsInputDataSource::AllocateMemory() {
-	bool ret = true;
+	bool ret;
 	uint32 numberOfSignals = GetNumberOfSignals();
 	sharedDataAreaName = BuildSharedMemoryIdentifier(GetName());
 	SDA::uint32 max = 512u; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295

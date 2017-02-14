@@ -55,9 +55,9 @@ namespace SDA {
 
 void* Platform::MakeShm(const SDA::char8* const name, const size_t size) {
 
-    void* result = NULL_PTR(void*);
+    void* result;
 
-    SDA::int32 shm_fd = -1;
+    SDA::int32 shm_fd;
 
     /*lint -e{9130} the oflag argument of shm_open is defined as int and it can not be changed*/
     shm_fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0666u);
@@ -89,11 +89,11 @@ void* Platform::MakeShm(const SDA::char8* const name, const size_t size) {
 
 void* Platform::JoinShm(const SDA::char8* const name) {
 
-    void* result = NULL_PTR(void*);
+    void* result;
 
-    SDA::int32 shm_fd = -1;
+    SDA::int32 shm_fd;
 
-    size_t size = 0u; //Size of allocated shared memory, including the the size value itself.
+    size_t size; //Size of allocated shared memory, including the the size value itself.
 
     shm_fd = shm_open(name, O_RDWR, 0666u);
     if (shm_fd == -1) {
