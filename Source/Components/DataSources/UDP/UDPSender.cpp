@@ -75,7 +75,7 @@ bool UDPSender::Synchronise(){
     uint8 *udpServerWriteBuffer = new uint8[udpServerExpectReadSize];
     uint32 signalOffset = 0u;
     uint32 memoryOffset = 0u;
-    MemoryOperationsHelper::Set(static_cast<void*>(udpServerWriteBuffer), 0, sizeof(udpServerWriteBuffer));
+    memset(static_cast<void*>(udpServerWriteBuffer), 0, sizeof(udpServerWriteBuffer));
     for (i = 0u; i < udpServerExpectReadSize; i++){
         udpServerWriteBuffer[i] = 0u;
     }
@@ -95,7 +95,7 @@ bool UDPSender::Synchronise(){
             if (signalByteSize > 0u){
                 uint64 k;
                 uint8 *signalDataToUint8 = new uint8[signalByteSize];
-                MemoryOperationsHelper::Set(static_cast<void*>(signalDataToUint8), 0, sizeof(signalDataToUint8));
+                memset(static_cast<void*>(signalDataToUint8), 0, sizeof(signalDataToUint8));
                 for (k = 0u; k < signalByteSize; k++ ){
                     signalDataToUint8[k] = 0u;
                 }
