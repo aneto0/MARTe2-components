@@ -36,6 +36,8 @@
 /*                           Module declaration                               */
 /*---------------------------------------------------------------------------*/
 
+namespace SDA {
+
 /**
  * @brief Atomic compare-and-swap operation
  * @details The pseudo code of this function is as follows:
@@ -85,9 +87,13 @@ T READ(volatile T* const b);
 template<typename T>
 void WRITE(volatile T* const b, const T v);
 
+}
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+
+namespace SDA {
 
 /*lint -estring(1795,READ) [MISRA C++ Rule 14-7-1] The READ function is offered as per library basis.*/
 
@@ -150,6 +156,8 @@ template<typename T>
 void WRITE(volatile T* const b, const T v) {
     __sync_synchronize(); //Full memory barrier (read will return fresh value)
    *b = v;
+}
+
 }
 
 #endif /* ATOMIC_H_ */
