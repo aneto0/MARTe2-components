@@ -50,18 +50,20 @@ namespace SDA {
 void SigblockDoubleBuffer::Reset(const SDA::uint32 bufferSize, const std::size_t sizeOfSigblock) {
 	//this->bufferSize = bufferSize;	//TODO: Purge this field.
 	this->sizeOfSigblock = sizeOfSigblock;
-	frontbuffer = 0;
+	frontbuffer = 0u;
 	status = FREE;
-	std::memset(buffer, 0, sizeOfSigblock*2);
+	/*lint -e{9132} buffer is the base address of the allocated memory*/
+	std::memset(buffer, 0, sizeOfSigblock*2u);
 }
 
 bool SigblockDoubleBuffer::Get(SDA::Sigblock& sb) {
 	bool fret = true;
-	bool acquired = CAS<SDA::uint32>(&status, FULL, READING);
+	bool acquired = CAS<BufferStatus>(&status, FULL, READING);
 	if (acquired) {
 		//[[assert: status == READING]]
 		std::memcpy(&sb, &(buffer[sizeOfSigblock * (frontbuffer)]), sizeOfSigblock);
-		XCHG<SDA::uint32>(&status, FREE);
+        /*lint -e{534} the old value of status is not needed*/
+		XCHG<BufferStatus>(&status, FREE);
 	}
 	else {
 		fret = false;
@@ -73,11 +75,13 @@ bool SigblockDoubleBuffer::Put(const SDA::Sigblock& sb) {
 	bool fret = true;
 	SDA::uint32 backbuffer = ((frontbuffer + 1u) % TWO);
 	std::memcpy(&(buffer[sizeOfSigblock * backbuffer]), &sb, sizeOfSigblock);
-	bool acquired = (CAS<SDA::uint32>(&status, FREE, WRITING) || CAS<SDA::uint32>(&status, FULL, WRITING));
+	/*lint -e{9007} if left hand of logical operator is true the CAS on right hand must not be executed*/
+	bool acquired = (CAS<BufferStatus>(&status, FREE, WRITING) || CAS<BufferStatus>(&status, FULL, WRITING));
 	if (acquired) {
 		//[[assert: status == WRITING]]
 		frontbuffer = backbuffer;
-		XCHG<SDA::uint32>(&status, FULL);
+		/*lint -e{534} the old value of status is not needed*/
+		XCHG<BufferStatus>(&status, FULL);
 	}
 	else {
 		fret = false;

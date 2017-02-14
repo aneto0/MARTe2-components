@@ -152,14 +152,6 @@ public:
 	 * beginning of the sigblock.
 	 */
 	void* GetSignalAddress(const std::size_t offset);
-
-private:
-
-	/**
-	 * @brief Default constructor
-	 */
-    /*lint -e{1704} instances of this class are not instantiable*/
-	Sigblock();
 };
 
 }

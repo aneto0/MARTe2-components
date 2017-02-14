@@ -120,7 +120,7 @@ private:
     /**
      * Status of the frontbuffer.
      */
-    SDA::uint32 status;  //TODO Better BufferStatus as type?
+    BufferStatus status;
 
     /**
      * Memory holder for the two sigblocks
