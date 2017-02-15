@@ -48,6 +48,11 @@ public:
     /**
      * TODO
      */
+    bool TestOpenTree();
+
+    /**
+     * TODO
+     */
     bool TestIntegratedInApplication_NoTrigger();
 
     /**

@@ -158,12 +158,15 @@ MDSWriter    ();
      */
     ErrorManagement::ErrorType FlushSegments();
 
-private:
-
     /**
      * TODO
      */
-    bool OpenTree();
+    ErrorManagement::ErrorType OpenTree(int32 pulseNumber);
+
+private:
+
+    //TODO
+    int32 pulseNumber;
 
     //TODO
     bool storeOnTrigger;
@@ -203,9 +206,6 @@ private:
 
     //TODO
     StreamString treeName;
-
-    //TODO
-    int32 pulseNumber;
 
     //TODO
     StreamString eventName;

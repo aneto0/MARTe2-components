@@ -222,7 +222,6 @@ private:
 
 CLASS_REGISTER(MDSWriterSchedulerTestHelper, "1.0")
 
-#if 0
 static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool destroy) {
     using namespace MARTe;
 
@@ -253,9 +252,9 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     }
     return ok;
 }
-#endif
 
-template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberOfSegments, MDSplus::TreeNode *node, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify) {
+template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberOfSegments, MDSplus::TreeNode *node, MARTe::uint32 *signalToVerify,
+                                                            MARTe::uint32 *timeToVerify) {
     using namespace MARTe;
     int32 i = 0u;
     int32 s;
@@ -307,10 +306,10 @@ template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberO
 }
 
 static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements,
-                                    MARTe::uint8 *triggerToGenerate, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify, MARTe::uint32 toVerifyNumberOfElements,
-                                    MARTe::uint32 numberOfBuffers, MARTe::uint32 numberOfPreTriggers, MARTe::uint32 numberOfPostTriggers, MARTe::float32 period,
-                                    const MARTe::char8 * const treeName, MARTe::uint32 pulseNumber, MARTe::int32 numberOfSegments, bool needsFlush,
-                                    MARTe::uint32 sleepMSec = 100) {
+                                    MARTe::uint8 *triggerToGenerate, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify,
+                                    MARTe::uint32 toVerifyNumberOfElements, MARTe::uint32 numberOfBuffers, MARTe::uint32 numberOfPreTriggers,
+                                    MARTe::uint32 numberOfPostTriggers, MARTe::float32 period, const MARTe::char8 * const treeName, MARTe::uint32 pulseNumber,
+                                    MARTe::int32 numberOfSegments, bool needsFlush, MARTe::uint32 sleepMSec = 100) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config;
@@ -1537,6 +1536,106 @@ static const MARTe::char8 * const config5 = ""
         "        Function = FlushSegments"
         "    }"
         "}";
+
+//Configuration to test the OpenTree message interface
+static const MARTe::char8 * const config6 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =   {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            Trigger =  {0 1 0 1 0 1 0 1 1 1 1 1 1 1}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 4"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            StoreOnTrigger = 1"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            NumberOfPreTriggers = 2"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    TimeSignal = 1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushSegments"
+        //"        Mode = ExpectsReply"
+        "    }"
+        "    +MessageOpenTree = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        //"        Mode = ExpectsReply"
+        "        Function = OpenTree"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = -1"
+        "        }"
+        "    }"
+        "}";
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -1548,8 +1647,8 @@ bool MDSWriterTest::TestConstructor() {
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger() {
     using namespace MARTe;
-    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6,  7,  8,  9,  10, 11, 12 };
-    uint32 timeToVerify[] =     { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22 };
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+    uint32 timeToVerify[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     const char8 * const treeName = "mds_m2test";
     const uint32 numberOfBuffers = 16;
@@ -1557,14 +1656,14 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger() {
     const uint32 writeAfterNSegments = 4;
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
-    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period,
-                                   treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0,
+                                   period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Flush() {
     using namespace MARTe;
-    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6,  7,  8,  9,  10, 11, 12, 13 };
-    uint32 timeToVerify[] =     { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24 };
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+    uint32 timeToVerify[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     const char8 * const treeName = "mds_m2test";
     const uint32 numberOfBuffers = 16;
@@ -1572,15 +1671,15 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Flush() {
     const uint32 writeAfterNSegments = 4;
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
-    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period,
-                                   treeName, pulseNumber, numberOfSegments, true);
+    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0,
+                                   period, treeName, pulseNumber, numberOfSegments, true);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger() {
     using namespace MARTe;
     uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-    uint32 signalToVerify[] = { 1, 2, 3, 4, 6,  7,  8,  9 };
-    uint32 timeToVerify[] =   { 0, 2, 4, 6, 10, 12, 14, 16};
+    uint32 signalToVerify[] = { 1, 2, 3, 4, 6, 7, 8, 9 };
+    uint32 timeToVerify[] = { 0, 2, 4, 6, 10, 12, 14, 16 };
     uint8 triggerToGenerate[] = { 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
@@ -1591,15 +1690,15 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger() {
     const uint32 pulseNumber = 3;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers,
-                                   numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
+                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Elements() {
     using namespace MARTe;
-    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8};
-    uint32 signalToVerify[] = { 1, 1, 1, 1, 2, 2,  2,  2,  3,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  8};
-    uint32 timeToVerify[] =   { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62 };
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    uint32 signalToVerify[] = { 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8 };
+    uint32 timeToVerify[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
     const char8 * const treeName = "mds_m2test";
@@ -1615,8 +1714,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Elements() {
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_Elements() {
     using namespace MARTe;
     uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-    uint32 signalToVerify[] = { 1, 1, 1, 1, 2, 2,  2,  2,  3,  3,  3,  3,  4,  4,  4,  4,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8 , 8,  9,  9,  9,  9};
-    uint32 timeToVerify[] =   { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70 };
+    uint32 signalToVerify[] = { 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9 };
+    uint32 timeToVerify[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70 };
     uint8 triggerToGenerate[] = { 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
@@ -1627,6 +1726,57 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_Elements() {
     const uint32 pulseNumber = 5;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config5, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers,
-                                   numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config5, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
+                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+}
+
+bool MDSWriterTest::TestOpenTree() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config6, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    //Get the current pulse number
+    MDSplus::Tree *tree = NULL;
+    int32 lastPulseNumber = -1;
+    StreamString treeName = "mds_m2test";
+    try {
+        tree = new MDSplus::Tree(treeName.Buffer(), lastPulseNumber);
+        lastPulseNumber = tree->getCurrent(treeName.Buffer());
+        delete tree;
+    }
+    catch (MDSplus::MdsException &exc) {
+        delete tree;
+        tree = NULL_PTR(MDSplus::Tree *);
+        ok = false;
+    }
+
+    ReferenceT<MDSWriter> msdWriter;
+    if (ok) {
+        msdWriter = godb->Find("Test.Data.Drv1");
+        ok = msdWriter.IsValid();
+    }
+    ReferenceT<Message> messageFlush = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageOpenTree");
+    if (ok) {
+        ok = messageFlush.IsValid();
+    }
+    if (ok) {
+        MessageI::SendMessage(messageFlush, NULL);
+    }
+
+    int32 currentPulseNumber = -1;
+    try {
+        tree = new MDSplus::Tree(treeName.Buffer(), currentPulseNumber);
+        currentPulseNumber = tree->getCurrent(treeName.Buffer());
+        delete tree;
+    }
+    catch (MDSplus::MdsException &exc) {
+        delete tree;
+        tree = NULL_PTR(MDSplus::Tree *);
+        ok = false;
+    }
+    if (ok) {
+        ok = ((currentPulseNumber - lastPulseNumber) == 1);
+    }
+    godb->Purge();
+    return ok;
 }

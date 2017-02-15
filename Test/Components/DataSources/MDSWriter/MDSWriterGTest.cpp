@@ -68,3 +68,8 @@ TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_Elements) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Elements());
 }
+
+TEST(MDSWriterGTest,TestOpenTree) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestOpenTree());
+}

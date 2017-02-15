@@ -151,7 +151,7 @@ private:
     /**
      * Data is stored in this buffer before triggering a makeSegment/makeSegmentMinMax
      */
-    char *bufferedData;
+    char8 *bufferedData;
     uint32 currentBuffer;
     uint32 makeSegmentAfterNWrites;
     uint32 minMaxResampleFactor;

@@ -70,15 +70,15 @@ MDSWriterNode::MDSWriterNode() {
 }
 
 MDSWriterNode::~MDSWriterNode() {
-    if (node != NULL) {
+    if (node != NULL_PTR(MDSplus::TreeNode *)) {
         //TODO check if the node should be deleted, or if this is done by the tree...
         delete node;
     }
-    if (decimatedNode != NULL) {
+    if (decimatedNode != NULL_PTR(MDSplus::TreeNode *)) {
         //TODO check if the node should be deleted, or if this is done by the tree...
         delete decimatedNode;
     }
-    if (bufferedData != NULL) {
+    if (bufferedData != NULL_PTR(char8 *)) {
         free((void *&) bufferedData);
     }
 }
@@ -213,6 +213,13 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
 bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree *tree) {
     bool ok = true;
     try {
+        if (node != NULL_PTR(MDSplus::TreeNode *)) {
+            delete node;
+        }
+        if (decimatedNode != NULL_PTR(MDSplus::TreeNode *)) {
+            delete decimatedNode;
+        }
+
         node = tree->getNode(nodeName.Buffer());
         node->deleteData();
         if (decimatedMinMax) {
@@ -265,7 +272,7 @@ bool MDSWriterNode::Execute() {
     }
     //If the data has to be flushed for the storeNow
     if (flush) {
-        storeNow = true;
+        storeNow = (currentBuffer > 0u);
     }
     //Sufficient data to make a segment
     if (storeNow) {
@@ -276,7 +283,7 @@ bool MDSWriterNode::Execute() {
         MDSplus::Data *startD = new MDSplus::Float64(start);
         MDSplus::Data *endD = new MDSplus::Float64(end);
         MDSplus::Data *dimension = new MDSplus::Range(startD, endD, new MDSplus::Float64(period));
-        MDSplus::Array *array = NULL;
+        MDSplus::Array *array = NULL_PTR(MDSplus::Array *);
 
         if (!useTimeVector) {
             start += numberOfElementsPerSegment * period;
@@ -306,7 +313,7 @@ bool MDSWriterNode::Execute() {
         else if (nodeType == DTYPE_DOUBLE) {
             array = new MDSplus::Float64Array((double *) bufferedData, numberOfElementsPerSegment);
         }
-        if (array != NULL) {
+        if (array != NULL_PTR(MDSplus::Array *)) {
             if (decimatedMinMax) {
                 node->makeSegmentMinMax(startD, endD, dimension, array, decimatedNode, minMaxResampleFactor);
             }

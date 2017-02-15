@@ -43,6 +43,8 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+static const int32 MDS_UNDEFINED_PULSE_NUMBER = -2;
+
 MDSWriter::MDSWriter() :
         MessageI() {
     storeOnTrigger = false;
@@ -60,7 +62,7 @@ MDSWriter::MDSWriter() :
     tree = NULL_PTR(MDSplus::Tree *);
     treeName = "";
     eventName = "";
-    pulseNumber = 0;
+    pulseNumber = MDS_UNDEFINED_PULSE_NUMBER;
     timeRefresh = 0u;
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -87,7 +89,7 @@ MDSWriter::~MDSWriter() {
     if (offsets != NULL_PTR(uint32 *)) {
         delete[] offsets;
     }
-    if (tree != NULL) {
+    if (tree != NULL_PTR(MDSplus::Tree *)) {
         delete tree;
     }
 }
@@ -240,9 +242,8 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
     }
 
     if (ok) {
-        if (data.Read("PulseNumber", pulseNumber)) {
-            ok = OpenTree();
-        }
+        //Optional parameter
+        (void) (data.Read("PulseNumber", pulseNumber));
     }
     if (ok) {
         ok = data.MoveRelative("Signals");
@@ -347,7 +348,6 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 ok = tempNodes[numberOfMDSSignals]->Initialise(originalSignalInformation);
                 if (ok) {
                     tempNodes[numberOfMDSSignals]->SetSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[n]]));
-                    tempNodes[numberOfMDSSignals]->AllocateTreeNode(tree);
                 }
                 delete[] nodes;
                 nodes = tempNodes;
@@ -420,11 +420,18 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
 
+    if (pulseNumber != MDS_UNDEFINED_PULSE_NUMBER) {
+        ok = (OpenTree(pulseNumber) == ErrorManagement::NoError);
+    }
+
     return ok;
 }
 
-bool MDSWriter::OpenTree() {
+ErrorManagement::ErrorType MDSWriter::OpenTree(int32 pulseNumber) {
     bool ok = true;
+    if (tree != NULL_PTR(MDSplus::Tree *)) {
+        delete tree;
+    }
     //Check for the latest pulse number
     if (pulseNumber == -1) {
         try {
@@ -438,7 +445,7 @@ bool MDSWriter::OpenTree() {
         catch (MDSplus::MdsException &exc) {
             pulseNumber = 1;
             delete tree;
-            tree = NULL;
+            tree = NULL_PTR(MDSplus::Tree *);
         }
 
     }
@@ -450,9 +457,9 @@ bool MDSWriter::OpenTree() {
         REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse", treeName.Buffer(),
                                 pulseNumber)
         delete tree;
-        tree = NULL;
+        tree = NULL_PTR(MDSplus::Tree *);
     }
-    if (tree == NULL) {
+    if (tree == NULL_PTR(MDSplus::Tree *)) {
         try {
             tree = new MDSplus::Tree(treeName.Buffer(), -1);
             tree->setCurrent(treeName.Buffer(), pulseNumber);
@@ -478,7 +485,18 @@ bool MDSWriter::OpenTree() {
             ok = false;
         }
     }
-    return ok;
+
+    if (ok) {
+        uint32 n;
+        if (nodes != NULL_PTR(MDSWriterNode **)) {
+            for (n = 0u; (n < numberOfMDSSignals) && (ok); n++) {
+                ok = nodes[n]->AllocateTreeNode(tree);
+            }
+        }
+    }
+
+    ErrorManagement::ErrorType ret(ok);
+    return ret;
 }
 
 ErrorManagement::ErrorType MDSWriter::FlushSegments() {
@@ -498,5 +516,6 @@ ErrorManagement::ErrorType MDSWriter::FlushSegments() {
 
 CLASS_REGISTER(MDSWriter, "1.0")
 CLASS_METHOD_REGISTER(MDSWriter, FlushSegments)
+CLASS_METHOD_REGISTER(MDSWriter, OpenTree)
 
 }
