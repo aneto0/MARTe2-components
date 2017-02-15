@@ -62,8 +62,7 @@ bool SigblockDoubleBuffer::Get(SDA::Sigblock& sb) {
 	if (acquired) {
 		//[[assert: status == READING]]
 		std::memcpy(&sb, &(buffer[sizeOfSigblock * (frontbuffer)]), sizeOfSigblock);
-        /*lint -e{534} the old value of status is not needed*/
-		XCHG<BufferStatus>(&status, FREE);
+		(void)XCHG<BufferStatus>(&status, FREE);
 	}
 	else {
 		fret = false;
@@ -80,8 +79,7 @@ bool SigblockDoubleBuffer::Put(const SDA::Sigblock& sb) {
 	if (acquired) {
 		//[[assert: status == WRITING]]
 		frontbuffer = backbuffer;
-		/*lint -e{534} the old value of status is not needed*/
-		XCHG<BufferStatus>(&status, FULL);
+		(void)XCHG<BufferStatus>(&status, FULL);
 	}
 	else {
 		fret = false;

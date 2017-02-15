@@ -49,7 +49,7 @@ namespace SDA {
 void Sigblock::Metadata::SetSignalsMetadata(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
 	std::size_t offset = 0u;
 	for (SDA::uint32 i = 0u; i < signalsCount; i++) {
-		std::strncpy(this->signalsMetadata[i].name, signalsMetadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN);
+	    (void)std::strncpy(this->signalsMetadata[i].name, signalsMetadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN);
 		this->signalsMetadata[i].size = signalsMetadata[i].size;
 		this->signalsMetadata[i].offset = offset;
 //		printf("SDA::Sigblock::Metadata::SetSignalsMetadata >>> i=%u offset=%zu this->signalsMetadata[i].offset=%zu this->signalsMetadata[i].name=%s\n", i, offset, this->signalsMetadata[i].offset, this->signalsMetadata[i].name);

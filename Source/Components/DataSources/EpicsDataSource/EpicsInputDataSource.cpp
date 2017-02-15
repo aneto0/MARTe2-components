@@ -107,8 +107,8 @@ EpicsInputDataSource::~EpicsInputDataSource() {
 //    printf("EpicsInputDataSource::~EpicsInputDataSource()\n");
     if (signals != NULL_PTR(SDA::Sigblock*)) {
     	void* mem = reinterpret_cast<void*>(signals);
-		HeapManager::Free(mem);
-		signals = static_cast<SDA::Sigblock*>(mem);
+    	(void)HeapManager::Free(mem);
+        signals = NULL_PTR(SDA::Sigblock*); //static_cast<SDA::Sigblock*>(mem);
     }
     if (consumer != NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) {
     	//TODO: Release interprocess shared memory?
@@ -137,14 +137,18 @@ bool EpicsInputDataSource::AllocateMemory() {
 	//{for all signals in datasource add it to smd_for_init}
 	ret = (numberOfSignals > 0u);
 	for (uint32 i = 0u; (i < numberOfSignals) && (ret); i++) {
+	    StreamString signalName;
 		uint32 memorySize;
-		ret = GetSignalByteSize(i, memorySize);
+        if (ret) {
+            ret = GetSignalByteSize(i, memorySize);
+        }
 		if (ret) {
-
-			StreamString signalName;
-			GetSignalName(i, signalName);
-
-			MARTe::StringHelper::CopyN(smd_for_init[i].name, signalName.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);
+			ret =GetSignalName(i, signalName);
+		}
+        if (ret) {
+			ret = MARTe::StringHelper::CopyN(smd_for_init[i].name, signalName.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);
+        }
+        if (ret) {
 			smd_for_init[i].size = memorySize;
 		}
 	}
@@ -153,7 +157,7 @@ bool EpicsInputDataSource::AllocateMemory() {
 	consumer = sbpm.GetSigblockConsumerInterface();
 	SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
 	void* mem = HeapManager::Malloc(sbmd->GetTotalSize());
-	MemoryOperationsHelper::Set(mem, '\0', sbmd->GetTotalSize());
+	(void)MemoryOperationsHelper::Set(mem, '\0', sbmd->GetTotalSize());
 	signals = static_cast<SDA::Sigblock*>(mem);
 
 	return ret;

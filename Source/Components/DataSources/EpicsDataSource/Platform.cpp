@@ -63,21 +63,21 @@ void* Platform::MakeShm(const SDA::char8* const name, const size_t size) {
     shm_fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0666u);
     if (shm_fd == -1) {
 //    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
-    	exit(EXIT_FAILURE);
+        (void)exit(EXIT_FAILURE);
     }
 
     SDA::int32 fret;
     fret = ftruncate(shm_fd, static_cast<off_t>(size));
     if (fret == -1) {
 //    	printf("*** ftruncate error (server)  [%s]***\n", strerror(errno));
-        exit(EXIT_FAILURE);
+        (void)exit(EXIT_FAILURE);
     }
 
     /*lint -e{9130} the prot argument of mmap is defined as int and it can not be changed*/
     result = mmap(NULL_PTR(void*), size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, static_cast<off_t>(0));
     if (result == /*lint -e(1924) -e(923)*/MAP_FAILED) {
 //    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
-    	exit(EXIT_FAILURE);
+        (void)exit(EXIT_FAILURE);
     }
 
     std::memset(result, 72, size);	//TODO: memset to 0!!
@@ -98,13 +98,13 @@ void* Platform::JoinShm(const SDA::char8* const name) {
     shm_fd = shm_open(name, O_RDWR, 0666u);
     if (shm_fd == -1) {
 //    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
-         exit(EXIT_FAILURE);	//TODO: Return status instead of halting program.
+         (void)exit(EXIT_FAILURE);	//TODO: Return status instead of halting program.
     }
 
     void* tmp = mmap(NULL_PTR(void*), sizeof(size_t), PROT_READ /*| PROT_WRITE*/, MAP_SHARED, shm_fd, static_cast<off_t>(0));
     if (tmp == /*lint -e(1924) -e(923)*/MAP_FAILED) {
 //    	printf("***pre mmap error (server)  [%s]***\n", strerror(errno));
-    	exit(EXIT_FAILURE);
+        (void)exit(EXIT_FAILURE);
     }
 
     size = *(static_cast<size_t*>(tmp));
@@ -113,14 +113,14 @@ void* Platform::JoinShm(const SDA::char8* const name) {
     fret = munmap(tmp, sizeof(size_t));
     if (fret == -1) {
 //    	printf("***pre munmap error (server)  [%s]***\n", strerror(errno));
-    	exit(EXIT_FAILURE);
+        (void)exit(EXIT_FAILURE);
     }
 
     /*lint -e{9130} the prot argument of mmap is defined as int and it can not be changed*/
     result = mmap(NULL_PTR(void*), size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, static_cast<off_t>(0));
     if (result == /*lint -e(1924) -e(923)*/MAP_FAILED) {
 //    	printf("*** mmap error (server)  [%s]***\n", strerror(errno));
-    	exit(EXIT_FAILURE);
+        (void)exit(EXIT_FAILURE);
     }
 
     return result;
@@ -131,12 +131,17 @@ void Platform::DettachShm(void* const shm_ptr, const size_t shm_size) {
     fret = munmap(shm_ptr, shm_size);
     if (fret == -1) {
 //    	printf("*** munmap error (server)  [%s]***\n", strerror(errno));
-    	exit(EXIT_FAILURE);
+        (void)exit(EXIT_FAILURE);
     }
 }
 
 void Platform::DestroyShm(const SDA::char8* const name) {
-    shm_unlink(name);
+    SDA::int32 fret;
+    fret = shm_unlink(name);
+    if (fret == -1) {
+//      printf("*** munmap error (server)  [%s]***\n", strerror(errno));
+        (void)exit(EXIT_FAILURE);
+    }
 }
 
 }
