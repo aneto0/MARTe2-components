@@ -72,7 +72,8 @@ bool UDPSender::Synchronise(){
     bool OK = true;
     const MARTe::uint32 udpServerExpectReadSize = nOfSignals * 8u;
     uint32 i;
-    uint8 *udpServerWriteBuffer = new uint8[udpServerExpectReadSize];
+    //uint8 *udpServerWriteBuffer = new uint8[udpServerExpectReadSize];
+    uint8 udpServerWriteBuffer[udpServerExpectReadSize];
     uint32 signalOffset = 0u;
     uint32 memoryOffset = 0u;
     for (i = 0u; i < udpServerExpectReadSize; i++){
@@ -93,7 +94,8 @@ bool UDPSender::Synchronise(){
             uint32 signalByteSize = signalsByteSize[i] / 8u;
             if (signalByteSize > 0u){
                 uint64 k;
-                uint8 *signalDataToUint8 = new uint8[signalByteSize];
+                //uint8 *signalDataToUint8 = new uint8[signalByteSize];
+                uint8 signalDataToUint8[signalByteSize];
                 for (k = 0u; k < signalByteSize; k++ ){
                     signalDataToUint8[k] = 0u;
                 }
@@ -120,7 +122,7 @@ bool UDPSender::Synchronise(){
                 for(j = 0u; j < signalByteSize; j++){
                     udpServerWriteBuffer[static_cast<uint32>(j + signalOffset)] = signalDataToUint8[j];
                 }
-                free(signalDataToUint8);
+                //HeapManager::Free(signalDataToUint8);
                 signalOffset += signalByteSize;
             }
         }
@@ -130,8 +132,8 @@ bool UDPSender::Synchronise(){
         uint32 bytesSent = udpServerExpectReadSize;
         OK = client.Write(reinterpret_cast<char8*>(udpServerWriteBuffer), bytesSent);
         UDPPacket.sequenceNumber++;
-        free(udpServerWriteBuffer);
     }
+    //HeapManager::Free(udpServerWriteBuffer);
     return OK;
 }
 
