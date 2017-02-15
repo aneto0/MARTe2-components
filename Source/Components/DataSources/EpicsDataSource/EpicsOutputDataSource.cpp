@@ -125,7 +125,7 @@ bool EpicsOutputDataSource::Synchronise() {
     else {
         ok = false;
     }
-	return ok;
+    return ok;
 }
 
 bool EpicsOutputDataSource::AllocateMemory() {
@@ -144,10 +144,10 @@ bool EpicsOutputDataSource::AllocateMemory() {
         if (ret) {
             ret = GetSignalByteSize(i, memorySize);
         }
-		if (ret) {
+        if (ret) {
 		    ret = MARTe::StringHelper::CopyN(smd_for_init[i].name, signalName.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);
 		}
-		if (ret) {
+        if (ret) {
 		    smd_for_init[i].size = memorySize;
 		}
 	}
