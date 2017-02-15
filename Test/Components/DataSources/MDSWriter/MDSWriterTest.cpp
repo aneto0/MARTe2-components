@@ -360,19 +360,16 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
         ok = god->Initialise(cdb);
     }
     ReferenceT<RealTimeApplication> application;
+    ReferenceT<MDSWriterSchedulerTestHelper> scheduler;
+    ReferenceT<MDSWriterGAMTriggerTestHelper> gam;
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
     if (ok) {
         application = god->Find("Test");
         ok = application.IsValid();
     }
     if (ok) {
         ok = application->ConfigureApplication();
-    }
-    ReferenceT<MDSWriterSchedulerTestHelper> scheduler;
-    ReferenceT<MDSWriterGAMTriggerTestHelper> gam;
-    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
-    if (ok) {
-        application = godb->Find("Test");
-        ok = application.IsValid();
     }
     if (ok) {
         scheduler = application->Find("Scheduler");
@@ -427,11 +424,11 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     if (ok) {
         try {
             sigUInt16 = tree->getNode("SIGUINT16");
-            sigInt16 = tree->getNode("SIGUINT16");
+            sigInt16 = tree->getNode("SIGINT16");
             sigUInt32 = tree->getNode("SIGUINT32");
-            sigInt32 = tree->getNode("SIGUINT32");
+            sigInt32 = tree->getNode("SIGINT32");
             sigUInt64 = tree->getNode("SIGUINT64");
-            sigInt64 = tree->getNode("SIGUINT64");
+            sigInt64 = tree->getNode("SIGINT64");
             sigFloat32 = tree->getNode("SIGFLT32");
             sigFloat64 = tree->getNode("SIGFLT64");
             sigUInt16->deleteData();
@@ -445,16 +442,16 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
 
             sigUInt16D = tree->getNode("SIGUINT16D");
             sigUInt16F = tree->getNode("SIGUINT16F");
-            sigInt16D = tree->getNode("SIGUINT16D");
-            sigInt16F = tree->getNode("SIGUINT16F");
+            sigInt16D = tree->getNode("SIGINT16D");
+            sigInt16F = tree->getNode("SIGINT16F");
             sigUInt32D = tree->getNode("SIGUINT32D");
             sigUInt32F = tree->getNode("SIGUINT32F");
-            sigInt32D = tree->getNode("SIGUINT32D");
-            sigInt32F = tree->getNode("SIGUINT32F");
+            sigInt32D = tree->getNode("SIGINT32D");
+            sigInt32F = tree->getNode("SIGINT32F");
             sigUInt64D = tree->getNode("SIGUINT64D");
             sigUInt64F = tree->getNode("SIGUINT64F");
-            sigInt64D = tree->getNode("SIGUINT64D");
-            sigInt64F = tree->getNode("SIGUINT64F");
+            sigInt64D = tree->getNode("SIGINT64D");
+            sigInt64F = tree->getNode("SIGINT64F");
             sigFloat32D = tree->getNode("SIGFLT32D");
             sigFloat32F = tree->getNode("SIGFLT32F");
             sigFloat64D = tree->getNode("SIGFLT64D");
@@ -1545,8 +1542,8 @@ static const MARTe::char8 * const config6 = ""
         "        Class = ReferenceContainer"
         "        +GAM1 = {"
         "            Class = MDSWriterGAMTriggerTestHelper"
-        "            Signal =   {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-        "            Trigger =  {0 1 0 1 0 1 0 1 1 1 1 1 1 1}"
+        "            Signal =   {8 1 2 3 4 5 6 7 }"
+        "            Trigger =  {0 1 0 1 0 1 0 1 }"
         "            OutputSignals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -1559,7 +1556,6 @@ static const MARTe::char8 * const config6 = ""
         "                SignalUInt16F = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
-        "                    NumberOfElements = 4"
         "                }"
         "            }"
         "        }"
@@ -1576,18 +1572,15 @@ static const MARTe::char8 * const config6 = ""
         "            CPUMask = 15"
         "            StackSize = 10000000"
         "            TreeName = \"mds_m2test\""
-        "            StoreOnTrigger = 1"
+        "            StoreOnTrigger = 0"
         "            EventName = \"updatejScope\""
         "            TimeRefresh = 5"
-        "            NumberOfPreTriggers = 2"
-        "            NumberOfPostTriggers = 1"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
         "                }"
         "                Time = {"
         "                    Type = uint32"
-        "                    TimeSignal = 1"
         "                }"
         "                SignalUInt16F = {"
         "                    NodeName = \"SIGUINT16F\""
@@ -1776,6 +1769,83 @@ bool MDSWriterTest::TestOpenTree() {
     }
     if (ok) {
         ok = ((currentPulseNumber - lastPulseNumber) == 1);
+    }
+
+    //Check that data can be successfully stored in the new pulse number
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    ReferenceT<MDSWriterSchedulerTestHelper> scheduler;
+    ReferenceT<MDSWriterGAMTriggerTestHelper> gam;
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        scheduler = application->Find("Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        gam = application->Find("Functions.GAM1");
+        ok = gam.IsValid();
+    }
+    //Open the tree and check if the data was correctly stored.
+    //Create a pulse. It assumes that the tree template is already created!!
+    if (ok) {
+        try {
+            tree = new MDSplus::Tree(treeName.Buffer(), currentPulseNumber);
+        }
+        catch (MDSplus::MdsException &exc) {
+            delete tree;
+            tree = NULL;
+            ok = false;
+        }
+    }
+    MDSplus::TreeNode *sigUInt16F;
+    if (ok) {
+        try {
+            sigUInt16F = tree->getNode("SIGUINT16F");
+            sigUInt16F->deleteData();
+        }
+        catch (MDSplus::MdsException &exc) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            ok = false;
+        }
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+
+    uint32 i;
+    for (i = 0; (i < gam->numberOfExecutes) && (ok); i++) {
+        scheduler->ExecuteThreadCycle(0);
+        Sleep::MSec(10);
+    }
+    if (ok) {
+        ok = application->StopCurrentStateExecution();
+    }
+    const int32 numberOfSegments = 2;
+    if (ok) {
+        const uint64 maxTimeoutSeconds = 2;
+        uint64 maxTimeout = HighResolutionTimer::Counter() + maxTimeoutSeconds * HighResolutionTimer::Frequency();
+        while ((sigUInt16F->getNumSegments() != numberOfSegments) && (ok)) {
+            Sleep::MSec(10);
+            ok = (HighResolutionTimer::Counter() < maxTimeout);
+        }
+    }
+    if (ok) {
+        uint32 signalToVerify[] = { 8, 1, 2, 3, 4, 5,  6,  7 };
+        uint32 timeToVerify[] =   { 0, 2, 4, 6, 8, 10, 12, 14 };
+        ok &= CheckSegmentData<uint16>(numberOfSegments, sigUInt16F, signalToVerify, timeToVerify);
+    }
+
+    if (tree != NULL) {
+        delete tree;
     }
     godb->Purge();
     return ok;
