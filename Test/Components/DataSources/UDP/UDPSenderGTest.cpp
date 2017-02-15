@@ -116,9 +116,34 @@ TEST(UDPSenderGTest,TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
+TEST(UDPSenderGTest, TestSetConfiguredDatabase_More_Minimum_Signals) {
+    UDPSenderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_More_Minimum_Signals());
+}
+
 TEST(UDPSenderGTest,TestSetConfiguredDatabase_False_NOfSignals) {
     UDPSenderTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals());
+}
+
+TEST(UDPSenderGTest, TestSetConfiguredDatabase_Incorrect_Signal_Size1) {
+    UDPSenderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Incorrect_Signal_Size1());
+}
+
+TEST(UDPSenderGTest, TestSetConfiguredDatabase_Incorrect_Signal_Size2) {
+    UDPSenderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Incorrect_Signal_Size2());
+}
+
+TEST(UDPSenderGTest, TestSetConfiguredDatabase_Incorrect_Signal_Type1) {
+    UDPSenderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Incorrect_Signal_Type1());
+}
+
+TEST(UDPSenderGTest, TestSetConfiguredDatabase_Incorrect_Signal_Type2) {
+    UDPSenderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Incorrect_Signal_Type2());
 }
 
 TEST(UDPSenderGTest,TestAllocateMemory) {

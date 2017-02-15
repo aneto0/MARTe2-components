@@ -73,7 +73,17 @@ public:
 
     bool TestSetConfiguredDatabase();
 
+    bool TestSetConfiguredDatabase_More_Minimum_Signals();
+
     bool TestSetConfiguredDatabase_False_NOfSignals();
+
+    bool TestSetConfiguredDatabase_Incorrect_Signal_Size1();
+
+    bool TestSetConfiguredDatabase_Incorrect_Signal_Size2();
+
+    bool TestSetConfiguredDatabase_Incorrect_Signal_Type1();
+
+    bool TestSetConfiguredDatabase_Incorrect_Signal_Type2();
 
     bool TestAllocateMemory();
 
