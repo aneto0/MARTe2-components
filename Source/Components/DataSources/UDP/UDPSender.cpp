@@ -75,7 +75,6 @@ bool UDPSender::Synchronise(){
     uint8 *udpServerWriteBuffer = new uint8[udpServerExpectReadSize];
     uint32 signalOffset = 0u;
     uint32 memoryOffset = 0u;
-    memset(static_cast<void*>(udpServerWriteBuffer), 0, sizeof(udpServerWriteBuffer));
     for (i = 0u; i < udpServerExpectReadSize; i++){
         udpServerWriteBuffer[i] = 0u;
     }
@@ -95,7 +94,6 @@ bool UDPSender::Synchronise(){
             if (signalByteSize > 0u){
                 uint64 k;
                 uint8 *signalDataToUint8 = new uint8[signalByteSize];
-                memset(static_cast<void*>(signalDataToUint8), 0, sizeof(signalDataToUint8));
                 for (k = 0u; k < signalByteSize; k++ ){
                     signalDataToUint8[k] = 0u;
                 }
@@ -122,6 +120,7 @@ bool UDPSender::Synchronise(){
                 for(j = 0u; j < signalByteSize; j++){
                     udpServerWriteBuffer[static_cast<uint32>(j + signalOffset)] = signalDataToUint8[j];
                 }
+                GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(signalDataToUint8);
                 signalOffset += signalByteSize;
             }
         }
@@ -131,6 +130,7 @@ bool UDPSender::Synchronise(){
         uint32 bytesSent = udpServerExpectReadSize;
         OK = client.Write(reinterpret_cast<char8*>(udpServerWriteBuffer), bytesSent);
         UDPPacket.sequenceNumber++;
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(udpServerWriteBuffer);
     }
     return OK;
 }
