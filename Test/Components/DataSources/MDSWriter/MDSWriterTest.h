@@ -59,6 +59,16 @@ public:
      * TODO
      */
     bool TestIntegratedInApplication_Trigger();
+
+    /**
+     * TODO
+     */
+    bool TestIntegratedInApplication_NoTrigger_Elements();
+
+    /**
+     * TODO
+     */
+    bool TestIntegratedInApplication_Trigger_Elements();
 };
 
 /*---------------------------------------------------------------------------*/

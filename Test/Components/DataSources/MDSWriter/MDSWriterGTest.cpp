@@ -58,3 +58,13 @@ TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestIntegratedInApplication_Trigger());
 }
+
+TEST(MDSWriterGTest,TestIntegratedInApplication_NoTrigger_Elements) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger_Elements());
+}
+
+TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_Elements) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Elements());
+}

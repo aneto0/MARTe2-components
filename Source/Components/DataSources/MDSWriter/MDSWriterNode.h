@@ -113,9 +113,9 @@ private:
     uint32 typeMultiplier;
 
     /**
-     * Period in micro-seconds
+     * Period at which a write is performed in micro-seconds
      */
-    uint32 periodMicroSecond;
+    uint32 writePeriodMicroSecond;
 
     /**
      * TODO

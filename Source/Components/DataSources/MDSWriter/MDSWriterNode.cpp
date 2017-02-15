@@ -62,7 +62,7 @@ MDSWriterNode::MDSWriterNode() {
     signalMemory = NULL_PTR(void *);
     timeSignalMemory = NULL_PTR(uint32 *);
     lastWriteTimeSignal = 0u;
-    periodMicroSecond = 0u;
+    writePeriodMicroSecond = 0u;
     useTimeVector = false;
 
     start = 0.F;
@@ -203,7 +203,7 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
 
         bufferedData = reinterpret_cast<char *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufferedDataSize));
 
-        periodMicroSecond = period * 1e6;
+        writePeriodMicroSecond = numberOfElements * (period * 1e6);
 
         Reset();
     }
@@ -239,6 +239,12 @@ void MDSWriterNode::Reset() {
 bool MDSWriterNode::Execute() {
     bool ok = true;
     if (!flush) {
+        //If we are using a triggering source get the signal from a time source, as samples might not be continuous
+        if (useTimeVector) {
+            if (currentBuffer == 0u) {
+                start = (*timeSignalMemory) * 1e-6;
+            }
+        }
         if (currentBuffer < makeSegmentAfterNWrites) {
             ok = MemoryOperationsHelper::Copy(&bufferedData[currentBuffer * numberOfElements * typeMultiplier], signalMemory,
                                               numberOfElements * typeMultiplier);
@@ -250,7 +256,7 @@ bool MDSWriterNode::Execute() {
     bool storeNow = (currentBuffer == (makeSegmentAfterNWrites));
     if (useTimeVector) {
         //If we are acquiring data based on events (which do not necessarily occur sequentially in time, trigger every time there is a change in the time vector)
-        if ((*timeSignalMemory - lastWriteTimeSignal) != periodMicroSecond) {
+        if ((*timeSignalMemory - lastWriteTimeSignal) != writePeriodMicroSecond) {
             if (nOfWriteCalls > 0u) {
                 storeNow = true;
             }
@@ -265,11 +271,6 @@ bool MDSWriterNode::Execute() {
     if (storeNow) {
         uint32 numberOfElementsPerSegment = numberOfElements * currentBuffer;
         currentBuffer = 0;
-
-        //If we are using a triggering source get the signal from a time source, as samples might not be continuous
-        if (useTimeVector) {
-            start = (*timeSignalMemory) * 1e-6;
-        }
 
         double end = start + ((numberOfElementsPerSegment - 1) * period);
         MDSplus::Data *startD = new MDSplus::Float64(start);
