@@ -21,18 +21,16 @@
  * methods, such as those inline could be defined on the header file, instead.
  */
 
-#include "UDPReceiver.h"
-#include "FastPollingMutexSem.h"
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
-#include "ErrorManagement.h"
-#include "ErrorInformation.h"
-#include "GlobalObjectsDatabase.h"
 #include "ConfigurationDatabase.h"
-
+#include "ErrorInformation.h"
+#include "ErrorManagement.h"
+#include "FastPollingMutexSem.h"
+#include "GlobalObjectsDatabase.h"
 #include "MemoryMapInputBroker.h"
-
 #include "Threads.h"
+#include "UDPReceiver.h"
 #include "UDPSocket.h"
 
 namespace MARTe{

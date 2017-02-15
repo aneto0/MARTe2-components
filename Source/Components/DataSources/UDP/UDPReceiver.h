@@ -31,11 +31,11 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "DataSourceI.h"
 #include "CompilerTypes.h"
-#include "SingleThreadService.h"
+#include "DataSourceI.h"
 #include "EmbeddedServiceMethodBinderI.h"
 #include "EventSem.h"
+#include "SingleThreadService.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

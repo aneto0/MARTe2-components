@@ -29,12 +29,13 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "UDPSender.h"
+
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
-#include "Shift.h"
-#include "UDPSocket.h"
 #include "MemoryMapSynchronisedOutputBroker.h"
+#include "Shift.h"
+#include "UDPSender.h"
+#include "UDPSocket.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
