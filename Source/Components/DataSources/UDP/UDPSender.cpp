@@ -68,7 +68,9 @@ UDPSender::~UDPSender(){
     }
     GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(UDPPacket.dataBuffer);
 }
+
 /*lint -e{771} Justification: the arrays are initialised in a For loop after being declared, and not picked up by lint.*/
+/*lint -e{772} Justification: the arrays are initialised in a For loop after being declared, and not picked up by lint.*/
 bool UDPSender::Synchronise(){
     bool OK = true;
     const MARTe::uint32 udpServerExpectReadSize = nOfSignals * 8u;
