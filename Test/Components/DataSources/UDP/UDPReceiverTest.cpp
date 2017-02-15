@@ -175,18 +175,15 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
     }
             Sleep::Sec(5lu);
 
-    REPORT_ERROR(ErrorManagement::InternalSetupError, "About to stop execution");
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::StartNextStateExecution failed");
     } else {
         application->StopCurrentStateExecution();
     }
-    REPORT_ERROR(ErrorManagement::InternalSetupError, "About to purge");
 
     god->Purge();
 
-    REPORT_ERROR(ErrorManagement::InternalSetupError, "after to purge");
 
     
     return ok;
