@@ -54,7 +54,7 @@ namespace MARTe{
  *          Time = { //Mandatory. Elapsed time in micro-seconds since last state change.
  *               Type = uint32 //Mandatory (Note: Sender and Receiver must be same type). int32, int64, uint64 also supported.
  *          }
- *          Signal1 = { //Zero or more extra signals shall be defined
+ *          Signal1 = { //One or more extra signals shall be defined
  *              Type = float32 //Mandatory (Note: Sender and Receiver must be same type). All other MARTe types are supported
  *          }
  *          Signal2 = {
@@ -73,9 +73,9 @@ public:
      * @details The layout for the packet that will be transmitted
      */
     struct UDPMsgStruct{
-    uint64 sequenceNumber;
-    uint64 timer;
-    void *dataBuffer;
+        uint64 sequenceNumber;
+        uint64 timer;
+        void *dataBuffer;
     };
 
     /**
@@ -164,9 +164,24 @@ public:
 
 private:
 
+    /**
+     * The datapacket structure that will be recieved
+     */
     UDPMsgStruct UDPPacket;
+
+    /**
+     * The IP address to which the data will be transmitted to
+     */
     StreamString udpServerAddress;
+
+    /**
+     * The time when the state was last changed
+     */
     uint64 timerAtStateChange;
+
+    /**
+     * The maximum memory address pointer that should be defined, used to avoid out of bounds memory access
+     */
     uint32 maximumMemoryAccess;
 };
 }

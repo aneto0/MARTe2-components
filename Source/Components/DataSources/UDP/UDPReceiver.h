@@ -48,6 +48,7 @@ namespace MARTe{
  * +UDPReceiver = {
  *     Class = UDPDrv::UDPReceiver
  *     Port = "44488" //Optional (default 44488) The port of the UDPReciever
+ *     Timeout = "5" //Optional (default infinite, also known as 0) The time that the reciever will listen on a defined port before timeout
  *     Signals = {
  *          Counter = { //Mandatory. Number of ticks since last state change.
  *              Type = uint32 //Mandatory (Note: Sender and Receiver must be same type). int32, int64, uint64 also supported.
@@ -55,7 +56,7 @@ namespace MARTe{
  *          Time = { //Mandatory. Elapsed time in micro-seconds since last state change.
  *               Type = uint32 //Mandatory (Note: Sender and Receiver must be same type). int32, int64, uint64 also supported.
  *          }
- *          Signal1 = { //Zero or more extra signals shall be defined
+ *          Signal1 = { //One or more extra signals shall be defined
  *              Type = float32 //Mandatory (Note: Sender and Receiver must be same type). All other MARTe types are supported
  *          }
  *          Signal2 = {
@@ -74,9 +75,9 @@ public:
      * @details The layout for the packet that will be recieved
      */
     struct UDPMsgStruct{
-    uint64 sequenceNumber;
-    uint64 timer;
-    void *dataBuffer;
+        uint64 sequenceNumber;
+        uint64 timer;
+        void *dataBuffer;
     };   
     
     /**
@@ -187,20 +188,35 @@ private:
      */
     bool synchronising;
 
-
+    /**
+     * The datapacket structure that will be recieved
+     */
     UDPMsgStruct UDPPacket;
 
-
+    /**
+     * True if the server should remain running
+     */
     bool keepRunning;
 
-
+    /**
+     * True if the server recieved data of the correct size (number of bytes defined in configuration file matches 
+     * that to which is recieved)
+     */
     bool dataRecievedCorrectSize;
 
-
+    /**
+     * True if data is recieved within the timeout period specified
+     */
     bool dataRecieved;
 
+    /**
+     * The timeout for which the server will listen to the specified port
+     */
     TimeoutType timeout;
 
+    /**
+     * The maximum memory address pointer that should be defined, used to avoid out of bounds memory access
+     */
     uint32 maximumMemoryAccess;
 
 };
