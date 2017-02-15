@@ -28,8 +28,6 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include <cstddef>
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -73,7 +71,7 @@ public:
 	 * @param[in] bufferSize //TODO document it or purge it
 	 * @param[in] sizeOfSigblock The size of the sigblock
 	 */
-    void Reset(const SDA::uint32 bufferSize, const std::size_t sizeOfSigblock);
+    void Reset(const SDA::uint32 bufferSize, const SDA::size_type sizeOfSigblock);
 
     /**
      * @brief Gets a sigblock from the double buffer.
@@ -110,7 +108,7 @@ private:
 	/*
 	 * Size of the sigblock
 	 */
-    std::size_t sizeOfSigblock;
+	SDA::size_type sizeOfSigblock;
 
     /**
      * Index of the current front buffer

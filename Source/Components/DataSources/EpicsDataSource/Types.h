@@ -28,6 +28,8 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
+#include <cstddef>
+
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -72,11 +74,15 @@ namespace SDA {
 	 */
 	typedef char byte;
 
+	/**
+	 * Type alias for size_t
+	 */
+    typedef std::size_t size_type;
+
     /**
      * Maximum value for unsigned integers of 32 bits
      */
     static const uint32 MAX_UINT32 = 0xFFFFFFFFU;
-
 }
 
 /*---------------------------------------------------------------------------*/

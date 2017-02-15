@@ -27,8 +27,10 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 
-#include <cstdio>
-#include <cstring>
+//#include <cstdio>
+//#ifndef LINT
+//#include <cstring>
+//#endif
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -52,8 +54,8 @@ namespace {
  * @post Result == sum of size for all elements into signalsMetadata array
  * @returns Result
  */
-static std::size_t CalculateSizeOfSigblock(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
-	std::size_t sigblockSize = 0u;
+static SDA::size_type CalculateSizeOfSigblock(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
+    SDA::size_type sigblockSize = 0u;
 	for (SDA::uint32 i = 0u; i < signalsCount; i++) {
 		sigblockSize += signalsMetadata[i].size;
 	}
@@ -94,7 +96,7 @@ SharedDataArea::SigblockConsumer* SharedDataArea::GetSigblockConsumerInterface()
     return reinterpret_cast<SigblockConsumer*>(shm);
 }
 
-void SharedDataArea::Representation::FillPreHeader(const std::size_t sizeOfHeader, const std::size_t sizeOfItems) {
+void SharedDataArea::Representation::FillPreHeader(const SDA::size_type sizeOfHeader, const SDA::size_type sizeOfItems) {
     //TODO: Purge sizeOfItems parameter.
 	hasReader = false;
 	hasWriter = false;
@@ -108,16 +110,16 @@ void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, 
 	header->SetSignalsMetadata(signalsCount, signalsMetadata);
 }
 
-void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, const std::size_t sizeOfSigblock) {
+void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, const SDA::size_type sizeOfSigblock) {
 	SDA::SigblockDoubleBuffer* items = Items();
 	items->Reset(bufferSize, sizeOfSigblock);
 }
 
 SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize) {
-	std::size_t sizeOfSigblock = CalculateSizeOfSigblock(signalsCount, signalsMetadata);
-	std::size_t sizeOfHeader = SDA::Sigblock::Metadata::SizeOf(signalsCount);
-	std::size_t sizeOfItems = (bufferSize * sizeOfSigblock); //TODO: Abstract this private knowledge
-	std::size_t totalSize = (sizeof(SharedDataArea::Representation) + sizeOfHeader + sizeOfItems);
+    SDA::size_type sizeOfSigblock = CalculateSizeOfSigblock(signalsCount, signalsMetadata);
+    SDA::size_type sizeOfHeader = SDA::Sigblock::Metadata::SizeOf(signalsCount);
+    SDA::size_type sizeOfItems = (bufferSize * sizeOfSigblock); //TODO: Abstract this private knowledge
+    SDA::size_type totalSize = (sizeof(SharedDataArea::Representation) + sizeOfHeader + sizeOfItems);
 //	SharedDataArea* obj = NULL;
 	Representation* tmp_shm_ptr = NULL_PTR(Representation*);
 

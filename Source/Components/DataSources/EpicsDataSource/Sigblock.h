@@ -28,13 +28,12 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include <cstddef>
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
 #include "Signal.h"
+#include "Types.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -97,17 +96,17 @@ public:
 		 * @brief Gets the signal's size from its index.
 		 * @param[in] The index of the signal.
 		 */
-		std::size_t GetSignalSizeByIndex(const SDA::int32 index);
+		SDA::size_type GetSignalSizeByIndex(const SDA::int32 index);
 
 		/**
 		 * @brief Gets the total size of the sigblock.
 		 */
-		std::size_t GetTotalSize();
+		SDA::size_type GetTotalSize();
 
 		/**
 		 * @brief Calculates the size needed to hold an instance of this class.
 		 */
-		static std::size_t SizeOf(const SDA::uint32 signalsCount);
+		static SDA::size_type SizeOf(const SDA::uint32 signalsCount);
 
 	private:
 
@@ -127,7 +126,7 @@ public:
 			/**
 			 * The offset of the signal respect the beginning of the sigblock.
 			 */
-			std::size_t offset;
+		    SDA::size_type offset;
 		};
 
 		/**
@@ -151,7 +150,7 @@ public:
 	 * @param[in] offset The offset of the signal in bytes, relative to the
 	 * beginning of the sigblock.
 	 */
-	void* GetSignalAddress(const std::size_t offset);
+	void* GetSignalAddress(const SDA::size_type offset);
 };
 
 }

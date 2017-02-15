@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef ATOMIC_H_
-#define ATOMIC_H_
+#ifndef ATOMIC2_H_
+#define ATOMIC2_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -101,7 +101,7 @@ namespace SDA {
 
 /*lint -estring(526,__sync_bool_compare_and_swap) -estring(628,__sync_bool_compare_and_swap) -estring(746,__sync_bool_compare_and_swap) -estring(1055,__sync_bool_compare_and_swap) The __sync_bool_compare_and_swap function is a GCC built-in function, so it does not have declaration.*/
 
-/*lint -estring(526,__sync_lock_test_and_set) -estring(628,__sync_lock_test_and_set) -estring(746,__sync_lock_test_and_set) -estring(1055,__sync_lock_test_and_set) The __sync_lock_test_and_set function is a GCC built-in function, so it does not have declaration.*/
+/*lint -estring(526,*__sync_lock_test_and_set) -estring(628,*__sync_lock_test_and_set) -estring(746,*__sync_lock_test_and_set) -estring(1055,*__sync_lock_test_and_set) The __sync_lock_test_and_set function is a GCC built-in function, so it does not have declaration.*/
 
 /*
  * Note: In GCC, CAS is mapped to the __sync_bool_compare_and_swap function,
@@ -160,4 +160,4 @@ void WRITE(volatile T* const b, const T v) {
 
 }
 
-#endif /* ATOMIC_H_ */
+#endif /* ATOMIC2_H_ */

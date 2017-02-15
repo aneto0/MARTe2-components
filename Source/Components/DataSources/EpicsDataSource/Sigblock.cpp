@@ -27,8 +27,10 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 
-#include <cstdio>
+#ifndef LINT
 #include <cstring>
+//#include <cstdio>
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -47,7 +49,7 @@
 namespace SDA {
 
 void Sigblock::Metadata::SetSignalsMetadata(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
-	std::size_t offset = 0u;
+    SDA::size_type offset = 0u;
 	for (SDA::uint32 i = 0u; i < signalsCount; i++) {
 	    (void)std::strncpy(this->signalsMetadata[i].name, signalsMetadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN);
 		this->signalsMetadata[i].size = signalsMetadata[i].size;
@@ -86,19 +88,19 @@ SDA::uint32 Sigblock::Metadata::GetSignalOffsetByIndex(const SDA::uint32 index) 
 	return signalsMetadata[index].offset;
 }
 
-std::size_t Sigblock::Metadata::GetSignalSizeByIndex(const SDA::int32 index) {
+SDA::size_type Sigblock::Metadata::GetSignalSizeByIndex(const SDA::int32 index) {
 	return signalsMetadata[index].size;
 }
 
-std::size_t Sigblock::Metadata::GetTotalSize() {
+SDA::size_type Sigblock::Metadata::GetTotalSize() {
 	return (sizeof(SDA::Signal::Metadata) * signalsCount);
 }
 
-std::size_t Sigblock::Metadata::SizeOf(const SDA::uint32 signalsCount) {
-	return (sizeof(SDA::uint32) + (signalsCount * (sizeof(SDA::Signal::Metadata)+sizeof(std::size_t))));
+SDA::size_type Sigblock::Metadata::SizeOf(const SDA::uint32 signalsCount) {
+	return (sizeof(SDA::uint32) + (signalsCount * (sizeof(SDA::Signal::Metadata)+sizeof(SDA::size_type))));
 }
 
-void* Sigblock::GetSignalAddress(const std::size_t offset) {
+void* Sigblock::GetSignalAddress(const SDA::size_type offset) {
 	/*lint -e{9016} [MISRA C++ Rule 5-0-15] pointer arithmetic is needed in this case*/
 	return this + offset;
 }

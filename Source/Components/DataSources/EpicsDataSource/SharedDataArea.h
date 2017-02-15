@@ -28,8 +28,6 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include <cstddef>
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -111,16 +109,16 @@ private:
 		SDA::Sigblock::Metadata* Header();
 		SDA::SigblockDoubleBuffer* Items();
 		bool IsOperational() const;
-		void FillPreHeader(const std::size_t sizeOfHeader, const std::size_t sizeOfItems);
+		void FillPreHeader(const SDA::size_type sizeOfHeader, const SDA::size_type sizeOfItems);
 		void FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]);
-		void FillItems(const SDA::uint32 bufferSize, const std::size_t sizeOfSigblock);
-		const std::size_t size;
+		void FillItems(const SDA::uint32 bufferSize, const SDA::size_type sizeOfSigblock);
+		const SDA::size_type size;
 		bool hasReader;
 		bool hasWriter;
 		SDA::uint64 droppedWrites;	//TODO PURGE??
 		SDA::uint64 missedReads;	//TODO PURGE??
-		std::size_t offsetOfHeader;
-		std::size_t offsetOfItems;
+		SDA::size_type offsetOfHeader;
+		SDA::size_type offsetOfItems;
 		/*lint -e{1501} The following data member has no size because it is
 		 * mapped onto a previously allocated memory, whose size is unknown
 		 * at compile time.*/

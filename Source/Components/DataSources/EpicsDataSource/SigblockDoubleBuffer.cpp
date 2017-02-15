@@ -27,15 +27,17 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 
+#ifndef LINT
 #include <cstring>
+#endif
+
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
 #include "SigblockDoubleBuffer.h"
-#include "Atomic.h"
-#include "Platform.h"
+#include "Atomic2.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -47,13 +49,13 @@
 
 namespace SDA {
 
-void SigblockDoubleBuffer::Reset(const SDA::uint32 bufferSize, const std::size_t sizeOfSigblock) {
+void SigblockDoubleBuffer::Reset(const SDA::uint32 bufferSize, const SDA::size_type sizeOfSigblock) {
 	//this->bufferSize = bufferSize;	//TODO: Purge this field.
 	this->sizeOfSigblock = sizeOfSigblock;
 	frontbuffer = 0u;
 	status = FREE;
 	/*lint -e{9132} buffer is the base address of the allocated memory*/
-	std::memset(buffer, 0, sizeOfSigblock*2u);
+	(void)std::memset(buffer, 0, sizeOfSigblock*2u);
 }
 
 bool SigblockDoubleBuffer::Get(SDA::Sigblock& item) {
@@ -61,7 +63,7 @@ bool SigblockDoubleBuffer::Get(SDA::Sigblock& item) {
 	bool acquired = CAS<BufferStatus>(&status, FULL, READING);
 	if (acquired) {
 		//[[assert: status == READING]]
-		std::memcpy(&item, &(buffer[sizeOfSigblock * (frontbuffer)]), sizeOfSigblock);
+		(void)std::memcpy(&item, &(buffer[sizeOfSigblock * (frontbuffer)]), sizeOfSigblock);
 		(void)XCHG<BufferStatus>(&status, FREE);
 	}
 	else {
@@ -73,7 +75,7 @@ bool SigblockDoubleBuffer::Get(SDA::Sigblock& item) {
 bool SigblockDoubleBuffer::Put(const SDA::Sigblock& item) {
 	bool fret = true;
 	SDA::uint32 backbuffer = ((frontbuffer + 1u) % TWO);
-	std::memcpy(&(buffer[sizeOfSigblock * backbuffer]), &item, sizeOfSigblock);
+	(void)std::memcpy(&(buffer[sizeOfSigblock * backbuffer]), &item, sizeOfSigblock);
 	/*lint -e{9007} if left hand of logical operator is true the CAS on right hand must not be executed*/
 	bool acquired = (CAS<BufferStatus>(&status, FREE, WRITING) || CAS<BufferStatus>(&status, FULL, WRITING));
 	if (acquired) {

@@ -12,14 +12,15 @@
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper
 
+Atomic2.h
 EpicsInputDataSource.cpp
 EpicsOutputDataSource.cpp
-SigblockDoubleBuffer.cpp
+Signal.h
+Platform.cpp
 SharedDataArea.cpp
 Sigblock.cpp
-Platform.cpp
-Signal.h
-Atomic.h
+SigblockDoubleBuffer.cpp
+Types.h
 BaseLib2GAM.cpp
 IOGAM.cpp
 LinuxTimer.cpp

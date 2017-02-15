@@ -28,8 +28,6 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include <cstddef>
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -71,7 +69,7 @@ public:
 		/**
 		 * The size of the signal's representation.
 		 */
-		std::size_t size;
+		SDA::size_type size;
 
 		/**
 		 * @brief Default constructor
