@@ -140,9 +140,7 @@ bool EpicsOutputDataSource::AllocateMemory() {
 	for (uint32 i = 0u; (i < numberOfSignals) && (ret); i++) {
 		StreamString signalName;
 		uint32 memorySize;
-		if (ret) {
-			ret = GetSignalName(i, signalName);
-		}
+		ret = GetSignalName(i, signalName);
         if (ret) {
             ret = GetSignalByteSize(i, memorySize);
         }
