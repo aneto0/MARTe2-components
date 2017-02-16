@@ -35,7 +35,6 @@
 namespace MARTe{
 
 UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this){
-    synchronising = true;
     keepRunning = true;
     dataRecievedCorrectSize = false;
     dataRecieved = false;
@@ -68,6 +67,18 @@ UDPReceiver::~UDPReceiver(){
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP reciever server.");
     }
     GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(dataBuffer);
+    if (sequenceNumberPtr == NULL_PTR(uint64*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"sequenceNumberPtr\" was not initialised!");
+    }else{
+        sequenceNumberPtr = NULL_PTR(uint64*);
+    }
+    
+    if (timerPtr == NULL_PTR(uint64*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"timerPtr\" was not initialised!");
+    }else{
+        timerPtr = NULL_PTR(uint64*);
+    }
+
     if (signalsMemoryOffset == NULL_PTR(uint32*)){
         REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
     }else{
@@ -80,9 +91,7 @@ UDPReceiver::~UDPReceiver(){
  */
 bool UDPReceiver::Synchronise(){
     ErrorManagement::ErrorType err;
-    if (synchronising) {
-        err = synchSem.ResetWait(TTInfiniteWait);
-    }    
+    err = synchSem.ResetWait(TTInfiniteWait);  
     return err.ErrorsCleared();
 }
 
@@ -262,7 +271,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
         uint16 lastSignalIdx = GetNumberOfSignals() - 1u;
-        GetSignalByteSize(lastSignalIdx, signalByteSize);
+        ok = GetSignalByteSize(lastSignalIdx, signalByteSize);
         totalPacketSize = signalsMemoryOffset[lastSignalIdx] + signalByteSize;
         ok = (GetSignalType(0u).numberOfBits == 32u);
         if (!ok) {
@@ -317,7 +326,6 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
     else{
         uint32 udpServerExpectReadSize = totalPacketSize;
         uint32 udpServerReadSize = udpServerExpectReadSize;
-        uint8 i;
         if (keepRunning) {
             dataRecieved = server.Read(reinterpret_cast<char8*>(dataBuffer), udpServerReadSize,  timeout);
         }
@@ -329,12 +337,11 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         }else if(!dataRecievedCorrectSize){
             REPORT_ERROR(ErrorManagement::ParametersError, "Recieved data of inccorect size, ignoring it.");
             Sleep::Sec(100e-6);
+        }else{
+            err = !synchSem.Post();
         }
     }
 
-    if (synchronising) {
-            err = !synchSem.Post();
-    }
     return err;
 }
 CLASS_REGISTER(UDPReceiver, "1.0")

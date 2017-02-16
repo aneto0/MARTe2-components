@@ -181,12 +181,6 @@ private:
     SingleThreadService executor;
 
     /**
-     * True if this a synchronising data source
-     */
-    bool synchronising;
-
-
-    /**
      * True if the server should remain running
      */
     bool keepRunning;

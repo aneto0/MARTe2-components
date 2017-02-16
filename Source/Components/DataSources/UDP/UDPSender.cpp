@@ -98,7 +98,7 @@ bool UDPSender::Synchronise(){
         REPORT_ERROR(ErrorManagement::FatalError, "Variable \"timerPtr\" was not initialised!");
     }else{
         uint64 counterDifference = HighResolutionTimer::Counter() - timerAtStateChange;
-        uint64 timeDifference = static_cast<float64>(counterDifference) * HighResolutionTimer::Period();
+        float64 timeDifference = static_cast<float64>(counterDifference) * HighResolutionTimer::Period();
         uint64 timeDifferenceMicroSeconds = static_cast<uint64>(timeDifference) * 1000000LLU;
         *timerPtr = timeDifferenceMicroSeconds;
     }
