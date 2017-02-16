@@ -72,7 +72,7 @@ namespace SDA {
 	/**
 	 * Type alias for bytes
 	 */
-	typedef char byte;
+	//typedef char byte;    //TODO: Use it instead of char8 or purge it.
 
 	/**
 	 * Type alias for size_t
