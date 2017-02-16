@@ -53,11 +53,15 @@ UDPSender::UDPSender():DataSourceI(){
     timerPtr = NULL_PTR(uint64*);
     sequenceNumberPtr = NULL_PTR(uint64*);
     dataBuffer = NULL_PTR(void*);
+    signalsMemoryOffset = NULL_PTR(uint32*);
     timerAtStateChange = 0u;
     udpServerAddress = "";
     maximumMemoryAccess = 0u;
     nOfSignals = 0u;
-}
+    udpServerPort = 44488u;
+
+}  
+
 
 /*lint -e{1551} Justification: the destructor must guarantee that the client sending is closed.*/
 UDPSender::~UDPSender(){
@@ -65,14 +69,17 @@ UDPSender::~UDPSender(){
         REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
     }
     GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(dataBuffer);
+    delete []signalsMemoryOffset;
+    delete []timerPtr;
+    delete []sequenceNumberPtr;
 }
 
 
 bool UDPSender::Synchronise(){
-    bool OK = true;
+    bool OK;
     const MARTe::uint32 udpServerExpectReadSize = nOfSignals * 8u;
     uint32 bytesSent = udpServerExpectReadSize;
-    *timerPtr = (HighResolutionTimer::Counter() - timerAtStateChange) * (HighResolutionTimer::Period()) * 1e6;
+    *timerPtr = (HighResolutionTimer::Counter() - timerAtStateChange) * (HighResolutionTimer::Period()) * 1e6u;
     OK = client.Write(reinterpret_cast<char8*>(dataBuffer), bytesSent);
     *sequenceNumberPtr +=1u;
     return OK;
@@ -125,6 +132,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         uint16 i;
+        uint32 signalByteSize;
         signalsMemoryOffset = new uint32[GetNumberOfSignals()];
         signalsMemoryOffset[0] = 0u;
         signalsMemoryOffset[1] = 8u;// To account for sequenceNumberPtr to be stored as uint64
@@ -180,7 +188,6 @@ bool UDPSender::AllocateMemory(){
     nOfSignals = GetNumberOfSignals();
     bool ok = (nOfSignals > 2u);
     if (ok){
-        uint32 n;
         uint32 LastSignalByteSize = 0u;
         ok = GetSignalByteSize(nOfSignals - 1u, LastSignalByteSize);
         dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalsMemoryOffset[nOfSignals - 1u] + LastSignalByteSize);
@@ -200,10 +207,8 @@ uint32 UDPSender::GetNumberOfMemoryBuffers(){
 bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          const uint32 bufferIdx,
                                          void*& signalAddress) {
-    uint32 memoryOffset = 0u;
     bool ok = true;
     if (signalIdx <= (GetNumberOfSignals() -1u)){
-        uint16 i;
         char8* dataBufferChar = static_cast<char8*>(dataBuffer);
         signalAddress = static_cast<void *>(&dataBufferChar[signalsMemoryOffset[signalIdx]]);
     }

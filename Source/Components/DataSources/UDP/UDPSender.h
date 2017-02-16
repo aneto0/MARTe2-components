@@ -70,16 +70,6 @@ public:
     CLASS_REGISTER_DECLARATION()
 
     /**
-     * @brief PacketTypes.
-     * @details The layout for the packet that will be transmitted
-     */
-    struct UDPMsgStruct{
-        uint64 sequenceNumber;
-        uint64 timer;
-        void *dataBuffer;
-    };
-
-    /**
      * @brief Default constructor.
      * @details Initialises all the optional parameters as described in the class description.
      */
@@ -166,11 +156,6 @@ public:
 private:
 
     /**
-     * The datapacket structure that will be recieved
-     */
-    UDPMsgStruct UDPPacket;
-
-    /**
      * The IP address to which the data will be transmitted to
      */
     StreamString udpServerAddress;
@@ -192,9 +177,7 @@ private:
     uint32 *signalsMemoryOffset;
 
     void *dataBuffer;
-
-    uint32 signalByteSize;
-
+    
     uint64 *sequenceNumberPtr;
     
     uint64 *timerPtr;
