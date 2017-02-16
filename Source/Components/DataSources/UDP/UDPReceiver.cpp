@@ -29,6 +29,7 @@
 #include "FastPollingMutexSem.h"
 #include "GlobalObjectsDatabase.h"
 #include "MemoryMapInputBroker.h"
+#include "MemoryMapSynchronisedInputBroker.h"
 #include "Threads.h"
 #include "UDPReceiver.h"
 
@@ -45,6 +46,7 @@ UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), execu
     sequenceNumberPtr = NULL_PTR(uint64*);
     dataBuffer = NULL_PTR(void*);
     signalsMemoryOffset = NULL_PTR(uint32*);
+    synchronising = false;
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
@@ -91,7 +93,9 @@ UDPReceiver::~UDPReceiver(){
  */
 bool UDPReceiver::Synchronise(){
     ErrorManagement::ErrorType err;
-    err = synchSem.ResetWait(TTInfiniteWait);  
+    if (synchronising){
+        err = synchSem.ResetWait(TTInfiniteWait);  
+    }
     return err.ErrorsCleared();
 }
 
@@ -181,7 +185,16 @@ const char8* UDPReceiver::GetBrokerName(StructuredDataI& data,
                                          const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == InputSignals) {
+        float32 frequency = 0.F;
+        if (!data.Read("Frequency", frequency)){
+            frequency = -1.F;
+        }
+        if (frequency > 0.F){
+            brokerName = "MemoryMapSynchronisedInputBroker";
+            synchronising = true;
+        }else{
             brokerName = "MemoryMapInputBroker";
+        }
     }
     else {
         REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with OutputSignals");
@@ -192,13 +205,57 @@ const char8* UDPReceiver::GetBrokerName(StructuredDataI& data,
 bool UDPReceiver::GetInputBrokers(ReferenceContainer& inputBrokers,
                                    const char8* const functionName,
                                    void* const gamMemPtr) {
-    ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
-    bool ok = broker.IsValid();
-    if (ok) {
-        ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+    uint32 functionIdx = 0u;
+    uint32 numbOfSignals = 0u;
+    bool synchGAM = false;
+    bool ok = GetFunctionIndex(functionIdx, functionName);
+    if (ok){
+        ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, numbOfSignals);
     }
-    if (ok) {
-        ok = inputBrokers.Insert(broker);
+
+    uint32 i;
+    float32 frequency = 0.F;
+    for (i = 0u; (i < numbOfSignals) && (ok) && (!synchGAM); i++){
+        ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, frequency);
+        synchGAM = (frequency > 0.F);
+    }
+    if ((synchronising) && (synchGAM)){
+        ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");
+        if (ok) {
+            ok = brokerSync.IsValid();
+        }
+        if (ok){
+            ok = brokerSync->Init(InputSignals, *this, functionName, gamMemPtr);
+        }
+        if (ok){
+            ok = inputBrokers.Insert(brokerSync);
+        }
+        uint32 nOfFunctionSignals = 0u;
+        if (ok){
+            ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunctionSignals);
+        }
+        if (ok){
+            if (nOfFunctionSignals > 1u){
+                ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
+                ok = brokerNotSync.IsValid();
+                if (ok){
+                    ok = brokerNotSync->Init(InputSignals, *this, functionName, gamMemPtr);
+                }
+                if (ok){
+                    ok = inputBrokers.Insert(brokerNotSync);
+                }
+            }
+        }
+    }
+    else{
+        ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
+        ok = broker.IsValid();
+        if (ok) {
+            ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+        }
+        if (ok) {
+            ok = inputBrokers.Insert(broker);
+        }
     }
     return ok;
 }
@@ -341,7 +398,9 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Recieved data of inccorect size, ignoring it.");
             Sleep::Sec(100e-6);
         }else{
-            err = !synchSem.Post();
+            if (synchronising){
+                err = !synchSem.Post();
+            }
         }
     }
 

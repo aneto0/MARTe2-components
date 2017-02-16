@@ -247,6 +247,8 @@ private:
      */ 
     UDPSocket server;
 
+    bool synchronising;
+
 };
 }
 #endif
