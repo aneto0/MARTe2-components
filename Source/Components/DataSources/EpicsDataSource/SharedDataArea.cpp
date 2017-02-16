@@ -84,6 +84,7 @@ SharedDataArea::SigblockProducer* SharedDataArea::GetSigblockProducerInterface()
     if (shm != NULL) {
         shm->hasWriter = true;
     }
+    /*lint -e{1939} The SigblockProducer does not add members to Representation (read Representaion's documentation)*/
     return reinterpret_cast<SigblockProducer*>(shm);
 }
 
@@ -93,6 +94,7 @@ SharedDataArea::SigblockConsumer* SharedDataArea::GetSigblockConsumerInterface()
     if (shm != NULL) {
         shm->hasReader = true;
     }
+    /*lint -e{1939} The SigblockProducer does not add members to Representation (read Representaion's documentation)*/
     return reinterpret_cast<SigblockConsumer*>(shm);
 }
 
