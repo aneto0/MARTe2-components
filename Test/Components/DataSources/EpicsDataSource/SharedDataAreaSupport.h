@@ -84,13 +84,13 @@ inline SharedContext::~SharedContext() {
 }
 
 inline ProducerThreadParams::ProducerThreadParams():
-	output(NULL_PTR(SDA::SharedDataArea::SigblockProducer*)),
-	context(NULL_PTR(SharedContext*)) {
+	output(SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*)),
+	context(SDA_NULL_PTR(SharedContext*)) {
 }
 
 inline ConsumerThreadParams::ConsumerThreadParams():
-	input(NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)),
-	context(NULL_PTR(SharedContext*)) {
+	input(SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)),
+	context(SDA_NULL_PTR(SharedContext*)) {
 }
 
 #endif /* SHAREDDATAAREASUPPORT_H_ */

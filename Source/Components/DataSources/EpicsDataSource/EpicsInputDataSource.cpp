@@ -98,26 +98,26 @@ static MARTe::StreamString BuildSharedMemoryIdentifier(const MARTe::StreamString
 namespace MARTe {
 
 EpicsInputDataSource::EpicsInputDataSource() :
-    DataSourceI(), consumer(NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)), signals(NULL_PTR(SDA::Sigblock*)) {
+    DataSourceI(), consumer(SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)), signals(SDA_NULL_PTR(SDA::Sigblock*)) {
 }
 
 EpicsInputDataSource::~EpicsInputDataSource() {
 //    printf("EpicsInputDataSource::~EpicsInputDataSource()\n");
-    if (signals != NULL_PTR(SDA::Sigblock*)) {
+    if (signals != SDA_NULL_PTR(SDA::Sigblock*)) {
     	void* mem = reinterpret_cast<void*>(signals);
     	/*lint -e{1551} HeapManager::Free does not throw exceptions*/
     	(void)HeapManager::Free(mem);
-        signals = NULL_PTR(SDA::Sigblock*); //static_cast<SDA::Sigblock*>(mem);
+        signals = SDA_NULL_PTR(SDA::Sigblock*); //static_cast<SDA::Sigblock*>(mem);
     }
-    if (consumer != NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) {
+    if (consumer != SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) {
     	//TODO: Release interprocess shared memory?
-    	consumer = NULL_PTR(SDA::SharedDataArea::SigblockConsumer*);
+    	consumer = SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*);
     }
 }
 
 bool EpicsInputDataSource::Synchronise() {
 	bool ok;
-    if ((consumer != NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) && (signals != NULL_PTR(SDA::Sigblock*))) {
+    if ((consumer != SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) && (signals != SDA_NULL_PTR(SDA::Sigblock*))) {
     	ok = consumer->ReadSigblock(*signals);
     }
     else {
@@ -180,9 +180,9 @@ bool EpicsInputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const u
 	ok = ((signalIdx < GetNumberOfSignals()) && (bufferIdx < GetNumberOfMemoryBuffers()));
 
 	if (ok) {
-	    if (consumer != NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) {
+	    if (consumer != SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) {
 	        SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
-	        if ((signals != NULL_PTR(SDA::Sigblock*)) && (sbmd != NULL_PTR(SDA::Sigblock::Metadata*))) {
+	        if ((signals != SDA_NULL_PTR(SDA::Sigblock*)) && (sbmd != SDA_NULL_PTR(SDA::Sigblock::Metadata*))) {
 	            signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
 //      		REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsInputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
 	        }

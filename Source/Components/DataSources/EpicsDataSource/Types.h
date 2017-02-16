@@ -39,12 +39,12 @@
 /*---------------------------------------------------------------------------*/
 
 /*lint -save -e9026, function-like macro defined. The aim is to reduce the clutter in the code
- * This avoids replacing ptr = static<MyObject *>(NULL) with ptr = NULL_PTR(MyObject *)*/
-#define NULL_PTR(ptr) static_cast<ptr>(0)
+ * This avoids replacing ptr = static<MyObject *>(NULL) with ptr = SDA_NULL_PTR(MyObject *)*/
+#define SDA_NULL_PTR(ptr) static_cast<ptr>(0)
 /*lint -restore */
 
 #ifndef NULL
-#define NULL NULL_PTR(void *)
+#define NULL SDA_NULL_PTR(void *)
 #endif
 
 namespace SDA {

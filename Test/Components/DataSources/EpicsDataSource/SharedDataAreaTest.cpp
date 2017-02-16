@@ -76,7 +76,7 @@ static void consumerThreadFunction(ConsumerThreadParams* params) {
 	// will do a busy wait every time there is no new sigblocks on the shared
 	// data area.
 	{
-		SDA::Sigblock* sigblock = NULL_PTR(SDA::Sigblock*);
+		SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
 		bool isSigblockFilled = false;
 		unsigned int dataSetIndex = 0;
 
@@ -226,7 +226,7 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
 	// that they can be read and have the same values than those from the
 	// dataset. They will be written and read taking turns (1 write, 1 read).
 	{
-		SDA::Sigblock* sigblock = NULL_PTR(SDA::Sigblock*);
+		SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
 		unsigned int i = 0;
 		bool error = false;
 
