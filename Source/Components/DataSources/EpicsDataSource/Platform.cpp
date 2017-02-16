@@ -51,6 +51,13 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+namespace {
+
+    //TODO: Reduce permissions defined in OPEN_MODE to the minimum necessary set.
+    /*lint -e{9130} the oflag argument of shm_open is defined as int and it can not be changed*/
+    const SDA::uint32 OPEN_MODE = static_cast<SDA::uint32>(S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -63,8 +70,9 @@ void* Platform::MakeShm(const SDA::char8* const name, const SDA::size_type size)
 
     SDA::int32 shm_fd;
 
-    /*lint -e{9130} the oflag argument of shm_open is defined as int and it can not be changed*/
-    shm_fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH); //TODO: Reduce permissions to minimum necessary.
+    const SDA::uint32 OPEN_FLAGS = (static_cast<SDA::uint32>(O_CREAT) | static_cast<SDA::uint32>(O_EXCL) | static_cast<SDA::uint32>(O_RDWR));
+
+    shm_fd = shm_open(name, static_cast<SDA::int32>(OPEN_FLAGS), OPEN_MODE);
     if (shm_fd == -1) {
 //    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
         (void)std::exit(EXIT_FAILURE);
@@ -99,7 +107,9 @@ void* Platform::JoinShm(const SDA::char8* const name) {
 
     SDA::size_type size; //Size of allocated shared memory, including the the size value itself.
 
-    shm_fd = shm_open(name, O_RDWR, 0666u);
+    const SDA::uint32 OPEN_FLAGS = (static_cast<SDA::uint32>(O_RDWR));
+
+    shm_fd = shm_open(name, static_cast<SDA::int32>(OPEN_FLAGS), OPEN_MODE);
     if (shm_fd == -1) {
 //    	printf("*** shm_open error (server)  [%s]***\n", strerror(errno));
          (void)std::exit(EXIT_FAILURE);	//TODO: Return status instead of halting program.
