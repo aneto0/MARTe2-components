@@ -165,11 +165,6 @@ private:
      */
     uint64 timerAtStateChange;
 
-    /**
-     * The maximum memory address pointer that should be defined, used to avoid out of bounds memory access
-     */
-    uint32 maximumMemoryAccess;
-
     uint32 nOfSignals;
 
     uint16 udpServerPort;
