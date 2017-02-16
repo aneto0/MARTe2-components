@@ -32,3 +32,10 @@
 -estring(1055,*__sync_bool_compare_and_swap)
 
 -estring(40,EXIT_FAILURE)
+
+/* member function or default constructor not referenced [MISRA C++ Rule 0-1-10]*/
+-esym(1714,SDA::*)
+-esym(1914,SDA::*)
+
+/* template was defined but not instantiated [MISRA C++ Rule 14-7-1]*/
+-esym(1795,SDA::*)
