@@ -56,7 +56,6 @@ UDPSender::UDPSender():DataSourceI(){
     signalsMemoryOffset = NULL_PTR(uint32*);
     timerAtStateChange = 0u;
     udpServerAddress = "";
-    maximumMemoryAccess = 0u;
     nOfSignals = 0u;
     udpServerPort = 44488u;
 
@@ -98,7 +97,10 @@ bool UDPSender::Synchronise(){
         ok = false;
         REPORT_ERROR(ErrorManagement::FatalError, "Variable \"timerPtr\" was not initialised!");
     }else{
-        *timerPtr = static_cast<uint64>(static_cast<float64>(HighResolutionTimer::Counter() - timerAtStateChange) * (HighResolutionTimer::Period()) * static_cast<float64>(1e6));
+        uint64 counterDifference = HighResolutionTimer::Counter() - timerAtStateChange;
+        uint64 timeDifference = static_cast<float64>(counterDifference) * HighResolutionTimer::Period();
+        uint64 timeDifferenceMicroSeconds = static_cast<uint64>(timeDifference) * 1000000LLU;
+        *timerPtr = timeDifferenceMicroSeconds;
     }
     if (ok){
         ok = client.Write(reinterpret_cast<char8*>(dataBuffer), bytesSent);
