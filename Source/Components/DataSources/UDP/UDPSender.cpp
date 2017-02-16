@@ -91,7 +91,7 @@ UDPSender::~UDPSender(){
 
 
 bool UDPSender::Synchronise(){
-    bool ok;
+    bool ok = true;
     const uint32 udpServerExpectReadSize = nOfSignals * 8u;
     uint32 bytesSent = udpServerExpectReadSize;
     if (timerPtr == NULL_PTR(uint64*)){

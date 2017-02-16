@@ -47,6 +47,7 @@ UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), execu
     UDPPacket.sequenceNumber = 0u;
     UDPPacket.timer = 0u ;
     UDPPacket.dataBuffer = NULL_PTR(void*);
+    signalsByteSize = NULL_PTR(uint32*);
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
@@ -69,7 +70,9 @@ UDPReceiver::~UDPReceiver(){
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP reciever server.");
     }
     GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(UDPPacket.dataBuffer);
-    delete []signalsByteSize;
+    if (signalsByteSize != NULL_PTR(uint32*)){
+        signalsByteSize = NULL_PTR(uint32*);
+    }
 }
 
 /**
@@ -217,7 +220,7 @@ bool UDPReceiver::PrepareNextState(const char8* const currentStateName,
     bool ok = true;
     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
         keepRunning = true;
-        //ok = executor.Start();
+        ok = executor.Start();
     } 
     UDPPacket.sequenceNumber = 0u;
     UDPPacket.timer = 0u;
