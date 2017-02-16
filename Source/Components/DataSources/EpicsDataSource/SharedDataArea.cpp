@@ -114,7 +114,7 @@ void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, 
 
 void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, const SDA::size_type sizeOfSigblock) {
 	SDA::SigblockDoubleBuffer* items = Items();
-	items->Reset(bufferSize, sizeOfSigblock);
+	items->Init(bufferSize, sizeOfSigblock);
 }
 
 SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize) {
