@@ -43,9 +43,9 @@ class SigblockDoubleBufferTest {
 public:
 
 	/**
-	 * @brief Tests the Reset method.
+	 * @brief Tests the Init method.
 	 */
-	bool TestReset();
+	bool TestInit();
 
 	/**
 	 * @brief Tests the Get method.

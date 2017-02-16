@@ -109,7 +109,7 @@ void SharedDataArea::Representation::FillPreHeader(const SDA::size_type sizeOfHe
 
 void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
 	SDA::Sigblock::Metadata* header = Header();
-	header->SetSignalsMetadata(signalsCount, signalsMetadata);
+	header->Init(signalsCount, signalsMetadata);
 }
 
 void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, const SDA::size_type sizeOfSigblock) {

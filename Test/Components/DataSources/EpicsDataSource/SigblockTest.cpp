@@ -48,7 +48,7 @@ template bool SigblockTest::TestGetSignalAddress<double>(const double value);
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-bool SigblockTest::MetadataTest::TestSetSignalsMetadata() {
+bool SigblockTest::MetadataTest::TestInit() {
 	bool ok = false;
 	unsigned int signalsCount = 2;
 	SDA::Sigblock::Metadata* target;
@@ -65,8 +65,8 @@ bool SigblockTest::MetadataTest::TestSetSignalsMetadata() {
 		//Generate metadata values for testing:
 		GenerateMetadataForSigblock<double>(rawMetadata, signalsCount);
 
-		//Set testing metadata values:
-		target->SetSignalsMetadata(signalsCount, rawMetadata);
+		//Init testing metadata values:
+		target->Init(signalsCount, rawMetadata);
 
 		//Check signals count:
 		ok &= (target->GetSignalsCount() == signalsCount);
@@ -121,8 +121,8 @@ bool SigblockTest::TestGetSignalAddress(const SignalType value) {
 		//Generate metadata values for testing:
 		GenerateMetadataForSigblock<SignalType>(rawMetadata, signalsCount);
 
-		//Set testing metadata values:
-		metadata->SetSignalsMetadata(signalsCount, rawMetadata);
+		//Init testing metadata values:
+		metadata->Init(signalsCount, rawMetadata);
 
 		//Allocate memory for sigblock:
 		target = MallocSigblock(metadata->GetTotalSize());

@@ -67,7 +67,7 @@ class SigblockDoubleBuffer {
 public:
 
 	/**
-	 * @brief Resets the sigblock double buffer.
+	 * @brief Initialise the sigblock double buffer object.
 	 * @param[in] bufferSize //TODO document it or purge it
 	 * @param[in] sigblockSize The size of the sigblock
 	 */

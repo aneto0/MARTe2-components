@@ -45,9 +45,9 @@ public:
 	class MetadataTest {
 	public:
 		/**
-		 * @brief Tests the SetSignalsMetadata method.
+		 * @brief Tests the Init method.
 		 */
-		bool TestSetSignalsMetadata();
+		bool TestInit();
 	};
 
 	/**

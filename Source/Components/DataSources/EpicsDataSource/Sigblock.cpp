@@ -48,7 +48,7 @@
 
 namespace SDA {
 
-void Sigblock::Metadata::SetSignalsMetadata(const SDA::uint32 count, const SDA::Signal::Metadata metadata[]) {
+void Sigblock::Metadata::Init(const SDA::uint32 count, const SDA::Signal::Metadata metadata[]) {
     SDA::size_type offset = 0u;
 	for (SDA::uint32 i = 0u; i < count; i++) {
 	    (void)std::strncpy(this->signalsMetadata[i].name, metadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN);

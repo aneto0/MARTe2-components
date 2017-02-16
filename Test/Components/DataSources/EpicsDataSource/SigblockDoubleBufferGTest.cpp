@@ -43,9 +43,9 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-TEST(SigblockDoubleBufferGTest,TestReset) {
+TEST(SigblockDoubleBufferGTest,TestInit) {
 	SigblockDoubleBufferTest test;
-	ASSERT_TRUE(test.TestReset());
+	ASSERT_TRUE(test.TestInit());
 }
 
 TEST(SigblockDoubleBufferGTest,TestGet) {

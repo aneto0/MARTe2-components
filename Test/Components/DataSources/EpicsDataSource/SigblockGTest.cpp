@@ -43,9 +43,9 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-TEST(SigblockGTest_MetadataTest,TestSetSignalsMetadata) {
+TEST(SigblockGTest_MetadataTest,TestInit) {
 	SigblockTest::MetadataTest test;
-    ASSERT_TRUE(test.TestSetSignalsMetadata());
+    ASSERT_TRUE(test.TestInit());
 }
 
 TEST(SigblockGTest,TestGetSignalAddress) {

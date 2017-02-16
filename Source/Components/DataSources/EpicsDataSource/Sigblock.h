@@ -61,13 +61,13 @@ public:
 	public:
 
 		/**
-		 * @brief Sets the metadata
+		 * @brief Initialise the metadata object
 		 * @param[in] count Number of signals in the signalsMetadata
 		 * array parameter.
 		 * @param[in] metadata[] Array with the description of each
 		 * signal present in the sigblock.
 		 */
-		void SetSignalsMetadata(const SDA::uint32 count, const SDA::Signal::Metadata metadata[]);
+		void Init(const SDA::uint32 count, const SDA::Signal::Metadata metadata[]);
 
 		/**
 		 * @brief Gets the signals count.

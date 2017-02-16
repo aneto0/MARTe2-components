@@ -47,7 +47,7 @@ template bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread<doubl
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-bool SigblockDoubleBufferTest::TestReset() {
+bool SigblockDoubleBufferTest::TestInit() {
 	bool ok = false;
 	ok = TestProducerConsumerInSingleThread<int>(10, 25);
 	ok &= TestProducerConsumerInSingleThread<double>(10, 25);
@@ -90,8 +90,8 @@ bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread(const unsigned
 		//Generate the metadata for the sigblocks to use in test:
 		GenerateMetadataForSigblock<SignalType>(rawMetadata, numberOfSignals);
 
-		//Set testing metadata values:
-		metadata->SetSignalsMetadata(numberOfSignals, rawMetadata);
+		//Init testing metadata values:
+		metadata->Init(numberOfSignals, rawMetadata);
 
 		//Get sigblock's size:
 		sizeOfSigblock = metadata->GetTotalSize();
