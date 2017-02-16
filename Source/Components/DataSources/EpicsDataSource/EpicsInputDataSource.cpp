@@ -154,9 +154,16 @@ bool EpicsInputDataSource::AllocateMemory() {
 	SDA::SharedDataArea sbpm = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numberOfSignals, smd_for_init, max);
 	consumer = sbpm.GetSigblockConsumerInterface();
 	SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
-	void* mem = HeapManager::Malloc(sbmd->GetTotalSize());
-	(void)MemoryOperationsHelper::Set(mem, '\0', sbmd->GetTotalSize());
-	signals = static_cast<SDA::Sigblock*>(mem);
+	SDA::size_type totalSize = sbmd->GetTotalSize();
+	/*lint -e{9119} -e{712} -e{747} calls to Malloc and Set are protected*/
+    if (totalSize <= MAX_UINT32) {
+        void* mem = HeapManager::Malloc(totalSize);
+        (void)MemoryOperationsHelper::Set(mem, '\0', totalSize);
+        signals = static_cast<SDA::Sigblock*>(mem);
+    }
+    else {
+        ret = false;
+    }
 
 	return ret;
 }
