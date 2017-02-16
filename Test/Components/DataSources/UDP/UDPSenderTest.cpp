@@ -854,8 +854,9 @@ bool UDPSenderTest::TestGetInputBrokers(){
 bool UDPSenderTest::TestPrepareNextState(){
     using namespace MARTe;
     UDPSender test;
-    bool ok = (test.PrepareNextState("FromCurrent", "ToNext"));
-    return ok;
+    bool ok;
+    ok = (test.PrepareNextState("FromCurrent", "ToNext"));
+    return !ok;
 }
 
 bool UDPSenderTest::TestSynchronise(){

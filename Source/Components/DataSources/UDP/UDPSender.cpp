@@ -248,9 +248,23 @@ bool UDPSender::GetOutputBrokers(ReferenceContainer& outputBrokers,
 bool UDPSender::PrepareNextState(const char8* const currentStateName,
                                     const char8* const nextStateName) {
     bool ok = true;
-    *sequenceNumberPtr = 0u;
-    timerAtStateChange = HighResolutionTimer::Counter();
-    *timerPtr= 0u ;
+    if (sequenceNumberPtr == NULL_PTR(uint64*)){
+        ok = false;
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"sequenceNumberPtr\" was not initialised!");
+    }else{    
+        *sequenceNumberPtr = 0u;
+    }
+    if (ok){
+        if (timerPtr == NULL_PTR(uint64*)){
+            ok = false;
+            REPORT_ERROR(ErrorManagement::FatalError, "Variable \"timerPtr\" was not initialised!");
+        }else{
+            *timerPtr= 0u ;
+        }
+    }
+    if (ok){
+        timerAtStateChange = HighResolutionTimer::Counter();
+    }
     return ok;
 }
 
