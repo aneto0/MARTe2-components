@@ -219,6 +219,16 @@ private:
      */
     uint32 maximumMemoryAccess;
 
+    uint16 udpServerPort;
+
+    StreamString udpServerAddress;
+
+    uint32 nOfSignals;
+
+    uint32 totalPacketSize;
+
+    uint32 *signalsByteSize;
+
 };
 }
 #endif

@@ -34,19 +34,16 @@
 #include "UDPSocket.h"
 
 namespace MARTe{
-
-static uint16 udpServerPort = 44488u;
-static StreamString udpServerAddress = "127.0.0.1";
-static uint32 nOfSignals = 1u;
-static uint32 totalPacketSize;
-static uint32 *signalsByteSize;
-UDPSocket server;
+    UDPSocket server;
 
 UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this){
     synchronising = true;
     keepRunning = true;
     dataRecievedCorrectSize = false;
     dataRecieved = false;
+    udpServerPort = 44488u;
+    nOfSignals = 1u;
+    udpServerAddress = "127.0.0.1";
     UDPPacket.sequenceNumber = 0u;
     UDPPacket.timer = 0u ;
     UDPPacket.dataBuffer = NULL_PTR(void*);
@@ -219,7 +216,7 @@ bool UDPReceiver::PrepareNextState(const char8* const currentStateName,
     bool ok = true;
     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
         keepRunning = true;
-        ok = executor.Start();
+        //ok = executor.Start();
     } 
     UDPPacket.sequenceNumber = 0u;
     UDPPacket.timer = 0u;
