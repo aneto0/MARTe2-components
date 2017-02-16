@@ -246,25 +246,30 @@ bool MDSWriterNode::Flush() {
 
 bool MDSWriterNode::Execute() {
     bool ok = (node != NULL_PTR(MDSplus::TreeNode *));
-    if (ok) {
-        if (!flush) {
-            //If we are using a triggering source get the signal from a time source, as samples might not be continuous
-            if (useTimeVector) {
-                if (currentBuffer == 0u) {
-                    if (timeSignalMemory != NULL_PTR(uint32 *)) {
-                        start = (*timeSignalMemory) * 1e-6;
-                    }
+
+    if ((ok) && (!flush)) {
+        //If we are using a triggering source get the signal from a time source, as samples might not be continuous
+        if (useTimeVector) {
+            if (currentBuffer == 0u) {
+                if (timeSignalMemory != NULL_PTR(uint32 *)) {
+                    start = (*timeSignalMemory) * 1e-6;
                 }
             }
-            if (currentBuffer < makeSegmentAfterNWrites) {
-                if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(char8 *))) {
-                    ok = MemoryOperationsHelper::Copy(&bufferedData[currentBuffer * numberOfElements * typeMultiplier], signalMemory,
-                                                      numberOfElements * typeMultiplier);
-                }
+        }
+        if (currentBuffer < makeSegmentAfterNWrites) {
+            if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(char8 *))) {
+                ok = MemoryOperationsHelper::Copy(&bufferedData[currentBuffer * numberOfElements * typeMultiplier], signalMemory,
+                                                  numberOfElements * typeMultiplier);
+            }
+            else {
+                ok = false;
+            }
+            if (ok) {
                 currentBuffer++;
             }
         }
     }
+
     //If the number of writes is sufficient to create a segment do it.
     bool storeNow = (currentBuffer == (makeSegmentAfterNWrites));
     if (ok) {

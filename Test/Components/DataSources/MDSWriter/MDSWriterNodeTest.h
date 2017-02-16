@@ -41,7 +41,7 @@
 class MDSWriterNodeTest {
 public:
     /**
-     * @brief Tests the constructor.
+     * @brief Tests theructor.
      */
     bool TestConstructor();
 
@@ -155,37 +155,125 @@ public:
      */
     bool TestInitialise_Type_Float64();
 
-#if 0
     /**
-     * TODO
+     * @brief Tests the Execute method.
      */
-    bool TestOpenTree();
+    bool TestExecute();
 
     /**
-     * TODO
+     * @brief Tests the Execute method with a decimated signal.
      */
-    bool TestIntegratedInApplication_NoTrigger();
+    bool TestExecute_Decimated();
 
     /**
-     * TODO
+     * @brief Tests the Execute method without setting the Tree.
      */
-    bool TestIntegratedInApplication_NoTrigger_Flush();
+    bool TestExecute_False_NoTree();
 
     /**
-     * TODO
+     * @brief Tests the Execute method without setting the Initialise.
      */
-    bool TestIntegratedInApplication_Trigger();
+    bool TestExecute_False_NoInitialise();
 
     /**
-     * TODO
+     * @brief Tests the Execute method without setting the SignalMemory.
      */
-    bool TestIntegratedInApplication_NoTrigger_Elements();
+    bool TestExecute_False_NoSignalSet();
 
     /**
-     * TODO
+     * @brief Tests the AllocateTreeNode method.
      */
-    bool TestIntegratedInApplication_Trigger_Elements();
-#endif
+    bool TestAllocateTreeNode();
+
+    /**
+     * @brief Tests the AllocateTreeNode method with a bad node name.
+     */
+    bool TestAllocateTreeNode_BadNodeType();
+
+    /**
+     * @brief Tests the Flush method.
+     */
+    bool TestFlush();
+
+    /**
+     * @brief Test the SetSignalMemory.
+     */
+    bool TestSetSignalMemory();
+
+    /**
+     * @brief Test the SetTimeSignalMemory.
+     */
+    bool TestSetTimeSignalMemory();
+
+    /**
+     * @brief Test the IsDecimatedMinMax method
+     */ 
+    bool TestIsDecimatedMinMax();
+
+    /**
+     * @brief Test the GetDecimatedNodeName method
+     */ 
+    bool TestGetDecimatedNodeName();
+
+    /**
+     * @brief Test the GetExecutePeriodMicroSecond method
+     */ 
+    bool TestGetExecutePeriodMicroSecond();
+
+    /**
+     * @brief Test the GetMakeSegmentAfterNWrites method
+     */ 
+    bool TestGetMakeSegmentAfterNWrites();
+
+    /**
+     * @brief Test the GetMinMaxResampleFactor method
+     */ 
+    bool TestGetMinMaxResampleFactor();
+
+    /**
+     * @brief Test the StreamString method
+     */ 
+    bool TestGetNodeName();
+
+    /**
+     * @brief Test the GetNodeType method
+     */ 
+    bool TestGetNodeType();
+
+    /**
+     * @details Test the GetNumberOfElements method
+     */ 
+    bool TestGetNumberOfElements();
+
+    /**
+     * @brief Test the GetPeriod method
+     */ 
+    bool TestGetPeriod();
+
+    /**
+     * @brief Test the GetPhaseShift method
+     */ 
+    bool TestGetPhaseShift();
+
+    /**
+     * @brief Test the GetStart method
+     */ 
+    bool TestGetStart();
+
+    /**
+     * @brief Test the GetTypeMultiplier method
+     */ 
+    bool TestGetTypeMultiplier();
+
+    /**
+     * @brief Test the IsUseTimeVector method
+     */ 
+    bool TestIsUseTimeVector();
+
+    /**
+     * @brief Test the GetNumberOfExecuteCalls method
+     */ 
+    bool TestGetNumberOfExecuteCalls();
 };
 
 /*---------------------------------------------------------------------------*/

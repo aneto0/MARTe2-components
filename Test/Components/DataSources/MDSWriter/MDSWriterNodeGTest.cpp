@@ -153,3 +153,118 @@ TEST(MDSWriterNodeGTest,TestInitialise_Type_Float64) {
     MDSWriterNodeTest test;
     ASSERT_TRUE(test.TestInitialise_Type_Float64());
 }
+
+TEST(MDSWriterNodeGTest,TestExecute) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestExecute());
+}
+
+TEST(MDSWriterNodeGTest,TestExecute_Decimated) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestExecute_Decimated());
+}
+
+TEST(MDSWriterNodeGTest,TestExecute_False_NoTree) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestExecute_False_NoTree());
+}
+
+TEST(MDSWriterNodeGTest,TestExecute_False_NoInitialise) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestExecute_False_NoInitialise());
+}
+
+TEST(MDSWriterNodeGTest,TestExecute_False_NoSignalSet) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestExecute_False_NoSignalSet());
+}
+
+TEST(MDSWriterNodeGTest,TestAllocateTreeNode) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestAllocateTreeNode());
+}
+
+TEST(MDSWriterNodeGTest,TestAllocateTreeNode_BadNodeType) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestAllocateTreeNode_BadNodeType());
+}
+
+TEST(MDSWriterNodeGTest,TestFlush) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestFlush());
+}
+
+TEST(MDSWriterNodeGTest,TestSetSignalMemory) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestSetSignalMemory());
+}
+
+TEST(MDSWriterNodeGTest,TestSetTimeSignalMemory) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestSetTimeSignalMemory());
+}
+
+TEST(MDSWriterNodeGTest,TestIsDecimatedMinMax) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestIsDecimatedMinMax());
+}
+
+TEST(MDSWriterNodeGTest,TestGetDecimatedNodeName) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetDecimatedNodeName());
+}
+
+TEST(MDSWriterNodeGTest,TestGetMakeSegmentAfterNWrites) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetMakeSegmentAfterNWrites());
+}
+
+TEST(MDSWriterNodeGTest,TestGetMinMaxResampleFactor) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetMinMaxResampleFactor());
+}
+
+TEST(MDSWriterNodeGTest,TestGetNodeName) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetNodeName());
+}
+
+TEST(MDSWriterNodeGTest,TestGetNodeType) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetNodeType());
+}
+
+TEST(MDSWriterNodeGTest,TestGetNumberOfElements) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetNumberOfElements());
+}
+
+TEST(MDSWriterNodeGTest,TestGetPeriod) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetPeriod());
+}
+
+TEST(MDSWriterNodeGTest,TestGetPhaseShift) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetPhaseShift());
+}
+
+TEST(MDSWriterNodeGTest,TestGetStart) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetStart());
+}
+
+TEST(MDSWriterNodeGTest,TestGetTypeMultiplier) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetTypeMultiplier());
+}
+
+TEST(MDSWriterNodeGTest,TestIsUseTimeVector) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestIsUseTimeVector());
+}
+
+TEST(MDSWriterNodeGTest,TestGetNumberOfExecuteCalls) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestGetNumberOfExecuteCalls());
+}
