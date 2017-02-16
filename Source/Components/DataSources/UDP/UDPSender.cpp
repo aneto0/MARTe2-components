@@ -245,7 +245,7 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          void*& signalAddress) {
     bool ok = true;
     if (signalIdx <= (GetNumberOfSignals() -1u)){
-        if (dataBuffer == NULL_PTR(void*){
+        if (dataBuffer == NULL_PTR(void*)){
             ok = false;
             REPORT_ERROR(ErrorManagement::FatalError, "Variable \"dataBuffer\" was not initialised!");
         }else{
