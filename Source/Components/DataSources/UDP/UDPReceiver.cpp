@@ -69,6 +69,7 @@ UDPReceiver::~UDPReceiver(){
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP reciever server.");
     }
     GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(UDPPacket.dataBuffer);
+    delete []signalsByteSize;
 }
 
 /**
@@ -287,6 +288,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall SignedInteger or UnsignedInteger type");
         }
     }
+    
     return ok;
 }
 

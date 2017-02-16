@@ -69,20 +69,49 @@ UDPSender::~UDPSender(){
         REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
     }
     GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(dataBuffer);
-    sequenceNumberPtr = NULL_PTR(uint64*);
-    timerPtr = NULL_PTR(uint64*);
-    signalsMemoryOffset = NULL_PTR(uint32*);
+
+    if (sequenceNumberPtr == NULL_PTR(uint64*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"sequenceNumberPtr\" was not initialised!");
+    }else{
+        sequenceNumberPtr = NULL_PTR(uint64*);
+    }
+    
+    if (timerPtr == NULL_PTR(uint64*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"timerPtr\" was not initialised!");
+    }else{
+        timerPtr = NULL_PTR(uint64*);
+    }
+
+    if (signalsMemoryOffset == NULL_PTR(uint32*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
+    }else{
+        signalsMemoryOffset = NULL_PTR(uint32*);
+    }
 }
 
 
 bool UDPSender::Synchronise(){
-    bool OK;
-    const MARTe::uint32 udpServerExpectReadSize = nOfSignals * 8u;
+    bool ok;
+    const uint32 udpServerExpectReadSize = nOfSignals * 8u;
     uint32 bytesSent = udpServerExpectReadSize;
-    *timerPtr = (HighResolutionTimer::Counter() - timerAtStateChange) * (HighResolutionTimer::Period()) * 1e6;
-    OK = client.Write(reinterpret_cast<char8*>(dataBuffer), bytesSent);
-    *sequenceNumberPtr +=1u;
-    return OK;
+    if (timerPtr == NULL_PTR(uint64*)){
+        ok = false;
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"timerPtr\" was not initialised!");
+    }else{
+        *timerPtr = (HighResolutionTimer::Counter() - timerAtStateChange) * (HighResolutionTimer::Period()) * 1e6;
+    }
+    if (ok){
+        ok = client.Write(reinterpret_cast<char8*>(dataBuffer), bytesSent);
+    }
+    if (ok){
+        if (sequenceNumberPtr == NULL_PTR(uint64*)){
+            ok = false;
+            REPORT_ERROR(ErrorManagement::FatalError, "Variable \"sequenceNumberPtr\" was not initialised!");
+         }else{
+            *sequenceNumberPtr +=1u;
+        }
+    }
+    return ok;
 }
 
 
@@ -135,12 +164,12 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         uint32 signalByteSize;
         signalsMemoryOffset = new uint32[GetNumberOfSignals()];
         signalsMemoryOffset[0] = 0u;
-        signalsMemoryOffset[1] = 8u;// To account for sequenceNumberPtr to be stored as uint64
-        signalsMemoryOffset[2] = 16u;// To account for timerPtrto be stored as uint64
+        signalsMemoryOffset[1] = 8u;// To account for sequenceNumber to be stored as uint64
+        signalsMemoryOffset[2] = 16u;// To account for timer to be stored as uint64
         for (i = 3u; i < GetNumberOfSignals(); i++){
             ok = GetSignalByteSize(i - 1u, signalByteSize);
             if (ok) {
-            signalsMemoryOffset[i] = signalsMemoryOffset[i - 1u] + signalByteSize;
+                signalsMemoryOffset[i] = signalsMemoryOffset[i - 1u] + signalByteSize;
             }
         }
         ok = (GetSignalType(0u).numberOfBits == 32u);
@@ -149,7 +178,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
             }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
-                                    uint16(signalsMemoryOffset[0u] ))
+                                    uint16(GetSignalType(0u).numberOfBits ))
         }
     }
     if (ok) {
@@ -168,7 +197,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits or 64 bits and %d were specified",
-                                            uint16(signalsMemoryOffset[1u]))
+                                            uint16(GetSignalType(1u).numberOfBits))
         }
     }
     if (ok) {
@@ -187,15 +216,22 @@ bool UDPSender::AllocateMemory(){
 
     nOfSignals = GetNumberOfSignals();
     bool ok = (nOfSignals > 2u);
-    if (ok){
-        uint32 LastSignalByteSize = 0u;
-        ok = GetSignalByteSize(nOfSignals - 1u, LastSignalByteSize);
-        dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalsMemoryOffset[nOfSignals - 1u] + LastSignalByteSize);
+    if (signalsMemoryOffset == NULL_PTR(uint32*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
+        ok = false;
     }else{
-        REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timerPtrand one other signal) must be specified!");
+        if (ok){
+            uint32 LastSignalByteSize = 0u;
+            ok = GetSignalByteSize(nOfSignals - 1u, LastSignalByteSize);
+            dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalsMemoryOffset[nOfSignals - 1u] + LastSignalByteSize);
+            sequenceNumberPtr = &((static_cast<uint64 *>(dataBuffer))[0]);
+            timerPtr = &((static_cast<uint64 *>(dataBuffer))[1]);
+        }else{
+            REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timerPtrand one other signal) must be specified!");
+        }
+        
     }
-    sequenceNumberPtr = &((static_cast<uint64 *>(dataBuffer))[0]);
-    timerPtr = &((static_cast<uint64 *>(dataBuffer))[1]);
+    
     return ok;
 }
 
@@ -209,8 +245,18 @@ bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          void*& signalAddress) {
     bool ok = true;
     if (signalIdx <= (GetNumberOfSignals() -1u)){
-        char8* dataBufferChar = static_cast<char8*>(dataBuffer);
-        signalAddress = static_cast<void *>(&dataBufferChar[signalsMemoryOffset[signalIdx]]);
+        if (dataBuffer == NULL_PTR(void*){
+            ok = false;
+            REPORT_ERROR(ErrorManagement::FatalError, "Variable \"dataBuffer\" was not initialised!");
+        }else{
+            char8* dataBufferChar = static_cast<char8*>(dataBuffer);
+            if (signalsMemoryOffset == NULL_PTR(uint32*)){
+                ok = false;
+                REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
+            }else{
+                signalAddress = static_cast<void *>(&dataBufferChar[signalsMemoryOffset[signalIdx]]);
+            }
+        }  
     }
     else{
         ok = false;
