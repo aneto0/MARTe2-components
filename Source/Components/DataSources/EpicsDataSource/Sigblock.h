@@ -121,6 +121,7 @@ public:
 		 * @brief This class contains the meta properties of a signal and
 		 * extra properties relative to their inclusion into a sigblock.
 		 */
+		/*lint -e{1790} SDA::Signal::Metadata is a POD*/
 		class SignalMetadataEx: public SDA::Signal::Metadata {
 		public:
 

@@ -28,7 +28,7 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include <cstddef>
+#include <cstddef>    //Import std::size_t
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */

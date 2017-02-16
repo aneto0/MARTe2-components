@@ -71,7 +71,7 @@ class EpicsInputDataSource: public DataSourceI {
 
 public:
 
-    CLASS_REGISTER_DECLARATION();
+    CLASS_REGISTER_DECLARATION()
 
 	/**
 	 * @brief Default constructor
