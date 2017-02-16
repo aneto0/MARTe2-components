@@ -140,13 +140,13 @@ bool EpicsInputDataSource::AllocateMemory() {
 		ret = GetSignalByteSize(i, memorySize);
 		if (ret) {
 			ret =GetSignalName(i, signalName);
-		}
-        if (ret) {
-            /*lint -e{9132} array's length given by NAME_MAX_LEN*/
-			ret = MARTe::StringHelper::CopyN(smd_for_init[i].name, signalName.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);
-        }
-        if (ret) {
-			smd_for_init[i].size = memorySize;
+			if (ret) {
+			    /*lint -e{9132} array's length given by NAME_MAX_LEN*/
+			    ret = MARTe::StringHelper::CopyN(smd_for_init[i].name, signalName.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);
+			}
+			if (ret) {
+			    smd_for_init[i].size = memorySize;
+			}
 		}
 	}
 
@@ -165,7 +165,7 @@ bool EpicsInputDataSource::AllocateMemory() {
         ret = false;
     }
 
-	return ret;
+    return ret;
 }
 
 uint32 EpicsInputDataSource::GetNumberOfMemoryBuffers() {
