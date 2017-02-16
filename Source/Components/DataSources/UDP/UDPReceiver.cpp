@@ -127,7 +127,7 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
 }
 
 bool UDPReceiver::AllocateMemory(){
-    nOfSignals = GetNumberOfSignals();
+   
 
     bool ok = (nOfSignals > 2u);
     if (signalsMemoryOffset == NULL_PTR(uint32*)){
@@ -156,7 +156,7 @@ bool UDPReceiver::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          const uint32 bufferIdx,
                                          void*& signalAddress) {
     bool ok = true;
-    if (signalIdx <= (GetNumberOfSignals() -1u)){
+    if (signalIdx <= (nOfSignals -1u)){
         if (dataBuffer == NULL_PTR(void*)){
             ok = false;
             REPORT_ERROR(ErrorManagement::FatalError, "Variable \"dataBuffer\" was not initialised!");
@@ -251,28 +251,32 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Could not open the port!");
     }
     if (ok) {
-        ok = (GetNumberOfSignals() > 2u);
+        nOfSignals = GetNumberOfSignals();
+        ok = (nOfSignals > 2u);
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "At least three signals shall be configured");
     }
     if (ok) {
+        
         uint16 i;
         uint32 signalByteSize;
-        signalsMemoryOffset = new uint32[GetNumberOfSignals()];
+        signalsMemoryOffset = new uint32[nOfSignals];
         signalsMemoryOffset[0] = 0u;
         signalsMemoryOffset[1] = 8u;// To account for sequenceNumber to be stored as uint64
         signalsMemoryOffset[2] = 16u;// To account for timer to be stored as uint64
-        for (i = 3u; i < GetNumberOfSignals(); i++){
+        for (i = 3u; i < nOfSignals; i++){
             uint16 previousSignalIdx = i - 1u;
             ok = GetSignalByteSize(previousSignalIdx, signalByteSize);
             if (ok) {
                 signalsMemoryOffset[i] = signalsMemoryOffset[i - 1u] + signalByteSize;
             }
         }
-        uint16 lastSignalIdx = GetNumberOfSignals() - 1u;
+        uint16 lastSignalIdx = nOfSignals - 1u;
         ok = GetSignalByteSize(lastSignalIdx, signalByteSize);
-        totalPacketSize = signalsMemoryOffset[lastSignalIdx] + signalByteSize;
+        if (ok){
+            totalPacketSize = signalsMemoryOffset[lastSignalIdx] + signalByteSize;
+        }
         ok = (GetSignalType(0u).numberOfBits == 32u);
         if (!ok) {
             ok = (GetSignalType(0u).numberOfBits == 64u);
