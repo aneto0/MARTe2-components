@@ -1,8 +1,8 @@
 /**
  * @file UDPSender.h
  * @brief Header file for class UDPSender
- * @date 31/01/2017
- * @author Danny SOrtino
+ * @date Jan 31, 2017
+ * @author Danny Sortino
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

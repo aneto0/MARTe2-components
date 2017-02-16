@@ -1,8 +1,8 @@
 /**
  * @file UDPReceiver.cpp
  * @brief Source file for class UDPReceiver
- * @date Jan 31, 2017 TODO Verify the value and format of the date
- * @author Danny TODO Verify the name and format of the author
+ * @date Jan 31, 2017 
+ * @author Danny Sortino
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
