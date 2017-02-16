@@ -98,7 +98,7 @@ bool UDPSender::Synchronise(){
         ok = false;
         REPORT_ERROR(ErrorManagement::FatalError, "Variable \"timerPtr\" was not initialised!");
     }else{
-        *timerPtr = static_cast<uint64>(static_cast<float64>(HighResolutionTimer::Counter() - timerAtStateChange) * (HighResolutionTimer::Period()) * 1e6);
+        *timerPtr = static_cast<uint64>(static_cast<float64>(HighResolutionTimer::Counter() - timerAtStateChange) * (HighResolutionTimer::Period()) * static_cast<float64>(1e6));
     }
     if (ok){
         ok = client.Write(reinterpret_cast<char8*>(dataBuffer), bytesSent);
@@ -167,7 +167,8 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         signalsMemoryOffset[1] = 8u;// To account for sequenceNumber to be stored as uint64
         signalsMemoryOffset[2] = 16u;// To account for timer to be stored as uint64
         for (i = 3u; i < GetNumberOfSignals(); i++){
-            ok = GetSignalByteSize((i - 1u), signalByteSize);
+            uint16 previousSignalIdx = i - 1u;
+            ok = GetSignalByteSize(previousSignalIdx, signalByteSize);
             if (ok) {
                 signalsMemoryOffset[i] = signalsMemoryOffset[i - 1u] + signalByteSize;
             }
