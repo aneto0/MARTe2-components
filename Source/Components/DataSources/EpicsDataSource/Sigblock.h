@@ -72,7 +72,7 @@ public:
 		/**
 		 * @brief Gets the signals count.
 		 */
-		SDA::uint32 GetSignalsCount();
+		SDA::uint32 GetSignalsCount() const;
 
 		/**
 		 * @brief Gets the signal's index from its name.
@@ -90,18 +90,18 @@ public:
 		 * @brief Gets the signal's offset from its index.
 		 * @param[in] The index of the signal.
 		 */
-		SDA::uint32 GetSignalOffsetByIndex(const SDA::uint32 index);
+		SDA::uint32 GetSignalOffsetByIndex(const SDA::uint32 index) const;
 
 		/**
 		 * @brief Gets the signal's size from its index.
 		 * @param[in] The index of the signal.
 		 */
-		SDA::size_type GetSignalSizeByIndex(const SDA::int32 index);
+		SDA::size_type GetSignalSizeByIndex(const SDA::int32 index) const;
 
 		/**
 		 * @brief Gets the total size of the sigblock.
 		 */
-		SDA::size_type GetTotalSize();
+		SDA::size_type GetTotalSize() const;
 
 		/**
 		 * @brief Calculates the size needed to hold an instance of this class.
