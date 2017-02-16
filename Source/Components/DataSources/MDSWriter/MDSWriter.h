@@ -43,7 +43,7 @@
 namespace MARTe {
 
 /**
- * @brief TODO
+ * @brief A DataSourceI interface which allows to store signals in an MDSPlus database.
  */
 class MDSWriter: public DataSourceI, public MessageI {
 public:
