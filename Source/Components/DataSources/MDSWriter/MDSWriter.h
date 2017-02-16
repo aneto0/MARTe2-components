@@ -43,42 +43,78 @@
 namespace MARTe {
 
 /**
- * @brief A DataSourceI interface which allows to store signals in an MDSPlus database.
+ * @brief A DataSourceI interface which allows to store signals in an MDSplus database.
+ *
+ * @details Data written into this data source is temporarily stored in a circular buffer and
+ * asynchronously flushed to the MDSplus database in the context of a separate thread.
+ * This circular buffer can either be continuously stored or stored only when a given event occurs (see StoreOnTriggerbelow).
+ *
+ * This DataSourceI has the functions FlushSegments and OpenTree registered as an RPC.
+ *
+ * The configuration syntax is (names are only given as an example):
+ * +MDSWriter_0 = {
+ *     Class = MDSWriter
+ *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above
+ *     CPUMask = 15 //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data into the MDSplus database.
+ *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
+ *     TreeName = "mds_m2test" //Compulsory. Name of the MDSplus tree.
+ *     PulseNumber = 1 //Optional. If -1 a new pulse will be created.
+ *     StoreOnTrigger = 1 //Compulsory. If 0 all the data in the circular buffer is continuously stored. If 1 data is stored when the Trigger signal is 1 (see below).
+ *     EventName = "updatejScope" //Compulsory. Event sent to jScope when TimeRefresh seconds have elapsed.
+ *     TimeRefresh = 5 //Compulsory. Event sent to jScope when TimeRefresh seconds have elapsed.
+ *     NumberOfPreTriggers = 2 //Compulsory, when StoreOnTrigger = 1.  Number of cycles to store before the trigger.
+ *     NumberOfPostTriggers = 1 //Compulsory, when StoreOnTrigger = 1.  Number of cycles to store after the trigger.
+ *
+ *     Signals = {
+ *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be store in index 0 of the Signals.
+ *             Type = 'uint8" //Type must be uint8
+ *         }
+ *         Time = { //Compulsory when StoreOnTrigger = 1. Can be store in any index, but TimeSignal must be set = 1
+ *             Type = "uint32" //Type must be uint32
+ *             TimeSignal = 1 //When set this signal will be considered as the time source against which all signals will be stored.
+ *         }
+ *         SignalUInt16F = { //As many as required.
+ *             NodeName = "SIGUINT16F" //MDSplus node name
+ *             Period = 2 //Period between signal samples.
+ *             MakeSegmentAfterNWrites = 4 //Force the creation of a segment after N MARTe cycles.
+ *             DecimatedNodeName = "SIGUINT16D" //Optional the node where MDSplus stores the automatically computed decimated signal.
+ *             MinMaxResampleFactor = 4 //Compulsory if DecimatedNodeName is set. Decimation factor that MDSplus applies to the decimated version of the signal.
+ *             SamplePhase = 0 //Optional. Shift the time vector by SamplePhase * Period
+ *         }
+ *         ...
+ *     }
+ * }
  */
 class MDSWriter: public DataSourceI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
+
     /**
-     * TODO
      * @brief Default constructor.
      * @details Initialises all the optional parameters as described in the class description.
+     * Registers the RPC FlushSegments and OpenTree callback functions.
      */
 MDSWriter    ();
 
     /**
-     * TODO
      * @brief Destructor.
-     * @details Closes all the file descriptors associated to the board, including any opened channels.
-     * Stops the embedded thread which is reading from this board.
+     * @details Flushes any open segments and frees the circular buffer.
      */
     virtual ~MDSWriter();
 
     /**
-     * TODO
      * @brief See DataSourceI::AllocateMemory. NOOP.
      * @return true.
      */
     virtual bool AllocateMemory();
 
     /**
-     * TODO
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
      * @return 1.
      */
     virtual uint32 GetNumberOfMemoryBuffers();
 
     /**
-     * TODO
      * @brief See DataSourceI::GetSignalMemoryBuffer.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
@@ -86,141 +122,172 @@ MDSWriter    ();
             void *&signalAddress);
 
     /**
-     * TODO
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @details Only InputSignals are supported.
-     * @return MemoryMapSynchronisedInputBroker if frequency > 0, MemoryMapInputBroker otherwise.
+     * @details Only OutputSignals are supported.
+     * @return MemoryMapAsyncOutputBroker if storeOnTrigger == 0, MemoryMapAsyncTriggerOutputBroker otherwise.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
 
     /**
-     * TODO
      * @brief See DataSourceI::GetInputBrokers.
-     * @details If the functionName is the one synchronising it adds a MemoryMapSynchronisedInputBroker instance to
-     *  the inputBrokers, otherwise it adds a MemoryMapInputBroker instance to the inputBrokers.
+     * @return false.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
             const char8* const functionName,
             void * const gamMemPtr);
 
     /**
-     * TODO
      * @brief See DataSourceI::GetOutputBrokers.
-     * @return false.
+     * @details If storeOnTrigger == 0 it adds a MemoryMapAsyncOutputBroker instance to
+     *  the inputBrokers, otherwise it adds a MemoryMapAsyncTriggerOutputBroker instance to the outputBrokers.
+     * @pre
+     *   GetNumberOfFunctions() == 1u
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
             const char8* const functionName,
             void * const gamMemPtr);
 
     /**
-     * TODO
-     * @brief Waits on an EventSem for the requested number of samples to be acquired for all the channels.
-     * @return true if the semaphore is successfully posted.
+     * @brief Calls Execute on all the MDSWriterNodes and if sufficient time has elapsed, issues an MDSplus::Event.
+     * @return true if the MDSWriterNode::Execute returns true on all the nodes.
      */
     virtual bool Synchronise();
 
     /**
-     * TODO
-     * @brief Starts the EmbeddedThread and sets the counter and the time to zero.
-     * @details See StatefulI::PrepareNextState. Starts the EmbeddedThread (if it was not already started) that reads from the ADC.
-     * Sets the counter and the time to zero.
-     * @return true if the EmbeddedThread can be successfully started.
+     * @brief See DataSourceI::PrepareNextState. NOOP.
+     * @return true.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
             const char8 * const nextStateName);
 
     /**
-     * TODO
      * @brief Loads and verifies the configuration parameters detailed in the class description.
      * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * TODO
-     * @brief Final verification of all the parameters and setup of the board configuration.
+     * @brief Final verification of all the parameters and setup of the MDSTreeNode instances.
      * @details This method verifies that all the parameters (e.g. number of samples) requested by the GAMs interacting with this DataSource
-     *  are valid and consistent with the board parameters set during the initialisation phase.
+     *  are valid and consistent with the parameters set during the initialisation phase.
      * In particular the following conditions shall be met:
-     * - The type of the counter and of the time shall be 32 bit (un)signed integers.
-     * - All the ADC channels have type float32.
-     * - The number of samples of all the ADC channels is the same.
-     * - For synchronising boards (i.e. where a Frequency was defined for a given channel):
-     *  - The single ADC frequency (SamplingFrequency/NumberOfChannels) > Frequency * Samples
-     * @return true if all the parameters are valid and consistent with the board parameters and if the board can be successfully configured with
-     *  these parameters.
+     * - If relevant, the Trigger signal shall have type uint8
+     * - If relevant, the Time signal shall have type uint32
+     * - The number of samples of all the MDS signals is one.
+     * - At least one MDS plus signal (apart from the eventual Trigger and Time signal) is set.
+     * @return true if all the parameters are valid and, when PulseNumber is defined, if an MDSplus Tree can be successfully opened.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * TODO
+     * @brief Calls MDSTreeNode::Flush on all the MDSplus signals, constraining the creation of a new segment even if the number of
+     *  cycles is less than MakeSegmentAfterNWrites
+     * @return true if all the MDSTreeNode::Flush return no error.
      */
     ErrorManagement::ErrorType FlushSegments();
 
     /**
-     * TODO
+     * @brief Opens a new MDSplus tree.
+     * @param[in] pulseNumber the MDSplus pulse number. If -1 a new pulse number will be created.
+     * @return ErrorManagement::NoError if a tree against that pulse number can be sucessfully opened.
      */
     ErrorManagement::ErrorType OpenTree(int32 pulseNumber);
 
 private:
 
-    //TODO
+    /**
+     * CPU count at which the last MDS plus event was fired.
+     */
+    uint64 lastTimeRefreshCount;
+
+    /**
+     * Fires an MDS plus event warning about new data every refreshEveryCounts CPU counts.
+     */
+    uint64 refreshEveryCounts;
+
+    /**
+     * The tree pulse number.
+     */
     int32 pulseNumber;
 
-    //TODO
+    /**
+     * True if the data is only to be stored in MDS plus following a trigger.
+     */
     bool storeOnTrigger;
 
-    //TODO
+    /**
+     * Number of pre buffers when StoreOnTrigger == 1.
+     */
     uint32 numberOfPreTriggers;
 
-    //TODO
+    /**
+     * Number of post buffers when StoreOnTrigger == 1.
+     */
     uint32 numberOfPostTriggers;
 
-    //TODO
+    /**
+     * Number of buffers in the circular buffer.
+     */
     uint32 numberOfBuffers;
 
-    //TODO
+    /**
+     * The number of MDS signals declared (i.e. the ones that have the property Node= defined
+     */
     uint32 numberOfMDSSignals;
 
-    //TODO
+    /**
+     * Holds an MDSWriterNode for each Signal declared in the DataSourceI.
+     */
     MDSWriterNode **nodes;
 
-    //TODO
+    /**
+     * The index of the time signal in the signal list.
+     */
     int32 timeSignalIdx;
 
-    //TODO
+    /**
+     * Offset of each signal in the dataSourceMemory
+     */
     uint32 *offsets;
 
-    //TODO
-    uint32 totalSignalMemory;
-
-    //TODO
+    /**
+     * Memory holding all the signals that are to be stored, for each cycle, in MDSplus
+     */
     char8 *dataSourceMemory;
 
-    //TODO
+    /**
+     * The affinity of the thread that asynchronously flushes data into MDSplus.
+     */
     ProcessorType cpuMask;
 
-    //TODO
+    /**
+     * The size of the stack of the thread that asynchronously flushes data into MDSplus.
+     */
     uint32 stackSize;
 
-    //TODO
+    /**
+     * The name of the MDSplus tree.
+     */
     StreamString treeName;
 
-    //TODO
+    /**
+     * The name of the jScope event to be fired every refreshTime seconds.
+     */
     StreamString eventName;
 
-    //TODO
-    uint32 timeRefresh;
-
-    //TODO
+    /**
+     * The MDSplus tree.
+     */
     MDSplus::Tree *tree;
 
-    //TODO
+    /**
+     * Stores the configuration information received at Initialise.
+     */
     ConfigurationDatabase originalSignalInformation;
 
     /**
-     * Filter to receive the RPC
+     * Filter to receive the RPC which allows to change the pulse number.
      */
     ReferenceT<RegisteredMethodsMessageFilter> filter;
 };

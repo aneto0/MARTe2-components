@@ -52,7 +52,6 @@ MDSWriter::MDSWriter() :
     numberOfPostTriggers = 0u;
     numberOfBuffers = 0u;
     numberOfMDSSignals = 0u;
-    totalSignalMemory = 0u;
     timeSignalIdx = -1;
     nodes = NULL_PTR(MDSWriterNode **);
     dataSourceMemory = NULL_PTR(char8 *);
@@ -63,7 +62,8 @@ MDSWriter::MDSWriter() :
     treeName = "";
     eventName = "";
     pulseNumber = MDS_UNDEFINED_PULSE_NUMBER;
-    timeRefresh = 0u;
+    lastTimeRefreshCount = 0u;
+    refreshEveryCounts = 0u;
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
@@ -121,21 +121,26 @@ bool MDSWriter::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
 }
 
 bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    bool ok = true;
-    if (storeOnTrigger) {
-        ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger("MemoryMapAsyncTriggerOutputBroker");
-        ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
-                                                           numberOfPostTriggers, cpuMask, stackSize);
-        if (ok) {
-            ok = outputBrokers.Insert(brokerAsyncTrigger);
+    bool ok = (GetNumberOfFunctions() == 1u);
+    if (ok) {
+        if (storeOnTrigger) {
+            ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger("MemoryMapAsyncTriggerOutputBroker");
+            ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+                                                               numberOfPostTriggers, cpuMask, stackSize);
+            if (ok) {
+                ok = outputBrokers.Insert(brokerAsyncTrigger);
+            }
+        }
+        else {
+            ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
+            ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
+            if (ok) {
+                ok = outputBrokers.Insert(brokerAsync);
+            }
         }
     }
     else {
-        ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
-        ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
-        if (ok) {
-            ok = outputBrokers.Insert(brokerAsync);
-        }
+        REPORT_ERROR(ErrorManagement::ParametersError, "At most one function is allowed to interact with this DataSourceI");
     }
     return ok;
 }
@@ -147,6 +152,10 @@ bool MDSWriter::Synchronise() {
         for (n = 0u; (n < numberOfMDSSignals) && (ok); n++) {
             ok = nodes[n]->Execute();
         }
+    }
+    if ((HighResolutionTimer::Counter() - lastTimeRefreshCount) > refreshEveryCounts) {
+        lastTimeRefreshCount = HighResolutionTimer::Counter();
+        MDSplus::Event::setEvent(eventName.Buffer());
     }
     return ok;
 }
@@ -227,13 +236,7 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "EventName shall be specified");
         }
     }
-    if (ok) {
-        ok = data.Read("EventName", eventName);
-
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "EventName shall be specified");
-        }
-    }
+    uint32 timeRefresh;
     if (ok) {
         ok = data.Read("TimeRefresh", timeRefresh);
         if (!ok) {
@@ -263,6 +266,7 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
     }
     if (ok) {
         ok = data.MoveToAncestor(1u);
+        refreshEveryCounts = timeRefresh * HighResolutionTimer::Frequency();
     }
     return ok;
 }
@@ -276,6 +280,7 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     //Check signal properties and compute memory
+    uint32 totalSignalMemory = 0u;
     if (ok) {
         //Do not allow samples
         uint32 functionNumberOfSignals = 0u;
@@ -292,6 +297,7 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 }
             }
         }
+
 
         offsets = new uint32[GetNumberOfSignals()];
         uint32 numberOfSignals = GetNumberOfSignals();
