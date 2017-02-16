@@ -201,22 +201,50 @@ private:
      */
     TimeoutType timeout;
 
+    /**
+     * The receiver will listen on
+     */
     uint16 udpServerPort;
 
+    /**
+     * The IP address to which the data will be recieved on
+     */
     StreamString udpServerAddress;
 
+    /**
+     * The number of signals that will be received
+     */
     uint32 nOfSignals;
 
+    /**
+     * The total size in bytes of the expected packet that will be received
+     */
     uint32 totalPacketSize;
 
+    /**
+     * An array storing the pointer offset (number of bytes) for each signal, 
+     * EG to get the pointer offset  for signal 1 = signalsMemoryOffset[0]
+     */
     uint32 *signalsMemoryOffset;
 
+    /**
+     * A pointer to memory that will contain all the information that will be sent
+     */
     void *dataBuffer;
     
+    /**
+     * A pointer to the sequence number data that is stored within the databuffer
+     */   
     uint64 *sequenceNumberPtr;
     
+    /**
+     * A pointer to the timer data that is stored within the databuffer
+     */    
     uint64 *timerPtr;
 
+    /**
+     * The socket that will connect to the sender
+     */ 
     UDPSocket server;
 
 };
