@@ -183,6 +183,17 @@ private:
      * The maximum memory address pointer that should be defined, used to avoid out of bounds memory access
      */
     uint32 maximumMemoryAccess;
+
+    uint32 nOfSignals = 0u;
+
+    uint16 udpServerPort;
+
+    uint32 *signalsMemoryOffset;
+
+    void *dataBuffer;
+
+    uint32 signalByteSize;
+
 };
 }
 #endif
