@@ -165,18 +165,40 @@ private:
      */
     uint64 timerAtStateChange;
 
+    /**
+     * The number of signals that will be sent
+     */
     uint32 nOfSignals;
 
+    /**
+     * The port that the sender will transmit to
+     */
     uint16 udpServerPort;
 
+    /**
+     * An array storing the pointer offset (number of bytes) for each signal, 
+     * EG to get the pointer offset  for signal 1 = signalsMemoryOffset[0]
+     */
     uint32 *signalsMemoryOffset;
 
+    /**
+     * A pointer to memory that will contain all the information that will be sent
+     */
     void *dataBuffer;
-    
+ 
+    /**
+     * A pointer to the sequence number data that is stored within the databuffer
+     */   
     uint64 *sequenceNumberPtr;
-    
+ 
+    /**
+     * A pointer to the timer data that is stored within the databuffer
+     */      
     uint64 *timerPtr;
-
+ 
+    /**
+     * The socket that will connect to the receiver
+     */  
     UDPSocket client;
 
 
