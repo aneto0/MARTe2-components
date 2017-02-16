@@ -80,7 +80,7 @@ SDA::uint32 Sigblock::Metadata::GetSignalIndex(const SDA::char8* const name) {
 	return result;
 }
 
-SDA::char8* Sigblock::Metadata::GetSignalName(const SDA::int32 index) {
+const SDA::char8* Sigblock::Metadata::GetSignalName(const SDA::int32 index) const {
     return signalsMetadata[index].name;
 }
 
