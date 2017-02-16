@@ -31,10 +31,8 @@
 #include "MemoryMapInputBroker.h"
 #include "Threads.h"
 #include "UDPReceiver.h"
-#include "UDPSocket.h"
 
 namespace MARTe{
-    UDPSocket server;
 
 UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this){
     synchronising = true;
@@ -42,12 +40,12 @@ UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), execu
     dataRecievedCorrectSize = false;
     dataRecieved = false;
     udpServerPort = 44488u;
-    nOfSignals = 1u;
+    nOfSignals = 0u;
     udpServerAddress = "127.0.0.1";
-    UDPPacket.sequenceNumber = 0u;
-    UDPPacket.timer = 0u ;
-    UDPPacket.dataBuffer = NULL_PTR(void*);
-    signalsByteSize = NULL_PTR(uint32*);
+    timerPtr = NULL_PTR(uint64*);
+    sequenceNumberPtr = NULL_PTR(uint64*);
+    dataBuffer = NULL_PTR(void*);
+    signalsMemoryOffset = NULL_PTR(uint32*);
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
@@ -69,9 +67,11 @@ UDPReceiver::~UDPReceiver(){
     if (!server.Close()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP reciever server.");
     }
-    GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(UDPPacket.dataBuffer);
-    if (signalsByteSize != NULL_PTR(uint32*)){
-        signalsByteSize = NULL_PTR(uint32*);
+    GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(dataBuffer);
+    if (signalsMemoryOffset == NULL_PTR(uint32*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
+    }else{
+        signalsMemoryOffset = NULL_PTR(uint32*);
     }
 }
 
@@ -121,20 +121,19 @@ bool UDPReceiver::AllocateMemory(){
     nOfSignals = GetNumberOfSignals();
 
     bool ok = (nOfSignals > 2u);
-    totalPacketSize = 0u;
-    if (ok){
-        uint32 n;
-        uint32 signalByteSize = 0u;
-        for (n = 2u; (n < nOfSignals) && (ok); n++){
-            ok = GetSignalByteSize(n, signalByteSize);
-            if (ok){
-                totalPacketSize += signalByteSize;
-            }
-        }
-        UDPPacket.dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalPacketSize);
-        maximumMemoryAccess = totalPacketSize - signalByteSize;        
+    if (signalsMemoryOffset == NULL_PTR(uint32*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
+        ok = false;
     }else{
-        REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timer and another signal) must be specified!");
+        if (ok){
+            uint32 LastSignalByteSize = 0u;
+            ok = GetSignalByteSize(nOfSignals - 1u, LastSignalByteSize);
+            dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalsMemoryOffset[nOfSignals - 1u] + LastSignalByteSize);
+            sequenceNumberPtr = &((static_cast<uint64 *>(dataBuffer))[0]);
+            timerPtr = &((static_cast<uint64 *>(dataBuffer))[1]);
+        }else{
+            REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timerPtrand one other signal) must be specified!");
+        }  
     }
     return ok;
 }
@@ -147,32 +146,20 @@ uint32 UDPReceiver::GetNumberOfMemoryBuffers(){
 bool UDPReceiver::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          const uint32 bufferIdx,
                                          void*& signalAddress) {
-    uint32 memoryOffset = 0u;
     bool ok = true;
     if (signalIdx <= (GetNumberOfSignals() -1u)){
-        if (signalIdx == 0u) {
-            signalAddress = &UDPPacket.sequenceNumber;
-        }
-        else if (signalIdx == 1u) {
-            signalAddress = &UDPPacket.timer;
-        }
-        else{
-            uint32 i;
-            for (i = 2u; i < signalIdx ; i++){
-                uint32 signalByteSize = 0u;
-                ok = GetSignalByteSize(i, signalByteSize);
-                if (ok){
-                    memoryOffset += signalByteSize;
-                }
-            }
-            if (memoryOffset <= maximumMemoryAccess){
-                char8 *dataBufferChar = static_cast<char8*>(UDPPacket.dataBuffer);
-                signalAddress = static_cast<void *>(&dataBufferChar[memoryOffset]);
-            }else{
+        if (dataBuffer == NULL_PTR(void*)){
+            ok = false;
+            REPORT_ERROR(ErrorManagement::FatalError, "Variable \"dataBuffer\" was not initialised!");
+        }else{
+            char8* dataBufferChar = static_cast<char8*>(dataBuffer);
+            if (signalsMemoryOffset == NULL_PTR(uint32*)){
                 ok = false;
-                REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
+                REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
+            }else{
+                signalAddress = static_cast<void *>(&dataBufferChar[signalsMemoryOffset[signalIdx]]);
             }
-        }
+        }  
     }
     else{
         ok = false;
@@ -222,8 +209,20 @@ bool UDPReceiver::PrepareNextState(const char8* const currentStateName,
         keepRunning = true;
         ok = executor.Start();
     } 
-    UDPPacket.sequenceNumber = 0u;
-    UDPPacket.timer = 0u;
+    if (sequenceNumberPtr == NULL_PTR(uint64*)){
+        ok = false;
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"sequenceNumberPtr\" was not initialised!");
+    }else{    
+        *sequenceNumberPtr = 0u;
+    }    
+    if (ok){
+        if (timerPtr == NULL_PTR(uint64*)){
+            ok = false;
+            REPORT_ERROR(ErrorManagement::FatalError, "Variable \"timerPtr\" was not initialised!");
+        }else{
+            *timerPtr= 0u ;
+        }
+    }    
     return ok;
 }
 
@@ -250,17 +249,28 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         uint16 i;
-        signalsByteSize = new uint32[GetNumberOfSignals()];
-        for (i = 0u; i < GetNumberOfSignals(); i++){
-            signalsByteSize[i] = GetSignalType(i).numberOfBits;
+        uint32 signalByteSize;
+        signalsMemoryOffset = new uint32[GetNumberOfSignals()];
+        signalsMemoryOffset[0] = 0u;
+        signalsMemoryOffset[1] = 8u;// To account for sequenceNumber to be stored as uint64
+        signalsMemoryOffset[2] = 16u;// To account for timer to be stored as uint64
+        for (i = 3u; i < GetNumberOfSignals(); i++){
+            uint16 previousSignalIdx = i - 1u;
+            ok = GetSignalByteSize(previousSignalIdx, signalByteSize);
+            if (ok) {
+                signalsMemoryOffset[i] = signalsMemoryOffset[i - 1u] + signalByteSize;
+            }
         }
-        ok = (signalsByteSize[0u] == 32u);
+        uint16 lastSignalIdx = GetNumberOfSignals() - 1u;
+        GetSignalByteSize(lastSignalIdx, signalByteSize);
+        totalPacketSize = signalsMemoryOffset[lastSignalIdx] + signalByteSize;
+        ok = (GetSignalType(0u).numberOfBits == 32u);
         if (!ok) {
-            ok = (signalsByteSize[0u] == 64u);
+            ok = (GetSignalType(0u).numberOfBits == 64u);
             }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
-                                    uint16(signalsByteSize[0u]))
+                                    uint16(GetSignalType(0u).numberOfBits ))
         }
     }
     if (ok) {
@@ -273,13 +283,13 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (signalsByteSize[1u] == 32u);
+        ok = (GetSignalType(1u).numberOfBits == 32u);
         if (!ok) {
-            ok = (signalsByteSize[1u] == 64u);
+            ok = (GetSignalType(1u).numberOfBits == 64u);
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits or 64 bits and %d were specified",
-                                            uint16(signalsByteSize[1u]))
+                                            uint16(GetSignalType(1u).numberOfBits))
         }
     }
     if (ok) {
@@ -291,7 +301,6 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall SignedInteger or UnsignedInteger type");
         }
     }
-    
     return ok;
 }
 
@@ -306,71 +315,20 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         keepRunning = false;
     }
     else{
-        uint32 udpServerExpectReadSize = totalPacketSize + static_cast<uint32>(signalsByteSize[0u]/8u) + static_cast<uint32>(signalsByteSize[1u]/8u);
-        uint8 udpServerBufferRead[udpServerExpectReadSize];
-        memset(static_cast<void*>(udpServerBufferRead), 0, sizeof(udpServerBufferRead));
+        uint32 udpServerExpectReadSize = totalPacketSize;
         uint32 udpServerReadSize = udpServerExpectReadSize;
         uint8 i;
         if (keepRunning) {
-            dataRecieved = server.Read(reinterpret_cast<char8 *>(udpServerBufferRead), udpServerReadSize,  timeout);
+            dataRecieved = server.Read(reinterpret_cast<char8*>(dataBuffer), udpServerReadSize,  timeout);
         }
         dataRecieved = (udpServerReadSize > 0u);
         dataRecievedCorrectSize = (udpServerReadSize == udpServerExpectReadSize);
-
         if (!dataRecieved){
             REPORT_ERROR(ErrorManagement::ParametersError, "No data recieved");
             Sleep::Sec(20e-6);
         }else if(!dataRecievedCorrectSize){
             REPORT_ERROR(ErrorManagement::ParametersError, "Recieved data of inccorect size, ignoring it.");
             Sleep::Sec(100e-6);
-        }else{
-
-            uint32 signalOffset = 0u;
-            uint32 memoryOffset = 0u;
-            for (i = 0u; (i < nOfSignals) && keepRunning ; i++){
-                uint32 size = signalsByteSize[i];
-                uint32 signalByteSize = size / 8u;
-                void* receivedSignal;
-                bool ok = true;
-                if (i == 0u){
-                    receivedSignal = &UDPPacket.sequenceNumber;
-                }else if (i == 1u){
-                    receivedSignal = &UDPPacket.timer;                    
-                }else{  
-                    receivedSignal = UDPPacket.dataBuffer;
-                }
-
-                uint32 noOfBytesForSignal = size/8u;
-                uint8 dataConv[noOfBytesForSignal];
-                memset(static_cast<void*>(dataConv), 0, sizeof(dataConv));
-                uint32 counter;
-                for (counter = 0u; counter < noOfBytesForSignal; counter++){
-                    uint32 readBufferPointer = signalOffset + counter;
-                    dataConv[counter] = udpServerBufferRead[readBufferPointer];
-                }
-                if ((i == 0u) || (i == 1u)){
-                    ok = MemoryOperationsHelper::Copy(receivedSignal,static_cast<void*>(dataConv),signalByteSize);
-                    if (!ok){
-                        REPORT_ERROR(ErrorManagement::FatalError, "Memory copy failed");
-                    }
-                }else{
-                    if (memoryOffset <= maximumMemoryAccess){
-                        char8 *receivedSignalChar= static_cast<char8*>(receivedSignal);
-                        void *p = static_cast<void *>(&receivedSignalChar[memoryOffset]);
-                        ok = MemoryOperationsHelper::Copy(p,static_cast<void*>(dataConv),signalByteSize);
-                        if (!ok){
-                            REPORT_ERROR(ErrorManagement::FatalError, "Memory copy failed");
-                        }else{
-                            memoryOffset += signalByteSize;
-                        }
-                    }else{
-                        REPORT_ERROR(ErrorManagement::FatalError, "Tried to access memory larger than defined");
-                    }
-                }
-                if (ok){
-                    signalOffset += noOfBytesForSignal;
-                }
-            }
         }
     }
 

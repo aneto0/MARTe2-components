@@ -36,6 +36,8 @@
 #include "EmbeddedServiceMethodBinderI.h"
 #include "EventSem.h"
 #include "SingleThreadService.h"
+#include "UDPSocket.h"
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -74,11 +76,6 @@ public:
      * @brief PacketTypes.
      * @details The layout for the packet that will be recieved
      */
-    struct UDPMsgStruct{
-        uint64 sequenceNumber;
-        uint64 timer;
-        void *dataBuffer;
-    };   
     
     /**
      * @brief Default constructor.
@@ -188,10 +185,6 @@ private:
      */
     bool synchronising;
 
-    /**
-     * The datapacket structure that will be recieved
-     */
-    UDPMsgStruct UDPPacket;
 
     /**
      * True if the server should remain running
@@ -214,11 +207,6 @@ private:
      */
     TimeoutType timeout;
 
-    /**
-     * The maximum memory address pointer that should be defined, used to avoid out of bounds memory access
-     */
-    uint32 maximumMemoryAccess;
-
     uint16 udpServerPort;
 
     StreamString udpServerAddress;
@@ -227,7 +215,15 @@ private:
 
     uint32 totalPacketSize;
 
-    uint32 *signalsByteSize;
+    uint32 *signalsMemoryOffset;
+
+    void *dataBuffer;
+    
+    uint64 *sequenceNumberPtr;
+    
+    uint64 *timerPtr;
+
+    UDPSocket server;
 
 };
 }
