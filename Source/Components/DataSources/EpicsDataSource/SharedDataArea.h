@@ -109,7 +109,7 @@ private:
 		SDA::Sigblock::Metadata* Header();
 		SDA::SigblockDoubleBuffer* Items();
 		bool IsOperational() const;
-		void FillPreHeader(const SDA::size_type sizeOfHeader, const SDA::size_type sizeOfItems);
+		void FillPreHeader(const SDA::size_type sizeOfHeader);
 		void FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]);
 		void FillItems(const SDA::size_type sizeOfSigblock);
 		//const SDA::size_type size;

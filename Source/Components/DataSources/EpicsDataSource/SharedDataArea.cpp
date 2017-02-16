@@ -98,8 +98,7 @@ SharedDataArea::SigblockConsumer* SharedDataArea::GetSigblockConsumerInterface()
     return reinterpret_cast<SigblockConsumer*>(shm);
 }
 
-void SharedDataArea::Representation::FillPreHeader(const SDA::size_type sizeOfHeader, const SDA::size_type sizeOfItems) {
-    //TODO: Purge sizeOfItems parameter.
+void SharedDataArea::Representation::FillPreHeader(const SDA::size_type sizeOfHeader) {
 	hasReader = false;
 	hasWriter = false;
 	droppedWrites = 0u;
@@ -133,7 +132,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* con
     else {
     	tmp_shm_ptr = static_cast<SharedDataArea::Representation*>(raw_shm_ptr);
 //std::memset(tmp_shm_ptr+sizeof(size_t), 88, totalSize);
-		tmp_shm_ptr->FillPreHeader(sizeOfHeader, sizeOfItems);
+		tmp_shm_ptr->FillPreHeader(sizeOfHeader);
 //		printf("*** SharedDataArea::BuildSharedDataAreaForMARTe tmp_shm_ptr->rawmem=%p tmp_shm_ptr->Header()=%p, tmp_shm_ptr->Items()=%p ***\n", tmp_shm_ptr->rawmem, tmp_shm_ptr->Header(), tmp_shm_ptr->Items());
 //std::memset(tmp_shm_ptr->Header(), 89, sizeOfHeader);
 //std::memset(tmp_shm_ptr->Items(), 90, sizeOfItems);
