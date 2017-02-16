@@ -35,7 +35,6 @@
 #include "MemoryMapSynchronisedOutputBroker.h"
 #include "Shift.h"
 #include "UDPSender.h"
-#include "UDPSocket.h"
 
 
 
@@ -49,7 +48,6 @@
 
 namespace MARTe{
 
-UDPSocket client;
 
 UDPSender::UDPSender():DataSourceI(){
     timerPtr = NULL_PTR(uint64*);
@@ -58,6 +56,7 @@ UDPSender::UDPSender():DataSourceI(){
     timerAtStateChange = 0u;
     udpServerAddress = "";
     maximumMemoryAccess = 0u;
+    nOfSignals = 0u;
 }
 
 /*lint -e{1551} Justification: the destructor must guarantee that the client sending is closed.*/
@@ -68,13 +67,12 @@ UDPSender::~UDPSender(){
     GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(dataBuffer);
 }
 
-/*lint -e{771} Justification: the arrays are initialised in a For loop after being declared, and not picked up by lint.*/
-/*lint -e{772} Justification: the arrays are initialised in a For loop after being declared, and not picked up by lint.*/
+
 bool UDPSender::Synchronise(){
     bool OK = true;
     const MARTe::uint32 udpServerExpectReadSize = nOfSignals * 8u;
     uint32 bytesSent = udpServerExpectReadSize;
-    *timerPtr = (HighResolutionTimer::Counter() - timerAtStateChange) ;
+    *timerPtr = (HighResolutionTimer::Counter() - timerAtStateChange) * (HighResolutionTimer::Period()) * 1e6;
     OK = client.Write(reinterpret_cast<char8*>(dataBuffer), bytesSent);
     *sequenceNumberPtr +=1u;
     return OK;

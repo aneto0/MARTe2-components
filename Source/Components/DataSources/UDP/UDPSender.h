@@ -34,6 +34,7 @@
 #include "CompilerTypes.h"
 #include "DataSourceI.h"
 #include "EventSem.h"
+#include "UDPSocket.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -184,7 +185,7 @@ private:
      */
     uint32 maximumMemoryAccess;
 
-    uint32 nOfSignals = 0u;
+    uint32 nOfSignals;
 
     uint16 udpServerPort;
 
@@ -193,6 +194,13 @@ private:
     void *dataBuffer;
 
     uint32 signalByteSize;
+
+    uint64 *sequenceNumberPtr;
+    
+    uint64 *timerPtr;
+
+    UDPSocket client;
+
 
 };
 }
