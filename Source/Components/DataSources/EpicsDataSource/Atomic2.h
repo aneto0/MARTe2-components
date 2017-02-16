@@ -113,7 +113,7 @@ namespace SDA {
  */
 template<typename T>
 inline bool CAS(volatile T* const ptr, const T oldval, const T newval) {
-	return __sync_bool_compare_and_swap(ptr, oldval, newval);
+	return static_cast<bool>(__sync_bool_compare_and_swap(ptr, oldval, newval));
 }
 
 /*
@@ -128,7 +128,8 @@ inline bool CAS(volatile T* const ptr, const T oldval, const T newval) {
  */
 template<typename T>
 inline T XCHG(volatile T* const ptr, const T val) {
-	return __sync_lock_test_and_set(ptr, val);
+    /*lint -e{930} when T is an enumeration is ok, too*/
+	return static_cast<T>(__sync_lock_test_and_set(ptr, val));
 }
 
 /*
