@@ -1064,13 +1064,11 @@ bool UDPReceiverTest::TestGetOutputBrokers(){
     bool ok = test.GetOutputBrokers(container, "Default", NULL_PTR(void *));
     return !ok;
 }
-//TODO: LOOK WHY THIS SEGFAULTS
 bool UDPReceiverTest::TestPrepareNextState(){
     using namespace MARTe;
     UDPReceiver test;
-    //bool ok = (test.PrepareNextState("FromCurrent", "ToNext"));
-    //return ok;
-    return true;
+    bool ok = (test.PrepareNextState("FromCurrent", "ToNext"));
+    return !ok;
 }
 
 bool UDPReceiverTest::TestSynchronise(){
