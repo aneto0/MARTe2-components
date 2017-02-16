@@ -48,16 +48,16 @@
 
 namespace SDA {
 
-void Sigblock::Metadata::SetSignalsMetadata(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
+void Sigblock::Metadata::SetSignalsMetadata(const SDA::uint32 count, const SDA::Signal::Metadata metadata[]) {
     SDA::size_type offset = 0u;
-	for (SDA::uint32 i = 0u; i < signalsCount; i++) {
-	    (void)std::strncpy(this->signalsMetadata[i].name, signalsMetadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN);
-		this->signalsMetadata[i].size = signalsMetadata[i].size;
+	for (SDA::uint32 i = 0u; i < count; i++) {
+	    (void)std::strncpy(this->signalsMetadata[i].name, metadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN);
+		this->signalsMetadata[i].size = metadata[i].size;
 		this->signalsMetadata[i].offset = offset;
 //		printf("SDA::Sigblock::Metadata::SetSignalsMetadata >>> i=%u offset=%zu this->signalsMetadata[i].offset=%zu this->signalsMetadata[i].name=%s\n", i, offset, this->signalsMetadata[i].offset, this->signalsMetadata[i].name);
-		offset += signalsMetadata[i].size;
+		offset += metadata[i].size;
 	}
-	this->signalsCount = signalsCount;
+	this->signalsCount = count;
 }
 
 SDA::uint32 Sigblock::Metadata::GetSignalsCount() {
@@ -96,8 +96,8 @@ SDA::size_type Sigblock::Metadata::GetTotalSize() {
 	return (sizeof(SDA::Signal::Metadata) * signalsCount);
 }
 
-SDA::size_type Sigblock::Metadata::SizeOf(const SDA::uint32 signalsCount) {
-	return (sizeof(SDA::uint32) + (signalsCount * (sizeof(SDA::Signal::Metadata)+sizeof(SDA::size_type))));
+SDA::size_type Sigblock::Metadata::SizeOf(const SDA::uint32 numSignals) {
+	return (sizeof(SDA::uint32) + (numSignals * (sizeof(SDA::Signal::Metadata)+sizeof(SDA::size_type))));
 }
 
 void* Sigblock::GetSignalAddress(const SDA::size_type offset) {

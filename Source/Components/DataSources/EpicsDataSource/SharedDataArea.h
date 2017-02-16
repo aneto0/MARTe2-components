@@ -257,11 +257,11 @@ private:
 	/**
 	 * @brief Constructor which builds the instance linking it to an existing
 	 * shared memory.
-	 * @param[in] shm The pointer to the shared memory which honors the
+	 * @param[in] obj The pointer to the shared memory which honors the
 	 * representation specified by the structure Representation.
 	 */
     /*lint -e{1704} instances of this class are not instantiable*/
-	SharedDataArea(Representation* const shm);
+	SharedDataArea(Representation* const obj);
 
 	/**
 	 * The pointer to the shared memory area which conforms to the representation.

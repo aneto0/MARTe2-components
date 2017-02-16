@@ -69,9 +69,9 @@ public:
 	/**
 	 * @brief Resets the sigblock double buffer.
 	 * @param[in] bufferSize //TODO document it or purge it
-	 * @param[in] sizeOfSigblock The size of the sigblock
+	 * @param[in] sigblockSize The size of the sigblock
 	 */
-    void Reset(const SDA::uint32 bufferSize, const SDA::size_type sizeOfSigblock);
+    void Reset(const SDA::uint32 bufferSize, const SDA::size_type sigblockSize);
 
     /**
      * @brief Gets a sigblock from the double buffer.

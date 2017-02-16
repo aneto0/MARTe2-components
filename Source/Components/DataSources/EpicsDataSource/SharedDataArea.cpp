@@ -74,8 +74,8 @@ SharedDataArea::SharedDataArea(): shm(NULL_PTR(Representation*)) {
 
 }
 
-SharedDataArea::SharedDataArea(SharedDataArea::Representation* const shm):
-		shm(shm) {
+SharedDataArea::SharedDataArea(SharedDataArea::Representation* const obj):
+		shm(obj) {
 }
 
 SharedDataArea::SigblockProducer* SharedDataArea::GetSigblockProducerInterface() {

@@ -62,12 +62,12 @@ public:
 
 		/**
 		 * @brief Sets the metadata
-		 * @param[in] signalsCount Number of signals in the signalsMetadata
+		 * @param[in] count Number of signals in the signalsMetadata
 		 * array parameter.
-		 * @param[in] signalsMetadata[] Array with the description of each
+		 * @param[in] metadata[] Array with the description of each
 		 * signal present in the sigblock.
 		 */
-		void SetSignalsMetadata(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]);
+		void SetSignalsMetadata(const SDA::uint32 count, const SDA::Signal::Metadata metadata[]);
 
 		/**
 		 * @brief Gets the signals count.
@@ -105,8 +105,9 @@ public:
 
 		/**
 		 * @brief Calculates the size needed to hold an instance of this class.
+		 * @param[in] numSignals The number of signals to use in calculation.
 		 */
-		static SDA::size_type SizeOf(const SDA::uint32 signalsCount);
+		static SDA::size_type SizeOf(const SDA::uint32 numSignals);
 
 	private:
 

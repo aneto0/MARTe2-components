@@ -49,13 +49,13 @@
 
 namespace SDA {
 
-void SigblockDoubleBuffer::Reset(const SDA::uint32 bufferSize, const SDA::size_type sizeOfSigblock) {
+void SigblockDoubleBuffer::Reset(const SDA::uint32 bufferSize, const SDA::size_type sigblockSize) {
 	//this->bufferSize = bufferSize;	//TODO: Purge this field.
-	this->sizeOfSigblock = sizeOfSigblock;
+	this->sizeOfSigblock = sigblockSize;
 	frontbuffer = 0u;
 	status = FREE;
 	/*lint -e{9132} buffer is the base address of the allocated memory*/
-	(void)std::memset(buffer, 0, sizeOfSigblock*2u);
+	(void)std::memset(buffer, 0, sigblockSize*2u);
 }
 
 bool SigblockDoubleBuffer::Get(SDA::Sigblock& item) {
