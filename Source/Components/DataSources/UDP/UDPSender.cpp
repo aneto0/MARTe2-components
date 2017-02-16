@@ -79,7 +79,7 @@ bool UDPSender::Synchronise(){
     bool OK;
     const MARTe::uint32 udpServerExpectReadSize = nOfSignals * 8u;
     uint32 bytesSent = udpServerExpectReadSize;
-    *timerPtr = (HighResolutionTimer::Counter() - timerAtStateChange) * (HighResolutionTimer::Period()) * 1e6u;
+    *timerPtr = (HighResolutionTimer::Counter() - timerAtStateChange) * (HighResolutionTimer::Period()) * 1e6;
     OK = client.Write(reinterpret_cast<char8*>(dataBuffer), bytesSent);
     *sequenceNumberPtr +=1u;
     return OK;
