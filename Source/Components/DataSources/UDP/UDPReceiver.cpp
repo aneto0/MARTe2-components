@@ -251,14 +251,13 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Could not open the port!");
     }
     if (ok) {
-        nOfSignals = GetNumberOfSignals();
-        ok = (nOfSignals > 2u);
+        ok = (GetNumberOfSignals() > 2u);
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "At least three signals shall be configured");
     }
     if (ok) {
-        
+        nOfSignals = GetNumberOfSignals();
         uint16 i;
         uint32 signalByteSize;
         signalsMemoryOffset = new uint32[nOfSignals];
@@ -272,7 +271,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
                 signalsMemoryOffset[i] = signalsMemoryOffset[i - 1u] + signalByteSize;
             }
         }
-        uint16 lastSignalIdx = nOfSignals - 1u;
+        uint32 lastSignalIdx = nOfSignals - 1u;
         ok = GetSignalByteSize(lastSignalIdx, signalByteSize);
         if (ok){
             totalPacketSize = signalsMemoryOffset[lastSignalIdx] + signalByteSize;
