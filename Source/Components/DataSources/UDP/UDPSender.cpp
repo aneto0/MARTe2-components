@@ -69,9 +69,9 @@ UDPSender::~UDPSender(){
         REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
     }
     GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(dataBuffer);
-    delete []signalsMemoryOffset;
-    delete []timerPtr;
-    delete []sequenceNumberPtr;
+    sequenceNumberPtr = NULL_PTR(uint64*);
+    timerPtr = NULL_PTR(uint64*);
+    signalsMemoryOffset = NULL_PTR(uint32*);
 }
 
 
