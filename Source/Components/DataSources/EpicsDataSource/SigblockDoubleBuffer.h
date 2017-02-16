@@ -68,10 +68,9 @@ public:
 
 	/**
 	 * @brief Initialise the sigblock double buffer object.
-	 * @param[in] bufferSize //TODO document it or purge it
 	 * @param[in] sigblockSize The size of the sigblock
 	 */
-    void Init(const SDA::uint32 bufferSize, const SDA::size_type sigblockSize);
+    void Init(const SDA::size_type sigblockSize);
 
     /**
      * @brief Gets a sigblock from the double buffer.

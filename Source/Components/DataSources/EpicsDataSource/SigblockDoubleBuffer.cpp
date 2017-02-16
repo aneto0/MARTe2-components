@@ -49,8 +49,7 @@
 
 namespace SDA {
 
-void SigblockDoubleBuffer::Init(const SDA::uint32 bufferSize, const SDA::size_type sigblockSize) {
-	//this->bufferSize = bufferSize;	//TODO: Purge this field.
+void SigblockDoubleBuffer::Init(const SDA::size_type sigblockSize) {
 	this->sizeOfSigblock = sigblockSize;
 	frontbuffer = 0u;
 	status = FREE;

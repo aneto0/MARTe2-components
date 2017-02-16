@@ -111,12 +111,12 @@ private:
 		bool IsOperational() const;
 		void FillPreHeader(const SDA::size_type sizeOfHeader, const SDA::size_type sizeOfItems);
 		void FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]);
-		void FillItems(const SDA::uint32 bufferSize, const SDA::size_type sizeOfSigblock);
-		const SDA::size_type size;
+		void FillItems(const SDA::size_type sizeOfSigblock);
+		//const SDA::size_type size;
 		bool hasReader;
 		bool hasWriter;
-		SDA::uint64 droppedWrites;	//TODO PURGE??
-		SDA::uint64 missedReads;	//TODO PURGE??
+		SDA::uint64 droppedWrites;      //TODO PURGE??
+		//SDA::uint64 missedReads;      //TODO PURGE??
 		SDA::size_type offsetOfHeader;
 		SDA::size_type offsetOfItems;
 		/*lint -e{1501} The following data member has no size because it is
@@ -226,14 +226,13 @@ public:
 	 * @param[in] name The name of the interprocess shared memory.
 	 * @param[in] signalsCount The number of signals expected.
 	 * @param[in] signalsMetadata[] The metadata for each expected signal.
-	 * @param[in] bufferSize			 max 10 by default?
 	 * @pre An interprocess shared memory identified by the name parameter
 	 * must not exist.
 	 * @post The returned SharedDataArea points to a new interprocess shared
 	 * memory, which is identified by the name parameter and conforms to the
 	 * representation expected by a SharedDataArea object.
 	 */
-	static SharedDataArea BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize);
+	static SharedDataArea BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]);
 
 	/**
 	 * @brief This static method joins an existent interprocess shared memory

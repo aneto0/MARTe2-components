@@ -112,12 +112,12 @@ void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, 
 	header->Init(signalsCount, signalsMetadata);
 }
 
-void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, const SDA::size_type sizeOfSigblock) {
+void SharedDataArea::Representation::FillItems(const SDA::size_type sizeOfSigblock) {
 	SDA::SigblockDoubleBuffer* items = Items();
-	items->Init(bufferSize, sizeOfSigblock);
+	items->Init(sizeOfSigblock);
 }
 
-SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize) {
+SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
     SDA::size_type sizeOfSigblock = CalculateSizeOfSigblock(signalsCount, signalsMetadata);
     SDA::size_type sizeOfHeader = SDA::Sigblock::Metadata::SizeOf(signalsCount);
     SDA::size_type sizeOfItems = SDA::SigblockDoubleBuffer::SizeOf(sizeOfSigblock);
@@ -138,7 +138,7 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* con
 //std::memset(tmp_shm_ptr->Header(), 89, sizeOfHeader);
 //std::memset(tmp_shm_ptr->Items(), 90, sizeOfItems);
 		tmp_shm_ptr->FillHeader(signalsCount, signalsMetadata);
-		tmp_shm_ptr->FillItems(bufferSize, sizeOfSigblock);
+		tmp_shm_ptr->FillItems(sizeOfSigblock);
 //		obj = reinterpret_cast<SharedDataArea*>(tmp_shm_ptr);
     }
     return SharedDataArea(tmp_shm_ptr);

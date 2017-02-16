@@ -177,7 +177,6 @@ template<typename SignalType>
 bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const shmName, const unsigned int maxTests) {
 	DataSet dataset(maxTests);
 	bool ok = false;
-	const unsigned int max = 512; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
 	const unsigned int numberOfSignals = 10;
 	SDA::Signal::Metadata sbmd[numberOfSignals];
 	SDA::SharedDataArea sdaServer;
@@ -193,7 +192,7 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
 	GenerateMetadataForSigblock<SignalType>(sbmd, numberOfSignals);
 
 	//Build the shared data area as server:
-	sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, numberOfSignals, sbmd, max);
+	sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, numberOfSignals, sbmd);
 
 	//Check building of shared data area:
 	//ok &= (...) //TODO: Write an expression for checking the server.
@@ -273,7 +272,6 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
 	//TODO: And latency recording??
 
 	bool ok = false;
-	const unsigned int max = 512; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
 	SharedContext context(10, maxTests);
 	ProducerThreadParams producerThreadParams;
 	ConsumerThreadParams consumerThreadParams;
@@ -293,7 +291,7 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
 	GenerateMetadataForSigblock<SignalType>(sbmd, context.numberOfSignals);
 
 	//Build the shared data area as server:
-	sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, context.numberOfSignals, sbmd, max);
+	sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, context.numberOfSignals, sbmd);
 
 	//Check building of shared data area:
 	//ok &= (...) //TODO: Write an expression for checking the server.

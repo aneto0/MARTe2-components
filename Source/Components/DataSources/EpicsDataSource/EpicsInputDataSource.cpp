@@ -130,7 +130,6 @@ bool EpicsInputDataSource::AllocateMemory() {
 	bool ret;
 	uint32 numSignals = GetNumberOfSignals();
 	sharedDataAreaName = BuildSharedMemoryIdentifier(GetName());
-	SDA::uint32 max = 512u; //capacity of the buffer (UINT_MAX+1 must be evenly divisible by max) UINT_MAX==4294967295
 	SDA::Signal::Metadata smd_for_init[numSignals]; //sigblock description for initialization;
 
 	//{for all signals in datasource add it to smd_for_init}
@@ -152,7 +151,7 @@ bool EpicsInputDataSource::AllocateMemory() {
 	}
 
     /*lint -e{9132} array's length given by numberOfSignals*/
-	SDA::SharedDataArea sbpm = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numSignals, smd_for_init, max);
+	SDA::SharedDataArea sbpm = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numSignals, smd_for_init);
 	consumer = sbpm.GetSigblockConsumerInterface();
 	SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
 	SDA::size_type totalSize = sbmd->GetTotalSize();

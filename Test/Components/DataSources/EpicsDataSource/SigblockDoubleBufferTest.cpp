@@ -111,7 +111,7 @@ bool SigblockDoubleBufferTest::TestProducerConsumerInSingleThread(const unsigned
 		if (ok) {
 
 			//Initialize shared sigblock double buffer:
-			buffer->Init(0, sizeOfSigblock);
+			buffer->Init(sizeOfSigblock);
 
 			//Setup producer's pointer to shared sigblock double buffer:
 			producer = buffer;
