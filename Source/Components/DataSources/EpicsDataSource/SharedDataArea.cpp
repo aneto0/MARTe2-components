@@ -120,7 +120,7 @@ void SharedDataArea::Representation::FillItems(const SDA::uint32 bufferSize, con
 SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[], const SDA::uint32 bufferSize) {
     SDA::size_type sizeOfSigblock = CalculateSizeOfSigblock(signalsCount, signalsMetadata);
     SDA::size_type sizeOfHeader = SDA::Sigblock::Metadata::SizeOf(signalsCount);
-    SDA::size_type sizeOfItems = (bufferSize * sizeOfSigblock); //TODO: Abstract this private knowledge
+    SDA::size_type sizeOfItems = SDA::SigblockDoubleBuffer::SizeOf(sizeOfSigblock);
     SDA::size_type totalSize = (sizeof(SharedDataArea::Representation) + sizeOfHeader + sizeOfItems);
 //	SharedDataArea* obj = NULL;
 	Representation* tmp_shm_ptr = SDA_NULL_PTR(Representation*);

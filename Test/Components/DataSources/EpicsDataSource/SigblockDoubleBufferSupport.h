@@ -112,9 +112,9 @@ inline void SearchSigblockIntoDataSet(DataSet& dataset, SDA::Sigblock* sigblock,
 }
 
 inline SDA::SigblockDoubleBuffer* MallocSigblockDoubleBuffer(std::size_t sizeOfSigblock) {
-	size_t fullsize = (sizeof(SDA::SigblockDoubleBuffer) + (sizeOfSigblock * 2));
-	char* mem = new char[fullsize];
-	std::memset(mem, '\0', fullsize);
+	size_t memsize = SDA::SigblockDoubleBuffer::SizeOf(sizeOfSigblock);
+	char* mem = new char[memsize];
+	std::memset(mem, '\0', memsize);
 	return reinterpret_cast<SDA::SigblockDoubleBuffer*>(mem);
 }
 

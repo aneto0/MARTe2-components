@@ -87,6 +87,12 @@ public:
      */
     bool Put(const SDA::Sigblock& item);
 
+    /**
+     * @brief Gets the size of an instance parameterised by sigblock's size.
+     * @param[in] sigblockSize The size of the sigblock
+     */
+    static SDA::size_type SizeOf(const SDA::size_type sigblockSize);
+
 private:
 
     /**

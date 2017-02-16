@@ -55,7 +55,7 @@ void SigblockDoubleBuffer::Reset(const SDA::uint32 bufferSize, const SDA::size_t
 	frontbuffer = 0u;
 	status = FREE;
 	/*lint -e{9132} buffer is the base address of the allocated memory*/
-	(void)std::memset(buffer, 0, sigblockSize*2u);
+	(void)std::memset(buffer, 0, sigblockSize*TWO);
 }
 
 bool SigblockDoubleBuffer::Get(SDA::Sigblock& item) {
@@ -87,6 +87,10 @@ bool SigblockDoubleBuffer::Put(const SDA::Sigblock& item) {
 		fret = false;
 	}
 	return fret;
+}
+
+SDA::size_type SigblockDoubleBuffer::SizeOf(const SDA::size_type sigblockSize) {
+    return (sizeof(SigblockDoubleBuffer) + (sigblockSize * TWO));
 }
 
 }
