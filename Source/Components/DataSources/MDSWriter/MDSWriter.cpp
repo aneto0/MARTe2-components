@@ -430,6 +430,9 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
 ErrorManagement::ErrorType MDSWriter::OpenTree(int32 pulseNumber) {
     bool ok = true;
     if (tree != NULL_PTR(MDSplus::Tree *)) {
+        if (FlushSegments() != ErrorManagement::NoError) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
+        }
         delete tree;
     }
     //Check for the latest pulse number

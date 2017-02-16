@@ -47,7 +47,7 @@ MDSWriterNode::MDSWriterNode() {
     phaseShift = 0u;
     node = NULL_PTR(MDSplus::TreeNode *);
 
-    nOfWriteCalls = 0U;
+    nOfExecuteCalls = 0U;
 
     decimatedMinMax = false;
     decimatedNodeName = "";
@@ -62,7 +62,7 @@ MDSWriterNode::MDSWriterNode() {
     signalMemory = NULL_PTR(void *);
     timeSignalMemory = NULL_PTR(uint32 *);
     lastWriteTimeSignal = 0u;
-    writePeriodMicroSecond = 0u;
+    executePeriodMicroSecond = 0u;
     useTimeVector = false;
 
     start = 0.F;
@@ -90,10 +90,16 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
     }
     if (ok) {
         if (data.Read("DecimatedNodeName", decimatedNodeName)) {
-            decimatedMinMax = (decimatedNodeName.Size() > 0);
+            decimatedMinMax = true;
             ok = (data.Read("MinMaxResampleFactor", minMaxResampleFactor));
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "MinMaxResampleFactor shall be specified");
+            }
+            if (ok) {
+                ok = (minMaxResampleFactor > 0u);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "MinMaxResampleFactor shall be > 0");
+                }
             }
         }
     }
@@ -203,11 +209,9 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
 
         bufferedData = reinterpret_cast<char *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufferedDataSize));
 
-        writePeriodMicroSecond = numberOfElements * (period * 1e6);
-
-        Reset();
+        executePeriodMicroSecond = numberOfElements * (period * 1e6);
     }
-    return true;
+    return ok;
 }
 
 bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree *tree) {
@@ -231,6 +235,7 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree *tree) {
         REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed opening node with name %s", nodeName.Buffer())
         ok = false;
     }
+    start = phaseShift * period;
     return ok;
 }
 
@@ -239,43 +244,46 @@ bool MDSWriterNode::Flush() {
     return Execute();
 }
 
-void MDSWriterNode::Reset() {
-    start = phaseShift * period;
-}
-
 bool MDSWriterNode::Execute() {
-    bool ok = true;
-    if (!flush) {
-        //If we are using a triggering source get the signal from a time source, as samples might not be continuous
-        if (useTimeVector) {
-            if (currentBuffer == 0u) {
-                start = (*timeSignalMemory) * 1e-6;
+    bool ok = (node != NULL_PTR(MDSplus::TreeNode *));
+    if (ok) {
+        if (!flush) {
+            //If we are using a triggering source get the signal from a time source, as samples might not be continuous
+            if (useTimeVector) {
+                if (currentBuffer == 0u) {
+                    if (timeSignalMemory != NULL_PTR(uint32 *)) {
+                        start = (*timeSignalMemory) * 1e-6;
+                    }
+                }
+            }
+            if (currentBuffer < makeSegmentAfterNWrites) {
+                if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(char8 *))) {
+                    ok = MemoryOperationsHelper::Copy(&bufferedData[currentBuffer * numberOfElements * typeMultiplier], signalMemory,
+                                                      numberOfElements * typeMultiplier);
+                }
+                currentBuffer++;
             }
         }
-        if (currentBuffer < makeSegmentAfterNWrites) {
-            ok = MemoryOperationsHelper::Copy(&bufferedData[currentBuffer * numberOfElements * typeMultiplier], signalMemory,
-                                              numberOfElements * typeMultiplier);
-            currentBuffer++;
-        }
     }
-
     //If the number of writes is sufficient to create a segment do it.
     bool storeNow = (currentBuffer == (makeSegmentAfterNWrites));
-    if (useTimeVector) {
-        //If we are acquiring data based on events (which do not necessarily occur sequentially in time, trigger every time there is a change in the time vector)
-        if ((*timeSignalMemory - lastWriteTimeSignal) != writePeriodMicroSecond) {
-            if (nOfWriteCalls > 0u) {
-                storeNow = true;
+    if (ok) {
+        if (useTimeVector) {
+            //If we are acquiring data based on events (which do not necessarily occur sequentially in time, trigger every time there is a change in the time vector)
+            if ((*timeSignalMemory - lastWriteTimeSignal) != executePeriodMicroSecond) {
+                if (nOfExecuteCalls > 0u) {
+                    storeNow = true;
+                }
             }
+            lastWriteTimeSignal = *timeSignalMemory;
         }
-        lastWriteTimeSignal = *timeSignalMemory;
-    }
-    //If the data has to be flushed for the storeNow
-    if (flush) {
-        storeNow = (currentBuffer > 0u);
+        //If the data has to be flushed for the storeNow
+        if (flush) {
+            storeNow = (currentBuffer > 0u);
+        }
     }
     //Sufficient data to make a segment
-    if (storeNow) {
+    if ((ok) && (storeNow)) {
         uint32 numberOfElementsPerSegment = numberOfElements * currentBuffer;
         currentBuffer = 0;
 
@@ -323,7 +331,7 @@ bool MDSWriterNode::Execute() {
             MDSplus::deleteData(array);
         }
         MDSplus::deleteData(dimension);
-        nOfWriteCalls++;
+        nOfExecuteCalls++;
     }
 
     return ok;
@@ -339,5 +347,59 @@ void MDSWriterNode::SetTimeSignalMemory(void *timeSignalMemoryIn) {
 
 }
 
+uint64 MDSWriterNode::GetNumberOfExecuteCalls() const {
+    return nOfExecuteCalls;
 }
 
+bool MDSWriterNode::IsDecimatedMinMax() const {
+    return decimatedMinMax;
+}
+
+const StreamString& MDSWriterNode::GetDecimatedNodeName() const {
+    return decimatedNodeName;
+}
+
+uint32 MDSWriterNode::GetExecutePeriodMicroSecond() const {
+    return executePeriodMicroSecond;
+}
+
+uint32 MDSWriterNode::GetMakeSegmentAfterNWrites() const {
+    return makeSegmentAfterNWrites;
+}
+
+uint32 MDSWriterNode::GetMinMaxResampleFactor() const {
+    return minMaxResampleFactor;
+}
+
+const StreamString& MDSWriterNode::GetNodeName() const {
+    return nodeName;
+}
+
+uint32 MDSWriterNode::GetNodeType() const {
+    return nodeType;
+}
+
+uint32 MDSWriterNode::GetNumberOfElements() const {
+    return numberOfElements;
+}
+
+float64 MDSWriterNode::GetPeriod() const {
+    return period;
+}
+
+int32 MDSWriterNode::GetPhaseShift() const {
+    return phaseShift;
+}
+
+float64 MDSWriterNode::GetStart() const {
+    return start;
+}
+
+uint32 MDSWriterNode::GetTypeMultiplier() const {
+    return typeMultiplier;
+}
+
+bool MDSWriterNode::IsUseTimeVector() const {
+    return useTimeVector;
+}
+}

@@ -37,51 +37,188 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-/**
- * @brief TODO
- */
 namespace MARTe {
+/**
+ * @brief Provides an interface between a MARTe signal and an MDSplus::TreeNode.
+ * @details This class allocates a shared memory area capable of storing several time samples of a MARTe signal.
+ * (i.e. a scalar or an array which describes the MARTe signal in a given time instant).
+ *
+ * When the number of time samples is deemed sufficient, an MDS+ segment is created and all the shared memory data is
+ * stored inside this segment.
+ * A segment will be created when GetNumberOfExecuteCalls() == GetMakeSegmentAfterNWrites() or, in case
+ * IsUseTimeVector() == true, when a discontinuity on the time signal is detected, i.e., when the distance between
+ *  two time samples is greater than the GetExecutePeriodMicroSecond.
+ */
 class MDSWriterNode {
 public:
+    /**
+     * @brief Constructor.
+     * @post
+     *   IsDecimatedMinMax() == false &&
+     *   GetDecimatedNodeName() == "" &&
+     *   GetExecutePeriodMicroSecond() == 0 &&
+     *   IsFlush() == false &&
+     *   GetMakeSegmentAfterNWrites() == 0 &&
+     *   GetMinMaxResampleFactor() == 0 &&
+     *   GetNodeName() == "" &&
+     *   GetNodeType() == 0 &&
+     *   GetNumberOfElements() == 0 &&
+     *   GetPeriod() == 0 &&
+     *   GetPhaseShift() == 0 &&
+     *   GetStart() == 0 &&
+     *   GetTypeMultiplier() == 0 &&
+     *   IsUseTimeVector() == 0 &&
+     *    GetNumberOfExecuteCalls() == 0
+     */
     MDSWriterNode();
+
+    /**
+     * @brief Destructor. Deletes any allocated nodes and frees the shared memory.
+     */
     ~MDSWriterNode();
 
     /**
-     * TODO
-     * @brief Loads and verifies the configuration parameters detailed in the class description.
-     * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
+     * @brief Loads all the class parameters from a StructuredDataI.
+     * @details Loads and verifies the following configuration parameters:
+     *  - NodeName: name of MDS+ node
+     *  - DecimatedNodeName (optional): name of the MDS+ node where the decimated data (decimated by MDS+) is to be stored.
+     *  - Type: signal type (as defined in the RealTimeApplicationConfigurationBuilder)
+     *  - NumberOfElements (>0): signal number of elements (as defined in the RealTimeApplicationConfigurationBuilder)
+     *  - Period (>0): period between samples in seconds
+     *  - SamplePhase (optional): shift the time vector by SamplePhase * Period
+     *  - MakeSegmentAfterNWrites (>0): a segment will be written after MakeSegmentAfterNWrites time samples are available (which in practice means after the Execute method has been called MakeSegmentAfterNWrites)
+     *  - MinMaxResampleFactor (>0): the decimation factor to be applied by MDS+ when a DecimatedNodeName is specified
+     * @param data the StructuredDataI with all the parameters described above.
+     * @return true if all the parameters above are correctly specified.
      */
     bool Initialise(StructuredDataI & data);
 
     /**
-     * TODO
+     * @brief Writes the signal data into the shared memory buffer and possibly into an MDS+ segment.
+     * @details Copies the current signal data (see SetSignalMemory) into the shared memory buffer.
+     * * A segment will be created when GetNumberOfExecuteCalls() == GetMakeSegmentAfterNWrites() or, in case
+     * IsUseTimeVector() == true, when a discontinuity on the time signal is detected, i.e., when the distance between
+     *  two time samples is greater than the GetExecutePeriodMicroSecond.
+     * @return if the data can be successfully copied.
+     * @pre
+     *   SetSignalMemory() &&
+     *   Initialise() &&
+     *   AllocateTreeNode()
      */
     bool Execute();
 
     /**
-     * TODO
+     * @brief Sets the source signal memory.
+     * @param[in] signalMemoryIn pointer to the signal to be stored in MDS+.
      */
     void SetSignalMemory(void *signalMemoryIn);
 
     /**
-     * TODO
+     * @brief Sets the source signal memory.
+     * @param[in] timeSignalMemoryIn pointer to the time vector to be stored in MDS+.
      */
     void SetTimeSignalMemory(void *timeSignalMemoryIn);
 
     /**
-     * TODO
+     * @brief Opens the MDSplus::TreeNode.
+     * @param[in] tree an opened MDSplus::TreeNode with an existent GetNodeName() and, if applicable,
+     * with an existent GetDecimatedNodeName()
+     * @pre
+     *   Initialise() &&
+     *   tree != NULL
      */
     bool AllocateTreeNode(MDSplus::Tree *tree);
 
     /**
-     * TODO
+     * @brief Forces the creation of a segment even if no sufficient time samples have been created.
+     * @return Execute()
      */
     bool Flush();
 
     /**
-     * TODO
+     * @brief Returns true if MDS+ is to automatically compute a decimated version of the stored signal.
+     * @return true if MDS+ is to automatically compute a decimated version of the stored signal.
      */
-    void Reset();
+    bool IsDecimatedMinMax() const;
+
+    /**
+     * @brief Returns the name of MDS+ node where the decimated version of the signal is stored.
+     * @return the name of MDS+ node where the decimated version of the signal is stored.
+     */
+    const StreamString& GetDecimatedNodeName() const;
+
+    /**
+     * @brief Returns the period of a segment.
+     * @return GetNumberOfElements()  * (GetPeriod() * 1e6);
+     */
+    uint32 GetExecutePeriodMicroSecond() const;
+
+    /**
+     * @brief A segment will be created after the Execute has been called GetMakeSegmentAfterNWrites()
+     * @return the number of times Execute has to be called before a segment is created.
+     */
+    uint32 GetMakeSegmentAfterNWrites() const;
+
+    /**
+     * @brief Returns the decimation factor MDS+ will use to automatically compute a decimated version of the stored signal.
+     * @return the decimation factor MDS+ will use to automatically compute a decimated version of the stored signal.
+     */
+    uint32 GetMinMaxResampleFactor() const;
+
+    /**
+     * @brief Gets the name of the MDS+ node where the signal is to be stored.
+     * @return the name of the MDS+ node where the signal is to be stored.
+     */
+    const StreamString& GetNodeName() const;
+
+    /**
+     * @brief Gets the type of the MDS+ node where the signal is to be stored.
+     * @return the type of the MDS+ node where the signal is to be stored.
+     */
+    uint32 GetNodeType() const;
+
+    /**
+     * @brief Gets the number of elements of the signal to be stored, 1 for a scalar, N for an array.
+     * @details A segment will contain many time samples of such signal.
+     * @return the number of elements of the signal to be stored, 1 for a scalar, N for an array.
+     */
+    uint32 GetNumberOfElements() const;
+
+    /**
+     * @brief Gets the time period between signal samples.
+     * @return the time period between signal samples.
+     */
+    float64 GetPeriod() const;
+
+    /**
+     * @brief Gets the initial shift to apply to the time vector (in samples).
+     * @return the initial shift to apply to the time vector (in samples).
+     */
+    int32 GetPhaseShift() const;
+
+    /**
+     * @brief Gets the start time of the next segment.
+     * @return the start time of the next segment.
+     */
+    float64 GetStart() const;
+
+    /**
+     * @brief Gets the size in bytes of the signal type.
+     * @return the size in bytes of the signal type.
+     */
+    uint32 GetTypeMultiplier() const;
+
+    /**
+     * @brief Returns true if the time vector is to be retrieved from a signal (see SetTimeSignalMemory).
+     * @return true if the time vector is to be retrieved from a signal (see SetTimeSignalMemory).
+     */
+    bool IsUseTimeVector() const;
+
+    /**
+     * @brief Gets the number of time the Execute method has been called between two segments.
+     * @return the number of time the Execute method has been called between two segments.
+     */
+    uint64 GetNumberOfExecuteCalls() const;
 
 private:
     /**
@@ -95,47 +232,49 @@ private:
     uint32 nodeType;
 
     /**
-     * Number of samples to be stored on each write operation
+     * Number of samples to be stored on each Execute operation
      */
     uint32 numberOfElements;
 
     /**
-     *
+     * Absolute start time of the next segment to be stored.
      */
     float64 start;
 
     /**
-     * Period between samples
+     * Period between samples of the signal to be stored in MDS+.
      */
     float64 period;
 
-    //TODo
+    /**
+     * Number of bytes per sample of the signal type to be stored.
+     */
     uint32 typeMultiplier;
 
     /**
-     * Period at which a write is performed in micro-seconds
+     * Period at which the Execute gets called in micro-seconds
      */
-    uint32 writePeriodMicroSecond;
+    uint32 executePeriodMicroSecond;
 
     /**
-     * TODO
+     * True if the time vector is to be fed through an external signal.
      */
     bool useTimeVector;
 
     /**
-     * Phase shift (in samples) of the first sample
+     * Phase shift (in samples) of the first sample.
      */
     int32 phaseShift;
 
     /**
-     * The MDSplus tree node where data is stored
+     * The MDSplus tree node where data is stored.
      */
     MDSplus::TreeNode *node;
 
     /**
-     * Number of times Write was called
+     * Number of times Execute was called. Used to compute the time vector.
      */
-    uint64 nOfWriteCalls;
+    uint64 nOfExecuteCalls;
 
     /**
      * True if a decimated signal is also to be stored using makeSegmentMinMax
@@ -143,31 +282,56 @@ private:
     bool decimatedMinMax;
 
     /**
-     * The decimated node for makeSegmentMinMax
+     * The MDS+ decimated node name for makeSegmentMinMax
      */
     StreamString decimatedNodeName;
+
+    /**
+     * The MDS+ decimated node for makeSegmentMinMax
+     */
     MDSplus::TreeNode *decimatedNode;
 
     /**
-     * Data is stored in this buffer before triggering a makeSegment/makeSegmentMinMax
+     * Data is stored in this buffer before triggering a makeSegment/makeSegmentMinMax.
+     * The segment write will be triggered when (currentBuffer == makeSegmentAfterNWrites)
      */
     char8 *bufferedData;
+
+    /**
+     * Current pointer where the bufferedData is being written to. Incremented every time the
+     * Execute method is called.
+     */
     uint32 currentBuffer;
+
+    /**
+     * Only write the segment to MDS+ after the Execute method has been called makeSegmentAfterNWrites times.
+     */
     uint32 makeSegmentAfterNWrites;
+
+    /**
+     * MDS+ parameter which defines the down-sampling factor for signals with min-max decimation.
+     */
     uint32 minMaxResampleFactor;
 
     /**
-     * TODO
+     * Address of the signal memory where the data is going to be copied from.
      */
     void *signalMemory;
 
     /**
-     *
+     * Address of the signal which provides the time information (only used when useTimeVector == true).
      */
     uint32 *timeSignalMemory;
+
+    /**
+     * Time at which the time signal was read for the last time.
+     */
     uint32 lastWriteTimeSignal;
 
-    //TODO
+    /**
+     * Set to true when all the data shall be flushed into MDSPlus, irrespectively of the fact that
+     * not all the expected segments were written. Typically called when the experiment has ended.
+     */
     bool flush;
 };
 }
