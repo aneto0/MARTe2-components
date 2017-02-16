@@ -28,7 +28,7 @@ TARGET=cov
 
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-OBJSX = MDSWriterGTest.x 
+OBJSX = MDSWriterGTest.x MDSWriterNodeGTest.x 
 
 include Makefile.inc
 

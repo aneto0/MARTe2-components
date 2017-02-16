@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  MDSWriterTest.x
+OBJSX +=  MDSWriterTest.x MDSWriterNodeTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
