@@ -142,6 +142,7 @@ bool EpicsInputDataSource::AllocateMemory() {
 			ret =GetSignalName(i, signalName);
 		}
         if (ret) {
+            /*lint -e{9132} array's length given by NAME_MAX_LEN*/
 			ret = MARTe::StringHelper::CopyN(smd_for_init[i].name, signalName.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);
         }
         if (ret) {
@@ -149,6 +150,7 @@ bool EpicsInputDataSource::AllocateMemory() {
 		}
 	}
 
+    /*lint -e{9132} array's length given by numberOfSignals*/
 	SDA::SharedDataArea sbpm = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numberOfSignals, smd_for_init, max);
 	consumer = sbpm.GetSigblockConsumerInterface();
 	SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
