@@ -27,7 +27,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
 #include "mdsobjects.h"
+/*lint -D__cplusplus*/
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -163,7 +165,7 @@ public:
      * @brief Returns the decimation factor MDS+ will use to automatically compute a decimated version of the stored signal.
      * @return the decimation factor MDS+ will use to automatically compute a decimated version of the stored signal.
      */
-    uint32 GetMinMaxResampleFactor() const;
+    int32 GetMinMaxResampleFactor() const;
 
     /**
      * @brief Gets the name of the MDS+ node where the signal is to be stored.
@@ -175,7 +177,7 @@ public:
      * @brief Gets the type of the MDS+ node where the signal is to be stored.
      * @return the type of the MDS+ node where the signal is to be stored.
      */
-    uint32 GetNodeType() const;
+    int32 GetNodeType() const;
 
     /**
      * @brief Gets the number of elements of the signal to be stored, 1 for a scalar, N for an array.
@@ -194,7 +196,7 @@ public:
      * @brief Gets the initial shift to apply to the time vector (in samples).
      * @return the initial shift to apply to the time vector (in samples).
      */
-    int32 GetPhaseShift() const;
+    uint32 GetPhaseShift() const;
 
     /**
      * @brief Gets the start time of the next segment.
@@ -229,7 +231,7 @@ private:
     /**
      * The node type (as defined in mdsobjects.h)
      */
-    uint32 nodeType;
+    int32 nodeType;
 
     /**
      * Number of samples to be stored on each Execute operation
@@ -249,7 +251,7 @@ private:
     /**
      * Number of bytes per sample of the signal type to be stored.
      */
-    uint32 typeMultiplier;
+    size_t typeMultiplier;
 
     /**
      * Period at which the Execute gets called in micro-seconds
@@ -264,7 +266,7 @@ private:
     /**
      * Phase shift (in samples) of the first sample.
      */
-    int32 phaseShift;
+    uint32 phaseShift;
 
     /**
      * The MDSplus tree node where data is stored.
@@ -295,7 +297,7 @@ private:
      * Data is stored in this buffer before triggering a makeSegment/makeSegmentMinMax.
      * The segment write will be triggered when (currentBuffer == makeSegmentAfterNWrites)
      */
-    char8 *bufferedData;
+    void *bufferedData;
 
     /**
      * Current pointer where the bufferedData is being written to. Incremented every time the
@@ -311,7 +313,7 @@ private:
     /**
      * MDS+ parameter which defines the down-sampling factor for signals with min-max decimation.
      */
-    uint32 minMaxResampleFactor;
+    int32 minMaxResampleFactor;
 
     /**
      * Address of the signal memory where the data is going to be copied from.

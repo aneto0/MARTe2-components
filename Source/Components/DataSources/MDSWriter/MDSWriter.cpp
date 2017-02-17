@@ -46,6 +46,7 @@ namespace MARTe {
 static const int32 MDS_UNDEFINED_PULSE_NUMBER = -2;
 
 MDSWriter::MDSWriter() :
+        DataSourceI(),
         MessageI() {
     storeOnTrigger = false;
     numberOfPreTriggers = 0u;
@@ -56,7 +57,7 @@ MDSWriter::MDSWriter() :
     nodes = NULL_PTR(MDSWriterNode **);
     dataSourceMemory = NULL_PTR(char8 *);
     offsets = NULL_PTR(uint32 *);
-    cpuMask = 0xf;
+    cpuMask = 0xfu;
     stackSize = 0u;
     tree = NULL_PTR(MDSplus::Tree *);
     treeName = "";

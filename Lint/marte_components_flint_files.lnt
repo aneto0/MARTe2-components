@@ -1,15 +1,17 @@
 -i%EFDA_MARTe_DIR%/Interfaces/BaseLib2Adapter/
 -i%CODAC_ROOT_INCLUDE_DIR%
+-i%MDSPLUS_DIR%/include
 
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
+-i./Source/Components/DataSources/MDSWriter/
 -i./Source/Components/DataSources/NI6259/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConversionGAM/
 -i./Source/Components/GAMs/IOGAM/
--i./Source/Components/Interfaces/BaseLib2Wrapper
+-i./Source/Components/Interfaces/BaseLib2Wrapper/
 
-BaseLib2GAM.cpp
+/*BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
 ConversionGAM.cpp
@@ -20,4 +22,6 @@ LoggerDataSource.cpp
 LoggerBroker.cpp
 NI6259ADC.cpp
 NI6259DAC.cpp
-NI6259DIO.cpp
+NI6259DIO.cpp*/
+MDSWriter.cpp
+MDSWriterNode.cpp
