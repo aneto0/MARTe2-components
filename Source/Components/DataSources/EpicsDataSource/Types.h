@@ -50,40 +50,40 @@
 
 namespace SDA {
 
-	/**
-	 * Type alias for unsigned integers
-	 */
-	typedef unsigned int uint32;
+/**
+ * Type alias for unsigned integers
+ */
+typedef unsigned int uint32;
 
-	/**
-	 * Type alias for unsigned integers
-	 */
-	typedef int int32;
+/**
+ * Type alias for unsigned integers
+ */
+typedef int int32;
 
-	/**
-	 * Type alias for unsigned integers
-	 */
-	typedef unsigned long long int uint64; //(since C++11)
+/**
+ * Type alias for unsigned integers
+ */
+typedef unsigned long long int uint64; //(since C++11)
 
-	/**
-	 * Type alias for characters
-	 */
-	typedef char char8;
+/**
+ * Type alias for characters
+ */
+typedef char char8;
 
-	/**
-	 * Type alias for bytes
-	 */
-	//typedef char byte;    //TODO: Use it instead of char8 or purge it.
+/**
+ * Type alias for bytes
+ */
+//typedef char byte;    //TODO: Use it instead of char8 or purge it.
+/**
+ * Type alias for size_t
+ */
+typedef std::size_t size_type;
 
-	/**
-	 * Type alias for size_t
-	 */
-    typedef std::size_t size_type;
+/**
+ * Maximum value for unsigned integers of 32 bits
+ */
+static const uint32 MAX_UINT32 = 0xFFFFFFFFU;
 
-    /**
-     * Maximum value for unsigned integers of 32 bits
-     */
-    static const uint32 MAX_UINT32 = 0xFFFFFFFFU;
 }
 
 /*---------------------------------------------------------------------------*/

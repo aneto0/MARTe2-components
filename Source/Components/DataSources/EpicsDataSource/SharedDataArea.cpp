@@ -31,7 +31,6 @@
 //#ifndef LINT
 //#include <cstring>
 //#endif
-
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -54,12 +53,13 @@ namespace {
  * @post Result == sum of size for all elements into signalsMetadata array
  * @returns Result
  */
-static SDA::size_type CalculateSizeOfSigblock(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
+static SDA::size_type CalculateSizeOfSigblock(const SDA::uint32 signalsCount,
+                                              const SDA::Signal::Metadata signalsMetadata[]) {
     SDA::size_type sigblockSize = 0u;
-	for (SDA::uint32 i = 0u; i < signalsCount; i++) {
-		sigblockSize += signalsMetadata[i].size;
-	}
-	return sigblockSize;
+    for (SDA::uint32 i = 0u; i < signalsCount; i++) {
+        sigblockSize += signalsMetadata[i].size;
+    }
+    return sigblockSize;
 }
 
 }
@@ -70,12 +70,13 @@ static SDA::size_type CalculateSizeOfSigblock(const SDA::uint32 signalsCount, co
 
 namespace SDA {
 
-SharedDataArea::SharedDataArea(): shm(SDA_NULL_PTR(Representation*)) {
+SharedDataArea::SharedDataArea() :
+        shm(SDA_NULL_PTR(Representation*)) {
 
 }
 
-SharedDataArea::SharedDataArea(SharedDataArea::Representation* const obj):
-		shm(obj) {
+SharedDataArea::SharedDataArea(SharedDataArea::Representation* const obj) :
+        shm(obj) {
 }
 
 SharedDataArea::SigblockProducer* SharedDataArea::GetSigblockProducerInterface() {
@@ -99,66 +100,69 @@ SharedDataArea::SigblockConsumer* SharedDataArea::GetSigblockConsumerInterface()
 }
 
 void SharedDataArea::Representation::FillPreHeader(const SDA::size_type sizeOfHeader) {
-	hasReader = false;
-	hasWriter = false;
-	droppedWrites = 0u;
+    hasReader = false;
+    hasWriter = false;
+    droppedWrites = 0u;
     offsetOfHeader = 0u;
     offsetOfItems = sizeOfHeader;
 }
 
-void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
-	SDA::Sigblock::Metadata* header = Header();
-	header->Init(signalsCount, signalsMetadata);
+void SharedDataArea::Representation::FillHeader(const SDA::uint32 signalsCount,
+                                                const SDA::Signal::Metadata signalsMetadata[]) {
+    SDA::Sigblock::Metadata* header = Header();
+    header->Init(signalsCount, signalsMetadata);
 }
 
 void SharedDataArea::Representation::FillItems(const SDA::size_type sizeOfSigblock) {
-	SDA::SigblockDoubleBuffer* items = Items();
-	items->Init(sizeOfSigblock);
+    SDA::SigblockDoubleBuffer* items = Items();
+    items->Init(sizeOfSigblock);
 }
 
-SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name, const SDA::uint32 signalsCount, const SDA::Signal::Metadata signalsMetadata[]) {
+SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name,
+                                                           const SDA::uint32 signalsCount,
+                                                           const SDA::Signal::Metadata signalsMetadata[]) {
     SDA::size_type sizeOfSigblock = CalculateSizeOfSigblock(signalsCount, signalsMetadata);
     SDA::size_type sizeOfHeader = SDA::Sigblock::Metadata::SizeOf(signalsCount);
     SDA::size_type sizeOfItems = SDA::SigblockDoubleBuffer::SizeOf(sizeOfSigblock);
     SDA::size_type totalSize = (sizeof(SharedDataArea::Representation) + sizeOfHeader + sizeOfItems);
 //	SharedDataArea* obj = NULL;
-	Representation* tmp_shm_ptr = SDA_NULL_PTR(Representation*);
+    Representation* tmp_shm_ptr = SDA_NULL_PTR(Representation*);
 
 //	printf("*** SharedDataArea::BuildSharedDataAreaForMARTe name=%s sizeOfHeader=%lu, sizeOfSigblock=%lu, sizeOfItems=%lu, totalSize=%lu ***\n", name, sizeOfHeader, sizeOfSigblock, sizeOfItems, totalSize);
-	void* raw_shm_ptr = SDA::Platform::MakeShm(name, totalSize);
+    void* raw_shm_ptr = SDA::Platform::MakeShm(name, totalSize);
     if (raw_shm_ptr == NULL) {
-    	//error
+        //error
     }
     else {
-    	tmp_shm_ptr = static_cast<SharedDataArea::Representation*>(raw_shm_ptr);
+        tmp_shm_ptr = static_cast<SharedDataArea::Representation*>(raw_shm_ptr);
 //std::memset(tmp_shm_ptr+sizeof(size_t), 88, totalSize);
-		tmp_shm_ptr->FillPreHeader(sizeOfHeader);
+        tmp_shm_ptr->FillPreHeader(sizeOfHeader);
 //		printf("*** SharedDataArea::BuildSharedDataAreaForMARTe tmp_shm_ptr->rawmem=%p tmp_shm_ptr->Header()=%p, tmp_shm_ptr->Items()=%p ***\n", tmp_shm_ptr->rawmem, tmp_shm_ptr->Header(), tmp_shm_ptr->Items());
 //std::memset(tmp_shm_ptr->Header(), 89, sizeOfHeader);
 //std::memset(tmp_shm_ptr->Items(), 90, sizeOfItems);
-		tmp_shm_ptr->FillHeader(signalsCount, signalsMetadata);
-		tmp_shm_ptr->FillItems(sizeOfSigblock);
+        tmp_shm_ptr->FillHeader(signalsCount, signalsMetadata);
+        tmp_shm_ptr->FillItems(sizeOfSigblock);
 //		obj = reinterpret_cast<SharedDataArea*>(tmp_shm_ptr);
     }
     return SharedDataArea(tmp_shm_ptr);
 }
 
 SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const SDA::char8* const name) {
-	void* raw_shm_ptr;
+    void* raw_shm_ptr;
 //	SharedDataArea* obj = NULL;
-	Representation* tmp_shm_ptr = SDA_NULL_PTR(Representation*);
+    Representation* tmp_shm_ptr = SDA_NULL_PTR(Representation*);
     raw_shm_ptr = SDA::Platform::JoinShm(name);
     if (raw_shm_ptr == NULL) {
-    	//error
+        //error
     }
     else {
-    	tmp_shm_ptr = static_cast<SharedDataArea::Representation*>(raw_shm_ptr);
+        tmp_shm_ptr = static_cast<SharedDataArea::Representation*>(raw_shm_ptr);
 
-		//TODO: try CAS of hasReader to true
-		//tmp_shm_ptr->hasReader = true;
+        //TODO: try CAS of hasReader to true
+        //tmp_shm_ptr->hasReader = true;
 
-	    //if it was already true, return not success
-	    //it was false, return the address of the SharedData
+        //if it was already true, return not success
+        //it was false, return the address of the SharedData
 
 //	    obj = reinterpret_cast<SharedDataArea*>(tmp_shm_ptr);
 //    	printf("The device has joined the shared data area \"%s\"\n", name);
@@ -168,40 +172,40 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const SDA::char8* con
 }
 
 bool SharedDataArea::SigblockConsumer::ReadSigblock(SDA::Sigblock& sb) {
-	bool fret = true;
-	if (IsOperational()) {
-		fret = Items()->Get(sb);
-	}
-	else {
-		fret = false;
-	}
-	return fret;
+    bool fret = true;
+    if (IsOperational()) {
+        fret = Items()->Get(sb);
+    }
+    else {
+        fret = false;
+    }
+    return fret;
 }
 
 SDA::Sigblock::Metadata* SharedDataArea::SigblockConsumer::GetSigblockMetadata() {
-	return Header();
+    return Header();
 }
 
 bool SharedDataArea::SigblockProducer::WriteSigblock(const SDA::Sigblock& sb) {
-	bool fret = true;
-	if (IsOperational()) {
-		fret = Items()->Put(sb);
-		if (!fret) {
-			droppedWrites++;  //TODO check overflow ...
-		}
-	}
-	else {
-		fret = false;
-	}
-	return (fret);
+    bool fret = true;
+    if (IsOperational()) {
+        fret = Items()->Put(sb);
+        if (!fret) {
+            droppedWrites++;  //TODO check overflow ...
+        }
+    }
+    else {
+        fret = false;
+    }
+    return (fret);
 }
 
 SDA::Sigblock::Metadata* SharedDataArea::SigblockProducer::GetSigblockMetadata() {
-	return Header();
+    return Header();
 }
 
 SDA::uint64 SharedDataArea::SigblockProducer::DroppedWrites() const {
-	return SharedDataArea::Representation::droppedWrites;
+    return SharedDataArea::Representation::droppedWrites;
 }
 
 }

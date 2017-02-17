@@ -52,32 +52,34 @@ namespace SDA {
 class Platform {
 public:
 
-	/**
-	 * @brief Makes an interprocess shared memory.
-	 * @details Creates a new interprocess shared memory of a given size,
-	 * which is mapped to the current process memory space, and returns its
-	 * base memory address.
-	 */
-	static void* MakeShm(const SDA::char8* const name, const SDA::size_type size);
+    /**
+     * @brief Makes an interprocess shared memory.
+     * @details Creates a new interprocess shared memory of a given size,
+     * which is mapped to the current process memory space, and returns its
+     * base memory address.
+     */
+    static void* MakeShm(const SDA::char8* const name,
+                         const SDA::size_type size);
 
-	/**
-	 * @brief Joins an interprocess shared memory.
-	 * @details Maps an existing interprocess shared memory to the current
-	 * process memory space and returns its base memory address.
-	 */
-	static void* JoinShm(const SDA::char8* const name);
+    /**
+     * @brief Joins an interprocess shared memory.
+     * @details Maps an existing interprocess shared memory to the current
+     * process memory space and returns its base memory address.
+     */
+    static void* JoinShm(const SDA::char8* const name);
 
-	/**
-	 * @brief Unmaps an interprocess shared memory identified by its base
-	 * address and a given size.
-	 */
-	static void DettachShm(void* const shm_ptr, const SDA::size_type shm_size);
+    /**
+     * @brief Unmaps an interprocess shared memory identified by its base
+     * address and a given size.
+     */
+    static void DettachShm(void* const shm_ptr,
+                           const SDA::size_type shm_size);
 
-	/**
-	 * @brief Deletes an interprocess shared memory from the system,
-	 * identified by its system wide unique name.
-	 */
-	static void DestroyShm(const SDA::char8* const name);
+    /**
+     * @brief Deletes an interprocess shared memory from the system,
+     * identified by its system wide unique name.
+     */
+    static void DestroyShm(const SDA::char8* const name);
 };
 
 }

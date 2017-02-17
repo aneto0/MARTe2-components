@@ -66,10 +66,10 @@ namespace SDA {
 class SigblockDoubleBuffer {
 public:
 
-	/**
-	 * @brief Initialise the sigblock double buffer object.
-	 * @param[in] sigblockSize The size of the sigblock
-	 */
+    /**
+     * @brief Initialise the sigblock double buffer object.
+     * @param[in] sigblockSize The size of the sigblock
+     */
     void Init(const SDA::size_type sigblockSize);
 
     /**
@@ -81,8 +81,8 @@ public:
 
     /**
      * @brief Puts a sigblock into the double buffer.
-	 * @param[in] sb The sigblock container of the signals
-	 * which must written to the double buffer.
+     * @param[in] sb The sigblock container of the signals
+     * which must written to the double buffer.
      */
     bool Put(const SDA::Sigblock& item);
 
@@ -103,17 +103,19 @@ private:
     /**
      * The constant representing the number of buffers (actually two)
      */
-	static const SDA::uint32 TWO = 2u;
+    static const SDA::uint32 TWO = 2u;
 
-	/**
-	 * Enumeration for tracking the buffer status
-	 */
-	enum BufferStatus {FREE, FULL, WRITING, READING};
+    /**
+     * Enumeration for tracking the buffer status
+     */
+    enum BufferStatus {
+        FREE, FULL, WRITING, READING
+    };
 
-	/*
-	 * Size of the sigblock
-	 */
-	SDA::size_type sizeOfSigblock;
+    /*
+     * Size of the sigblock
+     */
+    SDA::size_type sizeOfSigblock;
 
     /**
      * Index of the current front buffer
@@ -128,9 +130,9 @@ private:
     /**
      * Memory holder for the two sigblocks
      */
-	/*lint -e{1501} The following data member has no size because it is
-	 * mapped onto a previously allocated memory, whose size is unknown
-	 * at compile time.*/
+    /*lint -e{1501} The following data member has no size because it is
+     * mapped onto a previously allocated memory, whose size is unknown
+     * at compile time.*/
     SDA::char8 buffer[];
 };
 

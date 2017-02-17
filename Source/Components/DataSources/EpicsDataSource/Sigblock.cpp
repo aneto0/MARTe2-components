@@ -48,36 +48,37 @@
 
 namespace SDA {
 
-void Sigblock::Metadata::Init(const SDA::uint32 count, const SDA::Signal::Metadata metadata[]) {
+void Sigblock::Metadata::Init(const SDA::uint32 count,
+                              const SDA::Signal::Metadata metadata[]) {
     SDA::size_type offset = 0u;
-	for (SDA::uint32 i = 0u; i < count; i++) {
-	    (void)std::strncpy(this->signalsMetadata[i].name, metadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN);
-		this->signalsMetadata[i].size = metadata[i].size;
-		this->signalsMetadata[i].offset = offset;
+    for (SDA::uint32 i = 0u; i < count; i++) {
+        (void) std::strncpy(this->signalsMetadata[i].name, metadata[i].name, SDA::Signal::Metadata::NAME_MAX_LEN);
+        this->signalsMetadata[i].size = metadata[i].size;
+        this->signalsMetadata[i].offset = offset;
 //		printf("SDA::Sigblock::Metadata::SetSignalsMetadata >>> i=%u offset=%zu this->signalsMetadata[i].offset=%zu this->signalsMetadata[i].name=%s\n", i, offset, this->signalsMetadata[i].offset, this->signalsMetadata[i].name);
-		offset += metadata[i].size;
-	}
-	this->signalsCount = count;
+        offset += metadata[i].size;
+    }
+    this->signalsCount = count;
 }
 
 SDA::uint32 Sigblock::Metadata::GetSignalsCount() const {
-	return signalsCount;
+    return signalsCount;
 }
 
 SDA::uint32 Sigblock::Metadata::GetSignalIndex(const SDA::char8* const name) {
-	SDA::uint32 result = SDA::MAX_UINT32;
+    SDA::uint32 result = SDA::MAX_UINT32;
     SDA::uint32 i = 0u;
     bool found = false;
-	while ((i < signalsCount) && (!found)) {
-		if (std::strncmp(signalsMetadata[i].name, name, SDA::Signal::Metadata::NAME_MAX_LEN) == 0) {
-		    found = true;
-		}
-		i++;
-	}
-	if (found) {
-		result = (i-1u);
-	}
-	return result;
+    while ((i < signalsCount) && (!found)) {
+        if (std::strncmp(signalsMetadata[i].name, name, SDA::Signal::Metadata::NAME_MAX_LEN) == 0) {
+            found = true;
+        }
+        i++;
+    }
+    if (found) {
+        result = (i - 1u);
+    }
+    return result;
 }
 
 const SDA::char8* Sigblock::Metadata::GetSignalName(const SDA::int32 index) const {
@@ -85,24 +86,24 @@ const SDA::char8* Sigblock::Metadata::GetSignalName(const SDA::int32 index) cons
 }
 
 SDA::size_type Sigblock::Metadata::GetSignalOffsetByIndex(const SDA::uint32 index) const {
-	return signalsMetadata[index].offset;
+    return signalsMetadata[index].offset;
 }
 
 SDA::size_type Sigblock::Metadata::GetSignalSizeByIndex(const SDA::int32 index) const {
-	return signalsMetadata[index].size;
+    return signalsMetadata[index].size;
 }
 
 SDA::size_type Sigblock::Metadata::GetTotalSize() const {
-	return (sizeof(SignalMetadataEx) * signalsCount);
+    return (sizeof(SignalMetadataEx) * signalsCount);
 }
 
 SDA::size_type Sigblock::Metadata::SizeOf(const SDA::uint32 numSignals) {
-	return (sizeof(SDA::uint32) + (numSignals * (sizeof(SignalMetadataEx)+sizeof(SDA::size_type))));
+    return (sizeof(SDA::uint32) + (numSignals * (sizeof(SignalMetadataEx) + sizeof(SDA::size_type))));
 }
 
 void* Sigblock::GetSignalAddress(const SDA::size_type offset) {
-	/*lint -e{9016} [MISRA C++ Rule 5-0-15] pointer arithmetic is needed in this case*/
-	return this + offset;
+    /*lint -e{9016} [MISRA C++ Rule 5-0-15] pointer arithmetic is needed in this case*/
+    return this + offset;
 }
 
 }

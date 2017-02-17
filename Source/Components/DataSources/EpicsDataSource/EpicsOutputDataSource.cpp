@@ -61,15 +61,15 @@ static MARTe::StreamString GetApplicationName() {
     MARTe::uint32 nOfObjs = objDb->Size();
     bool found = false;
     for (MARTe::uint32 i = 0u; (i < nOfObjs) && (!found); i++) {
-        MARTe::ReferenceT<MARTe::RealTimeApplication> rtApp = objDb->Get(i);
-    	found = rtApp.IsValid();
-    	if (found) {
-    		result = rtApp->GetName();
-    	}
+        MARTe::ReferenceT < MARTe::RealTimeApplication > rtApp = objDb->Get(i);
+        found = rtApp.IsValid();
+        if (found) {
+            result = rtApp->GetName();
+        }
     }
     if (!found) {
-		result = "MARTeApp";
-	}
+        result = "MARTeApp";
+    }
     return result;
 }
 
@@ -79,15 +79,15 @@ static MARTe::StreamString GetApplicationName() {
  */
 static MARTe::StreamString BuildSharedMemoryIdentifier(const MARTe::StreamString& name) {
     MARTe::StreamString result;
-	//Add the initial mark:
-	result += "/";
-	//Add the MARTe's application name as prefix:
-	result += GetApplicationName();
-	//Add a separator mark:
-	result += "_";
-	//Add the name as last token:
-	result += name;
-	return result;
+    //Add the initial mark:
+    result += "/";
+    //Add the MARTe's application name as prefix:
+    result += GetApplicationName();
+    //Add a separator mark:
+    result += "_";
+    //Add the name as last token:
+    result += name;
+    return result;
 }
 
 }
@@ -99,28 +99,30 @@ static MARTe::StreamString BuildSharedMemoryIdentifier(const MARTe::StreamString
 namespace MARTe {
 
 EpicsOutputDataSource::EpicsOutputDataSource() :
-    DataSourceI(), producer(SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*)), signals(SDA_NULL_PTR(SDA::Sigblock*)) {
+        DataSourceI(),
+        producer(SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*)),
+        signals(SDA_NULL_PTR(SDA::Sigblock*)) {
 }
 
 EpicsOutputDataSource::~EpicsOutputDataSource() {
 //    printf("EpicsOutputDataSource::~EpicsOutputDataSource()\n");
     if (signals != SDA_NULL_PTR(SDA::Sigblock*)) {
-    	void* mem = reinterpret_cast<void*>(signals);
+        void* mem = reinterpret_cast<void*>(signals);
         /*lint -e{1551} HeapManager::Free does not throw exceptions*/
-    	(void)HeapManager::Free(mem);
-		signals = SDA_NULL_PTR(SDA::Sigblock*); //static_cast<SDA::Sigblock*>(mem);
+        (void) HeapManager::Free(mem);
+        signals = SDA_NULL_PTR(SDA::Sigblock*); //static_cast<SDA::Sigblock*>(mem);
     }
     if (producer != SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*)) {
-    	//TODO: Release interprocess shared memory?
-    	producer = SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*);
+        //TODO: Release interprocess shared memory?
+        producer = SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*);
     }
 }
 
 bool EpicsOutputDataSource::Synchronise() {
-	bool ok;
+    bool ok;
     if ((producer != SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*)) && (signals != SDA_NULL_PTR(SDA::Sigblock*))) {
-		ok = producer->WriteSigblock(*signals);
-	}
+        ok = producer->WriteSigblock(*signals);
+    }
     else {
         ok = false;
     }
@@ -128,17 +130,17 @@ bool EpicsOutputDataSource::Synchronise() {
 }
 
 bool EpicsOutputDataSource::AllocateMemory() {
-	bool ret;
-	uint32 numSignals = GetNumberOfSignals();
-	sharedDataAreaName = BuildSharedMemoryIdentifier(GetName());
-	SDA::Signal::Metadata smd_for_init[numSignals]; //sigblock description for initialization;
+    bool ret;
+    uint32 numSignals = GetNumberOfSignals();
+    sharedDataAreaName = BuildSharedMemoryIdentifier(GetName());
+    SDA::Signal::Metadata smd_for_init[numSignals]; //sigblock description for initialization;
 
-	//{for all signals in datasource add it to smd}
-	ret = (numSignals > 0u);
-	for (uint32 i = 0u; (i < numSignals) && (ret); i++) {
-		StreamString signalName;
-		uint32 memorySize;
-		ret = GetSignalName(i, signalName);
+    //{for all signals in datasource add it to smd}
+    ret = (numSignals > 0u);
+    for (uint32 i = 0u; (i < numSignals) && (ret); i++) {
+        StreamString signalName;
+        uint32 memorySize;
+        ret = GetSignalName(i, signalName);
         if (ret) {
             ret = GetSignalByteSize(i, memorySize);
             if (ret) {
@@ -149,17 +151,17 @@ bool EpicsOutputDataSource::AllocateMemory() {
                 smd_for_init[i].size = static_cast<SDA::size_type>(memorySize);
             }
         }
-	}
+    }
 
     /*lint -e{9132} array's length given by numberOfSignals*/
-	SDA::SharedDataArea sbpm = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numSignals, smd_for_init);
-	producer = sbpm.GetSigblockProducerInterface();
-	SDA::Sigblock::Metadata* sbmd = producer->GetSigblockMetadata();
+    SDA::SharedDataArea sbpm = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numSignals, smd_for_init);
+    producer = sbpm.GetSigblockProducerInterface();
+    SDA::Sigblock::Metadata* sbmd = producer->GetSigblockMetadata();
     SDA::size_type totalSize = sbmd->GetTotalSize();
     /*lint -e{9119} -e{712} -e{747} calls to Malloc and Set are protected*/
     if (totalSize <= MAX_UINT32) {
         void* mem = HeapManager::Malloc(totalSize);
-        (void)MemoryOperationsHelper::Set(mem, '\0', totalSize);
+        (void) MemoryOperationsHelper::Set(mem, '\0', totalSize);
         signals = static_cast<SDA::Sigblock*>(mem);
     }
     else {
@@ -173,67 +175,75 @@ uint32 EpicsOutputDataSource::GetNumberOfMemoryBuffers() {
     return 1u;
 }
 
-bool EpicsOutputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) {
-	bool ok;
+bool EpicsOutputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                                  const uint32 bufferIdx,
+                                                  void *&signalAddress) {
+    bool ok;
 
-	/*lint --e{9007} GetNumberOfMemoryBuffers() has no side effects*/
-	ok = ((signalIdx < GetNumberOfSignals()) && (bufferIdx < GetNumberOfMemoryBuffers()));
+    /*lint --e{9007} GetNumberOfMemoryBuffers() has no side effects*/
+    ok = ((signalIdx < GetNumberOfSignals()) && (bufferIdx < GetNumberOfMemoryBuffers()));
 
-	if (ok) {
-	    if (producer != SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*)) {
-	        SDA::Sigblock::Metadata* sbmd = producer->GetSigblockMetadata();
-	        if ((signals != SDA_NULL_PTR(SDA::Sigblock*)) && (sbmd != SDA_NULL_PTR(SDA::Sigblock::Metadata*))) {
-	            signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
+    if (ok) {
+        if (producer != SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*)) {
+            SDA::Sigblock::Metadata* sbmd = producer->GetSigblockMetadata();
+            if ((signals != SDA_NULL_PTR(SDA::Sigblock*)) && (sbmd != SDA_NULL_PTR(SDA::Sigblock::Metadata*))) {
+                signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
 //    	        REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsOutputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
-	        }
-	        else {
-	            ok = false;
-	        }
-	    }
-	    else {
-	        ok = false;
-	    }
-	}
+            }
+            else {
+                ok = false;
+            }
+        }
+        else {
+            ok = false;
+        }
+    }
 
     return ok;
 }
 
 /*lint -e{715} parameter data not used in this implementation*/
-const char8 *EpicsOutputDataSource::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
+const char8 *EpicsOutputDataSource::GetBrokerName(StructuredDataI &data,
+                                                  const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == InputSignals) {
-    	brokerName = "";
+        brokerName = "";
     }
     else {
-    	brokerName = "MemoryMapSynchronisedOutputBroker";
+        brokerName = "MemoryMapSynchronisedOutputBroker";
     }
     return brokerName;
 }
 
 /*lint -e{715} parameters inputBrokers, functionName, and gamMemPtr not used in this implementation*/
-bool EpicsOutputDataSource::GetInputBrokers(ReferenceContainer &inputBrokers, const char8* const functionName, void * const gamMemPtr) {
-	return false;
+bool EpicsOutputDataSource::GetInputBrokers(ReferenceContainer &inputBrokers,
+                                            const char8* const functionName,
+                                            void * const gamMemPtr) {
+    return false;
 }
 
-bool EpicsOutputDataSource::GetOutputBrokers(ReferenceContainer &outputBrokers, const char8* const functionName, void * const gamMemPtr) {
-	ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
-	bool ret = broker.IsValid();
-	if (ret) {
-		ret = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
-	}
-	if (ret) {
-		ret = outputBrokers.Insert(broker);
-	}
-	return ret;
+bool EpicsOutputDataSource::GetOutputBrokers(ReferenceContainer &outputBrokers,
+                                             const char8* const functionName,
+                                             void * const gamMemPtr) {
+    ReferenceT < MemoryMapSynchronisedOutputBroker > broker("MemoryMapSynchronisedOutputBroker");
+    bool ret = broker.IsValid();
+    if (ret) {
+        ret = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
+    }
+    if (ret) {
+        ret = outputBrokers.Insert(broker);
+    }
+    return ret;
 }
 
 /*lint -e{715} parameters currentStateName and nextStateName not used in this implementation*/
-bool EpicsOutputDataSource::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
+bool EpicsOutputDataSource::PrepareNextState(const char8 * const currentStateName,
+                                             const char8 * const nextStateName) {
     return true;
 }
 
 MARTe::StreamString EpicsOutputDataSource::GetSharedDataAreaName() const {
-	return sharedDataAreaName;
+    return sharedDataAreaName;
 }
 
 CLASS_REGISTER(EpicsOutputDataSource, "1.0")

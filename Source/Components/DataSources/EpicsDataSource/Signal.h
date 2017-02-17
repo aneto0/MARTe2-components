@@ -51,40 +51,40 @@ namespace SDA {
 class Signal {
 public:
 
-	/**
-	 * @brief This class contains the meta properties of a signal.
-	 */
-	class Metadata {
-	public:
+    /**
+     * @brief This class contains the meta properties of a signal.
+     */
+    class Metadata {
+    public:
 
-		/**
-		 * The maximum length of the signal's name.
-		 */
-		static const SDA::uint32 NAME_MAX_LEN = 30u;
+        /**
+         * The maximum length of the signal's name.
+         */
+        static const SDA::uint32 NAME_MAX_LEN = 30u;
 
-		/**
-		 * The name of the signal.
-		 */
-		SDA::char8 name[NAME_MAX_LEN];
+        /**
+         * The name of the signal.
+         */
+        SDA::char8 name[NAME_MAX_LEN];
 
-		/**
-		 * The size of the signal's representation.
-		 */
-		SDA::size_type size;
+        /**
+         * The size of the signal's representation.
+         */
+        SDA::size_type size;
 
-		/**
-		 * @brief Default constructor
-		 */
-		Metadata();
-	};
+        /**
+         * @brief Default constructor
+         */
+        Metadata();
+    };
 
 private:
 
-	/**
-	 * @brief Default constructor
-	 */
+    /**
+     * @brief Default constructor
+     */
     /*lint -e{1704} instances of this class are not instantiable*/
-	Signal();
+    Signal();
 };
 
 }
@@ -95,8 +95,9 @@ private:
 
 namespace SDA {
 
-inline Signal::Metadata::Metadata(): size(0u) {
-	name[0] = '\0';
+inline Signal::Metadata::Metadata() :
+        size(0u) {
+    name[0] = '\0';
 }
 
 }

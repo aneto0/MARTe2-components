@@ -56,7 +56,9 @@ namespace SDA {
  * and newval was written
  */
 template<typename T>
-inline bool CAS(volatile T* const ptr, const T oldval, const T newval);
+inline bool CAS(volatile T* const ptr,
+                const T oldval,
+                const T newval);
 
 /**
  * @brief Atomic exchange operation
@@ -67,7 +69,8 @@ inline bool CAS(volatile T* const ptr, const T oldval, const T newval);
  * @return the previous value of *ptr
  */
 template<typename T>
-inline T XCHG(volatile T* const ptr, const T val);
+inline T XCHG(volatile T* const ptr,
+              const T val);
 
 /**
  * @brief Atomic read
@@ -85,7 +88,8 @@ T READ(volatile T* const b);
  * @param[in] v Value to assign to *b
  */
 template<typename T>
-void WRITE(volatile T* const b, const T v);
+void WRITE(volatile T* const b,
+           const T v);
 
 }
 
@@ -112,8 +116,10 @@ namespace SDA {
  * -Builtins
  */
 template<typename T>
-inline bool CAS(volatile T* const ptr, const T oldval, const T newval) {
-	return static_cast<bool>(__sync_bool_compare_and_swap(ptr, oldval, newval));
+inline bool CAS(volatile T* const ptr,
+                const T oldval,
+                const T newval) {
+    return static_cast<bool>(__sync_bool_compare_and_swap(ptr, oldval, newval));
 }
 
 /*
@@ -127,9 +133,10 @@ inline bool CAS(volatile T* const ptr, const T oldval, const T newval) {
  * Builtins.html#Atomic-Builtins
  */
 template<typename T>
-inline T XCHG(volatile T* const ptr, const T val) {
+inline T XCHG(volatile T* const ptr,
+              const T val) {
     /*lint -e{930} when T is an enumeration is ok, too*/
-	return static_cast<T>(__sync_lock_test_and_set(ptr, val));
+    return static_cast<T>(__sync_lock_test_and_set(ptr, val));
 }
 
 /*
@@ -154,9 +161,10 @@ T READ(volatile T* const b) {
  * Builtins.html#Atomic-Builtins
  */
 template<typename T>
-void WRITE(volatile T* const b, const T v) {
+void WRITE(volatile T* const b,
+           const T v) {
     __sync_synchronize(); //Full memory barrier (read will return fresh value)
-   *b = v;
+    *b = v;
 }
 
 }

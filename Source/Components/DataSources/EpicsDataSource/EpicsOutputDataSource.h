@@ -72,12 +72,12 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-	/**
-	 * @brief Default constructor
-	 * @post
-	 * 	(target.GetSharedDataAreaName().Size() == 0)
-	 */
-	EpicsOutputDataSource();
+    /**
+     * @brief Default constructor
+     * @post
+     * 	(target.GetSharedDataAreaName().Size() == 0)
+     */
+    EpicsOutputDataSource();
 
     /**
      * @brief Destructor.
@@ -107,32 +107,39 @@ public:
     /**
      * @see DataSourceI::GetSignalMemoryBuffer
      */
-    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress);
+    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress);
 
     /**
      * @see DataSourceI::GetBrokerName()
      * @note This method will return an empty string if the direction
      * is InputSignals.
      */
-    virtual const char8 *GetBrokerName(StructuredDataI &data, const SignalDirection direction);
+    virtual const char8 *GetBrokerName(StructuredDataI &data,
+                                       const SignalDirection direction);
 
     /**
      * @see DataSourceI::GetInputBrokers()
      * @note This method has a null implementation, because this datasource
      * does not supply input brokers.
      */
-    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers, const char8* const functionName, void * const gamMemPtr);
+    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
+                                 const char8* const functionName,
+                                 void * const gamMemPtr);
 
     /**
      * @see DataSourceI::GetOutputBrokers()
      */
-    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers, const char8* const functionName, void * const gamMemPtr);
+    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
+                                  const char8* const functionName,
+                                  void * const gamMemPtr);
 
     /**
      * @see StatefulI::PrepareNextState()
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-            const char8 * const nextStateName);
+                                  const char8 * const nextStateName);
 
     /**
      * @brief Returns the name of the shared data area connected
