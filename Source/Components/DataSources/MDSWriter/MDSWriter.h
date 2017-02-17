@@ -70,14 +70,14 @@ namespace MARTe {
  *             Type = 'uint8" //Type must be uint8
  *         }
  *         Time = { //Compulsory when StoreOnTrigger = 1. Can be store in any index, but TimeSignal must be set = 1
- *             Type = "uint32" //Type must be uint32
+ *             Type = "uint32" //Type must be uint32 or int32
  *             TimeSignal = 1 //When set this signal will be considered as the time source against which all signals will be stored.
  *         }
  *         SignalUInt16F = { //As many as required.
- *             NodeName = "SIGUINT16F" //MDSplus node name
- *             Period = 2 //Period between signal samples.
- *             MakeSegmentAfterNWrites = 4 //Force the creation of a segment after N MARTe cycles.
- *             DecimatedNodeName = "SIGUINT16D" //Optional the node where MDSplus stores the automatically computed decimated signal.
+ *             NodeName = "SIGUINT16F" //Compulsory. MDSplus node name
+ *             Period = 2 //Compulsory. Period between signal samples.
+ *             MakeSegmentAfterNWrites = 4 //Compulsory. Force the creation of a segment after N MARTe cycles.
+ *             DecimatedNodeName = "SIGUINT16D" //Optional. The node where MDSplus stores the automatically computed decimated signal.
  *             MinMaxResampleFactor = 4 //Compulsory if DecimatedNodeName is set. Decimation factor that MDSplus applies to the decimated version of the signal.
  *             SamplePhase = 0 //Optional. Shift the time vector by SamplePhase * Period
  *         }
@@ -116,6 +116,8 @@ MDSWriter    ();
 
     /**
      * @brief See DataSourceI::GetSignalMemoryBuffer.
+     * @pre
+     *   SetConfiguredDatabase
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
             const uint32 bufferIdx,
@@ -190,9 +192,81 @@ MDSWriter    ();
     /**
      * @brief Opens a new MDSplus tree.
      * @param[in] pulseNumber the MDSplus pulse number. If -1 a new pulse number will be created.
-     * @return ErrorManagement::NoError if a tree against that pulse number can be sucessfully opened.
+     * @return ErrorManagement::NoError if a tree against that pulse number can be successfully opened.
      */
     ErrorManagement::ErrorType OpenTree(int32 pulseNumber);
+
+    /**
+     * @brief Gets the affinity of the thread which is going to be used to asynchronously store the data in the MDS plus database.
+     * @return the affinity of the thread which is going to be used to asynchronously store the data in the MDS database.
+     */
+    const ProcessorType& GetCPUMask() const;
+
+    /**
+     * @brief Gets the name of the MDS plus event which warns jScope about new data every GetRefreshEveryCounts CPU counts.
+     * @return the name of the MDS plus event which warns jScope about new data every GetRefreshEveryCounts CPU counts.
+     */
+    const StreamString& GetEventName() const;
+
+    /**
+     * @brief Gets the number of buffers in the circular buffer.
+     * @return the number of buffers in the circular buffer.
+     */
+    uint32 GetNumberOfBuffers() const;
+
+    /**
+     * @brief Gets the number of configured MDS signals.
+     * @return the number of configured MDS signals.
+     */
+    uint32 GetNumberOfMdsSignals() const;
+
+    /**
+     * @brief Gets the number of post configured buffers in the circular buffer.
+     * @return the number of post configured buffers in the circular buffer.
+     */
+    uint32 GetNumberOfPostTriggers() const;
+
+    /**
+     * @brief Gets the number of pre configured buffers in the circular buffer.
+     * @return the number of pre configured buffers in the circular buffer.
+     */
+    uint32 GetNumberOfPreTriggers() const;
+
+    /**
+     * @brief Gets the configured MDS pulse number.
+     * @return the configured MDS pulse number.
+     */
+    int32 GetPulseNumber() const;
+
+    /**
+     * @brief Gets the configured MDS tree name.
+     * @return the configured MDS tree name.
+     */
+    const StreamString& GetTreeName() const;
+
+    /**
+     * @brief Gets the refresh rate at which MDS plus warns jScope about the availability of new data.
+     * @return the refresh rate at which MDS plus warns jScope about the availability of new data.
+     */
+    uint64 GetRefreshEveryCounts() const;
+
+    /**
+     * @brief Gets the stack size of the thread which is going to be used to asynchronously store the data in the MDS plus database.
+     * @return the stack size of the thread which is going to be used to asynchronously store the data in the MDS plus database.
+     */
+    uint32 GetStackSize() const;
+
+    /**
+     * @brief Returns true if the data is going to be stored in MDS plus based on the occurrence of an external trigger.
+     * @return true if the data is going to be stored in MDS plus based on a trigger event.
+     */
+    bool IsStoreOnTrigger() const;
+
+    /**
+     * @brief Returns the index of the signal which is going to provide the time if the data is based on an external trigger.
+     * @return the index of the signal which is going to provide the time if the data is based on an external trigger.
+     */
+    int32 GetTimeSignalIdx() const;
 
 private:
 

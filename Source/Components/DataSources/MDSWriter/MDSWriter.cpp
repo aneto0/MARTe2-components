@@ -103,15 +103,23 @@ uint32 MDSWriter::GetNumberOfMemoryBuffers() {
 }
 
 bool MDSWriter::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    char8 *memPtr = &dataSourceMemory[offsets[signalIdx]];
-    signalAddress = reinterpret_cast<void *&>(memPtr);
-    return true;
+    bool ok = (dataSourceMemory != NULL_PTR(char8 *));
+    if (ok) {
+        char8 *memPtr = &dataSourceMemory[offsets[signalIdx]];
+        signalAddress = reinterpret_cast<void *&>(memPtr);
+    }
+    return ok;
 }
 
 const char8* MDSWriter::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
-    const char8* brokerName = "MemoryMapAsyncOutputBroker";
-    if (storeOnTrigger) {
-        brokerName = "MemoryMapAsyncTriggerOutputBroker";
+    const char8* brokerName = "";
+    if (direction == OutputSignals) {
+        if (storeOnTrigger) {
+            brokerName = "MemoryMapAsyncTriggerOutputBroker";
+        }
+        else {
+            brokerName = "MemoryMapAsyncOutputBroker";
+        }
     }
     return brokerName;
 }
@@ -121,26 +129,21 @@ bool MDSWriter::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
 }
 
 bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    bool ok = (GetNumberOfFunctions() == 1u);
-    if (ok) {
-        if (storeOnTrigger) {
-            ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger("MemoryMapAsyncTriggerOutputBroker");
-            ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
-                                                               numberOfPostTriggers, cpuMask, stackSize);
-            if (ok) {
-                ok = outputBrokers.Insert(brokerAsyncTrigger);
-            }
-        }
-        else {
-            ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
-            ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
-            if (ok) {
-                ok = outputBrokers.Insert(brokerAsync);
-            }
+    bool ok = true;
+    if (storeOnTrigger) {
+        ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger("MemoryMapAsyncTriggerOutputBroker");
+        ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+                                                           numberOfPostTriggers, cpuMask, stackSize);
+        if (ok) {
+            ok = outputBrokers.Insert(brokerAsyncTrigger);
         }
     }
     else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "At most one function is allowed to interact with this DataSourceI");
+        ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
+        ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
+        if (ok) {
+            ok = outputBrokers.Insert(brokerAsync);
+        }
     }
     return ok;
 }
@@ -275,9 +278,6 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
         ok = data.MoveRelative("Signals");
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
-        }
     }
     //Check signal properties and compute memory
     uint32 totalSignalMemory = 0u;
@@ -298,7 +298,6 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
 
-
         offsets = new uint32[GetNumberOfSignals()];
         uint32 numberOfSignals = GetNumberOfSignals();
         //Count the number of bytes
@@ -315,7 +314,6 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
     }
 
     //Check the signal index of the timing signal.
-    int32 timeSignalIdx = -1;
     uint32 numberOfSignals = GetNumberOfSignals();
     if (ok) {
         //Count the number of MDS+ signals
@@ -407,7 +405,10 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
         if (ok) {
             ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == UnsignedInteger32Bit);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall have type uint32");
+                ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == SignedInteger32Bit);
+            }
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall have type uint32 or int32");
             }
         }
         if (ok) {
@@ -417,15 +418,6 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
     }
-    else {
-        if (ok) {
-            ok = (timeSignalIdx == -1);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger was not specified but a TimeSignal was found");
-            }
-        }
-    }
-
     if (pulseNumber != MDS_UNDEFINED_PULSE_NUMBER) {
         ok = (OpenTree(pulseNumber) == ErrorManagement::NoError);
     }
@@ -452,37 +444,38 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(int32 pulseNumber) {
             delete tree;
         }
         catch (MDSplus::MdsException &exc) {
-            pulseNumber = 1;
             delete tree;
             tree = NULL_PTR(MDSplus::Tree *);
+            ok = false;
         }
 
     }
-    //Create a pulse. It assumes that the tree template is already created!!
-    try {
-        tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-    }
-    catch (MDSplus::MdsException &exc) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse", treeName.Buffer(),
-                                pulseNumber)
-        delete tree;
-        tree = NULL_PTR(MDSplus::Tree *);
-    }
-    if (tree == NULL_PTR(MDSplus::Tree *)) {
+    if (ok) {
+        //Create a pulse. It assumes that the tree template is already created!!
         try {
-            tree = new MDSplus::Tree(treeName.Buffer(), -1);
-            tree->setCurrent(treeName.Buffer(), pulseNumber);
-            tree->createPulse(pulseNumber);
+            tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (MDSplus::MdsException &exc) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse",
                                     treeName.Buffer(), pulseNumber)
             delete tree;
-            ok = false;
+            tree = NULL_PTR(MDSplus::Tree *);
         }
+        if (tree == NULL_PTR(MDSplus::Tree *)) {
+            try {
+                tree = new MDSplus::Tree(treeName.Buffer(), -1);
+                tree->setCurrent(treeName.Buffer(), pulseNumber);
+                tree->createPulse(pulseNumber);
+            }
+            catch (MDSplus::MdsException &exc) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse",
+                                        treeName.Buffer(), pulseNumber)
+                delete tree;
+                ok = false;
+            }
+        }
+        delete tree;
     }
-    delete tree;
-
     if (ok) {
         //Open a pulse.
         try {
@@ -521,6 +514,54 @@ ErrorManagement::ErrorType MDSWriter::FlushSegments() {
     }
     ErrorManagement::ErrorType err(ok);
     return err;
+}
+
+const ProcessorType& MDSWriter::GetCPUMask() const {
+    return cpuMask;
+}
+
+const StreamString& MDSWriter::GetEventName() const {
+    return eventName;
+}
+
+uint32 MDSWriter::GetNumberOfBuffers() const {
+    return numberOfBuffers;
+}
+
+uint32 MDSWriter::GetNumberOfMdsSignals() const {
+    return numberOfMDSSignals;
+}
+
+uint32 MDSWriter::GetNumberOfPostTriggers() const {
+    return numberOfPostTriggers;
+}
+
+uint32 MDSWriter::GetNumberOfPreTriggers() const {
+    return numberOfPreTriggers;
+}
+
+int32 MDSWriter::GetPulseNumber() const {
+    return pulseNumber;
+}
+
+uint64 MDSWriter::GetRefreshEveryCounts() const {
+    return refreshEveryCounts;
+}
+
+uint32 MDSWriter::GetStackSize() const {
+    return stackSize;
+}
+
+bool MDSWriter::IsStoreOnTrigger() const {
+    return storeOnTrigger;
+}
+
+int32 MDSWriter::GetTimeSignalIdx() const {
+    return timeSignalIdx;
+}
+
+const StreamString& MDSWriter::GetTreeName() const {
+    return treeName;
 }
 
 CLASS_REGISTER(MDSWriter, "1.0")

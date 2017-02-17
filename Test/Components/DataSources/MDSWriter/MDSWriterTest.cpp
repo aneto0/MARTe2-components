@@ -379,6 +379,12 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
         gam = application->Find("Functions.GAM1");
         ok = gam.IsValid();
     }
+    ReferenceT<MDSWriter> mdsWriter;
+    if (ok) {
+        mdsWriter = godb->Find("Test.Data.Drv1");
+        ok = mdsWriter.IsValid();
+    }
+
     //Open the tree and check if the data was correctly stored.
     //Create a pulse. It assumes that the tree template is already created!!
     MDSplus::Tree *tree = NULL;
@@ -808,7 +814,7 @@ static const MARTe::char8 * const config2 = ""
         "                    DataSource = Drv1"
         "                }"
         "                Time = {"
-        "                    Type = uint32"
+        "                    Type = int32"
         "                    DataSource = Drv1"
         "                }"
         "                SignalUInt16F = {"
@@ -901,7 +907,7 @@ static const MARTe::char8 * const config2 = ""
         "                    Type = uint8"
         "                }"
         "                Time = {"
-        "                    Type = uint32"
+        "                    Type = int32"
         "                    TimeSignal = 1"
         "                }"
         "                SignalUInt16F = {"
@@ -1629,6 +1635,532 @@ static const MARTe::char8 * const config6 = ""
         "        }"
         "    }"
         "}";
+
+//Configuration with Samples > 1
+static const MARTe::char8 * const config7 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =   {8 1 2 3 4 5 6 7 }"
+        "            Trigger =  {0 1 0 1 0 1 0 1 }"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                    Samples = 10"
+        "                }"
+        "                SignalInt16F = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    TimeSignal = 1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with more than one time signal
+static const MARTe::char8 * const config8 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =   {8 1 2 3 4 5 6 7 }"
+        "            Trigger =  {0 1 0 1 0 1 0 1 }"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time2 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16F = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            StoreOnTrigger = 1"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            NumberOfPreTriggers = 1"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    TimeSignal = 1"
+        "                }"
+        "                Time2 = {"
+        "                    Type = uint32"
+        "                    TimeSignal = 1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalInt16F = {"
+        "                    NodeName = \"SIGINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with no mds plus signals
+static const MARTe::char8 * const config9 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =   {8 1 2 3 4 5 6 7 }"
+        "            Trigger =  {0 1 0 1 0 1 0 1 }"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    TimeSignal = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with no time signal
+static const MARTe::char8 * const config10 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =   {8 1 2 3 4 5 6 7 }"
+        "            Trigger =  {0 1 0 1 0 1 0 1 }"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16F = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            StoreOnTrigger = 1"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            NumberOfPreTriggers = 1"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalInt16F = {"
+        "                    NodeName = \"SIGINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with time signal not uint32
+static const MARTe::char8 * const config11 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =   {8 1 2 3 4 5 6 7 }"
+        "            Trigger =  {0 1 0 1 0 1 0 1 }"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16F = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            StoreOnTrigger = 1"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            NumberOfPreTriggers = 1"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint64"
+        "                    TimeSignal = 1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalInt16F = {"
+        "                    NodeName = \"SIGINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with more than one GAM writing data into the MDSWriter
+static const MARTe::char8 * const config12 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =   {8 1 2 3 4 5 6 7 }"
+        "            Trigger =  {0 1 0 1 0 1 0 1 }"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM2 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =   {8 1 2 3 4 5 6 7 }"
+        "            Trigger =  {0 1 0 1 0 1 0 1 }"
+        "            OutputSignals = {"
+        "                SignalInt16F = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    TimeSignal = 1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalInt16F = {"
+        "                    NodeName = \"SIGINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1 GAM2}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -1636,6 +2168,354 @@ bool MDSWriterTest::TestConstructor() {
     using namespace MARTe;
     MDSWriter test;
     return true;
+}
+
+bool MDSWriterTest::TestAllocateMemory() {
+    using namespace MARTe;
+    MDSWriter test;
+    return test.AllocateMemory();
+}
+
+bool MDSWriterTest::TestGetNumberOfMemoryBuffers() {
+    using namespace MARTe;
+    MDSWriter test;
+    return (test.GetNumberOfMemoryBuffers() == 1u);
+}
+
+bool MDSWriterTest::TestGetSignalMemoryBuffer() {
+    using namespace MARTe;
+    MDSWriter test;
+    void *ptr = NULL;
+    bool ok = !test.GetSignalMemoryBuffer(0, 0, ptr);
+    if (ok) {
+        ok = TestIntegratedInApplication_NoTrigger();
+    }
+    return ok;
+}
+
+bool MDSWriterTest::TestGetBrokerName_InputSignals() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    bool ok = (StringHelper::Compare(test.GetBrokerName(cdb, InputSignals), "") == 0);
+
+    return ok;
+}
+
+bool MDSWriterTest::TestGetBrokerName_MemoryMapAsyncOutputBroker() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 0);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = (StringHelper::Compare(test.GetBrokerName(cdb, OutputSignals), "MemoryMapAsyncOutputBroker") == 0);
+    }
+
+    return ok;
+}
+
+bool MDSWriterTest::TestGetBrokerName_MemoryMapAsyncTriggerOutputBroker() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = (StringHelper::Compare(test.GetBrokerName(cdb, OutputSignals), "MemoryMapAsyncTriggerOutputBroker") == 0);
+    }
+
+    return ok;
+}
+
+bool MDSWriterTest::TestGetInputBrokers() {
+    using namespace MARTe;
+    MDSWriter test;
+    ReferenceContainer rc;
+    return !test.GetInputBrokers(rc, "", NULL);
+}
+
+bool MDSWriterTest::TestGetOutputBrokers() {
+    bool ok = TestIntegratedInApplication_NoTrigger();
+    if (ok) {
+        ok = TestIntegratedInApplication_Trigger();
+    }
+    return ok;
+}
+
+bool MDSWriterTest::TestSynchronise() {
+    bool ok = TestIntegratedInApplication_NoTrigger();
+    if (ok) {
+        ok = TestIntegratedInApplication_Trigger();
+    }
+    return ok;
+}
+
+bool MDSWriterTest::TestPrepareNextState() {
+    using namespace MARTe;
+    MDSWriter test;
+    return test.PrepareNextState(NULL, NULL);
+}
+
+bool MDSWriterTest::TestInitialise() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 10);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 3);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    ok &= (test.GetNumberOfBuffers() == 10);
+    ok &= (test.GetCPUMask() == 15);
+    ok &= (test.GetStackSize() == 10000000);
+    ok &= (test.GetTreeName() == "mds_m2test");
+    ok &= (test.GetPulseNumber() == 10);
+    ok &= (test.GetEventName() == "updatejScope");
+    ok &= (test.GetRefreshEveryCounts() == (5 * HighResolutionTimer::Frequency()));
+    ok &= (test.IsStoreOnTrigger());
+    ok &= (test.GetNumberOfPreTriggers() == 2);
+    ok &= (test.GetNumberOfPostTriggers() == 3);
+    return ok;
+}
+
+bool MDSWriterTest::TestInitialise_False_NumberOfBuffers() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterTest::TestInitialise_False_CPUMask() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterTest::TestInitialise_False_StackSize() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterTest::TestInitialise_False_TreeName() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterTest::TestInitialise_False_EventName() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterTest::TestInitialise_False_TimeRefresh() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterTest::TestInitialise_False_StoreOnTrigger() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterTest::TestInitialise_False_NumberOfPreTriggers() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterTest::TestInitialise_False_NumberOfPostTriggers() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterTest::TestInitialise_False_Signals() {
+    using namespace MARTe;
+    MDSWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("TreeName", "mds_m2test");
+    cdb.Write("PulseNumber", 1);
+    cdb.Write("EventName", "updatejScope");
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterTest::TestSetConfiguredDatabase() {
+    bool ok = TestIntegratedInApplication_NoTrigger();
+    return ok;
+}
+
+bool MDSWriterTest::TestSetConfiguredDatabase_False_NumberOfSamples() {
+    return !TestIntegratedInApplication(config7, true);
+}
+
+bool MDSWriterTest::TestSetConfiguredDatabase_False_MoreThanOneTimeSignal() {
+    return !TestIntegratedInApplication(config8, true);
+}
+
+bool MDSWriterTest::TestSetConfiguredDatabase_False_NoMDSSignals() {
+    return !TestIntegratedInApplication(config9, true);
+}
+
+bool MDSWriterTest::TestSetConfiguredDatabase_False_NoTimeSignal() {
+    return !TestIntegratedInApplication(config10, true);
+}
+
+bool MDSWriterTest::TestSetConfiguredDatabase_False_TimeSignal_NotUInt32() {
+    return !TestIntegratedInApplication(config11, true);
+}
+
+bool MDSWriterTest::TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction() {
+    return !TestIntegratedInApplication(config12, true);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger() {
@@ -1748,12 +2628,12 @@ bool MDSWriterTest::TestOpenTree() {
         msdWriter = godb->Find("Test.Data.Drv1");
         ok = msdWriter.IsValid();
     }
-    ReferenceT<Message> messageFlush = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageOpenTree");
+    ReferenceT<Message> messageOpenTree = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageOpenTree");
     if (ok) {
-        ok = messageFlush.IsValid();
+        ok = messageOpenTree.IsValid();
     }
     if (ok) {
-        MessageI::SendMessage(messageFlush, NULL);
+        MessageI::SendMessage(messageOpenTree, NULL);
     }
 
     int32 currentPulseNumber = -1;
@@ -1773,12 +2653,9 @@ bool MDSWriterTest::TestOpenTree() {
 
     //Check that data can be successfully stored in the new pulse number
     ReferenceT<RealTimeApplication> application;
-    if (ok) {
-        application = godb->Find("Test");
-        ok = application.IsValid();
-    }
     ReferenceT<MDSWriterSchedulerTestHelper> scheduler;
     ReferenceT<MDSWriterGAMTriggerTestHelper> gam;
+
     if (ok) {
         application = godb->Find("Test");
         ok = application.IsValid();
@@ -1839,13 +2716,150 @@ bool MDSWriterTest::TestOpenTree() {
         }
     }
     if (ok) {
-        uint32 signalToVerify[] = { 8, 1, 2, 3, 4, 5,  6,  7 };
-        uint32 timeToVerify[] =   { 0, 2, 4, 6, 8, 10, 12, 14 };
+        uint32 signalToVerify[] = { 8, 1, 2, 3, 4, 5, 6, 7 };
+        uint32 timeToVerify[] = { 0, 2, 4, 6, 8, 10, 12, 14 };
+        ok &= CheckSegmentData<uint16>(numberOfSegments, sigUInt16F, signalToVerify, timeToVerify);
+    }
+    if (tree != NULL) {
+        delete tree;
+    }
+
+    //Reopen the tree
+    if (ok) {
+        ok = messageOpenTree.IsValid();
+    }
+    if (ok) {
+        MessageI::SendMessage(messageOpenTree, NULL);
+    }
+    currentPulseNumber++;
+    if (ok) {
+        try {
+            tree = new MDSplus::Tree(treeName.Buffer(), currentPulseNumber);
+        }
+        catch (MDSplus::MdsException &exc) {
+            delete tree;
+            tree = NULL;
+            ok = false;
+        }
+    }
+    if (ok) {
+        try {
+            sigUInt16F = tree->getNode("SIGUINT16F");
+            sigUInt16F->deleteData();
+        }
+        catch (MDSplus::MdsException &exc) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            ok = false;
+        }
+    }
+    if (ok) {
+        gam->numberOfExecutes = 8;
+        gam->counter = 0;
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+
+    for (i = 0; (i < gam->numberOfExecutes) && (ok); i++) {
+        scheduler->ExecuteThreadCycle(0);
+        Sleep::MSec(10);
+    }
+    if (ok) {
+        ok = application->StopCurrentStateExecution();
+    }
+    if (ok) {
+        const uint64 maxTimeoutSeconds = 2;
+        uint64 maxTimeout = HighResolutionTimer::Counter() + maxTimeoutSeconds * HighResolutionTimer::Frequency();
+        while ((sigUInt16F->getNumSegments() != numberOfSegments) && (ok)) {
+            Sleep::MSec(10);
+            ok = (HighResolutionTimer::Counter() < maxTimeout);
+        }
+    }
+    if (ok) {
+        uint32 signalToVerify[] = { 8, 1, 2, 3, 4, 5, 6, 7 };
+        uint32 timeToVerify[] = { 0, 2, 4, 6, 8, 10, 12, 14 };
         ok &= CheckSegmentData<uint16>(numberOfSegments, sigUInt16F, signalToVerify, timeToVerify);
     }
 
     if (tree != NULL) {
         delete tree;
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool MDSWriterTest::TestGetCPUMask() {
+    return TestInitialise();
+}
+
+bool MDSWriterTest::TestGetEventName() {
+    return TestInitialise();
+}
+
+bool MDSWriterTest::TestGetNumberOfBuffers() {
+    return TestInitialise();
+}
+
+bool MDSWriterTest::TestGetNumberOfMdsSignals() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config2, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<MDSWriter> mdsWriter;
+    if (ok) {
+        mdsWriter = godb->Find("Test.Data.Drv1");
+        ok = mdsWriter.IsValid();
+    }
+    if (ok) {
+        ok = (mdsWriter->GetNumberOfMdsSignals() == 16);
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool MDSWriterTest::TestGetNumberOfPostTriggers() {
+    return TestInitialise();
+}
+
+bool MDSWriterTest::TestGetNumberOfPreTriggers() {
+    return TestInitialise();
+}
+
+bool MDSWriterTest::TestGetPulseNumber() {
+    return TestInitialise();
+}
+
+bool MDSWriterTest::TestGetTreeName() {
+    return TestInitialise();
+}
+
+bool MDSWriterTest::TestGetRefreshEveryCounts() {
+    return TestInitialise();
+}
+
+bool MDSWriterTest::TestGetStackSize() {
+    return TestInitialise();
+}
+
+bool MDSWriterTest::TestIsStoreOnTrigger() {
+    return TestInitialise();
+}
+
+bool MDSWriterTest::TestGetTimeSignalIdx() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config2, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<MDSWriter> mdsWriter;
+    if (ok) {
+        mdsWriter = godb->Find("Test.Data.Drv1");
+        ok = mdsWriter.IsValid();
+    }
+    if (ok) {
+        ok = (mdsWriter->GetTimeSignalIdx() == 1);
     }
     godb->Purge();
     return ok;

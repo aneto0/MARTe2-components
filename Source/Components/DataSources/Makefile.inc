@@ -30,7 +30,6 @@ ifdef CODAC_ROOT
 SPB    += NI6259.x
 endif
 
-
 ifdef MDSPLUS_DIR
 SPB    += MDSWriter.x
 endif

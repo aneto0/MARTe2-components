@@ -188,7 +188,7 @@ public:
     /**
      * @brief Tests the AllocateTreeNode method with a bad node name.
      */
-    bool TestAllocateTreeNode_BadNodeType();
+    bool TestAllocateTreeNode_BadNodeName();
 
     /**
      * @brief Tests the Flush method.
@@ -207,72 +207,72 @@ public:
 
     /**
      * @brief Test the IsDecimatedMinMax method
-     */ 
+     */
     bool TestIsDecimatedMinMax();
 
     /**
      * @brief Test the GetDecimatedNodeName method
-     */ 
+     */
     bool TestGetDecimatedNodeName();
 
     /**
      * @brief Test the GetExecutePeriodMicroSecond method
-     */ 
+     */
     bool TestGetExecutePeriodMicroSecond();
 
     /**
      * @brief Test the GetMakeSegmentAfterNWrites method
-     */ 
+     */
     bool TestGetMakeSegmentAfterNWrites();
 
     /**
      * @brief Test the GetMinMaxResampleFactor method
-     */ 
+     */
     bool TestGetMinMaxResampleFactor();
 
     /**
      * @brief Test the StreamString method
-     */ 
+     */
     bool TestGetNodeName();
 
     /**
      * @brief Test the GetNodeType method
-     */ 
+     */
     bool TestGetNodeType();
 
     /**
      * @details Test the GetNumberOfElements method
-     */ 
+     */
     bool TestGetNumberOfElements();
 
     /**
      * @brief Test the GetPeriod method
-     */ 
+     */
     bool TestGetPeriod();
 
     /**
      * @brief Test the GetPhaseShift method
-     */ 
+     */
     bool TestGetPhaseShift();
 
     /**
      * @brief Test the GetStart method
-     */ 
+     */
     bool TestGetStart();
 
     /**
      * @brief Test the GetTypeMultiplier method
-     */ 
+     */
     bool TestGetTypeMultiplier();
 
     /**
      * @brief Test the IsUseTimeVector method
-     */ 
+     */
     bool TestIsUseTimeVector();
 
     /**
      * @brief Test the GetNumberOfExecuteCalls method
-     */ 
+     */
     bool TestGetNumberOfExecuteCalls();
 };
 

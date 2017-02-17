@@ -46,35 +46,237 @@ public:
     bool TestConstructor();
 
     /**
-     * TODO
+     * @brief Tests the AllocateMemory method.
+     */
+    bool TestAllocateMemory();
+
+    /**
+     * @brief Tests the GetNumberOfMemoryBuffers method.
+     */
+    bool TestGetNumberOfMemoryBuffers();
+
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method.
+     */
+    bool TestGetSignalMemoryBuffer();
+
+    /**
+     * @brief Tests that the GetBrokerName method correctly returns an empty string for InputSignals.
+     */
+    bool TestGetBrokerName_InputSignals();
+
+    /**
+     * @brief Tests that the GetBrokerName method correctly returns a MemoryMapAsyncOutputBroker.
+     */
+    bool TestGetBrokerName_MemoryMapAsyncOutputBroker();
+
+    /**
+     * @brief Tests that the GetBrokerName method correctly returns a MemoryMapAsyncTriggerOutputBroker.
+     */
+    bool TestGetBrokerName_MemoryMapAsyncTriggerOutputBroker();
+
+    /**
+     * @brief Tests the GetInputBrokers method.
+     */
+    bool TestGetInputBrokers();
+
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
+    bool TestGetOutputBrokers();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise();
+
+    /**
+     * @brief Tests the PrepareNextState method.
+     */
+    bool TestPrepareNextState();
+
+    /**
+     * @brief Tests the Initialise method.
+     */
+    bool TestInitialise();
+
+    /**
+     * @brief Tests the Initialise method without specifying the number of buffers.
+     */
+    bool TestInitialise_False_NumberOfBuffers();
+
+    /**
+     * @brief Tests the Initialise method without specifying the CPU mask.
+     */
+    bool TestInitialise_False_CPUMask();
+
+    /**
+     * @brief Tests the Initialise method without specifying the stack size.
+     */
+    bool TestInitialise_False_StackSize();
+
+    /**
+     * @brief Tests the Initialise method without specifying the tree name.
+     */
+    bool TestInitialise_False_TreeName();
+
+    /**
+     * @brief Tests the Initialise method without specifying the event name.
+     */
+    bool TestInitialise_False_EventName();
+
+    /**
+     * @brief Tests the Initialise method without specifying the time refresh parameter.
+     */
+    bool TestInitialise_False_TimeRefresh();
+
+    /**
+     * @brief Tests the Initialise method without specifying the StoreOnTrigger.
+     */
+    bool TestInitialise_False_StoreOnTrigger();
+
+    /**
+     * @brief Tests the Initialise method without specifying the NumberOfPreTriggers.
+     */
+    bool TestInitialise_False_NumberOfPreTriggers();
+
+    /**
+     * @brief Tests the Initialise method without specifying the NumberOfPostTriggers.
+     */
+    bool TestInitialise_False_NumberOfPostTriggers();
+
+    /**
+     * @brief Tests the Initialise method without specifying the Signals.
+     */
+    bool TestInitialise_False_Signals();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase.
+     */
+    bool TestSetConfiguredDatabase();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with more than one samples.
+     */
+    bool TestSetConfiguredDatabase_False_NumberOfSamples();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with more than one time signal.
+     */
+    bool TestSetConfiguredDatabase_False_MoreThanOneTimeSignal();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with no MDSPlus signals defined.
+     */
+    bool TestSetConfiguredDatabase_False_NoMDSSignals();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with no TimeSignal defined.
+     */
+    bool TestSetConfiguredDatabase_False_NoTimeSignal();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with TimeSignal defined as not uint32.
+     */
+    bool TestSetConfiguredDatabase_False_TimeSignal_NotUInt32();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with more than one function interacting with the MDSWriter.
+     */
+    bool TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction();
+
+    /**
+     * @brief Tests the OpenTree method.
      */
     bool TestOpenTree();
 
     /**
-     * TODO
+     * @brief Tests the MDSWriter integrated in an application which continuously stores data.
      */
     bool TestIntegratedInApplication_NoTrigger();
 
     /**
-     * TODO
+     * @brief Tests the MDSWriter integrated in an application which continuously stores data
+     * and that requires a flush at the end in order to demonstrate that all the data is stored in the MDSplus database.
      */
     bool TestIntegratedInApplication_NoTrigger_Flush();
 
     /**
-     * TODO
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event.
      */
     bool TestIntegratedInApplication_Trigger();
 
     /**
-     * TODO
+     * @brief Tests the MDSWriter integrated in an application which continuously stores data with NumberOfElements > 1.
      */
     bool TestIntegratedInApplication_NoTrigger_Elements();
 
     /**
-     * TODO
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data, with NumberOfElements > 1, based on a trigger event.
      */
     bool TestIntegratedInApplication_Trigger_Elements();
+
+    /**
+     * @brief Tests the GetCPUMask method.
+     */
+    bool TestGetCPUMask();
+
+    /**
+     * @brief Tests the GetEventName method.
+     */
+    bool TestGetEventName();
+
+    /**
+     * @brief Tests the GetNumberOfBuffers method.
+     */
+    bool TestGetNumberOfBuffers();
+
+    /**
+     * @brief Tests the GetNumberOfMdsSignals method.
+     */
+    bool TestGetNumberOfMdsSignals();
+
+    /**
+     * @brief Tests the GetNumberOfPostTriggers method.
+     */
+    bool TestGetNumberOfPostTriggers();
+
+    /**
+     * @brief Tests the GetNumberOfPreTriggers method.
+     */
+    bool TestGetNumberOfPreTriggers();
+
+    /**
+     * @brief Tests the GetPulseNumber method.
+     */
+    bool TestGetPulseNumber();
+
+    /**
+     * @brief Tests the GetTreeName method.
+     */
+    bool TestGetTreeName();
+
+    /**
+     * @brief Tests the GetRefreshEveryCounts method.
+     */
+    bool TestGetRefreshEveryCounts();
+
+    /**
+     * @brief Tests the GetStackSize method.
+     */
+    bool TestGetStackSize();
+
+    /**
+     * @brief Tests the IsStoreOnTrigger method.
+     */
+    bool TestIsStoreOnTrigger();
+
+    /**
+     * @brief Tests the GetTimeSignalIdx method.
+     */
+    bool TestGetTimeSignalIdx();
 };
+
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

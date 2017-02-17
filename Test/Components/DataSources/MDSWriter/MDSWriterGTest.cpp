@@ -44,6 +44,61 @@ TEST(MDSWriterGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+TEST(MDSWriterGTest,TestInitialise) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(MDSWriterGTest,TestInitialise_False_NumberOfBuffers) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers());
+}
+
+TEST(MDSWriterGTest,TestInitialise_False_CPUMask) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_CPUMask());
+}
+
+TEST(MDSWriterGTest,TestInitialise_False_StackSize) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_StackSize());
+}
+
+TEST(MDSWriterGTest,TestInitialise_False_TreeName) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_TreeName());
+}
+
+TEST(MDSWriterGTest,TestInitialise_False_EventName) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_EventName());
+}
+
+TEST(MDSWriterGTest,TestInitialise_False_TimeRefresh) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_TimeRefresh());
+}
+
+TEST(MDSWriterGTest,TestInitialise_False_StoreOnTrigger) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_StoreOnTrigger());
+}
+
+TEST(MDSWriterGTest,TestInitialise_False_NumberOfPreTriggers) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NumberOfPreTriggers());
+}
+
+TEST(MDSWriterGTest,TestInitialise_False_NumberOfPostTriggers) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NumberOfPostTriggers());
+}
+
+TEST(MDSWriterGTest,TestInitialise_False_Signals) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Signals());
+}
+
 TEST(MDSWriterGTest,TestIntegratedInApplication_NoTrigger) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger());
@@ -69,7 +124,152 @@ TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_Elements) {
     ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Elements());
 }
 
+TEST(MDSWriterGTest,TestSetConfiguredDatabase) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase());
+}
+
+TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_MoreThanOneTimeSignal) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneTimeSignal());
+}
+
+TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NoMDSSignals) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoMDSSignals());
+}
+
+TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NoTimeSignal) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoTimeSignal());
+}
+
+TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NumberOfSamples());
+}
+
+TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_TimeSignal_NotUInt32) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimeSignal_NotUInt32());
+}
+
+TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction());
+}
+
 TEST(MDSWriterGTest,TestOpenTree) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestOpenTree());
+}
+
+TEST(MDSWriterGTest,TestAllocateMemory) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestAllocateMemory());
+}
+
+TEST(MDSWriterGTest,TestGetNumberOfMemoryBuffers) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
+}
+
+TEST(MDSWriterGTest,TestGetSignalMemoryBuffer) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+}
+
+TEST(MDSWriterGTest,TestGetBrokerName_InputSignals) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetBrokerName_InputSignals());
+}
+
+TEST(MDSWriterGTest,TestGetBrokerName_MemoryMapAsyncOutputBroker) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetBrokerName_MemoryMapAsyncOutputBroker());
+}
+
+TEST(MDSWriterGTest,TestGetBrokerName_MemoryMapAsyncTriggerOutputBroker) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetBrokerName_MemoryMapAsyncTriggerOutputBroker());
+}
+
+TEST(MDSWriterGTest,TestGetInputBrokers) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers());
+}
+
+TEST(MDSWriterGTest,TestGetOutputBrokers) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers());
+}
+
+TEST(MDSWriterGTest,TestSynchronise) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSynchronise());
+}
+
+TEST(MDSWriterGTest,TestPrepareNextState) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
+}
+
+TEST(MDSWriterGTest,TestGetCPUMask) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetCPUMask());
+}
+
+TEST(MDSWriterGTest,TestGetEventName) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetEventName());
+}
+
+TEST(MDSWriterGTest,TestGetNumberOfBuffers) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetNumberOfBuffers());
+}
+
+TEST(MDSWriterGTest,TestGetNumberOfMdsSignals) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetNumberOfMdsSignals());
+}
+
+TEST(MDSWriterGTest,TestGetNumberOfPostTriggers) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetNumberOfPostTriggers());
+}
+
+TEST(MDSWriterGTest,TestGetNumberOfPreTriggers) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetNumberOfPreTriggers());
+}
+
+TEST(MDSWriterGTest,TestGetPulseNumber) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetPulseNumber());
+}
+
+TEST(MDSWriterGTest,TestGetTreeName) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetTreeName());
+}
+
+TEST(MDSWriterGTest,TestGetRefreshEveryCounts) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetRefreshEveryCounts());
+}
+
+TEST(MDSWriterGTest,TestGetStackSize) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetStackSize());
+}
+
+TEST(MDSWriterGTest,TestIsStoreOnTrigger) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIsStoreOnTrigger());
+}
+
+TEST(MDSWriterGTest,TestGetTimeSignalIdx) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestGetTimeSignalIdx());
 }

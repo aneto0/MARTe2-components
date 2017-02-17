@@ -81,7 +81,7 @@ TEST(MDSWriterNodeGTest,TestInitialise_False_BadPeriod) {
 
 TEST(MDSWriterNodeGTest,TestInitialise_False_BadType) {
     MDSWriterNodeTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoType());
+    ASSERT_TRUE(test.TestInitialise_False_BadType());
 }
 
 TEST(MDSWriterNodeGTest,TestInitialise_False_NoMakeSegmentAfterNWrites) {
@@ -184,9 +184,9 @@ TEST(MDSWriterNodeGTest,TestAllocateTreeNode) {
     ASSERT_TRUE(test.TestAllocateTreeNode());
 }
 
-TEST(MDSWriterNodeGTest,TestAllocateTreeNode_BadNodeType) {
+TEST(MDSWriterNodeGTest,TestAllocateTreeNode_BadNodeName) {
     MDSWriterNodeTest test;
-    ASSERT_TRUE(test.TestAllocateTreeNode_BadNodeType());
+    ASSERT_TRUE(test.TestAllocateTreeNode_BadNodeName());
 }
 
 TEST(MDSWriterNodeGTest,TestFlush) {

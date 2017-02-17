@@ -285,6 +285,7 @@ bool MDSWriterNode::Execute() {
         //If the data has to be flushed for the storeNow
         if (flush) {
             storeNow = (currentBuffer > 0u);
+            flush = false;
         }
     }
     //Sufficient data to make a segment

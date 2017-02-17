@@ -780,7 +780,7 @@ bool MDSWriterNodeTest::TestAllocateTreeNode() {
 
 }
 
-bool MDSWriterNodeTest::TestAllocateTreeNode_BadNodeType() {
+bool MDSWriterNodeTest::TestAllocateTreeNode_BadNodeName() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     cdb.Write("NodeName", "ABC");
