@@ -388,19 +388,20 @@ ErrorManagement::ErrorType UDPReceiver::Execute(const ExecutionInfo& info) {
         uint32 udpServerReadSize = udpServerExpectReadSize;
         if (keepRunning) {
             dataRecieved = server.Read(reinterpret_cast<char8*>(dataBuffer), udpServerReadSize,  timeout);
-        }
-        dataRecieved = (udpServerReadSize > 0u);
-        dataRecievedCorrectSize = (udpServerReadSize == udpServerExpectReadSize);
-        if (!dataRecieved){
-            REPORT_ERROR(ErrorManagement::ParametersError, "No data recieved");
-            Sleep::Sec(20e-6);
-        }else if(!dataRecievedCorrectSize){
-            REPORT_ERROR(ErrorManagement::ParametersError, "Recieved data of inccorect size, ignoring it.");
-            Sleep::Sec(100e-6);
-        }else{
-            if (synchronising){
-                err = !synchSem.Post();
+            dataRecieved = (udpServerReadSize > 0u);
+            dataRecievedCorrectSize = (udpServerReadSize == udpServerExpectReadSize);
+            if (!dataRecieved){
+                REPORT_ERROR(ErrorManagement::ParametersError, "No data recieved");
+                Sleep::Sec(20e-6);
+            }else if(!dataRecievedCorrectSize){
+                REPORT_ERROR(ErrorManagement::ParametersError, "Recieved data of inccorect size, ignoring it.");
+                Sleep::Sec(100e-6);
+            }else{
+                
             }
+        }
+        if (synchronising){
+            err = !synchSem.Post();
         }
     }
 
