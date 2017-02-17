@@ -32,6 +32,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
+/*lint -efile(766, Signal.h) types defined by Types.h are actually used here*/
 #include "Types.h"
 
 /*---------------------------------------------------------------------------*/

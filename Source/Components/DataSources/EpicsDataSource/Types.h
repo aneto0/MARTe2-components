@@ -28,6 +28,7 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
+/*lint -efile(766, Types.h) std::size_t is actually imported from cstddef*/
 #include <cstddef>    //Import std::size_t
 
 /*---------------------------------------------------------------------------*/
