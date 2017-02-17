@@ -90,7 +90,7 @@ public:
 		 * @brief Gets the signal's offset from its index.
 		 * @param[in] The index of the signal.
 		 */
-		SDA::uint32 GetSignalOffsetByIndex(const SDA::uint32 index) const;
+		SDA::size_type GetSignalOffsetByIndex(const SDA::uint32 index) const;
 
 		/**
 		 * @brief Gets the signal's size from its index.

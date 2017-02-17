@@ -146,7 +146,7 @@ bool EpicsOutputDataSource::AllocateMemory() {
                 ret = MARTe::StringHelper::CopyN(smd_for_init[i].name, signalName.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);
             }
             if (ret) {
-                smd_for_init[i].size = memorySize;
+                smd_for_init[i].size = static_cast<SDA::size_type>(memorySize);
             }
         }
 	}
