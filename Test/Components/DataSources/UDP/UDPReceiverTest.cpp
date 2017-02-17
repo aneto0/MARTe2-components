@@ -155,9 +155,17 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
         application = god->Find("Test");
         ok = application.IsValid();
     }
+    ReferenceT<GAMScheduler> scheduler;
+
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
     } else {
+        scheduler = application->Find("Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (!ok){
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeScheduler::IsValid failed");
+    }else{
         ok = application->ConfigureApplication();
     }
 
@@ -165,7 +173,6 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
         REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::ConfigureApplication failed");
     } else {
         ok = application->PrepareNextState("State1");
-        
     }
 
     if (!ok) {
@@ -173,8 +180,8 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
     } else {
         application->StartNextStateExecution();
     }
-            Sleep::Sec(5lu);
-
+    
+    Sleep::Sec(5lu);
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::StartNextStateExecution failed");
@@ -184,8 +191,6 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
 
     god->Purge();
 
-
-    
     return ok;
      
 }
@@ -1165,6 +1170,76 @@ bool UDPReceiverTest::TestReceiving(){
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
         "                    Functions = {GAMA GAMB}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+        return TestIntegratedInApplication(config2);
+}
+
+bool UDPReceiverTest::TestReceivingWithSynchronsing(){
+        using namespace MARTe;
+    const MARTe::char8 * const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = UDPReceiverTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                    Frequency = 10"
+        "                }"
+        "                SequenceNumber = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "                Signal1 = {"
+        "                    DataSource = UDPReceiver"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +UDPReceiver = {"
+        "            Class = UDPDrv::UDPReceiver"
+        "            Port = \"44488\""
+        "            Timeout = \"3\""
+        "            Signals = {"
+        "               Counter = {"
+        "                   Type = uint64"
+        "               }"
+        "               SequenceNumber = {"
+        "                   Type = uint64"
+        "               }"
+        "               Signal1 = {"
+        "                   Type = uint64"
+        "               }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
         "                }"
         "            }"
         "        }"

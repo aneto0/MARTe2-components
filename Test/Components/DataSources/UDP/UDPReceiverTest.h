@@ -44,56 +44,125 @@ public:
      * @brief Tests the constructor.
      */
     bool TestConstructor();
-
+   
+    /**
+     * @brief Tests the data configuration when no input is made
+     */
     bool TestInitialise_Empty();
-
+   
+    /**
+     * @brief Tests the data configuration when a valid port is input
+     */
     bool TestInitialise_Port();
-
+   
+    /**
+     * @brief Tests the data configuration when a valid port is input
+     */
     bool TestInitialise_Restricted_Port();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestInitialise_False_Port_1();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestInitialise_False_Port_2();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestInitialise_False_Port_3();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestInitialise_False_Port_4();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestInitialise_Timeout();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestInitialise_Timeout_Infinite();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestInitialise_Timeout_NotDefined();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestInitialise_False_Timeout_1();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestInitialise_False_Timeout_2();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestInitialise_False_Timeout_3();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestSetConfiguredDatabase();
-    
+       
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestSetConfiguredDatabase_More_Minimum_Signals();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestSetConfiguredDatabase_False_NOfSignals1();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestSetConfiguredDatabase_False_NOfSignals2();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestSetConfiguredDatabase_False_NOfSignals3();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Size1();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Size2();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Type1();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Type2();
 
     /**
      * @brief Tests the AllocateMemory method.
      */
     bool TestAllocateMemory();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestAllocateMemory_False();
 
     /**
@@ -105,9 +174,15 @@ public:
      * @brief Tests the GetSignalMemoryBuffer method.
      */
     bool TestGetSignalMemoryBuffer();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestGetBrokerName_InputSignals();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestGetBrokerName_OutputSignals();
 
     /**
@@ -129,8 +204,16 @@ public:
      * @brief Tests the Synchronise method.
      */
     bool TestSynchronise();
-
+   
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestReceiving();
+
+    /**
+     * @brief Tests the constructor.
+     */
+    bool TestReceivingWithSynchronsing();
 
 };
 

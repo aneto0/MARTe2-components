@@ -211,6 +211,12 @@ TEST(UDPReceiverGTest, TestReceiving) {
     ASSERT_TRUE(test.TestReceiving());
 }
 
+TEST(UDPReceiverGTest, TestReceivingWithSynchronsing) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestReceivingWithSynchronsing());
+}
+
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
