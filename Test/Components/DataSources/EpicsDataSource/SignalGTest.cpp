@@ -44,7 +44,7 @@
 /*---------------------------------------------------------------------------*/
 
 TEST(SignalGTest_MetadataTest,TestConstructor) {
-	SignalTest::MetadataTest test;
+    SignalTest::MetadataTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 

@@ -46,23 +46,29 @@
 /*---------------------------------------------------------------------------*/
 
 struct DataSet {
-	SDA::Sigblock** items;
-	unsigned int size;
-	DataSet(const unsigned int size);
-	~DataSet();
+    SDA::Sigblock** items;
+    unsigned int size;
+    DataSet(const unsigned int size);
+    ~DataSet();
 };
 
-void MallocDataSet(DataSet& dataset, std::size_t sigblockSize);
+void MallocDataSet(DataSet& dataset,
+                   std::size_t sigblockSize);
 
 void FreeDataSet(DataSet& dataset);
 
 template<typename SignalType>
-void InitDataSet(DataSet& dataset, const unsigned int numberOfSignals);
+void InitDataSet(DataSet& dataset,
+                 const unsigned int numberOfSignals);
 
 /**
  * @brief search on dataset from last found
  */
-void SearchSigblockIntoDataSet(DataSet& dataset, SDA::Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound);
+void SearchSigblockIntoDataSet(DataSet& dataset,
+                               SDA::Sigblock* sigblock,
+                               std::size_t sigblockSize,
+                               unsigned int& dataSetIndex,
+                               bool& sigblockFound);
 
 SDA::SigblockDoubleBuffer* MallocSigblockDoubleBuffer(std::size_t sizeOfSigblock);
 
@@ -72,56 +78,62 @@ void FreeSigblockDoubleBuffer(SDA::SigblockDoubleBuffer*& sbdb);
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-inline DataSet::DataSet(const unsigned int size):
-	items(new SDA::Sigblock*[size]),
-	size(size) {
+inline DataSet::DataSet(const unsigned int size) :
+        items(new SDA::Sigblock*[size]),
+        size(size) {
 }
 
 inline DataSet::~DataSet() {
-	delete[] items;
+    delete[] items;
 }
 
-inline void MallocDataSet(DataSet& dataset, std::size_t sigblockSize) {
-	for (unsigned int i = 0; i < dataset.size; i++) {
-		dataset.items[i] = MallocSigblock(sigblockSize);
-	}
+inline void MallocDataSet(DataSet& dataset,
+                          std::size_t sigblockSize) {
+    for (unsigned int i = 0; i < dataset.size; i++) {
+        dataset.items[i] = MallocSigblock(sigblockSize);
+    }
 }
 
 inline void FreeDataSet(DataSet& dataset) {
-	for (unsigned int i = 0; i < dataset.size; i++) {
-		FreeSigblock(dataset.items[i]);
-	}
+    for (unsigned int i = 0; i < dataset.size; i++) {
+        FreeSigblock(dataset.items[i]);
+    }
 }
 
 template<typename SignalType>
-void InitDataSet(DataSet& dataset, const unsigned int numberOfSignals) {
-	SignalType seedValue = 0;
-	for (unsigned int i = 0; i < dataset.size; i++) {
-		InitSigblock<SignalType>(dataset.items[i], numberOfSignals, seedValue);
-		seedValue += static_cast<SignalType>(numberOfSignals);
-	}
+void InitDataSet(DataSet& dataset,
+                 const unsigned int numberOfSignals) {
+    SignalType seedValue = 0;
+    for (unsigned int i = 0; i < dataset.size; i++) {
+        InitSigblock<SignalType>(dataset.items[i], numberOfSignals, seedValue);
+        seedValue += static_cast<SignalType>(numberOfSignals);
+    }
 //	printf("InitDataSet :: Generated %u sigblocks on dataset\n", dataset.size);
 }
 
-inline void SearchSigblockIntoDataSet(DataSet& dataset, SDA::Sigblock* sigblock, std::size_t sigblockSize, unsigned int& dataSetIndex, bool& sigblockFound) {
-	sigblockFound = false;
-	while (!sigblockFound && dataSetIndex < dataset.size) {
-		sigblockFound = (std::memcmp(sigblock, dataset.items[dataSetIndex], sigblockSize) == 0);
-		dataSetIndex++;
-	}
+inline void SearchSigblockIntoDataSet(DataSet& dataset,
+                                      SDA::Sigblock* sigblock,
+                                      std::size_t sigblockSize,
+                                      unsigned int& dataSetIndex,
+                                      bool& sigblockFound) {
+    sigblockFound = false;
+    while (!sigblockFound && dataSetIndex < dataset.size) {
+        sigblockFound = (std::memcmp(sigblock, dataset.items[dataSetIndex], sigblockSize) == 0);
+        dataSetIndex++;
+    }
 }
 
 inline SDA::SigblockDoubleBuffer* MallocSigblockDoubleBuffer(std::size_t sizeOfSigblock) {
-	size_t memsize = SDA::SigblockDoubleBuffer::SizeOf(sizeOfSigblock);
-	char* mem = new char[memsize];
-	std::memset(mem, '\0', memsize);
-	return reinterpret_cast<SDA::SigblockDoubleBuffer*>(mem);
+    size_t memsize = SDA::SigblockDoubleBuffer::SizeOf(sizeOfSigblock);
+    char* mem = new char[memsize];
+    std::memset(mem, '\0', memsize);
+    return reinterpret_cast<SDA::SigblockDoubleBuffer*>(mem);
 }
 
 inline void FreeSigblockDoubleBuffer(SDA::SigblockDoubleBuffer*& sbdb) {
-	char* mem = reinterpret_cast<char*>(sbdb);
-	delete[] mem;
-	sbdb = NULL;
+    char* mem = reinterpret_cast<char*>(sbdb);
+    delete[] mem;
+    sbdb = NULL;
 }
 
 #endif /* SIGBLOCKDOUBLEBUFFERSUPPORT_H_ */

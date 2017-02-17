@@ -45,27 +45,27 @@
 /*---------------------------------------------------------------------------*/
 
 TEST(SharedDataAreaGTest,TestConstructor) {
-	SharedDataAreaTest test;
+    SharedDataAreaTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
 TEST(SharedDataAreaGTest,TestGetSigblockProducerInterface) {
-	SharedDataAreaTest test;
+    SharedDataAreaTest test;
     ASSERT_TRUE(test.TestGetSigblockProducerInterface());
 }
 
 TEST(SharedDataAreaGTest,TestGetSigblockConsumerInterface) {
-	SharedDataAreaTest test;
+    SharedDataAreaTest test;
     ASSERT_TRUE(test.TestGetSigblockConsumerInterface());
 }
 
 TEST(SharedDataAreaGTest,TestBuildSharedDataAreaForMARTe) {
-	SharedDataAreaTest test;
+    SharedDataAreaTest test;
     ASSERT_TRUE(test.TestBuildSharedDataAreaForMARTe());
 }
 
 TEST(SharedDataAreaGTest,TestBuildSharedDataAreaForEPICS) {
-	SharedDataAreaTest test;
+    SharedDataAreaTest test;
     ASSERT_TRUE(test.TestBuildSharedDataAreaForEPICS());
 }
 

@@ -45,11 +45,11 @@
 /*---------------------------------------------------------------------------*/
 
 bool SignalTest::MetadataTest::TestConstructor() {
-	bool ok;
-	SDA::Signal::Metadata target;
-	//Check name property:
-	ok = (std::strncmp(target.name, "", SDA::Signal::Metadata::NAME_MAX_LEN) == 0);
-	//Check size property:
-	ok = (target.size == 0);
-	return ok;
+    bool ok;
+    SDA::Signal::Metadata target;
+    //Check name property:
+    ok = (std::strncmp(target.name, "", SDA::Signal::Metadata::NAME_MAX_LEN) == 0);
+    //Check size property:
+    ok = (target.size == 0);
+    return ok;
 }

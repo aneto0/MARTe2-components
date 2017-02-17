@@ -42,29 +42,30 @@
 class SigblockDoubleBufferTest {
 public:
 
-	/**
-	 * @brief Tests the Init method.
-	 */
-	bool TestInit();
+    /**
+     * @brief Tests the Init method.
+     */
+    bool TestInit();
 
-	/**
-	 * @brief Tests the Get method.
-	 */
-	bool TestGet();
+    /**
+     * @brief Tests the Get method.
+     */
+    bool TestGet();
 
-	/**
-	 * @brief Tests the Put method.
-	 */
-	bool TestPut();
+    /**
+     * @brief Tests the Put method.
+     */
+    bool TestPut();
 
 private:
 
-	/**
-	 * @brief Test the interchange of data between a producer and a consumer
-	 * using one single thread.
-	 */
-	template<typename SignalType>
-	bool TestProducerConsumerInSingleThread(const unsigned int numberOfSignals, const unsigned int maxTests);
+    /**
+     * @brief Test the interchange of data between a producer and a consumer
+     * using one single thread.
+     */
+    template<typename SignalType>
+    bool TestProducerConsumerInSingleThread(const unsigned int numberOfSignals,
+                                            const unsigned int maxTests);
 };
 
 /*---------------------------------------------------------------------------*/

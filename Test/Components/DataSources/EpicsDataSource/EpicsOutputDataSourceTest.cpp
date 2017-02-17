@@ -86,114 +86,114 @@ bool EpicsOutputDataSourceTest::TestSynchronise() {
     MARTe::StreamString tmp_SharedDataAreaName; //TODO: Remove this when autorelease will be added to EpicsOutputDataSourceTest.
 
     {
-    	const unsigned int maxTests = 30;
-    	const char targetName[] = "EpicsOutputDataSourceTest_TestSynchronise";
-    	EpicsOutputDataSource target;
-    	DataSet dataset(maxTests);
-    	SDA::SharedDataArea sdaClient;
-    	SDA::SharedDataArea::SigblockConsumer* consumer;
-    	const uint32 numberOfSignals = 5;
-    	void* signals[numberOfSignals];
+        const unsigned int maxTests = 30;
+        const char targetName[] = "EpicsOutputDataSourceTest_TestSynchronise";
+        EpicsOutputDataSource target;
+        DataSet dataset(maxTests);
+        SDA::SharedDataArea sdaClient;
+        SDA::SharedDataArea::SigblockConsumer* consumer;
+        const uint32 numberOfSignals = 5;
+        void* signals[numberOfSignals];
 
-    	//Initialize the name of the data source:
-    	target.SetName(targetName);
+        //Initialize the name of the data source:
+        target.SetName(targetName);
 
-    	//Initialize signals configuration on data source:
-    	ConfigurationDatabase cdb;
-    	ok = BuildConfigurationDatabase(cdb, numberOfSignals);
-    	ok &= target.SetConfiguredDatabase(cdb);
+        //Initialize signals configuration on data source:
+        ConfigurationDatabase cdb;
+        ok = BuildConfigurationDatabase(cdb, numberOfSignals);
+        ok &= target.SetConfiguredDatabase(cdb);
 
-    	//Allocate memory of data source (it setups the shared data area):
-    	target.AllocateMemory();
-    	tmp_SharedDataAreaName = target.GetSharedDataAreaName(); //TODO: Remove this when autorelease will be added to EpicsOutputDataSourceTest.
+        //Allocate memory of data source (it setups the shared data area):
+        target.AllocateMemory();
+        tmp_SharedDataAreaName = target.GetSharedDataAreaName(); //TODO: Remove this when autorelease will be added to EpicsOutputDataSourceTest.
 
-    	//Cache an array of pointers to the signal's addresses:
-    	for (uint32 i = 0; i < numberOfSignals; i++) {
-    		target.GetSignalMemoryBuffer(i, 0, signals[i]);
-    	}
+        //Cache an array of pointers to the signal's addresses:
+        for (uint32 i = 0; i < numberOfSignals; i++) {
+            target.GetSignalMemoryBuffer(i, 0, signals[i]);
+        }
 
-    	//Setup producers's interface to shared data area:
-    	sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(target.GetSharedDataAreaName().Buffer());
-    	consumer = sdaClient.GetSigblockConsumerInterface();
+        //Setup producers's interface to shared data area:
+        sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(target.GetSharedDataAreaName().Buffer());
+        consumer = sdaClient.GetSigblockConsumerInterface();
 
-    	//Allocate memory for dataset:
-    	MallocDataSet(dataset, consumer->GetSigblockMetadata()->GetTotalSize());
+        //Allocate memory for dataset:
+        MallocDataSet(dataset, consumer->GetSigblockMetadata()->GetTotalSize());
 
-    	//Initialize items of dataset:
-    	InitDataSet<SignalType>(dataset, numberOfSignals);
+        //Initialize items of dataset:
+        InitDataSet<SignalType>(dataset, numberOfSignals);
 
-    	//Write all the sigblocks of the dataset to the output data source,
-    	//checking that they can be read by the shared data area and have
-    	//the same values than those from the dataset. They will be written
-    	//and read taking turns (1 write, 1 read).
-    	{
-    		bool error = false;
-    		unsigned int i = 0;
+        //Write all the sigblocks of the dataset to the output data source,
+        //checking that they can be read by the shared data area and have
+        //the same values than those from the dataset. They will be written
+        //and read taking turns (1 write, 1 read).
+        {
+            bool error = false;
+            unsigned int i = 0;
 
-    		//Write and read sigblocks taking turns:
-    		while (i < dataset.size && !error) {
-    			bool writeOk;
+            //Write and read sigblocks taking turns:
+            while (i < dataset.size && !error) {
+                bool writeOk;
 
-    			//Write the sigblock on the position i of the dataset to the output data source:
-    			for (uint32 j = 0; j < numberOfSignals; j++) {
-    				SignalType* cursig = reinterpret_cast<SignalType*>(signals[j]);
-    				SignalType* refsig = reinterpret_cast<SignalType*>(dataset.items[i] + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
-    				*cursig = *refsig;
-    			}
+                //Write the sigblock on the position i of the dataset to the output data source:
+                for (uint32 j = 0; j < numberOfSignals; j++) {
+                    SignalType* cursig = reinterpret_cast<SignalType*>(signals[j]);
+                    SignalType* refsig = reinterpret_cast<SignalType*>(dataset.items[i] + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
+                    *cursig = *refsig;
+                }
 
-    			//Synchronise the output data source with the shared data area
-    			//(i.e. writes the signals of the output data source to the
-    			//shared data area as a sigblock):
-    			writeOk = target.Synchronise();
+                //Synchronise the output data source with the shared data area
+                //(i.e. writes the signals of the output data source to the
+                //shared data area as a sigblock):
+                writeOk = target.Synchronise();
 
-    			if (writeOk) {
-    				SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
-    				bool readOk;
+                if (writeOk) {
+                    SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
+                    bool readOk;
 
-    				//Allocate memory for sigblock:
-    				sigblock = MallocSigblock(consumer->GetSigblockMetadata()->GetTotalSize());
+                    //Allocate memory for sigblock:
+                    sigblock = MallocSigblock(consumer->GetSigblockMetadata()->GetTotalSize());
 
-    				//Read the next sigblock available on the shared data area:
-    				readOk = consumer->ReadSigblock(*sigblock);
+                    //Read the next sigblock available on the shared data area:
+                    readOk = consumer->ReadSigblock(*sigblock);
 
-    				if (readOk) {
+                    if (readOk) {
 
-    					//Check the values of the signals into the sigblock read
-    					//from the shared data area against those of the data set:
-    					unsigned int j = 0;
-    					while (j < numberOfSignals && !error) {
-    						SignalType* cursig = reinterpret_cast<SignalType*>(sigblock + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
-    						SignalType* refsig = reinterpret_cast<SignalType*>(dataset.items[i] + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
-    						error = (*cursig != *refsig);
-    						j++;
-    					}
-    				}
-    				else {
-    					error = true;
-    				}
+                        //Check the values of the signals into the sigblock read
+                        //from the shared data area against those of the data set:
+                        unsigned int j = 0;
+                        while (j < numberOfSignals && !error) {
+                            SignalType* cursig = reinterpret_cast<SignalType*>(sigblock + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
+                            SignalType* refsig = reinterpret_cast<SignalType*>(dataset.items[i] + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
+                            error = (*cursig != *refsig);
+                            j++;
+                        }
+                    }
+                    else {
+                        error = true;
+                    }
 
-    				//Free memory for sigblock:
-    				FreeSigblock(sigblock);
-    			}
-    			else {
-    				error = true;
-    			}
-    			i++;
-    		}
+                    //Free memory for sigblock:
+                    FreeSigblock(sigblock);
+                }
+                else {
+                    error = true;
+                }
+                i++;
+            }
 
-    		//Check execution's status:
-    		ok &= !error;
-    	}
+            //Check execution's status:
+            ok &= !error;
+        }
 
-    	//Free memory of dataset:
-    	FreeDataSet(dataset);
+        //Free memory of dataset:
+        FreeDataSet(dataset);
 
     }
 
     //Release shared data area: //TODO: Remove this when autorelease will be added to EpicsOutputDataSourceTest.
     SDA::Platform::DestroyShm(tmp_SharedDataAreaName.Buffer());
 
-	return ok;
+    return ok;
 }
 
 bool EpicsOutputDataSourceTest::TestAllocateMemory() {
@@ -202,7 +202,7 @@ bool EpicsOutputDataSourceTest::TestAllocateMemory() {
     const char targetName[] = "EpicsOutputDataSourceTest_TestAllocateMemory";
     EpicsOutputDataSource target;
 
-	//Initialize the name of the data source:
+    //Initialize the name of the data source:
     target.SetName(targetName);
 
     //Initialize signals/functions configuration on data source:
@@ -210,7 +210,7 @@ bool EpicsOutputDataSourceTest::TestAllocateMemory() {
     ok = BuildConfigurationDatabase(cdb, 1, 0);
     ok &= target.SetConfiguredDatabase(cdb);
 
-	//Check class invariant:
+    //Check class invariant:
     ok &= INVARIANT(target);
 
     //Execute the target method:
@@ -219,7 +219,7 @@ bool EpicsOutputDataSourceTest::TestAllocateMemory() {
     //Check postcondition:
     SDA::SharedDataArea::BuildSharedDataAreaForEPICS(target.GetSharedDataAreaName().Buffer());
 
-	//Check class invariant:
+    //Check class invariant:
     ok &= INVARIANT(target);
 
     return ok;
@@ -230,7 +230,7 @@ bool EpicsOutputDataSourceTest::TestGetNumberOfMemoryBuffers() {
     bool ok = false;
     EpicsOutputDataSource target;
 
-	//Check class invariant:
+    //Check class invariant:
     ok = INVARIANT(target);
 
     //Execute the target method:
@@ -239,7 +239,7 @@ bool EpicsOutputDataSourceTest::TestGetNumberOfMemoryBuffers() {
     //Check postcondition:
     ok &= (target.GetNumberOfMemoryBuffers() == 1u);
 
-	//Check class invariant:
+    //Check class invariant:
     ok &= INVARIANT(target);
 
     return ok;
@@ -249,46 +249,46 @@ bool EpicsOutputDataSourceTest::TestGetSignalMemoryBuffer() {
     using namespace MARTe;
 
     //Declare and initialise variables:
-	const char targetName[] = "EpicsOutputDataSourceTest_TestGetSignalMemoryBuffer";
-	bool ok;
-	EpicsOutputDataSource target;
-	const uint32 numberOfSignals = 5;
-	void* signals[numberOfSignals];
+    const char targetName[] = "EpicsOutputDataSourceTest_TestGetSignalMemoryBuffer";
+    bool ok;
+    EpicsOutputDataSource target;
+    const uint32 numberOfSignals = 5;
+    void* signals[numberOfSignals];
 
-	//Initialize the name of the data source:
-	target.SetName(targetName);
+    //Initialize the name of the data source:
+    target.SetName(targetName);
 
-	//Initialize signals configuration on data source:
-	ConfigurationDatabase cdb;
-	ok = BuildConfigurationDatabase(cdb, numberOfSignals);
-	ok &= target.SetConfiguredDatabase(cdb);
+    //Initialize signals configuration on data source:
+    ConfigurationDatabase cdb;
+    ok = BuildConfigurationDatabase(cdb, numberOfSignals);
+    ok &= target.SetConfiguredDatabase(cdb);
 
-	//Allocate memory of data source (it setups the shared data area):
-	target.AllocateMemory();
+    //Allocate memory of data source (it setups the shared data area):
+    target.AllocateMemory();
 
-	//Cache an array of pointers to the signal's addresses:
-	for (uint32 i = 0; i < numberOfSignals && ok; i++) {
-		ok &= target.GetSignalMemoryBuffer(i, 0, signals[i]);
-	}
+    //Cache an array of pointers to the signal's addresses:
+    for (uint32 i = 0; i < numberOfSignals && ok; i++) {
+        ok &= target.GetSignalMemoryBuffer(i, 0, signals[i]);
+    }
 
-	//Set values to signal:
-	for (uint32 i = 0; i < numberOfSignals; i++) {
-		uint32* signal = reinterpret_cast<uint32*>(signals[i]);
-		*signal = i;
-	}
+    //Set values to signal:
+    for (uint32 i = 0; i < numberOfSignals; i++) {
+        uint32* signal = reinterpret_cast<uint32*>(signals[i]);
+        *signal = i;
+    }
 
-	//Check values of signals:
-	for (uint32 i = 0; i < numberOfSignals && ok; i++) {
-		uint32* signal = reinterpret_cast<uint32*>(signals[i]);
-		ok &= (*signal == i);
-	}
+    //Check values of signals:
+    for (uint32 i = 0; i < numberOfSignals && ok; i++) {
+        uint32* signal = reinterpret_cast<uint32*>(signals[i]);
+        ok &= (*signal == i);
+    }
 
-	//Check out of bounds preconditions:
-	{
-		void* signal = NULL;
-		ok &= !(target.GetSignalMemoryBuffer(numberOfSignals+1, 0, signal));
-		ok &= !(target.GetSignalMemoryBuffer(0, 1, signal));
-	}
+    //Check out of bounds preconditions:
+    {
+        void* signal = NULL;
+        ok &= !(target.GetSignalMemoryBuffer(numberOfSignals + 1, 0, signal));
+        ok &= !(target.GetSignalMemoryBuffer(0, 1, signal));
+    }
 
     return ok;
 }
@@ -298,39 +298,39 @@ bool EpicsOutputDataSourceTest::TestGetBrokerName() {
     bool ok = false;
     //Check broker name for input signals:
     {
-    	ConfigurationDatabase config;
-    	StreamString brokerName;
-    	EpicsOutputDataSource target;
+        ConfigurationDatabase config;
+        StreamString brokerName;
+        EpicsOutputDataSource target;
 
-    	//Check class invariant:
-    	ok = INVARIANT(target);
+        //Check class invariant:
+        ok = INVARIANT(target);
 
         //Execute the target method:
-    	brokerName = target.GetBrokerName(config, InputSignals);
+        brokerName = target.GetBrokerName(config, InputSignals);
 
         //Check postcondition:
-    	ok &= (brokerName == "");
+        ok &= (brokerName == "");
 
-    	//Check class invariant:
-    	ok &= INVARIANT(target);
+        //Check class invariant:
+        ok &= INVARIANT(target);
     }
     //Check broker name for output signals:
     {
-    	ConfigurationDatabase config;
-    	StreamString brokerName;
-    	EpicsOutputDataSource target;
+        ConfigurationDatabase config;
+        StreamString brokerName;
+        EpicsOutputDataSource target;
 
-    	//Check class invariant:
-    	ok &= INVARIANT(target);
+        //Check class invariant:
+        ok &= INVARIANT(target);
 
         //Execute the target method:
-    	brokerName = target.GetBrokerName(config, OutputSignals);
+        brokerName = target.GetBrokerName(config, OutputSignals);
 
         //Check postcondition:
-    	ok &= (brokerName == "MemoryMapSynchronisedOutputBroker");
+        ok &= (brokerName == "MemoryMapSynchronisedOutputBroker");
 
-    	//Check class invariant:
-    	ok &= INVARIANT(target);
+        //Check class invariant:
+        ok &= INVARIANT(target);
     }
     return ok;
 }
@@ -343,16 +343,16 @@ bool EpicsOutputDataSourceTest::TestGetInputBrokers() {
     void* gamMemPtr = NULL_PTR(void*);
     EpicsOutputDataSource target;
 
-	//Check class invariant:
+    //Check class invariant:
     ok = INVARIANT(target);
 
-	//Execute target method:
+    //Execute target method:
     ok &= (target.GetInputBrokers(inputBrokers, functionName, gamMemPtr) == false);
 
-	//check postcondition:
+    //check postcondition:
     ok &= (inputBrokers.Size() == 0);
 
-	//Check class invariant:
+    //Check class invariant:
     ok &= INVARIANT(target);
 
     return ok;
@@ -368,7 +368,7 @@ bool EpicsOutputDataSourceTest::TestGetOutputBrokers() {
     void* gamMemPtr = static_cast<void*>(buffer);
     EpicsOutputDataSource target;
 
-	//Initialize the name of the data source:
+    //Initialize the name of the data source:
     target.SetName(targetName);
 
     //Initialize signals/functions configuration on data source:
@@ -381,23 +381,23 @@ bool EpicsOutputDataSourceTest::TestGetOutputBrokers() {
 
     //Check datasource's input broker retrieval for each function:
     for (uint32 i = 0; i < numberOfFunctions; i++) {
-    	StreamString name;
-    	ReferenceContainer outputBrokers;
+        StreamString name;
+        ReferenceContainer outputBrokers;
 
-    	//Set function name:
-    	ok &= name.Printf("Function_%d", i);
+        //Set function name:
+        ok &= name.Printf("Function_%d", i);
 
-    	//Check class invariant:
-    	ok &= INVARIANT(target);
+        //Check class invariant:
+        ok &= INVARIANT(target);
 
-    	//Execute the target method:
-    	ok &= (target.GetOutputBrokers(outputBrokers, name.Buffer(), gamMemPtr) == true);
+        //Execute the target method:
+        ok &= (target.GetOutputBrokers(outputBrokers, name.Buffer(), gamMemPtr) == true);
 
-    	//check postcondition:
-    	ok &= (outputBrokers.Size() == 1);
+        //check postcondition:
+        ok &= (outputBrokers.Size() == 1);
 
-    	//Check class invariant:
-    	ok &= INVARIANT(target);
+        //Check class invariant:
+        ok &= INVARIANT(target);
     }
 
     return ok;
@@ -410,13 +410,13 @@ bool EpicsOutputDataSourceTest::TestPrepareNextState() {
     char8* nextStateName = NULL_PTR(char8*);
     EpicsOutputDataSource target;
 
-	//Check class invariant:
+    //Check class invariant:
     ok = INVARIANT(target);
 
-	//Execute target method:
+    //Execute target method:
     ok &= (target.PrepareNextState(currentStateName, nextStateName) == true);
 
-	//Check class invariant:
+    //Check class invariant:
     ok &= INVARIANT(target);
     return ok;
 }
@@ -430,7 +430,7 @@ bool EpicsOutputDataSourceTest::TestGetSharedDataAreaName() {
     //Check initial value of SharedDataAreaName is an empty string:
     ok = (target.GetSharedDataAreaName().Size() == 0);
 
-	//Initialize the name of the data source:
+    //Initialize the name of the data source:
     target.SetName(targetName);
 
     //Initialize signals/functions configuration on data source:

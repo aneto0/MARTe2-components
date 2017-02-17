@@ -47,22 +47,22 @@ static char FULL_NAME[] = "/dev/shm/MARTe_PlatformTest_TestMakeShm";
 /*---------------------------------------------------------------------------*/
 
 TEST(PlatformGTest,TestMakeShm) {
-	PlatformTest test;
+    PlatformTest test;
     ASSERT_TRUE(test.TestMakeShm(NAME, FULL_NAME));
 }
 
 TEST(PlatformGTest,TestJoinShm) {
-	PlatformTest test;
+    PlatformTest test;
     ASSERT_TRUE(test.TestJoinShm(NAME, FULL_NAME));
 }
 
 TEST(PlatformGTest,TestDettachShm) {
-	PlatformTest test;
+    PlatformTest test;
     ASSERT_TRUE(test.TestDettachShm(NAME, FULL_NAME));
 }
 
 TEST(PlatformGTest,TestDestroyShm) {
-	PlatformTest test;
+    PlatformTest test;
     ASSERT_TRUE(test.TestDestroyShm(NAME, FULL_NAME));
 }
 

@@ -42,84 +42,89 @@
 class PlatformTest {
 public:
 
-	/**
-	 * @brief Tests the MakeShm method.
-	 * @param[in] name The name of the shared area memory to create and use.
-	 * @param[in] fullname The absolute name of the file which holds the
-	 * shared area memory.
-	 */
-	bool TestMakeShm(const char* const name, const char* const fullname);
+    /**
+     * @brief Tests the MakeShm method.
+     * @param[in] name The name of the shared area memory to create and use.
+     * @param[in] fullname The absolute name of the file which holds the
+     * shared area memory.
+     */
+    bool TestMakeShm(const char* const name,
+                     const char* const fullname);
 
-	/**
-	 * @brief Tests the JoinShm method.
-	 * @param[in] name The name of the shared area memory to create and use.
-	 * @param[in] fullname The absolute name of the file which holds the
-	 * shared area memory.
-	 */
-	bool TestJoinShm(const char* const name, const char* const fullname);
+    /**
+     * @brief Tests the JoinShm method.
+     * @param[in] name The name of the shared area memory to create and use.
+     * @param[in] fullname The absolute name of the file which holds the
+     * shared area memory.
+     */
+    bool TestJoinShm(const char* const name,
+                     const char* const fullname);
 
-	/**
-	 * @brief Tests the DettachShm method.
-	 * @param[in] name The name of the shared area memory to create and use.
-	 * @param[in] fullname The absolute name of the file which holds the
-	 * shared area memory.
-	 */
-	bool TestDettachShm(const char* const name, const char* const fullname);
+    /**
+     * @brief Tests the DettachShm method.
+     * @param[in] name The name of the shared area memory to create and use.
+     * @param[in] fullname The absolute name of the file which holds the
+     * shared area memory.
+     */
+    bool TestDettachShm(const char* const name,
+                        const char* const fullname);
 
-	/**
-	 * @brief Tests the DestroyShm method.
-	 * @param[in] name The name of the shared area memory to create and use.
-	 * @param[in] fullname The absolute name of the file which holds the
-	 * shared area memory.
-	 */
-	bool TestDestroyShm(const char* const name, const char* const fullname);
+    /**
+     * @brief Tests the DestroyShm method.
+     * @param[in] name The name of the shared area memory to create and use.
+     * @param[in] fullname The absolute name of the file which holds the
+     * shared area memory.
+     */
+    bool TestDestroyShm(const char* const name,
+                        const char* const fullname);
 
 private:
 
-	/**
-	 * @brief DataSet class meant for unit tests.
-	 */
-	class DataSet {
-	public:
-		/**
-		 * @brief Default constructor.
-		 */
-		DataSet();
-		/**
-		 * @brief Gets a pointer to an immutable query token .
-		 */
-		const char* GetQueryToken();
-		/**
-		 * @brief Gets a pointer to an immutable response token .
-		 */
-		const char* GetResponseToken();
-		/**
-		 * @brief Get the token's length.
-		 */
-		const size_t GetTokenLen();
-	private:
-		/**
-		 * The length of the token.
-		 */
-		const size_t tokenlen;
-		/*
-		 * An immutable forward token shared between all instances.
-		 */
-		static const char QTOKEN[];
-		/*
-		 * An immutable reverse token shared between all instances.
-		 */
-		static const char RTOKEN[];
-	};
+    /**
+     * @brief DataSet class meant for unit tests.
+     */
+    class DataSet {
+    public:
+        /**
+         * @brief Default constructor.
+         */
+        DataSet();
+        /**
+         * @brief Gets a pointer to an immutable query token .
+         */
+        const char* GetQueryToken();
+        /**
+         * @brief Gets a pointer to an immutable response token .
+         */
+        const char* GetResponseToken();
+        /**
+         * @brief Get the token's length.
+         */
+        const size_t GetTokenLen();
+    private:
+        /**
+         * The length of the token.
+         */
+        const size_t tokenlen;
+        /*
+         * An immutable forward token shared between all instances.
+         */
+        static const char QTOKEN[];
+        /*
+         * An immutable reverse token shared between all instances.
+         */
+        static const char RTOKEN[];
+    };
 
-	/**
-	 * @brief Test the interchange of data using the Platform methods between
-	 * a master and a slave tasks executing on two different processes.
-	 * @param[in] name The name of the shared area memory to create and use.
-	 * @param[in] fullname The absolute name of the file which holds the
-	 * shared area memory.
-	 */
-	bool TestMasterSlaveWithTwoProcesses(const char* const name, const char* const fullname);
+    /**
+     * @brief Test the interchange of data using the Platform methods between
+     * a master and a slave tasks executing on two different processes.
+     * @param[in] name The name of the shared area memory to create and use.
+     * @param[in] fullname The absolute name of the file which holds the
+     * shared area memory.
+     */
+    bool TestMasterSlaveWithTwoProcesses(const char* const name,
+                                         const char* const fullname);
 
 };
 

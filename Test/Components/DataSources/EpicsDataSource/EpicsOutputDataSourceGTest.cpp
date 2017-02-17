@@ -47,53 +47,53 @@
 /*---------------------------------------------------------------------------*/
 
 TEST(EpicsOutputDataSourceGTest,TestConstructor) {
-	EpicsOutputDataSourceTest test;
+    EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
 TEST(EpicsOutputDataSourceGTest, TestSynchronise) {
-	EpicsOutputDataSourceTest test;
+    EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestSynchronise<MARTe::uint32>());
     ASSERT_TRUE(test.TestSynchronise<MARTe::float32>());
 }
 
 TEST(EpicsOutputDataSourceGTest,TestAllocateMemory) {
-	EpicsOutputDataSourceTest test;
+    EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestAllocateMemory());
 }
 
 TEST(EpicsOutputDataSourceGTest,TestGetNumberOfMemoryBuffers) {
-	EpicsOutputDataSourceTest test;
+    EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
 }
 
 TEST(EpicsOutputDataSourceGTest,TestGetSignalMemoryBuffer) {
-	EpicsOutputDataSourceTest test;
+    EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
 }
 
 TEST(EpicsOutputDataSourceGTest,TestGetBrokerName) {
-	EpicsOutputDataSourceTest test;
+    EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestGetBrokerName());
 }
 
 TEST(EpicsOutputDataSourceGTest, TestGetInputBrokers) {
-	EpicsOutputDataSourceTest test;
+    EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestGetInputBrokers());
 }
 
 TEST(EpicsOutputDataSourceGTest, TestGetOutputBrokers) {
-	EpicsOutputDataSourceTest test;
+    EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestGetOutputBrokers());
 }
 
 TEST(EpicsOutputDataSourceGTest, TestPrepareNextState) {
-	EpicsOutputDataSourceTest test;
+    EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestPrepareNextState());
 }
 
 TEST(EpicsOutputDataSourceGTest, TestGetSharedDataAreaName) {
-	EpicsOutputDataSourceTest test;
+    EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestGetSharedDataAreaName());
 }
 

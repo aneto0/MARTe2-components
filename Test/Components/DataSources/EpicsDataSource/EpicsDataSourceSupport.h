@@ -47,7 +47,9 @@
  * signals of type uint32, while "Functions" will contain numberOfFunctions
  * functions.
  */
-bool BuildConfigurationDatabase(MARTe::ConfigurationDatabase& cdb, const MARTe::uint32 numberOfSignals, const MARTe::uint32 numberOfFunctions = 0);
+bool BuildConfigurationDatabase(MARTe::ConfigurationDatabase& cdb,
+                                const MARTe::uint32 numberOfSignals,
+                                const MARTe::uint32 numberOfFunctions = 0);
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

@@ -40,88 +40,93 @@
 
 #include "SharedDataAreaSupport.h"
 
-template bool SharedDataAreaTest::TestProducerConsumerInSingleThread<int>(const char* const, const unsigned int);
-template bool SharedDataAreaTest::TestProducerConsumerInSingleThread<double>(const char* const, const unsigned int);
-template bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads<int>(const char* const, const unsigned int);
-template bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads<double>(const char* const, const unsigned int);
+template bool SharedDataAreaTest::TestProducerConsumerInSingleThread<int>(const char* const,
+                                                                          const unsigned int);
+template bool SharedDataAreaTest::TestProducerConsumerInSingleThread<double>(const char* const,
+                                                                             const unsigned int);
+template bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads<int>(const char* const,
+                                                                          const unsigned int);
+template bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads<double>(const char* const,
+                                                                             const unsigned int);
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
 static void producerThreadFunction(ProducerThreadParams* params) {
-	//Write all the sigblocks of the dataset to the shared data area,
-	//pausing 10ms every eight iterations to slow down production:
-	for (unsigned int i = 0; i < params->context->dataset.size; i++) {
-		params->output->WriteSigblock(*(params->context->dataset.items[i]));
-		if (i % 8 == 0) {
-			MARTe::Sleep::Sec(0.01);
-		}
-	}
+    //Write all the sigblocks of the dataset to the shared data area,
+    //pausing 10ms every eight iterations to slow down production:
+    for (unsigned int i = 0; i < params->context->dataset.size; i++) {
+        params->output->WriteSigblock(*(params->context->dataset.items[i]));
+        if (i % 8 == 0) {
+            MARTe::Sleep::Sec(0.01);
+        }
+    }
 
-	//Set thread's state as finished:
-	params->context->producerThreadEnd = true;
+    //Set thread's state as finished:
+    params->context->producerThreadEnd = true;
 
-	//End thread's life:
-	MARTe::Threads::EndThread();
+    //End thread's life:
+    MARTe::Threads::EndThread();
 }
 
 static void consumerThreadFunction(ConsumerThreadParams* params) {
-	bool errorFound = false;
-	unsigned int consumerThreadReads = 0;
-	std::size_t size;
+    bool errorFound = false;
+    unsigned int consumerThreadReads = 0;
+    std::size_t size;
 
-	// Read all the sigblocks written by the producer to the shared data area
-	// and check if they have the same values than those from the dataset. It
-	// will do a busy wait every time there is no new sigblocks on the shared
-	// data area.
-	{
-		SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
-		bool isSigblockFilled = false;
-		unsigned int dataSetIndex = 0;
+    // Read all the sigblocks written by the producer to the shared data area
+    // and check if they have the same values than those from the dataset. It
+    // will do a busy wait every time there is no new sigblocks on the shared
+    // data area.
+    {
+        SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
+        bool isSigblockFilled = false;
+        unsigned int dataSetIndex = 0;
 
-		//Get sigblock's size:
-		size = params->input->GetSigblockMetadata()->GetTotalSize();
+        //Get sigblock's size:
+        size = params->input->GetSigblockMetadata()->GetTotalSize();
 
-		//Allocate memory for sigblock:
-		sigblock = MallocSigblock(size);
+        //Allocate memory for sigblock:
+        sigblock = MallocSigblock(size);
 
-		//Read sigblocks while producer is running:
-		while (!errorFound && !params->context->producerThreadEnd) {
-			do {
-				isSigblockFilled = params->input->ReadSigblock(*sigblock);
-			} while (!isSigblockFilled && !params->context->producerThreadEnd);
-			if (isSigblockFilled) {
-				bool sigblockFound;
-				consumerThreadReads++;
-				SearchSigblockIntoDataSet(params->context->dataset, sigblock, size, dataSetIndex, sigblockFound);
-				errorFound = !sigblockFound;
-			}
-		}
+        //Read sigblocks while producer is running:
+        while (!errorFound && !params->context->producerThreadEnd) {
+            do {
+                isSigblockFilled = params->input->ReadSigblock(*sigblock);
+            }
+            while (!isSigblockFilled && !params->context->producerThreadEnd);
+            if (isSigblockFilled) {
+                bool sigblockFound;
+                consumerThreadReads++;
+                SearchSigblockIntoDataSet(params->context->dataset, sigblock, size, dataSetIndex, sigblockFound);
+                errorFound = !sigblockFound;
+            }
+        }
 
-		//Read last sigblock after producer has stopped:
-		if (!errorFound && params->context->producerThreadEnd) {
-			isSigblockFilled = params->input->ReadSigblock(*sigblock);
-			if (isSigblockFilled) {
-				bool sigblockFound;
-				consumerThreadReads++;
-				SearchSigblockIntoDataSet(params->context->dataset, sigblock, size, dataSetIndex, sigblockFound);
-				errorFound = !sigblockFound;
-			}
-		}
+        //Read last sigblock after producer has stopped:
+        if (!errorFound && params->context->producerThreadEnd) {
+            isSigblockFilled = params->input->ReadSigblock(*sigblock);
+            if (isSigblockFilled) {
+                bool sigblockFound;
+                consumerThreadReads++;
+                SearchSigblockIntoDataSet(params->context->dataset, sigblock, size, dataSetIndex, sigblockFound);
+                errorFound = !sigblockFound;
+            }
+        }
 
-		//Free memory of sigblock:
-		FreeSigblock(sigblock);
-	}
+        //Free memory of sigblock:
+        FreeSigblock(sigblock);
+    }
 
-	//Set thread's success status:
-	params->context->consumerThreadSuccess = (!errorFound && (consumerThreadReads > 0));
+    //Set thread's success status:
+    params->context->consumerThreadSuccess = (!errorFound && (consumerThreadReads > 0));
 
-	//Set thread's state as finished:
-	params->context->consumerThreadEnd = true;
+    //Set thread's state as finished:
+    params->context->consumerThreadEnd = true;
 
-	//End thread's life:
-	MARTe::Threads::EndThread();
+    //End thread's life:
+    MARTe::Threads::EndThread();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -129,226 +134,229 @@ static void consumerThreadFunction(ConsumerThreadParams* params) {
 /*---------------------------------------------------------------------------*/
 
 bool SharedDataAreaTest::TestConstructor() {
-	bool ok = false;
-	ok = TestProducerConsumerInSingleThread<int>("MARTe_TestConstructor_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
-	ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestConstructor_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
-	ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestConstructor_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
-	ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestConstructor_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
-	return ok;
+    bool ok = false;
+    ok = TestProducerConsumerInSingleThread<int>("MARTe_TestConstructor_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
+    ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestConstructor_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
+    ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestConstructor_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
+    ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestConstructor_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
+    return ok;
 }
 
 bool SharedDataAreaTest::TestGetSigblockProducerInterface() {
-	bool ok = false;
-	ok = TestProducerConsumerInSingleThread<int>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
-	ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
-	ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
-	ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
-	return ok;
+    bool ok = false;
+    ok = TestProducerConsumerInSingleThread<int>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
+    ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
+    ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
+    ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestGetSigblockProducerInterface_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
+    return ok;
 }
 
 bool SharedDataAreaTest::TestGetSigblockConsumerInterface() {
-	bool ok = false;
-	ok = TestProducerConsumerInSingleThread<int>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
-	ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
-	ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
-	ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
-	return ok;
+    bool ok = false;
+    ok = TestProducerConsumerInSingleThread<int>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
+    ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
+    ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
+    ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestGetSigblockConsumerInterface_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
+    return ok;
 }
 
 bool SharedDataAreaTest::TestBuildSharedDataAreaForMARTe() {
-	bool ok = false;
-	ok = TestProducerConsumerInSingleThread<int>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
-	ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
-	ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
-	ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
-	return ok;
+    bool ok = false;
+    ok = TestProducerConsumerInSingleThread<int>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
+    ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
+    ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
+    ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestBuildSharedDataAreaForMARTe_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
+    return ok;
 }
 
 bool SharedDataAreaTest::TestBuildSharedDataAreaForEPICS() {
-	bool ok = false;
-	ok = TestProducerConsumerInSingleThread<int>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
-	ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
-	ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
-	ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
-	return ok;
+    bool ok = false;
+    ok = TestProducerConsumerInSingleThread<int>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithSingleThreadUsingIntegers_1", 50);
+    ok &= TestProducerConsumerInSingleThread<double>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithSingleThreadUsingDoubles_2", 25);
+    ok &= TestProducerConsumerWithTwoThreads<int>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithTwoThreadsUsingIntegers_3", 75);
+    ok &= TestProducerConsumerWithTwoThreads<double>("MARTe_TestBuildSharedDataAreaForEPICS_TestProducerConsumerWithTwoThreadsUsingDoubles_4");
+    return ok;
 }
 
 template<typename SignalType>
-bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const shmName, const unsigned int maxTests) {
-	DataSet dataset(maxTests);
-	bool ok = false;
-	const unsigned int numberOfSignals = 10;
-	SDA::Signal::Metadata sbmd[numberOfSignals];
-	SDA::SharedDataArea sdaServer;
-	SDA::SharedDataArea::SigblockProducer* producer;
-	SDA::SharedDataArea sdaClient;
-	SDA::SharedDataArea::SigblockConsumer* consumer;
-	std::size_t size;
+bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const shmName,
+                                                            const unsigned int maxTests) {
+    DataSet dataset(maxTests);
+    bool ok = false;
+    const unsigned int numberOfSignals = 10;
+    SDA::Signal::Metadata sbmd[numberOfSignals];
+    SDA::SharedDataArea sdaServer;
+    SDA::SharedDataArea::SigblockProducer* producer;
+    SDA::SharedDataArea sdaClient;
+    SDA::SharedDataArea::SigblockConsumer* consumer;
+    std::size_t size;
 
-	//Check SHM's name:
-	ok = (std::strcmp(shmName, "") != 0);
+    //Check SHM's name:
+    ok = (std::strcmp(shmName, "") != 0);
 
-	//Generate the metadata of the sigblocks to use in test:
-	GenerateMetadataForSigblock<SignalType>(sbmd, numberOfSignals);
+    //Generate the metadata of the sigblocks to use in test:
+    GenerateMetadataForSigblock<SignalType>(sbmd, numberOfSignals);
 
-	//Build the shared data area as server:
-	sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, numberOfSignals, sbmd);
+    //Build the shared data area as server:
+    sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, numberOfSignals, sbmd);
 
-	//Check building of shared data area:
-	//ok &= (...) //TODO: Write an expression for checking the server.
+    //Check building of shared data area:
+    //ok &= (...) //TODO: Write an expression for checking the server.
 
-	//Setup producer's interface to shared data area:
-	producer = sdaServer.GetSigblockProducerInterface();
+    //Setup producer's interface to shared data area:
+    producer = sdaServer.GetSigblockProducerInterface();
 
-	//Build the shared data area as client:
-	sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
+    //Build the shared data area as client:
+    sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
 
-	//Check building of shared data area:
-	//ok &= (...) //TODO: Write an expression for checking the client.
+    //Check building of shared data area:
+    //ok &= (...) //TODO: Write an expression for checking the client.
 
-	//Setup consumer's interface to shared data area:
-	consumer = sdaClient.GetSigblockConsumerInterface();
+    //Setup consumer's interface to shared data area:
+    consumer = sdaClient.GetSigblockConsumerInterface();
 
-	//Get sigblock's size:
-	size = producer->GetSigblockMetadata()->GetTotalSize();
+    //Get sigblock's size:
+    size = producer->GetSigblockMetadata()->GetTotalSize();
 
-	//Check coherence of size:
-	ok &= (producer->GetSigblockMetadata()->GetTotalSize() == consumer->GetSigblockMetadata()->GetTotalSize());
+    //Check coherence of size:
+    ok &= (producer->GetSigblockMetadata()->GetTotalSize() == consumer->GetSigblockMetadata()->GetTotalSize());
 
-	//Allocate memory for dataset:
-	MallocDataSet(dataset, size);
+    //Allocate memory for dataset:
+    MallocDataSet(dataset, size);
 
-	//Initialize items of dataset:
-	InitDataSet<SignalType>(dataset, numberOfSignals);
+    //Initialize items of dataset:
+    InitDataSet<SignalType>(dataset, numberOfSignals);
 
-	// Write all the sigblocks of the dataset to the shared data area, checking
-	// that they can be read and have the same values than those from the
-	// dataset. They will be written and read taking turns (1 write, 1 read).
-	{
-		SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
-		unsigned int i = 0;
-		bool error = false;
+    // Write all the sigblocks of the dataset to the shared data area, checking
+    // that they can be read and have the same values than those from the
+    // dataset. They will be written and read taking turns (1 write, 1 read).
+    {
+        SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
+        unsigned int i = 0;
+        bool error = false;
 
-		//Allocate memory for sigblock:
-		sigblock = MallocSigblock(size);
+        //Allocate memory for sigblock:
+        sigblock = MallocSigblock(size);
 
-		//Write and read sigblocks taking turns:
-		while (i < maxTests && !error) {
-			bool writingSucceeded;
-			writingSucceeded = producer->WriteSigblock(*(dataset.items[i]));
-			if (writingSucceeded) {
-				bool readingSucceeded;
-				readingSucceeded = consumer->ReadSigblock(*sigblock);
-				if (readingSucceeded) {
-					error = (std::memcmp(sigblock, dataset.items[i], size) != 0);
-				}
-				else {
-					error = true;
-				}
-			}
-			else {
-				error = true;
-			}
-			i++;
-		}
+        //Write and read sigblocks taking turns:
+        while (i < maxTests && !error) {
+            bool writingSucceeded;
+            writingSucceeded = producer->WriteSigblock(*(dataset.items[i]));
+            if (writingSucceeded) {
+                bool readingSucceeded;
+                readingSucceeded = consumer->ReadSigblock(*sigblock);
+                if (readingSucceeded) {
+                    error = (std::memcmp(sigblock, dataset.items[i], size) != 0);
+                }
+                else {
+                    error = true;
+                }
+            }
+            else {
+                error = true;
+            }
+            i++;
+        }
 
-		//Free memory for sigblock:
-		FreeSigblock(sigblock);
+        //Free memory for sigblock:
+        FreeSigblock(sigblock);
 
-		//Check execution's status:
-		ok &= !error;
-	}
+        //Check execution's status:
+        ok &= !error;
+    }
 
-	//Free memory of dataset:
-	FreeDataSet(dataset);
+    //Free memory of dataset:
+    FreeDataSet(dataset);
 
-	//Return test's execution status:
-	return ok;
+    //Return test's execution status:
+    return ok;
 }
 
 template<typename SignalType>
-bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const shmName, const unsigned int maxTests) {
-	//TODO: How to achieve different paces: Configure consumer with less priority than producer or make consumer sleep often ...
-	//TODO: And latency recording??
+bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const shmName,
+                                                            const unsigned int maxTests) {
+    //TODO: How to achieve different paces: Configure consumer with less priority than producer or make consumer sleep often ...
+    //TODO: And latency recording??
 
-	bool ok = false;
-	SharedContext context(10, maxTests);
-	ProducerThreadParams producerThreadParams;
-	ConsumerThreadParams consumerThreadParams;
-	SDA::Signal::Metadata sbmd[context.numberOfSignals];
-	SDA::SharedDataArea sdaServer;
-	SDA::SharedDataArea::SigblockProducer* producer;
-	SDA::SharedDataArea sdaClient;
-	SDA::SharedDataArea::SigblockConsumer* consumer;
-	std::size_t size;
-	MARTe::ThreadIdentifier producerThreadId;
-	MARTe::ThreadIdentifier consumerThreadId;
+    bool ok = false;
+    SharedContext context(10, maxTests);
+    ProducerThreadParams producerThreadParams;
+    ConsumerThreadParams consumerThreadParams;
+    SDA::Signal::Metadata sbmd[context.numberOfSignals];
+    SDA::SharedDataArea sdaServer;
+    SDA::SharedDataArea::SigblockProducer* producer;
+    SDA::SharedDataArea sdaClient;
+    SDA::SharedDataArea::SigblockConsumer* consumer;
+    std::size_t size;
+    MARTe::ThreadIdentifier producerThreadId;
+    MARTe::ThreadIdentifier consumerThreadId;
 
-	//Check SHM's name:
-	ok = (std::strcmp(shmName, "") != 0);
+    //Check SHM's name:
+    ok = (std::strcmp(shmName, "") != 0);
 
-	//Generate the metadata of the sigblocks to use in test:
-	GenerateMetadataForSigblock<SignalType>(sbmd, context.numberOfSignals);
+    //Generate the metadata of the sigblocks to use in test:
+    GenerateMetadataForSigblock<SignalType>(sbmd, context.numberOfSignals);
 
-	//Build the shared data area as server:
-	sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, context.numberOfSignals, sbmd);
+    //Build the shared data area as server:
+    sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, context.numberOfSignals, sbmd);
 
-	//Check building of shared data area:
-	//ok &= (...) //TODO: Write an expression for checking the server.
+    //Check building of shared data area:
+    //ok &= (...) //TODO: Write an expression for checking the server.
 
-	//Setup producer's interface to shared data area:
-	producer = sdaServer.GetSigblockProducerInterface();
+    //Setup producer's interface to shared data area:
+    producer = sdaServer.GetSigblockProducerInterface();
 
-	//Setup producer's parameters:
-	producerThreadParams.output = producer;
-	producerThreadParams.context = &context;
+    //Setup producer's parameters:
+    producerThreadParams.output = producer;
+    producerThreadParams.context = &context;
 
-	//Build the shared data area as client:
-	sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
+    //Build the shared data area as client:
+    sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
 
-	//Check building of shared data area:
-	//ok &= (...) //TODO: Write an expression for checking the client.
+    //Check building of shared data area:
+    //ok &= (...) //TODO: Write an expression for checking the client.
 
-	//Setup consumer's interface to shared data area:
-	consumer = sdaClient.GetSigblockConsumerInterface();
+    //Setup consumer's interface to shared data area:
+    consumer = sdaClient.GetSigblockConsumerInterface();
 
-	//Setup consumer's parameters:
-	consumerThreadParams.input = consumer;
-	consumerThreadParams.context = &context;
+    //Setup consumer's parameters:
+    consumerThreadParams.input = consumer;
+    consumerThreadParams.context = &context;
 
-	//Get sigblock's size:
-	size = producer->GetSigblockMetadata()->GetTotalSize();
+    //Get sigblock's size:
+    size = producer->GetSigblockMetadata()->GetTotalSize();
 
-	//Check coherence of size:
-	ok &= (producer->GetSigblockMetadata()->GetTotalSize() == consumer->GetSigblockMetadata()->GetTotalSize());
+    //Check coherence of size:
+    ok &= (producer->GetSigblockMetadata()->GetTotalSize() == consumer->GetSigblockMetadata()->GetTotalSize());
 
-	//Allocate memory for dataset:
-	MallocDataSet(context.dataset, size);
+    //Allocate memory for dataset:
+    MallocDataSet(context.dataset, size);
 
-	//Initialize items of dataset:
-	InitDataSet<SignalType>(context.dataset, context.numberOfSignals);
+    //Initialize items of dataset:
+    InitDataSet<SignalType>(context.dataset, context.numberOfSignals);
 
-	//Start producer's thread linked to producerThreadFunction:
-	producerThreadId = MARTe::Threads::BeginThread((MARTe::ThreadFunctionType) producerThreadFunction, &producerThreadParams);
+    //Start producer's thread linked to producerThreadFunction:
+    producerThreadId = MARTe::Threads::BeginThread((MARTe::ThreadFunctionType) producerThreadFunction, &producerThreadParams);
 
-	//Check producer's thread id:
-	ok = (producerThreadId != MARTe::InvalidThreadIdentifier);
+    //Check producer's thread id:
+    ok = (producerThreadId != MARTe::InvalidThreadIdentifier);
 
-	//Start consumer's thread linked to consumerThreadFunction:
-	consumerThreadId = MARTe::Threads::BeginThread((MARTe::ThreadFunctionType) consumerThreadFunction, &consumerThreadParams);
+    //Start consumer's thread linked to consumerThreadFunction:
+    consumerThreadId = MARTe::Threads::BeginThread((MARTe::ThreadFunctionType) consumerThreadFunction, &consumerThreadParams);
 
-	//Check consumer's thread id:
-	ok = (consumerThreadId != MARTe::InvalidThreadIdentifier);
+    //Check consumer's thread id:
+    ok = (consumerThreadId != MARTe::InvalidThreadIdentifier);
 
-	//Busy wait until both threads end:
-	while (!context.producerThreadEnd || !context.consumerThreadEnd) {};
+    //Busy wait until both threads end:
+    while (!context.producerThreadEnd || !context.consumerThreadEnd) {
+    };
 
-	//Free memory of dataset:
-	FreeDataSet(context.dataset);
+    //Free memory of dataset:
+    FreeDataSet(context.dataset);
 
-	//Check execution's status:
-	ok &= context.consumerThreadSuccess;
+    //Check execution's status:
+    ok &= context.consumerThreadSuccess;
 
-	//Return test's execution status:
-	return ok;
+    //Return test's execution status:
+    return ok;
 }

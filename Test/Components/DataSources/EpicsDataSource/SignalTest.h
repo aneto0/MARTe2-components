@@ -42,13 +42,13 @@
 class SignalTest {
 public:
 
-	class MetadataTest {
-	public:
-		/**
-		 * @brief Tests the default Constructor.
-		 */
-		bool TestConstructor();
-	};
+    class MetadataTest {
+    public:
+        /**
+         * @brief Tests the default Constructor.
+         */
+        bool TestConstructor();
+    };
 
 };
 

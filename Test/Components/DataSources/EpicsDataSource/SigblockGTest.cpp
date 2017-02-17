@@ -44,14 +44,14 @@
 /*---------------------------------------------------------------------------*/
 
 TEST(SigblockGTest_MetadataTest,TestInit) {
-	SigblockTest::MetadataTest test;
+    SigblockTest::MetadataTest test;
     ASSERT_TRUE(test.TestInit());
 }
 
 TEST(SigblockGTest,TestGetSignalAddress) {
-	SigblockTest test;
-	ASSERT_TRUE(test.TestGetSignalAddress<int>(1));
-	ASSERT_TRUE(test.TestGetSignalAddress<double>(1.0));
+    SigblockTest test;
+    ASSERT_TRUE(test.TestGetSignalAddress<int>(1));
+    ASSERT_TRUE(test.TestGetSignalAddress<double>(1.0));
 }
 
 /*---------------------------------------------------------------------------*/

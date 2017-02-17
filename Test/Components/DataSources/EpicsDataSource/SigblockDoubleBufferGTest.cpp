@@ -44,18 +44,18 @@
 /*---------------------------------------------------------------------------*/
 
 TEST(SigblockDoubleBufferGTest,TestInit) {
-	SigblockDoubleBufferTest test;
-	ASSERT_TRUE(test.TestInit());
+    SigblockDoubleBufferTest test;
+    ASSERT_TRUE(test.TestInit());
 }
 
 TEST(SigblockDoubleBufferGTest,TestGet) {
-	SigblockDoubleBufferTest test;
-	ASSERT_TRUE(test.TestGet());
+    SigblockDoubleBufferTest test;
+    ASSERT_TRUE(test.TestGet());
 }
 
 TEST(SigblockDoubleBufferGTest,TestPut) {
-	SigblockDoubleBufferTest test;
-	ASSERT_TRUE(test.TestPut());
+    SigblockDoubleBufferTest test;
+    ASSERT_TRUE(test.TestPut());
 }
 
 /*---------------------------------------------------------------------------*/

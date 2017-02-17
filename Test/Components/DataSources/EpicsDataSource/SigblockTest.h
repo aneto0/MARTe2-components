@@ -42,19 +42,19 @@
 class SigblockTest {
 public:
 
-	class MetadataTest {
-	public:
-		/**
-		 * @brief Tests the Init method.
-		 */
-		bool TestInit();
-	};
+    class MetadataTest {
+    public:
+        /**
+         * @brief Tests the Init method.
+         */
+        bool TestInit();
+    };
 
-	/**
-	 * @brief Tests the GetSignalAddress method.
-	 */
-	template<typename SignalType>
-	bool TestGetSignalAddress(const SignalType value);
+    /**
+     * @brief Tests the GetSignalAddress method.
+     */
+    template<typename SignalType>
+    bool TestGetSignalAddress(const SignalType value);
 
 };
 

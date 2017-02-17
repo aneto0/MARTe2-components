@@ -47,50 +47,52 @@
 /*---------------------------------------------------------------------------*/
 
 struct SharedContext {
-	const unsigned int numberOfSignals;
-	bool producerThreadEnd;  //Assumption: bool is atomic on Intel
-	bool consumerThreadEnd;  //Assumption: bool is atomic on Intel
-	bool consumerThreadSuccess;  //Assumption: bool is atomic on Intel
-	DataSet dataset;
-	SharedContext(const unsigned int numberOfSignals, const unsigned int maxTests);
-	~SharedContext();
+    const unsigned int numberOfSignals;
+    bool producerThreadEnd;  //Assumption: bool is atomic on Intel
+    bool consumerThreadEnd;  //Assumption: bool is atomic on Intel
+    bool consumerThreadSuccess;  //Assumption: bool is atomic on Intel
+    DataSet dataset;
+    SharedContext(const unsigned int numberOfSignals,
+                  const unsigned int maxTests);
+    ~SharedContext();
 };
 
 struct ProducerThreadParams {
-	SDA::SharedDataArea::SigblockProducer* output;
-	SharedContext* context;
-	ProducerThreadParams();
+    SDA::SharedDataArea::SigblockProducer* output;
+    SharedContext* context;
+    ProducerThreadParams();
 };
 
 struct ConsumerThreadParams {
-	SDA::SharedDataArea::SigblockConsumer* input;
-	SharedContext* context;
-	ConsumerThreadParams();
+    SDA::SharedDataArea::SigblockConsumer* input;
+    SharedContext* context;
+    ConsumerThreadParams();
 };
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-inline SharedContext::SharedContext(const unsigned int numberOfSignals, const unsigned int maxTests) :
-	numberOfSignals(numberOfSignals),
-	producerThreadEnd(false),
-	consumerThreadEnd(false),
-	consumerThreadSuccess(false),
-	dataset(maxTests) {
+inline SharedContext::SharedContext(const unsigned int numberOfSignals,
+                                    const unsigned int maxTests) :
+        numberOfSignals(numberOfSignals),
+        producerThreadEnd(false),
+        consumerThreadEnd(false),
+        consumerThreadSuccess(false),
+        dataset(maxTests) {
 }
 
 inline SharedContext::~SharedContext() {
 }
 
-inline ProducerThreadParams::ProducerThreadParams():
-	output(SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*)),
-	context(SDA_NULL_PTR(SharedContext*)) {
+inline ProducerThreadParams::ProducerThreadParams() :
+        output(SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*)),
+        context(SDA_NULL_PTR(SharedContext*)) {
 }
 
-inline ConsumerThreadParams::ConsumerThreadParams():
-	input(SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)),
-	context(SDA_NULL_PTR(SharedContext*)) {
+inline ConsumerThreadParams::ConsumerThreadParams() :
+        input(SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)),
+        context(SDA_NULL_PTR(SharedContext*)) {
 }
 
 #endif /* SHAREDDATAAREASUPPORT_H_ */
