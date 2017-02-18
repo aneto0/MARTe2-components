@@ -25,6 +25,9 @@
 OBJSX= 
 
 SPB    = LinuxTimer.x LoggerDataSource.x UDP.x
+ifdef CODAC_ROOT
+SPB    += NI6259.x
+endif
 
 PACKAGE=Components
 ROOT_DIR=../../..
@@ -35,6 +38,10 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/UDP/UDP$(LIBEXT)
+
+ifdef CODAC_ROOT
+LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259$(LIBEXT)
+endif
 
 all: $(OBJS)  $(SUBPROJ)  \
     $(BUILD_DIR)/DataSources$(LIBEXT) \

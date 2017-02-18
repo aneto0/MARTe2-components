@@ -29,4 +29,6 @@ include Makefile.inc
 LIBRARIES_STATIC=LinuxTimer/cov/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=UDP/cov/UDP$(LIBEXT)
-
+ifdef CODAC_ROOT
+LIBRARIES_STATIC+=NI6259/cov/NI6259$(LIBEXT)
+endif
