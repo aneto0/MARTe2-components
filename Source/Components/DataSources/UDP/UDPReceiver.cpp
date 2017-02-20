@@ -42,6 +42,7 @@ UDPReceiver::UDPReceiver(): DataSourceI(), EmbeddedServiceMethodBinderI(), execu
     udpServerPort = 44488u;
     nOfSignals = 0u;
     udpServerAddress = "127.0.0.1";
+    cpuMask = 0u;
     timerPtr = NULL_PTR(uint64*);
     sequenceNumberPtr = NULL_PTR(uint64*);
     dataBuffer = NULL_PTR(void*);
@@ -125,6 +126,11 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
         }else{
             timeout.SetTimeoutSec(timeoutInput);
             REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Timeout is set to %f seconds", timeoutInput)
+        }
+    }
+    if (ok){
+        if (!data.Read("CPUs", cpuMask)){
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "No CPU's defined for %s", GetName());
         }
     }
     return ok;
@@ -273,6 +279,9 @@ bool UDPReceiver::PrepareNextState(const char8* const currentStateName,
     bool ok = true;
     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
         keepRunning = true;
+        if (cpuMask != 0u){
+            executor.SetCPUMask(cpuMask);
+        }
         ok = executor.Start();
     } 
     if (sequenceNumberPtr == NULL_PTR(uint64*)){

@@ -248,7 +248,11 @@ private:
     UDPSocket server;
 
     bool synchronising;
-
+    
+    /*
+    * The thread CPUs mask.
+    */
+    uint32 cpuMask;
 };
 }
 #endif
