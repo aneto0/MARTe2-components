@@ -95,10 +95,14 @@ private:
 
 namespace SDA {
 
+/*lint -e1066 Disabled because lint gets confused with standard C headers */
+
 inline Signal::Metadata::Metadata() :
         size(0u) {
     name[0] = '\0';
 }
+
+/*lint +e1066 Enabled again after exception has been useful */
 
 }
 

@@ -277,6 +277,8 @@ private:
 
 namespace SDA {
 
+/*lint -e1066 Disabled because lint gets confused with standard C headers */
+
 inline SDA::char8* SharedDataArea::Representation::RawHeader() {
     /*lint -e{9016} [MISRA C++ Rule 5-0-15] pointer arithmetic is needed in this case*/
     return (rawmem + offsetOfHeader);
@@ -300,7 +302,8 @@ inline SDA::SigblockDoubleBuffer* SharedDataArea::Representation::Items() {
 inline bool SharedDataArea::Representation::IsOperational() const {
     return (hasReader && hasWriter);
 }
-;
+
+/*lint +e1066 Enabled again after exception has been useful */
 
 }
 

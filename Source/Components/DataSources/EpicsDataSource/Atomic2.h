@@ -38,6 +38,8 @@
 
 namespace SDA {
 
+/*lint -e1066 Disabled because lint gets confused with standard C headers */
+
 /**
  * @brief Atomic compare-and-swap operation
  * @details The pseudo code of this function is as follows:
@@ -90,6 +92,8 @@ T READ(volatile T* const b);
 template<typename T>
 void WRITE(volatile T* const b,
            const T v);
+
+/*lint +e1066 Enabled again after exception has been useful */
 
 }
 
@@ -149,7 +153,7 @@ inline T XCHG(volatile T* const ptr,
 template<typename T>
 T READ(volatile T* const b) {
     T v = *b;
-    __sync_synchronize(); //Full memory barrier (ensures val pushed to memory)
+    (void) __sync_synchronize(); //Full memory barrier (ensures val pushed to memory)
     return v;
 }
 
