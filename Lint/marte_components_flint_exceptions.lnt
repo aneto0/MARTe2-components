@@ -31,6 +31,11 @@
 -estring(746,*__sync_bool_compare_and_swap)
 -estring(1055,*__sync_bool_compare_and_swap)
 
+-estring(526,*__sync_synchronize)
+-estring(628,*__sync_synchronize)
+-estring(746,*__sync_synchronize)
+-estring(1055,*__sync_synchronize)
+
 -estring(40,EXIT_FAILURE)
 
 /* member function or default constructor not referenced [MISRA C++ Rule 0-1-10]*/
