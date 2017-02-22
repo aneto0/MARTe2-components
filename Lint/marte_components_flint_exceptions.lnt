@@ -26,6 +26,21 @@
 -estring(746,*strncpy)
 -estring(1055,*strncpy)
 
+-estring(526,*strcpy)
+-estring(628,*strcpy)
+-estring(746,*strcpy)
+-estring(1055,*strcpy)
+
+-estring(526,*strcat)
+-estring(628,*strcat)
+-estring(746,*strcat)
+-estring(1055,*strcat)
+
+-estring(526,*strtok_r)
+-estring(628,*strtok_r)
+-estring(746,*strtok_r)
+-estring(1055,*strtok_r)
+
 -estring(526,*__sync_bool_compare_and_swap)
 -estring(628,*__sync_bool_compare_and_swap)
 -estring(746,*__sync_bool_compare_and_swap)
@@ -41,6 +56,9 @@
 /* member function or default constructor not referenced [MISRA C++ Rule 0-1-10]*/
 -esym(1714,SDA::*)
 -esym(1914,SDA::*)
+-esym(1714,epics::*)
+-esym(1914,epics::*)
 
 /* template was defined but not instantiated [MISRA C++ Rule 14-7-1]*/
 -esym(1795,SDA::*)
+-esym(1795,epics::*)
