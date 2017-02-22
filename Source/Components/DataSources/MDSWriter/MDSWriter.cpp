@@ -73,6 +73,7 @@ MDSWriter::MDSWriter() :
     }
 }
 
+/*lint -e{1551} the destructor must guarantee that the MDSplus are deleted and the shared memory freed. The signalMemory and the timeSignalMemory are freed by the framework */
 MDSWriter::~MDSWriter() {
     if (FlushSegments() != ErrorManagement::NoError) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
@@ -103,15 +104,18 @@ uint32 MDSWriter::GetNumberOfMemoryBuffers() {
     return 1u;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
 bool MDSWriter::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
     bool ok = (dataSourceMemory != NULL_PTR(char8 *));
     if (ok) {
+        /*lint -e{613} dataSourceMemory cannot be NULL here*/
         char8 *memPtr = &dataSourceMemory[offsets[signalIdx]];
         signalAddress = reinterpret_cast<void *&>(memPtr);
     }
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction and on the storeOnTrigger property (which is load before).*/
 const char8* MDSWriter::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
     const char8* brokerName = "";
     if (direction == OutputSignals) {
@@ -125,6 +129,7 @@ const char8* MDSWriter::GetBrokerName(StructuredDataI& data, const SignalDirecti
     return brokerName;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: InputBrokers are not supported. Function returns false irrespectively of the parameters.*/
 bool MDSWriter::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
     return false;
 }
@@ -164,6 +169,7 @@ bool MDSWriter::Synchronise() {
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
 bool MDSWriter::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
     return true;
 }
@@ -240,7 +246,7 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "EventName shall be specified");
         }
     }
-    uint32 timeRefresh;
+    uint32 timeRefresh = 0u;
     if (ok) {
         ok = data.Read("TimeRefresh", timeRefresh);
         if (!ok) {
@@ -300,9 +306,9 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
         }
 
         offsets = new uint32[GetNumberOfSignals()];
-        uint32 numberOfSignals = GetNumberOfSignals();
+        uint32 nOfSignals = GetNumberOfSignals();
         //Count the number of bytes
-        for (n = 0u; (n < numberOfSignals) && (ok); n++) {
+        for (n = 0u; (n < nOfSignals) && (ok); n++) {
             offsets[n] = totalSignalMemory;
             uint32 nBytes = 0u;
             ok = GetSignalByteSize(n, nBytes);
@@ -315,11 +321,11 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
     }
 
     //Check the signal index of the timing signal.
-    uint32 numberOfSignals = GetNumberOfSignals();
+    uint32 nOfSignals = GetNumberOfSignals();
     if (ok) {
         //Count the number of MDS+ signals
         uint32 n;
-        for (n = 0u; (n < numberOfSignals) && (ok); n++) {
+        for (n = 0u; (n < nOfSignals) && (ok); n++) {
             ok = data.MoveRelative(data.GetChildName(n));
             if (ok) {
                 //Have to mix and match between the original setting of the DataSource signal (i.e. the one MDS+ related)
@@ -344,7 +350,8 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
             if (originalSignalInformation.Read("NodeName", nodeName)) {
 
                 //Dynamically add MDSWriteNodes to the list
-                MDSWriterNode **tempNodes = new MDSWriterNode*[numberOfMDSSignals + 1u];
+                uint32 numberOfNodes = (numberOfMDSSignals + 1u);
+                MDSWriterNode **tempNodes = new MDSWriterNode*[numberOfNodes];
                 uint32 t;
                 for (t = 0u; t < numberOfMDSSignals; t++) {
                     tempNodes[t] = nodes[t];
