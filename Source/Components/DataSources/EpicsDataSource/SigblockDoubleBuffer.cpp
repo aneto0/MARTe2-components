@@ -58,11 +58,11 @@ void SigblockDoubleBuffer::Init(const SDA::size_type sigblockSize) {
 
 bool SigblockDoubleBuffer::Get(SDA::Sigblock& item) {
     bool fret = true;
-    bool acquired = CAS<BufferStatus>(&status, FULL, READING);
+    bool acquired = CAS<SDA::int32>(&status, FULL, READING);
     if (acquired) {
         //[[assert: status == READING]]
         (void) std::memcpy(&item, &(buffer[sizeOfSigblock * (frontbuffer)]), sizeOfSigblock);
-        (void) XCHG<BufferStatus>(&status, FREE);
+        (void) XCHG<SDA::int32>(&status, FREE);
     }
     else {
         fret = false;
@@ -75,11 +75,11 @@ bool SigblockDoubleBuffer::Put(const SDA::Sigblock& item) {
     SDA::uint32 backbuffer = ((frontbuffer + 1u) % TWO);
     (void) std::memcpy(&(buffer[sizeOfSigblock * backbuffer]), &item, sizeOfSigblock);
     /*lint -e{9007} if left hand of logical operator is true the CAS on right hand must not be executed*/
-    bool acquired = (CAS<BufferStatus>(&status, FREE, WRITING) || CAS<BufferStatus>(&status, FULL, WRITING));
+    bool acquired = (CAS<SDA::int32>(&status, FREE, WRITING) || CAS<SDA::int32>(&status, FULL, WRITING));
     if (acquired) {
         //[[assert: status == WRITING]]
         frontbuffer = backbuffer;
-        (void) XCHG<BufferStatus>(&status, FULL);
+        (void) XCHG<SDA::int32>(&status, FULL);
     }
     else {
         fret = false;

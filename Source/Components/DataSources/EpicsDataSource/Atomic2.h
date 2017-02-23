@@ -139,7 +139,6 @@ inline bool CAS(volatile T* const ptr,
 template<typename T>
 inline T XCHG(volatile T* const ptr,
               const T val) {
-    /*lint -e{930} when T is an enumeration is ok, too*/
     return static_cast<T>(__sync_lock_test_and_set(ptr, val));
 }
 

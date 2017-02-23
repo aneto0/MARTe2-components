@@ -108,9 +108,10 @@ private:
     /**
      * Enumeration for tracking the buffer status
      */
-    enum BufferStatus {
-        FREE, FULL, WRITING, READING
-    };
+    static const SDA::int32 FREE = 0;
+    static const SDA::int32 FULL = 1;
+    static const SDA::int32 WRITING = 2;
+    static const SDA::int32 READING = 3;
 
     /*
      * Size of the sigblock
@@ -125,7 +126,7 @@ private:
     /**
      * Status of the frontbuffer.
      */
-    BufferStatus status;
+    SDA::int32 status;
 
     /**
      * Memory holder for the two sigblocks
