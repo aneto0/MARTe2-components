@@ -81,7 +81,7 @@ inline T XCHG(volatile T* const ptr,
  * @return the value in *b
  */
 template<typename T>
-T READ(volatile T* const b);
+T READ(volatile const T* const b);
 
 /**
  * @brief Atomic write
@@ -151,7 +151,7 @@ inline T XCHG(volatile T* const ptr,
  * Builtins.html#Atomic-Builtins
  */
 template<typename T>
-T READ(volatile T* const b) {
+T READ(volatile const T* const b) {
     T v = *b;
     (void) __sync_synchronize(); //Full memory barrier (ensures val pushed to memory)
     return v;
