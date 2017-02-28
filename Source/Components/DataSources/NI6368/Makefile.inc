@@ -22,42 +22,35 @@
 #
 #############################################################
 
-OBJSX= 
+OBJSX=NI6368ADCInputBroker.x NI6368ADC.x NI6368DAC.x NI6368DIO.x
 
-SPB    = LinuxTimer.x LoggerDataSource.x
+PACKAGE=Components/DataSources
 
-ifdef CODAC_ROOT
-SPB    += NI6259.x
-SPB    += NI6368.x
-endif
+ROOT_DIR=../../../../
 
-ifdef MDSPLUS_DIR
-SPB    += MDSWriter.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
+INCLUDES += -I.
+INCLUDES += -I$(CODAC_ROOT)/include/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
-ifdef CODAC_ROOT
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI6368/NI6368$(LIBEXT)
-endif
-
-ifdef MDSPLUS_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriter$(LIBEXT)
-endif
-
-all: $(OBJS)  $(SUBPROJ)  \
-    $(BUILD_DIR)/DataSources$(LIBEXT) \
-    $(BUILD_DIR)/DataSources$(DLLEXT)
+all: $(OBJS)    \
+    $(BUILD_DIR)/NI6368$(LIBEXT) \
+    $(BUILD_DIR)/NI6368$(DLLEXT)
 	echo  $(OBJS)
 
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+include depends.$(TARGET)
 
+include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 

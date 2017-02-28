@@ -518,7 +518,7 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
     if (ok) {
         ok = data.Read("ClockConvertPolarity", clockConvertPolarityStr);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockSamplePolarity shall be specified");
+            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockConvertPolarity shall be specified");
         }
     }
     if (ok) {

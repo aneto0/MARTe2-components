@@ -1,7 +1,7 @@
 /**
- * @file NI6259ADC.h
- * @brief Header file for class NI6259ADC
- * @date 28/11/2016
+ * @file NI6368ADC.h
+ * @brief Header file for class NI6368ADC
+ * @date 12/01/2017
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,19 +16,20 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class NI6259ADC
+ * @details This header file contains the declaration of the class NI6368ADC
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef NI6259_NI6259ADC_H_
-#define NI6259_NI6259ADC_H_
+#ifndef NI6368_NI6368ADC_H_
+#define NI6368_NI6368ADC_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "pxi-6259-lib.h"
-
+/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
+#include "xseries-lib.h"
+/*lint -D__cplusplus*/
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -42,26 +43,31 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 //Number of ADC channels
-const uint32 NI6259ADC_MAX_CHANNELS = 32u;
+/*lint -esym(551, MARTe::NI6368ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
+const uint32 NI6368ADC_MAX_CHANNELS = 16u;
 //Counter and timer
-const uint32 NI6259ADC_HEADER_SIZE = 2u;
+/*lint -esym(551, MARTe::NI6368ADC_HEADER_SIZE) the symbol is used to define the size of one array below*/
+const uint32 NI6368ADC_HEADER_SIZE = 2u;
+//Sampling frequency
+const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
 /**
- * @brief A DataSource which provides an input interface to the NI6259 boards.
- * @details Note that this is a multiplexed board and thus the sampling frequency is
- * shared between the number of enabled channels.
+ * @brief A DataSource which provides an input interface to the NI6368 boards.
  *
  * The configuration syntax is (names are only given as an example):
- * +NI6259_0 = {
- *     Class = NI6259::NI6259ADC
- *     SamplingFrequency = 1000000 //]0, 1 MHZ]
- *     DeviceName = "/dev/pxi6259" //Mandatory
+ * +NI6368_0 = {
+ *     Class = NI6368::NI6368ADC
+ *     DeviceName = "/dev/pxie-6368" //Mandatory
  *     BoardId = 0 //Mandatory
- *     DelayDivisor = 3 //Mandatory
- *     ClockSampleSource = "SI_TC" //Mandatory. Sampling clock source. Possible values:SI_TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, PULSE, GPCRT0_OUT, STAR_TRIGGER, GPCTR1_OUT, SCXI_TRIG1, ANALOG_TRIGGER, LOW
+ *     DMABufferSize = 1000 //Mandatory. DMA size in bytes > 0.
+ *     ClockSampleSource = "INTERNALTIMING" //Mandatory. Sampling clock source. Possible values: INTERNALTIMING, PFI0, ..., PFI15, RTSI0, ..., RTSI6, DIO_CHGDETECT, G0_OUT, ..., G3_OUT, STAR_TRIGGER, SCXI_TRIG1, LOW, PXIE_DSTARA, ATRIG, PXIE_DSTARB, G0_SAMPLECLK, ..., G3_SAMPLECLK, DI_CONVERT, AO_UPDATE, DO_UPDATE, INTTRIGGERA0, ..., INTTRIGGERA7
  *     ClockSamplePolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Mandatory. Sampling clock polarity. Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
- *     ClockConvertSource = "SI2TC" //Mandatory. Convert clock source. Possible values:SI2TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, GPCRT0_OUT, STAR_TRIGGER, ANALOG_TRIGGER, LOW
- *     ClockConvertPolarity = "RISING_EDGE" //Mandatory. Convert clock polarity. Possible values:RISING_EDGE, FALLING_EDGE
- *     CPUs = 0xf //CPUs where the thread which reads data from the board is allowed to run on.
+ *     ClockConvertSource = "INTERNALTIMING" //Mandatory. Convert clock source. Possible values: INTERNALTIMING, PFI0, ..., PFI15, RTSI0, ..., RTSI6, DIO_CHGDETECT, G0_OUT, ..., G3_OUT, STAR_TRIGGER, SCXI_TRIG1, LOW, PXIE_DSTARA, ATRIG, PXIE_DSTARB, G0_SAMPLECLK, ..., G3_SAMPLECLK, DI_CONVERT, AO_UPDATE, DO_UPDATE, INTTRIGGERA0, ..., INTTRIGGERA7
+ *     ClockConvertPolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Mandatory. Convert clock polarity. Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
+ *     ScanIntervalCounterSource = "COUNTER_TB3" //Mandatory. Scan interval clock source. Possible values: COUNTER_TB1, COUNTER_TB2, COUNTER_TB3, PFI0, ..., PFI15, RTSI0, ..., RTSI6,PXI_CLK0, STAR_TRIGGER, ANALOG_TRIGGER, D_STARA, D_STARB, STAR_TRIGGER
+ *     ScanIntervalCounterPolarity = "RISING_EDGE" //Mandatory. Convert clock polarity. Possible values: RISING_EDGE, FALLING_EDGE
+ *     ScanIntervalCounterPeriod = 50 //Mandatory. Period of the scan interval.
+ *     ScanIntervalCounterDelay = 2 //Mandatory. Minimum delay after the start trigger.
+ *     CPUs = 0xf //Optional. CPU affinity for the thread which reads data from the board.
  *     Signals = {
  *          Counter = { //Mandatory. Number of ticks since last state change.
  *              Type = uint32 //int32 also supported.
@@ -70,11 +76,9 @@ const uint32 NI6259ADC_HEADER_SIZE = 2u;
  *               Type = uint32 //int32 also supported.
  *          }
  *          ADC0_0 = { //At least one ADC input shall be specified.
- *              InputRange = 10 //Optional. Possible values: 0.1, 0.2, 0.5, 1, 2, 5, 10. Default value 10.
- *              Type = float32 //Mandatory. Only the float32 type is supported.
+ *              InputRange = 10 //Optional. Possible values: 1, 2, 5, 10. Default value 10.
+ *              Type = uint16 //Mandatory. Only the uint16 type is supported.
  *              ChannelId = 0 //Mandatory. The channel number.
- *              InputPolarity = Bipolar //Optional. Possible values: Bipolar, Unipolar. Default value Unipolar.
- *              InputMode = RSE //Optional. Possible values: Differential, RSE, NRSE. Default value RSE.
  *          }
  *          ADC1_0 = {
  *             ...
@@ -83,21 +87,21 @@ const uint32 NI6259ADC_HEADER_SIZE = 2u;
  *     }
  * }
  */
-class NI6259ADC: public DataSourceI, public EmbeddedServiceMethodBinderI {
+class NI6368ADC: public DataSourceI, public EmbeddedServiceMethodBinderI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief Default constructor.
      * @details Initialises all the optional parameters as described in the class description.
      */
-NI6259ADC    ();
+NI6368ADC    ();
 
     /**
      * @brief Destructor.
      * @details Closes all the file descriptors associated to the board, including any opened channels.
      * Stops the embedded thread which is reading from this board.
      */
-    virtual ~NI6259ADC();
+    virtual ~NI6368ADC();
 
     /**
      * @brief See DataSourceI::AllocateMemory. NOOP.
@@ -107,7 +111,7 @@ NI6259ADC    ();
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @return 1.
+     * @return 2.
      */
     virtual uint32 GetNumberOfMemoryBuffers();
 
@@ -121,15 +125,14 @@ NI6259ADC    ();
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
      * @details Only InputSignals are supported.
-     * @return MemoryMapSynchronisedInputBroker if frequency > 0, MemoryMapInputBroker otherwise.
+     * @return "NI6368ADCInputBroker".
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
-     * @details If the functionName is the one synchronising it adds a MemoryMapSynchronisedInputBroker instance to
-     *  the inputBrokers, otherwise it adds a MemoryMapInputBroker instance to the inputBrokers.
+     * @details Adds a NI6368ADCInputBroker instance to the inputBrokers.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
             const char8* const functionName,
@@ -151,12 +154,22 @@ NI6259ADC    ();
 
     /**
      * @brief Callback function for the EmbeddedThread that reads data from this ADC board.
-     * @details Reads data from all the configured ADC channels and posts the synchronisation semaphore.
-     * @return false if the synchronisation semaphore cannot be posted. Note that failure to read from the ADC will not
-     * return an error as the reading operation will be retried forever.
-     * @warning This method sleeps for 100 us. This is needed as otherwise it gets stuck on the function pxi6259_read_ai.
+     * @details Reads data from all the configured DMA channels and posts the synchronisation semaphore.
+     * @return false if the synchronisation semaphore cannot be posted.
      */
     virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+
+    /**
+     * @brief Gets the last index written by the DMA (can be either 0 or 1).
+     * @return the last index written by the DMA.
+     */
+    uint8 GetLastBufferIdx() const;
+
+    /**
+     * @brief Returns true if there is one GAM synchronising on this board.
+     * @return true if there is one GAM synchronising on this board.
+     */
+    bool IsSynchronising() const;
 
     /**
      * @brief Starts the EmbeddedThread and sets the counter and the time to zero.
@@ -179,10 +192,8 @@ NI6259ADC    ();
      *  are valid and consistent with the board parameters set during the initialisation phase.
      * In particular the following conditions shall be met:
      * - The type of the counter and of the time shall be 32 bit (un)signed integers.
-     * - All the ADC channels have type float32.
-     * - The number of samples of all the ADC channels is the same.
-     * - For synchronising boards (i.e. where a Frequency was defined for a given channel):
-     *  - The single ADC frequency (SamplingFrequency/NumberOfChannels) > Frequency * Samples
+     * - All the ADC channels have type uint16.
+     * - The number of samples for all the ADC channels is the same.
      * @return true if all the parameters are valid and consistent with the board parameters and if the board can be successfully configured with
      *  these parameters.
      */
@@ -194,9 +205,18 @@ NI6259ADC    ();
      * No real added value on making getters for all the structure elements, just for the sake of testing.
      * @return true if the board was opened (i.e. if SetConfiguredDatabase was successful).
      */
-    bool ReadAIConfiguration(pxi6259_ai_conf_t *conf) const;
+    bool ReadAIConfiguration(xseries_ai_conf_t *conf) const;
 
 private:
+
+    /**
+     * @brief Copies from the DMA memory into the broker memory.
+     * @details The DMA memory is organised in a different way (see xseries-lib.h) w.r.t. to the broker memory.
+     * This function maps the DMA memory into the broker memory.
+     * @param numberOfSamplesFromDMA number of samples to copy between memories.
+     * @return ErrorManagement::FatalError if the semaphore cannot be posted.
+     */
+    ErrorManagement::ErrorType CopyFromDMA(size_t numberOfSamplesFromDMA);
 
     /**
      * The counter value
@@ -219,19 +239,9 @@ private:
     uint32 numberOfSamples;
 
     /**
-     * The sampling frequency.
-     */
-    uint32 samplingFrequency;
-
-    /**
-     * The sampling period in micro-seconds.
-     */
-    uint32 samplingPeriodMicroSeconds;
-
-    /**
      * The board identifier
      */
-    uint32 boardId;
+    int32 boardId;
 
     /**
      * The board device name
@@ -241,42 +251,47 @@ private:
     /**
      * The board individual channel gains
      */
-    uint8 inputRange[NI6259ADC_MAX_CHANNELS];
-
-    /**
-     * The board individual channel polarities
-     */
-    ai_polarity_t inputPolarity[NI6259ADC_MAX_CHANNELS];
-
-    /**
-     * The board individual channel modes (differential, ...)
-     */
-    ai_channel_type_t inputMode[NI6259ADC_MAX_CHANNELS];
+    xseries_input_range_t inputRange[NI6368ADC_MAX_CHANNELS];
 
     /**
      * The ADC sampling clock source;
      */
-    ai_sample_select_t clockSampleSource;
+    xseries_ai_sample_convert_clock_t clockSampleSource;
 
     /**
      * The ADC sampling clock polarity;
      */
-    ai_sample_polarity_t clockSamplePolarity;
+    xseries_ai_polarity_t clockSamplePolarity;
 
     /**
      * The ADC convert clock source;
      */
-    ai_convert_select_t clockConvertSource;
+    xseries_ai_sample_convert_clock_t clockConvertSource;
 
     /**
      * The ADC convert clock polarity;
      */
-    ai_convert_polarity_t clockConvertPolarity;
+    xseries_ai_polarity_t clockConvertPolarity;
 
     /**
-     * The clock delay divisor
+     * The ADC scan interval counter source
      */
-    uint32 delayDivisor;
+    xseries_scan_interval_counter_t scanIntervalCounterSource;
+
+    /**
+     * The ADC scan interval counter polarity
+     */
+    xseries_scan_interval_counter_polarity_t scanIntervalCounterPolarity;
+
+    /**
+     * The scan interval counter period
+     */
+    uint32 scanIntervalCounterPeriod;
+
+    /**
+     * The scan interval counter delay from the trigger
+     */
+    uint32 scanIntervalCounterDelay;
 
     /**
      * The board file descriptor
@@ -286,27 +301,67 @@ private:
     /**
      * The channel file descriptors
      */
-    int32 channelsFileDescriptors[NI6259ADC_MAX_CHANNELS];
+    int32 channelsFileDescriptors[NI6368ADC_MAX_CHANNELS];
 
     /**
      * The signals memory
      */
-    float32 *channelsMemory[NI6259ADC_MAX_CHANNELS];
+    int16 *channelsMemory[2][NI6368ADC_MAX_CHANNELS];
 
     /**
-     * The memory of the current signal being read
+     * Maps the signal index in the signal list to the channel id
      */
-    float32 *channelMemory;
+    uint32 signalIdxToChannelId[NI6368ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE];
+
+    /**
+     * The memory DMA
+     */
+    struct xseries_dma *dma;
+
+    /**
+     * The memory DMA offset
+     */
+    size_t dmaOffset;
+
+    /**
+     * The memory where the DMA is copied to.
+     */
+    int16 *dmaReadBuffer;
+
+    /**
+     * The current DMA channel being copied.
+     */
+    size_t dmaChannel;
+
+    /**
+     * Total number of DMA bytes from the beginning
+     */
+    size_t nBytesInDMAFromStart;
+
+    /**
+     * The last written buffer
+     */
+    uint8 currentBufferIdx;
+
+    /**
+     * The number of samples written to the current buffer.
+     */
+    uint32 currentBufferOffset;
 
     /**
      * The ADCs that are enabled
      */
-    bool adcEnabled[NI6259ADC_MAX_CHANNELS];
+    bool adcEnabled[NI6368ADC_MAX_CHANNELS];
 
     /**
      * The number of enabled adcs
      */
-    uint32 numberOfADCsEnabled;
+    size_t numberOfADCsEnabled;
+
+    /**
+     * The DMA buffer size
+     */
+    uint32 dmaBufferSize;
 
     /**
      * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
@@ -340,5 +395,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* NI6259_NI6259ADC_H_ */
+#endif /* NI6368_NI6368ADC_H_ */
 
