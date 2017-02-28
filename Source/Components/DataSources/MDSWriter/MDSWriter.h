@@ -47,36 +47,36 @@ namespace MARTe {
  *
  * @details Data written into this data source is temporarily stored in a circular buffer and
  * asynchronously flushed to the MDSplus database in the context of a separate thread.
- * This circular buffer can either be continuously stored or stored only when a given event occurs (see StoreOnTriggerbelow).
+ * This circular buffer can either be continuously stored or stored only when a given event occurs (see StoreOnTrigger below).
  *
  * This DataSourceI has the functions FlushSegments and OpenTree registered as an RPC.
  *
  * The configuration syntax is (names are only given as an example):
  * +MDSWriter_0 = {
  *     Class = MDSWriter
- *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above
+ *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
  *     CPUMask = 15 //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data into the MDSplus database.
  *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
  *     TreeName = "mds_m2test" //Compulsory. Name of the MDSplus tree.
- *     PulseNumber = 1 //Optional. If -1 a new pulse will be created.
+ *     PulseNumber = 1 //Optional. If -1 a new pulse will be created and the MDSplus pulse number incremented.
  *     StoreOnTrigger = 1 //Compulsory. If 0 all the data in the circular buffer is continuously stored. If 1 data is stored when the Trigger signal is 1 (see below).
  *     EventName = "updatejScope" //Compulsory. Event sent to jScope when TimeRefresh seconds have elapsed.
- *     TimeRefresh = 5 //Compulsory. Event sent to jScope when TimeRefresh seconds have elapsed.
- *     NumberOfPreTriggers = 2 //Compulsory, when StoreOnTrigger = 1.  Number of cycles to store before the trigger.
- *     NumberOfPostTriggers = 1 //Compulsory, when StoreOnTrigger = 1.  Number of cycles to store after the trigger.
+ *     TimeRefresh = 5 //Compulsory. An event with the name set in the property EventName is sent to jScope when TimeRefresh seconds have elapsed.
+ *     NumberOfPreTriggers = 2 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store before the trigger.
+ *     NumberOfPostTriggers = 1 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store after the trigger.
  *
  *     Signals = {
- *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be store in index 0 of the Signals.
+ *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be set in index 0 of the Signals node. When the value of this signal is 1 data will be stored.
  *             Type = 'uint8" //Type must be uint8
  *         }
  *         Time = { //Compulsory when StoreOnTrigger = 1. Can be store in any index, but TimeSignal must be set = 1
  *             Type = "uint32" //Type must be uint32 or int32
- *             TimeSignal = 1 //When set this signal will be considered as the time source against which all signals will be stored.
+ *             TimeSignal = 1 //When set, this signal will be considered as the time source against which all signals will be stored.
  *         }
  *         SignalUInt16F = { //As many as required.
  *             NodeName = "SIGUINT16F" //Compulsory. MDSplus node name
  *             Period = 2 //Compulsory. Period between signal samples.
- *             MakeSegmentAfterNWrites = 4 //Compulsory. Force the creation of a segment after N MARTe cycles.
+ *             MakeSegmentAfterNWrites = 4 //Compulsory. Forces the creation of a segment after N MARTe cycles.
  *             DecimatedNodeName = "SIGUINT16D" //Optional. The node where MDSplus stores the automatically computed decimated signal.
  *             MinMaxResampleFactor = 4 //Compulsory if DecimatedNodeName is set. Decimation factor that MDSplus applies to the decimated version of the signal.
  *             SamplePhase = 0 //Optional. Shift the time vector by SamplePhase * Period
@@ -151,7 +151,7 @@ MDSWriter    ();
             void * const gamMemPtr);
 
     /**
-     * @brief Calls Execute on all the MDSWriterNodes and if sufficient time has elapsed, issues an MDSplus::Event.
+     * @brief Calls Execute on all the MDSWriterNodes and, if sufficient time has elapsed, issues an MDSplus::Event.
      * @return true if the MDSWriterNode::Execute returns true on all the nodes.
      */
     virtual bool Synchronise();
@@ -191,10 +191,10 @@ MDSWriter    ();
 
     /**
      * @brief Opens a new MDSplus tree.
-     * @param[in] pulseNumber the MDSplus pulse number. If -1 a new pulse number will be created.
+     * @param[in] pulseNumberIn the MDSplus pulse number. If -1 a new pulse number will be created.
      * @return ErrorManagement::NoError if a tree against that pulse number can be successfully opened.
      */
-    ErrorManagement::ErrorType OpenTree(int32 pulseNumber);
+    ErrorManagement::ErrorType OpenTree(int32 pulseNumberIn);
 
     /**
      * @brief Gets the affinity of the thread which is going to be used to asynchronously store the data in the MDS plus database.

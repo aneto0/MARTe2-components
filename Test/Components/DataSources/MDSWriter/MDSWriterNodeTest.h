@@ -41,7 +41,7 @@
 class MDSWriterNodeTest {
 public:
     /**
-     * @brief Tests theructor.
+     * @brief Tests the constructor.
      */
     bool TestConstructor();
 

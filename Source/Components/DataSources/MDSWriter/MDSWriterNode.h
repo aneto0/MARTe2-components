@@ -49,7 +49,7 @@ namespace MARTe {
  * stored inside this segment.
  * A segment will be created when GetNumberOfExecuteCalls() == GetMakeSegmentAfterNWrites() or, in case
  * IsUseTimeVector() == true, when a discontinuity on the time signal is detected, i.e., when the distance between
- *  two time samples is greater than the GetExecutePeriodMicroSecond.
+ *  two time samples is greater than GetExecutePeriodMicroSecond.
  */
 class MDSWriterNode {
 public:
@@ -70,7 +70,7 @@ public:
      *   GetStart() == 0 &&
      *   GetTypeMultiplier() == 0 &&
      *   IsUseTimeVector() == 0 &&
-     *    GetNumberOfExecuteCalls() == 0
+     *   GetNumberOfExecuteCalls() == 0
      */
     MDSWriterNode();
 
