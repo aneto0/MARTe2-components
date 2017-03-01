@@ -42,7 +42,7 @@
 #include "SDNPublisher.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
-
+/*lint -estring(843,"*crc.h*") ignore could be declared const warning from the crc.h header*/
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/

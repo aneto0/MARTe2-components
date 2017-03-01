@@ -38,7 +38,7 @@
 #include "SDNSubscriber.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
-
+/*lint -estring(843,"*crc.h*") ignore could be declared const warning from the crc.h header*/
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -469,7 +469,7 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(const ExecutionInfo& info) {
         ok = (subscriber->Receive(100000000ul) == STATUS_SUCCESS);
 
         if (!ok) {
-            log_debug("SDNSubscriber::Execute - Failed to receive topic '%s'", topicName.Buffer());
+            log_debug("SDNSubscriber::Execute - Failed to receive topic '%s'", topicName.Buffer())
             err.SetError(ErrorManagement::Timeout);
         }
     }
