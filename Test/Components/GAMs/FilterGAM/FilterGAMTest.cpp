@@ -1,7 +1,7 @@
 /**
  * @file FilterGAMTest.cpp
  * @brief Source file for class FilterGAMTest
- * @date Jan 30, 2017 TODO Verify the value and format of the date
+ * @date 30/01/2017
  * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -309,15 +309,9 @@ CLASS_REGISTER(FilterGAMTestHelper, "1.0")
 /*---------------------------------------------------------------------------*/
 
 FilterGAMTest::FilterGAMTest() {
-//Auto-generated constructor stub for FilterGAMTest
-
-//TODO Verify if manual additions are needed here
 }
 
 FilterGAMTest::~FilterGAMTest() {
-//Auto-generated destructor stub for FilterGAMTest
-
-//TODO Verify if manual additions are needed here
 }
 
 bool FilterGAMTest::TestConstructor() {

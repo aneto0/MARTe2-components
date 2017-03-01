@@ -614,7 +614,6 @@ bool FilterGAM::CheckNormalisation() const {
     bool ret = false;
     if (den != NULL_PTR(float32 *)) {
         ret = (IsEqual(static_cast<float32>(1.0), den[0]));
-        //ret = (static_cast<float32>(1.0) == den[0]);
     }
     return ret;
 }

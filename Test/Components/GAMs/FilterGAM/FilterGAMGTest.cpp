@@ -1,7 +1,7 @@
 /**
  * @file FilterGAMGTest.cpp
  * @brief Source file for class FilterGAMGTest
- * @date Jan 30, 2017 TODO Verify the value and format of the date
+ * @date 30/01/2017
  * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and

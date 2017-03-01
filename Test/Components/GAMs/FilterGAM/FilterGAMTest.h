@@ -1,7 +1,7 @@
 /**
  * @file FilterGAMTest.h
  * @brief Header file for class FilterGAMTest
- * @date Jan 30, 2017 TODO Verify the value and format of the date
+ * @date 30/01/2017
  * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -35,11 +35,19 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
+/**
+ * @brief Tests the FilterGAM public methods.
+ */
 class FilterGAMTest {
-//TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API FilterGAMTest)
 public:
+    /**
+     * @brief Constructor. NOOP.
+     */
     FilterGAMTest();
+
+    /**
+     * @brief Destructor. NOOP.
+     */
     virtual ~FilterGAMTest();
 
     /**
@@ -55,19 +63,19 @@ public:
     bool TestInitialise();
 
     /**
-     * @brief Tests an initialization with no ResetInEachState.
-     * @return true if the initialization succeed & ResetInEachState = true (but a warning must be lunched).
+     * @brief Tests an initialisation with no ResetInEachState.
+     * @return true if the initialisation succeed & ResetInEachState = true (but a warning must be lunched).
      */
     bool TestInitialiseNoResetInEachState();
     /**
-     * @brief Tests an initialization with a wrong ResetInEachState.
-     * @return true if the initialization fails.
+     * @brief Tests an initialisation with a wrong ResetInEachState.
+     * @return true if the initialisation fails.
      */
     bool TestInitialiseWrongResetInEachState();
 
     /**
-     * @brief Tests an initialization with no numerator coefficients.
-     * @return true if the initialization fails.
+     * @brief Tests an initialisation with no numerator coefficients.
+     * @return true if the initialisation fails.
      */
     bool TestInitialiseNoNum();
 
@@ -79,8 +87,8 @@ public:
     bool TestInitialiseWrongNumType();
 
     /**
-     * @brief Tests an initialization with no denominator coefficients.
-     * @return true if the initialization fails.
+     * @brief Tests an initialisation with no denominator coefficients.
+     * @return true if the initialisation fails.
      */
     bool TestInitialiseNoDen();
 
