@@ -49,9 +49,7 @@
 namespace MARTe {
 
 SDNSubscriber::SDNSubscriber() :
-                                DataSourceI(),
-                                EmbeddedServiceMethodBinderI(),
-                                executor(*this) {
+        DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
 
     nOfSignals = 0u;
     nOfTriggers = 0u;
@@ -80,11 +78,13 @@ SDNSubscriber::~SDNSubscriber() {
     }
 
     if (subscriber != NULL_PTR(sdn::Subscriber *)) {
-        delete subscriber; subscriber = NULL_PTR(sdn::Subscriber *);
+        delete subscriber;
+        subscriber = NULL_PTR(sdn::Subscriber *);
     }
 
     if (topic != NULL_PTR(sdn::Topic *)) {
-        delete topic; topic = NULL_PTR(sdn::Topic *);
+        delete topic;
+        topic = NULL_PTR(sdn::Topic *);
     }
 
 }
@@ -97,22 +97,25 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     if (!data.Read("Interface", ifaceName)) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be specified");
         ok = false;
-    } else {
+    }
+    else {
         log_info("SDNSubscriber::Initialise - Interface is '%s'", ifaceName.Buffer());
-    } 
+    }
 
     if (!net_is_interface_valid(ifaceName.Buffer())) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be a valid identifier");
         ok = false;
-    } else {
+    }
+    else {
         log_info("SDNSubscriber::Initialise - Interface '%s' is valid", ifaceName.Buffer());
-    } 
+    }
 
     // Retrieve and verify topic name
     if (!data.Read("Topic", topicName)) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Topic must be specified");
         ok = false;
-    } else {
+    }
+    else {
         log_info("SDNSubscriber::Initialise - Topic name is '%s'", topicName.Buffer());
     }
 
@@ -123,7 +126,8 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
         if (!sdn_is_address_valid(destAddr.Buffer())) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
             ok = false;
-        } else {
+        }
+        else {
             log_info("SDNSubscriber::Initialise - Valid destination address '%s'", destAddr.Buffer());
         }
 
@@ -155,7 +159,8 @@ bool SDNSubscriber::SetConfiguredDatabase(StructuredDataI& data) {
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "nOfSignals must be > 0u");
-    } else {
+    }
+    else {
         log_info("SDNSubscriber::SetConfiguredDatabase - Number of signals '%u'", nOfSignals);
     }
 
@@ -173,16 +178,18 @@ bool SDNSubscriber::SetConfiguredDatabase(StructuredDataI& data) {
 bool SDNSubscriber::AllocateMemory() {
 
     // Instantiate a sdn::Metadata structure to configure the topic
-    sdn::Metadata_t mdata; 
+    sdn::Metadata_t mdata;
 
     if (destAddr.Size() == 0u) { // Topic defined by name
         sdn::Topic_InitializeMetadata(mdata, topicName.Buffer(), 0u);
-    } else { // An address as been explicitly provided
+    }
+    else { // An address as been explicitly provided
         sdn::Topic_InitializeMetadata(mdata, topicName.Buffer(), 0u, destAddr.Buffer());
     }
 
     // Instantiate SDN topic from metadata specification
-    topic = new sdn::Topic; topic->SetMetadata(mdata);
+    topic = new sdn::Topic;
+    topic->SetMetadata(mdata);
 
     bool ok = true;
     uint32 signalIndex;
@@ -254,9 +261,7 @@ uint32 SDNSubscriber::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
-bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx,
-                                          const uint32 bufferIdx,
-                                          void*& signalAddress) {
+bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
 
     bool ok = (signalIdx < nOfSignals);
 
@@ -277,8 +282,7 @@ bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx,
     return ok;
 }
 
-const char8* SDNSubscriber::GetBrokerName(StructuredDataI& data,
-                                          const SignalDirection direction) {
+const char8* SDNSubscriber::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
 
     const char8 *brokerName = NULL_PTR(const char8 *);
 
@@ -294,20 +298,20 @@ const char8* SDNSubscriber::GetBrokerName(StructuredDataI& data,
             brokerName = "MemoryMapSynchronisedInputBroker";
             nOfTriggers++;
             synchronising = true;
-        } else {
+        }
+        else {
             brokerName = "MemoryMapInputBroker";
         }
 
-    } else {
+    }
+    else {
         REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with OutputSignals");
     }
 
     return brokerName;
 }
 
-bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
-                                    const char8* const functionName,
-                                    void* const gamMemPtr) {
+bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
 
     // Check if this function has a synchronisation point (i.e. a signal which has Frequency > 0)
     uint32 functionIdx = 0u;
@@ -377,7 +381,8 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
                     }
                 }
             }
-        } else {
+        }
+        else {
             ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
             ok = broker.IsValid();
 
@@ -399,15 +404,12 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
-bool SDNSubscriber::GetOutputBrokers(ReferenceContainer& outputBrokers,
-                                     const char8* const functionName,
-                                     void* const gamMemPtr) {
+bool SDNSubscriber::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
     return false;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns irrespectively of the input parameters.*/
-bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
-                                     const char8* const nextStateName) {
+bool SDNSubscriber::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
 
     bool ok = (subscriber != NULL_PTR(sdn::Subscriber *));
 

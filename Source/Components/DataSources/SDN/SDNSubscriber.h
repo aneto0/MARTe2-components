@@ -35,8 +35,8 @@
 /*---------------------------------------------------------------------------*/
 
 #include "DataSourceI.h"
-#include "EventSem.h"
 #include "EmbeddedServiceMethodBinderI.h"
+#include "EventSem.h"
 #include "SingleThreadService.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
@@ -81,10 +81,10 @@ namespace MARTe {
  * does not allocate memory, rather maps directly the signals to the SDN message payload directly.
  *
  * The DataSource can be used in asynchronous (caching) mode whereby the RT threads are
- * synchronized with an alternative method and the SDNSubscriber holds whichever signal
+ * synchronised with an alternative method and the SDNSubscriber holds whichever signal
  * samples were last received.
  *
- * @notice The DataSource does not support more than one signal  identified as synchronisation point
+ * @notice The DataSource does not support more than one signal identified as synchronisation point
  * so as to ensure that the message payload is consistently provided to all GAMs associated to it. It
  * does support however a signal 'caching' mode (non-synchronising) to cater for the cases where the
  * application real-time threads are synchronised using an alternate source, in which case the
@@ -93,10 +93,10 @@ namespace MARTe {
  * @notice The DataSource does not support signal samples batching.
  *
  * @notice The data payload over the network is structured in the same way as the signal definition
- * order. Interoperability between distributed poarticipants require strict configuration control
+ * order. Interoperability between distributed participants require strict configuration control
  * of the payload definition.
  */
-class SDNSubscriber : public DataSourceI, public EmbeddedServiceMethodBinderI {
+class SDNSubscriber: public DataSourceI, public EmbeddedServiceMethodBinderI {
 
 public:
 
@@ -105,15 +105,15 @@ public:
     /**
      * @brief Default constructor.
      * @post
-     *   topic = NULL_PTR
+     *   topic = NULL_PTR &&
      *   subscriber = NULL_PTR
      */
-    SDNSubscriber();
+SDNSubscriber    ();
 
     /**
      * @brief Destructor. Releases resources.
      * @post
-     *   topic = NULL_PTR
+     *   topic = NULL_PTR &&
      *   subscriber = NULL_PTR
      */
     virtual ~SDNSubscriber();
@@ -144,13 +144,13 @@ public:
      * @warning The unicast behaviour is selected by means of specifying any destination address
      * within the IPv4 unicast address range. The socket is bound to the named interface and the
      * address is not used.
-     * @return true if criteria are met.
+     * @return true if the criteria is met.
      */
     virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief See DataSourceI::SetConfiguredDatabase.
-     * @details The DataSource does not parse the attribute; rather, the method is overloaded to
+     * @details The DataSource does not parse the \a data attribute; rather, the method is overloaded to
      * perform signal validity checks outside the scope of the later SDNSubscriber::AllocateMemory
      * which can be ensured that it is called with signal list previously validated.
      * @return false in case no signals are being configured.
@@ -177,8 +177,8 @@ public:
      * @return 1.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-                                       const uint32 bufferIdx,
-                                       void *&signalAddress);
+            const uint32 bufferIdx,
+            void *&signalAddress);
 
     /**
      * @brief See DataSourceI::GetBrokerName.
@@ -187,7 +187,7 @@ public:
      * @return MemoryMapInputBroker or MemoryMapSynchronisedInputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-                                       const SignalDirection direction);
+            const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
@@ -198,8 +198,8 @@ public:
      * @return true if the BrokerI::Init is successful.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-                                 const char8* const functionName,
-                                 void * const gamMemPtr);
+            const char8* const functionName,
+            void * const gamMemPtr);
 
     /**
      * @brief See DataSourceI::GetOutputBrokers.
@@ -207,8 +207,8 @@ public:
      * @return false.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-                                  const char8* const functionName,
-                                  void * const gamMemPtr);
+            const char8* const functionName,
+            void * const gamMemPtr);
 
     /**
      * @brief See DataSourceI::PrepareNextState.
@@ -217,7 +217,7 @@ public:
      * @return true or false if sdn::Subscriber has not been instantiated.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-                                  const char8 * const nextStateName);
+            const char8 * const nextStateName);
 
     /**
      * @brief See DataSourceI::Synchronise.
@@ -238,18 +238,50 @@ public:
 
 private:
 
-    StreamString ifaceName; // Configuration parameter
-    StreamString topicName; // Configuration parameter
-    StreamString destAddr;  // Configuration parameter (optional)
+    /**
+     * Interface name configuration parameter
+     */
+    StreamString ifaceName;
 
-    uint32 nOfSignals; // Number of input signals
-    uint32 nOfTriggers; // Number of synchronising signals
+    /**
+     * Topic name configuration parameter
+     */
+    StreamString topicName;
+
+    /**
+     * Destination address configuration parameter
+     */
+    StreamString destAddr;
+
+    /**
+     * Number of input signals
+     */
+    uint32 nOfSignals;
+
+    /**
+     * Number of output synchronising  signals
+     */
+    uint32 nOfTriggers;
+
+    /**
+     * True if a GAM is synchronising in this DataSourceI
+     */
     bool synchronising;
 
-    TimeoutType TTTimeout; // Configurable timeout (msec)
+    /**
+     * Configurable synchronisation timeout (msec)
+     */
+    TimeoutType TTTimeout;
 
-    sdn::Topic *topic; // The topic reference
-    sdn::Subscriber *subscriber; // The sdn::Subscriber reference
+    /**
+     * SDN topic reference.
+     */
+    sdn::Topic *topic;
+
+    /**
+     * The sdn::Subscriber reference
+     */
+    sdn::Subscriber *subscriber;
 
     /**
      * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
@@ -268,7 +300,8 @@ private:
 
 };
 
-} /* namespace MARTe */
+}
+/* namespace MARTe */
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

@@ -33,8 +33,8 @@
 
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
-#include "ErrorManagement.h"
 #include "ErrorInformation.h"
+#include "ErrorManagement.h"
 #include "GlobalObjectsDatabase.h"
 #include "GAM.h"
 #include "MemoryMapOutputBroker.h"
@@ -52,7 +52,8 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-SDNPublisher::SDNPublisher() : DataSourceI() {
+SDNPublisher::SDNPublisher() :
+        DataSourceI() {
 
     nOfSignals = 0u;
     nOfTriggers = 0u;
@@ -66,11 +67,13 @@ SDNPublisher::SDNPublisher() : DataSourceI() {
 SDNPublisher::~SDNPublisher() {
 
     if (publisher != NULL_PTR(sdn::Publisher *)) {
-        delete publisher; publisher = NULL_PTR(sdn::Publisher *);
+        delete publisher;
+        publisher = NULL_PTR(sdn::Publisher *);
     }
 
     if (topic != NULL_PTR(sdn::Topic *)) {
-        delete topic; topic = NULL_PTR(sdn::Topic *);
+        delete topic;
+        topic = NULL_PTR(sdn::Topic *);
     }
 
 }
@@ -83,22 +86,25 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
     if (!data.Read("Interface", ifaceName)) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be specified");
         ok = false;
-    } else {
+    }
+    else {
         log_info("SDNPublisher::Initialise - Interface is '%s'", ifaceName.Buffer());
-    } 
+    }
 
     if (!net_is_interface_valid(ifaceName.Buffer())) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be a valid identifier");
         ok = false;
-    } else {
+    }
+    else {
         log_info("SDNPublisher::Initialise - Interface '%s' is valid", ifaceName.Buffer());
-    } 
+    }
 
     // Retrieve and verify topic name
     if (!data.Read("Topic", topicName)) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Topic must be specified");
         ok = false;
-    } else {
+    }
+    else {
         log_info("SDNPublisher::Initialise - Topic name is '%s'", topicName.Buffer());
     }
 
@@ -109,7 +115,8 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
         if (!sdn_is_address_valid(destAddr.Buffer())) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
             ok = false;
-        } else {
+        }
+        else {
             log_info("SDNPublisher::Initialise - Valid destination address '%s'", destAddr.Buffer());
         }
 
@@ -130,7 +137,8 @@ bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "nOfSignals must be > 0u");
-    } else {
+    }
+    else {
         log_info("SDNPublisher::SetConfiguredDatabase - Number of signals '%u'", nOfSignals);
     }
 
@@ -141,7 +149,8 @@ bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
     if (!ok) {
         if (nOfTriggers == 0u) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Missing trigger signal");
-        } else {
+        }
+        else {
             REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with multiple synchronising signals");
         }
     }
@@ -152,16 +161,18 @@ bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
 bool SDNPublisher::AllocateMemory() {
 
     // Instantiate a sdn::Metadata structure to configure the topic
-    sdn::Metadata_t mdata; 
+    sdn::Metadata_t mdata;
 
     if (destAddr.Size() == 0u) { // Topic defined by name
         sdn::Topic_InitializeMetadata(mdata, topicName.Buffer(), 0u);
-    } else { // An address as been explicitly provided
+    }
+    else { // An address as been explicitly provided
         sdn::Topic_InitializeMetadata(mdata, topicName.Buffer(), 0u, destAddr.Buffer());
     }
 
     // Instantiate SDN topic from metadata specification
-    topic = new sdn::Topic; topic->SetMetadata(mdata);
+    topic = new sdn::Topic;
+    topic->SetMetadata(mdata);
 
     bool ok = true;
     uint32 signalIndex;
@@ -234,9 +245,7 @@ uint32 SDNPublisher::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
-bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
-                                         const uint32 bufferIdx,
-                                         void*& signalAddress) {
+bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
 
     bool ok = (signalIdx < nOfSignals);
 
@@ -258,8 +267,7 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
 }
 
 // The method is called for each signal connected to the DataSource
-const char8* SDNPublisher::GetBrokerName(StructuredDataI& data,
-                                         const SignalDirection direction) {
+const char8* SDNPublisher::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
 
     const char8 *brokerName = NULL_PTR(const char8 *);
 
@@ -274,11 +282,13 @@ const char8* SDNPublisher::GetBrokerName(StructuredDataI& data,
         if (trigger == 1u) {
             brokerName = "MemoryMapSynchronisedOutputBroker";
             nOfTriggers++;
-        } else {
+        }
+        else {
             brokerName = "MemoryMapOutputBroker";
         }
 
-    } else {
+    }
+    else {
         REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
     }
 
@@ -286,16 +296,12 @@ const char8* SDNPublisher::GetBrokerName(StructuredDataI& data,
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
-bool SDNPublisher::GetInputBrokers(ReferenceContainer& inputBrokers,
-                                   const char8* const functionName,
-                                   void* const gamMemPtr) {
+bool SDNPublisher::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
     return false;
 }
 
 // The method is called for each GAM connected to the DataSource
-bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
-                                    const char8* const functionName,
-                                    void* const gamMemPtr) {
+bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
 
     uint32 functionIdx = 0u;
     uint32 nOfFunctionSignals = 0u; // Number of signals associated to the function
@@ -321,7 +327,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
     for (signalIndex = 0u; (signalIndex < nOfFunctionSignals) && (ok); signalIndex++) {
         // This version does not support multi-sample signals
         uint32 samples = 0u;
-        ok = GetFunctionSignalSamples(OutputSignals,functionIdx, signalIndex, samples);
+        ok = GetFunctionSignalSamples(OutputSignals, functionIdx, signalIndex, samples);
 
         if (ok) {
             ok = (samples == 1u);
@@ -343,7 +349,6 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
             // A synchronizing broker is inserted in case one signal at least is declared with
             // Trigger property. The GAM may also encompass non-synchronizing signals which require
             // a standard broker.
-
             // Must add the signals which are not triggering but that belong to the same GAM...
             if (nOfFunctionSignals > 1u) {
                 ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
@@ -373,7 +378,8 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
             if (ok) {
                 ok = outputBrokers.Insert(broker);
             }
-        } else {
+        }
+        else {
             // Instantiate appropriate output broker
             ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
             ok = brokerNotSync.IsValid();
@@ -396,8 +402,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers,
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns true irrespectively of the input parameters.*/
-bool SDNPublisher::PrepareNextState(const char8* const currentStateName,
-                                    const char8* const nextStateName) {
+bool SDNPublisher::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
     return true;
 }
 

@@ -77,20 +77,20 @@ namespace MARTe {
  *     }
  * }
  *
- * The DataSource relies on a MemoryMap(Synchrnised)OutputBroker to interface to GAM signals. 
+ * The DataSource relies on a MemoryMap(Synchronised)OutputBroker to interface to GAM signals.
  * The DataSource does not allocate memory, rather maps directly the signals to the SDN message
  * payload directly.
  *
  * @notice The DataSource requires that one and only one signal be identified as synchronisation
- * point.
+ * point (i.e. only one signal must set Trigger = 1).
  *
  * @notice The DataSource does not support signal samples batching.
  *
  * @notice The data payload over the network is structured in the same way as the signal definition
- * order. Interoperability between distributed poarticipants require strict configuration control
+ * order. Interoperability between distributed participants require strict configuration control
  * of the payload definition.
  */
-class SDNPublisher : public DataSourceI {
+class SDNPublisher: public DataSourceI {
 
 public:
 
@@ -99,16 +99,16 @@ public:
     /**
      * @brief Default constructor.
      * @post
-     *   topic = NULL_PTR
-     *   publisher = NULL_PTR
-     *   synchronizing = false
+     *   topic = NULL_PTR &&
+     *   publisher = NULL_PTR &&
+     *   synchronising = false
      */
-    SDNPublisher();
+SDNPublisher    ();
 
     /**
      * @brief Destructor. Releases resources.
      * @post
-     *   topic = NULL_PTR
+     *   topic = NULL_PTR &&
      *   publisher = NULL_PTR
      */
     virtual ~SDNPublisher();
@@ -131,7 +131,7 @@ public:
      * which is purposeful to establish e.g. a unicast connection.
      * The interface <name> is mandatory and verified to correspond to a valid named
      * interface on the host, e.g. eth0.
-     * @return true if criteria are met.
+     * @return true if the criteria above is met.
      */
     virtual bool Initialise(StructuredDataI &data);
 
@@ -165,8 +165,8 @@ public:
      * @return 1.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-                                       const uint32 bufferIdx,
-                                       void *&signalAddress);
+            const uint32 bufferIdx,
+            void *&signalAddress);
 
     /**
      * @brief See DataSourceI::GetBrokerName.
@@ -175,7 +175,7 @@ public:
      * @return MemoryMapOutputBroker or MemoryMapSynchronisedOutputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-                                       const SignalDirection direction);
+            const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
@@ -183,8 +183,8 @@ public:
      * @return false.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-                                 const char8* const functionName,
-                                 void * const gamMemPtr);
+            const char8* const functionName,
+            void * const gamMemPtr);
 
     /**
      * @brief See DataSourceI::GetOutputBrokers.
@@ -194,21 +194,21 @@ public:
      * @return true if the BrokerI::Init is successful.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-                                  const char8* const functionName,
-                                  void * const gamMemPtr);
+            const char8* const functionName,
+            void * const gamMemPtr);
 
     /**
      * @brief See DataSourceI::PrepareNextState.
      * @return true.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-                                  const char8 * const nextStateName);
+            const char8 * const nextStateName);
 
     /**
      * @brief See DataSourceI::Synchronise.
      * @details The method calls sdn::Publisher::Publish and relies on the fact that SDN
      * message payload has been previously completely modified by the OutputBroker instances.
-     * @notice It is for the application-specific configuration to ensureorganise ordering of the
+     * @notice It is for the application-specific configuration to ensure and organise ordering of the
      * GAMs so as to ensure proper payload update prior to publication, e.g. the synchronising
      * GAM is scheduled after all the non-synchronising GAMs contributing signals to the 
      * DataSource.
@@ -218,19 +218,45 @@ public:
 
 private:
 
-    StreamString ifaceName; // Configuration parameter
-    StreamString topicName; // Configuration parameter
-    StreamString destAddr;  // Configuration parameter (optional)
+    /**
+     * Interface name configuration parameter
+     */
+    StreamString ifaceName;
 
-    uint32 nOfSignals; // Number of input signals
-    uint32 nOfTriggers; // Number of input synchronising signals
+    /**
+     * Topic name configuration parameter
+     */
+    StreamString topicName;
 
-    sdn::Topic *topic; // The topic reference
-    sdn::Publisher *publisher; // The sdn::Publisher reference
+    /**
+     * Destination address configuration parameter
+     */
+    StreamString destAddr;
+
+    /**
+     * Number of input signals
+     */
+    uint32 nOfSignals;
+
+    /**
+     * Number of output synchronising signals
+     */
+    uint32 nOfTriggers;
+
+    /**
+     * The topic reference
+     */
+    sdn::Topic *topic;
+
+    /**
+     * The sdn::Publisher reference
+     */
+    sdn::Publisher *publisher;
 
 };
 
-} /* namespace MARTe */
+}
+/* namespace MARTe */
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
