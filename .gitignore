@@ -2,3 +2,11 @@
 /.project
 /.settings/
 /Build/
+*.cov
+*.linux
+*.a
+*.gcda
+*.gcno
+*.o
+*.so
+

@@ -28,6 +28,11 @@ SPB    = LinuxTimer.x LoggerDataSource.x
 
 ifdef CODAC_ROOT
 SPB    += NI6259.x
+SPB    += NI6368.x
+endif
+
+ifdef MDSPLUS_DIR
+SPB    += MDSWriter.x
 endif
 
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
@@ -47,6 +52,11 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/NI6368/NI6368$(LIBEXT)
+endif
+
+ifdef MDSPLUS_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriter$(LIBEXT)
 endif
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.

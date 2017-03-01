@@ -41,6 +41,16 @@ LIBRARIES   += ../../Test/Components/GAMs/$(TARGET)/GAMsTests$(LIBEXT)
 LIBRARIES   += -L$(MARTe2_DIR)/Build/linux/Core/ -lMARTe2
 LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a 
 
+ifdef CODAC_ROOT
+LIBRARIES += -L$(CODAC_ROOT)/lib/ -lnixseries
+LIBRARIES += -L$(CODAC_ROOT)/lib/ -lpxi6259
+endif
+
 ifdef EFDA_MARTe_DIR
 LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
+endif
+
+
+ifdef MDSPLUS_DIR
+LIBRARIES += -L$(MDSPLUS_DIR)/lib64 -lMdsObjectsCppShr
 endif
