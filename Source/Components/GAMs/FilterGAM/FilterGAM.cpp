@@ -114,7 +114,8 @@ bool FilterGAM::Initialise(StructuredDataI& data) {
         ok = (numberOfNumCoeff > 0u);
     }
     if ((!ok) && (!errorDetected)) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::numberOfNumCoeff must be positive", GetName())
+        //Unlikely to be hit as empty arrays should be detected by the condition above.
+        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::numberOfNumCoeff must be > 0", GetName())
         errorDetected = true;
     }
     if (ok) {
@@ -139,7 +140,8 @@ bool FilterGAM::Initialise(StructuredDataI& data) {
         ok = (numberOfDenCoeff > 0u);
     }
     if ((!ok) && (!errorDetected)) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::numberOfDenCoeff must be positive", GetName())
+        //Unlikely to be hit as empty arrays should be detected by the condition above.
+        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "%s::numberOfDenCoeff must be > 0", GetName())
         errorDetected = true;
     }
     if (ok) {
@@ -228,10 +230,6 @@ bool FilterGAM::Setup() {
     if (!errorDetected) {
         lastInputs = new float32 *[numberOfSignals];
         lastOutputs = new float32*[numberOfSignals];
-        if ((lastInputs == NULL_PTR(float32 **)) || (lastOutputs == NULL_PTR(float32 **))) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for lastInputs & outputs array pointers", GetName())
-            errorDetected = true;
-        }
         //if due to MISRA rules
         if ((lastInputs != NULL_PTR(float32 **)) && (lastOutputs != NULL_PTR(float32 **))) {
             for (uint32 m = 0u; (m < numberOfSignals) && (!errorDetected); m++) {
@@ -239,11 +237,7 @@ bool FilterGAM::Setup() {
                 uint32 aux2ToTrickMISRA = numberOfDenCoeff - 1u;
                 lastInputs[m] = new float32[auxToTrickMISRA];
                 lastOutputs[m] = new float32[aux2ToTrickMISRA];
-                if ((lastInputs[m] == NULL_PTR(float32 *)) || (lastOutputs[m] == NULL_PTR(float32 *))) {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for lastInputs & outputs values", GetName())
-                    errorDetected = true;
-                }
-                else {
+                if ((lastInputs[m] != NULL_PTR(float32 *)) && (lastOutputs[m] != NULL_PTR(float32 *))) {
                     for (uint32 i = 0u; i < (numberOfDenCoeff - 1u); i++) {
                         lastOutputs[m][i] = 0.0F;
                     }
@@ -261,31 +255,9 @@ bool FilterGAM::Setup() {
     uint32 *numberOfElementsOutput = NULL_PTR(uint32 *);
     if (!errorDetected) {
         numberOfSamplesInput = new uint32[numberOfSignals];
-        if (numberOfSamplesInput == NULL_PTR(uint32 *)) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for numberOfSamplesInput", GetName())
-            errorDetected = true;
-        }
-    }
-    if (!errorDetected) {
         numberOfElementsInput = new uint32[numberOfSignals];
-        if (numberOfElementsInput == NULL_PTR(uint32 *)) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for numberOfElementsInput", GetName())
-            errorDetected = true;
-        }
-    }
-    if (!errorDetected) {
         numberOfSamplesOutput = new uint32[numberOfSignals];
-        if (numberOfSamplesOutput == NULL_PTR(uint32 *)) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for numberOfSamplesOutput", GetName())
-            errorDetected = true;
-        }
-    }
-    if (!errorDetected) {
         numberOfElementsOutput = new uint32[numberOfSignals];
-        if (numberOfElementsOutput == NULL_PTR(uint32 *)) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for numberOfElementsOutput", GetName())
-            errorDetected = true;
-        }
     }
     //if due to MISRA rules
     if ((numberOfSamplesInput != NULL_PTR(uint32 *)) && (numberOfElementsInput != NULL_PTR(uint32 *)) && (numberOfSamplesOutput != NULL_PTR(uint32 *))
@@ -436,11 +408,7 @@ bool FilterGAM::Setup() {
     if (!errorDetected) {
         input = new float32 *[numberOfSignals];
         output = new float32 *[numberOfSignals];
-        if ((input == NULL_PTR(float32 **)) || (output == NULL_PTR(float32 **))) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::Error allocating memory for input or output", GetName())
-            errorDetected = true;
-        }
-        else {
+        if ((input != NULL_PTR(float32 **)) && (output != NULL_PTR(float32 **))) {
             for (uint32 i = 0u; i < numberOfSignals; i++) {
                 input[i] = static_cast<float32 *>(GetInputSignalMemory(i));
                 output[i] = static_cast<float32 *>(GetOutputSignalMemory(i));
@@ -525,18 +493,10 @@ bool FilterGAM::PrepareNextState(const char8 * const currentStateName,
                         lastInputs[i][n] = 0.0F;
                     }
                 }
-                else {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::lastInputs[i] = NULL ", GetName())
-                    ret = false;
-                }
                 if (lastOutputs[i] != NULL_PTR(float32 *)) {
                     for (uint32 n = 0u; n < (numberOfDenCoeff - 1u); n++) {
                         lastOutputs[i][n] = 0.0F;
                     }
-                }
-                else {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::lastOutputs[i] = NULL ", GetName())
-                    ret = false;
                 }
             }
         }
@@ -555,18 +515,10 @@ bool FilterGAM::PrepareNextState(const char8 * const currentStateName,
                             lastInputs[i][n] = 0.0F;
                         }
                     }
-                    else {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::lastInputs[i] = NULL ", GetName())
-                        ret = false;
-                    }
                     if (lastOutputs[i] != NULL_PTR(float32 *)) {
                         for (uint32 n = 0u; n < (numberOfDenCoeff - 1u); n++) {
                             lastOutputs[i][n] = 0.0F;
                         }
-                    }
-                    else {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "%s::lastOutputs[i] = NULL ", GetName())
-                        ret = false;
                     }
                 }
             }
