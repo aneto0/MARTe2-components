@@ -22,8 +22,8 @@
 #
 #############################################################
 
-TARGET=linux
+TARGET=cov
 
 include Makefile.inc
 
-LIBRARIES += -L$(CODAC_ROOT)/lib/ -lpxi6259
+LIBRARIES += -L$(MDSPLUS_DIR)/lib64 -lMdsObjectsCppShr

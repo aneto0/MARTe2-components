@@ -35,5 +35,5 @@ ssh $USER@$HOST \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/Scheduler/L5GAMs/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/FileSystem/L1Portability/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/FileSystem/L1Portability/Environment/Linux \
--i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/BareMetal/L5GAMs/ \
+-i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/FileSystem/L3Streams/ \
 -v marte_components_flint_eclipse.lnt | grep -v lint-linux.h"
