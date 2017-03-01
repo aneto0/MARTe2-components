@@ -493,9 +493,11 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     }
 
     uint32 i;
-    for (i = 0; (i < gam->numberOfExecutes) && (ok); i++) {
-        scheduler->ExecuteThreadCycle(0);
-        Sleep::MSec(sleepMSec);
+    if (ok) {
+        for (i = 0; (i < gam->numberOfExecutes); i++) {
+            scheduler->ExecuteThreadCycle(0);
+            Sleep::MSec(sleepMSec);
+        }
     }
     if (ok) {
         ok = application->StopCurrentStateExecution();
@@ -2699,9 +2701,11 @@ bool MDSWriterTest::TestOpenTree() {
     }
 
     uint32 i;
-    for (i = 0; (i < gam->numberOfExecutes) && (ok); i++) {
-        scheduler->ExecuteThreadCycle(0);
-        Sleep::MSec(10);
+    if (ok) {
+        for (i = 0; (i < gam->numberOfExecutes); i++) {
+            scheduler->ExecuteThreadCycle(0);
+            Sleep::MSec(10);
+        }
     }
     if (ok) {
         ok = application->StopCurrentStateExecution();
@@ -2763,9 +2767,11 @@ bool MDSWriterTest::TestOpenTree() {
         ok = application->StartNextStateExecution();
     }
 
-    for (i = 0; (i < gam->numberOfExecutes) && (ok); i++) {
-        scheduler->ExecuteThreadCycle(0);
-        Sleep::MSec(10);
+    if (ok) {
+        for (i = 0; (i < gam->numberOfExecutes); i++) {
+            scheduler->ExecuteThreadCycle(0);
+            Sleep::MSec(10);
+        }
     }
     if (ok) {
         ok = application->StopCurrentStateExecution();
