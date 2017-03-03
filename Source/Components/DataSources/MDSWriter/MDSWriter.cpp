@@ -447,7 +447,12 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
         if (FlushSegments() != ErrorManagement::NoError) {
             REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
         }
-        delete tree;
+        try {
+            delete tree;
+        }
+        catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Failed deleting tree %s. Error: %s", treeName.Buffer(), exc.what())
+        }
         tree = NULL_PTR(MDSplus::Tree *);
     }
     //Check for the latest pulse number
@@ -490,8 +495,7 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
                 tree->createPulse(pulseNumber);
             }
             catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber,
-                                        exc.what())
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber, exc.what())
                 ok = false;
             }
         }
@@ -541,7 +545,7 @@ ErrorManagement::ErrorType MDSWriter::FlushSegments() {
     }
     ErrorManagement::ErrorType err(ok);
     return err;
-/*lint -e{1762} function cannot be constant as it is registered as an RPC for CLASS_METHOD_REGISTER*/
+    /*lint -e{1762} function cannot be constant as it is registered as an RPC for CLASS_METHOD_REGISTER*/
 }
 
 const ProcessorType& MDSWriter::GetCPUMask() const {
