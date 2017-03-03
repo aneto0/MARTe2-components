@@ -405,13 +405,16 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
     }
 
     //Check if a time signal was set
+    bool useTimeSignal = (timeSignalIdx > -1);
     if (storeOnTrigger) {
         if (ok) {
-            ok = (timeSignalIdx > -1);
+            ok = (useTimeSignal);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger was specified but no TimeSignal was found");
             }
         }
+    }
+    if (useTimeSignal) {
         if (ok) {
             ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == UnsignedInteger32Bit);
             if (!ok) {
