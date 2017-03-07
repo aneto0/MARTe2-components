@@ -52,6 +52,7 @@ NI6368ADC::NI6368ADC() :
     boardFileDescriptor = -1;
     deviceName = "";
     counter = 0u;
+    counterValue = 0u;
     timeValue = 0u;
     scanIntervalCounterDelay = 0u;
     scanIntervalCounterPeriod = 0u;
@@ -85,6 +86,7 @@ NI6368ADC::NI6368ADC() :
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
+    counterResetFastMux.Create();
 }
 
 /*lint -e{1551} -e{1740} the destructor must guarantee that the NI6368ADC SingleThreadService is stopped and that all the file descriptors are closed. The dma is freed by the xseries-lib*/
@@ -137,7 +139,7 @@ bool NI6368ADC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
     bool ok = (signalIdx < (NI6368ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE));
     if (ok) {
         if (signalIdx == 0u) {
-            signalAddress = reinterpret_cast<void *>(&counter);
+            signalAddress = reinterpret_cast<void *>(&counterValue);
         }
         else if (signalIdx == 1u) {
             signalAddress = reinterpret_cast<void *>(&timeValue);
@@ -197,15 +199,22 @@ bool NI6368ADC::Synchronise() {
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the counter and the timer are always reset irrespectively of the states being changed.*/
 bool NI6368ADC::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
-    counter = 0u;
-    timeValue = 0u;
-    bool ok = true;
-    if (executor.GetStatus() == EmbeddedThreadI::OffState) {
-        keepRunning = true;
-        if (cpuMask != 0u) {
-            executor.SetCPUMask(cpuMask);
+    bool ok = (counterResetFastMux.FastLock() == ErrorManagement::NoError);
+    if (ok) {
+        counter = 0u;
+        counterValue = 0u;
+        currentBufferOffset = 0u;
+        timeValue = 0u;
+    }
+    counterResetFastMux.FastUnLock();
+    if (ok) {
+        if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+            keepRunning = true;
+            if (cpuMask != 0u) {
+                executor.SetCPUMask(cpuMask);
+            }
+            ok = executor.Start();
         }
-        ok = executor.Start();
     }
     return ok;
 }
@@ -918,9 +927,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
                 float32 totalNumberOfSamplesPerSecond = (static_cast<float32>(numberOfSamples) * cycleFrequency);
                 ok = (NI6368ADC_SAMPLING_FREQUENCY == static_cast<uint32>(totalNumberOfSamplesPerSecond));
                 if (!ok) {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError,
-                                            "The numberOfSamples * cycleFrequency (%u) shall be equal to the ADCs acquisition frequency (%u)",
-                                            totalNumberOfSamplesPerSecond, NI6368ADC_SAMPLING_FREQUENCY)
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The numberOfSamples * cycleFrequency (%u) shall be equal to the ADCs acquisition frequency (%u)", totalNumberOfSamplesPerSecond, NI6368ADC_SAMPLING_FREQUENCY)
                 }
             }
         }
@@ -974,8 +981,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (xseries_set_ai_scan_interval_counter(&adcConfiguration, scanIntervalCounterSource, scanIntervalCounterPolarity, scanIntervalCounterPeriod,
-                                                   scanIntervalCounterDelay) == 0);
+        ok = (xseries_set_ai_scan_interval_counter(&adcConfiguration, scanIntervalCounterSource, scanIntervalCounterPolarity, scanIntervalCounterPeriod, scanIntervalCounterDelay) == 0);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName)
         }
@@ -1065,6 +1071,7 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
     ErrorManagement::ErrorType err;
     uint32 s = 0u;
     if (dmaReadBuffer != NULL_PTR(int16 *)) {
+        (void)(counterResetFastMux.FastLock());
         while (s < (numberOfSamplesFromDMA)) {
             channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset] = dmaReadBuffer[s];
             s++;
@@ -1076,18 +1083,26 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
                 if (currentBufferOffset == numberOfSamples) {
                     currentBufferOffset = 0u;
                     currentBufferIdx = (currentBufferIdx + 1u) % 2u;
-                    counter++;
-                    uint64 counterSamples = counter;
-                    counterSamples *= numberOfSamples;
-                    counterSamples *= 1000000LLU;
-                    counterSamples /= NI6368ADC_SAMPLING_FREQUENCY;
-                    timeValue = static_cast<uint32>(counterSamples);
+                    //This is required as otherwise it could copy the wrong counter value in the consumer thread.
+                    counterValue = counter;
+                    if (counter > 0u) {
+                        uint64 counterSamples = counter;
+                        counterSamples *= numberOfSamples;
+                        counterSamples *= 1000000LLU;
+                        counterSamples /= NI6368ADC_SAMPLING_FREQUENCY;
+                        timeValue = static_cast<uint32>(counterSamples);
+                    }
+                    else {
+                        timeValue = 0u;
+                    }
                     if (synchronising) {
                         err = !synchSem.Post();
                     }
+                    counter++;
                 }
             }
         }
+        counterResetFastMux.FastUnLock();
     }
     return err;
 }

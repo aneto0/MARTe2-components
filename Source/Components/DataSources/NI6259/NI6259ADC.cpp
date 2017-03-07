@@ -52,6 +52,7 @@ NI6259ADC::NI6259ADC() :
     boardFileDescriptor = -1;
     deviceName = "";
     counter = 0u;
+    counterValue = 0u;
     timeValue = 0u;
     delayDivisor = 0u;
     samplingPeriodMicroSeconds = 0u;
@@ -63,6 +64,7 @@ NI6259ADC::NI6259ADC() :
     keepRunning = true;
     synchronising = false;
     cpuMask = 0u;
+    counterResetFastMux.Create();
     uint32 n;
     for (n = 0u; n < NI6259ADC_MAX_CHANNELS; n++) {
         inputRange[n] = 1u;
@@ -122,7 +124,7 @@ bool NI6259ADC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
     bool ok = (signalIdx < (NI6259ADC_MAX_CHANNELS + NI6259ADC_HEADER_SIZE));
     if (ok) {
         if (signalIdx == 0u) {
-            signalAddress = reinterpret_cast<void *>(&counter);
+            signalAddress = reinterpret_cast<void *>(&counterValue);
         }
         else if (signalIdx == 1u) {
             signalAddress = reinterpret_cast<void *>(&timeValue);
@@ -232,8 +234,11 @@ bool NI6259ADC::Synchronise() {
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the counter and the timer are always reset irrespectively of the states being changed.*/
 bool NI6259ADC::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+    (void)counterResetFastMux.FastLock();
     counter = 0u;
+    counterValue = 0u;
     timeValue = 0u;
+    counterResetFastMux.FastUnLock();
     bool ok = true;
     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
         keepRunning = true;
@@ -842,6 +847,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
 
 ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
     ErrorManagement::ErrorType err;
+    (void)counterResetFastMux.FastLock();
     if (info.GetStage() == ExecutionInfo::TerminationStage) {
         keepRunning = false;
     }
@@ -876,13 +882,14 @@ ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
                 keepRunning = MemoryOperationsHelper::Copy(channelsMemory[i], channelMemory, numberOfSamples * static_cast<uint32>(sizeof(float32)));
             }
         }
+        counterValue = counter;
+        timeValue = counter * numberOfSamples * samplingPeriodMicroSeconds;
         if (synchronising) {
             err = !synchSem.Post();
         }
         counter++;
-        timeValue = counter * numberOfSamples * samplingPeriodMicroSeconds;
     }
-
+    counterResetFastMux.FastUnLock();
     return err;
 }
 

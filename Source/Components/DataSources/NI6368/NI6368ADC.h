@@ -224,6 +224,11 @@ private:
     uint32 counter;
 
     /**
+     * The counter signal value
+     */
+    uint32 counterValue;
+
+    /**
      * The time value
      */
     uint32 timeValue;
@@ -367,6 +372,11 @@ private:
      * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
      */
     EventSem synchSem;
+
+    /**
+     * Semaphore associated with the counter reset
+     */
+    FastPollingMutexSem counterResetFastMux;
 
     /**
      * True while running
