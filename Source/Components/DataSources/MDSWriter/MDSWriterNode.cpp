@@ -45,7 +45,7 @@ MDSWriterNode::MDSWriterNode() {
     nodeType = 0;
     numberOfElements = 0u;
     period = 0.F;
-    phaseShift = 0u;
+    phaseShift = 0;
     node = NULL_PTR(MDSplus::TreeNode *);
 
     nOfExecuteCalls = 0U;
@@ -172,7 +172,7 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         ok = (data.Read("SamplePhase", phaseShift));
         if (!ok) {
             REPORT_ERROR(ErrorManagement::Information, "SamplePhase not specified. Using 0");
-            phaseShift = 0u;
+            phaseShift = 0;
             ok = true;
         }
     }
@@ -267,6 +267,7 @@ bool MDSWriterNode::Execute() {
             if (currentBuffer == 0u) {
                 if (timeSignalMemory != NULL_PTR(uint32 *)) {
                     start = static_cast<float64>(*timeSignalMemory) * 1e-6;
+                    start += static_cast<float64>(phaseShift) * period;
                 }
             }
             //If we are acquiring data based on events (which do not necessarily occur sequentially in time, trigger every time there is a change in the time vector)
@@ -279,9 +280,11 @@ bool MDSWriterNode::Execute() {
                                 discontinuityFound = true;
                             }
                         }
-                        lastWriteTimeSignal = *timeSignalMemory;
                     }
                 }
+            }
+            if (timeSignalMemory != NULL_PTR(uint32 *)) {
+                lastWriteTimeSignal = *timeSignalMemory;
             }
         }
         //If data is continuous store in the shared buffer that will be flushed as part of the next segment.
@@ -392,6 +395,7 @@ bool MDSWriterNode::Execute() {
             if (timeSignalMemory != NULL_PTR(uint32 *)) {
                 //Update the start
                 start = static_cast<float64>(*timeSignalMemory) * 1e-6;
+                start += static_cast<float64>(phaseShift) * period;
             }
         }
         else {
@@ -453,7 +457,7 @@ float64 MDSWriterNode::GetPeriod() const {
     return period;
 }
 
-uint32 MDSWriterNode::GetPhaseShift() const {
+int32 MDSWriterNode::GetPhaseShift() const {
     return phaseShift;
 }
 

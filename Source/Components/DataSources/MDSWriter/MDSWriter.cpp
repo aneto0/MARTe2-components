@@ -31,7 +31,6 @@
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
 #include "MemoryMapAsyncOutputBroker.h"
-#include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "MDSWriter.h"
 
 /*---------------------------------------------------------------------------*/
@@ -136,7 +135,8 @@ bool MDSWriter::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
 bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
     bool ok = true;
     if (storeOnTrigger) {
-        ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger("MemoryMapAsyncTriggerOutputBroker");
+        ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
+        brokerAsyncTrigger = brokerAsyncTriggerNew;
         ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTrigger);
@@ -525,6 +525,11 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             for (n = 0u; (n < numberOfMDSSignals) && (ok); n++) {
                 ok = nodes[n]->AllocateTreeNode(tree);
             }
+        }
+    }
+    if (ok) {
+        if(brokerAsyncTrigger.IsValid()) {
+            brokerAsyncTrigger->ResetPreTriggerBuffers();
         }
     }
 
