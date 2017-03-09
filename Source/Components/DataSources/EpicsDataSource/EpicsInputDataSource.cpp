@@ -33,7 +33,6 @@
 
 #include "EpicsInputDataSource.h"
 
-//#include "AdvancedErrorManagement.h"
 #include "FastPollingMutexSem.h"
 #include "HeapManager.h"
 #include "MemoryMapSynchronisedInputBroker.h"
@@ -104,12 +103,11 @@ EpicsInputDataSource::EpicsInputDataSource() :
 }
 
 EpicsInputDataSource::~EpicsInputDataSource() {
-//    printf("EpicsInputDataSource::~EpicsInputDataSource()\n");
     if (signals != SDA_NULL_PTR(SDA::Sigblock*)) {
         void* mem = reinterpret_cast<void*>(signals);
         /*lint -e{1551} HeapManager::Free does not throw exceptions*/
         (void) HeapManager::Free(mem);
-        signals = SDA_NULL_PTR(SDA::Sigblock*); //static_cast<SDA::Sigblock*>(mem);
+        signals = SDA_NULL_PTR(SDA::Sigblock*);
     }
     if (consumer != SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) {
         //TODO: Release interprocess shared memory?
