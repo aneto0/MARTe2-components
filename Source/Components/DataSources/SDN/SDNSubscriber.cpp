@@ -469,18 +469,18 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(const ExecutionInfo& info) {
         ok = (subscriber->Receive(100000000ul) == STATUS_SUCCESS);
 
         if (!ok) {
-            log_debug("SDNSubscriber::Execute - Failed to receive topic '%s'", topicName.Buffer())
+	    //REPORT_ERROR(ErrorManagement::Timeout, "sdn::Subscriber failed to receive topic");
             err.SetError(ErrorManagement::Timeout);
         }
     }
 
     if (ok) {
         ok = synchronisingSem.Post();
-    }
 
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::FatalError, "EventSem::Post failed");
-        err.SetError(ErrorManagement::FatalError);
+	if (!ok) {
+	    REPORT_ERROR(ErrorManagement::FatalError, "EventSem::Post failed");
+	    err.SetError(ErrorManagement::FatalError);
+	}
     }
 
     if (err.Contains(ErrorManagement::Timeout)) {
