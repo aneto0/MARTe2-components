@@ -2,7 +2,7 @@
 #
 # Copyright 2015 F4E | European Joint Undertaking for ITER 
 #  and the Development of Fusion Energy ('Fusion for Energy')
-# 
+#
 # Licensed under the EUPL, Version 1.1 or - as soon they 
 # will be approved by the European Commission - subsequent  
 # versions of the EUPL (the "Licence"); 
@@ -20,35 +20,34 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
+OBJSX=StatisticsGAM.x
 
-OBJSX= 
+PACKAGE=Components/GAMs
 
-SPB=IOGAM.x ConversionGAM.x FilterGAM.x StatisticsGAM.x
-ifdef EFDA_MARTe_DIR
-SPB+=BaseLib2GAM.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
+ROOT_DIR=../../../../
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+INCLUDES += -I.
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
-LIBRARIES_STATIC=$(BUILD_DIR)/IOGAM/IOGAM$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/ConversionGAM/ConversionGAM$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/FilterGAM/FilterGAM$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/StatisticsGAM/StatisticsGAM$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAM$(LIBEXT)
-endif
 
-all: $(OBJS)  $(SUBPROJ)  \
-    $(BUILD_DIR)/GAMs$(LIBEXT) \
-    $(BUILD_DIR)/GAMs$(DLLEXT)
-	echo  $(OBJS)
+all: $(OBJS) $(SUBPROJ) \
+	$(BUILD_DIR)/StatisticsGAM$(LIBEXT) \
+	$(BUILD_DIR)/StatisticsGAM$(DLLEXT)
+	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
 
