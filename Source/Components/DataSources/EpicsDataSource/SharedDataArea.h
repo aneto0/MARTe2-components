@@ -104,22 +104,63 @@ private:
      */
     class Representation {
     public:
+        /**
+         * @brief Gets a raw pointer to header.
+         */
         SDA::char8* RawHeader();
+        /**
+         * @brief Gets a raw pointer to items.
+         */
         SDA::char8* RawItems();
+        /**
+         * @brief Gets a typed pointer to header.
+         */
         SDA::Sigblock::Metadata* Header();
+        /**
+         * @brief Gets a typed pointer to items.
+         */
         SDA::SigblockDoubleBuffer* Items();
+        /**
+         * @brief Queries if the shared data area is operational,
+         * i.e. if it has a reader and a writer.
+         */
         bool IsOperational() const;
+        /**
+         * @brief Initialises the pre-header area's attributes.
+         */
         void FillPreHeader(const SDA::size_type sizeOfHeader);
+        /**
+         * @brief Initialises the header area's attributes.
+         */
         void FillHeader(const SDA::uint32 signalsCount,
                         const SDA::Signal::Metadata signalsMetadata[]);
+        /**
+         * @brief Initialises the items area's attributes.
+         */
         void FillItems(const SDA::size_type sizeOfSigblock);
-        //const SDA::size_type size;
+        /**
+         * Flag for marking if the shared data area has a reader linked to it.
+         */
         bool hasReader;
+        /**
+         * Flag for marking if the shared data area has a writer linked to it.
+         */
         bool hasWriter;
+        /**
+         * Counter of missed writes during operation of the shared data area.
+         */
         SDA::uint64 droppedWrites;      //TODO PURGE??
-        //SDA::uint64 missedReads;      //TODO PURGE??
+        /**
+         * Offset of the header area (beginning from rawmem's base address).
+         */
         SDA::size_type offsetOfHeader;
+        /**
+         * Offset of the items area (beginning from rawmem's base address).
+         */
         SDA::size_type offsetOfItems;
+        /**
+         * Placeholder for raw memory where header and items will be mapped.
+         */
         /*lint -e{1501} The following data member has no size because it is
          * mapped onto a previously allocated memory, whose size is unknown
          * at compile time.*/
