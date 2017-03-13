@@ -127,6 +127,12 @@ bool StatisticsGAM::Initialise(StructuredDataI & data) {
         ret = data.Read("WindowSize", windowSize);
     }
 
+    if (!ret) {
+        REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to retrieve WindowSize parameter");
+    } else {
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Retrieve '%u' WindowSize parameter", windowSize);
+    }
+
     return ret;
 }
 
@@ -413,6 +419,10 @@ bool StatisticsGAM::PrepareNextState(const char8 * const currentStateName,
 	    ref->Reset();
 	}
 
+    }
+
+    if (ret) {
+        REPORT_ERROR(ErrorManagement::Information, "Reset StatisticsHelperT<> instance");
     }
 
     return ret;

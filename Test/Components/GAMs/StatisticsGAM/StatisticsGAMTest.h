@@ -93,7 +93,13 @@ public:
      * @brief Tests the reset of the sample buffer.
      * @return true if the sample buffer is reset.
      */
-    bool TestPrepareForNextState();
+    bool TestPrepareForNextState_Error();
+
+    /**
+     * @brief Tests the reset of the sample buffer.
+     * @return true if the sample buffer is reset.
+     */
+    bool TestPrepareForNextState_Success();
 };
 
 /*---------------------------------------------------------------------------*/

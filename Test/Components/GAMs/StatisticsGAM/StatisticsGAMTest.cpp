@@ -61,9 +61,21 @@ bool StatisticsGAMTest::TestConstructor() {
 bool StatisticsGAMTest::TestInitialise() {
     using namespace MARTe;
     StatisticsGAM gam;
+    ConfigurationDatabase config;
+    bool ok = gam.Initialise(config);
+    return ok;
+}
 
+bool StatisticsGAMTest::TestInitialise_WindowSize() {
+    using namespace MARTe;
+    StatisticsGAM gam;
+    ConfigurationDatabase config;
+
+    uint32 size = 1000u;
     bool ok = true;
 
+    ok &= config.Write("WindowSize", size);
+    ok &= gam.Initialise(config);
     return ok;
 }
 
@@ -83,5 +95,21 @@ bool StatisticsGAMTest::TestExecute() {
     bool ok = true;
 
     return ok;
+}
+
+bool StatisticsGAMTest::TestPrepareForNextState_Error() {
+    using namespace MARTe;
+    StatisticsGAM gam;
+
+    bool ok = gam.PrepareNextState("FromCurrent","ToNext"); // Test the instantiated class;
+    return !ok; // Expect failure since StatisticsHelperT<> class has not yet been instantiated
+}
+
+bool StatisticsGAMTest::TestPrepareForNextState_Success() {
+    using namespace MARTe;
+    StatisticsGAM gam;
+
+    bool ok = gam.PrepareNextState("FromCurrent","ToNext"); // Test the instantiated class;
+    return ok; // Expect failure since StatisticsHelperT<> class has not yet been instantiated
 }
 

@@ -49,7 +49,7 @@ namespace MARTe {
  * The configuration syntax is (names and signal quantity are only given as an example):
  * +Statistics = {
  *     Class = StatisticsGAM
- *     WindowSize = 1000
+ *     WindowSize = 1000 // Optional - Default to 1024
  *     InputSignals = {
  *         ExecutionTime = {
  *             DataSource = "DDB"
@@ -62,8 +62,8 @@ namespace MARTe {
  *             DataSource = "DDB"
  *             Type = uint64
  *         }
- *         ExecutionTime_std = {
- *             DataSource = "DDB"
+ *         ExecutionTime_std = { // Optional - Standard deviation comp;uted in presence of 
+ *             DataSource = "DDB" //           this second output signal
  *             Type = uint64
  *         }
  *         ExecutionTime_min = {
@@ -91,6 +91,8 @@ public:
      * @brief Constructor.
      * @post 
      *   signalType = InvalidType
+     *   stats = NULL_PTR(void *)
+     *   windowSize = 1024
      */
     StatisticsGAM();
 
@@ -102,7 +104,7 @@ public:
     /**
      * @brief Initialise the GAM from a configuration file.
      * @param[in] data the GAM configuration.
-     * @return true on succeed
+     * @return true on success.
      */
     virtual bool Initialise(StructuredDataI & data);
 
@@ -113,11 +115,15 @@ public:
      *   SetConfiguredDatabase() && GetNumberOfInputSignals() > 0 &&
      *   GetNumberOfOutputSignals() > 0 &&
      *   All signals are scalar and share the same type.
+     * @post 
+     *   stats = new StatisticsHelperT<signalType> (windowSize)
      */
     virtual bool Setup();
 
     /**
      * @brief Execute method. Statistical computation of the input signal.
+     * @detail Delegates execution of the statistical computation and update
+     * of the output signals to the Execute<signaType> method.
      * @return true.
      */
     virtual bool Execute();

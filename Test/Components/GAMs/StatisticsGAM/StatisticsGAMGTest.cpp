@@ -54,9 +54,24 @@ TEST(StatisticsGAMGTest,TestSetup) {
     ASSERT_TRUE(test.TestSetup());
 }
 
+TEST(StatisticsGAMGTest,TestInitialise_WindowSize) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_WindowSize());
+}
+
 TEST(StatisticsGAMGTest,TestExecute) {
     StatisticsGAMTest test;
     ASSERT_TRUE(test.TestExecute());
+}
+
+TEST(StatisticsGAMGTest,TestPrepareForNextState_Error) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestPrepareForNextState_Error());
+}
+
+TEST(StatisticsGAMGTest,TestPrepareForNextState_Success) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestPrepareForNextState_Success());
 }
 
 
