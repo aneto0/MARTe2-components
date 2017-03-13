@@ -75,10 +75,6 @@ typedef unsigned long long int uint64; //(since C++11)
 typedef char char8;
 
 /**
- * Type alias for bytes
- */
-//typedef char byte;    //TODO: Use it instead of char8 or purge it.
-/**
  * Type alias for size_t
  */
 typedef std::size_t size_type;
