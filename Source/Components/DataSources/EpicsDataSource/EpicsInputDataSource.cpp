@@ -54,15 +54,16 @@ namespace {
 static MARTe::StreamString GetApplicationName() {
     MARTe::StreamString result;
     MARTe::ObjectRegistryDatabase *objDb;
-    objDb = MARTe::ObjectRegistryDatabase::Instance();
-    //TODO: Check objDb
-    MARTe::uint32 nOfObjs = objDb->Size();
     bool found = false;
-    for (MARTe::uint32 i = 0u; (i < nOfObjs) && (!found); i++) {
-        MARTe::ReferenceT < MARTe::RealTimeApplication > rtApp = objDb->Get(i);
-        found = rtApp.IsValid();
-        if (found) {
-            result = rtApp->GetName();
+    objDb = MARTe::ObjectRegistryDatabase::Instance();
+    if (objDb != NULL_PTR(MARTe::ObjectRegistryDatabase*)) {
+        MARTe::uint32 nOfObjs = objDb->Size();
+        for (MARTe::uint32 i = 0u; (i < nOfObjs) && (!found); i++) {
+            MARTe::ReferenceT < MARTe::RealTimeApplication > rtApp = objDb->Get(i);
+            found = rtApp.IsValid();
+            if (found) {
+                result = rtApp->GetName();
+            }
         }
     }
     if (!found) {
