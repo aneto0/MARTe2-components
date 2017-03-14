@@ -59,9 +59,49 @@ TEST(StatisticsGAMGTest,TestSetup_float32) {
     ASSERT_TRUE(test.TestSetup_float32());
 }
 
+TEST(StatisticsGAMGTest,TestSetup_NoInputSignal) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestSetup_NoInputSignal());
+}
+
+TEST(StatisticsGAMGTest,TestSetup_NoOutputSignal) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestSetup_NoOutputSignal());
+}
+
+TEST(StatisticsGAMGTest,TestSetup_NotAScalarInput) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestSetup_NotAScalarInput());
+}
+
+TEST(StatisticsGAMGTest,TestSetup_NotAScalarOutput) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestSetup_NotAScalarOutput());
+}
+
+TEST(StatisticsGAMGTest,TestSetup_DistinctTypes_1) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestSetup_DistinctTypes_1());
+}
+
+TEST(StatisticsGAMGTest,TestSetup_DistinctTypes_2) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestSetup_DistinctTypes_2());
+}
+
 TEST(StatisticsGAMGTest,TestExecute_Error) {
     StatisticsGAMTest test;
     ASSERT_TRUE(test.TestExecute_Error());
+}
+
+TEST(StatisticsGAMGTest,TestExecute_float32) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_float32());
+}
+
+TEST(StatisticsGAMGTest,TestExecute_float64) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_float64());
 }
 
 TEST(StatisticsGAMGTest,TestPrepareForNextState_Error) {

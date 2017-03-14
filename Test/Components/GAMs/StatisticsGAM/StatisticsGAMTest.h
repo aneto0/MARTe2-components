@@ -77,10 +77,64 @@ public:
     bool TestSetup_float32();
 
     /**
+     * @brief Tests the Setup() method
+     * @details Verify the post-conditions
+     * @return true if Setup() fails.
+     */
+    bool TestSetup_NoInputSignal();
+
+    /**
+     * @brief Tests the Setup() method
+     * @details Verify the post-conditions
+     * @return true if Setup() fails.
+     */
+    bool TestSetup_NoOutputSignal();
+
+    /**
+     * @brief Tests the Setup() method
+     * @details Verify the post-conditions
+     * @return true if Setup() fails.
+     */
+    bool TestSetup_NotAScalarInput();
+
+    /**
+     * @brief Tests the Setup() method
+     * @details Verify the post-conditions
+     * @return true if Setup() fails.
+     */
+    bool TestSetup_NotAScalarOutput();
+
+    /**
+     * @brief Tests the Setup() method
+     * @details Verify the post-conditions
+     * @return true if Setup() fails.
+     */
+    bool TestSetup_DistinctTypes_1();
+
+    /**
+     * @brief Tests the Setup() method
+     * @details Verify the post-conditions
+     * @return true if Setup() fails.
+     */
+    bool TestSetup_DistinctTypes_2();
+
+    /**
      * @brief Tests the Execute method.
      * @return true if Execute() fails.
      */
     bool TestExecute_Error();
+
+    /**
+     * @brief Tests the Execute method.
+     * @return true if computed statistics are as expected.
+     */
+    bool TestExecute_float32();
+
+    /**
+     * @brief Tests the Execute method.
+     * @return true if computed statistics are as expected.
+     */
+    bool TestExecute_float64();
 
     /**
      * @brief Tests the reset of the sample buffer.
