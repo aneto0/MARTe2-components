@@ -33,8 +33,6 @@
 #ifndef LINT
 #include <cstdlib>      //Import exit function.
 #include <cstring>      //Import std::memset function
-/* Including cstring.h is mandatory when using strerror()
- * function, otherwise a segmentation fault will arise. */
 #endif
 #include <fcntl.h>      //Import file O_* constants.
 #include <sys/stat.h>   //Import file mode constants.
@@ -99,7 +97,7 @@ void* Platform::MakeShm(const SDA::char8* const name,
     }
 
     if (ok) {
-        (void) std::memset(result, 72, size);//TODO: memset to 0!!
+        (void) std::memset(result, 0, size);
         *(static_cast<SDA::size_type*>(result)) = size;
     }
 
