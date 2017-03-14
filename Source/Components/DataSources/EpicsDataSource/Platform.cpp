@@ -97,7 +97,7 @@ void* Platform::MakeShm(const SDA::char8* const name,
     }
 
     if (ok) {
-        (void) std::memset(result, 0, size);
+        (void) std::memset(result, 72, size);//TODO: memset to 0!!
         *(static_cast<SDA::size_type*>(result)) = size;
     }
 
