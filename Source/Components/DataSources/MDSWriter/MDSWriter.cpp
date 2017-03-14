@@ -63,6 +63,7 @@ MDSWriter::MDSWriter() :
     pulseNumber = MDS_UNDEFINED_PULSE_NUMBER;
     lastTimeRefreshCount = 0u;
     refreshEveryCounts = 0u;
+    brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
@@ -71,7 +72,7 @@ MDSWriter::MDSWriter() :
     }
 }
 
-/*lint -e{1551} the destructor must guarantee that the MDSplus are deleted and the shared memory freed. The signalMemory and the timeSignalMemory are freed by the framework */
+/*lint -e{1551} -e{1579} the destructor must guarantee that the MDSplus are deleted and the shared memory freed. The brokerAsyncTrigger is freed by the ReferenceT */
 MDSWriter::~MDSWriter() {
     if (FlushSegments() != ErrorManagement::NoError) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
@@ -136,10 +137,10 @@ bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     bool ok = true;
     if (storeOnTrigger) {
         ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
-        brokerAsyncTrigger = brokerAsyncTriggerNew;
-        ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
+        brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
+        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
-            ok = outputBrokers.Insert(brokerAsyncTrigger);
+            ok = outputBrokers.Insert(brokerAsyncTriggerNew);
         }
     }
     else {
@@ -528,7 +529,7 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
         }
     }
     if (ok) {
-        if(brokerAsyncTrigger.IsValid()) {
+        if (brokerAsyncTrigger != NULL_PTR(MemoryMapAsyncTriggerOutputBroker *)) {
             brokerAsyncTrigger->ResetPreTriggerBuffers();
         }
     }
@@ -540,6 +541,9 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
 ErrorManagement::ErrorType MDSWriter::FlushSegments() {
     uint32 n;
     bool ok = true;
+    if (brokerAsyncTrigger != NULL_PTR(MemoryMapAsyncTriggerOutputBroker *)) {
+        ok = brokerAsyncTrigger->FlushAllTriggers();
+    }
     if (nodes != NULL_PTR(MDSWriterNode **)) {
         for (n = 0u; ((n < numberOfMDSSignals) && (ok)); n++) {
             ok = nodes[n]->Flush();

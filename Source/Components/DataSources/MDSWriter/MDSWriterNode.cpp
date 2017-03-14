@@ -250,6 +250,7 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree * const tree) {
     return ok;
 }
 
+
 bool MDSWriterNode::Flush() {
     flush = true;
     return Execute();
@@ -339,7 +340,6 @@ bool MDSWriterNode::Execute() {
         if (!useTimeVector) {
             start += static_cast<float64>(numberOfElementsPerSegment) * period;
         }
-
         if (nodeType == DTYPE_W) {
             array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), numberOfElementsPerSegment);
         }
@@ -403,7 +403,6 @@ bool MDSWriterNode::Execute() {
         }
         //lint -e{429} startD, endD, dimension are freed by MDSplus upon deletion of dimension
     }
-
     return ok;
 }
 

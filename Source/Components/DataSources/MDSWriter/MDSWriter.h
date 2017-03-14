@@ -369,7 +369,7 @@ private:
     /**
      * The asynchronous triggered broker that provides the interface between the GAMs and the MDS+ memory
      */
-    ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger;
+    MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
 
 };
 }
