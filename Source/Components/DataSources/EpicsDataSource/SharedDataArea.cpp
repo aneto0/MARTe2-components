@@ -85,7 +85,7 @@ SharedDataArea::SigblockProducer* SharedDataArea::GetSigblockProducerInterface()
     if (shm != NULL) {
         shm->hasWriter = true;
     }
-    /*lint -e{1939} The SigblockProducer does not add members to Representation (read Representaion's documentation)*/
+    /*lint -e{1939} The SigblockProducer does not add members to Representation (read Representation's documentation)*/
     return reinterpret_cast<SigblockProducer*>(shm);
 }
 
@@ -95,7 +95,7 @@ SharedDataArea::SigblockConsumer* SharedDataArea::GetSigblockConsumerInterface()
     if (shm != NULL) {
         shm->hasReader = true;
     }
-    /*lint -e{1939} The SigblockProducer does not add members to Representation (read Representaion's documentation)*/
+    /*lint -e{1939} The SigblockProducer does not add members to Representation (read Representation's documentation)*/
     return reinterpret_cast<SigblockConsumer*>(shm);
 }
 
@@ -118,42 +118,39 @@ void SharedDataArea::Representation::FillItems(const SDA::size_type sizeOfSigblo
     items->Init(sizeOfSigblock);
 }
 
-SharedDataArea SharedDataArea::BuildSharedDataAreaForMARTe(const SDA::char8* const name,
-                                                           const SDA::uint32 signalsCount,
-                                                           const SDA::Signal::Metadata signalsMetadata[]) {
+bool SharedDataArea::BuildSharedDataAreaForMARTe(SharedDataArea& sda,
+                                                 const SDA::char8* const name,
+                                                 const SDA::uint32 signalsCount,
+                                                 const SDA::Signal::Metadata signalsMetadata[]) {
+    bool ok;
     SDA::size_type sizeOfSigblock = CalculateSizeOfSigblock(signalsCount, signalsMetadata);
     SDA::size_type sizeOfHeader = SDA::Sigblock::Metadata::SizeOf(signalsCount);
     SDA::size_type sizeOfItems = SDA::SigblockDoubleBuffer::SizeOf(sizeOfSigblock);
     SDA::size_type totalSize = (sizeof(SharedDataArea::Representation) + sizeOfHeader + sizeOfItems);
-//	SharedDataArea* obj = NULL;
     Representation* tmp_shm_ptr = SDA_NULL_PTR(Representation*);
 
-//	printf("*** SharedDataArea::BuildSharedDataAreaForMARTe name=%s sizeOfHeader=%lu, sizeOfSigblock=%lu, sizeOfItems=%lu, totalSize=%lu ***\n", name, sizeOfHeader, sizeOfSigblock, sizeOfItems, totalSize);
     void* raw_shm_ptr = SDA::Platform::MakeShm(name, totalSize);
-    if (raw_shm_ptr == NULL) {
-        //error
+    if (raw_shm_ptr == SDA_NULL_PTR(void*)) {
+        ok = false;
     }
     else {
         tmp_shm_ptr = static_cast<SharedDataArea::Representation*>(raw_shm_ptr);
-//std::memset(tmp_shm_ptr+sizeof(size_t), 88, totalSize);
         tmp_shm_ptr->FillPreHeader(sizeOfHeader);
-//		printf("*** SharedDataArea::BuildSharedDataAreaForMARTe tmp_shm_ptr->rawmem=%p tmp_shm_ptr->Header()=%p, tmp_shm_ptr->Items()=%p ***\n", tmp_shm_ptr->rawmem, tmp_shm_ptr->Header(), tmp_shm_ptr->Items());
-//std::memset(tmp_shm_ptr->Header(), 89, sizeOfHeader);
-//std::memset(tmp_shm_ptr->Items(), 90, sizeOfItems);
         tmp_shm_ptr->FillHeader(signalsCount, signalsMetadata);
         tmp_shm_ptr->FillItems(sizeOfSigblock);
-//		obj = reinterpret_cast<SharedDataArea*>(tmp_shm_ptr);
+        sda.shm = tmp_shm_ptr;
+        ok = true;
     }
-    return SharedDataArea(tmp_shm_ptr);
+    return ok;
 }
 
-SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const SDA::char8* const name) {
+bool SharedDataArea::BuildSharedDataAreaForEPICS(SharedDataArea& sda, const SDA::char8* const name) {
+    bool ok;
     void* raw_shm_ptr;
-//	SharedDataArea* obj = NULL;
     Representation* tmp_shm_ptr = SDA_NULL_PTR(Representation*);
     raw_shm_ptr = SDA::Platform::JoinShm(name);
-    if (raw_shm_ptr == NULL) {
-        //error
+    if (raw_shm_ptr == SDA_NULL_PTR(void*)) {
+        ok = false;
     }
     else {
         tmp_shm_ptr = static_cast<SharedDataArea::Representation*>(raw_shm_ptr);
@@ -164,11 +161,10 @@ SharedDataArea SharedDataArea::BuildSharedDataAreaForEPICS(const SDA::char8* con
         //if it was already true, return not success
         //it was false, return the address of the SharedData
 
-//	    obj = reinterpret_cast<SharedDataArea*>(tmp_shm_ptr);
-//    	printf("The device has joined the shared data area \"%s\"\n", name);
+        sda.shm = tmp_shm_ptr;
+        ok = true;
     }
-//	printf("*** SharedDataArea::BuildSharedDataAreaForEPICS obj=%p ***\n", obj);
-    return SharedDataArea(tmp_shm_ptr);
+    return ok;
 }
 
 bool SharedDataArea::SigblockConsumer::ReadSigblock(SDA::Sigblock& sb) {

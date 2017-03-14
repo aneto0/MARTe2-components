@@ -72,14 +72,14 @@ public:
      * @brief Unmaps an interprocess shared memory identified by its base
      * address and a given size.
      */
-    static void DettachShm(void* const shm_ptr,
+    static bool DettachShm(void* const shm_ptr,
                            const SDA::size_type shm_size);
 
     /**
      * @brief Deletes an interprocess shared memory from the system,
      * identified by its system wide unique name.
      */
-    static void DestroyShm(const SDA::char8* const name);
+    static bool DestroyShm(const SDA::char8* const name);
 };
 
 }

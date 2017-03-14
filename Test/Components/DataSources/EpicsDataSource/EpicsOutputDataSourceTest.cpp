@@ -113,85 +113,87 @@ bool EpicsOutputDataSourceTest::TestSynchronise() {
         }
 
         //Setup producers's interface to shared data area:
-        sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(target.GetSharedDataAreaName().Buffer());
-        consumer = sdaClient.GetSigblockConsumerInterface();
+        ok &= SDA::SharedDataArea::BuildSharedDataAreaForEPICS(sdaClient, target.GetSharedDataAreaName().Buffer());
 
-        //Allocate memory for dataset:
-        MallocDataSet(dataset, consumer->GetSigblockMetadata()->GetTotalSize());
+        if (ok) {
+            consumer = sdaClient.GetSigblockConsumerInterface();
 
-        //Initialize items of dataset:
-        InitDataSet<SignalType>(dataset, numberOfSignals);
+            //Allocate memory for dataset:
+            MallocDataSet(dataset, consumer->GetSigblockMetadata()->GetTotalSize());
 
-        //Write all the sigblocks of the dataset to the output data source,
-        //checking that they can be read by the shared data area and have
-        //the same values than those from the dataset. They will be written
-        //and read taking turns (1 write, 1 read).
-        {
-            bool error = false;
-            unsigned int i = 0;
+            //Initialize items of dataset:
+            InitDataSet<SignalType>(dataset, numberOfSignals);
 
-            //Write and read sigblocks taking turns:
-            while (i < dataset.size && !error) {
-                bool writeOk;
+            //Write all the sigblocks of the dataset to the output data source,
+            //checking that they can be read by the shared data area and have
+            //the same values than those from the dataset. They will be written
+            //and read taking turns (1 write, 1 read).
+            {
+                bool error = false;
+                unsigned int i = 0;
 
-                //Write the sigblock on the position i of the dataset to the output data source:
-                for (uint32 j = 0; j < numberOfSignals; j++) {
-                    SignalType* cursig = reinterpret_cast<SignalType*>(signals[j]);
-                    SignalType* refsig = reinterpret_cast<SignalType*>(dataset.items[i] + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
-                    *cursig = *refsig;
-                }
+                //Write and read sigblocks taking turns:
+                while (i < dataset.size && !error) {
+                    bool writeOk;
 
-                //Synchronise the output data source with the shared data area
-                //(i.e. writes the signals of the output data source to the
-                //shared data area as a sigblock):
-                writeOk = target.Synchronise();
+                    //Write the sigblock on the position i of the dataset to the output data source:
+                    for (uint32 j = 0; j < numberOfSignals; j++) {
+                        SignalType* cursig = reinterpret_cast<SignalType*>(signals[j]);
+                        SignalType* refsig = reinterpret_cast<SignalType*>(dataset.items[i] + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
+                        *cursig = *refsig;
+                    }
 
-                if (writeOk) {
-                    SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
-                    bool readOk;
+                    //Synchronise the output data source with the shared data area
+                    //(i.e. writes the signals of the output data source to the
+                    //shared data area as a sigblock):
+                    writeOk = target.Synchronise();
 
-                    //Allocate memory for sigblock:
-                    sigblock = MallocSigblock(consumer->GetSigblockMetadata()->GetTotalSize());
+                    if (writeOk) {
+                        SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
+                        bool readOk;
 
-                    //Read the next sigblock available on the shared data area:
-                    readOk = consumer->ReadSigblock(*sigblock);
+                        //Allocate memory for sigblock:
+                        sigblock = MallocSigblock(consumer->GetSigblockMetadata()->GetTotalSize());
 
-                    if (readOk) {
+                        //Read the next sigblock available on the shared data area:
+                        readOk = consumer->ReadSigblock(*sigblock);
 
-                        //Check the values of the signals into the sigblock read
-                        //from the shared data area against those of the data set:
-                        unsigned int j = 0;
-                        while (j < numberOfSignals && !error) {
-                            SignalType* cursig = reinterpret_cast<SignalType*>(sigblock + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
-                            SignalType* refsig = reinterpret_cast<SignalType*>(dataset.items[i] + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
-                            error = (*cursig != *refsig);
-                            j++;
+                        if (readOk) {
+
+                            //Check the values of the signals into the sigblock read
+                            //from the shared data area against those of the data set:
+                            unsigned int j = 0;
+                            while (j < numberOfSignals && !error) {
+                                SignalType* cursig = reinterpret_cast<SignalType*>(sigblock + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
+                                SignalType* refsig = reinterpret_cast<SignalType*>(dataset.items[i] + consumer->GetSigblockMetadata()->GetSignalOffsetByIndex(j));
+                                error = (*cursig != *refsig);
+                                j++;
+                            }
                         }
+                        else {
+                            error = true;
+                        }
+
+                        //Free memory for sigblock:
+                        FreeSigblock(sigblock);
                     }
                     else {
                         error = true;
                     }
+                    i++;
+                }
 
-                    //Free memory for sigblock:
-                    FreeSigblock(sigblock);
-                }
-                else {
-                    error = true;
-                }
-                i++;
+                //Check execution's status:
+                ok &= !error;
             }
 
-            //Check execution's status:
-            ok &= !error;
+            //Free memory of dataset:
+            FreeDataSet(dataset);
         }
-
-        //Free memory of dataset:
-        FreeDataSet(dataset);
-
     }
 
     //Release shared data area: //TODO: Remove this when autorelease will be added to EpicsOutputDataSourceTest.
-    SDA::Platform::DestroyShm(tmp_SharedDataAreaName.Buffer());
+    ok &= SDA::Platform::DestroyShm(tmp_SharedDataAreaName.Buffer());
 
     return ok;
 }
@@ -201,6 +203,7 @@ bool EpicsOutputDataSourceTest::TestAllocateMemory() {
     bool ok = false;
     const char targetName[] = "EpicsOutputDataSourceTest_TestAllocateMemory";
     EpicsOutputDataSource target;
+    SDA::SharedDataArea sda;
 
     //Initialize the name of the data source:
     target.SetName(targetName);
@@ -217,7 +220,7 @@ bool EpicsOutputDataSourceTest::TestAllocateMemory() {
     ok &= target.AllocateMemory();
 
     //Check postcondition:
-    SDA::SharedDataArea::BuildSharedDataAreaForEPICS(target.GetSharedDataAreaName().Buffer());
+    ok &= SDA::SharedDataArea::BuildSharedDataAreaForEPICS(sda, target.GetSharedDataAreaName().Buffer());
 
     //Check class invariant:
     ok &= INVARIANT(target);
@@ -264,17 +267,19 @@ bool EpicsOutputDataSourceTest::TestGetSignalMemoryBuffer() {
     ok &= target.SetConfiguredDatabase(cdb);
 
     //Allocate memory of data source (it setups the shared data area):
-    target.AllocateMemory();
+    ok &= target.AllocateMemory();
 
     //Cache an array of pointers to the signal's addresses:
     for (uint32 i = 0; i < numberOfSignals && ok; i++) {
         ok &= target.GetSignalMemoryBuffer(i, 0, signals[i]);
     }
 
-    //Set values to signal:
-    for (uint32 i = 0; i < numberOfSignals; i++) {
-        uint32* signal = reinterpret_cast<uint32*>(signals[i]);
-        *signal = i;
+    if (ok) {
+        //Set values to signal:
+        for (uint32 i = 0; i < numberOfSignals; i++) {
+            uint32* signal = reinterpret_cast<uint32*>(signals[i]);
+            *signal = i;
+        }
     }
 
     //Check values of signals:

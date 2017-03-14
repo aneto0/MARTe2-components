@@ -272,9 +272,10 @@ public:
      * memory, which is identified by the name parameter and conforms to the
      * representation expected by a SharedDataArea object.
      */
-    static SharedDataArea BuildSharedDataAreaForMARTe(const SDA::char8* const name,
-                                                      const SDA::uint32 signalsCount,
-                                                      const SDA::Signal::Metadata signalsMetadata[]);
+    static bool BuildSharedDataAreaForMARTe(SharedDataArea& sda,
+                                            const SDA::char8* const name,
+                                            const SDA::uint32 signalsCount,
+                                            const SDA::Signal::Metadata signalsMetadata[]);
 
     /**
      * @brief This static method joins an existent interprocess shared memory
@@ -291,13 +292,14 @@ public:
      * shared memory, which is identified by the name parameter and conforms
      * to the representation expected by a SharedDataArea object.
      */
-    static SharedDataArea BuildSharedDataAreaForEPICS(const SDA::char8* const name);
+    static bool BuildSharedDataAreaForEPICS(SharedDataArea& sda,
+                                            const SDA::char8* const name);
 
 private:
 
     /**
-     * @brief Constructor which builds the instance linking it to an existing
-     * shared memory.
+     * @brief Constructor which builds the instance (linking it to an existing
+     * shared memory).
      * @param[in] obj The pointer to the shared memory which honors the
      * representation specified by the structure Representation.
      */

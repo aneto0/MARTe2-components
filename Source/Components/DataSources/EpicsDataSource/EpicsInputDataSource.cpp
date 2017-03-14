@@ -151,20 +151,22 @@ bool EpicsInputDataSource::AllocateMemory() {
     }
 
     /*lint -e{9132} array's length given by numberOfSignals*/
-    SDA::SharedDataArea sbpm = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sharedDataAreaName.Buffer(), numSignals, smd_for_init);
-    consumer = sbpm.GetSigblockConsumerInterface();
-    SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
-    SDA::size_type totalSize = sbmd->GetTotalSize();
-    /*lint -e{9119} -e{712} -e{747} calls to Malloc and Set are protected*/
-    if (totalSize <= MAX_UINT32) {
-        void* mem = HeapManager::Malloc(totalSize);
-        (void) MemoryOperationsHelper::Set(mem, '\0', totalSize);
-        signals = static_cast<SDA::Sigblock*>(mem);
+    SDA::SharedDataArea sbpm;
+    ret = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sbpm, sharedDataAreaName.Buffer(), numSignals, smd_for_init);
+    if (ret) {
+        consumer = sbpm.GetSigblockConsumerInterface();
+        SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
+        SDA::size_type totalSize = sbmd->GetTotalSize();
+        /*lint -e{9119} -e{712} -e{747} calls to Malloc and Set are protected*/
+        if (totalSize <= MAX_UINT32) {
+            void* mem = HeapManager::Malloc(totalSize);
+            (void) MemoryOperationsHelper::Set(mem, '\0', totalSize);
+            signals = static_cast<SDA::Sigblock*>(mem);
+        }
+        else {
+            ret = false;
+        }
     }
-    else {
-        ret = false;
-    }
-
     return ret;
 }
 

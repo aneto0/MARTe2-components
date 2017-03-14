@@ -102,7 +102,7 @@ static bool MasterProcessPrologue(void*& shm,
     shm = SDA::Platform::MakeShm(name, SHMSIZE);
 
     ok = (shm != NULL);
-    ok &= (access(fullname, R_OK | W_OK) == 0);	//TODO: An alternative to access would be shm_open with O_RDONLY.
+    ok &= (access(fullname, R_OK | W_OK) == 0);	//An alternative to call access function would be calling shm_open with O_RDONLY.
 
     if (ok) {
         ShmMapping* map = NULL;
@@ -185,10 +185,10 @@ static bool MasterProcessEpilogue(void* shm,
             }
 
             //Dettach SHM:
-            SDA::Platform::DettachShm(shm, map->size);
+            ok &= SDA::Platform::DettachShm(shm, map->size);
 
             //Destroy SHM:
-            SDA::Platform::DestroyShm(name);
+            ok &= SDA::Platform::DestroyShm(name);
             ok &= (access(fullname, R_OK | W_OK) == -1);
         }
     }
@@ -236,7 +236,7 @@ static void SlaveProcess(const char* const name,
             ok &= (data->ok == true);
 
             //Check parent's pid:
-            ok = (data->pid == ppid);
+            ok &= (data->pid == ppid);
 
             //Check query token:
             for (unsigned int i = 0; i < tokenlen; i++) {
@@ -255,7 +255,7 @@ static void SlaveProcess(const char* const name,
             }
 
             //Dettach SHM:
-            SDA::Platform::DettachShm(shm, map->size);
+            ok &= SDA::Platform::DettachShm(shm, map->size);
         }
     }
 }

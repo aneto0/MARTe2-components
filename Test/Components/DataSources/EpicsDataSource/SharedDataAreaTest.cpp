@@ -198,75 +198,76 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
     GenerateMetadataForSigblock<SignalType>(sbmd, numberOfSignals);
 
     //Build the shared data area as server:
-    sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, numberOfSignals, sbmd);
+    ok = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sdaServer, shmName, numberOfSignals, sbmd);
 
-    //Check building of shared data area:
-    //ok &= (...) //TODO: Write an expression for checking the server.
+    if (ok) {
 
-    //Setup producer's interface to shared data area:
-    producer = sdaServer.GetSigblockProducerInterface();
+        //Setup producer's interface to shared data area:
+        producer = sdaServer.GetSigblockProducerInterface();
 
-    //Build the shared data area as client:
-    sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
+        //Build the shared data area as client:
+        ok &= SDA::SharedDataArea::BuildSharedDataAreaForEPICS(sdaClient, shmName);
 
-    //Check building of shared data area:
-    //ok &= (...) //TODO: Write an expression for checking the client.
+        if (ok) {
 
-    //Setup consumer's interface to shared data area:
-    consumer = sdaClient.GetSigblockConsumerInterface();
+            //Setup consumer's interface to shared data area:
+            consumer = sdaClient.GetSigblockConsumerInterface();
 
-    //Get sigblock's size:
-    size = producer->GetSigblockMetadata()->GetTotalSize();
+            //Get sigblock's size:
+            size = producer->GetSigblockMetadata()->GetTotalSize();
 
-    //Check coherence of size:
-    ok &= (producer->GetSigblockMetadata()->GetTotalSize() == consumer->GetSigblockMetadata()->GetTotalSize());
+            //Check coherence of size:
+            ok &= (producer->GetSigblockMetadata()->GetTotalSize() == consumer->GetSigblockMetadata()->GetTotalSize());
 
-    //Allocate memory for dataset:
-    MallocDataSet(dataset, size);
+            //Allocate memory for dataset:
+            MallocDataSet(dataset, size);
 
-    //Initialize items of dataset:
-    InitDataSet<SignalType>(dataset, numberOfSignals);
+            //Initialize items of dataset:
+            InitDataSet<SignalType>(dataset, numberOfSignals);
 
-    // Write all the sigblocks of the dataset to the shared data area, checking
-    // that they can be read and have the same values than those from the
-    // dataset. They will be written and read taking turns (1 write, 1 read).
-    {
-        SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
-        unsigned int i = 0;
-        bool error = false;
+            // Write all the sigblocks of the dataset to the shared data area, checking
+            // that they can be read and have the same values than those from the
+            // dataset. They will be written and read taking turns (1 write, 1 read).
+            {
+                SDA::Sigblock* sigblock = SDA_NULL_PTR(SDA::Sigblock*);
+                unsigned int i = 0;
+                bool error = false;
 
-        //Allocate memory for sigblock:
-        sigblock = MallocSigblock(size);
+                //Allocate memory for sigblock:
+                sigblock = MallocSigblock(size);
 
-        //Write and read sigblocks taking turns:
-        while (i < maxTests && !error) {
-            bool writingSucceeded;
-            writingSucceeded = producer->WriteSigblock(*(dataset.items[i]));
-            if (writingSucceeded) {
-                bool readingSucceeded;
-                readingSucceeded = consumer->ReadSigblock(*sigblock);
-                if (readingSucceeded) {
-                    error = (std::memcmp(sigblock, dataset.items[i], size) != 0);
+                //Write and read sigblocks taking turns:
+                while (i < maxTests && !error) {
+                    bool writingSucceeded;
+                    writingSucceeded = producer->WriteSigblock(*(dataset.items[i]));
+                    if (writingSucceeded) {
+                        bool readingSucceeded;
+                        readingSucceeded = consumer->ReadSigblock(*sigblock);
+                        if (readingSucceeded) {
+                            error = (std::memcmp(sigblock, dataset.items[i], size) != 0);
+                        }
+                        else {
+                            error = true;
+                        }
+                    }
+                    else {
+                        error = true;
+                    }
+                    i++;
                 }
-                else {
-                    error = true;
-                }
+
+                //Free memory for sigblock:
+                FreeSigblock(sigblock);
+
+                //Check execution's status:
+                ok &= !error;
             }
-            else {
-                error = true;
-            }
-            i++;
+
+            //Free memory of dataset:
+            FreeDataSet(dataset);
+
         }
-
-        //Free memory for sigblock:
-        FreeSigblock(sigblock);
-
-        //Check execution's status:
-        ok &= !error;
     }
-
-    //Free memory of dataset:
-    FreeDataSet(dataset);
 
     //Return test's execution status:
     return ok;
@@ -298,64 +299,66 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
     GenerateMetadataForSigblock<SignalType>(sbmd, context.numberOfSignals);
 
     //Build the shared data area as server:
-    sdaServer = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(shmName, context.numberOfSignals, sbmd);
+    ok = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sdaServer, shmName, context.numberOfSignals, sbmd);
 
-    //Check building of shared data area:
-    //ok &= (...) //TODO: Write an expression for checking the server.
+    if (ok) {
 
-    //Setup producer's interface to shared data area:
-    producer = sdaServer.GetSigblockProducerInterface();
+        //Setup producer's interface to shared data area:
+        producer = sdaServer.GetSigblockProducerInterface();
 
-    //Setup producer's parameters:
-    producerThreadParams.output = producer;
-    producerThreadParams.context = &context;
+        //Setup producer's parameters:
+        producerThreadParams.output = producer;
+        producerThreadParams.context = &context;
 
-    //Build the shared data area as client:
-    sdaClient = SDA::SharedDataArea::BuildSharedDataAreaForEPICS(shmName);
+        //Build the shared data area as client:
+        ok &= SDA::SharedDataArea::BuildSharedDataAreaForEPICS(sdaClient, shmName);
 
-    //Check building of shared data area:
-    //ok &= (...) //TODO: Write an expression for checking the client.
+        if (ok) {
 
-    //Setup consumer's interface to shared data area:
-    consumer = sdaClient.GetSigblockConsumerInterface();
+            //Setup consumer's interface to shared data area:
+            consumer = sdaClient.GetSigblockConsumerInterface();
 
-    //Setup consumer's parameters:
-    consumerThreadParams.input = consumer;
-    consumerThreadParams.context = &context;
+            //Setup consumer's parameters:
+            consumerThreadParams.input = consumer;
+            consumerThreadParams.context = &context;
 
-    //Get sigblock's size:
-    size = producer->GetSigblockMetadata()->GetTotalSize();
+            //Get sigblock's size:
+            size = producer->GetSigblockMetadata()->GetTotalSize();
 
-    //Check coherence of size:
-    ok &= (producer->GetSigblockMetadata()->GetTotalSize() == consumer->GetSigblockMetadata()->GetTotalSize());
+            //Check coherence of size:
+            ok &= (producer->GetSigblockMetadata()->GetTotalSize() == consumer->GetSigblockMetadata()->GetTotalSize());
 
-    //Allocate memory for dataset:
-    MallocDataSet(context.dataset, size);
+            //Allocate memory for dataset:
+            MallocDataSet(context.dataset, size);
 
-    //Initialize items of dataset:
-    InitDataSet<SignalType>(context.dataset, context.numberOfSignals);
+            //Initialize items of dataset:
+            InitDataSet<SignalType>(context.dataset, context.numberOfSignals);
 
-    //Start producer's thread linked to producerThreadFunction:
-    producerThreadId = MARTe::Threads::BeginThread((MARTe::ThreadFunctionType) producerThreadFunction, &producerThreadParams);
+            //Start producer's thread linked to producerThreadFunction:
+            producerThreadId = MARTe::Threads::BeginThread((MARTe::ThreadFunctionType) producerThreadFunction, &producerThreadParams);
 
-    //Check producer's thread id:
-    ok = (producerThreadId != MARTe::InvalidThreadIdentifier);
+            //Check producer's thread id:
+            ok = (producerThreadId != MARTe::InvalidThreadIdentifier);
 
-    //Start consumer's thread linked to consumerThreadFunction:
-    consumerThreadId = MARTe::Threads::BeginThread((MARTe::ThreadFunctionType) consumerThreadFunction, &consumerThreadParams);
+            //Start consumer's thread linked to consumerThreadFunction:
+            consumerThreadId = MARTe::Threads::BeginThread((MARTe::ThreadFunctionType) consumerThreadFunction, &consumerThreadParams);
 
-    //Check consumer's thread id:
-    ok = (consumerThreadId != MARTe::InvalidThreadIdentifier);
+            //Check consumer's thread id:
+            ok = (consumerThreadId != MARTe::InvalidThreadIdentifier);
 
-    //Busy wait until both threads end:
-    while (!context.producerThreadEnd || !context.consumerThreadEnd) {
-    };
+            //Busy wait until both threads end:
+            while (!context.producerThreadEnd || !context.consumerThreadEnd) {
+            };
 
-    //Free memory of dataset:
-    FreeDataSet(context.dataset);
+            //Free memory of dataset:
+            FreeDataSet(context.dataset);
 
-    //Check execution's status:
-    ok &= context.consumerThreadSuccess;
+            //Check execution's status:
+            ok &= context.consumerThreadSuccess;
+
+        }
+
+    }
 
     //Return test's execution status:
     return ok;
