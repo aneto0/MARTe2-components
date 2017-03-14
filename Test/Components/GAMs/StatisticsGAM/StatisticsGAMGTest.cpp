@@ -94,6 +94,16 @@ TEST(StatisticsGAMGTest,TestExecute_Error) {
     ASSERT_TRUE(test.TestExecute_Error());
 }
 
+TEST(StatisticsGAMGTest,TestExecute_int32) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_int32());
+}
+
+TEST(StatisticsGAMGTest,TestExecute_uint32) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_uint32());
+}
+
 TEST(StatisticsGAMGTest,TestExecute_float32) {
     StatisticsGAMTest test;
     ASSERT_TRUE(test.TestExecute_float32());

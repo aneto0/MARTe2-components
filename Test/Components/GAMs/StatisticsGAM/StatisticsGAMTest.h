@@ -128,6 +128,18 @@ public:
      * @brief Tests the Execute method.
      * @return true if computed statistics are as expected.
      */
+    bool TestExecute_int32();
+
+    /**
+     * @brief Tests the Execute method.
+     * @return true if computed statistics are as expected.
+     */
+    bool TestExecute_uint32();
+
+    /**
+     * @brief Tests the Execute method.
+     * @return true if computed statistics are as expected.
+     */
     bool TestExecute_float32();
 
     /**
