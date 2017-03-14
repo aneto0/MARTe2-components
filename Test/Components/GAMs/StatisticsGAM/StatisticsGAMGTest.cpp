@@ -39,6 +39,11 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+TEST(StatisticsGAMGTest,TestSquareRoot) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestSquareRoot());
+}
+
 TEST(StatisticsGAMGTest,TestConstructor) {
     StatisticsGAMTest test;
     ASSERT_TRUE(test.TestConstructor());

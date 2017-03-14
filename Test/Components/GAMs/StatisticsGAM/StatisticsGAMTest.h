@@ -51,6 +51,11 @@ public:
     virtual ~StatisticsGAMTest();
 
     /**
+     * @brief Tests SquareRoot<> methods.
+     */
+    bool TestSquareRoot();
+
+    /**
      * @brief Tests default constructor.
      * @details checks all the post conditions
      */

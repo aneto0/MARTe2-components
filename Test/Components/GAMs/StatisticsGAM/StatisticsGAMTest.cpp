@@ -39,6 +39,7 @@
 #include "ConfigurationDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
+#include "SquareRootT.h"
 #include "GAM.h"
 #include "StatisticsGAM.h"
 #include "StatisticsGAMTest.h"
@@ -387,6 +388,41 @@ StatisticsGAMTest::StatisticsGAMTest() {
 }
 
 StatisticsGAMTest::~StatisticsGAMTest() {
+}
+
+bool StatisticsGAMTest::TestSquareRoot() {
+    using namespace MARTe;
+
+    bool ok = true;
+
+    if (ok) {
+        int8 input = 9;
+	int8 result = SquareRoot<int8> (input);
+	ok = (result == 3);
+	if (!ok) {
+	    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Result is '%!'", result);
+	}
+    }
+
+    if (ok) {
+        int8 input = -7 * -15;
+	int8 result = SquareRoot<int8> (input);
+	ok = (result == 10);
+	if (!ok) {
+	    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Result is '%!'", result);
+	}
+    }
+
+    if (ok) {
+        int8 input = -9; // WARNING - Implementation will cast -> re-interpret as 253
+	int8 result = SquareRoot<int8> (input);
+	ok = (result == 15);
+	if (!ok) {
+	    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Result is '%!'", result);
+	}
+    }
+
+    return ok;
 }
 
 bool StatisticsGAMTest::TestConstructor() {
