@@ -187,7 +187,7 @@ bool SharedDataArea::SigblockProducer::WriteSigblock(const SDA::Sigblock& sb) {
     if (IsOperational()) {
         fret = Items()->Put(sb);
         if (!fret) {
-            droppedWrites++;  //TODO check overflow ...
+            droppedWrites++;  //TODO handle overflow ...
         }
     }
     else {

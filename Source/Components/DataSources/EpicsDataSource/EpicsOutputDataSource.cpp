@@ -105,7 +105,6 @@ EpicsOutputDataSource::EpicsOutputDataSource() :
 }
 
 EpicsOutputDataSource::~EpicsOutputDataSource() {
-//    printf("EpicsOutputDataSource::~EpicsOutputDataSource()\n");
     if (signals != SDA_NULL_PTR(SDA::Sigblock*)) {
         void* mem = reinterpret_cast<void*>(signals);
         /*lint -e{1551} HeapManager::Free does not throw exceptions*/

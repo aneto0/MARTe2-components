@@ -108,7 +108,6 @@ void InitDataSet(DataSet& dataset,
         InitSigblock<SignalType>(dataset.items[i], numberOfSignals, seedValue);
         seedValue += static_cast<SignalType>(numberOfSignals);
     }
-//	printf("InitDataSet :: Generated %u sigblocks on dataset\n", dataset.size);
 }
 
 inline void SearchSigblockIntoDataSet(DataSet& dataset,
