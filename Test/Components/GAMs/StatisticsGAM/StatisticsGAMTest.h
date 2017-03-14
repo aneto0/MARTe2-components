@@ -72,26 +72,19 @@ public:
     /**
      * @brief Tests that a correct default setup works
      * @details Verify the post-conditions
-     * @return true  if Setup returns true.
+     * @return true if Setup returns true.
      */
-    bool TestSetup();
-
-    /**
-     * @brief Tests errors.
-     * @details initialise the GAM without output dimension.
-     * @return true if Setup() fails.
-     */
-    bool TestSetup_OutputDimension();
+    bool TestSetup_float32();
 
     /**
      * @brief Tests the Execute method.
-     * @return true if Execute returns true.
+     * @return true if Execute() fails.
      */
-    bool TestExecute();
+    bool TestExecute_Error();
 
     /**
      * @brief Tests the reset of the sample buffer.
-     * @return true if the sample buffer is reset.
+     * @return true if PrepareForNextState() fails.
      */
     bool TestPrepareForNextState_Error();
 

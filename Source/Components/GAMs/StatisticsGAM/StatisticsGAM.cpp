@@ -119,21 +119,15 @@ StatisticsGAM::~StatisticsGAM() {
 
 bool StatisticsGAM::Initialise(StructuredDataI & data) {
 
-    bool ret = true;
-
     /* Rerieve window size attribute */
 
-    if (ret) {
-        ret = data.Read("WindowSize", windowSize);
-    }
-
-    if (!ret) {
+    if (!data.Read("WindowSize", windowSize)) {
         REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to retrieve WindowSize parameter");
     } else {
         REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Retrieve '%u' WindowSize parameter", windowSize);
     }
 
-    return ret;
+    return true;
 }
 
 bool StatisticsGAM::Setup() {
@@ -275,7 +269,7 @@ bool StatisticsGAM::Setup() {
 
 bool StatisticsGAM::Execute() {
 
-    bool ret = true;
+    bool ret = (signalType != InvalidType);
 
     if (signalType == SignedInteger8Bit) {
         ret = this->StatisticsGAM::Execute<int8>();
@@ -322,13 +316,11 @@ bool StatisticsGAM::Execute() {
 
 template <class Type> bool StatisticsGAM::Execute() {
 
-    bool ret = true;
-
     StatisticsHelperT<Type> * ref = NULL_PTR(StatisticsHelperT<Type> *);
     Type input = (Type) 0;
     Type output = (Type) 0;
 
-    ret = MemoryOperationsHelper::Copy(&input, GetInputSignalMemory(0u), sizeof(Type));
+    bool ret = MemoryOperationsHelper::Copy(&input, GetInputSignalMemory(0u), sizeof(Type));
 
     if (ret) {
         ret = (stats != NULL_PTR(void *));

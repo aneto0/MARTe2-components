@@ -49,19 +49,19 @@ TEST(StatisticsGAMGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
-TEST(StatisticsGAMGTest,TestSetup) {
-    StatisticsGAMTest test;
-    ASSERT_TRUE(test.TestSetup());
-}
-
 TEST(StatisticsGAMGTest,TestInitialise_WindowSize) {
     StatisticsGAMTest test;
     ASSERT_TRUE(test.TestInitialise_WindowSize());
 }
 
-TEST(StatisticsGAMGTest,TestExecute) {
+TEST(StatisticsGAMGTest,TestSetup_float32) {
     StatisticsGAMTest test;
-    ASSERT_TRUE(test.TestExecute());
+    ASSERT_TRUE(test.TestSetup_float32());
+}
+
+TEST(StatisticsGAMGTest,TestExecute_Error) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_Error());
 }
 
 TEST(StatisticsGAMGTest,TestPrepareForNextState_Error) {
