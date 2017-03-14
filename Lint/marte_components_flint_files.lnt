@@ -13,6 +13,7 @@
 -i./Source/Components/GAMs/ConversionGAM/
 -i./Source/Components/GAMs/FilterGAM/
 -i./Source/Components/GAMs/IOGAM/
+-i./Source/Components/GAMs/StatisticsGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 
 BaseLib2GAM.cpp
@@ -22,6 +23,7 @@ ConversionGAM.cpp
 ConversionHelper.cpp
 FilterGAM.cpp
 IOGAM.cpp
+StatisticsGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
