@@ -42,7 +42,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 
 INCLUDES += -I../../../../Source/Components/GAMs/StatisticsGAM
 
-
 all: $(OBJS) \
                 $(BUILD_DIR)/StatisticsGAMTest$(LIBEXT)
 	echo  $(OBJS)

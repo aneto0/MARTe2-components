@@ -119,7 +119,9 @@ StatisticsGAM::~StatisticsGAM() {
 
 bool StatisticsGAM::Initialise(StructuredDataI & data) {
 
-    /* Rerieve window size attribute */
+    bool ret = GAM::Initialise(data);
+
+    /* Rerieve optional window size attribute */
 
     if (!data.Read("WindowSize", windowSize)) {
         REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to retrieve WindowSize parameter");
@@ -127,7 +129,7 @@ bool StatisticsGAM::Initialise(StructuredDataI & data) {
         REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Retrieve '%u' WindowSize parameter", windowSize);
     }
 
-    return true;
+    return ret;
 }
 
 bool StatisticsGAM::Setup() {
@@ -262,6 +264,10 @@ bool StatisticsGAM::Setup() {
 
 	ret = (stats != NULL_PTR(void *));
 
+	if (ret) {
+	    REPORT_ERROR(ErrorManagement::Information, "Instantiate StatisticsHelperT<> class");
+	}
+
     }
 
     return ret;
@@ -271,44 +277,48 @@ bool StatisticsGAM::Execute() {
 
     bool ret = (signalType != InvalidType);
 
-    if (signalType == SignedInteger8Bit) {
-        ret = this->StatisticsGAM::Execute<int8>();
-    }
+    if (ret) {
 
-    if (signalType == SignedInteger16Bit) {
-        ret = this->StatisticsGAM::Execute<int16>();
-    }
+        if (signalType == SignedInteger8Bit) {
+	    ret = this->StatisticsGAM::Execute<int8>();
+	}
 
-    if (signalType == SignedInteger32Bit) {
-        ret = this->StatisticsGAM::Execute<int32>();
-    }
+	if (signalType == SignedInteger16Bit) {
+	    ret = this->StatisticsGAM::Execute<int16>();
+	}
 
-    if (signalType == SignedInteger64Bit) {
-        ret = this->StatisticsGAM::Execute<int64>();
-    }
+	if (signalType == SignedInteger32Bit) {
+	    ret = this->StatisticsGAM::Execute<int32>();
+	}
+	
+	if (signalType == SignedInteger64Bit) {
+	    ret = this->StatisticsGAM::Execute<int64>();
+	}
+	
+	if (signalType == UnsignedInteger8Bit) {
+	    ret = this->StatisticsGAM::Execute<uint8>();
+	}
+	
+	if (signalType == UnsignedInteger16Bit) {
+	    ret = this->StatisticsGAM::Execute<uint16>();
+	}
+	
+	if (signalType == UnsignedInteger32Bit) {
+	    ret = this->StatisticsGAM::Execute<uint32>();
+	}
+	
+	if (signalType == UnsignedInteger64Bit) {
+	    ret = this->StatisticsGAM::Execute<uint64>();
+	}
+	
+	if (signalType == Float32Bit) {
+	    ret = this->StatisticsGAM::Execute<float32>();
+	}
+	
+	if (signalType == Float64Bit) {
+	    ret = this->StatisticsGAM::Execute<float64>();
+	}
 
-    if (signalType == UnsignedInteger8Bit) {
-        ret = this->StatisticsGAM::Execute<uint8>();
-    }
-
-    if (signalType == UnsignedInteger16Bit) {
-        ret = this->StatisticsGAM::Execute<uint16>();
-    }
-
-    if (signalType == UnsignedInteger32Bit) {
-        ret = this->StatisticsGAM::Execute<uint32>();
-    }
-
-    if (signalType == UnsignedInteger64Bit) {
-        ret = this->StatisticsGAM::Execute<uint64>();
-    }
-
-    if (signalType == Float32Bit) {
-        ret = this->StatisticsGAM::Execute<float32>();
-    }
-
-    if (signalType == Float64Bit) {
-        ret = this->StatisticsGAM::Execute<float64>();
     }
 
     return ret;

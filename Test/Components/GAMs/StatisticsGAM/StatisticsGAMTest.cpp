@@ -34,8 +34,8 @@
 #include "AdvancedErrorManagement.h"
 #include "ErrorManagement.h"
 #include "ErrorInformation.h"
-#include "GlobalObjectsDatabase.h"
 #include "ObjectRegistryDatabase.h"
+#include "GlobalObjectsDatabase.h"
 #include "ConfigurationDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
@@ -322,11 +322,6 @@ bool StatisticsGAMTest::TestSetup_float32() {
             "        +Constants = {"
             "            Class = ConstantGAM"
             "            OutputSignals = {"
-            "                Constant_uint32 = {"
-            "                    DataSource = DDB"
-            "                    Type = uint32"
-            "                    Default = 0"
-            "                }"
             "                Constant_float32 = {"
             "                    DataSource = DDB"
             "                    Type = float32"
@@ -343,27 +338,27 @@ bool StatisticsGAMTest::TestSetup_float32() {
             "            Class = StatisticsGAM"
             "            WindowSize = 100"
             "            InputSignals = {"
-            "               Constants_ExecTime = {"
-            "                   DataSource = Timings"
-            "                   Type = uint32"
+            "               Constant_float32 = {"
+            "                   DataSource = DDB"
+            "                   Type = float32"
             "               }"
             "            }"
             "            OutputSignals = {"
             "               Average_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = uint32"
+            "                   Type = float32"
             "               }"
             "               Stdev_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = uint32"
+            "                   Type = float32"
             "               }"
             "               Max_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = uint32"
+            "                   Type = float32"
             "               }"
             "               Min_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = uint32"
+            "                   Type = float32"
             "               }"
             "            }"
             "        }"
@@ -386,7 +381,7 @@ bool StatisticsGAMTest::TestSetup_float32() {
             "                Class = ReferenceContainer"
             "                +Thread = {"
             "                    Class = RealTimeThread"
-            "                    Functions = {Constants}"
+            "                    Functions = {Constants Statistics}"
             "                }"
             "            }"
             "        }"
@@ -398,85 +393,29 @@ bool StatisticsGAMTest::TestSetup_float32() {
             "}";
 
     bool ok = StatisticsGAMTestHelper::ConfigureApplication(config);
-    /*
+
     if (ok) {
+        using namespace MARTe;
 
         ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
         ReferenceT<RealTimeApplication> application = god->Find("Test");
-        ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
-        ReferenceT<SDNPublisherTestGAM> timer = application->Find("Functions.Timer");
+        ReferenceT<StatisticsGAM> gam = application->Find("Functions.Statistics");
 
-        ok = ((publisher.IsValid()) && (timer.IsValid()));
+        ok = gam.IsValid();
 
         if (ok) {
-            // Instantiate a sdn::Metadata structure to configure the topic
-            sdn::Metadata_t mdata; sdn::Topic_InitializeMetadata(mdata, "Default", 0);
-            // Instantiate SDN topic from metadata specification
-            sdn::Topic* topic = new sdn::Topic; topic->SetMetadata(mdata);
-            sdn::Subscriber* subscriber;
+	    ok = StatisticsGAMTestHelper::StartApplication();
+	}
 
-            if (ok) {
-                ok = (topic->AddAttribute(0u, "Counter", "uint64") == STATUS_SUCCESS);
-            }
-            if (ok) {
-                ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
-            }
-            if (ok) {
-                topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
-                ok = (topic->Configure() == STATUS_SUCCESS);
-            }
-            if (ok) {
-                ok = topic->IsInitialized();
-            }
-            // Create sdn::Subscriber
-            if (ok) {
-                subscriber = new sdn::Subscriber(*topic);
-            }
-            if (ok) {
-                ok = (subscriber->SetInterface((char*) "lo") == STATUS_SUCCESS);
-            }
-            if (ok) {
-                ok = (subscriber->Configure() == STATUS_SUCCESS);
-            }
-            // Call SDNPublisher::Synchronise
-            if (ok) {
-                ok = publisher->Synchronise();
-            }
-            // Test reception
-            if (ok) {
-                ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
-            }
-            // Set test value
-            if (ok) {
-                timer->SetCounter((MARTe::uint64) 10ul);
-            }
-            // Start Application
-            if (ok) {
-                log_info("Start application");
-                ok = StartApplication();
-            }
-            // Let the application run
-            if (ok) {
-                wait_for(500000000ul);
-            }
-            // Test reception
-            if (ok) {
-                ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
-            }
-            if (ok) {
-                MARTe::uint64 counter = 0ul;
-                ok = (topic->GetAttribute(0u, &counter) == STATUS_SUCCESS);
-                log_info("Received counter '%lu'", counter);
-                ok = (counter == (MARTe::uint64) 10ul);
-            }
-        }
+	if (ok) {
+	  Sleep::Sec(1.0);
+	}
     }
 
     if (ok) {
-        log_info("Stop application");
-        ok = StopApplication();
+        ok = StatisticsGAMTestHelper::StopApplication();
     }
-    */
+    
     return ok;
 }
 
@@ -500,7 +439,108 @@ bool StatisticsGAMTest::TestPrepareForNextState_Success() {
     using namespace MARTe;
     StatisticsGAM gam;
 
-    bool ok = gam.PrepareNextState("FromCurrent","ToNext"); // Test the instantiated class
-    return ok; // Expect failure since StatisticsHelperT<> class has not yet been instantiated
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAM"
+            "            OutputSignals = {"
+            "                Constant_float32 = {"
+            "                    DataSource = DDB"
+            "                    Type = float32"
+            "                    Default = 0.0"
+            "                }"
+            "                Constant_float64 = {"
+            "                    DataSource = DDB"
+            "                    Type = float64"
+            "                    Default = 0.0"
+            "                }"
+            "            }"
+            "        }"
+            "        +Statistics = {"
+            "            Class = StatisticsGAM"
+            "            WindowSize = 100"
+            "            InputSignals = {"
+            "               Constant_float32 = {"
+            "                   DataSource = DDB"
+            "                   Type = float32"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               Average_ExecTime = {"
+            "                   DataSource = DDB"
+            "                   Type = float32"
+            "               }"
+            "               Stdev_ExecTime = {"
+            "                   DataSource = DDB"
+            "                   Type = float32"
+            "               }"
+            "               Max_ExecTime = {"
+            "                   DataSource = DDB"
+            "                   Type = float32"
+            "               }"
+            "               Min_ExecTime = {"
+            "                   DataSource = DDB"
+            "                   Type = float32"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants Statistics}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = StatisticsGAMTestHelper::ConfigureApplication(config);
+
+    if (ok) {
+        using namespace MARTe;
+
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<StatisticsGAM> gam = application->Find("Functions.Statistics");
+
+        ok = gam.IsValid();
+
+        if (ok) {
+	    ok = StatisticsGAMTestHelper::StartApplication();
+	}
+
+	if (ok) {
+	  Sleep::Sec(0.1);
+	}
+    }
+
+    if (ok) {
+        ok = StatisticsGAMTestHelper::StopApplication();
+    }
+    
+    return ok;
 }
 

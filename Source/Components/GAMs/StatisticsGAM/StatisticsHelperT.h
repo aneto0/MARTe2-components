@@ -186,6 +186,57 @@ template <typename Type> class StatisticsHelperT {
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
+template <typename Type> void StatisticsHelperT<Type>::Reset() {
+
+    counter = 0u;
+
+    Xspl = (Type) 0;
+    Xavg = (Type) 0;
+    Xmax = (Type) std::numeric_limits<Type>::min();
+    Xmin = (Type) std::numeric_limits<Type>::max();
+    Xrms = (Type) 0;
+    Xstd = (Type) 0;
+    
+    /* Reset sample buffers */
+    Xwin->Initialise(Xspl); 
+    Xsq->Initialise(Xspl);
+    
+}
+
+template <> inline void StatisticsHelperT<float32>::Reset() { // Must be declared/defined before use in the constructor
+
+    counter = 0u;
+
+    Xspl = (float32) 0;
+    Xavg = (float32) 0;
+    Xmax = -1.0 * std::numeric_limits<float32>::max();
+    Xmin = std::numeric_limits<float32>::max();
+    Xrms = (float32) 0;
+    Xstd = (float32) 0;
+    
+    /* Reset sample buffers */
+    Xwin->Initialise(Xspl); 
+    Xsq->Initialise(Xspl);
+    
+}
+
+template <> inline void StatisticsHelperT<float64>::Reset() { // Must be declared/defined before use in the constructor
+
+    counter = 0u;
+
+    Xspl = (float64) 0;
+    Xavg = (float64) 0;
+    Xmax = -1.0 * std::numeric_limits<float64>::max();
+    Xmin = std::numeric_limits<float64>::max();
+    Xrms = (float64) 0;
+    Xstd = (float64) 0;
+    
+    /* Reset sample buffers */
+    Xwin->Initialise(Xspl); 
+    Xsq->Initialise(Xspl);
+    
+}
+
 template <typename Type> StatisticsHelperT<Type>::StatisticsHelperT(uint32 windowSize)
 {
 
@@ -249,21 +300,84 @@ template <typename Type> StatisticsHelperT<Type>::~StatisticsHelperT ()
 
 }
 
-template <typename Type> void StatisticsHelperT<Type>::Reset() {
+template <typename Type> Type StatisticsHelperT<Type>::FindMax() {
 
-  counter = 0;
+    Type max = (Type) std::numeric_limits<Type>::min();
+  
+    uint32 index;
 
-  Xspl = (Type) 0;
-  Xavg = (Type) 0;
-  Xmax = (Type) std::numeric_limits<Type>::min();
-  Xmin = (Type) std::numeric_limits<Type>::max();
-  Xrms = (Type) 0;
-  Xstd = (Type) 0;
+    for (index = 0u; index < size; index++) {
 
-  /* Reset sample buffers */
-  Xwin->Initialise(Xspl); 
-  Xsq->Initialise(Xspl);
+        Type sample;
 
+        Xwin->GetData(sample, index);
+      
+	if (sample > max) {
+	    max = sample;
+	}
+    }
+
+  return max;
+}
+
+template <> inline float32 StatisticsHelperT<float32>::FindMax() { // Must be declared/defined before use
+
+    float32 max = -1.0 * std::numeric_limits<float32>::max();
+  
+    uint32 index;
+
+    for (index = 0u; index < size; index++) {
+
+        float32 sample;
+
+        Xwin->GetData(sample, index);
+      
+	if (sample > max) {
+	    max = sample;
+	}
+    }
+
+  return max;
+}
+
+template <> inline float64 StatisticsHelperT<float64>::FindMax() { // Must be declared/defined before use
+
+    float64 max = -1.0 * std::numeric_limits<float64>::max();
+  
+    uint32 index;
+
+    for (index = 0u; index < size; index++) {
+
+        float64 sample;
+
+        Xwin->GetData(sample, index);
+      
+	if (sample > max) {
+	    max = sample;
+	}
+    }
+
+  return max;
+}
+
+template <typename Type> Type StatisticsHelperT<Type>::FindMin() {
+
+    Type min = (Type) std::numeric_limits<Type>::max();
+  
+    uint32 index;
+
+    for (index = 0u; index < size; index++) {
+
+        Type sample;
+
+        Xwin->GetData(sample, index);
+      
+	if (sample < min) {
+	    min = sample;
+	}
+    }
+
+  return min;
 }
 
 template <typename Type> bool StatisticsHelperT<Type>::PushSample(Type sample) {
@@ -390,46 +504,6 @@ template <typename Type> Type StatisticsHelperT<Type>::GetMax() {
 
 template <typename Type> Type StatisticsHelperT<Type>::GetMin() { 
     return Xmin; 
-}
-
-template <typename Type> Type StatisticsHelperT<Type>::FindMax() {
-
-    Type max = (Type) std::numeric_limits<Type>::min();
-  
-    uint32 index;
-
-    for (index = 0u; index < size; index++) {
-
-        Type sample;
-
-        Xwin->GetData(sample, index);
-      
-	if (sample > max) {
-	    max = sample;
-	}
-    }
-
-  return max;
-}
-
-template <typename Type> Type StatisticsHelperT<Type>::FindMin() {
-
-    Type min = (Type) std::numeric_limits<Type>::max();
-  
-    uint32 index;
-
-    for (index = 0u; index < size; index++) {
-
-        Type sample;
-
-        Xwin->GetData(sample, index);
-      
-	if (sample < min) {
-	    min = sample;
-	}
-    }
-
-  return min;
 }
 
 } /* namespace MARTe */
