@@ -79,7 +79,7 @@ namespace MARTe {
  *
  * @todo Receive inputs signal depth in lieu of storing history internally.
  *
- * @todo Configurable size of time window.
+ * @todo Deliver histogram as output array.
  *
  */
 
@@ -155,7 +155,7 @@ public:
      * @brief Templated Execute method. Statistical computation of the input signal.
      * @return true.
      */
-    template <typename Type> bool Execute();
+    template <typename Type> bool ExecuteT();
 
 };
 

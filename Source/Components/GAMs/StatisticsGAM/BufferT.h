@@ -64,7 +64,7 @@ template <typename Type> class BufferT {
     /**
      * @brief Initialiser. Preloads templated array with default value.
      */
-    bool Initialise(Type& data);
+    bool Initialise(const Type& data);
 
     /**
      * @brief Accessor. Returns size of templated array.
@@ -82,7 +82,7 @@ template <typename Type> class BufferT {
      * @brief Accessor. Inserts data at index.
      * @return if valid index.
      */
-    bool PutData(Type& data, const uint32 index);
+    bool PutData(const Type& data, const uint32 index);
 
   private:
 
@@ -100,7 +100,7 @@ template <typename Type> BufferT<Type>::BufferT(const uint32 bufferSize) {
     size = bufferSize; 
     buffer = NULL_PTR(Type *);
 
-    uint32 memorySize = size * sizeof(Type);
+    uint32 memorySize = size * (unit32) sizeof(Type);
 
     buffer = (Type *) (GlobalObjectsDatabase::Instance()->GetStandardHeap())->Malloc(memorySize);
 
@@ -115,13 +115,13 @@ template <typename Type> BufferT<Type>::BufferT(const uint32 bufferSize) {
 template <typename Type> BufferT<Type>::~BufferT() { 
 
     if (buffer != NULL_PTR(Type *)) {
-        /*lint -e{1551} no exception should be thrown*/
+        /*lint -e{1551} the implementation does not throw exception*/
         (GlobalObjectsDatabase::Instance()->GetStandardHeap())->Free((void*&) buffer);
     }
 
 }
 
-template <typename Type> bool BufferT<Type>::Initialise(Type& data) { 
+template <typename Type> bool BufferT<Type>::Initialise(const Type& data) { 
 
     bool ok = (buffer != NULL_PTR(Type *));
 
@@ -151,7 +151,7 @@ template <typename Type> bool BufferT<Type>::GetData(Type& data, const uint32 in
     return ok; 
 }
 
-template <typename Type> bool BufferT<Type>::PutData(Type& data, const uint32 index) { 
+template <typename Type> bool BufferT<Type>::PutData(const Type& data, const uint32 index) { 
 
     bool ok = (buffer != NULL_PTR(Type *));
 

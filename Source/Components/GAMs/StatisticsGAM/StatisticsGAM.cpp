@@ -280,43 +280,43 @@ bool StatisticsGAM::Execute() {
     if (ret) {
 
         if (signalType == SignedInteger8Bit) {
-	    ret = this->StatisticsGAM::Execute<int8>();
+	    ret = this->StatisticsGAM::ExecuteT<int8>();
 	}
 
 	if (signalType == SignedInteger16Bit) {
-	    ret = this->StatisticsGAM::Execute<int16>();
+	    ret = this->StatisticsGAM::ExecuteT<int16>();
 	}
 
 	if (signalType == SignedInteger32Bit) {
-	    ret = this->StatisticsGAM::Execute<int32>();
+	    ret = this->StatisticsGAM::ExecuteT<int32>();
 	}
 	
 	if (signalType == SignedInteger64Bit) {
-	    ret = this->StatisticsGAM::Execute<int64>();
+	    ret = this->StatisticsGAM::ExecuteT<int64>();
 	}
 	
 	if (signalType == UnsignedInteger8Bit) {
-	    ret = this->StatisticsGAM::Execute<uint8>();
+	    ret = this->StatisticsGAM::ExecuteT<uint8>();
 	}
 	
 	if (signalType == UnsignedInteger16Bit) {
-	    ret = this->StatisticsGAM::Execute<uint16>();
+	    ret = this->StatisticsGAM::ExecuteT<uint16>();
 	}
 	
 	if (signalType == UnsignedInteger32Bit) {
-	    ret = this->StatisticsGAM::Execute<uint32>();
+	    ret = this->StatisticsGAM::ExecuteT<uint32>();
 	}
 	
 	if (signalType == UnsignedInteger64Bit) {
-	    ret = this->StatisticsGAM::Execute<uint64>();
+	    ret = this->StatisticsGAM::ExecuteT<uint64>();
 	}
 	
 	if (signalType == Float32Bit) {
-	    ret = this->StatisticsGAM::Execute<float32>();
+	    ret = this->StatisticsGAM::ExecuteT<float32>();
 	}
 	
 	if (signalType == Float64Bit) {
-	    ret = this->StatisticsGAM::Execute<float64>();
+	    ret = this->StatisticsGAM::ExecuteT<float64>();
 	}
 
     }
@@ -324,7 +324,7 @@ bool StatisticsGAM::Execute() {
     return ret;
 }
 
-template <class Type> bool StatisticsGAM::Execute() {
+template <class Type> bool StatisticsGAM::ExecuteT() {
 
     StatisticsHelperT<Type> * ref = NULL_PTR(StatisticsHelperT<Type> *);
     Type input = (Type) 0;
