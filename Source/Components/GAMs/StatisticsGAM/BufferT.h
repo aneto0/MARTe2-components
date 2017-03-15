@@ -48,6 +48,7 @@ namespace MARTe {
  * @todo Provide locking mechanism through atomic operations.
  */
 
+/*lint -e{1712} the implementation does not provide default constructor*/
 template <typename Type> class BufferT {
   public:
 
@@ -100,9 +101,9 @@ template <typename Type> BufferT<Type>::BufferT(const uint32 bufferSize) {
     size = bufferSize; 
     buffer = NULL_PTR(Type *);
 
-    uint32 memorySize = size * (uint32) sizeof(Type);
+    uint32 memorySize = size * static_cast<uint32>(sizeof(Type));
 
-    buffer = (Type *) (GlobalObjectsDatabase::Instance()->GetStandardHeap())->Malloc(memorySize);
+    buffer = static_cast<Type *>((GlobalObjectsDatabase::Instance()->GetStandardHeap())->Malloc(memorySize));
 
     bool ok = (buffer != NULL_PTR(Type *));
 
@@ -115,8 +116,9 @@ template <typename Type> BufferT<Type>::BufferT(const uint32 bufferSize) {
 template <typename Type> BufferT<Type>::~BufferT() { 
 
     if (buffer != NULL_PTR(Type *)) {
+        void * ref = static_cast<void *>(buffer);
         /*lint -e{1551} the implementation does not throw exception*/
-        (GlobalObjectsDatabase::Instance()->GetStandardHeap())->Free((void*&) buffer);
+        (GlobalObjectsDatabase::Instance()->GetStandardHeap())->Free(ref);
     }
 
 }

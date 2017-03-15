@@ -187,9 +187,7 @@ bool StatisticsGAM::Setup() {
 
     for (signalIndex = 0u; (signalIndex < GetNumberOfOutputSignals()) && (ret); signalIndex++) {
 
-	if (ret) {
-	    ret = (signalType == GetSignalType(OutputSignals, signalIndex));
-	}
+        ret = (signalType == GetSignalType(OutputSignals, signalIndex));
 
 	if (!ret) {
 	  REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalType(OutputSignals, %u) != signalType", signalIndex);
@@ -222,6 +220,10 @@ bool StatisticsGAM::Setup() {
     }
 
     /* Instantiate Statistics class */
+
+    if (ret) {
+        ret = (stats == NULL_PTR(void *));
+    }
 
     /*lint -e{423} no leak as assignment of stats is exclusively done*/
     if (ret) {
@@ -268,7 +270,9 @@ bool StatisticsGAM::Setup() {
 
 	ret = (stats != NULL_PTR(void *));
 
-	if (ret) {
+	if (!ret) {
+	    REPORT_ERROR(ErrorManagement::InitialisationError, "Unsupported type");
+	} else {
 	    REPORT_ERROR(ErrorManagement::Information, "Instantiate StatisticsHelperT<> class");
 	}
 
@@ -370,6 +374,7 @@ template <class Type> bool StatisticsGAM::ExecuteT() {
 }
 
 /*lint -e{613} Reset() method called only when stats is not NULL*/
+/*lint -e{715} [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns irrespectively of the input parameters.*/
 bool StatisticsGAM::PrepareNextState(const char8 * const currentStateName,
 				     const char8 * const nextStateName) {
 

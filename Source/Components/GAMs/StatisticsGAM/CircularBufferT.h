@@ -47,6 +47,7 @@ namespace MARTe {
  * @todo Provide locking mechanism through atomic operations.
  */
 
+/*lint -e{1712} the implementation does not provide default constructor*/
 template <typename Type> class CircularBufferT : public BufferT<Type> {
   public:
 
