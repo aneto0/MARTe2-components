@@ -476,11 +476,11 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(const ExecutionInfo& info) {
 
     if (ok) {
         ok = synchronisingSem.Post();
-    }
 
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::FatalError, "EventSem::Post failed");
-        err.SetError(ErrorManagement::FatalError);
+	if (!ok) {
+	    REPORT_ERROR(ErrorManagement::FatalError, "EventSem::Post failed");
+	    err.SetError(ErrorManagement::FatalError);
+	}
     }
 
     if (err.Contains(ErrorManagement::Timeout)) {
