@@ -44,13 +44,16 @@ namespace MARTe {
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-template <typename Type> inline Type SquareRoot (const Type x) { 
+template <typename Type> inline Type SquareRoot(const Type x) { 
 
-    if (x < (Type) 0) {
+    Type tmp = x;
+
+    if (tmp < (Type) 0) {
         REPORT_ERROR(ErrorManagement::Warning, "SquareRoot<Type> of negative number");
+	tmp *= -1;
     }
 
-    return sqrt(x); 
+    return sqrt(tmp); 
 }
 
 template <> inline uint8 SquareRoot<uint8>(const uint8 x) { /* From http://en.wikipedia.org/wiki/Methods_of_computing_square_roots */
@@ -64,7 +67,7 @@ template <> inline uint8 SquareRoot<uint8>(const uint8 x) { /* From http://en.wi
         bit >>= 2;
     }
  
-    while (bit != 0) 
+    while (bit != 0u) 
       {
         if (tmp >= (res + bit)) { 
 	    tmp -= res + bit; 
@@ -91,7 +94,7 @@ template <> inline uint16 SquareRoot<uint16>(const uint16 x) { /* From http://en
         bit >>= 2;
     }
 
-    while (bit != 0) 
+    while (bit != 0u) 
       {
         if (tmp >= (res + bit)) { 
 	    tmp -= res + bit; 
@@ -119,7 +122,7 @@ template <> inline uint32 SquareRoot<uint32>(const uint32 x) { /* From http://en
         bit >>= 2;
     }
 
-    while (bit != 0) 
+    while (bit != 0u) 
       {
         if (tmp >= (res + bit)) {
 	    tmp -= res + bit; 
@@ -146,7 +149,7 @@ template <> inline uint64 SquareRoot<uint64>(const uint64 x) { /* From http://en
         bit >>= 2;
     }
  
-    while (bit != 0) 
+    while (bit != 0u) 
       {
         if (tmp >= (res + bit)) { 
 	    tmp -= res + bit; 
