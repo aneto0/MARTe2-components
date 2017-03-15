@@ -56,15 +56,20 @@ template <typename Type> inline Type SquareRoot (Type x) {
 template <> inline uint8 SquareRoot<uint8>(uint8 x) { /* From http://en.wikipedia.org/wiki/Methods_of_computing_square_roots */
 
     uint8 res = 0;
-    uint8 bit = ((uint8) 1u) << 6; // The second-to-top bit is set
+    uint8 bit = (static_cast<uint8>(1u)) << 6; // The second-to-top bit is set
  
     // "bit" starts at the highest power of four <= the argument.
-    while (bit > x) bit >>= 2;
+    while (bit > x) {
+        bit >>= 2;
+    }
  
     while (bit != 0) 
       {
-        if (x >= res + bit) { x -= res + bit; res = (res >> 1) + bit; }
-        else res >>= 1;
+        if (x >= res + bit) { 
+	    x -= res + bit; res = (res >> 1) + bit; 
+	} else {
+	    res >>= 1;
+	}
 
         bit >>= 2;
       }
@@ -76,11 +81,13 @@ template <> inline uint8 SquareRoot<uint8>(uint8 x) { /* From http://en.wikipedi
 template <> inline uint16 SquareRoot<uint16>(uint16 x) { /* From http://en.wikipedia.org/wiki/Methods_of_computing_square_roots */
 
     uint16 res = 0;
-    uint16 bit = ((uint16) 1u) << 14; // The second-to-top bit is set
+    uint16 bit = (static_cast<uint16>(1u)) << 14; // The second-to-top bit is set
  
     // "bit" starts at the highest power of four <= the argument.
-    while (bit > x) bit >>= 2;
- 
+    while (bit > x) {
+        bit >>= 2;
+    }
+
     while (bit != 0) 
       {
         if (x >= res + bit) { x -= res + bit; res = (res >> 1) + bit; }
@@ -96,15 +103,20 @@ template <> inline uint16 SquareRoot<uint16>(uint16 x) { /* From http://en.wikip
 template <> inline uint32 SquareRoot<uint32>(uint32 x) { /* From http://en.wikipedia.org/wiki/Methods_of_computing_square_roots */
 
     uint32 res = 0;
-    uint32 bit = ((uint32) 1u) << 30; // The second-to-top bit is set
+    uint32 bit = (static_cast<uint32>(1u)) << 30; // The second-to-top bit is set
  
     // "bit" starts at the highest power of four <= the argument.
-    while (bit > x) bit >>= 2;
- 
+    while (bit > x) {
+        bit >>= 2;
+    }
+
     while (bit != 0) 
       {
-        if (x >= res + bit) { x -= res + bit; res = (res >> 1) + bit; }
-        else res >>= 1;
+        if (x >= res + bit) {
+	    x -= res + bit; res = (res >> 1) + bit; 
+	} else {
+	    res >>= 1;
+	}
 
         bit >>= 2;
       }
@@ -116,15 +128,20 @@ template <> inline uint32 SquareRoot<uint32>(uint32 x) { /* From http://en.wikip
 template <> inline uint64 SquareRoot<uint64>(uint64 x) { /* From http://en.wikipedia.org/wiki/Methods_of_computing_square_roots */
 
     uint64 res = 0;
-    uint64 bit = ((uint64) 1u) << 62; // The second-to-top bit is set
+    uint64 bit = (static_cast<uint64>(1u)) << 62; // The second-to-top bit is set
  
     // "bit" starts at the highest power of four <= the argument.
-    while (bit > x) bit >>= 2;
+    while (bit > x) {
+        bit >>= 2;
+    }
  
     while (bit != 0) 
       {
-        if (x >= res + bit) { x -= res + bit; res = (res >> 1) + bit; }
-        else res >>= 1;
+        if (x >= res + bit) { 
+	    x -= res + bit; res = (res >> 1) + bit; 
+	} else {
+	    res >>= 1;
+	}
 
         bit >>= 2;
       }
@@ -135,48 +152,48 @@ template <> inline uint64 SquareRoot<uint64>(uint64 x) { /* From http://en.wikip
 
 template <> inline int8 SquareRoot<int8>(int8 x) {
 
-    if (x < (int8) 0) {
+    if (x < 0) {
         REPORT_ERROR(ErrorManagement::Warning, "SquareRoot<int8> of negative number");
     }
 
-    uint8 tmp = (uint8) x;
-    int8 res = (int8) SquareRoot<uint8>(tmp);
+    uint8 tmp = static_cast<uint8>(x);
+    int8 res = static_cast<int8>(SquareRoot<uint8>(tmp));
 
     return res; 
 };
 
 template <> inline int16 SquareRoot<int16>(int16 x) {
 
-    if (x < (int16) 0) {
+    if (x < 0) {
         REPORT_ERROR(ErrorManagement::Warning, "SquareRoot<int16> of negative number");
     }
 
-    uint16 tmp = (uint16) x;
-    int16 res = (int16) SquareRoot<uint16>(tmp);
+    uint16 tmp = static_cast<uint16>(x);
+    int16 res = static_cast<int16>(SquareRoot<uint16>(tmp));
 
     return res; 
 };
 
 template <> inline int32 SquareRoot<int32>(int32 x) {
 
-    if (x < (int32) 0) {
+    if (x < 0) {
         REPORT_ERROR(ErrorManagement::Warning, "SquareRoot<int32> of negative number");
     }
 
-    uint32 tmp = (uint32) x;
-    int32 res = (int32) SquareRoot<uint32>(tmp);
+    uint32 tmp = static_cast<uint32>(x);
+    int32 res = static_cast<int32>(SquareRoot<uint32>(tmp));
 
     return res; 
 };
 
 template <> inline int64 SquareRoot<int64>(int64 x) {
 
-    if (x < (int64) 0) {
+    if (x < 0) {
         REPORT_ERROR(ErrorManagement::Warning, "SquareRoot<int64> of negative number");
     }
 
-    uint64 tmp = (uint64) x;
-    int64 res = (int64) SquareRoot<uint64>(tmp);
+    uint64 tmp = static_cast<uint64>(x);
+    int64 res = static_cast<int64>(SquareRoot<uint64>(tmp));
 
     return res; 
 };

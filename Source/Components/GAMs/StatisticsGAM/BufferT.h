@@ -119,6 +119,7 @@ template <typename Type> BufferT<Type>::~BufferT() {
         void * ref = static_cast<void *>(buffer);
         /*lint -e{1551} the implementation does not throw exception*/
         (GlobalObjectsDatabase::Instance()->GetStandardHeap())->Free(ref);
+	buffer = NULL_PTR(Type *);
     }
 
 }
