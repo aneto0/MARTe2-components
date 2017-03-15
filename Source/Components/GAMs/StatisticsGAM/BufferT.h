@@ -54,12 +54,12 @@ template <typename Type> class BufferT {
     /**
      * @brief Constructor. Allocates memory from the standard heap.
      */
-    BufferT (uint32 bufferSize);
+    BufferT(const uint32 bufferSize);
 
     /**
      * @brief Destructor. Frees allocated memory.
      */
-    virtual ~BufferT ();
+    virtual ~BufferT();
 
     /**
      * @brief Initialiser. Preloads templated array with default value.
@@ -70,19 +70,19 @@ template <typename Type> class BufferT {
      * @brief Accessor. Returns size of templated array.
      * @return size of array.
      */
-    uint32 GetSize();
+    uint32 GetSize() const;
 
     /**
      * @brief Accessor. Rerieves data at index.
      * @return if valid index.
      */
-    bool GetData(Type& data, uint32 index);
+    bool GetData(Type& data, const uint32 index);
 
     /**
      * @brief Accessor. Inserts data at index.
      * @return if valid index.
      */
-    bool PutData(Type& data, uint32 index);
+    bool PutData(Type& data, const uint32 index);
 
   private:
 
@@ -95,7 +95,7 @@ template <typename Type> class BufferT {
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-template <typename Type> BufferT<Type>::BufferT(uint32 bufferSize) { 
+template <typename Type> BufferT<Type>::BufferT(const uint32 bufferSize) { 
 
     size = bufferSize; 
     buffer = NULL_PTR(Type *);
@@ -103,13 +103,19 @@ template <typename Type> BufferT<Type>::BufferT(uint32 bufferSize) {
     uint32 memorySize = size * sizeof(Type);
 
     buffer = (Type *) (GlobalObjectsDatabase::Instance()->GetStandardHeap())->Malloc(memorySize);
-    MemoryOperationsHelper::Set(buffer, '\0', memorySize);
+
+    bool ok = (buffer != NULL_PTR(Type *));
+
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to allocate memory buffer");
+    }
 
 }
 
 template <typename Type> BufferT<Type>::~BufferT() { 
 
     if (buffer != NULL_PTR(Type *)) {
+        /*lint -e{1551} no exception should be thrown*/
         (GlobalObjectsDatabase::Instance()->GetStandardHeap())->Free((void*&) buffer);
     }
 
@@ -128,9 +134,9 @@ template <typename Type> bool BufferT<Type>::Initialise(Type& data) {
     return ok; 
 }
 
-template <typename Type> uint32 BufferT<Type>::GetSize() { return size; }
+template <typename Type> uint32 BufferT<Type>::GetSize() const { return size; }
 
-template <typename Type> bool BufferT<Type>::GetData(Type& data, uint32 index) { 
+template <typename Type> bool BufferT<Type>::GetData(Type& data, const uint32 index) { 
 
     bool ok = (buffer != NULL_PTR(Type *));
 
@@ -145,7 +151,7 @@ template <typename Type> bool BufferT<Type>::GetData(Type& data, uint32 index) {
     return ok; 
 }
 
-template <typename Type> bool BufferT<Type>::PutData(Type& data, uint32 index) { 
+template <typename Type> bool BufferT<Type>::PutData(Type& data, const uint32 index) { 
 
     bool ok = (buffer != NULL_PTR(Type *));
 

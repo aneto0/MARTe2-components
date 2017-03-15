@@ -55,7 +55,7 @@ template <typename Type> class CircularBufferT : public BufferT<Type> {
      * @post
      *   index = 0u
      */
-    CircularBufferT(uint32 bufferSize);
+    CircularBufferT(const uint32 bufferSize);
 
     /**
      * @brief Destructor. NOOP.
@@ -83,7 +83,7 @@ template <typename Type> class CircularBufferT : public BufferT<Type> {
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-template <typename Type> CircularBufferT<Type>::CircularBufferT(uint32 bufferSize) :
+template <typename Type> CircularBufferT<Type>::CircularBufferT(const uint32 bufferSize) :
   BufferT<Type> (bufferSize) { 
 
     index = 0u;
