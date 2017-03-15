@@ -55,6 +55,7 @@ StatisticsGAM::StatisticsGAM() :
     windowSize = 1024u;
 }
 
+/*lint -e{1551} no exception thrown deleting the StatisticsHelperT<> instance*/
 StatisticsGAM::~StatisticsGAM() {
 
    bool ok = (stats != NULL_PTR(void *));
@@ -114,6 +115,8 @@ StatisticsGAM::~StatisticsGAM() {
 	}
 
     }
+
+    stats = NULL_PTR(void *);
 
 }
 
@@ -220,6 +223,7 @@ bool StatisticsGAM::Setup() {
 
     /* Instantiate Statistics class */
 
+    /*lint -e{423} no leak as assignment of stats is exclusively done*/
     if (ret) {
 
         if (signalType == SignedInteger8Bit) {
@@ -365,6 +369,7 @@ template <class Type> bool StatisticsGAM::ExecuteT() {
 
 }
 
+/*lint -e{613} Reset() method called only when stats is not NULL*/
 bool StatisticsGAM::PrepareNextState(const char8 * const currentStateName,
 				     const char8 * const nextStateName) {
 
