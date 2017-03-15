@@ -72,16 +72,10 @@ namespace SDA {
 
 SharedDataArea::SharedDataArea() :
         shm(SDA_NULL_PTR(Representation*)) {
-
-}
-
-SharedDataArea::SharedDataArea(SharedDataArea::Representation* const obj) :
-        shm(obj) {
 }
 
 SharedDataArea::SigblockProducer* SharedDataArea::GetSigblockProducerInterface() {
-    //TODO: Check if it has already a writer registered
-    //try CAS of hasReader to true
+    //TODO: Check if there is already a registered writer (using a CAS on hasWriter)
     if (shm != NULL) {
         shm->hasWriter = true;
     }
@@ -90,8 +84,7 @@ SharedDataArea::SigblockProducer* SharedDataArea::GetSigblockProducerInterface()
 }
 
 SharedDataArea::SigblockConsumer* SharedDataArea::GetSigblockConsumerInterface() {
-    //TODO: Check if it has already a reader registered
-    //try CAS of hasReader to true
+    //TODO: Check if there is already a registered reader (using a CAS on hasReader)
     if (shm != NULL) {
         shm->hasReader = true;
     }

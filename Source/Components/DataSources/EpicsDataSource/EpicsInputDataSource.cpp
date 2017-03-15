@@ -37,6 +37,7 @@
 #include "HeapManager.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "ObjectRegistryDatabase.h"
+#include "Platform.h"
 #include "RealTimeApplication.h"
 #include "SharedDataArea.h"
 #include "StringHelper.h"
@@ -111,8 +112,9 @@ EpicsInputDataSource::~EpicsInputDataSource() {
         signals = SDA_NULL_PTR(SDA::Sigblock*);
     }
     if (consumer != SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*)) {
-        //TODO: Release interprocess shared memory?
         consumer = SDA_NULL_PTR(SDA::SharedDataArea::SigblockConsumer*);
+        /*lint -e{1551} Platform::DestroyShm does not throw exceptions*/
+        (void) SDA::Platform::DestroyShm(sharedDataAreaName.Buffer());
     }
 }
 
@@ -151,8 +153,8 @@ bool EpicsInputDataSource::AllocateMemory() {
         }
     }
 
-    /*lint -e{9132} array's length given by numberOfSignals*/
     SDA::SharedDataArea sbpm;
+    /*lint -e{9132} array's length given by numberOfSignals*/
     ret = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sbpm, sharedDataAreaName.Buffer(), numSignals, smd_for_init);
     if (ret) {
         consumer = sbpm.GetSigblockConsumerInterface();
@@ -188,7 +190,6 @@ bool EpicsInputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx,
             SDA::Sigblock::Metadata* sbmd = consumer->GetSigblockMetadata();
             if ((signals != SDA_NULL_PTR(SDA::Sigblock*)) && (sbmd != SDA_NULL_PTR(SDA::Sigblock::Metadata*))) {
                 signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
-//      		REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsInputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
             }
             else {
                 ok = false;

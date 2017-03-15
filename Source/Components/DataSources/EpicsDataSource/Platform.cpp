@@ -66,7 +66,7 @@ void* Platform::MakeShm(const SDA::char8* const name,
                         const SDA::size_type size) {
 
     bool ok;
-    void* result;
+    void* result = SDA_NULL_PTR(void*);
 
     SDA::int32 shm_fd;
 
@@ -98,6 +98,7 @@ void* Platform::MakeShm(const SDA::char8* const name,
 
     if (ok) {
         (void) std::memset(result, 72, size);//TODO: memset to 0!!
+        /*lint -e{613} if ok==true, then result!=NULL*/
         *(static_cast<SDA::size_type*>(result)) = size;
     }
 
@@ -111,8 +112,8 @@ void* Platform::MakeShm(const SDA::char8* const name,
 void* Platform::JoinShm(const SDA::char8* const name) {
 
     bool ok;
-    void* result;
-    void* tmp;
+    void* result = SDA_NULL_PTR(void*);
+    void* tmp = SDA_NULL_PTR(void*);
 
     SDA::int32 shm_fd;
 
@@ -136,6 +137,7 @@ void* Platform::JoinShm(const SDA::char8* const name) {
     }
 
     if (ok) {
+        /*lint -e{613} if ok==true, then result!=NULL*/
         size = *(static_cast<SDA::size_type*>(tmp));
     }
 
@@ -149,6 +151,7 @@ void* Platform::JoinShm(const SDA::char8* const name) {
 
     if (ok) {
         /*lint -e{9130} the prot argument of mmap is defined as int and it can not be changed*/
+        /*lint -e{644} if ok==true, then size has been initiliased*/
         result = mmap(SDA_NULL_PTR(void*), size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, static_cast<off_t>(0));
         if (result == /*lint -e(1924) -e(923)*/MAP_FAILED) {
             ok = false;

@@ -83,7 +83,6 @@ template<typename SignalType>
 bool EpicsOutputDataSourceTest::TestSynchronise() {
     using namespace MARTe;
     bool ok = false;
-    MARTe::StreamString tmp_SharedDataAreaName; //TODO: Remove this when autorelease will be added to EpicsOutputDataSourceTest.
 
     {
         const unsigned int maxTests = 30;
@@ -105,7 +104,6 @@ bool EpicsOutputDataSourceTest::TestSynchronise() {
 
         //Allocate memory of data source (it setups the shared data area):
         target.AllocateMemory();
-        tmp_SharedDataAreaName = target.GetSharedDataAreaName(); //TODO: Remove this when autorelease will be added to EpicsOutputDataSourceTest.
 
         //Cache an array of pointers to the signal's addresses:
         for (uint32 i = 0; i < numberOfSignals; i++) {
@@ -191,9 +189,6 @@ bool EpicsOutputDataSourceTest::TestSynchronise() {
             FreeDataSet(dataset);
         }
     }
-
-    //Release shared data area: //TODO: Remove this when autorelease will be added to EpicsOutputDataSourceTest.
-    ok &= SDA::Platform::DestroyShm(tmp_SharedDataAreaName.Buffer());
 
     return ok;
 }

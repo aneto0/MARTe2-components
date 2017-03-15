@@ -38,6 +38,7 @@
 #include "Sleep.h"
 #include "Threads.h"
 
+#include "Platform.h"
 #include "SharedDataAreaSupport.h"
 
 template bool SharedDataAreaTest::TestProducerConsumerInSingleThread<int>(const char* const,
@@ -269,6 +270,9 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
         }
     }
 
+    //Release shared data area from system
+    ok &= SDA::Platform::DestroyShm(shmName);
+
     //Return test's execution status:
     return ok;
 }
@@ -359,6 +363,9 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
         }
 
     }
+
+    //Release shared data area from system
+    ok &= SDA::Platform::DestroyShm(shmName);
 
     //Return test's execution status:
     return ok;

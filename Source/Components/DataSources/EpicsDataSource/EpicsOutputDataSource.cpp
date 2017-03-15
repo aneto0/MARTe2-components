@@ -38,6 +38,7 @@
 #include "HeapManager.h"
 #include "MemoryMapSynchronisedOutputBroker.h"
 #include "ObjectRegistryDatabase.h"
+#include "Platform.h"
 #include "RealTimeApplication.h"
 #include "SharedDataArea.h"
 #include "StringHelper.h"
@@ -110,11 +111,12 @@ EpicsOutputDataSource::~EpicsOutputDataSource() {
         void* mem = reinterpret_cast<void*>(signals);
         /*lint -e{1551} HeapManager::Free does not throw exceptions*/
         (void) HeapManager::Free(mem);
-        signals = SDA_NULL_PTR(SDA::Sigblock*); //static_cast<SDA::Sigblock*>(mem);
+        signals = SDA_NULL_PTR(SDA::Sigblock*);
     }
     if (producer != SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*)) {
-        //TODO: Release interprocess shared memory?
         producer = SDA_NULL_PTR(SDA::SharedDataArea::SigblockProducer*);
+        /*lint -e{1551} Platform::DestroyShm does not throw exceptions*/
+        (void) SDA::Platform::DestroyShm(sharedDataAreaName.Buffer());
     }
 }
 
@@ -153,8 +155,8 @@ bool EpicsOutputDataSource::AllocateMemory() {
         }
     }
 
-    /*lint -e{9132} array's length given by numberOfSignals*/
     SDA::SharedDataArea sbpm;
+    /*lint -e{9132} array's length given by numberOfSignals*/
     ret = SDA::SharedDataArea::BuildSharedDataAreaForMARTe(sbpm, sharedDataAreaName.Buffer(), numSignals, smd_for_init);
     if (ret) {
         producer = sbpm.GetSigblockProducerInterface();
@@ -190,7 +192,6 @@ bool EpicsOutputDataSource::GetSignalMemoryBuffer(const uint32 signalIdx,
             SDA::Sigblock::Metadata* sbmd = producer->GetSigblockMetadata();
             if ((signals != SDA_NULL_PTR(SDA::Sigblock*)) && (sbmd != SDA_NULL_PTR(SDA::Sigblock::Metadata*))) {
                 signalAddress = signals->GetSignalAddress(sbmd->GetSignalOffsetByIndex(signalIdx));
-//    	        REPORT_ERROR_PARAMETERS(ErrorManagement::Debug, "*** EpicsOutputDataSource::GetSignalMemoryBuffer (v2) GetName()=%s signalAddress=%p signalIdx=%u offset=%i***\n", GetName(), signalAddress, signalIdx, sbmd->GetSignalOffsetByIndex(signalIdx));
             }
             else {
                 ok = false;
