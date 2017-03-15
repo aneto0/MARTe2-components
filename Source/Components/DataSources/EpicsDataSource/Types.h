@@ -66,8 +66,9 @@ typedef int int32;
 
 /**
  * Type alias for unsigned integers
+ * @remark This is for future use (since C++11)
  */
-typedef unsigned long long int uint64; //(since C++11)
+//typedef unsigned long long int uint64;
 
 /**
  * Type alias for characters
