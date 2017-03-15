@@ -100,7 +100,7 @@ template <typename Type> BufferT<Type>::BufferT(const uint32 bufferSize) {
     size = bufferSize; 
     buffer = NULL_PTR(Type *);
 
-    uint32 memorySize = size * (unit32) sizeof(Type);
+    uint32 memorySize = size * (uint32) sizeof(Type);
 
     buffer = (Type *) (GlobalObjectsDatabase::Instance()->GetStandardHeap())->Malloc(memorySize);
 
