@@ -58,6 +58,11 @@ public:
     bool TestAllocateMemory();
 
     /**
+     * @brief Tests the AllocateMemory method.
+     */
+    bool TestAllocateMemoryBis();
+
+    /**
      * @brief Tests the GetNumberOfMemoryBuffers method.
      */
     bool TestGetNumberOfMemoryBuffers();

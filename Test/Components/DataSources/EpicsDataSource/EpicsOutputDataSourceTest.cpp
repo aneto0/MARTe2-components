@@ -223,6 +223,16 @@ bool EpicsOutputDataSourceTest::TestAllocateMemory() {
     return ok;
 }
 
+bool EpicsOutputDataSourceTest::TestAllocateMemoryBis() {
+    bool ok;
+    MARTe::ReferenceT<MARTe::RealTimeApplication> rta(MARTe::GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    MARTe::ObjectRegistryDatabase::Instance()->Insert(rta);
+    rta->SetName("MARTeRTA");
+    ok = TestAllocateMemory();
+    MARTe::ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
 bool EpicsOutputDataSourceTest::TestGetNumberOfMemoryBuffers() {
     using namespace MARTe;
     bool ok = false;

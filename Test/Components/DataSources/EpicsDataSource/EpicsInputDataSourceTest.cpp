@@ -37,6 +37,7 @@
 #include "EpicsDataSourceSupport.h"
 #include "EpicsInputDataSource.h"
 #include "EpicsInputDataSourceTest.h"
+#include "GlobalObjectsDatabase.h"
 #include "MemoryOperationsHelper.h"
 #include "ObjectRegistryDatabase.h"
 #include "Platform.h"
@@ -205,6 +206,16 @@ bool EpicsInputDataSourceTest::TestAllocateMemory() {
     //Check class invariant:
     ok &= INVARIANT(target);
 
+    return ok;
+}
+
+bool EpicsInputDataSourceTest::TestAllocateMemoryBis() {
+    bool ok;
+    MARTe::ReferenceT<MARTe::RealTimeApplication> rta(MARTe::GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    MARTe::ObjectRegistryDatabase::Instance()->Insert(rta);
+    rta->SetName("MARTeRTA");
+    ok = TestAllocateMemory();
+    MARTe::ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
 

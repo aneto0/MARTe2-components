@@ -60,6 +60,7 @@ TEST(EpicsOutputDataSourceGTest, TestSynchronise) {
 TEST(EpicsOutputDataSourceGTest,TestAllocateMemory) {
     EpicsOutputDataSourceTest test;
     ASSERT_TRUE(test.TestAllocateMemory());
+    ASSERT_TRUE(test.TestAllocateMemoryBis());
 }
 
 TEST(EpicsOutputDataSourceGTest,TestGetNumberOfMemoryBuffers) {
