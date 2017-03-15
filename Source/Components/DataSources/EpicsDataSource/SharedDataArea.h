@@ -148,8 +148,9 @@ private:
         bool hasWriter;
         /**
          * Counter of missed writes during operation of the shared data area.
+         * @remark This member is currently disabled (see DroppedWrites()).
          */
-        SDA::uint64 droppedWrites;      //TODO PURGE??
+        //SDA::uint64 droppedWrites;
         /**
          * Offset of the header area (beginning from rawmem's base address).
          */
@@ -221,9 +222,12 @@ public:
         SDA::Sigblock::Metadata* GetSigblockMetadata();
 
         /**
-         * @brief TODO Document it or purge the method
+         * @brief Gets the counter of missed writes during operation of the
+         * shared data area.
+         * @remark This method is currently disabled, but it is left as
+         * documentation for future needs.
          */
-        SDA::uint64 DroppedWrites() const;
+        //SDA::uint64 DroppedWrites() const;
 
     private:
 

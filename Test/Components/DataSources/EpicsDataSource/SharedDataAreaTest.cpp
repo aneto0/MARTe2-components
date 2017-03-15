@@ -280,8 +280,8 @@ bool SharedDataAreaTest::TestProducerConsumerInSingleThread(const char* const sh
 template<typename SignalType>
 bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const shmName,
                                                             const unsigned int maxTests) {
-    //TODO: How to achieve different paces: Configure consumer with less priority than producer or make consumer sleep often ...
-    //TODO: And latency recording??
+    /* Note: This test could be improved configuring the threads to run at different paces,
+     * setting different priorities or making consumer sleep more often, for instance.*/
 
     bool ok = false;
     SharedContext context(10, maxTests);

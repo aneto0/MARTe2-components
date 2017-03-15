@@ -56,7 +56,7 @@ namespace SDA {
  * consumer can retry later.
  * * It always writes to the back buffer and tries to swap front and
  * back buffers, but if front buffer is being accessed by the consumer, then
- * it does not block and returns TODO ¿error?. The next time the producer writes,
+ * it does not block and returns error. The next time the producer writes,
  * it will overwrite the back buffer and will try to swap again. Eventually,
  * when consumer had finished reading the front buffer, the next write will
  * swap the buffers, and the front buffer will have a fresh sigblock. In the

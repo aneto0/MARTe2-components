@@ -51,7 +51,6 @@
 
 namespace {
 
-//TODO: Reduce permissions defined in OPEN_MODE to the minimum necessary set.
 /*lint -e{9130} the oflag argument of shm_open is defined as int and it can not be changed*/
 const SDA::uint32 OPEN_MODE = static_cast<SDA::uint32>(S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 }
@@ -97,7 +96,7 @@ void* Platform::MakeShm(const SDA::char8* const name,
     }
 
     if (ok) {
-        (void) std::memset(result, 72, size);//TODO: memset to 0!!
+        (void) std::memset(result, 0, size);
         /*lint -e{613} if ok==true, then result!=NULL*/
         *(static_cast<SDA::size_type*>(result)) = size;
     }

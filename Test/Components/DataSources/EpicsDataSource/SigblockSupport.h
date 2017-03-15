@@ -39,6 +39,7 @@
 
 #include "CompilerTypes.h"
 #include "Sigblock.h"
+#include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -110,9 +111,9 @@ template<typename SignalType>
 void GenerateMetadataForSigblock(SDA::Signal::Metadata sbmd[],
                                  const unsigned int numberOfSignals) {
     for (unsigned int i = 0u; (i < numberOfSignals); i++) {
-        std::stringstream name; //TODO: Use MARTe StreamString class, instead.
-        name << "Signal" << i;
-        std::strncpy(sbmd[i].name, name.str().c_str(), SDA::Signal::Metadata::NAME_MAX_LEN);
+        MARTe::StreamString name;
+        name.Printf("Signal %u", i);
+        std::strncpy(sbmd[i].name, name.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);
         sbmd[i].size = sizeof(SignalType);
     }
 }

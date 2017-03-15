@@ -120,7 +120,7 @@ static bool MasterProcessPrologue(void*& shm,
 
             //Check default token:
             for (unsigned int i = 0; i < tokenlen; i++) {
-                ok &= (data->token[i] == 72);
+                ok &= (data->token[i] == 0);
             }
 
             //Write check status:

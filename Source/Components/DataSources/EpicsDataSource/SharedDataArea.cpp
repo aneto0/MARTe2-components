@@ -95,7 +95,7 @@ SharedDataArea::SigblockConsumer* SharedDataArea::GetSigblockConsumerInterface()
 void SharedDataArea::Representation::FillPreHeader(const SDA::size_type sizeOfHeader) {
     hasReader = false;
     hasWriter = false;
-    droppedWrites = 0u;
+    //droppedWrites = 0u; This member is currently disabled (see DroppedWrites()).
     offsetOfHeader = 0u;
     offsetOfItems = sizeOfHeader;
 }
@@ -147,13 +147,9 @@ bool SharedDataArea::BuildSharedDataAreaForEPICS(SharedDataArea& sda, const SDA:
     }
     else {
         tmp_shm_ptr = static_cast<SharedDataArea::Representation*>(raw_shm_ptr);
-
-        //TODO: try CAS of hasReader to true
-        //tmp_shm_ptr->hasReader = true;
-
-        //if it was already true, return not success
-        //it was false, return the address of the SharedData
-
+        /* TODO: Use a CAS on tmp_shm_ptr->hasReader to check if there is
+         * another reader bound to this shared data area. If there is, then
+         * return error, if not then set tmp_shm_ptr->hasReader to true.*/
         sda.shm = tmp_shm_ptr;
         ok = true;
     }
@@ -179,9 +175,9 @@ bool SharedDataArea::SigblockProducer::WriteSigblock(const SDA::Sigblock& sb) {
     bool fret = true;
     if (IsOperational()) {
         fret = Items()->Put(sb);
-        if (!fret) {
-            droppedWrites++;  //TODO handle overflow ...
-        }
+        //if (!fret) {
+        //    droppedWrites++; This member is currently disabled (see DroppedWrites()).
+        //}
     }
     else {
         fret = false;
@@ -193,8 +189,9 @@ SDA::Sigblock::Metadata* SharedDataArea::SigblockProducer::GetSigblockMetadata()
     return Header();
 }
 
-SDA::uint64 SharedDataArea::SigblockProducer::DroppedWrites() const {
-    return SharedDataArea::Representation::droppedWrites;
-}
+//This member function is currently disabled (see DroppedWrites() documentation).
+//SDA::uint64 SharedDataArea::SigblockProducer::DroppedWrites() const {
+//    return SharedDataArea::Representation::droppedWrites;
+//}
 
 }
