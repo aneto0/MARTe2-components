@@ -96,7 +96,7 @@ bool BaseLib2Wrapper::Initialise(StructuredDataI & data) {
 bool BaseLib2Wrapper::HandleBaseLib2Message(const char8 * const destination,
                                             const char8 * const content,
                                             uint32 code) {
-    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Received message to %s with content %s and code %d\n", destination, content, code)
+    REPORT_ERROR(ErrorManagement::Information, "Received message to %s with content %s and code %d\n", destination, content, code);
     ReferenceT<Message> msg(new Message());
     ConfigurationDatabase cdb;
     bool ok = cdb.Write("Destination", destination);

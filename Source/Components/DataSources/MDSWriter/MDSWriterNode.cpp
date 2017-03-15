@@ -88,19 +88,19 @@ MDSWriterNode::~MDSWriterNode() {
 bool MDSWriterNode::Initialise(StructuredDataI & data) {
     bool ok = data.Read("NodeName", nodeName);
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "NodeName shall be specified");
+        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NodeName shall be specified");
     }
     if (ok) {
         if (data.Read("DecimatedNodeName", decimatedNodeName)) {
             decimatedMinMax = true;
             ok = (data.Read("MinMaxResampleFactor", minMaxResampleFactor));
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "MinMaxResampleFactor shall be specified");
+                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "MinMaxResampleFactor shall be specified");
             }
             if (ok) {
                 ok = (minMaxResampleFactor > 0);
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "MinMaxResampleFactor shall be > 0");
+                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "MinMaxResampleFactor shall be > 0");
                 }
             }
         }
@@ -139,7 +139,7 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
             nodeType = DTYPE_DOUBLE;
         }
         else {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "NodeType %s not supported for node with name %s", signalType.Buffer(), nodeName.Buffer())
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NodeType %s not supported for node with name %s", signalType.Buffer(), nodeName.Buffer());
             ok = false;
         }
     }
@@ -147,31 +147,31 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         ok = (data.Read("NumberOfElements", numberOfElements));
 
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfElements shall be specified");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NumberOfElements shall be specified");
         }
     }
     if (ok) {
         ok = (numberOfElements > 0u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfElements shall be > 0");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NumberOfElements shall be > 0");
         }
     }
     if (ok) {
         ok = (data.Read("Period", period));
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Period shall be specified");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Period shall be specified");
         }
     }
     if (ok) {
         ok = (period > 0.);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Period shall be > 0");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Period shall be > 0");
         }
     }
     if (ok) {
         ok = (data.Read("SamplePhase", phaseShift));
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::Information, "SamplePhase not specified. Using 0");
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "SamplePhase not specified. Using 0");
             phaseShift = 0;
             ok = true;
         }
@@ -180,13 +180,13 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         ok = (data.Read("MakeSegmentAfterNWrites", makeSegmentAfterNWrites));
 
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "MakeSegmentAfterNWrites shall be specified");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "MakeSegmentAfterNWrites shall be specified");
         }
     }
     if (ok) {
         ok = (makeSegmentAfterNWrites > 0u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "MakeSegmentAfterNWrites shall be > 0");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "MakeSegmentAfterNWrites shall be > 0");
         }
     }
     if (ok) {
@@ -243,7 +243,7 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree * const tree) {
         }
     }
     catch (const MDSplus::MdsException &exc) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", nodeName.Buffer(), exc.what())
+        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", nodeName.Buffer(), exc.what());
         ok = false;
     }
     start = static_cast<float64>(phaseShift) * period;

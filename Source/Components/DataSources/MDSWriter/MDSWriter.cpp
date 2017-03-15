@@ -452,7 +452,7 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             delete tree;
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Failed deleting tree %s. Error: %s", treeName.Buffer(), exc.what())
+            REPORT_ERROR(ErrorManagement::Warning, "Failed deleting tree %s. Error: %s", treeName.Buffer(), exc.what());
         }
         tree = NULL_PTR(MDSplus::Tree *);
     }
@@ -468,7 +468,7 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = NULL_PTR(MDSplus::Tree *);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed opening tree %s to get last pulse number. Error: %s", treeName.Buffer(), exc.what())
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s to get last pulse number. Error: %s", treeName.Buffer(), exc.what());
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;
             }
@@ -483,7 +483,7 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s", treeName.Buffer(), pulseNumber, exc.what())
+            REPORT_ERROR(ErrorManagement::Warning, "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;
             }
@@ -496,7 +496,7 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
                 tree->createPulse(pulseNumber);
             }
             catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber, exc.what())
+                REPORT_ERROR(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
                 ok = false;
             }
         }
@@ -511,7 +511,7 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s", treeName.Buffer(), pulseNumber, exc.what())
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
             ok = false;
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;

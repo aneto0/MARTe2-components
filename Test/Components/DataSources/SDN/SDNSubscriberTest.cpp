@@ -211,7 +211,7 @@ static inline bool ConfigureApplication(const MARTe::char8 * const config) {
     bool ok = parser.Parse();
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
     } else {
         god->Purge();
         ok = god->Initialise(cdb);
@@ -224,7 +224,7 @@ static inline bool ConfigureApplication(const MARTe::char8 * const config) {
         ok = application.IsValid();
     }
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
     } else {
         ok = application->ConfigureApplication();
     }
@@ -242,12 +242,12 @@ static inline bool StartApplication(const MARTe::char8 * const state = "Running"
     bool ok = application.IsValid();
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
     } else {
         ok = application->PrepareNextState(state);
     }
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::PrepareNextState failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::PrepareNextState failed");
     } else {
         ok = application->StartNextStateExecution();
     }
@@ -265,7 +265,7 @@ static inline bool StopApplication() {
     bool ok = application.IsValid();
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
     } else {
         ok = application->StopCurrentStateExecution();
     }
