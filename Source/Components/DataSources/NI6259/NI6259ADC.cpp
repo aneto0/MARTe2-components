@@ -234,7 +234,7 @@ bool NI6259ADC::Synchronise() {
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the counter and the timer are always reset irrespectively of the states being changed.*/
 bool NI6259ADC::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
-    (void)counterResetFastMux.FastLock();
+    (void) counterResetFastMux.FastLock();
     counter = 0u;
     counterValue = 0u;
     timeValue = 0u;
@@ -541,10 +541,10 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
 
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "No CPUs defined for %s", GetName())
+            REPORT_ERROR(ErrorManagement::Information, "No CPUs defined for %s", GetName());
         }
     }
-    //Get individual signal parameters
+//Get individual signal parameters
     uint32 i = 0u;
     if (ok) {
         ok = data.MoveRelative("Signals");
@@ -651,7 +651,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         ok = (GetNumberOfSignals() > (NI6259ADC_HEADER_SIZE));
     }
     if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "At least (%d) signals shall be configured (header + 1 ADC)", NI6259ADC_HEADER_SIZE + 1u)
+        REPORT_ERROR(ErrorManagement::ParametersError, "At least (%d) signals shall be configured (header + 1 ADC)", NI6259ADC_HEADER_SIZE + 1u);
     }
     //The type of counter shall be unsigned int32 or uint32
     if (ok) {
@@ -744,8 +744,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
                 float32 totalNumberOfSamplesPerSecond = (static_cast<float32>(numberOfSamples) * cycleFrequency);
                 ok = (singleADCFrequency == static_cast<uint32>(totalNumberOfSamplesPerSecond));
                 if (!ok) {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "singleADCFrequency (%u) shall be equal to numberOfSamples * cycleFrequency (%u)",
-                                            singleADCFrequency, totalNumberOfSamplesPerSecond)
+                    REPORT_ERROR(ErrorManagement::ParametersError, "singleADCFrequency (%u) shall be equal to numberOfSamples * cycleFrequency (%u)", singleADCFrequency, totalNumberOfSamplesPerSecond);
                 }
             }
         }
@@ -762,7 +761,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         boardFileDescriptor = open(fullDeviceName.Buffer(), O_RDWR);
         ok = (boardFileDescriptor > -1);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName);
         }
     }
     pxi6259_ai_conf_t adcConfiguration = pxi6259_create_ai_conf();
@@ -771,13 +770,13 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
             ok = (pxi6259_add_ai_channel(&adcConfiguration, static_cast<uint8_t>(i), inputPolarity[i], inputRange[i], inputMode[i], 0u) == 0);
             uint32 ii = i;
             if (ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Channel %d set with input range %d", ii, inputRange[i])
+                REPORT_ERROR(ErrorManagement::Information, "Channel %d set with input range %d", ii, inputRange[i]);
             }
             else {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", ii, fullDeviceName)
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", ii, fullDeviceName);
+                    }
+                }
             }
-        }
-    }
     if (ok) {
         if (numberOfADCsEnabled == 1u) {
             ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16u, delayDivisor, clockConvertSource, clockConvertPolarity) == 0);
@@ -786,7 +785,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
             ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 20u, delayDivisor, clockConvertSource, clockConvertPolarity) == 0);
         }
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName);
         }
     }
     if (ok) {
@@ -797,13 +796,13 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
             ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, 20u, delayDivisor, clockSampleSource, clockSamplePolarity) == 0);
         }
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the clock for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the clock for device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (pxi6259_load_ai_conf(boardFileDescriptor, &adcConfiguration) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName);
         }
     }
     if (ok) {
@@ -830,7 +829,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
                     channelsFileDescriptors[i] = open(channelDeviceName.Buffer(), O_RDWR);
                     ok = (channelsFileDescriptors[i] > -1);
                     if (!ok) {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName)
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName);
                     }
                 }
             }
@@ -839,15 +838,15 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = (pxi6259_start_ai(boardFileDescriptor) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName)
-        }
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName);
+        };
     }
     return ok;
 }
 
 ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
     ErrorManagement::ErrorType err;
-    (void)counterResetFastMux.FastLock();
+    (void) counterResetFastMux.FastLock();
     if (info.GetStage() == ExecutionInfo::TerminationStage) {
         keepRunning = false;
     }

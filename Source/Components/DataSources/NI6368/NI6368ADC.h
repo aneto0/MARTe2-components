@@ -50,6 +50,8 @@ const uint32 NI6368ADC_MAX_CHANNELS = 16u;
 const uint32 NI6368ADC_HEADER_SIZE = 2u;
 //Sampling frequency
 const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
+//The number of buffers to synchronise with the DMA
+const uint32 NUMBER_OF_BUFFERS = 8u;
 /**
  * @brief A DataSource which provides an input interface to the NI6368 boards.
  *
@@ -111,7 +113,7 @@ NI6368ADC    ();
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @return 2.
+     * @return NUMBER_OF_BUFFERS.
      */
     virtual uint32 GetNumberOfMemoryBuffers();
 
@@ -163,7 +165,7 @@ NI6368ADC    ();
      * @brief Gets the last index written by the DMA (can be either 0 or 1).
      * @return the last index written by the DMA.
      */
-    uint8 GetLastBufferIdx() const;
+    uint8 GetLastBufferIdx();
 
     /**
      * @brief Returns true if there is one GAM synchronising on this board.
@@ -311,7 +313,7 @@ private:
     /**
      * The signals memory
      */
-    int16 *channelsMemory[2][NI6368ADC_MAX_CHANNELS];
+    int16 *channelsMemory[NUMBER_OF_BUFFERS][NI6368ADC_MAX_CHANNELS];
 
     /**
      * Maps the signal index in the signal list to the channel id
@@ -349,6 +351,11 @@ private:
     uint8 currentBufferIdx;
 
     /**
+     * The last read buffer index
+     */
+    uint8 lastBufferIdx;
+
+    /**
      * The number of samples written to the current buffer.
      */
     uint32 currentBufferOffset;
@@ -374,7 +381,12 @@ private:
     EventSem synchSem;
 
     /**
-     * Semaphore associated with the counter reset
+     * Semaphore to manage the buffer indexes.
+     */
+    FastPollingMutexSem fastMux;
+
+    /**
+     * Semaphore to guarantee synchronous reset of the counter.
      */
     FastPollingMutexSem counterResetFastMux;
 
