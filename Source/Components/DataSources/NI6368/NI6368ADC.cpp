@@ -52,8 +52,8 @@ NI6368ADC::NI6368ADC() :
     boardFileDescriptor = -1;
     deviceName = "";
     counter = 0u;
-    counterValue = 0u;
-    timeValue = 0u;
+    counterValue = NULL_PTR(uint32 *);
+    timeValue = NULL_PTR(uint32 *);
     scanIntervalCounterDelay = 0u;
     scanIntervalCounterPeriod = 0u;
     numberOfADCsEnabled = 0u;
@@ -129,6 +129,12 @@ NI6368ADC::~NI6368ADC() {
     if (dmaReadBuffer != NULL_PTR(int16 *)) {
         delete[] dmaReadBuffer;
     }
+    if (counterValue != NULL_PTR(uint32 *)) {
+        delete[] counterValue;
+    }
+    if (timeValue != NULL_PTR(uint32 *)) {
+        delete[] timeValue;
+    }
 }
 
 bool NI6368ADC::AllocateMemory() {
@@ -144,10 +150,10 @@ bool NI6368ADC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
     bool ok = (signalIdx < (NI6368ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE));
     if (ok) {
         if (signalIdx == 0u) {
-            signalAddress = reinterpret_cast<void *>(&counterValue);
+            signalAddress = reinterpret_cast<void *>(&counterValue[bufferIdx]);
         }
         else if (signalIdx == 1u) {
-            signalAddress = reinterpret_cast<void *>(&timeValue);
+            signalAddress = reinterpret_cast<void *>(&timeValue[bufferIdx]);
         }
         else {
             signalAddress = &(channelsMemory[bufferIdx][signalIdx - NI6368ADC_HEADER_SIZE][0]);
@@ -194,28 +200,32 @@ bool NI6368ADC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     return false;
 }
 
+#include <stdio.h>
+static uint32 lastCounter = 0u;
+static uint32 lastTime = 0u;
 bool NI6368ADC::Synchronise() {
-    ErrorManagement::ErrorType err;
+    ErrorManagement::ErrorType err(true);
     if (synchronising) {
         (void) fastMux.FastLock();
         if (lastBufferIdx == currentBufferIdx) {
+            err = !synchSem.Reset();
             fastMux.FastUnLock();
             if (err.ErrorsCleared()) {
                 err = synchSem.Wait(TTInfiniteWait);
-            }
-            if (err.ErrorsCleared()) {
-                //Note that if there are two "consecutive" Posts because the CopyDMA is running much faster than this thread then we could stay one cycle more waiting...
-                //With the FastTryLock this is avoided
-                if (fastMux.FastTryLock()) {
-                    err = synchSem.Reset();
-                }
-                fastMux.FastUnLock();
             }
         }
         else {
             fastMux.FastUnLock();
         }
     }
+    if (lastCounter == counter) {
+        printf("WHAT?! lastCounter = %d counter = %d lastBufferIdx = %d currentBufferIdx = %d\n\n\n\n", lastCounter, counterValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
+    }
+    if (lastCounter == counter) {
+        printf("WHAT?! lastTime = %d time = %d lastBufferIdx = %d currentBufferIdx = %d\n\n\n\n", lastTime, timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
+    }
+    lastCounter = counterValue[lastBufferIdx];
+    lastTime = timeValue[lastBufferIdx];
     return err.ErrorsCleared();
 }
 
@@ -224,9 +234,12 @@ bool NI6368ADC::PrepareNextState(const char8* const currentStateName, const char
     bool ok = (counterResetFastMux.FastLock() == ErrorManagement::NoError);
     if (ok) {
         counter = 0u;
-        counterValue = 0u;
+        uint32 b;
+        for (b=0u; b<NUMBER_OF_BUFFERS; b++) {
+            counterValue[b] = 0u;
+            timeValue[b] = 0u;
+        }
         currentBufferOffset = 0u;
-        timeValue = 0u;
     }
     counterResetFastMux.FastUnLock();
     if (ok) {
@@ -1022,6 +1035,9 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         //Allocate memory
+        counterValue = new uint32[NUMBER_OF_BUFFERS];
+        timeValue = new uint32[NUMBER_OF_BUFFERS];
+
         for (i = 0u; (i < NI6368ADC_MAX_CHANNELS) && (ok); i++) {
             uint32 b;
             for (b = 0u; (b < NUMBER_OF_BUFFERS) && (ok); b++) {
@@ -1112,30 +1128,33 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
                 if (currentBufferOffset == numberOfSamples) {
                     currentBufferOffset = 0u;
                     //Don't wait if this fails. At most a cycle will be delayed.
-                    (void) fastMux.FastTryLock();
+                    (void) fastMux.FastLock();
                     currentBufferIdx++;
                     if (currentBufferIdx == NUMBER_OF_BUFFERS) {
                         currentBufferIdx = 0u;
                     }
-                    fastMux.FastUnLock();
                     //This is required as otherwise it could copy the wrong counter value in the consumer thread.
-                    counterValue = counter;
+                    if (counterValue != NULL_PTR(uint32 *)) {
+                        counterValue[currentBufferIdx] = counter;
+                    }
                     if (counter > 0u) {
                         uint64 counterSamples = counter;
                         counterSamples *= numberOfSamples;
                         counterSamples *= 1000000LLU;
                         counterSamples /= NI6368ADC_SAMPLING_FREQUENCY;
-                        timeValue = static_cast<uint32>(counterSamples);
+                        if (timeValue != NULL_PTR(uint32 *)) {
+                            timeValue[currentBufferIdx] = static_cast<uint32>(counterSamples);
+                        }
                     }
                     else {
-                        timeValue = 0u;
+                        if (timeValue != NULL_PTR(uint32 *)) {
+                            timeValue[currentBufferIdx] = 0u;
+                        }
                     }
                     if (synchronising) {
-                        //Don't wait if this fails. At most a cycle will be delayed.
-                        (void) fastMux.FastTryLock();
                         err = !synchSem.Post();
-                        fastMux.FastUnLock();
                     }
+                    fastMux.FastUnLock();
                     counter++;
                 }
             }

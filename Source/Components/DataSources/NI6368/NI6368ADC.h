@@ -221,19 +221,19 @@ private:
     ErrorManagement::ErrorType CopyFromDMA(size_t numberOfSamplesFromDMA);
 
     /**
-     * The counter value
+     * The counter value 
      */
     uint32 counter;
 
     /**
-     * The counter signal value
+     * The counter signal value (one for each buffer index)
      */
-    uint32 counterValue;
+    uint32 *counterValue;
 
     /**
-     * The time value
+     * The time value (one for each buffer index)
      */
-    uint32 timeValue;
+    uint32 *timeValue;
 
     /**
      * The EmbeddedThread where the Execute method waits for the ADC data to be available.

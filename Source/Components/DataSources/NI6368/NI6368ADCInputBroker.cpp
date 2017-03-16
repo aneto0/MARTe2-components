@@ -88,6 +88,10 @@ bool NI6368ADCInputBroker::Init(const SignalDirection direction, DataSourceI &da
     //The same signal can be copied from different ranges. A MemoryMapStatefulBrokerCopyTableEntry is added for each signal range.
     uint32 c = 0u;
     uint32 n;
+    uint32 numberOfBuffers = NUMBER_OF_BUFFERS;
+    if (adcBoard != NULL_PTR(NI6368ADC *)) {
+        numberOfBuffers = adcBoard->GetNumberOfMemoryBuffers();
+    }
     for (n = 0u; (n < functionNumberOfSignals) && (ret); n++) {
         if (dataSource->IsSupportedBroker(direction, functionIdx, n, brokerClassName)) {
             uint32 numberOfByteOffsets = 0u;
@@ -109,7 +113,7 @@ bool NI6368ADCInputBroker::Init(const SignalDirection direction, DataSourceI &da
                     copyTable[c].gamPointer = GetFunctionPointer(c);
                     copyTable[c].dataSourceOffset = GetCopyOffset(c);
                     uint32 b;
-                    for (b = 0u; (b < NUMBER_OF_BUFFERS) && (ret); b++) {
+                    for (b = 0u; (b < numberOfBuffers) && (ret); b++) {
                         void *dataSourceSignalAddress;
                         ret = dataSource->GetSignalMemoryBuffer(signalIdx, b, dataSourceSignalAddress);
                         if (ret) {
