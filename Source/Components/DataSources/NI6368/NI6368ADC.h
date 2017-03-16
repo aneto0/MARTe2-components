@@ -70,6 +70,7 @@ const uint32 NUMBER_OF_BUFFERS = 8u;
  *     ScanIntervalCounterPeriod = 50 //Mandatory. Period of the scan interval.
  *     ScanIntervalCounterDelay = 2 //Mandatory. Minimum delay after the start trigger.
  *     CPUs = 0xf //Optional. CPU affinity for the thread which reads data from the board.
+ *     RealTimeMode = 0 //Optional. If 1 it will busy sleep on the synchronisation semaphores.
  *     Signals = {
  *          Counter = { //Mandatory. Number of ticks since last state change.
  *              Type = uint32 //int32 also supported.
@@ -236,6 +237,11 @@ private:
     uint32 *timeValue;
 
     /**
+     * The last time value (for error checking)
+     */
+    uint32 lastTimeValue;
+
+    /**
      * The EmbeddedThread where the Execute method waits for the ADC data to be available.
      */
     SingleThreadService executor;
@@ -384,6 +390,11 @@ private:
      * Semaphore to manage the buffer indexes.
      */
     FastPollingMutexSem fastMux;
+
+    /**
+     * Sleep for the fastMux. Default if RealTimeMode == 0 or 0 if RealTimeMode == 1
+     */
+    float64 fastMuxSleepTime;
 
     /**
      * Semaphore to guarantee synchronous reset of the counter.

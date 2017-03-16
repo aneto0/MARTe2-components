@@ -69,6 +69,8 @@ NI6368ADC::NI6368ADC() :
     nBytesInDMAFromStart = 0u;
     dmaOffset = 0u;
     dmaChannel = 0u;
+    lastTimeValue = 0u;
+    fastMuxSleepTime = 1e-3;
     dma = NULL_PTR(struct xseries_dma *);
 
     keepRunning = true;
@@ -150,10 +152,14 @@ bool NI6368ADC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
     bool ok = (signalIdx < (NI6368ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE));
     if (ok) {
         if (signalIdx == 0u) {
-            signalAddress = reinterpret_cast<void *>(&counterValue[bufferIdx]);
+            if (counterValue != NULL_PTR(uint32 *)) {
+                signalAddress = reinterpret_cast<void *>(&counterValue[bufferIdx]);
+            }
         }
         else if (signalIdx == 1u) {
-            signalAddress = reinterpret_cast<void *>(&timeValue[bufferIdx]);
+            if (timeValue != NULL_PTR(uint32 *)) {
+                signalAddress = reinterpret_cast<void *>(&timeValue[bufferIdx]);
+            }
         }
         else {
             signalAddress = &(channelsMemory[bufferIdx][signalIdx - NI6368ADC_HEADER_SIZE][0]);
@@ -200,13 +206,10 @@ bool NI6368ADC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     return false;
 }
 
-#include <stdio.h>
-static uint32 lastCounter = 0u;
-static uint32 lastTime = 0u;
 bool NI6368ADC::Synchronise() {
     ErrorManagement::ErrorType err(true);
     if (synchronising) {
-        (void) fastMux.FastLock();
+        (void) fastMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
         if (lastBufferIdx == currentBufferIdx) {
             err = !synchSem.Reset();
             fastMux.FastUnLock();
@@ -218,14 +221,13 @@ bool NI6368ADC::Synchronise() {
             fastMux.FastUnLock();
         }
     }
-    if (lastCounter == counter) {
-        printf("WHAT?! lastCounter = %d counter = %d lastBufferIdx = %d currentBufferIdx = %d\n\n\n\n", lastCounter, counterValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
+    if (timeValue != NULL_PTR(uint32 *)) {
+        if (lastTimeValue == timeValue[lastBufferIdx]) {
+            REPORT_ERROR(ErrorManagement::Warning, "Repeated time values. Last = %d Current = %d. lastBufferIdx = %d currentBufferIdx = %d", lastTimeValue, timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
+        }
+        lastTimeValue = timeValue[lastBufferIdx];
     }
-    if (lastCounter == counter) {
-        printf("WHAT?! lastTime = %d time = %d lastBufferIdx = %d currentBufferIdx = %d\n\n\n\n", lastTime, timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
-    }
-    lastCounter = counterValue[lastBufferIdx];
-    lastTime = timeValue[lastBufferIdx];
+
     return err.ErrorsCleared();
 }
 
@@ -235,9 +237,13 @@ bool NI6368ADC::PrepareNextState(const char8* const currentStateName, const char
     if (ok) {
         counter = 0u;
         uint32 b;
-        for (b=0u; b<NUMBER_OF_BUFFERS; b++) {
-            counterValue[b] = 0u;
-            timeValue[b] = 0u;
+        for (b = 0u; b < NUMBER_OF_BUFFERS; b++) {
+            if (counterValue != NULL_PTR(uint32 *)) {
+                counterValue[b] = 0u;
+            }
+            if (timeValue != NULL_PTR(uint32 *)) {
+                timeValue[b] = 0u;
+            }
         }
         currentBufferOffset = 0u;
     }
@@ -787,7 +793,17 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
 
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
-            REPORT_ERROR(ErrorManagement::Information, "No CPUs defined for %s", GetName());
+            REPORT_ERROR(ErrorManagement::Information, "No CPUs defined");
+        }
+        uint32 realTimeModeUInt = 0u;
+        if (!data.Read("RealTimeMode", realTimeModeUInt)) {
+            REPORT_ERROR(ErrorManagement::Information, "No RealTimeMode defined");
+        }
+        if (realTimeModeUInt == 1u) {
+            fastMuxSleepTime = 0.0;
+        }
+        else {
+            fastMuxSleepTime = 1e-3;
         }
     }
     //Get individual signal parameters
@@ -1128,7 +1144,7 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
                 if (currentBufferOffset == numberOfSamples) {
                     currentBufferOffset = 0u;
                     //Don't wait if this fails. At most a cycle will be delayed.
-                    (void) fastMux.FastLock();
+                    (void) fastMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
                     currentBufferIdx++;
                     if (currentBufferIdx == NUMBER_OF_BUFFERS) {
                         currentBufferIdx = 0u;
