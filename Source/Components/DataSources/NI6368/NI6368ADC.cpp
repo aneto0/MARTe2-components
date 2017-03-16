@@ -223,7 +223,9 @@ bool NI6368ADC::Synchronise() {
     }
     if (timeValue != NULL_PTR(uint32 *)) {
         if (lastTimeValue == timeValue[lastBufferIdx]) {
-            REPORT_ERROR(ErrorManagement::Warning, "Repeated time values. Last = %d Current = %d. lastBufferIdx = %d currentBufferIdx = %d", lastTimeValue, timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
+            if (lastTimeValue != 0u) {
+                REPORT_ERROR(ErrorManagement::Warning, "Repeated time values. Last = %d Current = %d. lastBufferIdx = %d currentBufferIdx = %d", lastTimeValue, timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
+            }
         }
         lastTimeValue = timeValue[lastBufferIdx];
     }
