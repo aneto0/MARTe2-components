@@ -109,7 +109,7 @@ template <typename Type> BufferT<Type>::BufferT(const uint32 bufferSize) {
     bool ok = (buffer != NULL_PTR(Type *));
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed to allocate memory buffer");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to allocate memory buffer");
     }
 
 }

@@ -51,7 +51,7 @@ template <typename Type> inline Type SquareRoot(const Type x) {
     Type tmp = x;
 
     if (tmp < (Type) 0) {
-        REPORT_ERROR(ErrorManagement::Warning, "SquareRoot<Type> of negative number");
+        REPORT_ERROR_STATIC(ErrorManagement::Warning, "SquareRoot<Type> of negative number");
 	tmp *= -1;
     }
 
@@ -170,7 +170,7 @@ template <> inline uint64 SquareRoot<uint64>(const uint64 x) { /* From http://en
 template <> inline int8 SquareRoot<int8>(const int8 x) {
 
     if (x < 0) {
-        REPORT_ERROR(ErrorManagement::Warning, "SquareRoot<int8> of negative number");
+        REPORT_ERROR_STATIC(ErrorManagement::Warning, "SquareRoot<int8> of negative number");
     }
 
     uint8 tmp = static_cast<uint8>(x);
@@ -182,7 +182,7 @@ template <> inline int8 SquareRoot<int8>(const int8 x) {
 template <> inline int16 SquareRoot<int16>(const int16 x) {
 
     if (x < 0) {
-        REPORT_ERROR(ErrorManagement::Warning, "SquareRoot<int16> of negative number");
+        REPORT_ERROR_STATIC(ErrorManagement::Warning, "SquareRoot<int16> of negative number");
     }
 
     uint16 tmp = static_cast<uint16>(x);
@@ -194,7 +194,7 @@ template <> inline int16 SquareRoot<int16>(const int16 x) {
 template <> inline int32 SquareRoot<int32>(const int32 x) {
 
     if (x < 0) {
-        REPORT_ERROR(ErrorManagement::Warning, "SquareRoot<int32> of negative number");
+        REPORT_ERROR_STATIC(ErrorManagement::Warning, "SquareRoot<int32> of negative number");
     }
 
     uint32 tmp = static_cast<uint32>(x);
@@ -206,7 +206,7 @@ template <> inline int32 SquareRoot<int32>(const int32 x) {
 template <> inline int64 SquareRoot<int64>(const int64 x) {
 
     if (x < 0) {
-        REPORT_ERROR(ErrorManagement::Warning, "SquareRoot<int64> of negative number");
+        REPORT_ERROR_STATIC(ErrorManagement::Warning, "SquareRoot<int64> of negative number");
     }
 
     uint64 tmp = static_cast<uint64>(x);
