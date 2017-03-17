@@ -316,7 +316,7 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
         boardFileDescriptor = open(fullDeviceName.Buffer(), O_RDWR);
         ok = (boardFileDescriptor > -1);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName);
         }
     }
     pxi6259_dio_conf_t dioConfiguration = pxi6259_create_dio_conf();
@@ -325,17 +325,17 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
             ok = (pxi6259_add_dio_channel(&dioConfiguration, static_cast<uint8>(i), portMask[i]) == 0);
             uint32 ii = i;
             if (ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port %d set with mask %d ", ii, portMask[i])
+                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port %d set with mask %d ", ii, portMask[i]);
             }
             else {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set configuration for port %d of device %s", ii, fullDeviceName)
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set configuration for port %d of device %s", ii, fullDeviceName);
             }
         }
     }
     if (ok) {
         ok = (pxi6259_load_dio_conf(boardFileDescriptor, &dioConfiguration) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName);
         }
     }
 
@@ -354,7 +354,7 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
                     portFileDescriptors[i] = open(portDeviceName.Buffer(), O_RDWR);
                     ok = (portFileDescriptors[i] > -1);
                     if (!ok) {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", portDeviceName)
+                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", portDeviceName);
                     }
                 }
             }

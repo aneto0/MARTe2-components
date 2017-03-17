@@ -34,6 +34,7 @@
 #include "DataSourceI.h"
 #include "ProcessorType.h"
 #include "MDSWriterNode.h"
+#include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "MessageI.h"
 #include "RegisteredMethodsMessageFilter.h"
 
@@ -364,6 +365,12 @@ private:
      * Filter to receive the RPC which allows to change the pulse number.
      */
     ReferenceT<RegisteredMethodsMessageFilter> filter;
+
+    /**
+     * The asynchronous triggered broker that provides the interface between the GAMs and the MDS+ memory
+     */
+    MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
+
 };
 }
 

@@ -1057,25 +1057,25 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI& data) {
         boardFileDescriptor = open(fullDeviceName.Buffer(), O_RDWR);
         ok = (boardFileDescriptor > -1);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (xseries_stop_di(boardFileDescriptor) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_stop_di on device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not xseries_stop_di on device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (xseries_stop_do(boardFileDescriptor) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_stop_do on device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not xseries_stop_do on device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (xseries_reset_dio(boardFileDescriptor) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_reset_dio on device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not xseries_reset_dio on device %s", fullDeviceName);
         }
     }
 
@@ -1085,19 +1085,19 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI& data) {
         if (ok) {
             ok = (xseries_set_di_sample_clock(&diConfiguration, clockSampleSource, clockSamplePolarity) == 0);
             if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the sample clock for device %s", fullDeviceName)
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the sample clock for device %s", fullDeviceName);
             }
         }
         if (ok) {
             ok = (xseries_set_di_scan_interval_counter(&diConfiguration, scanIntervalCounterSource, scanIntervalCounterPeriod, scanIntervalCounterDelay) == 0);
             if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName)
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName);
             }
         }
         if (ok) {
             ok = (xseries_load_di_conf(boardFileDescriptor, diConfiguration) == 0);
             if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load xseries_load_di_conf for device %s", fullDeviceName)
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not load xseries_load_di_conf for device %s", fullDeviceName);
             }
         }
     }
@@ -1106,39 +1106,39 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI& data) {
         if (ok) {
             ok = (xseries_set_do_start_trigger(&doConfiguration, startTriggerSource, startTriggerPolarity, 1u) == 0);
             if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_set_ao_start_trigger for device %s", fullDeviceName)
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not xseries_set_ao_start_trigger for device %s", fullDeviceName);
             }
         }
         if (ok) {
             ok = (xseries_set_do_update_counter(&doConfiguration, updateCounterSource, updateCounterPolarity) == 0);
             if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_counter for device %s", fullDeviceName)
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_counter for device %s", fullDeviceName);
             }
         }
         if (ok) {
             ok = (xseries_set_do_update_interval_counter(&doConfiguration, updateIntervalCounterSource, updateIntervalCounterPolarity,
                                                          updateIntervalCounterPeriodDivisor, updateIntervalCounterDelay) == 0);
             if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_interval_counter for device %s", fullDeviceName)
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_interval_counter for device %s", fullDeviceName);
             }
         }
         if (ok) {
             ok = (xseries_load_do_conf(boardFileDescriptor, doConfiguration) == 0);
             if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load xseries_load_do_conf for device %s", fullDeviceName)
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not load xseries_load_do_conf for device %s", fullDeviceName);
             }
         }
     }
     if (ok) {
         ok = (xseries_start_di(boardFileDescriptor) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load xseries_start_di for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not load xseries_start_di for device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (xseries_start_do(boardFileDescriptor) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load xseries_start_do for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not load xseries_start_do for device %s", fullDeviceName);
         }
     }
     return ok;

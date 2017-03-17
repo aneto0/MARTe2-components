@@ -305,7 +305,7 @@ bool NI6259DAC::Initialise(StructuredDataI& data) {
     }
     if (ok) {
         if (data.Read("ClockUpdateDivisor", clockUpdateDivisor)) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "ClockUpdateDivisor set to: %d", clockUpdateDivisor)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "ClockUpdateDivisor set to: %d", clockUpdateDivisor);
         }
     }
     StreamString clockUpdatePolarityStr;
@@ -433,7 +433,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
         boardFileDescriptor = open(fullDeviceName.Buffer(), O_RDWR);
         ok = (boardFileDescriptor > -1);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName);
         }
     }
     pxi6259_ao_conf_t dacConfiguration = pxi6259_create_ao_conf();
@@ -442,32 +442,32 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
             ok = (pxi6259_add_ao_channel(&dacConfiguration, static_cast<uint8_t>(i), outputPolarity[i]) == 0);
             uint32 ii = i;
             if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set configuration for channel %d of device %s", ii, fullDeviceName)
+                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set configuration for channel %d of device %s", ii, fullDeviceName);
             }
         }
     }
     if (ok) {
         ok = (pxi6259_set_ao_attribute(&dacConfiguration, AO_SIGNAL_GENERATION, AO_SIGNAL_GENERATION_STATIC) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the parameter AO_SIGNAL_GENERATION_STATIC %s", fullDeviceName)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the parameter AO_SIGNAL_GENERATION_STATIC %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (pxi6259_set_ao_count(&dacConfiguration, 1u, 1u, 0u) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the number of samples for device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (pxi6259_set_ao_update_clk(&dacConfiguration, clockUpdateSource, clockUpdatePolarity, clockUpdateDivisor) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set pxi6259_set_ao_update_clk for device %s", fullDeviceName)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set pxi6259_set_ao_update_clk for device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (pxi6259_load_ao_conf(boardFileDescriptor, &dacConfiguration) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName);
         }
     }
 
@@ -491,7 +491,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
                     channelsFileDescriptors[i] = open(channelDeviceName.Buffer(), O_RDWR);
                     ok = (channelsFileDescriptors[i] > -1);
                     if (!ok) {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName)
+                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName);
                     }
                 }
             }
@@ -500,7 +500,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = (pxi6259_start_ao(boardFileDescriptor) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName);
         }
     }
     return ok;

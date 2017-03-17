@@ -253,8 +253,7 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     return ok;
 }
 
-template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberOfSegments, MDSplus::TreeNode *node, MARTe::uint32 *signalToVerify,
-                                                            MARTe::uint32 *timeToVerify) {
+template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberOfSegments, MDSplus::TreeNode *node, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify) {
     using namespace MARTe;
     int32 i = 0u;
     int32 s;
@@ -305,10 +304,9 @@ template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberO
     return ok;
 }
 
-static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements,
-                                    MARTe::uint8 *triggerToGenerate, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify,
-                                    MARTe::uint32 toVerifyNumberOfElements, MARTe::uint32 numberOfBuffers, MARTe::uint32 numberOfPreTriggers,
-                                    MARTe::uint32 numberOfPostTriggers, MARTe::float32 period, const MARTe::char8 * const treeName, MARTe::uint32 pulseNumber,
+static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements, MARTe::uint8 *triggerToGenerate,
+                                    MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify, MARTe::uint32 toVerifyNumberOfElements, MARTe::uint32 numberOfBuffers,
+                                    MARTe::uint32 numberOfPreTriggers, MARTe::uint32 numberOfPostTriggers, MARTe::float32 period, const MARTe::char8 * const treeName, MARTe::uint32 pulseNumber,
                                     MARTe::int32 numberOfSegments, bool needsFlush, MARTe::uint32 sleepMSec = 100) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
@@ -393,8 +391,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
             tree = new MDSplus::Tree(treeName, pulseNumber);
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse", treeName,
-                                    pulseNumber)
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse", treeName, pulseNumber);
             delete tree;
             tree = NULL;
         }
@@ -481,7 +478,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
 
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
             ok = false;
         }
     }
@@ -2163,6 +2160,245 @@ static const MARTe::char8 * const config12 = ""
         "        TimingDataSource = Timings"
         "    }"
         "}";
+
+//Standard configuration with trigger source but large MakeSegmentAfterNWrites in order to trigger discontinuities that
+//force the creation of a segment
+static const MARTe::char8 * const config13 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =   {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            Trigger =  {0 1 0 1 0 1 0 1 1 1 1 1 1 1}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32F = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64F = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16F = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32F = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64F = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32F = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64F = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            PulseNumber = 1"
+        "            StoreOnTrigger = 1"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            NumberOfPreTriggers = 2"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = int32"
+        "                    TimeSignal = 1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalUInt32F = {"
+        "                    NodeName = \"SIGUINT32F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                    DecimatedNodeName = \"SIGUINT32D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalUInt64F = {"
+        "                    NodeName = \"SIGUINT64F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                    DecimatedNodeName = \"SIGUINT64D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalInt16F = {"
+        "                    NodeName = \"SIGINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                    DecimatedNodeName = \"SIGINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalInt32F = {"
+        "                    NodeName = \"SIGINT32F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                    DecimatedNodeName = \"SIGINT32D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalInt64F = {"
+        "                    NodeName = \"SIGINT64F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                    DecimatedNodeName = \"SIGINT64D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalFloat32F = {"
+        "                    NodeName = \"SIGFLT32F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                    DecimatedNodeName = \"SIGFLT32D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalFloat64F = {"
+        "                    NodeName = \"SIGFLT64F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                    DecimatedNodeName = \"SIGFLT64D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    NodeName = \"SIGUINT16\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    NodeName = \"SIGUINT32\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    NodeName = \"SIGUINT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    NodeName = \"SIGINT16\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                }"
+        "                SignalInt32 = {"
+        "                    NodeName = \"SIGINT32\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                }"
+        "                SignalInt64 = {"
+        "                    NodeName = \"SIGINT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    NodeName = \"SIGFLT32\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    NodeName = \"SIGFLT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 8"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushSegments"
+        "    }"
+        "}";
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -2531,8 +2767,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger() {
     const uint32 writeAfterNSegments = 4;
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
-    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0,
-                                   period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
+                                   numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Flush() {
@@ -2546,8 +2782,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Flush() {
     const uint32 writeAfterNSegments = 4;
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
-    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0,
-                                   period, treeName, pulseNumber, numberOfSegments, true);
+    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
+                                   numberOfSegments, true);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger() {
@@ -2565,8 +2801,27 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger() {
     const uint32 pulseNumber = 3;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+}
+
+bool MDSWriterTest::TestIntegratedInApplication_Trigger_Discontinuity() {
+    using namespace MARTe;
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+    uint32 signalToVerify[] = { 1, 2, 3, 4, 6, 7, 8, 9 };
+    uint32 timeToVerify[] = { 0, 2, 4, 6, 10, 12, 14, 16 };
+    uint8 triggerToGenerate[] = { 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+    uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
+    const char8 * const treeName = "mds_m2test";
+    const uint32 numberOfBuffers = 16;
+    const uint32 numberOfPreTriggers = 2;
+    const uint32 numberOfPostTriggers = 1;
+    const uint32 pulseNumber = 6;
+    const uint32 numberOfSegments = 1;
+    const float32 period = 2;
+    return TestIntegratedExecution(config13, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Elements() {
@@ -2582,8 +2837,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Elements() {
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
     const uint32 pulseNumber = 4;
-    return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, NULL, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers,
-                                   0, 0, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, NULL, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
+                                   numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_Elements() {
@@ -2601,8 +2856,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_Elements() {
     const uint32 pulseNumber = 5;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config5, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config5, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestOpenTree() {
@@ -2689,7 +2944,7 @@ bool MDSWriterTest::TestOpenTree() {
             sigUInt16F->deleteData();
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
             ok = false;
         }
     }
@@ -2752,7 +3007,7 @@ bool MDSWriterTest::TestOpenTree() {
             sigUInt16F->deleteData();
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
             ok = false;
         }
     }

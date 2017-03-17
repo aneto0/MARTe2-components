@@ -207,6 +207,11 @@ public:
     bool TestIntegratedInApplication_Trigger();
 
     /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event forcing discontinuities.
+     */
+    bool TestIntegratedInApplication_Trigger_Discontinuity();
+
+    /**
      * @brief Tests the MDSWriter integrated in an application which continuously stores data with NumberOfElements > 1.
      */
     bool TestIntegratedInApplication_NoTrigger_Elements();
@@ -276,7 +281,6 @@ public:
      */
     bool TestGetTimeSignalIdx();
 };
-
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

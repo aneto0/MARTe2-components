@@ -840,37 +840,37 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
         boardFileDescriptor = open(fullDeviceName.Buffer(), O_RDWR);
         ok = (boardFileDescriptor > -1);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName);
         }
     }
     if (ok) {
         bool stopped = (xseries_stop_ao(boardFileDescriptor) == 0);
         if (!stopped) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Could not stop the device %s while starting", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::Warning, "Could not stop the device %s while starting", fullDeviceName);
         }
         bool reset = (xseries_reset_ao(boardFileDescriptor) == 0);
         if (!reset) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Could not reset the device %s while starting", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::Warning, "Could not reset the device %s while starting", fullDeviceName);
         }
     }
     xseries_ao_conf_t dacConfiguration = xseries_static_ao();
     if (ok) {
         ok = (xseries_set_ao_start_trigger(&dacConfiguration, startTriggerSource, startTriggerPolarity, 1u) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_set_ao_start_trigger for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not xseries_set_ao_start_trigger for device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (xseries_set_ao_update_counter(&dacConfiguration, updateCounterSource, updateCounterPolarity) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_counter for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_counter for device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (xseries_set_ao_update_interval_counter(&dacConfiguration, updateIntervalCounterSource, updateIntervalCounterPolarity,
                                                      updateIntervalCounterPeriodDivisor, updateIntervalCounterDelay) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_interval_counter for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_interval_counter for device %s", fullDeviceName);
         }
     }
 
@@ -879,14 +879,14 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
             ok = (xseries_add_ao_channel(&dacConfiguration, static_cast<uint8_t>(i), outputRange[i]) == 0);
             uint32 ii = i;
             if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set configuration for channel %d of device %s", ii, fullDeviceName)
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not set configuration for channel %d of device %s", ii, fullDeviceName);
             }
         }
     }
     if (ok) {
         ok = (xseries_load_ao_conf(boardFileDescriptor, dacConfiguration) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName);
         }
     }
 
@@ -907,7 +907,7 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
                     channelsFileDescriptors[i] = open(channelDeviceName.Buffer(), O_RDWR);
                     ok = (channelsFileDescriptors[i] > -1);
                     if (!ok) {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName)
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName);
                     }
                 }
             }
@@ -916,7 +916,7 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = (xseries_start_ao(boardFileDescriptor) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName);
         }
     }
     return ok;

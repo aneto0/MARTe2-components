@@ -52,7 +52,8 @@ NI6368ADC::NI6368ADC() :
     boardFileDescriptor = -1;
     deviceName = "";
     counter = 0u;
-    timeValue = 0u;
+    counterValue = NULL_PTR(uint32 *);
+    timeValue = NULL_PTR(uint32 *);
     scanIntervalCounterDelay = 0u;
     scanIntervalCounterPeriod = 0u;
     numberOfADCsEnabled = 0u;
@@ -63,11 +64,13 @@ NI6368ADC::NI6368ADC() :
     clockConvertPolarity = XSERIES_AI_POLARITY_ACTIVE_HIGH_OR_RISING_EDGE;
     scanIntervalCounterSource = XSERIES_SCAN_INTERVAL_COUNTER_TB3;
     scanIntervalCounterPolarity = XSERIES_SCAN_INTERVAL_COUNTER_POLARITY_RISING_EDGE;
-    currentBufferIdx = 1u;
+    currentBufferIdx = 0u;
     currentBufferOffset = 0u;
     nBytesInDMAFromStart = 0u;
     dmaOffset = 0u;
     dmaChannel = 0u;
+    lastTimeValue = 0u;
+    fastMuxSleepTime = 1e-3;
     dma = NULL_PTR(struct xseries_dma *);
 
     keepRunning = true;
@@ -78,13 +81,21 @@ NI6368ADC::NI6368ADC() :
         inputRange[n] = XSERIES_INPUT_RANGE_10V;
         adcEnabled[n] = false;
         channelsFileDescriptors[n] = -1;
-        channelsMemory[0u][n] = NULL_PTR(int16 *);
-        channelsMemory[1u][n] = NULL_PTR(int16 *);
+        uint32 b;
+        for (b = 0u; b < NUMBER_OF_BUFFERS; b++) {
+            channelsMemory[b][n] = NULL_PTR(int16 *);
+            channelsMemory[b][n] = NULL_PTR(int16 *);
+        }
     }
     dmaReadBuffer = NULL_PTR(int16 *);
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
+    else {
+        (void) (synchSem.Reset());
+    }
+    fastMux.Create();
+    counterResetFastMux.Create();
 }
 
 /*lint -e{1551} -e{1740} the destructor must guarantee that the NI6368ADC SingleThreadService is stopped and that all the file descriptors are closed. The dma is freed by the xseries-lib*/
@@ -112,15 +123,19 @@ NI6368ADC::~NI6368ADC() {
         close(boardFileDescriptor);
     }
     for (n = 0u; n < NI6368ADC_MAX_CHANNELS; n++) {
-        if (channelsMemory[0u][n] != NULL_PTR(int16 *)) {
-            delete[] channelsMemory[0u][n];
-        }
-        if (channelsMemory[1u][n] != NULL_PTR(int16 *)) {
-            delete[] channelsMemory[1u][n];
+        uint32 b;
+        for (b = 0u; b < NUMBER_OF_BUFFERS; b++) {
+            delete[] channelsMemory[b][n];
         }
     }
     if (dmaReadBuffer != NULL_PTR(int16 *)) {
         delete[] dmaReadBuffer;
+    }
+    if (counterValue != NULL_PTR(uint32 *)) {
+        delete[] counterValue;
+    }
+    if (timeValue != NULL_PTR(uint32 *)) {
+        delete[] timeValue;
     }
 }
 
@@ -129,7 +144,7 @@ bool NI6368ADC::AllocateMemory() {
 }
 
 uint32 NI6368ADC::GetNumberOfMemoryBuffers() {
-    return 2u;
+    return NUMBER_OF_BUFFERS;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
@@ -137,10 +152,14 @@ bool NI6368ADC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
     bool ok = (signalIdx < (NI6368ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE));
     if (ok) {
         if (signalIdx == 0u) {
-            signalAddress = reinterpret_cast<void *>(&counter);
+            if (counterValue != NULL_PTR(uint32 *)) {
+                signalAddress = reinterpret_cast<void *>(&counterValue[bufferIdx]);
+            }
         }
         else if (signalIdx == 1u) {
-            signalAddress = reinterpret_cast<void *>(&timeValue);
+            if (timeValue != NULL_PTR(uint32 *)) {
+                signalAddress = reinterpret_cast<void *>(&timeValue[bufferIdx]);
+            }
         }
         else {
             signalAddress = &(channelsMemory[bufferIdx][signalIdx - NI6368ADC_HEADER_SIZE][0]);
@@ -188,24 +207,57 @@ bool NI6368ADC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
 }
 
 bool NI6368ADC::Synchronise() {
-    ErrorManagement::ErrorType err;
+    ErrorManagement::ErrorType err(true);
     if (synchronising) {
-        err = synchSem.ResetWait(TTInfiniteWait);
+        (void) fastMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
+        if (lastBufferIdx == currentBufferIdx) {
+            err = !synchSem.Reset();
+            fastMux.FastUnLock();
+            if (err.ErrorsCleared()) {
+                err = synchSem.Wait(TTInfiniteWait);
+            }
+        }
+        else {
+            fastMux.FastUnLock();
+        }
     }
+    if (timeValue != NULL_PTR(uint32 *)) {
+        if (lastTimeValue == timeValue[lastBufferIdx]) {
+            if (lastTimeValue != 0u) {
+                REPORT_ERROR(ErrorManagement::Warning, "Repeated time values. Last = %d Current = %d. lastBufferIdx = %d currentBufferIdx = %d", lastTimeValue, timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
+            }
+        }
+        lastTimeValue = timeValue[lastBufferIdx];
+    }
+
     return err.ErrorsCleared();
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the counter and the timer are always reset irrespectively of the states being changed.*/
 bool NI6368ADC::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
-    counter = 0u;
-    timeValue = 0u;
-    bool ok = true;
-    if (executor.GetStatus() == EmbeddedThreadI::OffState) {
-        keepRunning = true;
-        if (cpuMask != 0u) {
-            executor.SetCPUMask(cpuMask);
+    bool ok = (counterResetFastMux.FastLock() == ErrorManagement::NoError);
+    if (ok) {
+        counter = 0u;
+        uint32 b;
+        for (b = 0u; b < NUMBER_OF_BUFFERS; b++) {
+            if (counterValue != NULL_PTR(uint32 *)) {
+                counterValue[b] = 0u;
+            }
+            if (timeValue != NULL_PTR(uint32 *)) {
+                timeValue[b] = 0u;
+            }
         }
-        ok = executor.Start();
+        currentBufferOffset = 0u;
+    }
+    counterResetFastMux.FastUnLock();
+    if (ok) {
+        if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+            keepRunning = true;
+            if (cpuMask != 0u) {
+                executor.SetCPUMask(cpuMask);
+            }
+            ok = executor.Start();
+        }
     }
     return ok;
 }
@@ -743,7 +795,17 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
 
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "No CPUs defined for %s", GetName())
+            REPORT_ERROR(ErrorManagement::Information, "No CPUs defined");
+        }
+        uint32 realTimeModeUInt = 0u;
+        if (!data.Read("RealTimeMode", realTimeModeUInt)) {
+            REPORT_ERROR(ErrorManagement::Information, "No RealTimeMode defined");
+        }
+        if (realTimeModeUInt == 1u) {
+            fastMuxSleepTime = 0.0;
+        }
+        else {
+            fastMuxSleepTime = 1e-3;
         }
     }
     //Get individual signal parameters
@@ -826,7 +888,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
         ok = (GetNumberOfSignals() > (NI6368ADC_HEADER_SIZE));
     }
     if (!ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "At least (%d) signals shall be configured (header + 1 ADC)", NI6368ADC_HEADER_SIZE + 1u)
+        REPORT_ERROR(ErrorManagement::ParametersError, "At least (%d) signals shall be configured (header + 1 ADC)", NI6368ADC_HEADER_SIZE + 1u);
     }
     //The type of counter shall be unsigned int32 or uint32
     if (ok) {
@@ -918,9 +980,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
                 float32 totalNumberOfSamplesPerSecond = (static_cast<float32>(numberOfSamples) * cycleFrequency);
                 ok = (NI6368ADC_SAMPLING_FREQUENCY == static_cast<uint32>(totalNumberOfSamplesPerSecond));
                 if (!ok) {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError,
-                                            "The numberOfSamples * cycleFrequency (%u) shall be equal to the ADCs acquisition frequency (%u)",
-                                            totalNumberOfSamplesPerSecond, NI6368ADC_SAMPLING_FREQUENCY)
+                    REPORT_ERROR(ErrorManagement::ParametersError, "The numberOfSamples * cycleFrequency (%u) shall be equal to the ADCs acquisition frequency (%u)", totalNumberOfSamplesPerSecond, NI6368ADC_SAMPLING_FREQUENCY);
                 }
             }
         }
@@ -937,17 +997,17 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
         boardFileDescriptor = open(fullDeviceName.Buffer(), O_RDWR);
         ok = (boardFileDescriptor > -1);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName);
         }
     }
     if (ok) {
         bool stopped = (xseries_stop_ai(boardFileDescriptor) == 0);
         if (!stopped) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Could not stop the device %s while starting", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::Warning, "Could not stop the device %s while starting", fullDeviceName);
         }
         bool reset = (xseries_reset_ai(boardFileDescriptor) == 0);
         if (!reset) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Could not reset the device %s while starting", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::Warning, "Could not reset the device %s while starting", fullDeviceName);
         }
     }
     xseries_ai_conf_t adcConfiguration = xseries_continuous_ai();
@@ -957,46 +1017,50 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
             ok = (xseries_add_ai_channel(&adcConfiguration, static_cast<uint8_t>(i), inputRange[i], XSERIES_AI_CHANNEL_TYPE_DIFFERENTIAL, 0u) == 0);
             uint32 ii = i;
             if (!ok) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", ii, fullDeviceName)
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", ii, fullDeviceName);
             }
         }
     }
     if (ok) {
         ok = (xseries_set_ai_sample_clock(&adcConfiguration, clockSampleSource, clockSamplePolarity, 1u) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the sample clock for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the sample clock for device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (xseries_set_ai_convert_clock(&adcConfiguration, clockConvertSource, clockConvertPolarity) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName);
         }
     }
     if (ok) {
-        ok = (xseries_set_ai_scan_interval_counter(&adcConfiguration, scanIntervalCounterSource, scanIntervalCounterPolarity, scanIntervalCounterPeriod,
-                                                   scanIntervalCounterDelay) == 0);
+        ok = (xseries_set_ai_scan_interval_counter(&adcConfiguration, scanIntervalCounterSource, scanIntervalCounterPolarity, scanIntervalCounterPeriod, scanIntervalCounterDelay) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (xseries_set_ai_attribute(&adcConfiguration, XSERIES_AI_DMA_BUFFER_SIZE, dmaBufferSize) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the DMA buffer size for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the DMA buffer size for device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (xseries_load_ai_conf(boardFileDescriptor, adcConfiguration) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName);
         }
     }
     if (ok) {
         //Allocate memory
+        counterValue = new uint32[NUMBER_OF_BUFFERS];
+        timeValue = new uint32[NUMBER_OF_BUFFERS];
+
         for (i = 0u; (i < NI6368ADC_MAX_CHANNELS) && (ok); i++) {
-            channelsMemory[0u][i] = new int16[numberOfSamples];
-            channelsMemory[1u][i] = new int16[numberOfSamples];
+            uint32 b;
+            for (b = 0u; (b < NUMBER_OF_BUFFERS) && (ok); b++) {
+                channelsMemory[b][i] = new int16[numberOfSamples];
+            }
         }
     }
 
@@ -1024,7 +1088,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
                         }
                     }
                     if (!ok) {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName)
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName);
                     }
                 }
             }
@@ -1034,13 +1098,13 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
         dma = xseries_dma_init(boardId, 0);
         ok = (dma != NULL_PTR(struct xseries_dma *));
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not set the dma for device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the dma for device %s", fullDeviceName);
         }
     }
     if (ok) {
         ok = (xseries_start_ai(boardFileDescriptor) == 0);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName)
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName);
         }
     }
     if (ok) {
@@ -1052,9 +1116,14 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
     return ok;
 }
 
-uint8 NI6368ADC::GetLastBufferIdx() const {
-    uint8 idx = (currentBufferIdx + 1u) % 2u;
-    return idx;
+uint8 NI6368ADC::GetLastBufferIdx() {
+    uint8 toReadIdx = lastBufferIdx;
+    //This is thread safe since this is executed in the context of the thread which calls Synchronise.
+    lastBufferIdx++;
+    if (lastBufferIdx == NUMBER_OF_BUFFERS) {
+        lastBufferIdx = 0u;
+    }
+    return toReadIdx;
 }
 
 bool NI6368ADC::IsSynchronising() const {
@@ -1065,6 +1134,7 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
     ErrorManagement::ErrorType err;
     uint32 s = 0u;
     if (dmaReadBuffer != NULL_PTR(int16 *)) {
+        (void) (counterResetFastMux.FastLock());
         while (s < (numberOfSamplesFromDMA)) {
             channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset] = dmaReadBuffer[s];
             s++;
@@ -1075,19 +1145,39 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
                 currentBufferOffset++;
                 if (currentBufferOffset == numberOfSamples) {
                     currentBufferOffset = 0u;
-                    currentBufferIdx = (currentBufferIdx + 1u) % 2u;
-                    counter++;
-                    uint64 counterSamples = counter;
-                    counterSamples *= numberOfSamples;
-                    counterSamples *= 1000000LLU;
-                    counterSamples /= NI6368ADC_SAMPLING_FREQUENCY;
-                    timeValue = static_cast<uint32>(counterSamples);
+                    //Don't wait if this fails. At most a cycle will be delayed.
+                    (void) fastMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
+                    currentBufferIdx++;
+                    if (currentBufferIdx == NUMBER_OF_BUFFERS) {
+                        currentBufferIdx = 0u;
+                    }
+                    //This is required as otherwise it could copy the wrong counter value in the consumer thread.
+                    if (counterValue != NULL_PTR(uint32 *)) {
+                        counterValue[currentBufferIdx] = counter;
+                    }
+                    if (counter > 0u) {
+                        uint64 counterSamples = counter;
+                        counterSamples *= numberOfSamples;
+                        counterSamples *= 1000000LLU;
+                        counterSamples /= NI6368ADC_SAMPLING_FREQUENCY;
+                        if (timeValue != NULL_PTR(uint32 *)) {
+                            timeValue[currentBufferIdx] = static_cast<uint32>(counterSamples);
+                        }
+                    }
+                    else {
+                        if (timeValue != NULL_PTR(uint32 *)) {
+                            timeValue[currentBufferIdx] = 0u;
+                        }
+                    }
                     if (synchronising) {
                         err = !synchSem.Post();
                     }
+                    fastMux.FastUnLock();
+                    counter++;
                 }
             }
         }
+        counterResetFastMux.FastUnLock();
     }
     return err;
 }

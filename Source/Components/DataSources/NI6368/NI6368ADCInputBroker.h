@@ -42,20 +42,42 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-
+/**
+ * @brief Helper structure which holds the memory pointers of the GAM and DataSource elements
+ * that are to be copied by this MemoryMapStatefulBroker. Note that the dataSourcePointer will
+ * hold the address of variable which has the pointer to the memory (and not the memory address itself).
+ */
+struct NI6368CopyTableEntry {
+    /**
+     * The pointer to the base address of the GAM.
+     */
+    void *gamPointer;
+    /**
+     * The array with the two datasource indirections.
+     */
+    void *dataSourcePointer[NUMBER_OF_BUFFERS];
+    /**
+     * The data source offset.
+     */
+    uint32 dataSourceOffset;
+    /**
+     * The size of the copy
+     */
+    uint32 copySize;
+};
 /**
  * @brief An input broker for NI6368 which copies from the latest buffer available.
  * @details The NI6368 DataSourceI copies the data using DMA to one of two buffers.
  * This NI6368ADCInputBroker copies the data back to the GAM memory from the latest
  * complete buffer written by the NI6368ADC.
  */
-class DLL_API NI6368ADCInputBroker: public MemoryMapStatefulBroker {
+class DLL_API NI6368ADCInputBroker: public BrokerI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief Default constructor. NOOP.
      */
-    NI6368ADCInputBroker();
+NI6368ADCInputBroker    ();
 
     /**
      * @brief Default constructor. Sets a pointer to the NI6368ADC board.
@@ -69,6 +91,14 @@ public:
     virtual ~NI6368ADCInputBroker();
 
     /**
+     * @brief TODO.
+     */
+    virtual bool Init(const SignalDirection direction,
+            DataSourceI &dataSourceIn,
+            const char8 * const functionName,
+            void * const gamMemoryAddress);
+
+    /**
      * @brief Sequentially copies all the signals to the GAM memory from the DataSourceI memory buffer[NI6368::GetLastBufferIdx()].
      * @return true if all copies are successfully performed.
      */
@@ -79,6 +109,13 @@ private:
      * Reference to the NI6368ADC board
      */
     NI6368ADC *adcBoard;
+
+
+    /**
+     * A table with all the elements to be copied
+     */
+    NI6368CopyTableEntry *copyTable;
+
 };
 
 }

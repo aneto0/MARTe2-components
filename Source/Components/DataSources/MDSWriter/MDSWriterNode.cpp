@@ -45,7 +45,7 @@ MDSWriterNode::MDSWriterNode() {
     nodeType = 0;
     numberOfElements = 0u;
     period = 0.F;
-    phaseShift = 0u;
+    phaseShift = 0;
     node = NULL_PTR(MDSplus::TreeNode *);
 
     nOfExecuteCalls = 0U;
@@ -81,30 +81,26 @@ MDSWriterNode::~MDSWriterNode() {
         delete decimatedNode;
     }
     if (bufferedData != NULL_PTR(void *)) {
-        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(
-                reinterpret_cast<void *&>(bufferedData));
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(bufferedData));
     }
 }
 
 bool MDSWriterNode::Initialise(StructuredDataI & data) {
     bool ok = data.Read("NodeName", nodeName);
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError,
-                     "NodeName shall be specified");
+        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NodeName shall be specified");
     }
     if (ok) {
         if (data.Read("DecimatedNodeName", decimatedNodeName)) {
             decimatedMinMax = true;
             ok = (data.Read("MinMaxResampleFactor", minMaxResampleFactor));
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                             "MinMaxResampleFactor shall be specified");
+                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "MinMaxResampleFactor shall be specified");
             }
             if (ok) {
                 ok = (minMaxResampleFactor > 0);
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError,
-                                 "MinMaxResampleFactor shall be > 0");
+                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "MinMaxResampleFactor shall be > 0");
                 }
             }
         }
@@ -115,8 +111,7 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         ok = data.Read("Type", signalType);
     }
     if (ok) {
-        signalTypeDescriptor = TypeDescriptor::GetTypeDescriptorFromTypeName(
-                signalType.Buffer());
+        signalTypeDescriptor = TypeDescriptor::GetTypeDescriptorFromTypeName(signalType.Buffer());
     }
     if (ok) {
         if (signalTypeDescriptor == SignedInteger16Bit) {
@@ -144,10 +139,7 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
             nodeType = DTYPE_DOUBLE;
         }
         else {
-            REPORT_ERROR_PARAMETERS(
-                    ErrorManagement::ParametersError,
-                    "NodeType %s not supported for node with name %s",
-                    signalType.Buffer(), nodeName.Buffer())
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NodeType %s not supported for node with name %s", signalType.Buffer(), nodeName.Buffer());
             ok = false;
         }
     }
@@ -155,37 +147,32 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         ok = (data.Read("NumberOfElements", numberOfElements));
 
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError,
-                         "NumberOfElements shall be specified");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NumberOfElements shall be specified");
         }
     }
     if (ok) {
         ok = (numberOfElements > 0u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError,
-                         "NumberOfElements shall be > 0");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NumberOfElements shall be > 0");
         }
     }
     if (ok) {
         ok = (data.Read("Period", period));
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError,
-                         "Period shall be specified");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Period shall be specified");
         }
     }
     if (ok) {
         ok = (period > 0.);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError,
-                         "Period shall be > 0");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Period shall be > 0");
         }
     }
     if (ok) {
         ok = (data.Read("SamplePhase", phaseShift));
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::Information,
-                         "SamplePhase not specified. Using 0");
-            phaseShift = 0u;
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "SamplePhase not specified. Using 0");
+            phaseShift = 0;
             ok = true;
         }
     }
@@ -193,15 +180,13 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         ok = (data.Read("MakeSegmentAfterNWrites", makeSegmentAfterNWrites));
 
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError,
-                         "MakeSegmentAfterNWrites shall be specified");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "MakeSegmentAfterNWrites shall be specified");
         }
     }
     if (ok) {
         ok = (makeSegmentAfterNWrites > 0u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError,
-                         "MakeSegmentAfterNWrites shall be > 0");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "MakeSegmentAfterNWrites shall be > 0");
         }
     }
     if (ok) {
@@ -227,15 +212,11 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         uint32 bufferedDataSize = static_cast<uint32>(typeMultiplier);
         bufferedDataSize *= numberOfElements * makeSegmentAfterNWrites;
 
-        bufferedData =
-                reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(
-                        bufferedDataSize));
+        bufferedData = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufferedDataSize));
 
-        float64 executePeriodMicroSecondF =
-                static_cast<float64>(numberOfElements) * period * 1e6;
+        float64 executePeriodMicroSecondF = static_cast<float64>(numberOfElements) * period * 1e6;
         executePeriodMicroSecondF += 0.5F;
-        executePeriodMicroSecond =
-                static_cast<uint32>(executePeriodMicroSecondF);
+        executePeriodMicroSecond = static_cast<uint32>(executePeriodMicroSecondF);
 
     }
     return ok;
@@ -262,14 +243,13 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree * const tree) {
         }
     }
     catch (const MDSplus::MdsException &exc) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError,
-                                "Failed opening node with name %s: %s",
-                                nodeName.Buffer(), exc.what())
+        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", nodeName.Buffer(), exc.what());
         ok = false;
     }
     start = static_cast<float64>(phaseShift) * period;
     return ok;
 }
+
 
 bool MDSWriterNode::Flush() {
     flush = true;
@@ -279,119 +259,110 @@ bool MDSWriterNode::Flush() {
 bool MDSWriterNode::Execute() {
     bool ok = (node != NULL_PTR(MDSplus::TreeNode *));
 
+    //discontinuityFound only meaningful when useTimeVector = true and tracks event that might not be continuous but that would
+    //otherwise fit inside the same segment.
+    bool discontinuityFound = false;
     if ((ok) && (!flush)) {
         //If we are using a triggering source get the signal from a time source, as samples might not be continuous
         if (useTimeVector) {
             if (currentBuffer == 0u) {
                 if (timeSignalMemory != NULL_PTR(uint32 *)) {
                     start = static_cast<float64>(*timeSignalMemory) * 1e-6;
+                    start += static_cast<float64>(phaseShift) * period;
                 }
             }
-        }
-        if (currentBuffer < makeSegmentAfterNWrites) {
-            if ((signalMemory != NULL_PTR(uint32 *))
-                    && (bufferedData != NULL_PTR(void *))) {
-                uint32 signalIdx = currentBuffer * numberOfElements
-                        * static_cast<uint32>(typeMultiplier);
-                char8 *bufferedDataC = reinterpret_cast<char8 *>(bufferedData);
-                ok = MemoryOperationsHelper::Copy(
-                        &bufferedDataC[signalIdx], signalMemory,
-                        numberOfElements * static_cast<uint32>(typeMultiplier));
-            }
+            //If we are acquiring data based on events (which do not necessarily occur sequentially in time, trigger every time there is a change in the time vector)
+            //Only makes sense to check for this if segments are not written @ every Execute
             else {
-                ok = false;
+                if (makeSegmentAfterNWrites > 1u) {
+                    if (timeSignalMemory != NULL_PTR(uint32 *)) {
+                        if ((*timeSignalMemory - lastWriteTimeSignal) != executePeriodMicroSecond) {
+                            if (lastWriteTimeSignal > 0u) {
+                                discontinuityFound = true;
+                            }
+                        }
+                    }
+                }
             }
-            if (ok) {
-                currentBuffer++;
+            if (timeSignalMemory != NULL_PTR(uint32 *)) {
+                lastWriteTimeSignal = *timeSignalMemory;
+            }
+        }
+        //If data is continuous store in the shared buffer that will be flushed as part of the next segment.
+        //If data is not continuous this will trigger the creation of a new segment and this signal data will be added to the beginning of the next segment.
+        if (!discontinuityFound) {
+            if (currentBuffer < makeSegmentAfterNWrites) {
+                if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(void *))) {
+                    uint32 signalIdx = currentBuffer * numberOfElements * static_cast<uint32>(typeMultiplier);
+                    char8 *bufferedDataC = reinterpret_cast<char8 *>(bufferedData);
+                    ok = MemoryOperationsHelper::Copy(&bufferedDataC[signalIdx], signalMemory, numberOfElements * static_cast<uint32>(typeMultiplier));
+                }
+                else {
+                    ok = false;
+                }
+                if (ok) {
+                    currentBuffer++;
+                }
             }
         }
     }
 
-//If the number of writes is sufficient to create a segment do it.
-    bool storeNow = (currentBuffer == (makeSegmentAfterNWrites));
+    //If a discontinuity was found trigger the storage of data.
+    bool storeNow = discontinuityFound;
+    if (!storeNow) {
+        //If the number of writes is sufficient to create a segment do it.
+        storeNow = (currentBuffer == (makeSegmentAfterNWrites));
+    }
     if (ok) {
-        if (useTimeVector) {
-            //If we are acquiring data based on events (which do not necessarily occur sequentially in time, trigger every time there is a change in the time vector)
-            if (timeSignalMemory != NULL_PTR(uint32 *)) {
-                if ((*timeSignalMemory - lastWriteTimeSignal)
-                        != executePeriodMicroSecond) {
-                    if (nOfExecuteCalls > 0u) {
-                        storeNow = true;
-                    }
-                }
-
-                lastWriteTimeSignal = *timeSignalMemory;
-            }
-        }
         //If the data has to be flushed for the storeNow
         if (flush) {
             storeNow = (currentBuffer > 0u);
             flush = false;
         }
     }
-//Sufficient data to make a segment
+    //Sufficient data to make a segment
     if ((ok) && (storeNow)) {
-        int32 numberOfElementsPerSegment = static_cast<int32>(numberOfElements)
-                * static_cast<int32>(currentBuffer);
-        currentBuffer = 0u;
+        //Notice that currentBuffer is not incremented if a discontinuity is found
+        int32 numberOfElementsPerSegment = static_cast<int32>(numberOfElements) * static_cast<int32>(currentBuffer);
 
         int32 numberOfElementsPerSegmentM1 = numberOfElementsPerSegment - 1;
-        float64 numberOfElementsPerSegmentF =
-                static_cast<float64>(numberOfElementsPerSegmentM1);
+        float64 numberOfElementsPerSegmentF = static_cast<float64>(numberOfElementsPerSegmentM1);
         float64 end = start + (numberOfElementsPerSegmentF * period);
         //lint -e{429} freed by MDSplus upon deletion of dimension
         MDSplus::Data *startD = new MDSplus::Float64(start);
         //lint -e{429} freed by MDSplus upon deletion of dimension
         MDSplus::Data *endD = new MDSplus::Float64(end);
         //lint -e{429} freed by MDSplus upon deletion of dimension
-        MDSplus::Data *dimension = new MDSplus::Range(
-                startD, endD, new MDSplus::Float64(period));
+        MDSplus::Data *dimension = new MDSplus::Range(startD, endD, new MDSplus::Float64(period));
         //lint -e{429} freed by MDSplus upon deletion of array
         MDSplus::Array *array = NULL_PTR(MDSplus::Array *);
 
         if (!useTimeVector) {
             start += static_cast<float64>(numberOfElementsPerSegment) * period;
         }
-
         if (nodeType == DTYPE_W) {
-            array = new MDSplus::Int16Array(
-                    reinterpret_cast<int16 *>(bufferedData),
-                    numberOfElementsPerSegment);
+            array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_WU) {
-            array = new MDSplus::Uint16Array(
-                    reinterpret_cast<uint16 *>(bufferedData),
-                    numberOfElementsPerSegment);
+            array = new MDSplus::Uint16Array(reinterpret_cast<uint16 *>(bufferedData), numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_L) {
-            array = new MDSplus::Int32Array(
-                    reinterpret_cast<int32 *>(bufferedData),
-                    numberOfElementsPerSegment);
+            array = new MDSplus::Int32Array(reinterpret_cast<int32 *>(bufferedData), numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_LU) {
-            array = new MDSplus::Uint32Array(
-                    reinterpret_cast<uint32 *>(bufferedData),
-                    numberOfElementsPerSegment);
+            array = new MDSplus::Uint32Array(reinterpret_cast<uint32 *>(bufferedData), numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_Q) {
-            array = new MDSplus::Int64Array(
-                    reinterpret_cast<int64_t *>(bufferedData),
-                    numberOfElementsPerSegment);
+            array = new MDSplus::Int64Array(reinterpret_cast<int64_t *>(bufferedData), numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_QU) {
-            array = new MDSplus::Uint64Array(
-                    reinterpret_cast<uint64_t *>(bufferedData),
-                    numberOfElementsPerSegment);
+            array = new MDSplus::Uint64Array(reinterpret_cast<uint64_t *>(bufferedData), numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_FLOAT) {
-            array = new MDSplus::Float32Array(
-                    reinterpret_cast<float32*>(bufferedData),
-                    numberOfElementsPerSegment);
+            array = new MDSplus::Float32Array(reinterpret_cast<float32*>(bufferedData), numberOfElementsPerSegment);
         }
         else if (nodeType == DTYPE_DOUBLE) {
-            array = new MDSplus::Float64Array(
-                    reinterpret_cast<float64*>(bufferedData),
-                    numberOfElementsPerSegment);
+            array = new MDSplus::Float64Array(reinterpret_cast<float64*>(bufferedData), numberOfElementsPerSegment);
         }
         else {
             //An invalid nodeType is trapped before.
@@ -399,8 +370,7 @@ bool MDSWriterNode::Execute() {
         if (array != NULL_PTR(MDSplus::Array *)) {
             if (decimatedMinMax) {
                 //lint -e{613} node is checked not to be null in the beginning of the function
-                node->makeSegmentMinMax(startD, endD, dimension, array,
-                                        decimatedNode, minMaxResampleFactor);
+                node->makeSegmentMinMax(startD, endD, dimension, array, decimatedNode, minMaxResampleFactor);
             }
             else {
                 //lint -e{613} node is checked not to be null in the beginning of the function
@@ -410,9 +380,29 @@ bool MDSWriterNode::Execute() {
         }
         MDSplus::deleteData(dimension);
         nOfExecuteCalls++;
+
+        //discontuityFound will only be triggered if makeSegmentAfterNWrites > 1, so Execute will be called again later
+        //discontuityFound will only be triggered if signalMemory != NULL_PTR (i.e. that we are triggering based on event).
+        if (discontinuityFound) {
+            if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(void *))) {
+                //currentBuffer had already been incremented. Copy the last buffer to the beginning
+                char8 *bufferedDataC = reinterpret_cast<char8 *>(bufferedData);
+                ok = MemoryOperationsHelper::Copy(&bufferedDataC[0u], signalMemory, numberOfElements * static_cast<uint32>(typeMultiplier));
+            }
+            if (ok) {
+                currentBuffer = 1u;
+            }
+            if (timeSignalMemory != NULL_PTR(uint32 *)) {
+                //Update the start
+                start = static_cast<float64>(*timeSignalMemory) * 1e-6;
+                start += static_cast<float64>(phaseShift) * period;
+            }
+        }
+        else {
+            currentBuffer = 0u;
+        }
         //lint -e{429} startD, endD, dimension are freed by MDSplus upon deletion of dimension
     }
-
     return ok;
 }
 
@@ -466,7 +456,7 @@ float64 MDSWriterNode::GetPeriod() const {
     return period;
 }
 
-uint32 MDSWriterNode::GetPhaseShift() const {
+int32 MDSWriterNode::GetPhaseShift() const {
     return phaseShift;
 }
 

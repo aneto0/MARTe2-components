@@ -50,6 +50,8 @@ const uint32 NI6368ADC_MAX_CHANNELS = 16u;
 const uint32 NI6368ADC_HEADER_SIZE = 2u;
 //Sampling frequency
 const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
+//The number of buffers to synchronise with the DMA
+const uint32 NUMBER_OF_BUFFERS = 8u;
 /**
  * @brief A DataSource which provides an input interface to the NI6368 boards.
  *
@@ -68,6 +70,7 @@ const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
  *     ScanIntervalCounterPeriod = 50 //Mandatory. Period of the scan interval.
  *     ScanIntervalCounterDelay = 2 //Mandatory. Minimum delay after the start trigger.
  *     CPUs = 0xf //Optional. CPU affinity for the thread which reads data from the board.
+ *     RealTimeMode = 0 //Optional. If 1 it will busy sleep on the synchronisation semaphores.
  *     Signals = {
  *          Counter = { //Mandatory. Number of ticks since last state change.
  *              Type = uint32 //int32 also supported.
@@ -111,7 +114,7 @@ NI6368ADC    ();
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @return 2.
+     * @return NUMBER_OF_BUFFERS.
      */
     virtual uint32 GetNumberOfMemoryBuffers();
 
@@ -163,7 +166,7 @@ NI6368ADC    ();
      * @brief Gets the last index written by the DMA (can be either 0 or 1).
      * @return the last index written by the DMA.
      */
-    uint8 GetLastBufferIdx() const;
+    uint8 GetLastBufferIdx();
 
     /**
      * @brief Returns true if there is one GAM synchronising on this board.
@@ -219,14 +222,24 @@ private:
     ErrorManagement::ErrorType CopyFromDMA(size_t numberOfSamplesFromDMA);
 
     /**
-     * The counter value
+     * The counter value 
      */
     uint32 counter;
 
     /**
-     * The time value
+     * The counter signal value (one for each buffer index)
      */
-    uint32 timeValue;
+    uint32 *counterValue;
+
+    /**
+     * The time value (one for each buffer index)
+     */
+    uint32 *timeValue;
+
+    /**
+     * The last time value (for error checking)
+     */
+    uint32 lastTimeValue;
 
     /**
      * The EmbeddedThread where the Execute method waits for the ADC data to be available.
@@ -306,7 +319,7 @@ private:
     /**
      * The signals memory
      */
-    int16 *channelsMemory[2][NI6368ADC_MAX_CHANNELS];
+    int16 *channelsMemory[NUMBER_OF_BUFFERS][NI6368ADC_MAX_CHANNELS];
 
     /**
      * Maps the signal index in the signal list to the channel id
@@ -344,6 +357,11 @@ private:
     uint8 currentBufferIdx;
 
     /**
+     * The last read buffer index
+     */
+    uint8 lastBufferIdx;
+
+    /**
      * The number of samples written to the current buffer.
      */
     uint32 currentBufferOffset;
@@ -367,6 +385,21 @@ private:
      * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
      */
     EventSem synchSem;
+
+    /**
+     * Semaphore to manage the buffer indexes.
+     */
+    FastPollingMutexSem fastMux;
+
+    /**
+     * Sleep for the fastMux. Default if RealTimeMode == 0 or 0 if RealTimeMode == 1
+     */
+    float64 fastMuxSleepTime;
+
+    /**
+     * Semaphore to guarantee synchronous reset of the counter.
+     */
+    FastPollingMutexSem counterResetFastMux;
 
     /**
      * True while running

@@ -436,7 +436,7 @@ bool MDSWriterNodeTest::TestExecute() {
 
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
             ok = false;
         }
     }
@@ -513,7 +513,7 @@ bool MDSWriterNodeTest::TestExecute_Decimated() {
 
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
             ok = false;
         }
     }
@@ -588,7 +588,7 @@ bool MDSWriterNodeTest::TestExecute_False_NoTree() {
 
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
             ok = false;
         }
     }
@@ -651,7 +651,7 @@ bool MDSWriterNodeTest::TestExecute_False_NoInitialise() {
 
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
             ok = false;
         }
     }
@@ -715,7 +715,7 @@ bool MDSWriterNodeTest::TestExecute_False_NoSignalSet() {
 
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
             ok = false;
         }
     }
@@ -869,7 +869,7 @@ bool MDSWriterNodeTest::TestFlush() {
 
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
             ok = false;
         }
     }
@@ -951,7 +951,7 @@ bool MDSWriterNodeTest::TestSetTimeSignalMemory() {
 
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening node");
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
             ok = false;
         }
     }

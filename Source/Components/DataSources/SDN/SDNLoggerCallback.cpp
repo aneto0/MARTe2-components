@@ -80,7 +80,7 @@ void vMessage2MARTe (Severity_t severity, const char* source, const char* messag
   vsnprintf(p_buf, size, message, args); size -= strlen(p_buf); p_buf += strlen(p_buf); /* Re-align pointer */
 
   /* MARTe2 logging */
-  REPORT_ERROR(code, buffer);
+  REPORT_ERROR_STATIC(code, buffer);
 
   return; 
 

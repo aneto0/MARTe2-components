@@ -196,7 +196,7 @@ public:
      * @brief Gets the initial shift to apply to the time vector (in samples).
      * @return the initial shift to apply to the time vector (in samples).
      */
-    uint32 GetPhaseShift() const;
+    int32 GetPhaseShift() const;
 
     /**
      * @brief Gets the start time of the next segment.
@@ -266,7 +266,7 @@ private:
     /**
      * Phase shift (in samples) of the first sample.
      */
-    uint32 phaseShift;
+    int32 phaseShift;
 
     /**
      * The MDSplus tree node where data is stored.

@@ -209,6 +209,11 @@ private:
     uint32 timeValue;
 
     /**
+     * The counter value. Different from counter to avoid synchronisation issues.
+     */
+    uint32 counterValue;
+
+    /**
      * The EmbeddedThread where the Execute method waits for the ADC data to be available.
      */
     SingleThreadService executor;
@@ -332,6 +337,11 @@ private:
      * The thread CPUs mask.
      */
     uint32 cpuMask;
+
+    /**
+     * Semaphore associated with the counter reset
+     */
+    FastPollingMutexSem counterResetFastMux;
 
 };
 }
