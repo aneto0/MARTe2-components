@@ -82,8 +82,9 @@ template <typename Type> class StatisticsHelperT {
 
     /**
      * @brief Initialiser. Clears out sample buffer and initialises accumulators.
+     * @return true if buffers successfully cleared.
      */
-    void Reset();
+    bool Reset();
 
     /**
      * @brief Accessor. Inserts new sample in the moving time window.
@@ -213,102 +214,129 @@ template <typename Type> class StatisticsHelperT {
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-template <typename Type> void StatisticsHelperT<Type>::Reset() {
+template <typename Type> bool StatisticsHelperT<Type>::Reset() {
 
+    /* Reset attributes */
     counter = 0u;
 
-    Xspl = (Type) 0;
-    Xavg = (Type) 0;
-    Xmax = (Type) std::numeric_limits<Type>::min();
-    Xmin = (Type) std::numeric_limits<Type>::max();
-    Xrms = (Type) 0;
-    Xstd = (Type) 0;
+    Xspl = 0;
+    Xavg = 0;
+    Xmax = std::numeric_limits<Type>::min();
+    Xmin = std::numeric_limits<Type>::max();
+    Xrms = 0;
+    Xstd = 0;
     
     /* Reset sample buffers */
-    Xwin->Initialise(Xspl); 
-    Xsq->Initialise(Xspl);
+    bool ok = Xwin->Initialise(Xspl); 
+
+    if (ok) {
+        ok = Xsq->Initialise(Xspl);
+    }
+
+    return ok;
     
 }
 
-template <> inline void StatisticsHelperT<float32>::Reset() { // Must be declared/defined before use in the constructor
+template <> inline bool StatisticsHelperT<float32>::Reset() { // Must be declared/defined before use in the constructor
 
+    /* Reset attributes */
     counter = 0u;
 
-    Xspl = (float32) 0;
-    Xavg = (float32) 0;
+    Xspl = 0.0;
+    Xavg = 0.0;
     Xmax = -1.0 * std::numeric_limits<float32>::max();
     Xmin = std::numeric_limits<float32>::max();
-    Xrms = (float32) 0;
-    Xstd = (float32) 0;
+    Xrms = 0.0;
+    Xstd = 0.0;
     
     /* Reset sample buffers */
-    Xwin->Initialise(Xspl); 
-    Xsq->Initialise(Xspl);
+    bool ok = Xwin->Initialise(Xspl); 
+
+    if (ok) {
+        ok = Xsq->Initialise(Xspl);
+    }
+
+    return ok;
     
 }
 
-template <> inline void StatisticsHelperT<float64>::Reset() { // Must be declared/defined before use in the constructor
+template <> inline bool StatisticsHelperT<float64>::Reset() { // Must be declared/defined before use in the constructor
 
+    /* Reset attributes */
     counter = 0u;
 
-    Xspl = (float64) 0;
-    Xavg = (float64) 0;
+    Xspl = 0.0;
+    Xavg = 0.0;
     Xmax = -1.0 * std::numeric_limits<float64>::max();
     Xmin = std::numeric_limits<float64>::max();
-    Xrms = (float64) 0;
-    Xstd = (float64) 0;
+    Xrms = 0.0;
+    Xstd = 0.0;
     
     /* Reset sample buffers */
-    Xwin->Initialise(Xspl); 
-    Xsq->Initialise(Xspl);
+    bool ok = Xwin->Initialise(Xspl); 
+
+    if (ok) {
+        ok = Xsq->Initialise(Xspl);
+    }
+
+    return ok;
     
 }
 
+/*lint -e{1566} initialisation of the attributes in the Reset() method*/
 template <typename Type> StatisticsHelperT<Type>::StatisticsHelperT(uint32 windowSize)
 {
 
     size = 1u; 
-    Xdiv = 0u;
+    Xdiv = 0;
   
     while (windowSize > 1u) { 
         windowSize >>= 1u; 
 	size <<= 1u;
-	Xdiv += 1u;
+	Xdiv += 1;
     };
 
     /* Instantiate sample buffers */
     Xwin = new CircularBufferT<Type> (size); 
     Xsq  = new CircularBufferT<Type> (size); 
 
-    Reset();
+    if (!Reset()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Unable to Reset instance");
+    }
 
 }
 
+/*lint -e{1566} initialisation of the attributes in the Reset() method*/
 template <> inline StatisticsHelperT<float32>::StatisticsHelperT(uint32 windowSize)
 {
 
     size = windowSize;
-    Xdiv = 1.0 / (float32) size;
+    Xdiv = 1.0 / static_cast<float32(size);
 
     /* Instantiate sample buffers */
     Xwin = new CircularBufferT<float32> (size); 
     Xsq  = new CircularBufferT<float32> (size); 
 
-    Reset();
+    if (!Reset()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Unable to Reset instance");
+    }
 
 }
 
+/*lint -e{1566} initialisation of the attributes in the Reset() method*/
 template <> inline StatisticsHelperT<float64>::StatisticsHelperT(uint32 windowSize)
 {
 
     size = windowSize;
-    Xdiv = 1.0 / (float64) size;
+    Xdiv = 1.0 / static_cast<float64>(size);
 
     /* Instantiate sample buffers */
     Xwin = new CircularBufferT<float64> (size); 
     Xsq  = new CircularBufferT<float64> (size); 
 
-    Reset();
+    if (!Reset()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Unable to Reset instance");
+    }
 
 }
 
@@ -316,21 +344,22 @@ template <> inline StatisticsHelperT<float64>::StatisticsHelperT(uint32 windowSi
 template <typename Type> StatisticsHelperT<Type>::~StatisticsHelperT ()
 {
 
-    Reset();
-
     if (Xwin != NULL_PTR(CircularBufferT<Type> *)) {
         delete Xwin;
+	Xwin = NULL_PTR(CircularBufferT<Type> *);
     }
 
     if (Xsq != NULL_PTR(CircularBufferT<Type> *)) {
         delete Xsq;
+	Xsq = NULL_PTR(CircularBufferT<Type> *);
     }
 
 }
 
+/*lint -e{534} ignore return value of GetData since intialisation error would have been caught earlier*/
 template <typename Type> Type StatisticsHelperT<Type>::FindMax() {
 
-    Type max = (Type) std::numeric_limits<Type>::min();
+    Type max = std::numeric_limits<Type>::min();
   
     uint32 index;
 
@@ -338,6 +367,7 @@ template <typename Type> Type StatisticsHelperT<Type>::FindMax() {
 
         Type sample;
 
+	/*lint -e{534} ignore return value of GetData since an intialisation error would make that this method is not called*/
         Xwin->GetData(sample, index);
       
 	if (sample > max) {
@@ -345,7 +375,7 @@ template <typename Type> Type StatisticsHelperT<Type>::FindMax() {
 	}
     }
 
-  return max;
+    return max;
 }
 
 template <> inline float32 StatisticsHelperT<float32>::FindMax() { // Must be declared/defined before use
@@ -358,6 +388,7 @@ template <> inline float32 StatisticsHelperT<float32>::FindMax() { // Must be de
 
         float32 sample;
 
+	/*lint -e{534} ignore return value of GetData since an intialisation error would make that this method is not called*/
         Xwin->GetData(sample, index);
       
 	if (sample > max) {
@@ -365,7 +396,7 @@ template <> inline float32 StatisticsHelperT<float32>::FindMax() { // Must be de
 	}
     }
 
-  return max;
+    return max;
 }
 
 template <> inline float64 StatisticsHelperT<float64>::FindMax() { // Must be declared/defined before use
@@ -378,6 +409,7 @@ template <> inline float64 StatisticsHelperT<float64>::FindMax() { // Must be de
 
         float64 sample;
 
+	/*lint -e{534} ignore return value of GetData since an intialisation error would make that this method is not called*/
         Xwin->GetData(sample, index);
       
 	if (sample > max) {
@@ -385,12 +417,12 @@ template <> inline float64 StatisticsHelperT<float64>::FindMax() { // Must be de
 	}
     }
 
-  return max;
+    return max;
 }
 
 template <typename Type> Type StatisticsHelperT<Type>::FindMin() {
 
-    Type min = (Type) std::numeric_limits<Type>::max();
+    Type min = std::numeric_limits<Type>::max();
   
     uint32 index;
 
@@ -398,6 +430,7 @@ template <typename Type> Type StatisticsHelperT<Type>::FindMin() {
 
         Type sample;
 
+	/*lint -e{534} ignore return value of GetData since an intialisation error would make that this method is not called*/
         Xwin->GetData(sample, index);
       
 	if (sample < min) {
@@ -405,7 +438,7 @@ template <typename Type> Type StatisticsHelperT<Type>::FindMin() {
 	}
     }
 
-  return min;
+    return min;
 }
 
 template <typename Type> bool StatisticsHelperT<Type>::PushSample(Type sample) {
@@ -433,13 +466,15 @@ template <typename Type> bool StatisticsHelperT<Type>::PushSample(Type sample) {
 	/* Update max/min, if necessary */
 	if (Xspl > Xmax) {
 	    Xmax = Xspl; 
-	} else if (oldest == Xmax) { /* The removed sample was the max over the time window */
+	} 
+	else if (oldest == Xmax) { /* The removed sample was the max over the time window */
 	    Xmax = FindMax();
 	}
 	
 	if (Xspl < Xmin) {
 	    Xmin = Xspl; 
-	} else if (oldest == Xmin) { /* The removed sample was the min over the time window */
+	} 
+	else if (oldest == Xmin) { /* The removed sample was the min over the time window */
 	    Xmin = FindMin();
 	}
     }

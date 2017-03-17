@@ -65,7 +65,7 @@ StatisticsGAM::~StatisticsGAM() {
     if (ok) {
 
         if (signalType == SignedInteger8Bit) {
-	  StatisticsHelperT<int8> * ref = static_cast<StatisticsHelperT<int8> *>(stats);
+	    StatisticsHelperT<int8> * ref = static_cast<StatisticsHelperT<int8> *>(stats);
 	    delete ref;
 	}
 
@@ -387,52 +387,52 @@ bool StatisticsGAM::PrepareNextState(const char8 * const currentStateName,
 
         if (signalType == SignedInteger8Bit) {
 	    StatisticsHelperT<int8> * ref = static_cast<StatisticsHelperT<int8> *>(stats);
-	    ref->Reset();
+	    ret = ref->Reset();
 	}
 
 	if (signalType == SignedInteger16Bit) {
 	    StatisticsHelperT<int16> * ref = static_cast<StatisticsHelperT<int16> *>(stats);
-	    ref->Reset();
+	    ret = ref->Reset();
 	}
 
 	if (signalType == SignedInteger32Bit) {
 	    StatisticsHelperT<int32> * ref = static_cast<StatisticsHelperT<int32> *>(stats);
-	    ref->Reset();
+	    ret = ref->Reset();
 	}
 
 	if (signalType == SignedInteger64Bit) {
 	    StatisticsHelperT<int64> * ref = static_cast<StatisticsHelperT<int64> *>(stats);
-	    ref->Reset();
+	    ret = ref->Reset();
 	}
 
 	if (signalType == UnsignedInteger8Bit) {
 	    StatisticsHelperT<uint8> * ref = static_cast<StatisticsHelperT<uint8> *>(stats);
-	    ref->Reset();
+	    ret = ref->Reset();
 	}
 
 	if (signalType == UnsignedInteger16Bit) {
 	    StatisticsHelperT<uint16> * ref = static_cast<StatisticsHelperT<uint16> *>(stats);
-	    ref->Reset();
+	    ret = ref->Reset();
 	}
 
 	if (signalType == UnsignedInteger32Bit) {
 	    StatisticsHelperT<uint32> * ref = static_cast<StatisticsHelperT<uint32> *>(stats);
-	    ref->Reset();
+	    ret = ref->Reset();
 	}
 
 	if (signalType == UnsignedInteger64Bit) {
 	    StatisticsHelperT<uint64> * ref = static_cast<StatisticsHelperT<uint64> *>(stats);
-	    ref->Reset();
+	    ret = ref->Reset();
 	}
 
 	if (signalType == Float32Bit) {
 	    StatisticsHelperT<float32> * ref = static_cast<StatisticsHelperT<float32> *>(stats);
-	    ref->Reset();
+	    ret = ref->Reset();
 	}
 
 	if (signalType == Float64Bit) {
 	    StatisticsHelperT<float64> * ref = static_cast<StatisticsHelperT<float64> *>(stats);
-	    ref->Reset();
+	    ret = ref->Reset();
 	}
 
     }
