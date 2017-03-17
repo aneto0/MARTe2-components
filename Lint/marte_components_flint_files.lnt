@@ -14,6 +14,7 @@
 -i./Source/Components/GAMs/FilterGAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
+-i./Source/Components/Interfaces/SysLogger/
 
 BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
@@ -36,3 +37,4 @@ NI6368DAC.cpp
 NI6368DIO.cpp
 SDNPublisher.cpp
 SDNSubscriber.cpp
+SysLogger.cpp

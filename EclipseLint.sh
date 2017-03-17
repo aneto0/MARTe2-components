@@ -24,6 +24,7 @@ ssh $USER@$HOST \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/BareMetal/L2Objects/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/BareMetal/L3Streams/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/BareMetal/L4Configuration/ \
+-i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/BareMetal/L4Logger/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/BareMetal/L4Messages/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/BareMetal/L5GAMs/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/Scheduler/L1Portability/ \
@@ -32,6 +33,7 @@ ssh $USER@$HOST \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/Scheduler/L3Services/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/Scheduler/L4Messages/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/Scheduler/L4StateMachine/ \
+-i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/Scheduler/L4LoggerService/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/Scheduler/L5GAMs/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/FileSystem/L1Portability/ \
 -i ~/$REMOTE_DIR_CODE_MARTe2/Source/Core/FileSystem/L1Portability/Environment/Linux \

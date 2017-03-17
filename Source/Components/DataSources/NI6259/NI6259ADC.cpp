@@ -744,7 +744,8 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
                 float32 totalNumberOfSamplesPerSecond = (static_cast<float32>(numberOfSamples) * cycleFrequency);
                 ok = (singleADCFrequency == static_cast<uint32>(totalNumberOfSamplesPerSecond));
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "singleADCFrequency (%u) shall be equal to numberOfSamples * cycleFrequency (%u)", singleADCFrequency, totalNumberOfSamplesPerSecond);
+                    REPORT_ERROR(ErrorManagement::ParametersError, "singleADCFrequency (%u) shall be equal to numberOfSamples * cycleFrequency (%u)", singleADCFrequency,
+                                 totalNumberOfSamplesPerSecond);
                 }
             }
         }
@@ -774,9 +775,9 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", ii, fullDeviceName);
-                    }
-                }
             }
+        }
+    }
     if (ok) {
         if (numberOfADCsEnabled == 1u) {
             ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16u, delayDivisor, clockConvertSource, clockConvertPolarity) == 0);
@@ -839,7 +840,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         ok = (pxi6259_start_ai(boardFileDescriptor) == 0);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName);
-        };
+        }
     }
     return ok;
 }
