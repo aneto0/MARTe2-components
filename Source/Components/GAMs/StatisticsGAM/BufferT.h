@@ -32,6 +32,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
+#include "AdvancedErrorManagement.h"
 #include "MemoryOperationsHelper.h"
 #include "GlobalObjectsDatabase.h"
 
