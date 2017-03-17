@@ -137,6 +137,8 @@ bool StatisticsGAM::Initialise(StructuredDataI & data) {
 
 bool StatisticsGAM::Setup() {
 
+    /*lint -e{9007} side effect of the '&&' operator is acceptable since the evaluation of the second part
+      of the expression is only necessary when the first is verified to be true*/
     bool ret = ((GetNumberOfInputSignals() != 0u) && (GetNumberOfOutputSignals() != 0u));
 
     if (!ret) {
@@ -185,12 +187,13 @@ bool StatisticsGAM::Setup() {
 
     uint32 signalIndex;
 
+    /*lint -e{850} no modification of the loop index inside the body of the loop (constness issue with the variadic macro ?)*/
     for (signalIndex = 0u; (signalIndex < GetNumberOfOutputSignals()) && (ret); signalIndex++) {
 
         ret = (signalType == GetSignalType(OutputSignals, signalIndex));
 
 	if (!ret) {
-	  REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalType(OutputSignals, %u) != signalType", signalIndex);
+	    REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalType(OutputSignals, %u) != signalType", signalIndex);
 	}
 
 	if (ret) {
@@ -202,7 +205,7 @@ bool StatisticsGAM::Setup() {
 	}  
 
 	if (!ret) {
-	    REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalNumberOfDimensions(OutputSignals, %u) != 0u", signalIndex);
+	    REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfDimensions(OutputSignals, %u) != 0u", signalIndex);
 	}
 
 	if (ret) {
@@ -214,7 +217,7 @@ bool StatisticsGAM::Setup() {
 	}  
 
 	if (!ret) {
-	    REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalNumberOfElements(OutputSignals, %u) != 1u", signalIndex);
+	    REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfElements(OutputSignals, %u) != 1u", signalIndex);
 	}
 
     }

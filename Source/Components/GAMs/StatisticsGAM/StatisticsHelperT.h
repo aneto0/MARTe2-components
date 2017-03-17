@@ -49,9 +49,13 @@ namespace MARTe {
  * @brief The class provides templated statistics computation.
  * @detail The class allocates circular buffers to store values of samples and
  * computes average, standard deviation, minimum and maximum over a moving time
- * window.
+ * window. As such, the sum of samples and sum of squares is computed upon calling
+ * the PushSample() method in a way to minimize operations. The minimum or maximum
+ * over the historical buffer are re-computed only when needed, i.e. in case the
+ * oldest sample being pushed out of the moving time window is equal to the stored
+ * minimum or maximum.
  * The implementation does not perform division, rather uses bit shift operation
- * for integer types and pre-computes 1.0 / size for floating point types. As such,
+ * for integer types, and pre-computes 1.0 / size for floating point types. As such,
  * the computation of average and standard deviation is only exact after the window
  * has been fully populated once with samples.
  * Consequent to that above, the window size for integer types is limited to power
@@ -65,8 +69,8 @@ template <typename Type> class StatisticsHelperT {
 
     /**
      * @brief Constructor. 
-     * @detail Allocates memory buffers to store samples in a moving time
-     * window. In case of integer types, the actual window size will be the highest
+     * @detail Allocates memory buffers to store samples, and squares of, in a moving
+     * time window. In case of integer types, the actual window size will be the highest
      * power of 2 smaller or equal to the specified size.
      */
     StatisticsHelperT(uint32 windowSize);
@@ -82,7 +86,18 @@ template <typename Type> class StatisticsHelperT {
     void Reset();
 
     /**
-     * @brief Accessor. Inserts new sample and re-compute statistics.
+     * @brief Accessor. Inserts new sample in the moving time window.
+     * @detail The method inserts the sample in the historical buffer and re-computes the
+     * sum of samples over the time window with two operations, i.e. to remove the oldest
+     * sample leaving the buffer from the cumulative sum before adding the new one.
+     * The minimum and maximum sample attributes are changed if the newly inserted sample
+     * is respectively smaller or higher than the currently stored minimum or maximum. The
+     * historycal buffer is fully parsed in case the oldest sample leaving the buffer is
+     * equal to the recorded minimum or maximum. 
+     * The new sample is also squared and inserted into a second buffer, with similar sum
+     * management.
+     * The average, root mean square, and standard deviation are only computed when the 
+     * corresponding accessors are being called.
      * @return if buffer properly allocated.
      */
     bool PushSample(Type sample);
@@ -113,30 +128,42 @@ template <typename Type> class StatisticsHelperT {
 
     /**
      * @brief Average over the moving window of samples.
+     * @detail The average is computed  in this method from the cumulative sum of samples
+     * over the time window maintained/updated by the PushSample() method. The average is
+     * computed by bit-shifting the accumulator in case of integer types or by multiplying
+     * it with pre-computed (1.0 / size) for floating point types.
      * @return average.
      */
     Type GetAvg(void);
 
     /**
-     * @brief Maximum over the moving window of samples.
+     * @brief Maximum over the moving window of samples. No computation involved.
      * @return maximum.
      */
     Type GetMax(void);
 
     /**
-     * @brief Minimum over the moving window of samples.
+     * @brief Minimum over the moving window of samples. No computation involved.
      * @return minimum.
      */
     Type GetMin(void);
 
     /**
      * @brief Root mean squares over the moving window of samples.
+     * @detail The root mean square is computed in this method from the cumulative sum of
+     * squared samples over the time window maintained/updated by the PushSample() method.
+     * The rms is computed by bit-shifting the accumulator in case of integer types or by
+     * multiplying it with pre-computed (1.0 / size) for floating point types. And
+     * eventually calling SquareRoot() of the result.
      * @return rms.
      */
     Type GetRms(void);
 
     /**
      * @brief Standard deviation over the moving window of samples.
+     * @detail This is the most computation heavy accessor since it involves computing the
+     * average, squaring it and substrating it from the average of the squared samples over
+     * the time window.
      * @return standard deviation.
      */
     Type GetStd(void);
@@ -164,7 +191,7 @@ template <typename Type> class StatisticsHelperT {
     CircularBufferT<Type> * Xsq;  /* Sample buffer (squared) */
 
     /**
-     * @brief Average of squares over the moving window.
+     * @brief Average of squared samples over the moving window.
      * @return average of sample squares.
      */
     Type GetRmsSq (void);
@@ -285,6 +312,7 @@ template <> inline StatisticsHelperT<float64>::StatisticsHelperT(uint32 windowSi
 
 }
 
+/*lint -e{1551} no exception thrown deleting the CircularBufferT<> instance*/
 template <typename Type> StatisticsHelperT<Type>::~StatisticsHelperT ()
 {
 

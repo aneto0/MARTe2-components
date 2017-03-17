@@ -44,12 +44,16 @@ namespace MARTe {
  * @brief GAM which provides average, standard devisation, minimum and maximum of
  * its input signal over a moving time window.
  * @details This GAM provides the average, standard devisation, minimum and maximum
- * of its input signal over a moving time window.
+ * of its input signal over a moving time window. 
+ * The GAM accepts any type of scalar
+ * input signal, i.e. (u)int8, (u)int16, (uint32), (u)int64, float32 and float64, and
+ * produces the statistics computation in the same native type. As such, the output
+ * signals are required to conform to the type of the input signal.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
  * +Statistics = {
  *     Class = StatisticsGAM
- *     WindowSize = 1000 // Optional - Default to 1024
+ *     WindowSize = 1000 // Optional - Defaults to 1024, see StatisticsHelperT
  *     InputSignals = {
  *         ExecutionTime = {
  *             DataSource = "DDB"
@@ -62,15 +66,15 @@ namespace MARTe {
  *             DataSource = "DDB"
  *             Type = uint64
  *         }
- *         ExecutionTime_std = { // Optional - Standard deviation comp;uted in presence of 
- *             DataSource = "DDB" //           this second output signal
- *             Type = uint64
+ *         ExecutionTime_std = {  // Optional - Standard deviation computed in case of 
+ *             DataSource = "DDB" //            this second output signal, incl. square 
+ *             Type = uint64      //            root computation.
  *         }
- *         ExecutionTime_min = {
+ *         ExecutionTime_min = {  // Optional
  *             DataSource = "DDB"
  *             Type = uint64
  *         }
- *         ExecutionTime_max = {
+ *         ExecutionTime_max = {  // Optional
  *             DataSource = "DDB"
  *             Type = uint64
  *         }
@@ -78,6 +82,9 @@ namespace MARTe {
  * }
  *
  * @todo Receive inputs signal depth in lieu of storing history internally.
+ *
+ * @todo Since the RMS is the native computed value behing the STD, it can be promoted
+ * to be available on an output signal without additional penalty.
  *
  * @todo Deliver histogram as output array.
  *
@@ -116,7 +123,7 @@ public:
      *   GetNumberOfOutputSignals() > 0 &&
      *   All signals are scalar and share the same type.
      * @post 
-     *   stats = new StatisticsHelperT<signalType> (windowSize)
+     *   stats = (void*) new StatisticsHelperT<signalType> (windowSize);
      */
     virtual bool Setup();
 
@@ -129,7 +136,7 @@ public:
     virtual bool Execute();
 
     /**
-     * @brief Resets the sample buffer.
+     * @brief Resets the sample history buffer.
      * @return true.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
@@ -138,6 +145,9 @@ public:
   private:
     /**
      * @brief The reference to the statistics computation templated class.
+     * @details The void * stores the reference to the StatisticsHelperT<>
+     * instance which is created with the Setup() method. This attribute
+     * requires a static_cast<StatisticsHelperT<signalType> *> before use.
      */
     void * stats;
 
