@@ -301,7 +301,7 @@ template <typename Type> StatisticsHelperT<Type>::StatisticsHelperT(uint32 windo
     Xsq  = new CircularBufferT<Type> (size); 
 
     if (!Reset()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Unable to Reset instance");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Unable to Reset instance");
     }
 
 }
@@ -311,14 +311,14 @@ template <> inline StatisticsHelperT<float32>::StatisticsHelperT(uint32 windowSi
 {
 
     size = windowSize;
-    Xdiv = 1.0 / static_cast<float32(size);
+    Xdiv = 1.0 / static_cast<float32>(size);
 
     /* Instantiate sample buffers */
     Xwin = new CircularBufferT<float32> (size); 
     Xsq  = new CircularBufferT<float32> (size); 
 
     if (!Reset()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Unable to Reset instance");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Unable to Reset instance");
     }
 
 }
@@ -335,7 +335,7 @@ template <> inline StatisticsHelperT<float64>::StatisticsHelperT(uint32 windowSi
     Xsq  = new CircularBufferT<float64> (size); 
 
     if (!Reset()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Unable to Reset instance");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Unable to Reset instance");
     }
 
 }
