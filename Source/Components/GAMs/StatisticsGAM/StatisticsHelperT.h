@@ -284,29 +284,6 @@ template <> inline bool StatisticsHelperT<float64>::Reset() { // Must be declare
     
 }
 
-template <> inline bool StatisticsHelperT<float128>::Reset() { // Must be declared/defined before use in the constructor
-
-    /* Reset attributes */
-    counter = 0u;
-
-    Xspl = 0.0L;
-    Xavg = 0.0L;
-    Xmax = -1.0L * std::numeric_limits<float128>::max();
-    Xmin = std::numeric_limits<float128>::max();
-    Xrms = 0.0L;
-    Xstd = 0.0L;
-    
-    /* Reset sample buffers */
-    bool ok = Xwin->Initialise(Xspl); 
-
-    if (ok) {
-        ok = Xsq->Initialise(Xspl);
-    }
-
-    return ok;
-    
-}
-
 /*lint -e{1566} initialisation of the attributes in the Reset() method*/
 /*lint -e{9117} [MISRA C++ Rule 5-0-4] signedness of 0 and 1 ignored in template method to avoid specializing for all integer types*/
 template <typename Type> StatisticsHelperT<Type>::StatisticsHelperT(uint32 windowSize)
@@ -358,23 +335,6 @@ template <> inline StatisticsHelperT<float64>::StatisticsHelperT(uint32 windowSi
     /* Instantiate sample buffers */
     Xwin = new CircularBufferT<float64> (size); 
     Xsq  = new CircularBufferT<float64> (size); 
-
-    if (!Reset()) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Unable to Reset instance");
-    }
-
-}
-
-/*lint -e{1566} initialisation of the attributes in the Reset() method*/
-template <> inline StatisticsHelperT<float128>::StatisticsHelperT(uint32 windowSize)
-{
-
-    size = windowSize;
-    Xdiv = 1.0L / static_cast<float128>(size);
-
-    /* Instantiate sample buffers */
-    Xwin = new CircularBufferT<float128> (size); 
-    Xsq  = new CircularBufferT<float128> (size); 
 
     if (!Reset()) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Unable to Reset instance");
@@ -445,27 +405,6 @@ template <> inline float32 StatisticsHelperT<float32>::FindMax() const { // Must
 template <> inline float64 StatisticsHelperT<float64>::FindMax() const { // Must be declared/defined before use
 
     float64 max = -1.0 * std::numeric_limits<float64>::max();
-  
-    uint32 index;
-
-    for (index = 0u; index < size; index++) {
-
-        float64 sample;
-
-	/*lint -e{534} ignore return value of GetData since an intialisation error would make that this method is not called*/
-        Xwin->GetData(sample, index);
-      
-	if (sample > max) {
-	    max = sample;
-	}
-    }
-
-    return max;
-}
-
-template <> inline float128 StatisticsHelperT<float128>::FindMax() const { // Must be declared/defined before use
-
-    float64 max = -1.0L * std::numeric_limits<float128>::max();
   
     uint32 index;
 
