@@ -519,13 +519,6 @@ template <> inline float64 StatisticsHelperT<float64>::GetAvg() const {
     return avg;
 }
 
-template <> inline float128 StatisticsHelperT<float128>::GetAvg() const {
-
-    float128 avg = Xavg * Xdiv;
-
-    return avg;
-}
-
 template <typename Type> Type StatisticsHelperT<Type>::GetRmsSq() const {
 
     Type rms_sq = Xrms >> Xdiv;
@@ -543,13 +536,6 @@ template <> inline float32 StatisticsHelperT<float32>::GetRmsSq() const {
 template <> inline float64 StatisticsHelperT<float64>::GetRmsSq() const {
 
     float64 rms_sq = Xrms * Xdiv;
-
-    return rms_sq;
-}
-
-template <> inline float128 StatisticsHelperT<float128>::GetRmsSq() const {
-
-    float128 rms_sq = Xrms * Xdiv;
 
     return rms_sq;
 }
