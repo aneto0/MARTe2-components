@@ -40,11 +40,11 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-namespace MARTe {
-
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+
+using namespace MARTe;
 
 template <typename Type> inline Type SquareRoot(const Type x) { 
 
@@ -62,7 +62,8 @@ template <> inline uint8 SquareRoot<uint8>(const uint8 x) { /* From http://en.wi
 
     uint8 tmp = x;
     uint8 res = 0u;
-    uint8 bit = static_cast<uint8>(1u << 6); // The second-to-top bit is set
+    //uint8 bit = static_cast<uint8>(1u << 6); // The second-to-top bit is set
+    uint8 bit = static_cast<uint8>(0x40u); // The second-to-top bit is set
  
     // "bit" starts at the highest power of four <= the argument.
     while (bit > tmp) {
@@ -74,7 +75,8 @@ template <> inline uint8 SquareRoot<uint8>(const uint8 x) { /* From http://en.wi
         if (tmp >= (res + bit)) { 
 	    tmp -= res + bit; 
 	    res = (res >> 1) + bit; 
-	} else {
+	} 
+	else {
 	    res >>= 1;
 	}
 
@@ -89,7 +91,8 @@ template <> inline uint16 SquareRoot<uint16>(const uint16 x) { /* From http://en
 
     uint16 tmp = x;
     uint16 res = 0u;
-    uint16 bit = static_cast<uint16>(1u << 14); // The second-to-top bit is set
+    //uint16 bit = static_cast<uint16>(1u << 14); // The second-to-top bit is set
+    uint16 bit = static_cast<uint16>(0x4000u); // The second-to-top bit is set
  
     // "bit" starts at the highest power of four <= the argument.
     while (bit > tmp) {
@@ -117,7 +120,8 @@ template <> inline uint32 SquareRoot<uint32>(const uint32 x) { /* From http://en
 
     uint32 tmp = x;
     uint32 res = 0u;
-    uint32 bit = static_cast<uint32>(1u << 30); // The second-to-top bit is set
+    //uint32 bit = static_cast<uint32>(1u << 30); // The second-to-top bit is set
+    uint32 bit = 0x40000000u; // The second-to-top bit is set
  
     // "bit" starts at the highest power of four <= the argument.
     while (bit > tmp) {
@@ -129,7 +133,8 @@ template <> inline uint32 SquareRoot<uint32>(const uint32 x) { /* From http://en
         if (tmp >= (res + bit)) {
 	    tmp -= res + bit; 
 	    res = (res >> 1) + bit; 
-	} else {
+	} 
+	else {
 	    res >>= 1;
 	}
 
@@ -144,7 +149,8 @@ template <> inline uint64 SquareRoot<uint64>(const uint64 x) { /* From http://en
 
     uint64 tmp = x;
     uint64 res = 0u;
-    uint64 bit = static_cast<uint64>(1ul << 62); // The second-to-top bit is set
+    //uint64 bit = static_cast<uint64>(1ul << 62); // The second-to-top bit is set
+    uint64 bit = 0x4000000000000000ul; // The second-to-top bit is set
  
     // "bit" starts at the highest power of four <= the argument.
     while (bit > tmp) {
@@ -156,7 +162,8 @@ template <> inline uint64 SquareRoot<uint64>(const uint64 x) { /* From http://en
         if (tmp >= (res + bit)) { 
 	    tmp -= res + bit; 
 	    res = (res >> 1) + bit; 
-	} else {
+	} 
+	else {
 	    res >>= 1;
 	}
 
@@ -214,8 +221,6 @@ template <> inline int64 SquareRoot<int64>(const int64 x) {
 
     return res; 
 };
-
-} /* namespace MARTe */
 
 #endif /* SquareRootT_H_ */
 

@@ -64,6 +64,8 @@ namespace MARTe {
  * limitation for floating point types.
  */
 
+/*lint -e{1712} the implementation does not provide default constructor*/
+/*lint -e{1733} the implementation does not provide a copy constructor*/
 template <typename Type> class StatisticsHelperT {
   public:
 
@@ -73,7 +75,7 @@ template <typename Type> class StatisticsHelperT {
      * time window. In case of integer types, the actual window size will be the highest
      * power of 2 smaller or equal to the specified size.
      */
-    StatisticsHelperT(uint32 windowSize);
+    StatisticsHelperT(const uint32 windowSize);
 
     /**
      * @brief Destructor. Frees allocated memory buffers.
@@ -286,17 +288,19 @@ template <> inline bool StatisticsHelperT<float64>::Reset() { // Must be declare
 
 /*lint -e{1566} initialisation of the attributes in the Reset() method*/
 /*lint -e{9117} [MISRA C++ Rule 5-0-4] signedness of 0 and 1 ignored in template method to avoid specializing for all integer types*/
-template <typename Type> StatisticsHelperT<Type>::StatisticsHelperT(uint32 windowSize)
+template <typename Type> StatisticsHelperT<Type>::StatisticsHelperT(const uint32 windowSize)
 {
 
     size = 1u; 
     Xdiv = 0;
+
+    uint32 tmp = windowSize;
   
-    while (windowSize > 1u) { 
-        windowSize >>= 1u; 
+    while (tmp > 1u) { 
+        tmp >>= 1u; 
 	size <<= 1u;
 	Xdiv += 1;
-    };
+    }
 
     /* Instantiate sample buffers */
     Xwin = new CircularBufferT<Type> (size); 
@@ -309,7 +313,7 @@ template <typename Type> StatisticsHelperT<Type>::StatisticsHelperT(uint32 windo
 }
 
 /*lint -e{1566} initialisation of the attributes in the Reset() method*/
-template <> inline StatisticsHelperT<float32>::StatisticsHelperT(uint32 windowSize)
+template <> inline StatisticsHelperT<float32>::StatisticsHelperT(const uint32 windowSize)
 {
 
     size = windowSize;
@@ -326,7 +330,7 @@ template <> inline StatisticsHelperT<float32>::StatisticsHelperT(uint32 windowSi
 }
 
 /*lint -e{1566} initialisation of the attributes in the Reset() method*/
-template <> inline StatisticsHelperT<float64>::StatisticsHelperT(uint32 windowSize)
+template <> inline StatisticsHelperT<float64>::StatisticsHelperT(const uint32 windowSize)
 {
 
     size = windowSize;
@@ -383,7 +387,7 @@ template <typename Type> Type StatisticsHelperT<Type>::FindMax() const {
 
 template <> inline float32 StatisticsHelperT<float32>::FindMax() const { // Must be declared/defined before use
 
-    float32 max = -1.0f * std::numeric_limits<float32>::max();
+    float32 max = -1.0F * std::numeric_limits<float32>::max();
   
     uint32 index;
 
