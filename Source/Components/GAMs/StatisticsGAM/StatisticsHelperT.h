@@ -107,25 +107,25 @@ template <typename Type> class StatisticsHelperT {
      * @brief Accessor. Retrieves the sample at index in the sample buffer.
      * @return sample at index.
      */
-    Type GetSample(uint32 index);
+    Type GetSample(uint32 index) const;
 
     /**
      * @brief Accessor. Retrieves the last inserted sample.
      * @return Last inserted sample.
      */
-    Type GetSample(void);
+    Type GetSample(void) const;
 
     /**
      * @brief Accessor. Returns the window size.
      * @return actual window size.
      */
-    uint32 GetSize(void);
+    uint32 GetSize(void) const;
 
     /**
      * @brief Accessor. Returns the number of samples inserted in the buffer.
      * @return number of samples.
      */
-    uint32 GetCounter(void);
+    uint32 GetCounter(void) const;
 
     /**
      * @brief Average over the moving window of samples.
@@ -135,19 +135,19 @@ template <typename Type> class StatisticsHelperT {
      * it with pre-computed (1.0 / size) for floating point types.
      * @return average.
      */
-    Type GetAvg(void);
+    Type GetAvg(void) const;
 
     /**
      * @brief Maximum over the moving window of samples. No computation involved.
      * @return maximum.
      */
-    Type GetMax(void);
+    Type GetMax(void) const;
 
     /**
      * @brief Minimum over the moving window of samples. No computation involved.
      * @return minimum.
      */
-    Type GetMin(void);
+    Type GetMin(void) const;
 
     /**
      * @brief Root mean squares over the moving window of samples.
@@ -158,7 +158,7 @@ template <typename Type> class StatisticsHelperT {
      * eventually calling SquareRoot() of the result.
      * @return rms.
      */
-    Type GetRms(void);
+    Type GetRms(void) const;
 
     /**
      * @brief Standard deviation over the moving window of samples.
@@ -167,13 +167,13 @@ template <typename Type> class StatisticsHelperT {
      * the time window.
      * @return standard deviation.
      */
-    Type GetStd(void);
+    Type GetStd(void) const;
 
     /**
      * @brief Sum of all samples over the moving window of samples.
      * @return sum.
      */
-    Type GetSum(void);
+    Type GetSum(void) const;
 
   private:
 
@@ -195,25 +195,26 @@ template <typename Type> class StatisticsHelperT {
      * @brief Average of squared samples over the moving window.
      * @return average of sample squares.
      */
-    Type GetRmsSq (void);
+    Type GetRmsSq (void) const;
 
     /**
      * @brief Finds the maximum of samples in the sample buffer.
      * @return maximum.
      */
-    Type FindMax(void);
+    Type FindMax(void) const;
 
     /**
      * @brief Finds the minimum of samples in the sample buffer.
      * @return maximum.
      */
-    Type FindMin(void);
+    Type FindMin(void) const;
 };
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
+/*lint -e{9117} [MISRA C++ Rule 5-0-4] signedness of 0 ignored in template method to avoid specializing for all integer types*/
 template <typename Type> bool StatisticsHelperT<Type>::Reset() {
 
     /* Reset attributes */
@@ -242,12 +243,12 @@ template <> inline bool StatisticsHelperT<float32>::Reset() { // Must be declare
     /* Reset attributes */
     counter = 0u;
 
-    Xspl = 0.0;
-    Xavg = 0.0;
-    Xmax = -1.0 * std::numeric_limits<float32>::max();
+    Xspl = 0.0f;
+    Xavg = 0.0f;
+    Xmax = -1.0f * std::numeric_limits<float32>::max();
     Xmin = std::numeric_limits<float32>::max();
-    Xrms = 0.0;
-    Xstd = 0.0;
+    Xrms = 0.0f;
+    Xstd = 0.0f;
     
     /* Reset sample buffers */
     bool ok = Xwin->Initialise(Xspl); 
@@ -265,12 +266,12 @@ template <> inline bool StatisticsHelperT<float64>::Reset() { // Must be declare
     /* Reset attributes */
     counter = 0u;
 
-    Xspl = 0.0;
-    Xavg = 0.0;
-    Xmax = -1.0 * std::numeric_limits<float64>::max();
+    Xspl = 0.0l;
+    Xavg = 0.0l;
+    Xmax = -1.0l * std::numeric_limits<float64>::max();
     Xmin = std::numeric_limits<float64>::max();
-    Xrms = 0.0;
-    Xstd = 0.0;
+    Xrms = 0.0l;
+    Xstd = 0.0l;
     
     /* Reset sample buffers */
     bool ok = Xwin->Initialise(Xspl); 
@@ -284,6 +285,7 @@ template <> inline bool StatisticsHelperT<float64>::Reset() { // Must be declare
 }
 
 /*lint -e{1566} initialisation of the attributes in the Reset() method*/
+/*lint -e{9117} [MISRA C++ Rule 5-0-4] signedness of 0 and 1 ignored in template method to avoid specializing for all integer types*/
 template <typename Type> StatisticsHelperT<Type>::StatisticsHelperT(uint32 windowSize)
 {
 
@@ -311,7 +313,7 @@ template <> inline StatisticsHelperT<float32>::StatisticsHelperT(uint32 windowSi
 {
 
     size = windowSize;
-    Xdiv = 1.0 / static_cast<float32>(size);
+    Xdiv = 1.0f / static_cast<float32>(size);
 
     /* Instantiate sample buffers */
     Xwin = new CircularBufferT<float32> (size); 
@@ -328,7 +330,7 @@ template <> inline StatisticsHelperT<float64>::StatisticsHelperT(uint32 windowSi
 {
 
     size = windowSize;
-    Xdiv = 1.0 / static_cast<float64>(size);
+    Xdiv = 1.0l / static_cast<float64>(size);
 
     /* Instantiate sample buffers */
     Xwin = new CircularBufferT<float64> (size); 
@@ -341,6 +343,7 @@ template <> inline StatisticsHelperT<float64>::StatisticsHelperT(uint32 windowSi
 }
 
 /*lint -e{1551} no exception thrown deleting the CircularBufferT<> instance*/
+/*lint -e{665} [MISRA C++ Rule 16-0-6] templated type passed as argument to MACRO*/
 template <typename Type> StatisticsHelperT<Type>::~StatisticsHelperT ()
 {
 
@@ -357,7 +360,7 @@ template <typename Type> StatisticsHelperT<Type>::~StatisticsHelperT ()
 }
 
 /*lint -e{534} ignore return value of GetData since intialisation error would have been caught earlier*/
-template <typename Type> Type StatisticsHelperT<Type>::FindMax() {
+template <typename Type> Type StatisticsHelperT<Type>::FindMax() const {
 
     Type max = std::numeric_limits<Type>::min();
   
@@ -378,9 +381,9 @@ template <typename Type> Type StatisticsHelperT<Type>::FindMax() {
     return max;
 }
 
-template <> inline float32 StatisticsHelperT<float32>::FindMax() { // Must be declared/defined before use
+template <> inline float32 StatisticsHelperT<float32>::FindMax() const { // Must be declared/defined before use
 
-    float32 max = -1.0 * std::numeric_limits<float32>::max();
+    float32 max = -1.0f * std::numeric_limits<float32>::max();
   
     uint32 index;
 
@@ -399,9 +402,9 @@ template <> inline float32 StatisticsHelperT<float32>::FindMax() { // Must be de
     return max;
 }
 
-template <> inline float64 StatisticsHelperT<float64>::FindMax() { // Must be declared/defined before use
+template <> inline float64 StatisticsHelperT<float64>::FindMax() const { // Must be declared/defined before use
 
-    float64 max = -1.0 * std::numeric_limits<float64>::max();
+    float64 max = -1.0l * std::numeric_limits<float64>::max();
   
     uint32 index;
 
@@ -420,7 +423,7 @@ template <> inline float64 StatisticsHelperT<float64>::FindMax() { // Must be de
     return max;
 }
 
-template <typename Type> Type StatisticsHelperT<Type>::FindMin() {
+template <typename Type> Type StatisticsHelperT<Type>::FindMin() const {
 
     Type min = std::numeric_limits<Type>::max();
   
@@ -495,49 +498,49 @@ template <typename Type> bool StatisticsHelperT<Type>::PushSample(Type sample) {
     return ok;
 }
 
- template <typename Type> Type StatisticsHelperT<Type>::GetAvg() {
+ template <typename Type> Type StatisticsHelperT<Type>::GetAvg() const {
 
     Type avg = Xavg >> Xdiv;
 
     return avg;
 }
 
-template <> inline float32 StatisticsHelperT<float32>::GetAvg() {
+template <> inline float32 StatisticsHelperT<float32>::GetAvg() const {
 
     float32 avg = Xavg * Xdiv;
 
     return avg;
 }
 
-template <> inline float64 StatisticsHelperT<float64>::GetAvg() {
+template <> inline float64 StatisticsHelperT<float64>::GetAvg() const {
 
     float64 avg = Xavg * Xdiv;
 
     return avg;
 }
 
-template <typename Type> Type StatisticsHelperT<Type>::GetRmsSq() {
+template <typename Type> Type StatisticsHelperT<Type>::GetRmsSq() const {
 
     Type rms_sq = Xrms >> Xdiv;
 
     return rms_sq;
 }
 
-template <> inline float32 StatisticsHelperT<float32>::GetRmsSq() {
+template <> inline float32 StatisticsHelperT<float32>::GetRmsSq() const {
 
     float32 rms_sq = Xrms * Xdiv;
 
     return rms_sq;
 }
 
-template <> inline float64 StatisticsHelperT<float64>::GetRmsSq() {
+template <> inline float64 StatisticsHelperT<float64>::GetRmsSq() const {
 
     float64 rms_sq = Xrms * Xdiv;
 
     return rms_sq;
 }
 
-template <typename Type> Type StatisticsHelperT<Type>::GetRms() {
+template <typename Type> Type StatisticsHelperT<Type>::GetRms() const {
 
     Type rms_sq = GetRmsSq();
     Type rms = SquareRoot<Type>(rms_sq);
@@ -546,7 +549,7 @@ template <typename Type> Type StatisticsHelperT<Type>::GetRms() {
 
 }
 
-template <typename Type> Type StatisticsHelperT<Type>::GetStd() {
+template <typename Type> Type StatisticsHelperT<Type>::GetStd() const {
 
     Type avg = GetAvg();
     Type avg_sq = avg * avg;
@@ -557,15 +560,15 @@ template <typename Type> Type StatisticsHelperT<Type>::GetStd() {
 
 }
 
-template <typename Type> Type StatisticsHelperT<Type>::GetSum() { 
+template <typename Type> Type StatisticsHelperT<Type>::GetSum() const { 
     return Xavg; 
 }
 
-template <typename Type> Type StatisticsHelperT<Type>::GetMax() { 
+template <typename Type> Type StatisticsHelperT<Type>::GetMax() const { 
     return Xmax; 
 }
 
-template <typename Type> Type StatisticsHelperT<Type>::GetMin() { 
+template <typename Type> Type StatisticsHelperT<Type>::GetMin() const { 
     return Xmin; 
 }
 

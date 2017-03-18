@@ -78,7 +78,7 @@ template <typename Type> class BufferT {
      * @brief Accessor. Rerieves data at index.
      * @return if valid index.
      */
-    bool GetData(Type& data, const uint32 index);
+    bool GetData(Type& data, const uint32 index) const;
 
     /**
      * @brief Accessor. Inserts data at index.
@@ -140,7 +140,7 @@ template <typename Type> bool BufferT<Type>::Initialise(const Type& data) {
 
 template <typename Type> uint32 BufferT<Type>::GetSize() const { return size; }
 
-template <typename Type> bool BufferT<Type>::GetData(Type& data, const uint32 index) { 
+template <typename Type> bool BufferT<Type>::GetData(Type& data, const uint32 index) const { 
 
     bool ok = (buffer != NULL_PTR(Type *));
 

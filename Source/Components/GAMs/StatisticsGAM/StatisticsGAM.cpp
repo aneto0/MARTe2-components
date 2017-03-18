@@ -337,6 +337,7 @@ bool StatisticsGAM::Execute() {
 
 template <class Type> bool StatisticsGAM::ExecuteT() {
 
+    /*lint -e{665} [MISRA C++ Rule 16-0-6] templated type passed as argument to MACRO*/
     StatisticsHelperT<Type> * ref = NULL_PTR(StatisticsHelperT<Type> *);
     Type input = (Type) 0;
     Type output = (Type) 0;
