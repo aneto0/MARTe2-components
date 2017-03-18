@@ -40,11 +40,13 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+/*lint -e{1573} [MISRA C++ Rule 14-5-1] unclear what to do with this warning 'generic function template' but accept/discard it*/
+
+namespace MARTe {
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
-
-using namespace MARTe;
 
 template <typename Type> inline Type SquareRoot(const Type x) { 
 
@@ -221,6 +223,8 @@ template <> inline int64 SquareRoot<int64>(const int64 x) {
 
     return res; 
 };
+
+} /* namespace MARTe */
 
 #endif /* SquareRootT_H_ */
 

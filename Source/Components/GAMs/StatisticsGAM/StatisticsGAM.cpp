@@ -37,10 +37,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-#ifndef UNIT_VERSION_HR
-#define UNIT_VERSION_HR "1.0"
-#endif
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -445,7 +441,7 @@ bool StatisticsGAM::PrepareNextState(const char8 * const currentStateName,
     return ret;
 }
 
-CLASS_REGISTER(StatisticsGAM, UNIT_VERSION_HR)
+CLASS_REGISTER(StatisticsGAM, "1.0")
 
 } /* namespace MARTe */
 
