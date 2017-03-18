@@ -50,6 +50,7 @@ namespace MARTe {
  */
 
 /*lint -e{1712} the implementation does not provide default constructor*/
+/*lint -esym(9107, MARTe::BufferT*) [MISRA C++ Rule 3-1-1] required for template implementation*/
 template <typename Type> class BufferT {
   public:
 

@@ -66,6 +66,7 @@ namespace MARTe {
 
 /*lint -e{1712} the implementation does not provide default constructor*/
 /*lint -e{1733} the implementation does not provide a copy constructor*/
+/*lint -esym(9107, MARTe::StatisticsHelperT*) [MISRA C++ Rule 3-1-1] required for template implementation*/
 template <typename Type> class StatisticsHelperT {
   public:
 
