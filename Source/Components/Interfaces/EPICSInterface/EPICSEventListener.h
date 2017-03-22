@@ -46,11 +46,12 @@ namespace MARTe {
  *   Class = ReferenceContainer
  *   +PV_1 = {
  *     Class = EPICSEventListener
- *     Name = "MyPV1"
+ *     Name = "MyPV1" //Name of the PV
+ *     Type = uint32 //Type of the PV (currently uint32, float32 and string are supported)
  *     +Trigger1 = {
  *       Class = EPICSEventTrigger
- *       Value = 2
- *       +PrepareChangeToState2Msg = {
+ *       Value = 2 //Value at which to trigger or just send message??TODO
+ *       +PrepareChangeToState2Msg = { //List of messages to trigger if the new value == Value
  *         Class = Message
  *         Destination = DemoApp
  *         Mode = ExpectsReply
