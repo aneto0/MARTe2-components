@@ -22,32 +22,8 @@
 #
 #############################################################
 
-SPB=SysLogger.x
+TARGET=linux
 
-ifdef EFDA_MARTe_DIR
-SPB+=BaseLib2Wrapper.x
-endif
+include Makefile.inc
 
-ifdef EPICS_BASE
-SPB   += EPICSInterface.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-LIBRARIES_STATIC=$(BUILD_DIR)/SysLogger/SysLogger$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2Wrapper$(LIBEXT)
-endif
-
-all: $(OBJS)  $(SUBPROJ)  \
-    $(BUILD_DIR)/Interfaces$(LIBEXT) \
-    $(BUILD_DIR)/Interfaces$(DLLEXT)
-	echo  $(OBJS)
-
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
-
+LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
