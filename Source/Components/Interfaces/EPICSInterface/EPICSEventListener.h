@@ -46,38 +46,12 @@ namespace MARTe {
  *   Class = ReferenceContainer
  *   +PV_1 = {
  *     Class = EPICSEventListener
- *     Name = "MyPV1" //Name of the PV
- *     Type = uint32 //Type of the PV (currently uint32, float32 and string are supported)
- *     +Trigger1 = {
- *       Class = EPICSEventTrigger
- *       Value = 2 //Value at which to trigger or just send message??TODO
- *       +PrepareChangeToState2Msg = { //List of messages to trigger if the new value == Value
- *         Class = Message
- *         Destination = DemoApp
- *         Mode = ExpectsReply
- *         Function = PrepareNextState
- *         +Parameters = {
- *           Class = ConfigurationDatabase
- *           param1 = State2
- *         }
- *      }
- *      +StopCurrentStateExecutionMsg = {
- *         Class = Message
- *         Destination = DemoApp
- *         Function = StopCurrentStateExecution
- *         Mode = ExpectsReply
- *       }
- *     }
- *     +Trigger2 = {
- *       Class = EPICSEventTrigger
- *       Value = 3
- *       +StartCurrentStateExecutionMsg = {
- *         Class = Message
- *         Destination = StateMachine
- *         Function = START
- *         Mode = ExpectsReply
- *       }
- *     }
+ *     PVName = "MyPV1" //Compulsory. Name of the PV
+ *     PVType = uint32 //Compulsory. Type of the PV (currently int32, float32 and string are supported)
+ *     Destination = StateMachine //Compulsory. Destination of the message
+ *     ModeValue = ValueIsFunction //Compulsory. What is the meaning of the PV value: ValueIsFunction means that the value will be used as the Message function name. ValueIsParameter means that the value will be set in param1 of the function (which implies that the function must be defined)
+ *     Function = FunctionToCall //Function to be called. Compulsory if ModeValue=ValueIsParameter. If ModeValue=ValueIsFunction, this parameter shall not be set.
+ *     FunctionMap = {{"0", "START"}, {"1", "STOP"}, ...} //Optional. The PV value will be used to translate the PV value into a Function name.
  *     ...
  *   }
  *   ...
@@ -107,8 +81,22 @@ private:
     /**
      *
      */
-    ReferenceT<EPICSEventWrapper> mdsEvent;
+    TypeDescriptor pvType;
 
+    /**
+     *
+     */
+    StreamString pvName;
+
+    /**
+     *
+     */
+    StreamString destination;
+
+    /**
+     *
+     */
+    StreamString functioName;
 
 };
 
