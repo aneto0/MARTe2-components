@@ -22,7 +22,13 @@
 #
 #############################################################
 
-OBJSX=EPICSEventListener.x
+OBJSX=EPICSEventListener.x \
+    EPICSPVContext.x \
+    EPICSPVEvent.x \
+    EPICSPVHolder.x \
+    EPICSPVInt.x \
+    EPICSPVFloat.x \
+    EPICSPVString.x
 
 PACKAGE=Components/Interfaces
 
@@ -35,7 +41,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 INCLUDES += -I.
 INCLUDES += -I$(EPICS_BASE)/include/
 INCLUDES += -I$(EPICS_BASE)/include/os/Linux/
-INCLUDES += -I$(EPICS_BASE)/compiler/gcc/
+INCLUDES += -I$(EPICS_BASE)/include/compiler/gcc/
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
