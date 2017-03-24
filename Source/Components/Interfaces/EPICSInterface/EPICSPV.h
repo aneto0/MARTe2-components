@@ -50,7 +50,7 @@ namespace MARTe {
  * +PV_1 = {
  *   Class = EPICSInterface::EPICSPV
  *   PVName = PV_ONE //Compulsory. Name of the EPICS PV.
- *   PVType = uint32 //Compulsory. The PV type.
+ *   PVType = uint32 //Compulsory. The PV type. Supported types are uint32, int32, float32, float64 and string.
  *   Event = { //Optional. Information about the message to be triggered every-time the EPICS PV value.
  *     Destination = StateMachine //Compulsory. Destination of the message.
  *     PVValue = Function //Compulsory. Can either be Function, Parameter or Ignore.
