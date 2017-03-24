@@ -1,6 +1,6 @@
 /**
- * @file EPCISCAClient.h
- * @brief Header file for class EPCISCAClient
+ * @file EPICSCAClient.h
+ * @brief Header file for class EPICSCAClient
  * @date 23/03/2017
  * @author Andre Neto
  *
@@ -16,7 +16,7 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPCISCAClient
+ * @details This header file contains the declaration of the class EPICSCAClient
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
@@ -44,18 +44,18 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-class EPCISCAClient: public ReferenceContainer, public EmbeddedServiceMethodBinderI {
+class EPICSCAClient: public ReferenceContainer, public EmbeddedServiceMethodBinderI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
      * TODO
      */
-EPCISCAClient    ();
+EPICSCAClient    ();
 
     /**
      * TODO
      */
-    virtual ~EPCISCAClient();
+    virtual ~EPICSCAClient();
 
     /**
      * @brief TODO.
@@ -72,7 +72,7 @@ EPCISCAClient    ();
     /**
      * @brief TODO
      */
-    friend void EPCISCAClientEventCallback(struct event_handler_args args);
+    friend void EPICSCAClientEventCallback(struct event_handler_args args);
 private:
 
     /**

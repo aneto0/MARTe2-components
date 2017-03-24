@@ -22,13 +22,8 @@
 #
 #############################################################
 
-OBJSX=EPICSEventListener.x \
-    EPICSPVContext.x \
-    EPICSPVEvent.x \
-    EPICSPVHolder.x \
-    EPICSPVInt.x \
-    EPICSPVFloat.x \
-    EPICSPVString.x
+OBJSX=EPICSCAClient.x \
+    EPICSPV.x
 
 PACKAGE=Components/Interfaces
 
