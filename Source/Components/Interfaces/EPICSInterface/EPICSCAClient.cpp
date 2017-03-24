@@ -1,6 +1,6 @@
 /**
- * @file EPICSPVHolder.cpp
- * @brief Source file for class EPICSPVHolder
+ * @file EPCISCAClient.cpp
+ * @brief Source file for class EPCISCAClient
  * @date 23/03/2017
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSPVHolder (public, protected, and private). Be aware that some
+ * the class EPCISCAClient (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -28,27 +28,55 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include <EPICSPVHolder.h>
+#include "EPICSCAClient.h"
+
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
-#include "EPICSPVContext.h"
+
+#include "EPICSPVBase.h"
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+namespace MARTe {
+static FastPollingMutexSem eventCallbackFastMux;
+void EPCISCAClientEventCallback(struct event_handler_args args) {
+    eventCallbackFastMux.FastLock();
+    EPCISCAClient *listener = static_cast<EPCISCAClient *>(args.usr);
+    StreamString currentValue;
+    if (listener != NULL_PTR(EPICSEventListener *)) {
+        currentValue = static_cast<const char8 *>(args.dbr);
+        bool found = false;
+        uint32 j;
+        for (j = 0u; (j < listener->Size()) && (!found); j++) {
+            ReferenceT<EPICSPVEvent> pvEvent = listener->Get(j);
+            StreamString pvName;
+            if (pvEvent.IsValid()) {
+                found = (pvEvent->GetPVChid() == args.chid);
+                if (found) {
+                    pvEvent->ValueChanged(currentValue);
+                }
+            }
+        }
+    }
+
+    eventCallbackFastMux.FastUnLock();
+}
+}
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-EPICSPVHolder::EPICSPVHolder() :
+EPCISCAClient::EPCISCAClient() :
         ReferenceContainer(), EmbeddedServiceMethodBinderI(), executor(*this) {
     stackSize = THREADS_DEFAULT_STACKSIZE;
     cpuMask = 0xff;
     timeout = 5.0;
 }
 
-EPICSPVHolder::~EPICSPVHolder() {
+EPCISCAClient::~EPCISCAClient() {
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
@@ -56,7 +84,7 @@ EPICSPVHolder::~EPICSPVHolder() {
     }
 }
 
-bool EPICSPVHolder::Initialise(StructuredDataI & data) {
+bool EPCISCAClient::Initialise(StructuredDataI & data) {
     bool ok = ReferenceContainer::Initialise(data);
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
@@ -82,7 +110,7 @@ bool EPICSPVHolder::Initialise(StructuredDataI & data) {
     return ok;
 }
 
-ErrorManagement::ErrorType EPICSPVHolder::Execute(const ExecutionInfo& info) {
+ErrorManagement::ErrorType EPCISCAClient::Execute(const ExecutionInfo& info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() == ExecutionInfo::StartupStage) {
         //if (ca_context_create(ca_disable_preemptive_callback) != ECA_NORMAL) {
@@ -107,7 +135,7 @@ ErrorManagement::ErrorType EPICSPVHolder::Execute(const ExecutionInfo& info) {
 
     return err;
 }
-CLASS_REGISTER(EPICSPVHolder, "1.0")
+CLASS_REGISTER(EPCISCAClient, "1.0")
 
 }
 

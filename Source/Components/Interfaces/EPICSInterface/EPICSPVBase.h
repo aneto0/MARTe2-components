@@ -1,6 +1,6 @@
 /**
- * @file EPICSPVHolder.h
- * @brief Header file for class EPICSPVHolder
+ * @file EPICSPVBase.h
+ * @brief Header file for class EPICSPVBase
  * @date 23/03/2017
  * @author Andre Neto
  *
@@ -16,87 +16,133 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSPVHolder
+ * @details This header file contains the declaration of the class EPICSPVBase
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSPVHOLDER_H_
-#define EPICSPVHOLDER_H_
+#ifndef EPICSPVBASE_H_
+#define EPICSPVBASE_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 #include <cadef.h>
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "EmbeddedServiceI.h"
-#include "EventSem.h"
-#include "FastPollingMutexSem.h"
-#include "ReferenceContainer.h"
-#include "SingleThreadService.h"
+#include "AdvancedErrorManagement.h"
+#include "Object.h"
 #include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 namespace MARTe {
-class EPICSPVHolder: public ReferenceContainer, public EmbeddedServiceMethodBinderI {
+
+static const uint8 EPICS_EVENT_VALUE_IS_FUNCTION = 0u;
+static const uint8 EPICS_EVENT_VALUE_IS_PARAMETER = 1u;
+static const uint8 EPICS_EVENT_VALUE_IS_IGNORE = 2u;
+static const uint8 EPICS_EVENT_VALUE_IS_NOT_SET = 3u;
+
+class EPICSPVBase: public Object {
 public:
-    CLASS_REGISTER_DECLARATION()
-    /**
-     * TODO
-     */
-EPICSPVHolder    ();
+    EPICSPVBase();
 
-    /**
-     * TODO
-     */
-    virtual ~EPICSPVHolder();
+    virtual ~EPICSPVBase();
 
-    /**
-     * @brief TODO.
-     * @return TODO.
-     */
     virtual bool Initialise(StructuredDataI & data);
+
+    ErrorManagement::ErrorType SetContext(struct ca_client_context * contextIn, float32 timeoutIn);
 
     /**
      * @brief TODO
      */
-    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
-
-private:
+    void ValueChanged(StreamString &newValue);
 
     /**
-     * The EmbeddedThread where the ca_pend_event is executed.
+     * @brief TODO
      */
-    SingleThreadService executor;
-
-
-    /**
-     * The CPU mask for the executor
-     */
-    uint32 cpuMask;
+    void GetPVName(StreamString &name);
 
     /**
-     * The stack size
+     * @brief TODO
      */
-    uint32 stackSize;
+    chid GetPVChid();
+
+    /**
+     * @brief TODO
+     */
+    void SetPVChid(chid pvChidIn);
+
+    /**
+     * @brief TODO
+     */
+    virtual chtype GetPVType() = 0;
+
+    /**
+     * @brief TODO. Change to BitField.
+     */
+    BitField GetMode();
+
+protected:
+    /**
+     *
+     */
+    struct ca_client_context * context;
 
     /**
      *
      */
     float32 timeout;
 
+    /**
+     * TODO
+     */
+    StreamString pvName;
+
+    /**
+     * TODO
+     */
+    chid pvChid;
+
+    /**
+     * TODO
+     */
+    StreamString destination;
+
+    /**
+     * TODO
+     */
+    StreamString function;
+
+    /**
+     * TODO
+     */
+    StreamString *functionMap[2];
+
+    /**
+     * TODO
+     */
+    uint32 nOfFunctionMaps;
+
+    /**
+     * TODO
+     */
+    uint8 modeValue;
+
+    /**
+     * TODO
+     */
+    StreamString lastValue;
+
 };
+
 }
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSPVHOLDER_H_ */
+#endif /* EPICSPVCONTEXT_H_ */
 

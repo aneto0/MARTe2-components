@@ -1,6 +1,6 @@
 /**
- * @file EPICSPVContext.h
- * @brief Header file for class EPICSPVContext
+ * @file EPCISCAClient.h
+ * @brief Header file for class EPCISCAClient
  * @date 23/03/2017
  * @author Andre Neto
  *
@@ -16,66 +16,92 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSPVContext
+ * @details This header file contains the declaration of the class EPCISCAClient
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSPVCONTEXT_H_
-#define EPICSPVCONTEXT_H_
+#ifndef EPICSCACLIENT_H_
+#define EPICSCACLIENT_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 #include <cadef.h>
+
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "AdvancedErrorManagement.h"
-#include "Object.h"
+#include "EmbeddedServiceI.h"
+#include "EventSem.h"
+#include "FastPollingMutexSem.h"
+#include "ReferenceContainer.h"
+#include "SingleThreadService.h"
 #include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+
 namespace MARTe {
-class EPICSPVContext: public Object {
+class EPCISCAClient: public ReferenceContainer, public EmbeddedServiceMethodBinderI {
 public:
-    EPICSPVContext();
+    CLASS_REGISTER_DECLARATION()
+    /**
+     * TODO
+     */
+EPCISCAClient    ();
 
-    virtual ~EPICSPVContext();
+    /**
+     * TODO
+     */
+    virtual ~EPCISCAClient();
 
+    /**
+     * @brief TODO.
+     * @return TODO.
+     */
     virtual bool Initialise(StructuredDataI & data);
 
-    ErrorManagement::ErrorType SetContext(struct ca_client_context * contextIn, float32 timeoutIn);
-
-protected:
     /**
-     *
+     * @brief TODO
      */
-    struct ca_client_context * context;
+    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+
+
+    /**
+     * @brief TODO
+     */
+    friend void EPCISCAClientEventCallback(struct event_handler_args args);
+private:
+
+    /**
+     * The EmbeddedThread where the ca_pend_event is executed.
+     */
+    SingleThreadService executor;
+
+
+    /**
+     * The CPU mask for the executor
+     */
+    uint32 cpuMask;
+
+    /**
+     * The stack size
+     */
+    uint32 stackSize;
 
     /**
      *
      */
     float32 timeout;
 
-    /**
-     * TODO
-     */
-    StreamString pvName;
-
-    /**
-     * TODO
-     */
-    chid pvChid;
 };
-
 }
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSPVCONTEXT_H_ */
+#endif /* EPICSCACLIENT_H_ */
 
