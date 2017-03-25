@@ -77,9 +77,6 @@ EPICSPV::~EPICSPV() {
     if (functionMap[1u] != NULL_PTR(StreamString *)) {
         delete[] functionMap[1u];
     }
-    if (pvMemory != NULL_PTR(char8 *)) {
-        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(pvMemory));
-    }
 }
 
 bool EPICSPV::Initialise(StructuredDataI & data) {
@@ -133,7 +130,11 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
     }
     if (ok) {
         if (!data.Read("Timeout", timeout)) {
-            REPORT_ERROR(ErrorManagement::Warning, "ca_pend_io not set. Using default of %d", timeout);
+            REPORT_ERROR(ErrorManagement::Warning, "ca_pend_io not set. Using default of %f", timeout);
+        }
+        if (timeout == 0.F) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Timeout shall be > 0s");
+            ok = false;
         }
     }
 
@@ -206,23 +207,18 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
         }
         if (ok) {
             if (data.Read("Function", function)) {
-                ok = (nOfFunctionMaps != 0u);
+                ok = (nOfFunctionMaps == 0u);
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "Either specify Function or FunctionMap, but not both at the same time");
                 }
             }
         }
         if (ok) {
-            if (eventMode.ignore.operator bool()) {
+            //In these case the Function parameter shall be specified
+            if ((nOfFunctionMaps == 0u) || (eventMode.ignore.operator bool()) || (eventMode.parameter.operator bool())) {
                 ok = (function.Size() != 0u);
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "With PVValue=Ignore the Function must be specified");
-                }
-            }
-            else if (eventMode.parameter.operator bool()) {
-                ok = (function.Size() != 0u);
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "With PVValue=Parameter the Function must be specified");
+                    REPORT_ERROR(ErrorManagement::ParametersError, "The Function parameter must be specified");
                 }
             }
         }
@@ -370,9 +366,8 @@ const struct ca_client_context * EPICSPV::GetContext() const {
     return context;
 }
 
-void EPICSPV::GetPVName(StreamString &name) {
-    name = pvName;
-    (void) name.Seek(0LLU);
+StreamString EPICSPV::GetPVName() {
+    return pvName;
 }
 
 chid EPICSPV::GetPVChid() const {

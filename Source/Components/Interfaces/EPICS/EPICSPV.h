@@ -51,7 +51,7 @@ namespace MARTe {
  *   Class = EPICSInterface::EPICSPV
  *   PVName = PV_ONE //Compulsory. Name of the EPICS PV.
  *   PVType = uint32 //Compulsory. The PV type. Supported types are uint32, int32, float32, float64 and string.
- *   Timeout = 5.0 //Optional. The timeout for the ca_pend_io operations.
+ *   Timeout = 5.0 //Optional but if set shall be > 0. The timeout for the ca_pend_io operations in seconds. Default value is 5.0 s.
  *   Event = { //Optional. Information about the message to be triggered every-time the EPICS PV value changes.
  *     Destination = StateMachine //Compulsory. Destination of the message.
  *     PVValue = Function //Compulsory. Can either be Function, Parameter or Ignore.
@@ -73,6 +73,8 @@ public:
 
     /**
      * @brief Constructor. Register the CAPut and CAGet function calls for RPC.
+     * @post
+     *   GetTimeout() == 5.0
      */
 EPICSPV    ();
 
@@ -112,7 +114,7 @@ EPICSPV    ();
      * @brief Gets the name of the PV.
      * @return the name of the PV.
      */
-    void GetPVName(StreamString &name);
+    StreamString GetPVName();
 
     /**
      * @brief Gets the EPICS chid of the PV.

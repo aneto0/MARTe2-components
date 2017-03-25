@@ -20,18 +20,15 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
 TARGET=cov
 
-include Makefile.inc
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-LIBRARIES_STATIC=SysLogger/cov/SysLogger$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=BaseLib2Wrapper/cov/BaseLib2Wrapper$(LIBEXT)
-LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
-endif
-ifdef EPICS_BASE
-LIBRARIES_STATIC+=EPICS/cov/EPICS$(LIBEXT)
-endif
+OBJSX = EPICSPVGTest.x
+
+include Makefile.inc
 

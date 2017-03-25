@@ -117,9 +117,9 @@ ErrorManagement::ErrorType EPICSCAClient::Execute(const ExecutionInfo& info) {
         for (j = 0; j < Size(); j++) {
             ReferenceT<EPICSPV> child = Get(j);
             if (child.IsValid()) {
-                StreamString pvName;
                 chid pvChid;
-                child->GetPVName(pvName);
+                StreamString pvName = child->GetPVName();
+                (void) pvName.Seek(0LLU);
                 if (err.ErrorsCleared()) {
                     child->SetContext(ca_current_context());
                 }

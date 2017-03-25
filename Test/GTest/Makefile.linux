@@ -27,7 +27,6 @@ TARGET=linux
 include Makefile.inc
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-#To be removed when more Interface components will be available
 LIBRARIES   += ../../Build/$(TARGET)/Components/DataSources/DataSources$(LIBEXT)
 LIBRARIES   += ../../Build/$(TARGET)/Components/DataSources/DataSourcesTests$(LIBEXT)
 LIBRARIES   += ../../Build/$(TARGET)/Components/GAMs/GAMs$(LIBEXT)
@@ -49,4 +48,8 @@ endif
 
 ifdef MDSPLUS_DIR
 LIBRARIES += -L$(MDSPLUS_DIR)/lib64 -lMdsObjectsCppShr
+endif
+
+ifdef EPICS_BASE
+LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
 endif
