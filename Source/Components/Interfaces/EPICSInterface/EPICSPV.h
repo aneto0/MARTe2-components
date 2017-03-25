@@ -45,61 +45,96 @@ namespace MARTe {
  * @details This class wraps an EPICS PV, allowing to caput and caget values from it.
  * This class is capable of triggering Messages as a response to a PV value change. The new PV value can
  * either be: 1) the name of the Function to be called; 2) or an ID of a Function to be called (see FunctionMap);
- *  3) or the input parameter of a pre-defined Function to be called; or 4) the value is to be ignored and a pre-defined Function is to be called with no parameters.
+ *  3) or the input parameter of a pre-defined Function to be called; or 4) or a pre-defined Function is to be called with no parameters (i.e. the PV value is to be ignored).
  * The configuration syntax is (names are only given as an example):
  * +PV_1 = {
  *   Class = EPICSInterface::EPICSPV
  *   PVName = PV_ONE //Compulsory. Name of the EPICS PV.
  *   PVType = uint32 //Compulsory. The PV type. Supported types are uint32, int32, float32, float64 and string.
- *   Event = { //Optional. Information about the message to be triggered every-time the EPICS PV value.
+ *   Timeout = 5.0 //Optional. The timeout for the ca_pend_io operations.
+ *   Event = { //Optional. Information about the message to be triggered every-time the EPICS PV value changes.
  *     Destination = StateMachine //Compulsory. Destination of the message.
  *     PVValue = Function //Compulsory. Can either be Function, Parameter or Ignore.
  *                        //If Function the PV value will be used as the name of the Function to call.
  *                        //If Parameter the PV value will be used as the parameter of the Function to call. This implies that the Function parameter must be set.
  *                        //If Ignore, the PV value will not be used and the Function will always be called.
  *     Function = STOP //Compulsory if FunctionMap is not defined. Shall not be set if FunctionMap is defined.
- *     FunctionMap = {{"1", "RUN"}, {"0", "STOP"}} //Optional if PVValue == Function. If defined then the PV value (first column of the matrix) will be used to map the Function name (second column of the matrix).
+ *     FunctionMap = {{"1", "RUN"}, {"0", "STOP"}} //Optional Nx2 matrix. Only allowed if PVValue == Function. If defined then the PV value (first column of the matrix) will be used to map the Function name (second column of the matrix).
  *   }
  * }
  *
- * The CAPut and CAGet class methods are registered as call-backs. The parameter to put/get shall be encoded as param1 in a StructuredDataI attached to the message.
+ * The CAPut and CAGet class methods are registered as call-backs. The parameter to put/get shall be encoded as "param1" in a StructuredDataI attached to the message.
+ *
+ * If the Event section is defined the Messages triggered will have the Function defined as above and the parameter (if set) will be written with the key "param1".
  */
 class EPICSPV: public Object, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
-    EPICSPV();
 
+    /**
+     * @brief Constructor. Register the CAPut and CAGet function calls for RPC.
+     */
+EPICSPV    ();
+
+    /**
+     * @brief Frees the FunctionMap memory if needed/
+     */
     virtual ~EPICSPV();
 
+    /**
+     * @brief Calls Object::Initialise and reads the parameters defined in the class description.
+     * @param[in] data see Object::Initialise.
+     * @return true if Object::Initialise returns true and if the compulsory parameters are correctly set.
+     */
     virtual bool Initialise(StructuredDataI & data);
 
+    /**
+     * @brief Stores the EPICS client context. It is used to set the context of the thread calling CAPut.
+     * @param contextIn the EPICS client context to be stored.
+     */
     void SetContext(struct ca_client_context * contextIn);
 
     /**
-     * @brief TODO
+     * @brief Gets the EPICS client context.
+     * @return the EPICS client context.
+     */
+    const struct ca_client_context * GetContext() const;
+
+    /**
+     * @brief Triggered when this PV value changes.
+     * @details The value of the PV will set to the \a dbr value. If the Event section (see class description) was defined
+     * it will trigger the sending of a Message.
+     * @param[in] dbr the new PV value.
      */
     void HandlePVEvent(const void *dbr);
 
     /**
-     * @brief TODO
+     * @brief Gets the name of the PV.
+     * @return the name of the PV.
      */
     void GetPVName(StreamString &name);
 
     /**
-     * @brief TODO
+     * @brief Gets the EPICS chid of the PV.
+     * @return the EPICS chid of the PV.
      */
-    chid GetPVChid();
+    chid GetPVChid() const;
 
     /**
-     * @brief TODO
+     * @brief Sets the EPICS chid of the PV.
+     * @param[in] pvChidIn the EPICS chid of the PV.
      */
     void SetPVChid(chid pvChidIn);
 
     /**
-     * @brief TODO
+     * @brief Gets the EPICS chtype of the PV.
+     * @return the EPICS chtype of the PV.
      */
-    chtype GetPVType();
+    chtype GetPVType() const;
 
+    /**
+     * @brief Defines the possible EventMode values (Function, Parameter, Ignore).
+     */
     /*lint ++flb*/
     union EventMode {
         /**
@@ -135,88 +170,121 @@ public:
     /*lint --flb*/
 
     /**
-     * @brief TODO. Change to BitField.
+     * @brief Gets the Event mode set for this PV.
+     * @return the Event mode set for this PV.
      */
-    EventMode GetMode();
+    EventMode GetMode() const;
 
     /**
-     * TODO
+     * @brief Gets the ca_pend_io timeout.
+     * @return the ca_pend_io timeout.
+     */
+    float32 GetTimeout() const;
+
+    /**
+     * @brief Gets the event message destination.
+     * @return the event message destination.
+     */
+    StreamString GetDestination();
+
+    /**
+     * @brief Gets the event message destination Function (if set).
+     * @return the event message destination Function.
+     */
+    StreamString GetFunction();
+
+    /**
+     * @brief Gets the event message destination Function from the FunctionMap.
+     * @brief[key] the key to query.
+     * @return the event message destination Function assigned to key or an empty StreamString if none was associated.
+     */
+    StreamString GetFunctionFromMap(const StreamString &key);
+
+    /**
+     * @brief Updates the value of the PV by calling an EPICS caput.
+     * @details This function is registered with CLASS_METHOD_REGISTER and thus available for RPC.
+     * @param[in] data shall contain a key named "param1" with the value to caput.
+     * @return ErrorManagement::NoError if the value can be successfully caput (which implies that the low-level EPICS function return no Error).
      */
     ErrorManagement::ErrorType CAPut(StructuredDataI &data);
 
     /**
-     * TODO
+     * @brief Gets the latest value of the PV (which is updated by EPICS by calling the callback function HandlePVEvent) .
+     * @details This function is registered with CLASS_METHOD_REGISTER and thus available for RPC.
+     * @param[in] data will be updated with a key named "param1" where the value of the PV will be written into.
+     * @return ErrorManagement::NoError if the value can be successfully written into "param1" (i.e. if data.Write succeeds).
      */
     ErrorManagement::ErrorType CAGet(StructuredDataI &data);
 
 private:
     /**
-     *
+     * @brief Triggers the sending of a Message with the rules defined in the class description.
+     * @param[in] newValue the value to be sent (either as the Function name or the Function parameter).
      */
     void TriggerEventMessage(StreamString &newValue);
 
     /**
-     *
+     * The EPICS client context.
      */
     struct ca_client_context * context;
 
     /**
-     *
+     * The ca_pend_io timeout.
      */
     float32 timeout;
 
     /**
-     * TODO
+     * The name of the PV.
      */
     StreamString pvName;
 
     /**
-     * TODO
+     * The EPCIS PV chid.
      */
     chid pvChid;
 
     /**
-     * TODO
+     * The EPCIS PV chtype.
      */
     chtype pvType;
 
     /**
-     * TODO
+     * The PV TypeDescriptor.
      */
     TypeDescriptor pvTypeDesc;
 
     /**
-     * TODO
+     * The name of the event message destination object.
      */
     StreamString destination;
 
     /**
-     * TODO
+     * The function to be called on the event destination object.
      */
     StreamString function;
 
     /**
-     * TODO
+     * Nx2 matrix where the first column contains the keys to be mapped and the second column the value to be associated to each key.
      */
     StreamString *functionMap[2];
 
     /**
-     * TODO
+     * Number of rows in functionMap.
      */
     uint32 nOfFunctionMaps;
 
     /**
-     * TODO
+     * The type of event to triggered.
      */
     EventMode eventMode;
 
     /**
-     * TODO
+     * The PV value is stored using the StreamString memory.
      */
     StreamString pvMemoryStr;
 
     /**
-     *
+     * The memory of the PV (stored using the internal buffer of the pvMemoryStr StreamString)
      */
     void *pvMemory;
 

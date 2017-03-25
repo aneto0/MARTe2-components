@@ -44,7 +44,8 @@
 namespace MARTe {
 
 EPICSPV::EPICSPV() :
-        Object(), MessageI() {
+        Object(),
+        MessageI() {
     context = NULL_PTR(struct ca_client_context *);
     timeout = 5.0F;
     pvName = "";
@@ -131,7 +132,7 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
     }
     if (ok) {
         if (!data.Read("Timeout", timeout)) {
-            REPORT_ERROR(ErrorManagement::Warning, "ca_pend_io not set. Using defaul of %d", timeout);
+            REPORT_ERROR(ErrorManagement::Warning, "ca_pend_io not set. Using default of %d", timeout);
         }
     }
 
@@ -304,21 +305,13 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
                 }
             }
             else {
-                uint32 j;
-                if (functionMap[0u] != NULL_PTR(StreamString*)) {
-                    if (functionMap[1u] != NULL_PTR(StreamString*)) {
-                        bool found = false;
-                        for (j = 0u; (j < nOfFunctionMaps) && (!found) && (ok); j++) {
-                            found = (functionMap[0u][j] == newValue);
-                            if (found) {
-                                ok = cdb.Write("Function", functionMap[1u][j]);
-                            }
-                        }
-                        if (!found) {
-                            REPORT_ERROR(ErrorManagement::FatalError, "Could not find a mapping for key: %s", newValue.Buffer());
-                            ok = false;
-                        }
-                    }
+                StreamString functionMapValue = GetFunctionFromMap(newValue);
+                if (functionMapValue.Size() > 0u) {
+                    ok = cdb.Write("Function", functionMapValue.Buffer());
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Could not find a mapping for key: %s", newValue.Buffer());
+                    ok = false;
                 }
             }
         }
@@ -364,7 +357,7 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
 
 ErrorManagement::ErrorType EPICSPV::CAGet(StructuredDataI &data) {
     AnyType at(pvTypeDesc, 0u, reinterpret_cast<const void * const >(pvMemory));
-    ErrorManagement::ErrorType err = !data.Write("param1", at);
+    ErrorManagement::ErrorType err = data.Write("param1", at);
     return err;
 }
 
@@ -372,12 +365,16 @@ void EPICSPV::SetContext(struct ca_client_context * contextIn) {
     context = contextIn;
 }
 
+const struct ca_client_context * EPICSPV::GetContext() const {
+    return context;
+}
+
 void EPICSPV::GetPVName(StreamString &name) {
     name = pvName;
     (void) name.Seek(0LLU);
 }
 
-chid EPICSPV::GetPVChid() {
+chid EPICSPV::GetPVChid() const {
     return pvChid;
 }
 
@@ -385,8 +382,41 @@ void EPICSPV::SetPVChid(chid pvChidIn) {
     pvChid = pvChidIn;
 }
 
-chtype EPICSPV::GetPVType() {
+chtype EPICSPV::GetPVType() const {
     return pvType;
+}
+
+EPICSPV::EventMode EPICSPV::GetMode() const {
+    return eventMode;
+}
+
+float32 EPICSPV::GetTimeout() const {
+    return timeout;
+}
+
+StreamString EPICSPV::GetDestination() {
+    return destination;
+}
+
+StreamString EPICSPV::GetFunction() {
+    return function;
+}
+
+StreamString EPICSPV::GetFunctionFromMap(const StreamString &key) {
+    StreamString value;
+    uint32 j;
+    if (functionMap[0u] != NULL_PTR(StreamString*)) {
+        if (functionMap[1u] != NULL_PTR(StreamString*)) {
+            bool found = false;
+            for (j = 0u; (j < nOfFunctionMaps) && (!found); j++) {
+                found = (functionMap[0u][j] == key);
+                if (found) {
+                    value = functionMap[1u][j];
+                }
+            }
+        }
+    }
+    return value;
 }
 
 CLASS_REGISTER(EPICSPV, "1.0")
