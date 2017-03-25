@@ -29,7 +29,7 @@ SPB+=BaseLib2Wrapper.x
 endif
 
 ifdef EPICS_BASE
-SPB   += EPICSInterface.x
+SPB   += EPICS.x
 endif
 
 PACKAGE=Components

@@ -28,12 +28,12 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "EPICSCAClient.h"
+#include "../EPICS/EPICSCAClient.h"
 
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
 
-#include "EPICSPV.h"
+#include "../EPICS/EPICSPV.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

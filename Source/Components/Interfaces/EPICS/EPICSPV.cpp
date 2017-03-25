@@ -28,9 +28,10 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "../EPICS/EPICSPV.h"
+
 #include "ConfigurationDatabase.h"
 #include "CLASSMETHODREGISTER.h"
-#include "EPICSPV.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
