@@ -124,9 +124,9 @@ TEST(EPICSPVGTest,TestInitialise_Event_False_PVValue_Invalid) {
     ASSERT_TRUE(test.TestInitialise_Event_False_PVValue_Invalid());
 }
 
-TEST(EPICSPVGTest,TestInitialise_Event_False_Function_NoFunctionName) {
+TEST(EPICSPVGTest,TestInitialise_Event_False_Function_AndFunctionName) {
     EPICSPVTest test;
-    ASSERT_TRUE(test.TestInitialise_Event_False_Function_NoFunctionName());
+    ASSERT_TRUE(test.TestInitialise_Event_False_Function_AndFunctionName());
 }
 
 TEST(EPICSPVGTest,TestInitialise_Event_False_Parameter_NoFunctionName) {
@@ -167,11 +167,6 @@ TEST(EPICSPVGTest,TestSetContext) {
 TEST(EPICSPVGTest,TestGetContext) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestGetContext());
-}
-
-TEST(EPICSPVGTest,TestHandlePVEvent) {
-    EPICSPVTest test;
-    ASSERT_TRUE(test.TestHandlePVEvent());
 }
 
 TEST(EPICSPVGTest,TestGetPVName) {
@@ -217,6 +212,46 @@ TEST(EPICSPVGTest,TestGetFunction) {
 TEST(EPICSPVGTest,TestGetFunctionFromMap) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestGetFunctionFromMap());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_NoParameter) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_NoParameter());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_NoParameter_False) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_NoParameter_False());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_FunctionMap) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_FunctionMap());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Int) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_Int());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_UInt) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_UInt());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Float32) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_Float32());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Float64) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_Float64());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_String) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_String());
 }
 
 TEST(EPICSPVGTest,TestCAPut) {

@@ -130,7 +130,7 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
     }
     if (ok) {
         if (!data.Read("Timeout", timeout)) {
-            REPORT_ERROR(ErrorManagement::Warning, "ca_pend_io not set. Using default of %f", timeout);
+            REPORT_ERROR(ErrorManagement::Warning, "ca_pend_io timeout not set. Using default of %f", timeout);
         }
         if (timeout == 0.F) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Timeout shall be > 0s");
@@ -163,6 +163,7 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
                 }
                 else {
                     REPORT_ERROR(ErrorManagement::ParametersError, "PVValue %s is not supported", modeValueStr.Buffer());
+                    ok = false;
                 }
             }
         }
@@ -207,15 +208,15 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
         }
         if (ok) {
             if (data.Read("Function", function)) {
-                ok = (nOfFunctionMaps == 0u);
+                ok = (!eventMode.function.operator bool());
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Either specify Function or FunctionMap, but not both at the same time");
+                    REPORT_ERROR(ErrorManagement::ParametersError, "With PVValue=Function the Function to be called is the PV value. Remove this parameter. At most specify a FunctionMap");
                 }
             }
         }
         if (ok) {
-            //In these case the Function parameter shall be specified
-            if ((nOfFunctionMaps == 0u) || (eventMode.ignore.operator bool()) || (eventMode.parameter.operator bool())) {
+            //In these cases the Function parameter shall be specified
+            if ((eventMode.ignore.operator bool()) || (eventMode.parameter.operator bool())) {
                 ok = (function.Size() != 0u);
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "The Function parameter must be specified");
@@ -342,7 +343,9 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
             ReferenceT<Message> message(GlobalObjectsDatabase::Instance()->GetStandardHeap());
             ok = message->Initialise(cdb);
             if (ok) {
-                MessageI::SendMessage(message, NULL_PTR(const Object *));
+                if (MessageI::SendMessage(message, NULL_PTR(const Object *)) != ErrorManagement::NoError) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", destination.Buffer(), newValue.Buffer());
+                }
             }
             else {
                 REPORT_ERROR(ErrorManagement::FatalError, "Could not Initialise message");

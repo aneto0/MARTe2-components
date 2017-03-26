@@ -127,9 +127,9 @@ public:
     bool TestInitialise_Event_False_PVValue_Invalid();
 
     /**
-     * @brief Tests the Initialise method with an Event and PVValue=Function and without specifying the function.
+     * @brief Tests the Initialise method with an Event and PVValue=Function and specifying the function.
      */
-    bool TestInitialise_Event_False_Function_NoFunctionName();
+    bool TestInitialise_Event_False_Function_AndFunctionName();
 
     /**
      * @brief Tests the Initialise method with an Event and PVValue=Parameter and without specifying the function.
@@ -172,9 +172,44 @@ public:
     bool TestGetContext();
 
     /**
-     * @brief Tests the HandlePVEvent method.
+     * @brief Tests the HandlePVEvent method calling a function with no parameter.
      */
-    bool TestHandlePVEvent();
+    bool TestHandlePVEvent_Function_NoParameter();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function with no parameter to a destination that does not exits.
+     */
+    bool TestHandlePVEvent_Function_NoParameter_False();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function with a function map.
+     */
+    bool TestHandlePVEvent_FunctionMap();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function with an int parameter.
+     */
+    bool TestHandlePVEvent_Function_Parameter_Int();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function with an uint parameter.
+     */
+    bool TestHandlePVEvent_Function_Parameter_UInt();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function with a float32 parameter.
+     */
+    bool TestHandlePVEvent_Function_Parameter_Float32();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function with a float64 parameter.
+     */
+    bool TestHandlePVEvent_Function_Parameter_Float64();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function with a string parameter.
+     */
+    bool TestHandlePVEvent_Function_Parameter_String();
 
     /**
      * @brief Tests the GetPVName method.
