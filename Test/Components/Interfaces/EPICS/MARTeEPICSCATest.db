@@ -1,0 +1,24 @@
+record( ai, "MARTe2::EPICSCA::Test::Int32")
+{
+   field(DTYP, "Soft Channel")
+}
+
+record( ai, "MARTe2::EPICSCA::Test::UInt32")
+{
+   field(DTYP, "Soft Channel")
+}
+
+record( ai, "MARTe2::EPICSCA::Test::Float32")
+{
+   field(DTYP, "Soft Channel")
+}
+
+record( ai, "MARTe2::EPICSCA::Test::Float64")
+{
+   field(DTYP, "Soft Channel")
+}
+
+record( stringin, "MARTe2::EPICSCA::Test::String")
+{
+   field(DTYP, "Soft Channel")
+}

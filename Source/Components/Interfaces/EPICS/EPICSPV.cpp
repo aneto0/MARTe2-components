@@ -45,12 +45,11 @@
 namespace MARTe {
 
 EPICSPV::EPICSPV() :
-        Object(),
-        MessageI() {
+        Object(), MessageI() {
     context = NULL_PTR(struct ca_client_context *);
     timeout = 5.0F;
     pvName = "";
-    pvChid = 0;
+    pvChid = NULL_PTR(chid);
     pvType = DBR_INT;
 
     pvTypeDesc = VoidType;
@@ -70,6 +69,7 @@ EPICSPV::EPICSPV() :
     }
 }
 
+/*lint -e{1551} -e{1540} functionMap memory is freed in the destructor. The context, pvChid and pvMemory variables are managed (and thus freed) by the EPICS framework.*/
 EPICSPV::~EPICSPV() {
     if (functionMap[0u] != NULL_PTR(StreamString *)) {
         delete[] functionMap[0u];
@@ -95,7 +95,7 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
         }
         if (ok) {
             pvTypeDesc = TypeDescriptor::GetTypeDescriptorFromTypeName(pvTypeStr.Buffer());
-            uint32 memorySize = (pvTypeDesc.numberOfBits / 8u);
+            uint64 memorySize = (static_cast<uint64>(pvTypeDesc.numberOfBits) / 8u);
             if (pvTypeDesc == SignedInteger32Bit) {
                 pvType = DBR_INT;
             }
@@ -122,7 +122,7 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
                     pvMemory = &pvMemoryStr;
                 }
                 else {
-                    pvMemoryStr.SetSize(memorySize);
+                    (void) pvMemoryStr.SetSize(memorySize);
                     pvMemory = reinterpret_cast<void *>(pvMemoryStr.BufferReference());
                 }
             }
@@ -132,7 +132,7 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
         if (!data.Read("Timeout", timeout)) {
             REPORT_ERROR(ErrorManagement::Warning, "ca_pend_io timeout not set. Using default of %f", timeout);
         }
-        if (timeout == 0.F) {
+        if (timeout < 1e-6) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Timeout shall be > 0s");
             ok = false;
         }
@@ -195,8 +195,8 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
                             functionMap[1u] = new StreamString[nOfFunctionMaps];
                             uint32 i;
                             for (i = 0u; i < nOfFunctionMaps; i++) {
-                                functionMap[0u][i] = functionMapMatrix[i][0u];
-                                functionMap[1u][i] = functionMapMatrix[i][1u];
+                                functionMap[0u][i] = functionMapMatrix(i, 0u);
+                                functionMap[1u][i] = functionMapMatrix(i, 1u);
                             }
                         }
                     }
@@ -216,7 +216,9 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
         }
         if (ok) {
             //In these cases the Function parameter shall be specified
-            if ((eventMode.ignore.operator bool()) || (eventMode.parameter.operator bool())) {
+            bool isIgnore = eventMode.ignore.operator bool();
+            bool isParameter = eventMode.parameter.operator bool();
+            if ((isIgnore) || (isParameter)) {
                 ok = (function.Size() != 0u);
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "The Function parameter must be specified");
@@ -232,47 +234,54 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
 }
 
 ErrorManagement::ErrorType EPICSPV::CAPut(StructuredDataI &data) {
-    ca_attach_context(context);
-
-    AnyType at(pvTypeDesc, 0u, pvMemory);
-
-    //The StreamString memory has to be treated differently... and the Stream has to be reset.
-    void *putMem = pvMemory;
-    if (pvType == DBR_STRING) {
-        pvMemoryStr = "";
-        putMem = reinterpret_cast<void *>(pvMemoryStr.BufferReference());
-    }
-    ErrorManagement::ErrorType err = data.Read("param1", at);
-
+    ErrorManagement::ErrorType err = (context != NULL_PTR(struct ca_client_context *));
     if (err.ErrorsCleared()) {
-        if (ca_put(pvType, pvChid, putMem) != ECA_NORMAL) {
-            err = ErrorManagement::FatalError;
-            REPORT_ERROR(err, "ca_put failed for PV: %s", pvName.Buffer());
-        }
-        if (ca_pend_io(timeout) != ECA_NORMAL) {
-            err = ErrorManagement::FatalError;
-            REPORT_ERROR(err, "ca_pend_io failed for PV: %s", pvName.Buffer());
-        }
+        /*lint -e{9130} -e{835} -e{845} Several false positives. lint is getting confused here for some reason.*/
+        err = !(ca_attach_context(context) == ECA_NORMAL);
     }
-    ca_detach_context();
+    if (err.ErrorsCleared()) {
+        AnyType at(pvTypeDesc, 0u, pvMemory);
+
+        //The StreamString memory has to be treated differently... and the Stream has to be reset.
+        void *putMem = pvMemory;
+        if (pvType == DBR_STRING) {
+            pvMemoryStr = "";
+            putMem = reinterpret_cast<void *>(pvMemoryStr.BufferReference());
+        }
+        err = !data.Read("param1", at);
+
+        if (err.ErrorsCleared()) {
+            /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+            if (ca_put(pvType, pvChid, putMem) != ECA_NORMAL) {
+                err = ErrorManagement::FatalError;
+                REPORT_ERROR(err, "ca_put failed for PV: %s", pvName.Buffer());
+            }
+            /*lint -e{9130} -e{835} -e{845} Several false positives. lint is getting confused here for some reason.*/
+            if (ca_pend_io(timeout) != ECA_NORMAL) {
+                err = ErrorManagement::FatalError;
+                REPORT_ERROR(err, "ca_pend_io failed for PV: %s", pvName.Buffer());
+            }
+        }
+        ca_detach_context();
+    }
     return err;
 }
 
-void EPICSPV::HandlePVEvent(const void *dbr) {
+void EPICSPV::HandlePVEvent(const void * const dbr) {
     if (dbr != NULL_PTR(const void *)) {
         if (pvMemory != NULL_PTR(char8 *)) {
             StreamString newValue;
             if (pvType == DBR_INT) {
                 *(reinterpret_cast<uint32 *>(pvMemory)) = *(reinterpret_cast<const uint32 *>(dbr));
-                newValue.Printf("%d", *(reinterpret_cast<uint32 *>(pvMemory)));
+                (void) newValue.Printf("%d", *(reinterpret_cast<uint32 *>(pvMemory)));
             }
             else if (pvType == DBR_FLOAT) {
                 *(reinterpret_cast<float32 *>(pvMemory)) = *(reinterpret_cast<const float32 *>(dbr));
-                newValue.Printf("%f", *(reinterpret_cast<float32 *>(pvMemory)));
+                (void) newValue.Printf("%f", *(reinterpret_cast<float32 *>(pvMemory)));
             }
             else if (pvType == DBR_DOUBLE) {
                 *(reinterpret_cast<float64 *>(pvMemory)) = *(reinterpret_cast<const float64 *>(dbr));
-                newValue.Printf("%f", *(reinterpret_cast<float64 *>(pvMemory)));
+                (void) newValue.Printf("%f", *(reinterpret_cast<float64 *>(pvMemory)));
             }
             else if (pvType == DBR_STRING) {
                 pvMemoryStr = reinterpret_cast<const char8 *>(dbr);
@@ -318,7 +327,8 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
                 ok = cdb.Write("Function", function.Buffer());
             }
         }
-        else if (eventMode.parameter.operator bool()) {
+        //Must be eventMode.parameter.operator bool()
+        else {
             if (ok) {
                 ok = cdb.Write("Function", function.Buffer());
             }
@@ -355,13 +365,14 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
     firstTime = false;
 }
 
+/*lint -e{1762} function cannot be made const as it is registered as an RPC*/
 ErrorManagement::ErrorType EPICSPV::CAGet(StructuredDataI &data) {
     AnyType at(pvTypeDesc, 0u, reinterpret_cast<const void * const >(pvMemory));
     ErrorManagement::ErrorType err = data.Write("param1", at);
     return err;
 }
 
-void EPICSPV::SetContext(struct ca_client_context * contextIn) {
+void EPICSPV::SetContext(struct ca_client_context * const contextIn) {
     context = contextIn;
 }
 
@@ -369,16 +380,24 @@ const struct ca_client_context * EPICSPV::GetContext() const {
     return context;
 }
 
-StreamString EPICSPV::GetPVName() {
+StreamString EPICSPV::GetPVName() const {
     return pvName;
 }
 
-chid EPICSPV::GetPVChid() const {
+chid EPICSPV::GetPVChid() {
     return pvChid;
 }
 
-void EPICSPV::SetPVChid(chid pvChidIn) {
+void EPICSPV::SetPVChid(const chid pvChidIn) {
     pvChid = pvChidIn;
+}
+
+evid EPICSPV::GetPVEvid() {
+    return pvEvid;
+}
+
+void EPICSPV::SetPVEvid(const evid pvEvidIn) {
+    pvEvid = pvEvidIn;
 }
 
 chtype EPICSPV::GetPVType() const {
@@ -389,19 +408,19 @@ EPICSPV::EventMode EPICSPV::GetMode() const {
     return eventMode;
 }
 
-float32 EPICSPV::GetTimeout() const {
+float64 EPICSPV::GetTimeout() const {
     return timeout;
 }
 
-StreamString EPICSPV::GetDestination() {
+StreamString EPICSPV::GetDestination() const {
     return destination;
 }
 
-StreamString EPICSPV::GetFunction() {
+StreamString EPICSPV::GetFunction() const {
     return function;
 }
 
-StreamString EPICSPV::GetFunctionFromMap(const StreamString &key) {
+StreamString EPICSPV::GetFunctionFromMap(const StreamString &key) const {
     StreamString value;
     uint32 j;
     if (functionMap[0u] != NULL_PTR(StreamString*)) {
@@ -419,7 +438,9 @@ StreamString EPICSPV::GetFunctionFromMap(const StreamString &key) {
 }
 
 CLASS_REGISTER(EPICSPV, "1.0")
+/*lint -e{1023} There is no ambiguity on the function to be called as the compiler can distinguish between both template definitions.*/
 CLASS_METHOD_REGISTER(EPICSPV, CAPut)
+/*lint -e{1023} There is no ambiguity on the function to be called as the compiler can distinguish between both template definitions.*/
 CLASS_METHOD_REGISTER(EPICSPV, CAGet)
 }
 

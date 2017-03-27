@@ -45,8 +45,7 @@
  */
 class EPICSPVTestHelper: public MARTe::Object, public MARTe::MessageI {
 public:
-    CLASS_REGISTER_DECLARATION()
-    EPICSPVTestHelper() : Object(), MessageI() {
+    CLASS_REGISTER_DECLARATION()EPICSPVTestHelper() : Object(), MessageI() {
         using namespace MARTe;
         uint32Value = 0u;
         int32Value = 0;
@@ -107,6 +106,198 @@ CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleUInt32)
 CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleFloat32)
 CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleFloat64)
 CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleString)
+
+/**
+ * Helper class to test the CAPut
+ */
+class EPICSPVTestCAPut: public MARTe::Object, public MARTe::MessageI {
+public:
+    CLASS_REGISTER_DECLARATION()EPICSPVTestCAPut() : Object(), MessageI() {
+        using namespace MARTe;
+    }
+
+    MARTe::ErrorManagement::ErrorType TestCAPutUInt32() {
+        using namespace MARTe;
+        uint32 testValue = 7u;
+        ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        ConfigurationDatabase cdbMsg;
+        cdbMsg.Write("Destination", "EPICSCA.PV_1");
+        cdbMsg.Write("Function", "CAPut");
+        cdbMsg.CreateRelative("+Parameter");
+        cdbMsg.Write("Class", "ConfigurationDatabase");
+        cdbMsg.Write("param1", testValue);
+        cdbMsg.MoveToAncestor(1u);
+        bool ok = msg->Initialise(cdbMsg);
+        if (ok) {
+            ok = (MessageI::SendMessage(msg, this) == ErrorManagement::NoError);
+        }
+        if (ok) {
+            ReferenceT<Message> msgReply(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+            ConfigurationDatabase cdbMsg;
+            cdbMsg.Write("Destination", "EPICSCA.PV_1");
+            cdbMsg.Write("Function", "CAGet");
+            cdbMsg.Write("Mode", "ExpectsReply");
+            cdbMsg.CreateRelative("+Parameter");
+            cdbMsg.Write("Class", "ConfigurationDatabase");
+            cdbMsg.MoveToAncestor(1u);
+            msgReply->Initialise(cdbMsg);
+            ok = MessageI::SendMessage(msgReply, this);
+            if (ok) {
+                ReferenceT<ConfigurationDatabase> replyCDB = msgReply->Get(0);
+                uint32 replyValue = 0u;
+                replyCDB->Read("param1", replyValue);
+                ok = (replyValue == testValue);
+            }
+        }
+        return ok ? MARTe::ErrorManagement::NoError : MARTe::ErrorManagement::FatalError;
+    }
+
+    MARTe::ErrorManagement::ErrorType TestCAPutInt32() {
+        using namespace MARTe;
+        int32 testValue = -7;
+        ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        ConfigurationDatabase cdbMsg;
+        cdbMsg.Write("Destination", "EPICSCA.PV_1");
+        cdbMsg.Write("Function", "CAPut");
+        cdbMsg.CreateRelative("+Parameter");
+        cdbMsg.Write("Class", "ConfigurationDatabase");
+        cdbMsg.Write("param1", testValue);
+        cdbMsg.MoveToAncestor(1u);
+        bool ok = msg->Initialise(cdbMsg);
+        if (ok) {
+            ok = (MessageI::SendMessage(msg, this) == ErrorManagement::NoError);
+        }
+        if (ok) {
+            ReferenceT<Message> msgReply(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+            ConfigurationDatabase cdbMsg;
+            cdbMsg.Write("Destination", "EPICSCA.PV_1");
+            cdbMsg.Write("Function", "CAGet");
+            cdbMsg.Write("Mode", "ExpectsReply");
+            cdbMsg.CreateRelative("+Parameter");
+            cdbMsg.Write("Class", "ConfigurationDatabase");
+            cdbMsg.MoveToAncestor(1u);
+            msgReply->Initialise(cdbMsg);
+            ok = MessageI::SendMessage(msgReply, this);
+            if (ok) {
+                ReferenceT<ConfigurationDatabase> replyCDB = msgReply->Get(0);
+                int32 replyValue = 0;
+                replyCDB->Read("param1", replyValue);
+                ok = (replyValue == testValue);
+            }
+        }
+        return ok ? MARTe::ErrorManagement::NoError : MARTe::ErrorManagement::FatalError;
+    }
+
+    MARTe::ErrorManagement::ErrorType TestCAPutFloat32() {
+        using namespace MARTe;
+        float32 testValue = -8.0;
+        ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        ConfigurationDatabase cdbMsg;
+        cdbMsg.Write("Destination", "EPICSCA.PV_1");
+        cdbMsg.Write("Function", "CAPut");
+        cdbMsg.CreateRelative("+Parameter");
+        cdbMsg.Write("Class", "ConfigurationDatabase");
+        cdbMsg.Write("param1", testValue);
+        cdbMsg.MoveToAncestor(1u);
+        bool ok = msg->Initialise(cdbMsg);
+        if (ok) {
+            ok = (MessageI::SendMessage(msg, this) == ErrorManagement::NoError);
+        }
+        if (ok) {
+            ReferenceT<Message> msgReply(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+            ConfigurationDatabase cdbMsg;
+            cdbMsg.Write("Destination", "EPICSCA.PV_1");
+            cdbMsg.Write("Function", "CAGet");
+            cdbMsg.Write("Mode", "ExpectsReply");
+            cdbMsg.CreateRelative("+Parameter");
+            cdbMsg.Write("Class", "ConfigurationDatabase");
+            cdbMsg.MoveToAncestor(1u);
+            msgReply->Initialise(cdbMsg);
+            ok = MessageI::SendMessage(msgReply, this);
+            if (ok) {
+                ReferenceT<ConfigurationDatabase> replyCDB = msgReply->Get(0);
+                float32 replyValue = 0;
+                replyCDB->Read("param1", replyValue);
+                ok = (replyValue == testValue);
+            }
+        }
+        return ok ? MARTe::ErrorManagement::NoError : MARTe::ErrorManagement::FatalError;
+    }
+
+    MARTe::ErrorManagement::ErrorType TestCAPutFloat64() {
+        using namespace MARTe;
+        float64 testValue = -9.0;
+        ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        ConfigurationDatabase cdbMsg;
+        cdbMsg.Write("Destination", "EPICSCA.PV_1");
+        cdbMsg.Write("Function", "CAPut");
+        cdbMsg.CreateRelative("+Parameter");
+        cdbMsg.Write("Class", "ConfigurationDatabase");
+        cdbMsg.Write("param1", testValue);
+        cdbMsg.MoveToAncestor(1u);
+        bool ok = msg->Initialise(cdbMsg);
+        if (ok) {
+            ok = (MessageI::SendMessage(msg, this) == ErrorManagement::NoError);
+        }
+        if (ok) {
+            ReferenceT<Message> msgReply(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+            ConfigurationDatabase cdbMsg;
+            cdbMsg.Write("Destination", "EPICSCA.PV_1");
+            cdbMsg.Write("Function", "CAGet");
+            cdbMsg.Write("Mode", "ExpectsReply");
+            cdbMsg.CreateRelative("+Parameter");
+            cdbMsg.Write("Class", "ConfigurationDatabase");
+            cdbMsg.MoveToAncestor(1u);
+            msgReply->Initialise(cdbMsg);
+            ok = MessageI::SendMessage(msgReply, this);
+            if (ok) {
+                ReferenceT<ConfigurationDatabase> replyCDB = msgReply->Get(0);
+                float64 replyValue = 0;
+                replyCDB->Read("param1", replyValue);
+                ok = (replyValue == testValue);
+            }
+        }
+        return ok ? MARTe::ErrorManagement::NoError : MARTe::ErrorManagement::FatalError;
+    }
+
+    MARTe::ErrorManagement::ErrorType TestCAPutString() {
+            using namespace MARTe;
+            StreamString testValue = "OK!!";
+            ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+            ConfigurationDatabase cdbMsg;
+            cdbMsg.Write("Destination", "EPICSCA.PV_1");
+            cdbMsg.Write("Function", "CAPut");
+            cdbMsg.CreateRelative("+Parameter");
+            cdbMsg.Write("Class", "ConfigurationDatabase");
+            cdbMsg.Write("param1", testValue);
+            cdbMsg.MoveToAncestor(1u);
+            bool ok = msg->Initialise(cdbMsg);
+            if (ok) {
+                ok = (MessageI::SendMessage(msg, this) == ErrorManagement::NoError);
+            }
+            if (ok) {
+                ReferenceT<Message> msgReply(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+                ConfigurationDatabase cdbMsg;
+                cdbMsg.Write("Destination", "EPICSCA.PV_1");
+                cdbMsg.Write("Function", "CAGet");
+                cdbMsg.Write("Mode", "ExpectsReply");
+                cdbMsg.CreateRelative("+Parameter");
+                cdbMsg.Write("Class", "ConfigurationDatabase");
+                cdbMsg.MoveToAncestor(1u);
+                msgReply->Initialise(cdbMsg);
+                ok = MessageI::SendMessage(msgReply, this);
+                if (ok) {
+                    ReferenceT<ConfigurationDatabase> replyCDB = msgReply->Get(0);
+                    StreamString replyValue = 0;
+                    replyCDB->Read("param1", replyValue);
+                    ok = (replyValue == testValue);
+                }
+            }
+            return ok ? MARTe::ErrorManagement::NoError : MARTe::ErrorManagement::FatalError;
+        }
+
+};
+CLASS_REGISTER(EPICSPVTestCAPut, "1.0")
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -572,7 +763,7 @@ bool EPICSPVTest::TestGetPVName() {
 }
 
 bool EPICSPVTest::TestGetPVChid() {
-    return TestInitialise_NoEvent_Int32();
+    return TestSetPVChid();
 }
 
 bool EPICSPVTest::TestSetPVChid() {
@@ -581,6 +772,19 @@ bool EPICSPVTest::TestSetPVChid() {
     chid c = (chid) 0xFFFFAABB;
     pv.SetPVChid(c);
     return (pv.GetPVChid() == c);
+}
+
+
+bool EPICSPVTest::TestGetPVEvid() {
+    return TestSetPVEvid();
+}
+
+bool EPICSPVTest::TestSetPVEvid() {
+    using namespace MARTe;
+    EPICSPV pv;
+    evid c = (evid) 0xFFFFAABB;
+    pv.SetPVEvid(c);
+    return (pv.GetPVEvid() == c);
 }
 
 bool EPICSPVTest::TestGetPVType() {
@@ -942,7 +1146,6 @@ bool EPICSPVTest::TestHandlePVEvent_Function_Parameter_Float64() {
     return ok;
 }
 
-
 bool EPICSPVTest::TestHandlePVEvent_Function_Parameter_String() {
     using namespace MARTe;
     EPICSPV pv;
@@ -991,11 +1194,266 @@ bool EPICSPVTest::TestHandlePVEvent_Function_Parameter_String() {
     return ok;
 }
 
+bool EPICSPVTest::TestCAPut_Int32() {
+    using namespace MARTe;
+    EPICSPV pv;
+    StreamString config = ""
+            "+EPICSCA = {"
+            "    Class = EPICSCAClient"
+            "    +PV_1 = {"
+            "        Class = EPICSPV"
+            "        PVName = MARTe2::EPICSCA::Test::Int32"
+            "        PVType = int32"
+            "    }"
+            "}"
+            "+TestCAPut = {"
+            "    Class = EPICSPVTestCAPut"
+            "}";
 
-bool EPICSPVTest::TestCAPut() {
-    return true;
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPV> aPV;
+    ReferenceT<EPICSPVTestCAPut> testCAPut;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        aPV = ord->Find("EPICSCA.PV_1");
+        ok = aPV.IsValid();
+    }
+    if (ok) {
+        testCAPut = ord->Find("TestCAPut");
+        ok = testCAPut.IsValid();
+    }
+    if (ok) {
+        uint32 timeoutCounts = 50;
+        uint32 i = 0u;
+        ok = false;
+        while ((i < timeoutCounts) && (!ok)) {
+            ok = (testCAPut->TestCAPutInt32() == ErrorManagement::NoError);
+            if (!ok) {
+                Sleep::Sec(0.1);
+                timeoutCounts++;
+            }
+        }
+    }
+
+    ord->Purge();
+    return ok;
+}
+
+bool EPICSPVTest::TestCAPut_UInt32() {
+    using namespace MARTe;
+    EPICSPV pv;
+    StreamString config = ""
+            "+EPICSCA = {"
+            "    Class = EPICSCAClient"
+            "    +PV_1 = {"
+            "        Class = EPICSPV"
+            "        PVName = MARTe2::EPICSCA::Test::UInt32"
+            "        PVType = uint32"
+            "    }"
+            "}"
+            "+TestCAPut = {"
+            "    Class = EPICSPVTestCAPut"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPV> aPV;
+    ReferenceT<EPICSPVTestCAPut> testCAPut;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        aPV = ord->Find("EPICSCA.PV_1");
+        ok = aPV.IsValid();
+    }
+    if (ok) {
+        testCAPut = ord->Find("TestCAPut");
+        ok = testCAPut.IsValid();
+    }
+    if (ok) {
+        uint32 timeoutCounts = 50;
+        uint32 i = 0u;
+        ok = false;
+        while ((i < timeoutCounts) && (!ok)) {
+            ok = (testCAPut->TestCAPutUInt32() == ErrorManagement::NoError);
+            if (!ok) {
+                Sleep::Sec(0.1);
+                timeoutCounts++;
+            }
+        }
+    }
+
+    ord->Purge();
+    return ok;
+}
+
+bool EPICSPVTest::TestCAPut_Float32() {
+    using namespace MARTe;
+    EPICSPV pv;
+    StreamString config = ""
+            "+EPICSCA = {"
+            "    Class = EPICSCAClient"
+            "    +PV_1 = {"
+            "        Class = EPICSPV"
+            "        PVName = MARTe2::EPICSCA::Test::Float32"
+            "        PVType = float32"
+            "    }"
+            "}"
+            "+TestCAPut = {"
+            "    Class = EPICSPVTestCAPut"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPV> aPV;
+    ReferenceT<EPICSPVTestCAPut> testCAPut;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        aPV = ord->Find("EPICSCA.PV_1");
+        ok = aPV.IsValid();
+    }
+    if (ok) {
+        testCAPut = ord->Find("TestCAPut");
+        ok = testCAPut.IsValid();
+    }
+    if (ok) {
+        uint32 timeoutCounts = 50;
+        uint32 i = 0u;
+        ok = false;
+        while ((i < timeoutCounts) && (!ok)) {
+            ok = (testCAPut->TestCAPutFloat32() == ErrorManagement::NoError);
+            if (!ok) {
+                Sleep::Sec(0.1);
+                timeoutCounts++;
+            }
+        }
+    }
+
+    ord->Purge();
+    return ok;
+}
+
+bool EPICSPVTest::TestCAPut_Float64() {
+    using namespace MARTe;
+    EPICSPV pv;
+    StreamString config = ""
+            "+EPICSCA = {"
+            "    Class = EPICSCAClient"
+            "    +PV_1 = {"
+            "        Class = EPICSPV"
+            "        PVName = MARTe2::EPICSCA::Test::Float64"
+            "        PVType = float64"
+            "    }"
+            "}"
+            "+TestCAPut = {"
+            "    Class = EPICSPVTestCAPut"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPV> aPV;
+    ReferenceT<EPICSPVTestCAPut> testCAPut;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        aPV = ord->Find("EPICSCA.PV_1");
+        ok = aPV.IsValid();
+    }
+    if (ok) {
+        testCAPut = ord->Find("TestCAPut");
+        ok = testCAPut.IsValid();
+    }
+    if (ok) {
+        uint32 timeoutCounts = 50;
+        uint32 i = 0u;
+        ok = false;
+        while ((i < timeoutCounts) && (!ok)) {
+            ok = (testCAPut->TestCAPutFloat64() == ErrorManagement::NoError);
+            if (!ok) {
+                Sleep::Sec(0.1);
+                timeoutCounts++;
+            }
+        }
+    }
+
+    ord->Purge();
+    return ok;
+}
+
+bool EPICSPVTest::TestCAPut_String() {
+    using namespace MARTe;
+    EPICSPV pv;
+    StreamString config = ""
+            "+EPICSCA = {"
+            "    Class = EPICSCAClient"
+            "    +PV_1 = {"
+            "        Class = EPICSPV"
+            "        PVName = MARTe2::EPICSCA::Test::String"
+            "        PVType = string"
+            "    }"
+            "}"
+            "+TestCAPut = {"
+            "    Class = EPICSPVTestCAPut"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPV> aPV;
+    ReferenceT<EPICSPVTestCAPut> testCAPut;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        aPV = ord->Find("EPICSCA.PV_1");
+        ok = aPV.IsValid();
+    }
+    if (ok) {
+        testCAPut = ord->Find("TestCAPut");
+        ok = testCAPut.IsValid();
+    }
+    if (ok) {
+        uint32 timeoutCounts = 50;
+        uint32 i = 0u;
+        ok = false;
+        while ((i < timeoutCounts) && (!ok)) {
+            ok = (testCAPut->TestCAPutString() == ErrorManagement::NoError);
+            if (!ok) {
+                Sleep::Sec(0.1);
+                timeoutCounts++;
+            }
+        }
+    }
+
+    ord->Purge();
+    return ok;
 }
 
 bool EPICSPVTest::TestCAGet() {
-    return true;
+    return TestCAPut_String();
 }

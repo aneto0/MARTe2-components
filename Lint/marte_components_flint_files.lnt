@@ -1,5 +1,6 @@
 -i%EFDA_MARTe_DIR%/Interfaces/BaseLib2Adapter/
 -i%CODAC_ROOT_INCLUDE_DIR%
+-i%EPICS_BASE%/include
 -i%MDSPLUS_DIR%/include
 -i%SDN_CORE_INCLUDE_DIR%
 
@@ -14,6 +15,7 @@
 -i./Source/Components/GAMs/FilterGAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
+-i./Source/Components/Interfaces/EPICS/
 -i./Source/Components/Interfaces/SysLogger/
 
 BaseLib2GAM.cpp
@@ -21,6 +23,8 @@ BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
 ConversionGAM.cpp
 ConversionHelper.cpp
+EPICSPV.cpp
+EPICSCAClient.cpp
 FilterGAM.cpp
 IOGAM.cpp
 LinuxTimer.cpp

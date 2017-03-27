@@ -94,7 +94,7 @@ EPICSPV    ();
      * @brief Stores the EPICS client context. It is used to set the context of the thread calling CAPut.
      * @param contextIn the EPICS client context to be stored.
      */
-    void SetContext(struct ca_client_context * contextIn);
+    void SetContext(struct ca_client_context * const contextIn);
 
     /**
      * @brief Gets the EPICS client context.
@@ -114,19 +114,31 @@ EPICSPV    ();
      * @brief Gets the name of the PV.
      * @return the name of the PV.
      */
-    StreamString GetPVName();
+    StreamString GetPVName() const;
 
     /**
      * @brief Gets the EPICS chid of the PV.
      * @return the EPICS chid of the PV.
      */
-    chid GetPVChid() const;
+    chid GetPVChid();
 
     /**
      * @brief Sets the EPICS chid of the PV.
      * @param[in] pvChidIn the EPICS chid of the PV.
      */
-    void SetPVChid(chid pvChidIn);
+    void SetPVChid(const chid pvChidIn);
+
+    /**
+     * @brief Gets the EPICS evid of the PV.
+     * @return the EPICS evid of the PV.
+     */
+    evid GetPVEvid();
+
+    /**
+     * @brief Sets the EPICS evid of the PV.
+     * @param[in] pvChidIn the EPICS evid of the PV.
+     */
+    void SetPVEvid(const evid pvEvidIn);
 
     /**
      * @brief Gets the EPICS chtype of the PV.
@@ -181,26 +193,26 @@ EPICSPV    ();
      * @brief Gets the ca_pend_io timeout.
      * @return the ca_pend_io timeout.
      */
-    float32 GetTimeout() const;
+    float64 GetTimeout() const;
 
     /**
      * @brief Gets the event message destination.
      * @return the event message destination.
      */
-    StreamString GetDestination();
+    StreamString GetDestination() const;
 
     /**
      * @brief Gets the event message destination Function (if set).
      * @return the event message destination Function.
      */
-    StreamString GetFunction();
+    StreamString GetFunction() const;
 
     /**
      * @brief Gets the event message destination Function from the FunctionMap.
      * @brief[key] the key to query.
      * @return the event message destination Function assigned to key or an empty StreamString if none was associated.
      */
-    StreamString GetFunctionFromMap(const StreamString &key);
+    StreamString GetFunctionFromMap(const StreamString &key) const;
 
     /**
      * @brief Updates the value of the PV by calling an EPICS caput.
@@ -233,7 +245,7 @@ private:
     /**
      * The ca_pend_io timeout.
      */
-    float32 timeout;
+    float64 timeout;
 
     /**
      * The name of the PV.
@@ -244,6 +256,11 @@ private:
      * The EPCIS PV chid.
      */
     chid pvChid;
+
+    /**
+     * The EPCIS PV evid.
+     */
+    evid pvEvid;
 
     /**
      * The EPCIS PV chtype.

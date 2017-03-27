@@ -28,31 +28,39 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "../EPICS/EPICSCAClient.h"
 
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
-
-#include "../EPICS/EPICSPV.h"
+#include "EPICSCAClient.h"
+#include "EPICSPV.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
+
+/**
+ * @brief Callback function for the ca_create_subscription. Single point of access which
+ * delegates the events to the corresponding EPICSPV instance.
+ */
 static FastPollingMutexSem eventCallbackFastMux;
-void EPICSCAClientEventCallback(struct event_handler_args args) {
-    eventCallbackFastMux.FastLock();
+static EPICSCAClient *currentListener = NULL_PTR(EPICSCAClient *);
+/*lint -e{1746} function must match required prototype and thus cannot be changed to constant reference.*/
+void EPICSCAClientEventCallback(struct event_handler_args const args) {
+    (void) eventCallbackFastMux.FastLock();
     EPICSCAClient *listener = static_cast<EPICSCAClient *>(args.usr);
     if (listener != NULL_PTR(EPICSCAClient *)) {
-        bool found = false;
-        uint32 j;
-        for (j = 0u; (j < listener->Size()) && (!found); j++) {
-            ReferenceT<EPICSPV> pvEvent = listener->Get(j);
-            if (pvEvent.IsValid()) {
-                found = (pvEvent->GetPVChid() == args.chid);
-                if (found) {
-                    pvEvent->HandlePVEvent(args.dbr);
+        if (listener == currentListener) {
+            bool found = false;
+            uint32 j;
+            for (j = 0u; (j < listener->Size()) && (!found); j++) {
+                ReferenceT<EPICSPV> pvEvent = listener->Get(j);
+                if (pvEvent.IsValid()) {
+                    found = (pvEvent->GetPVChid() == args.chid);
+                    if (found) {
+                        pvEvent->HandlePVEvent(args.dbr);
+                    }
                 }
             }
         }
@@ -66,11 +74,13 @@ void EPICSCAClientEventCallback(struct event_handler_args args) {
 namespace MARTe {
 EPICSCAClient::EPICSCAClient() :
         ReferenceContainer(), EmbeddedServiceMethodBinderI(), executor(*this) {
-    stackSize = THREADS_DEFAULT_STACKSIZE;
-    cpuMask = 0xff;
-    timeout = 5.0;
+    stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
+    cpuMask = 0xffu;
+    timeout = 5.0F;
+    eventCallbackFastMux.Create();
 }
 
+/*lint -e{1551} The destructor is responsible for stopping the embedded thread.*/
 EPICSCAClient::~EPICSCAClient() {
     if (!executor.Stop()) {
         if (!executor.Stop()) {
@@ -82,7 +92,7 @@ EPICSCAClient::~EPICSCAClient() {
 bool EPICSCAClient::Initialise(StructuredDataI & data) {
     bool ok = ReferenceContainer::Initialise(data);
     if (data.Read("Timeout", timeout)) {
-        if (timeout == 0u) {
+        if (timeout < 1e-6) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Timeout shall be > 0");
         }
         else {
@@ -108,41 +118,62 @@ bool EPICSCAClient::Initialise(StructuredDataI & data) {
 ErrorManagement::ErrorType EPICSCAClient::Execute(const ExecutionInfo& info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() == ExecutionInfo::StartupStage) {
-        //if (ca_context_create(ca_disable_preemptive_callback) != ECA_NORMAL) {
+        (void) eventCallbackFastMux.FastLock();
+        /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
         if (ca_context_create(ca_enable_preemptive_callback) != ECA_NORMAL) {
             err = ErrorManagement::FatalError;
             REPORT_ERROR(err, "ca_enable_preemptive_callback failed");
         }
         uint32 j;
-        for (j = 0; j < Size(); j++) {
+        for (j = 0u; j < Size(); j++) {
             ReferenceT<EPICSPV> child = Get(j);
             if (child.IsValid()) {
                 chid pvChid;
                 StreamString pvName = child->GetPVName();
                 (void) pvName.Seek(0LLU);
-                if (err.ErrorsCleared()) {
-                    child->SetContext(ca_current_context());
-                }
-                if (ca_create_channel(pvName.Buffer(), NULL, NULL, 20, &pvChid) != ECA_NORMAL) {
+                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                if (ca_create_channel(pvName.Buffer(), NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvChid) != ECA_NORMAL) {
                     err = ErrorManagement::FatalError;
                     REPORT_ERROR(err, "ca_create_channel failed for PV with name %s", pvName.Buffer());
                 }
                 if (err.ErrorsCleared()) {
+                    child->SetContext(ca_current_context());
+                }
+                if (err.ErrorsCleared()) {
+
                     child->SetPVChid(pvChid);
-                    evid ignore;
-                    if (ca_create_subscription(child->GetPVType(), 1u, pvChid, DBE_VALUE, EPICSCAClientEventCallback, this, &ignore) != ECA_NORMAL) {
+                    evid pvEvid;
+                    /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                    if (ca_create_subscription(child->GetPVType(), 1u, pvChid, DBE_VALUE, &EPICSCAClientEventCallback, this, &pvEvid) != ECA_NORMAL) {
                         err = ErrorManagement::FatalError;
                         REPORT_ERROR(err, "ca_create_subscription failed for PV %s", pvName.Buffer());
+                    }
+                    else {
+                        child->SetPVEvid(pvEvid);
                     }
                 }
             }
         }
+        currentListener = this;
+        eventCallbackFastMux.FastUnLock();
     }
-    else if (info.GetStage() != ExecutionInfo::TerminationStage) {
+    else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         Sleep::Sec(1.0);
     }
     else {
-        (void) ca_context_destroy();
+        (void) eventCallbackFastMux.FastLock();
+        uint32 j;
+        for (j = 0u; j < Size(); j++) {
+            ReferenceT<EPICSPV> pv = Get(j);
+            if (pv.IsValid()) {
+                (void) ca_clear_subscription(pv->GetPVEvid());
+                (void) ca_clear_event(pv->GetPVEvid());
+                (void) ca_clear_channel(pv->GetPVChid());
+            }
+        }
+        ca_detach_context();
+        ca_context_destroy();
+        eventCallbackFastMux.FastUnLock();
     }
 
     return err;

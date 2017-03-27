@@ -227,6 +227,16 @@ public:
     bool TestSetPVChid();
 
     /**
+     * @brief Tests the GetPVEvid method.
+     */
+    bool TestGetPVEvid();
+
+    /**
+     * @brief Tests the SetPVEvid method.
+     */
+    bool TestSetPVEvid();
+
+    /**
      * @brief Tests the GetPVType method.
      */
     bool TestGetPVType();
@@ -257,9 +267,29 @@ public:
     bool TestGetFunctionFromMap();
 
     /**
-     * @brief Tests the CAPut method.
+     * @brief Tests the CAPut (and CAGet) method with an int32.
      */
-    bool TestCAPut();
+    bool TestCAPut_Int32();
+
+    /**
+     * @brief Tests the CAPut (and CAGet) method with an uint32.
+     */
+    bool TestCAPut_UInt32();
+
+    /**
+     * @brief Tests the CAPut (and CAGet) method with a float32.
+     */
+    bool TestCAPut_Float32();
+
+    /**
+     * @brief Tests the CAPut (and CAGet) method with a float64.
+     */
+    bool TestCAPut_Float64();
+
+    /**
+     * @brief Tests the CAPut (and CAGet) method with a string.
+     */
+    bool TestCAPut_String();
 
     /**
      * @brief Tests the CAGet method.
