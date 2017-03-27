@@ -159,6 +159,11 @@ TEST(EPICSPVGTest,TestInitialise_Event_False_NotFunction_And_FunctionMap) {
     ASSERT_TRUE(test.TestInitialise_Event_False_NotFunction_And_FunctionMap());
 }
 
+TEST(EPICSPVGTest,TestInitialise_Event_False_NoDestination) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestInitialise_Event_False_NoDestination());
+}
+
 TEST(EPICSPVGTest,TestSetContext) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestSetContext());

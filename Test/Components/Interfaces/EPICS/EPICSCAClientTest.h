@@ -45,6 +45,31 @@ public:
      */
     bool TestConstructor();
 
+    /**
+     * @brief Tests the Initialise method with the default parameters.
+     */
+    bool TestInitialise_Defaults();
+
+    /**
+     * @brief Tests the Initialise method without the default parameters.
+     */
+    bool TestInitialise_NoDefaults();
+
+    /**
+     * @brief Tests the GetCPUMask method.
+     */
+    bool TestGetCPUMask();
+
+    /**
+     * @brief Tests the GetStackSize method.
+     */
+    bool TestGetStackSize();
+
+    /**
+     * @brief Tests the Execute method.
+     */
+    bool TestExecute();
+
 };
 
 /*---------------------------------------------------------------------------*/

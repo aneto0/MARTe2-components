@@ -81,24 +81,38 @@ EPICSCAClient    ();
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief TODO
+     * @brief Provides the context to execute all the EPICS relevant calls.
+     * @details Executes in the context of a spawned thread the following EPICS calls:
+     * ca_context_create, ca_create_channel, ca_create_subscription, ca_clear_subscription,
+     * ca_clear_event, ca_clear_channel, ca_detach_context and ca_context_destroy
+     * @return ErrorManagement::NoError if all the EPICS calls return without any error.
      */
     virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
 
     /**
-     * @brief TODO
+     * @brief Registered as the ca_create_subscription callback function.
+     * It calls HandlePVEvent every time a value is updated on a registered PV.
      */
     friend void EPICSCAClientEventCallback(struct event_handler_args args);
 
     /**
-     * @brief TODO
+     * @brief Gets the thread stack size.
+     * @return the thread stack size.
      */
     uint32 GetStackSize() const;
 
     /**
-     * @brief TODO
+     * @brief Gets the thread affinity.
+     * @return the thread affinity.
      */
     uint32 GetCPUMask() const;
+
+    /**
+     * @brief If the Stop was to be called from the destructor the Size() would already be == 0 and as consequence it would not
+     * be possible to clean the EPICS resources when the state is BadTerminationStage
+     * @details See ReferenceContainer::Purge
+     */
+    virtual void Purge(ReferenceContainer &purgeList);
 private:
 
     /**

@@ -45,5 +45,27 @@ TEST(EPICSCAClientGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+TEST(EPICSCAClientGTest,TestExecute) {
+    EPICSCAClientTest test;
+    ASSERT_TRUE(test.TestExecute());
+}
 
+TEST(EPICSCAClientGTest,TestGetCPUMask) {
+    EPICSCAClientTest test;
+    ASSERT_TRUE(test.TestGetCPUMask());
+}
+
+TEST(EPICSCAClientGTest,TestGetStackSize) {
+    EPICSCAClientTest test;
+    ASSERT_TRUE(test.TestGetStackSize());
+}
+
+TEST(EPICSCAClientGTest,TestInitialise_Defaults) {
+    EPICSCAClientTest test;
+    ASSERT_TRUE(test.TestInitialise_Defaults());
+}
 	
+TEST(EPICSCAClientGTest,TestInitialise_NoDefaults) {
+    EPICSCAClientTest test;
+    ASSERT_TRUE(test.TestInitialise_NoDefaults());
+}

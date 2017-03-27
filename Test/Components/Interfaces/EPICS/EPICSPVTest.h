@@ -162,6 +162,11 @@ public:
     bool TestInitialise_Event_False_NotFunction_And_FunctionMap();
 
     /**
+     * @brief Tests the Initialise method with an Event without specifying the Destination.
+     */
+    bool TestInitialise_Event_False_NoDestination();
+
+    /**
      * @brief Tests the SetContext method.
      */
     bool TestSetContext();

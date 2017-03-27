@@ -79,13 +79,17 @@ EPICSCAClient::EPICSCAClient() :
     eventCallbackFastMux.Create();
 }
 
-/*lint -e{1551} The destructor is responsible for stopping the embedded thread.*/
 EPICSCAClient::~EPICSCAClient() {
+
+}
+
+void EPICSCAClient::Purge(ReferenceContainer &purgeList) {
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
         }
     }
+    ReferenceContainer::Purge(purgeList);
 }
 
 bool EPICSCAClient::Initialise(StructuredDataI & data) {
@@ -169,6 +173,15 @@ ErrorManagement::ErrorType EPICSCAClient::Execute(const ExecutionInfo& info) {
 
     return err;
 }
+
+uint32 EPICSCAClient::GetStackSize() const {
+    return stackSize;
+}
+
+uint32 EPICSCAClient::GetCPUMask() const {
+    return cpuMask;
+}
+
 CLASS_REGISTER(EPICSCAClient, "1.0")
 
 }
