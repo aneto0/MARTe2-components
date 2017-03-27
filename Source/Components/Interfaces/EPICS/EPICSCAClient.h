@@ -44,22 +44,39 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
+/**
+ * @brief A container of EPICSPV variables. Provides the threading context for the EPICS CA interface.
+ * @details The configuration syntax is (names are only given as an example):
+ * +EPICS_CA = {
+ *   Class = EPICSInterface::EPICSCAClient
+ *   StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
+ *   CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
+ *   +PV_1 = {
+ *      Class = EPICSPV //See class documentation of EPICSPV
+ *      ...
+ *   }
+ *   +PV_2 = {
+ *      Class = EPICSPV
+ *      ...
+ *   }
+ * }
+ */
 class EPICSCAClient: public ReferenceContainer, public EmbeddedServiceMethodBinderI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * TODO
+     * @brief Constructor. NOOP.
      */
 EPICSCAClient    ();
 
     /**
-     * TODO
+     * @brief Destructor. Stops the embedded thread.
      */
     virtual ~EPICSCAClient();
 
     /**
-     * @brief TODO.
-     * @return TODO.
+     * @brief Initialises the ReferenceContainer and reads the thread parameters.
+     * @return true if the ReferenceContainer and thread parameters are successfully initialised.
      */
     virtual bool Initialise(StructuredDataI & data);
 
@@ -68,18 +85,26 @@ EPICSCAClient    ();
      */
     virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
 
-
     /**
      * @brief TODO
      */
     friend void EPICSCAClientEventCallback(struct event_handler_args args);
+
+    /**
+     * @brief TODO
+     */
+    uint32 GetStackSize() const;
+
+    /**
+     * @brief TODO
+     */
+    uint32 GetCPUMask() const;
 private:
 
     /**
      * The EmbeddedThread where the ca_pend_event is executed.
      */
     SingleThreadService executor;
-
 
     /**
      * The CPU mask for the executor
@@ -90,11 +115,6 @@ private:
      * The stack size
      */
     uint32 stackSize;
-
-    /**
-     *
-     */
-    float32 timeout;
 
 };
 }

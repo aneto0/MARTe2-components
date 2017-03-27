@@ -76,7 +76,6 @@ EPICSCAClient::EPICSCAClient() :
         ReferenceContainer(), EmbeddedServiceMethodBinderI(), executor(*this) {
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
-    timeout = 5.0F;
     eventCallbackFastMux.Create();
 }
 
@@ -91,14 +90,6 @@ EPICSCAClient::~EPICSCAClient() {
 
 bool EPICSCAClient::Initialise(StructuredDataI & data) {
     bool ok = ReferenceContainer::Initialise(data);
-    if (data.Read("Timeout", timeout)) {
-        if (timeout < 1e-6) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Timeout shall be > 0");
-        }
-        else {
-            REPORT_ERROR(ErrorManagement::Information, "Timeout set to %f s", timeout);
-        }
-    }
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
             REPORT_ERROR(ErrorManagement::Information, "No CPUs defined. Using default = %d", cpuMask);

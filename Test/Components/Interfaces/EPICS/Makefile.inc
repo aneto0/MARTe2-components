@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  EPICSPVTest.x
+OBJSX +=  EPICSPVTest.x EPICSCAClientTest.x
 		
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..
