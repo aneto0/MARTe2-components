@@ -24,20 +24,12 @@
 #
 #############################################################
 SPB    = Source/Components/DataSources.x \
-	Source/Components/GAMs.x
-
-#Clause to be removed as soon as more than one interface will be available
-ifdef EFDA_MARTe_DIR
-SPB += Source/Components/Interfaces.x
-endif
+	Source/Components/GAMs.x \
+	Source/Components/Interfaces.x
 
 SPB += Test/Components/DataSources.x \
-    Test/Components/GAMs.x
-
-#Clause to be removed as soon as more than one interface will be available
-ifdef EFDA_MARTe_DIR
-SPB += Test/Components/Interfaces.x
-endif
+    Test/Components/GAMs.x \
+    Test/Components/Interfaces.x
 
 SPB += Test/GTest.x
 

@@ -43,9 +43,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 LinuxTimer::LinuxTimer() :
-        DataSourceI(),
-        EmbeddedServiceMethodBinderI(),
-        executor(*this) {
+        DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
     lastTimeTicks = 0u;
     sleepTimeTicks = 0u;
     timerPeriodUsecTime = 0u;
@@ -107,8 +105,7 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = (GetSignalType(0u).numberOfBits == 32u);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits and %d were specified",
-                                    uint16(GetSignalType(0u).numberOfBits))
+            REPORT_ERROR(ErrorManagement::ParametersError, "The first signal shall have 32 bits and %d were specified", uint16(GetSignalType(0u).numberOfBits));
         }
     }
     if (ok) {
@@ -123,8 +120,7 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = (GetSignalType(1u).numberOfBits == 32u);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits and %d were specified",
-                                    uint16(GetSignalType(1u).numberOfBits))
+            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall have 32 bits and %d were specified", uint16(GetSignalType(1u).numberOfBits));
         }
     }
     if (ok) {
@@ -158,7 +154,8 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     }
     ok = found;
     if (ok) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "The timer will be set using a frequency of %f Hz", frequency)
+        REPORT_ERROR(ErrorManagement::Information, "The timer will be set using a frequency of %f Hz", frequency);
+
         float64 periodUsec = (1e6 / frequency);
         timerPeriodUsecTime = static_cast<uint32>(periodUsec);
         uint64 sleepTimeTicks64 = HighResolutionTimer::Frequency() / static_cast<uint64>(frequency);
@@ -175,9 +172,7 @@ uint32 LinuxTimer::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
-bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx,
-                                       const uint32 bufferIdx,
-                                       void*& signalAddress) {
+bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
     bool ok = true;
     if (signalIdx == 0u) {
         signalAddress = &counterAndTimer[0];
@@ -191,8 +186,7 @@ bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx,
     return ok;
 }
 
-const char8* LinuxTimer::GetBrokerName(StructuredDataI& data,
-                                       const SignalDirection direction) {
+const char8* LinuxTimer::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == InputSignals) {
         float32 frequency = 0.F;
@@ -214,10 +208,8 @@ const char8* LinuxTimer::GetBrokerName(StructuredDataI& data,
     return brokerName;
 }
 
-bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers,
-                                 const char8* const functionName,
-                                 void* const gamMemPtr) {
-    //Check if this function has a synchronisation point (i.e. a signal which has Frequency > 0)
+bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
+//Check if this function has a synchronisation point (i.e. a signal which has Frequency > 0)
     uint32 functionIdx = 0u;
     bool ok = GetFunctionIndex(functionIdx, functionName);
 
@@ -237,7 +229,7 @@ bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers,
         if (ok) {
             ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunctionSignals);
         }
-        //Must also add the signals which are not synchronous but that belong to the same GAM...
+//Must also add the signals which are not synchronous but that belong to the same GAM...
         if (ok) {
             if (nOfFunctionSignals > 1u) {
                 ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
@@ -266,9 +258,7 @@ bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers,
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
-bool LinuxTimer::GetOutputBrokers(ReferenceContainer& outputBrokers,
-                                  const char8* const functionName,
-                                  void* const gamMemPtr) {
+bool LinuxTimer::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
     return false;
 }
 
@@ -278,8 +268,7 @@ bool LinuxTimer::Synchronise() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the counter and the timer are always reset irrespectively of the states being changed.*/
-bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
-                                  const char8* const nextStateName) {
+bool LinuxTimer::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
     bool ok = true;
     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
         ok = executor.Start();

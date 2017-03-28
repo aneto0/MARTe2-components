@@ -76,8 +76,7 @@ bool IOGAM::Setup() {
         if (ret) {
             ret = (inByteSize == outByteSize);
             if (!ret) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalByteSize(InputSignals, %d) != GetSignalByteSize(OutputSignals, %d)",
-                                        idx, idx)
+                REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalByteSize(InputSignals, %d) != GetSignalByteSize(OutputSignals, %d)", idx, idx);
             }
         }
         if (ret) {
@@ -89,7 +88,7 @@ bool IOGAM::Setup() {
         if (ret) {
             ret = (inType == outType);
             if (!ret) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "GetSignalType(InputSignals, %d) != GetSignalType(OutputSignals, %d)", idx, idx)
+                REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalType(InputSignals, %d) != GetSignalType(OutputSignals, %d)", idx, idx);
             }
         }
     }

@@ -26,6 +26,21 @@ OBJSX=
 
 SPB    = LinuxTimer.x LoggerDataSource.x EpicsDataSource.x
 
+ifdef CODAC_ROOT
+SPB    += NI6259.x
+SPB    += NI6368.x
+endif
+
+ifdef MDSPLUS_DIR
+SPB    += MDSWriter.x
+endif
+
+# Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
+# Current assumption is prior installation of CODAC Core System on the build node
+ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
+SPB   += SDN.x
+endif
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -35,6 +50,20 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/EpicsDataSource/EpicsDataSource$(LIBEXT)
+
+ifdef CODAC_ROOT
+LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/NI6368/NI6368$(LIBEXT)
+endif
+
+ifdef MDSPLUS_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriter$(LIBEXT)
+endif
+
+# Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
+ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
+LIBRARIES_STATIC+=$(BUILD_DIR)/SDN/SDN$(LIBEXT)
+endif
 
 all: $(OBJS)  $(SUBPROJ)  \
     $(BUILD_DIR)/DataSources$(LIBEXT) \
