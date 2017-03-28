@@ -100,7 +100,7 @@ bool UDPSender::Synchronise(){
     }else{
         uint64 counterDifference = HighResolutionTimer::Counter() - timerAtStateChange;
         float64 timeDifference = static_cast<float64>(counterDifference) * HighResolutionTimer::Period();
-        uint64 timeDifferenceMicroSeconds = static_cast<uint64>(timeDifference * 1000000LLU);
+        uint64 timeDifferenceMicroSeconds = static_cast<uint64>(timeDifference * static_cast<float64>(1000000LLU));
         *timerPtr = timeDifferenceMicroSeconds;
     }
     if (ok){
