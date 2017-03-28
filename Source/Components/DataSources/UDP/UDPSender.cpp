@@ -177,8 +177,9 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         }
         uint32 LastSignalByteSize = 0u;
         ok = GetSignalByteSize(nOfSignals - 1u, LastSignalByteSize);
-        totalPacketSize = signalsMemoryOffset[nOfSignals - 1u] + LastSignalByteSize;
-
+        if (ok){
+            totalPacketSize = signalsMemoryOffset[nOfSignals - 1u] + LastSignalByteSize;
+        }
         ok = (GetSignalType(0u).numberOfBits == 64u);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
