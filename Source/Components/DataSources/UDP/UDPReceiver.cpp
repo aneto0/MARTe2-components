@@ -110,9 +110,9 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
         REPORT_ERROR(ErrorManagement::Information, "No valid Port defined! Default to 44488");
     }else{
         if (udpServerPort <= 1024u){
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, requires admin access", udpServerPort)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, requires admin access", udpServerPort);
         }else{
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port is set to %d", udpServerPort)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port is set to %d", udpServerPort);
         }
     }
     found = data.Read("Timeout", timeoutInput);
@@ -125,7 +125,7 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::Information, "Timeout set to infinite");
         }else{
             timeout.SetTimeoutSec(timeoutInput);
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Timeout is set to %f seconds", timeoutInput)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Timeout is set to %f seconds", timeoutInput);
         }
     }
     if (ok){
@@ -348,7 +348,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
             }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
-                                    uint16(GetSignalType(0u).numberOfBits ))
+                                    uint16(GetSignalType(0u).numberOfBits ));
         }
     }
     if (ok) {
@@ -367,7 +367,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
         }
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits or 64 bits and %d were specified",
-                                            uint16(GetSignalType(1u).numberOfBits))
+                                            uint16(GetSignalType(1u).numberOfBits));
         }
     }
     if (ok) {
