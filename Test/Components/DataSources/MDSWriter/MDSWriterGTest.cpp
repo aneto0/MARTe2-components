@@ -277,3 +277,43 @@ TEST(MDSWriterGTest,TestGetTimeSignalIdx) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestGetTimeSignalIdx());
 }
+
+TEST(MDSWriterGTest,TestOpenTreeOKMessage) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestOpenTreeOKMessage());
+}
+
+TEST(MDSWriterGTest,TestOpenTreeFailMessage) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestOpenTreeFailMessage());
+}
+
+TEST(MDSWriterGTest,TestFlushSegmentsMessage) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestFlushSegmentsMessage());
+}
+
+TEST(MDSWriterGTest,TestOpenTreeOKMessage_Fail) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestOpenTreeOKMessage_Fail());
+}
+
+TEST(MDSWriterGTest,TestOpenTreeFailMessage_Fail) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestOpenTreeFailMessage_Fail());
+}
+
+TEST(MDSWriterGTest,TestFlushSegmentsMessage_Fail) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestFlushSegmentsMessage_Fail());
+}
+
+TEST(MDSWriterGTest,TestInvalidMessageName) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInvalidMessageName());
+}
+
+TEST(MDSWriterGTest,TestInvalidMessageType) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInvalidMessageType());
+}

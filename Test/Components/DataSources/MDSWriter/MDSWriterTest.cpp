@@ -40,6 +40,50 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+/**
+ * Helper class that reacts to messages received from the MDSWriter class
+ */
+class MDSWriterTestHelper: public MARTe::Object, public MARTe::MessageI {
+public:
+    CLASS_REGISTER_DECLARATION()MDSWriterTestHelper() : Object(), MessageI() {
+        using namespace MARTe;
+        pulseNumber = 0u;
+        openFailFunctionCalled = false;
+        openOKFunctionCalled = false;
+        flushSegmentsFunctionCalled = false;
+        ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        filter->SetDestination(this);
+        ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
+        if (!ret.ErrorsCleared()) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
+        }
+    }
+
+    MARTe::ErrorManagement::ErrorType HandleOpenFail() {
+        openFailFunctionCalled = true;
+        return MARTe::ErrorManagement::NoError;
+    }
+
+    MARTe::ErrorManagement::ErrorType HandleOpenOK(const MARTe::int32 newValue) {
+        pulseNumber = newValue;
+        openOKFunctionCalled = true;
+        return MARTe::ErrorManagement::NoError;
+    }
+
+    MARTe::ErrorManagement::ErrorType HandleFlushSegments() {
+        flushSegmentsFunctionCalled = true;
+        return MARTe::ErrorManagement::NoError;
+    }
+
+    MARTe::int32 pulseNumber;
+    bool openOKFunctionCalled;
+    bool openFailFunctionCalled;
+    bool flushSegmentsFunctionCalled;
+};
+CLASS_REGISTER(MDSWriterTestHelper, "1.0")
+CLASS_METHOD_REGISTER(MDSWriterTestHelper, HandleOpenOK)
+CLASS_METHOD_REGISTER(MDSWriterTestHelper, HandleOpenFail)
+CLASS_METHOD_REGISTER(MDSWriterTestHelper, HandleFlushSegments)
 
 /**
  * @brief GAM which generates a given signal trigger, time and signal pattern which is then sinked to the MDSWriter
@@ -228,9 +272,13 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     ConfigurationDatabase cdb;
     StreamString configStream = config;
     configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
+    StreamString err;
+    StandardParser parser(configStream, cdb, &err);
 
     bool ok = parser.Parse();
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "%s", err.Buffer());
+    }
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
@@ -2399,6 +2447,611 @@ static const MARTe::char8 * const config13 = ""
         "        Function = FlushSegments"
         "    }"
         "}";
+
+//Configuration with messages
+static const MARTe::char8 * const config14 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            PulseNumber = -1"
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +TreeOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeFlushed = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleFlushSegments"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+MDSWriterTestHelper = {"
+        "    Class = MDSWriterTestHelper"
+        "}";
+
+//Configuration with messages that will fail to open the tree
+static const MARTe::char8 * const config15 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2testbad\""
+        "            PulseNumber = -1"
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +TreeOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeFlushed = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleFlushSegments"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+MDSWriterTestHelper = {"
+        "    Class = MDSWriterTestHelper"
+        "}";
+
+
+//Configuration with messages that cannot be sent
+static const MARTe::char8 * const config16 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            PulseNumber = -1"
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +TreeOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelperDoesNotExist"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelperDoesNotExist"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeFlushed = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelperDoesNotExist"
+        "                    Function = HandleFlushSegments"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+MDSWriterTestHelper = {"
+        "    Class = MDSWriterTestHelper"
+        "}";
+
+//Configuration with messages that will fail to open the tree and that is sent to an object that does not exists
+static const MARTe::char8 * const config17 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2testbad\""
+        "            PulseNumber = -1"
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +TreeOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelperDoesNotExist"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelperDoesNotExist"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeFlushed = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelperDoesNotExist"
+        "                    Function = HandleFlushSegments"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+MDSWriterTestHelper = {"
+        "    Class = MDSWriterTestHelper"
+        "}";
+
+//Configuration with with an invalid message name
+static const MARTe::char8 * const config18 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            PulseNumber = -1"
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +TreeOpened = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeFlushed = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleFlushSegments"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+MDSWriterTestHelper = {"
+        "    Class = MDSWriterTestHelper"
+        "}";
+
+
+//Configuration with with an invalid message type
+static const MARTe::char8 * const config19 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            PulseNumber = -1"
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +TreeOpenedOK = {"
+        "                    Class = ReferenceContainer"
+        "                }"
+        "                +TreeOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +TreeFlushed = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleFlushSegments"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+MDSWriterTestHelper = {"
+        "    Class = MDSWriterTestHelper"
+        "}";
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -3124,4 +3777,155 @@ bool MDSWriterTest::TestGetTimeSignalIdx() {
     }
     godb->Purge();
     return ok;
+}
+
+bool MDSWriterTest::TestOpenTreeOKMessage() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config14, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<MDSWriter> mdsWriter;
+    ReferenceT<MDSWriterTestHelper> helper;
+    if (ok) {
+        mdsWriter = godb->Find("Test.Data.Drv1");
+        ok = mdsWriter.IsValid();
+    }
+    if (ok) {
+        helper = godb->Find("MDSWriterTestHelper");
+        ok = helper.IsValid();
+    }
+    if (ok) {
+        ok = (helper->pulseNumber == mdsWriter->GetPulseNumber());
+        REPORT_ERROR_STATIC(ErrorManagement::Information, "helper->pulseNumber = %d", helper->pulseNumber);
+    }
+    //Force the sending of a second message
+    if (ok) {
+        ok = mdsWriter->OpenTree(-1);
+    }
+    if (ok) {
+        ok = (helper->pulseNumber == mdsWriter->GetPulseNumber());
+        REPORT_ERROR_STATIC(ErrorManagement::Information, "helper->pulseNumber = %d", helper->pulseNumber);
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool MDSWriterTest::TestFlushSegmentsMessage() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config14, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<MDSWriter> mdsWriter;
+    ReferenceT<MDSWriterTestHelper> helper;
+    if (ok) {
+        mdsWriter = godb->Find("Test.Data.Drv1");
+        ok = mdsWriter.IsValid();
+    }
+    if (ok) {
+        helper = godb->Find("MDSWriterTestHelper");
+        ok = helper.IsValid();
+    }
+    if (ok) {
+        mdsWriter->FlushSegments();
+    }
+    if (ok) {
+        ok = (helper->flushSegmentsFunctionCalled);
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool MDSWriterTest::TestOpenTreeFailMessage() {
+    using namespace MARTe;
+    TestIntegratedInApplication(config15, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<MDSWriter> mdsWriter;
+    ReferenceT<MDSWriterTestHelper> helper;
+    mdsWriter = godb->Find("Test.Data.Drv1");
+    bool ok = mdsWriter.IsValid();
+
+    if (ok) {
+        helper = godb->Find("MDSWriterTestHelper");
+        ok = helper.IsValid();
+    }
+    if (ok) {
+        ok = (helper->openFailFunctionCalled);
+    }
+    godb->Purge();
+    return ok;
+}
+
+
+bool MDSWriterTest::TestOpenTreeOKMessage_Fail() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config16, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<MDSWriter> mdsWriter;
+    ReferenceT<MDSWriterTestHelper> helper;
+    if (ok) {
+        mdsWriter = godb->Find("Test.Data.Drv1");
+        ok = mdsWriter.IsValid();
+    }
+    if (ok) {
+        helper = godb->Find("MDSWriterTestHelper");
+        ok = helper.IsValid();
+    }
+
+    godb->Purge();
+    return ok;
+}
+
+bool MDSWriterTest::TestFlushSegmentsMessage_Fail() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config16, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<MDSWriter> mdsWriter;
+    ReferenceT<MDSWriterTestHelper> helper;
+    if (ok) {
+        mdsWriter = godb->Find("Test.Data.Drv1");
+        ok = mdsWriter.IsValid();
+    }
+    if (ok) {
+        helper = godb->Find("MDSWriterTestHelper");
+        ok = helper.IsValid();
+    }
+    if (ok) {
+        mdsWriter->FlushSegments();
+    }
+
+    godb->Purge();
+    return ok;
+}
+
+bool MDSWriterTest::TestOpenTreeFailMessage_Fail() {
+    using namespace MARTe;
+    TestIntegratedInApplication(config17, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<MDSWriter> mdsWriter;
+    ReferenceT<MDSWriterTestHelper> helper;
+    mdsWriter = godb->Find("Test.Data.Drv1");
+    bool ok = mdsWriter.IsValid();
+
+    if (ok) {
+        helper = godb->Find("MDSWriterTestHelper");
+        ok = helper.IsValid();
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool MDSWriterTest::TestInvalidMessageName() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config18, true);
+    return !ok;
+}
+
+bool MDSWriterTest::TestInvalidMessageType() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config19, true);
+    return !ok;
 }

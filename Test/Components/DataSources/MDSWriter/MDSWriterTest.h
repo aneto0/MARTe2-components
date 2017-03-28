@@ -280,6 +280,46 @@ public:
      * @brief Tests the GetTimeSignalIdx method.
      */
     bool TestGetTimeSignalIdx();
+
+    /**
+     * @brief Tests that the open tree message successfully sends the value of the new pulse number
+     */
+    bool TestOpenTreeOKMessage();
+
+    /**
+     * @brief Tests that the open tree message successfully sends a message when it fails to open the tree
+     */
+    bool TestOpenTreeFailMessage();
+
+    /**
+     * @brief Tests that the flush segments successfully sends a message with the flushed segments information
+     */
+    bool TestFlushSegmentsMessage();
+
+    /**
+     * @brief Tests that the open tree message successfully warns that the message could not be sent
+     */
+    bool TestOpenTreeOKMessage_Fail();
+
+    /**
+     * @brief Tests that the open tree message successfully warns that the fail message could not be sent
+     */
+    bool TestOpenTreeFailMessage_Fail();
+
+    /**
+     * @brief Tests that the flush segments successfully warns that the flush segments message could not be sent
+     */
+    bool TestFlushSegmentsMessage_Fail();
+
+    /**
+     * @brief Tests that an Invalid message name is correctly captured.
+     */
+    bool TestInvalidMessageName();
+
+    /**
+     * @brief Tests that an Invalid message type is correctly captured.
+     */
+    bool TestInvalidMessageType();
 };
 
 /*---------------------------------------------------------------------------*/

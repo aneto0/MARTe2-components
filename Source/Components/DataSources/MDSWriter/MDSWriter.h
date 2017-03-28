@@ -84,6 +84,27 @@ namespace MARTe {
  *         }
  *         ...
  *     }
+ *     +Messages = { //Optional. If set a message will be fired every time one of the events below occur
+ *         Class = ReferenceContainer
+ *         +TreeOpenedOK = { //Optional, but if set, the name of the Object shall be TreeOpenedOK. If set a message containing a ConfigurationDatabase with param1=PULSE_NUMBER will be sent to the Destination, every time the Tree is successfully opened
+ *             Class = Message
+ *             Destination = SomeObject
+ *             Function = SomeFunction
+ *             Mode = ExpectsReply
+ *         }
+ *         +TreeOpenedFail = { //Optional, but if set, the name of the Object shall be TreeOpenedFail. If set a message will be sent to the Destination, every time the Tree cannot be successfully opened
+ *             Class = Message
+ *             Destination = SomeObject
+ *             Function = SomeFunction
+ *             Mode = ExpectsReply
+ *         }*
+ *         +TreeFlushed = { //Optional, but if set, the name of the Object shall be TreeFlushed. If set a message will be sent to the Destination, every time the Tree is flushed.
+ *             Class = Message
+ *             Destination = SomeObject
+ *             Function = SomeFunction
+ *             Mode = ExpectsReply
+ *         }
+ *     }
  * }
  */
 class MDSWriter: public DataSourceI, public MessageI {
@@ -371,6 +392,20 @@ private:
      */
     MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
 
+    /**
+     * The message to send if the Tree is successfully opened.
+     */
+    ReferenceT<Message> treeOpenedOKMsg;
+
+    /**
+     * The message to send if the Tree cannot be successfully opened.
+     */
+    ReferenceT<Message> treeOpenedFailMsg;
+
+    /**
+     * The message to send if the Tree is be successfully flushed.
+     */
+    ReferenceT<Message> treeFlushedMsg;
 };
 }
 

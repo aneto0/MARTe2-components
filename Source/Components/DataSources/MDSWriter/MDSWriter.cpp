@@ -277,6 +277,41 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
         ok = data.MoveToAncestor(1u);
         refreshEveryCounts = timeRefresh * HighResolutionTimer::Frequency();
     }
+    if (ok) {
+        //Check if there are any Message elements set
+        if (Size() > 0u) {
+            ReferenceT<ReferenceContainer> msgContainer = Get(0u);
+            if (msgContainer.IsValid()) {
+                uint32 j;
+                uint32 nOfMessages = msgContainer->Size();
+                for (j = 0u; (j < nOfMessages) && (ok); j++) {
+                    ReferenceT<Message> msg = msgContainer->Get(j);
+                    ok = msg.IsValid();
+                    if (ok) {
+                        StreamString msgName = msg->GetName();
+                        if (msgName == "TreeOpenedOK") {
+                            treeOpenedOKMsg = msg;
+                        }
+                        else if (msgName == "TreeOpenedFail") {
+                            treeOpenedFailMsg = msg;
+                        }
+                        else if (msgName == "TreeFlushed") {
+                            treeFlushedMsg = msg;
+                        }
+                        else {
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Message %s is not supported.", msgName.Buffer());
+                            ok = false;
+                        }
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Found an invalid Message in container %s", msgContainer->GetName());
+                        ok = false;
+                    }
+
+                }
+            }
+        }
+    }
     return ok;
 }
 
@@ -533,7 +568,38 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             brokerAsyncTrigger->ResetPreTriggerBuffers();
         }
     }
-
+    if (ok) {
+        if (treeOpenedOKMsg.IsValid()) {
+            //Remove old pulse number from message.
+            if (treeOpenedOKMsg->Size() > 0u) {
+                ReferenceT<ConfigurationDatabase> cdbe = treeOpenedOKMsg->Get(0u);
+                if (cdbe.IsValid()) {
+                    (void) treeOpenedOKMsg->Delete(cdbe);
+                }
+            }
+            //Reset any previous replies
+            treeOpenedOKMsg->SetAsReply(false);
+            ReferenceT<ConfigurationDatabase> cdbn(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+            (void) cdbn->Write("param1", pulseNumber);
+            (void) treeOpenedOKMsg->Insert(cdbn);
+            if (!MessageI::SendMessage(treeOpenedOKMsg, this)) {
+                StreamString destination = treeOpenedOKMsg->GetDestination();
+                StreamString function = treeOpenedOKMsg->GetFunction();
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedOK message to %s [%s]", destination.Buffer(), function.Buffer());
+            }
+        }
+    }
+    else {
+        if (treeOpenedFailMsg.IsValid()) {
+            //Reset any previous replies
+            treeOpenedFailMsg->SetAsReply(false);
+            if (!MessageI::SendMessage(treeOpenedFailMsg, this)) {
+                StreamString destination = treeOpenedFailMsg->GetDestination();
+                StreamString function = treeOpenedFailMsg->GetFunction();
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedFail message to %s [%s]", destination.Buffer(), function.Buffer());
+            }
+        }
+    }
     ErrorManagement::ErrorType ret(ok);
     return ret;
 }
@@ -549,6 +615,17 @@ ErrorManagement::ErrorType MDSWriter::FlushSegments() {
             ok = nodes[n]->Flush();
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed to flush MDSWriterNode");
+            }
+        }
+    }
+    if (ok) {
+        if (treeFlushedMsg.IsValid()) {
+            //Reset any previous replies
+            treeFlushedMsg->SetAsReply(false);
+            if (!MessageI::SendMessage(treeFlushedMsg, this)) {
+                StreamString destination = treeFlushedMsg->GetDestination();
+                StreamString function = treeFlushedMsg->GetFunction();
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeFlushed message to %s [%s]", destination.Buffer(), function.Buffer());
             }
         }
     }
