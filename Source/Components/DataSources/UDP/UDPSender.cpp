@@ -126,7 +126,7 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         udpServerAddress = "127.0.0.1";
         REPORT_ERROR(ErrorManagement::Information, "No TargetAddress defined! Default to 127.0.0.1");
     }else{
-        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "TargetAddress set to %s", udpServerAddress.Buffer())
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "TargetAddress set to %s", udpServerAddress.Buffer());
     }
     found = data.Read("Port", udpServerPort);
     if ((!found) || (udpServerPort == 0u)){
@@ -134,9 +134,9 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         REPORT_ERROR(ErrorManagement::Information, "No valid Port defined! Default to 44488");
     }else{
         if (udpServerPort <= 1024u){
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, requires admin access", udpServerPort)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, requires admin access", udpServerPort);
         }else{
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port is set to %d", udpServerPort)
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Port is set to %d", udpServerPort);
         }
     }
     return ok;
@@ -182,7 +182,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         ok = (GetSignalType(0u).numberOfBits == 64u);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
-                                    uint16(GetSignalType(0u).numberOfBits ))
+                                    uint16(GetSignalType(0u).numberOfBits ));
         }
     }
     if (ok) {
@@ -198,7 +198,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         ok = (GetSignalType(1u).numberOfBits == 64u);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits or 64 bits and %d were specified",
-                                            uint16(GetSignalType(1u).numberOfBits))
+                                            uint16(GetSignalType(1u).numberOfBits));
         }
     }
     if (ok) {
@@ -321,4 +321,3 @@ bool UDPSender::PrepareNextState(const char8* const currentStateName,
 CLASS_REGISTER(UDPSender, "1.0")
 
 }
-
