@@ -244,6 +244,11 @@ TEST(EPICSPVGTest,TestHandlePVEvent_FunctionMap) {
     ASSERT_TRUE(test.TestHandlePVEvent_FunctionMap());
 }
 
+TEST(EPICSPVGTest,TestHandlePVEvent_FunctionMap_NoKey) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_FunctionMap_NoKey());
+}
+
 TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Int) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_Int());
@@ -267,6 +272,11 @@ TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Float64) {
 TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_String) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_String());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Ignore) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Ignore());
 }
 
 TEST(EPICSPVGTest,TestCAPut_UInt32) {

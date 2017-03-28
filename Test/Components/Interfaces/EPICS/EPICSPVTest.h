@@ -192,6 +192,11 @@ public:
     bool TestHandlePVEvent_FunctionMap();
 
     /**
+     * @brief Tests the HandlePVEvent method calling a function with a function map with a key that does not exist.
+     */
+    bool TestHandlePVEvent_FunctionMap_NoKey();
+
+    /**
      * @brief Tests the HandlePVEvent method calling a function with an int parameter.
      */
     bool TestHandlePVEvent_Function_Parameter_Int();
@@ -215,6 +220,11 @@ public:
      * @brief Tests the HandlePVEvent method calling a function with a string parameter.
      */
     bool TestHandlePVEvent_Function_Parameter_String();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function in Ignore mode.
+     */
+    bool TestHandlePVEvent_Function_Ignore();
 
     /**
      * @brief Tests the GetPVName method.
