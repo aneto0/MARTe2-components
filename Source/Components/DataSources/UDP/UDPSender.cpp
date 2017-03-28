@@ -58,6 +58,7 @@ UDPSender::UDPSender():DataSourceI(){
     udpServerAddress = "";
     nOfSignals = 0u;
     udpServerPort = 44488u;
+    totalPacketSize = 0u;
 
 }  
 
@@ -91,7 +92,7 @@ UDPSender::~UDPSender(){
 
 bool UDPSender::Synchronise(){
     bool ok = true;
-    const uint32 udpServerExpectReadSize = nOfSignals * 8u;
+    const uint32 udpServerExpectReadSize = totalPacketSize;
     uint32 bytesSent = udpServerExpectReadSize;
     if (timerPtr == NULL_PTR(uint64*)){
         ok = false;
@@ -99,7 +100,7 @@ bool UDPSender::Synchronise(){
     }else{
         uint64 counterDifference = HighResolutionTimer::Counter() - timerAtStateChange;
         float64 timeDifference = static_cast<float64>(counterDifference) * HighResolutionTimer::Period();
-        uint64 timeDifferenceMicroSeconds = static_cast<uint64>(timeDifference) * 1000000LLU;
+        uint64 timeDifferenceMicroSeconds = static_cast<uint64>(timeDifference * 1000000LLU);
         *timerPtr = timeDifferenceMicroSeconds;
     }
     if (ok){
@@ -164,21 +165,21 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         uint16 i;
         uint32 signalByteSize;
-        signalsMemoryOffset = new uint32[GetNumberOfSignals()];
+        nOfSignals = GetNumberOfSignals();
+        signalsMemoryOffset = new uint32[nOfSignals];
         signalsMemoryOffset[0] = 0u;
-        signalsMemoryOffset[1] = 8u;// To account for sequenceNumber to be stored as uint64
-        signalsMemoryOffset[2] = 16u;// To account for timer to be stored as uint64
-        for (i = 3u; i < GetNumberOfSignals(); i++){
+        for (i = 1u; i < GetNumberOfSignals(); i++){
             uint16 previousSignalIdx = i - 1u;
-            ok = GetSignalByteSize(previousSignalIdx, signalByteSize);
+            ok = GetSignalByteSize(previousSignalIdx , signalByteSize);
             if (ok) {
                 signalsMemoryOffset[i] = signalsMemoryOffset[i - 1u] + signalByteSize;
             }
         }
-        ok = (GetSignalType(0u).numberOfBits == 32u);
-        if (!ok) {
-            ok = (GetSignalType(0u).numberOfBits == 64u);
-            }
+        uint32 LastSignalByteSize = 0u;
+        ok = GetSignalByteSize(nOfSignals - 1u, LastSignalByteSize);
+        totalPacketSize = signalsMemoryOffset[nOfSignals - 1u] + LastSignalByteSize;
+
+        ok = (GetSignalType(0u).numberOfBits == 64u);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
                                     uint16(GetSignalType(0u).numberOfBits ))
@@ -194,10 +195,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (GetSignalType(1u).numberOfBits == 32u);
-        if (!ok) {
-            ok = (GetSignalType(1u).numberOfBits == 64u);
-        }
+        ok = (GetSignalType(1u).numberOfBits == 64u);
         if (!ok) {
             REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits or 64 bits and %d were specified",
                                             uint16(GetSignalType(1u).numberOfBits))
@@ -224,13 +222,11 @@ bool UDPSender::AllocateMemory(){
         ok = false;
     }else{
         if (ok){
-            uint32 LastSignalByteSize = 0u;
-            ok = GetSignalByteSize(nOfSignals - 1u, LastSignalByteSize);
-            dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalsMemoryOffset[nOfSignals - 1u] + LastSignalByteSize);
+            dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalPacketSize);
             sequenceNumberPtr = &((static_cast<uint64 *>(dataBuffer))[0]);
             timerPtr = &((static_cast<uint64 *>(dataBuffer))[1]);
         }else{
-            REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timerPtrand one other signal) must be specified!");
+            REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timer and one other signal) must be specified!");
         }
         
     }
