@@ -98,6 +98,16 @@ TEST(FilterGAMGTest,TestSetup) {
     ASSERT_TRUE(test.TestSetup());
 }
 
+TEST(FilterGAMGTest,TestSetupWrongInputSignalType) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongInputSignalType());
+}
+
+TEST(FilterGAMGTest,TestSetupWrongOutputSignalType) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongOutputSignalType());
+}
+
 TEST(FilterGAMGTest,TestSetupNoInputSignal) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestSetupNoInputSignal());
