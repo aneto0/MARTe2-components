@@ -100,8 +100,8 @@ bool UDPSender::Synchronise(){
     }else{
         uint64 counterDifference = HighResolutionTimer::Counter() - timerAtStateChange;
         float64 timeDifference = static_cast<float64>(counterDifference) * HighResolutionTimer::Period();
-        uint64 timeDifferenceMicroSeconds = static_cast<uint64>(timeDifference * static_cast<float64>(1000000LLU));
-        *timerPtr = timeDifferenceMicroSeconds;
+        float64 timeDifferenceMicroSeconds = timeDifference * static_cast<float64>(1000000LLU);
+        *timerPtr = static_cast<uint64>(timeDifferenceMicroSeconds);
     }
     if (ok){
         ok = client.Write(reinterpret_cast<char8*>(dataBuffer), bytesSent);
