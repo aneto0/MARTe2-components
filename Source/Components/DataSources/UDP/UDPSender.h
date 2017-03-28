@@ -1,7 +1,7 @@
 /**
  * @file UDPSender.h
  * @brief Header file for class UDPSender
- * @date Jan 31, 2017
+ * @date 31/01/2017
  * @author Danny Sortino
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -201,7 +201,7 @@ private:
      */  
     UDPSocket client;
 
-
+    uint32 totalPacketSize;
 };
 }
 #endif
