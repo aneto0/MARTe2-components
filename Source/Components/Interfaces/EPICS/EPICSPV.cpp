@@ -353,7 +353,7 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
             ReferenceT<Message> message(GlobalObjectsDatabase::Instance()->GetStandardHeap());
             ok = message->Initialise(cdb);
             if (ok) {
-                if (MessageI::SendMessage(message, NULL_PTR(const Object *)) != ErrorManagement::NoError) {
+                if (MessageI::SendMessage(message, this) != ErrorManagement::NoError) {
                     REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", destination.Buffer(), newValue.Buffer());
                 }
             }
