@@ -406,6 +406,11 @@ private:
      * The message to send if the Tree is be successfully flushed.
      */
     ReferenceT<Message> treeFlushedMsg;
+
+    /**
+     * The message to send if there is a runtime error.
+     */
+    ReferenceT<Message> treeRuntimeErrorMsg;
 };
 }
 

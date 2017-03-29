@@ -159,6 +159,17 @@ bool MDSWriter::Synchronise() {
     if (nodes != NULL_PTR(MDSWriterNode **)) {
         for (n = 0u; (n < numberOfMDSSignals) && (ok); n++) {
             ok = nodes[n]->Execute();
+            if (!ok) {
+                if (treeRuntimeErrorMsg.IsValid()) {
+                    //Reset any previous replies
+                    treeRuntimeErrorMsg->SetAsReply(false);
+                    if (!MessageI::SendMessage(treeRuntimeErrorMsg, this)) {
+                        StreamString destination = treeRuntimeErrorMsg->GetDestination();
+                        StreamString function = treeRuntimeErrorMsg->GetFunction();
+                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(), function.Buffer());
+                    }
+                }
+            }
         }
     }
     if ((HighResolutionTimer::Counter() - lastTimeRefreshCount) > refreshEveryCounts) {
@@ -297,6 +308,9 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
                         }
                         else if (msgName == "TreeFlushed") {
                             treeFlushedMsg = msg;
+                        }
+                        else if (msgName == "TreeRuntimeError") {
+                            treeRuntimeErrorMsg = msg;
                         }
                         else {
                             REPORT_ERROR(ErrorManagement::ParametersError, "Message %s is not supported.", msgName.Buffer());

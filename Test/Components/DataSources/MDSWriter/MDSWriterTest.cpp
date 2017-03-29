@@ -2524,6 +2524,12 @@ static const MARTe::char8 * const config14 = ""
         "                    Function = HandleFlushSegments"
         "                    Mode = ExpectsReply"
         "                }"
+        "                +TreeRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = MDSWriterTestHelper"
+        "                    Function = HandleFlushSegments"
+        "                    Mode = ExpectsReply"
+        "                }"
         "            }"
         "        }"
         "    }"
@@ -2649,7 +2655,6 @@ static const MARTe::char8 * const config15 = ""
         "+MDSWriterTestHelper = {"
         "    Class = MDSWriterTestHelper"
         "}";
-
 
 //Configuration with messages that cannot be sent
 static const MARTe::char8 * const config16 = ""
@@ -2953,7 +2958,6 @@ static const MARTe::char8 * const config18 = ""
         "+MDSWriterTestHelper = {"
         "    Class = MDSWriterTestHelper"
         "}";
-
 
 //Configuration with with an invalid message type
 static const MARTe::char8 * const config19 = ""
@@ -3855,7 +3859,6 @@ bool MDSWriterTest::TestOpenTreeFailMessage() {
     godb->Purge();
     return ok;
 }
-
 
 bool MDSWriterTest::TestOpenTreeOKMessage_Fail() {
     using namespace MARTe;
