@@ -33,6 +33,7 @@
 #include "CLASSMETHODREGISTER.h"
 #include "EPICSCAClient.h"
 #include "EPICSPV.h"
+#include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -73,10 +74,16 @@ void EPICSCAClientEventCallback(struct event_handler_args const args) {
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 EPICSCAClient::EPICSCAClient() :
-        ReferenceContainer(), EmbeddedServiceMethodBinderI(), executor(*this) {
+        ReferenceContainer(), EmbeddedServiceMethodBinderI(), MessageI(), executor(*this){
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
     eventCallbackFastMux.Create();
+    ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    filter->SetDestination(this);
+    ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
+    if (!ret.ErrorsCleared()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
+    }
 }
 
 EPICSCAClient::~EPICSCAClient() {
@@ -101,14 +108,26 @@ bool EPICSCAClient::Initialise(StructuredDataI & data) {
         if (!data.Read("StackSize", stackSize)) {
             REPORT_ERROR(ErrorManagement::Information, "No StackSize defined. Using default = %d", stackSize);
         }
-        //This stack size should be sufficient?
         executor.SetStackSize(stackSize);
         executor.SetCPUMask(cpuMask);
-        ok = (executor.Start() == ErrorManagement::NoError);
+        uint32 autoStart = 1u;
+        (void) (data.Read("AutoStart", autoStart));
+        if (autoStart == 1u) {
+            ok = (Start() == ErrorManagement::NoError);
+        }
     }
-
     return ok;
 }
+
+ErrorManagement::ErrorType EPICSCAClient::Start() {
+    ErrorManagement::ErrorType err = executor.Start();
+    return err;
+}
+
+EmbeddedThreadI::States EPICSCAClient::GetStatus() {
+    return executor.GetStatus();
+}
+
 
 ErrorManagement::ErrorType EPICSCAClient::Execute(const ExecutionInfo& info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
@@ -183,6 +202,6 @@ uint32 EPICSCAClient::GetCPUMask() const {
 }
 
 CLASS_REGISTER(EPICSCAClient, "1.0")
-
+CLASS_METHOD_REGISTER(EPICSCAClient, Start)
 }
 

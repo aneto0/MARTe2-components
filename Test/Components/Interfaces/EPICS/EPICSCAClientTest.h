@@ -70,6 +70,15 @@ public:
      */
     bool TestExecute();
 
+    /**
+     * @brief Tests the Start method.
+     */
+    bool TestStart();
+
+    /**
+     * @brief Tests the GetStatus method.
+     */
+    bool TestGetStatus();
 };
 
 /*---------------------------------------------------------------------------*/

@@ -35,6 +35,7 @@
 #include "EmbeddedServiceI.h"
 #include "EventSem.h"
 #include "FastPollingMutexSem.h"
+#include "MessageI.h"
 #include "ReferenceContainer.h"
 #include "SingleThreadService.h"
 #include "StreamString.h"
@@ -51,6 +52,7 @@ namespace MARTe {
  *   Class = EPICSInterface::EPICSCAClient
  *   StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
  *   CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
+ *   AutoStart = 0 //Optional. Default = 1. If true the service will only be started after receiving a Start message (see Start method).
  *   +PV_1 = {
  *      Class = EPICSPV //See class documentation of EPICSPV
  *      ...
@@ -61,7 +63,7 @@ namespace MARTe {
  *   }
  * }
  */
-class EPICSCAClient: public ReferenceContainer, public EmbeddedServiceMethodBinderI {
+class EPICSCAClient: public ReferenceContainer, public EmbeddedServiceMethodBinderI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
@@ -108,11 +110,23 @@ EPICSCAClient    ();
     uint32 GetCPUMask() const;
 
     /**
+     * @brief Gets the embedded thread state.
+     * @return the embedded thread state.
+     */
+    EmbeddedThreadI::States GetStatus();
+
+    /**
      * @brief If the Stop was to be called from the destructor the Size() would already be == 0 and as consequence it would not
      * be possible to clean the EPICS resources when the state is BadTerminationStage
      * @details See ReferenceContainer::Purge
      */
     virtual void Purge(ReferenceContainer &purgeList);
+
+    /**
+     * @brief Start the embedded service it wasn't already started.
+     * @return ErrorManagement::NoError if the service wasn't already started.
+     */
+    ErrorManagement::ErrorType Start();
 private:
 
     /**

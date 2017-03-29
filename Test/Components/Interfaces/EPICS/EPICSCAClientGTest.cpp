@@ -69,3 +69,13 @@ TEST(EPICSCAClientGTest,TestInitialise_NoDefaults) {
     EPICSCAClientTest test;
     ASSERT_TRUE(test.TestInitialise_NoDefaults());
 }
+
+TEST(EPICSCAClientGTest,TestStart) {
+    EPICSCAClientTest test;
+    ASSERT_TRUE(test.TestStart());
+}
+
+TEST(EPICSCAClientGTest,TestGetStatus) {
+    EPICSCAClientTest test;
+    ASSERT_TRUE(test.TestGetStatus());
+}

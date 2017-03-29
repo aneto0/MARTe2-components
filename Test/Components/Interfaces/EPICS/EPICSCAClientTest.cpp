@@ -166,3 +166,81 @@ bool EPICSCAClientTest::TestGetStackSize() {
 bool EPICSCAClientTest::TestExecute() {
     return TestInitialise_NoDefaults();
 }
+
+bool EPICSCAClientTest::TestStart() {
+    using namespace MARTe;
+    EPICSPV pv;
+    StreamString config = ""
+            "+EPICSCA = {"
+            "    Class = EPICSCAClient"
+            "    CPUs = 0x1"
+            "    StackSize = 327680"
+            "    AutoStart = 0"
+            "    +PV_1 = {"
+            "        Class = EPICSPV"
+            "        PVName = \"MARTe2::EPICSCA::Test::String\""
+            "        PVType = string"
+            "    }"
+            "    +PV_2 = {"
+            "        Class = EPICSPV"
+            "        PVName = \"MARTe2::EPICSCA::Test::Int32\""
+            "        PVType = int32"
+            "    }"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPV> sPV;
+    ReferenceT<EPICSPV> iPV;
+    ReferenceT<EPICSCAClient> client;
+
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        sPV = ord->Find("EPICSCA.PV_1");
+        ok = sPV.IsValid();
+    }
+    if (ok) {
+        iPV = ord->Find("EPICSCA.PV_2");
+        ok = iPV.IsValid();
+    }
+    if (ok) {
+        client = ord->Find("EPICSCA");
+        ok = client.IsValid();
+    }
+    if (ok) {
+        ok = (client->GetCPUMask() == 0x1);
+    }
+    if (ok) {
+        ok = (client->GetStackSize() == 327680);
+    }
+    if (ok) {
+        ok = (client->GetStatus() == EmbeddedThreadI::OffState);
+    }
+    if (ok) {
+        ok = (client->Start() == ErrorManagement::NoError);
+    }
+    if (ok) {
+        ok = false;
+        uint32 timeoutCounts = 50;
+        uint32 i = 0;
+        while ((!ok) && (i < timeoutCounts)) {
+            ok = (client->GetStatus() != EmbeddedThreadI::OffState);
+            i++;
+            if (!ok) {
+                Sleep::Sec(0.1);
+            }
+        }
+    }
+    ord->Purge();
+    return ok;
+}
+
+bool EPICSCAClientTest::TestGetStatus() {
+    return TestStart();
+}
