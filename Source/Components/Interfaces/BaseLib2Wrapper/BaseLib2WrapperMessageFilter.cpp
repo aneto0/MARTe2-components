@@ -43,7 +43,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 BaseLib2WrapperMessageFilter::BaseLib2WrapperMessageFilter() :
-        MessageFilter(false),
+        MessageFilter(true),
         Object() {
 
 }
