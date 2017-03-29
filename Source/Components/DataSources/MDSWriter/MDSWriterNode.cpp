@@ -394,7 +394,7 @@ bool MDSWriterNode::Execute() {
 
         //discontuityFound will only be triggered if makeSegmentAfterNWrites > 1, so Execute will be called again later
         //discontuityFound will only be triggered if signalMemory != NULL_PTR (i.e. that we are triggering based on event).
-        if (discontinuityFound) {
+        if ((ok) && (discontinuityFound)) {
             if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(void *))) {
                 //currentBuffer had already been incremented. Copy the last buffer to the beginning
                 char8 *bufferedDataC = reinterpret_cast<char8 *>(bufferedData);
