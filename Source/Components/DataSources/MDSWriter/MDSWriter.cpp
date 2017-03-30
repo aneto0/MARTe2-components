@@ -63,6 +63,7 @@ MDSWriter::MDSWriter() :
     pulseNumber = MDS_UNDEFINED_PULSE_NUMBER;
     lastTimeRefreshCount = 0u;
     refreshEveryCounts = 0u;
+    fatalTreeNodeError = false;
     brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -154,12 +155,11 @@ bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
 }
 
 bool MDSWriter::Synchronise() {
-    bool ok = true;
     uint32 n;
     if (nodes != NULL_PTR(MDSWriterNode **)) {
-        for (n = 0u; (n < numberOfMDSSignals) && (ok); n++) {
-            ok = nodes[n]->Execute();
-            if (!ok) {
+        for (n = 0u; (n < numberOfMDSSignals) && (!fatalTreeNodeError); n++) {
+            fatalTreeNodeError = !nodes[n]->Execute();
+            if (fatalTreeNodeError) {
                 if (treeRuntimeErrorMsg.IsValid()) {
                     //Reset any previous replies
                     treeRuntimeErrorMsg->SetAsReply(false);
@@ -176,7 +176,7 @@ bool MDSWriter::Synchronise() {
         lastTimeRefreshCount = HighResolutionTimer::Counter();
         MDSplus::Event::setEvent(eventName.Buffer());
     }
-    return ok;
+    return !fatalTreeNodeError;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
@@ -614,6 +614,7 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             }
         }
     }
+    fatalTreeNodeError = !ok;
     ErrorManagement::ErrorType ret(ok);
     return ret;
 }

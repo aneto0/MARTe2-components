@@ -363,6 +363,11 @@ private:
     uint32 stackSize;
 
     /**
+     * If a fatal tree node error occurred do not try to flush segments nor do further writes.
+     */
+    bool fatalTreeNodeError;
+
+    /**
      * The name of the MDSplus tree.
      */
     StreamString treeName;
