@@ -56,102 +56,102 @@ public:
     bool TestInitialise_Port();
    
     /**
-     * @brief Tests the data configuration when a valid port is input
+     * @brief Tests the data configuration when a valid port is input, however required administator privileges to use
      */
     bool TestInitialise_Restricted_Port();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data configuration when an empty port is entered
      */
     bool TestInitialise_False_Port_1();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data configuration when a port number that is too large is entered
      */
     bool TestInitialise_False_Port_2();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data configuration when a port number that is too small (negative number) is entered
      */
     bool TestInitialise_False_Port_3();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data configuration when text is inputted as a port number
      */
     bool TestInitialise_False_Port_4();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data configuration when a correct (not infinite) timeout has be inputted
      */
     bool TestInitialise_Timeout();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data configuration when a correct infinite timeout has be inputted
      */
     bool TestInitialise_Timeout_Infinite();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data configuration when no timeout is defined
      */
     bool TestInitialise_Timeout_NotDefined();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data configuration when a incorrect timeout, negative number, has been inputted
      */
     bool TestInitialise_False_Timeout_1();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data configuration when a incorrect timeout, no number, has been inputted
      */
     bool TestInitialise_False_Timeout_2();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data configuration when a incorrect timeout, a string, has been inputted
      */
     bool TestInitialise_False_Timeout_3();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the database configures correctly with a correct standard, minimum configuration
      */
     bool TestSetConfiguredDatabase();
        
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the database configures correctly with a correct standard configuration, with more than minimum number of signals
      */
     bool TestSetConfiguredDatabase_More_Minimum_Signals();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the database configuration with no data signals defined
      */
     bool TestSetConfiguredDatabase_False_NOfSignals1();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the database configuration with an incorrect number of signals defined
      */
     bool TestSetConfiguredDatabase_False_NOfSignals2();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the database configuration with an incorrect number of signals defined
      */
     bool TestSetConfiguredDatabase_False_NOfSignals3();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the database configuration with the first signal being defined at an incorrect size (16 bit)
      */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Size1();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the database configuration with the second signal being defined at an incorrect size (16 bit)
      */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Size2();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the database configuration with the first signal being defined as a incorrect type (float)
      */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Type1();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the database configuration with the second signal being defined as a incorrect type (float)
      */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Type2();
 
@@ -161,7 +161,7 @@ public:
     bool TestAllocateMemory();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the AllocateMemory method, when incorrect data is passed through
      */
     bool TestAllocateMemory_False();
 
@@ -176,12 +176,12 @@ public:
     bool TestGetSignalMemoryBuffer();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the GetBrokerName when passed input signals.
      */
     bool TestGetBrokerName_InputSignals();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the GetBrokerName when passed output signals.
      */
     bool TestGetBrokerName_OutputSignals();
 
@@ -206,7 +206,7 @@ public:
     bool TestSynchronise();
    
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the data is able to be recieved.
      */
     bool TestReceiving();
 
@@ -222,4 +222,3 @@ public:
 /*---------------------------------------------------------------------------*/
 
 #endif /* UDPReceiverTEST_H_ */
-
