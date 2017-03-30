@@ -81,23 +81,33 @@ public:
     bool TestInitialise_False_Port_4();
 
     /**
-     * @brief Tests the data configuration when a correct (not infinite) timeout has be inputted
+     * @brief Tests the data configuration when a correct (not infinite) timeout has been inputted
      */
     bool TestInitialise_TargetAddress();
 
-    
+    /**
+     * @brief Tests the data configuration when a incorrect (blank) target address has been inputted
+     */
     bool TestInitialise_False_TargetAddress_1();
 
-    
+    /**
+     * @brief Tests the data configuration when a incorrect (too large) target address has been inputted
+     */
     bool TestInitialise_False_TargetAddress_2();
 
-    
+    /**
+     * @brief Tests the data configuration when a incorrect (too few bytes) target address has been inputted
+     */
     bool TestInitialise_False_TargetAddress_3();
 
-    
+    /**
+     * @brief Tests the data configuration when a incorrect (negative byte number) target address has been inputted
+     */
     bool TestInitialise_False_TargetAddress_4();
 
-    
+    /**
+     * @brief Tests the data configuration when a incorrect (text) target address has been inputted
+     */
     bool TestInitialise_False_TargetAddress_5();
 
     /**
