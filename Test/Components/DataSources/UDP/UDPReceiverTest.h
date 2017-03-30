@@ -211,7 +211,7 @@ public:
     bool TestReceiving();
 
     /**
-     * @brief Tests the constructor.
+     * @brief Tests receving when synchronsing
      */
     bool TestReceivingWithSynchronsing();
 
