@@ -494,8 +494,19 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
     bool ok = true;
     pulseNumber = pulseNumberIn;
     if (tree != NULL_PTR(MDSplus::Tree *)) {
-        if (FlushSegments() != ErrorManagement::NoError) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
+        try {
+            //Check if the tree is still valid before flushing any segments. It might have been closed due to a fault in the meanwhile...
+            MDSplus::Tree *treeTemp = new MDSplus::Tree(treeName.Buffer(), -1);
+            delete treeTemp;
+        }
+        catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR(ErrorManagement::Warning, "Tree %s is no longer valid. Error: %s", treeName.Buffer(), exc.what());
+            fatalTreeNodeError = true;
+        }
+        if (!fatalTreeNodeError) {
+            if (FlushSegments() != ErrorManagement::NoError) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
+            }
         }
         try {
             delete tree;
