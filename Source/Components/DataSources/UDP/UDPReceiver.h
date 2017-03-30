@@ -53,10 +53,10 @@ namespace MARTe{
  *     Timeout = "5" //Optional (default infinite, also known as 0) The time that the reciever will listen on a defined port before timeout
  *     Signals = {
  *          Counter = { //Mandatory. Number of ticks since last state change.
- *              Type = uint32 //Mandatory (Note: Sender and Receiver must be same type). int32, int64, uint64 also supported.
+ *              Type = uint64 //Mandatory (Note: Sender and Receiver must be same type), int64 also supported.
  *          }
  *          Time = { //Mandatory. Elapsed time in micro-seconds since last state change.
- *               Type = uint32 //Mandatory (Note: Sender and Receiver must be same type). int32, int64, uint64 also supported.
+ *               Type = uint64 //Mandatory (Note: Sender and Receiver must be same type), int64 also supported.
  *          }
  *          Signal1 = { //One or more extra signals shall be defined
  *              Type = float32 //Mandatory (Note: Sender and Receiver must be same type). All other MARTe types are supported
@@ -246,7 +246,10 @@ private:
      * The socket that will connect to the sender
      */ 
     UDPSocket server;
-
+    
+    /**
+     * A boolean to determine if it is syncronising
+     */ 
     bool synchronising;
     
     /*
