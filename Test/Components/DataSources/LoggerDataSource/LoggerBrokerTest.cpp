@@ -30,6 +30,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "ErrorManagement.h"
 #include "GAM.h"
 #include "LoggerBroker.h"
@@ -280,7 +281,7 @@ bool LoggerBrokerTest::TestInit() {
         SetErrorProcessFunction(currentErrorMessageProcessFunction);
     }
 
-    REPORT_ERROR(ErrorManagement::Information, lastError.Buffer());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, lastError.Buffer());
     god->Purge();
     if (ok) {
         ok = (lastError == "Signal1 [0:0]:1 Signal2 [1:1]:{ 2 }  Signal3 [1:2]:{ 2 3 }  Signal3 [3:5]:{ 4 5 6 }  Signal4 [0:3]:{ { 1 2 3 4 } }  Signal5 [0:1]:{ 1 2 } ");

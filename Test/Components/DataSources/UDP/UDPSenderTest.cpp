@@ -30,14 +30,15 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "GAM.h"
 #include "GAMScheduler.h"
-#include "UDPSender.h"
-#include "UDPSenderTest.h"
 #include "MemoryOperationsHelper.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
+#include "UDPSender.h"
+#include "UDPSenderTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -105,7 +106,7 @@ static inline bool ConfigureApplication(const MARTe::char8 * const config){
     bool ok = parser.Parse();
 
     if (!ok){
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
         //log_error("StandardParser::Parse failed with '%s'", err.Buffer());
     }else{
         god->Purge();
@@ -119,7 +120,7 @@ static inline bool ConfigureApplication(const MARTe::char8 * const config){
         ok = application.IsValid();
     }
     if (!ok){
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
     }else{
         ok = application->ConfigureApplication();
     }
@@ -142,7 +143,7 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
     bool ok = parser.Parse();
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
         //log_error("StandardParser::Parse failed with '%s'", err.Buffer());
     } else {
         god->Purge();
@@ -156,20 +157,20 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
         ok = application.IsValid();
     }
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
     } else {
         ok = application->ConfigureApplication();
     }
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::ConfigureApplication failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::ConfigureApplication failed");
     } else {
         ok = application->PrepareNextState("State1");
         
     }
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::PrepareNextState failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::PrepareNextState failed");
     } else {
         application->StartNextStateExecution();
     }
@@ -177,7 +178,7 @@ static inline bool TestIntegratedInApplication(const MARTe::char8 * const config
 
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "RealTimeApplication::StartNextStateExecution failed");
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::StartNextStateExecution failed");
     } else {
         application->StopCurrentStateExecution();
     }
@@ -311,7 +312,7 @@ bool UDPSenderTest::TestInitialise_False_Port_2(){
     if (ok){
         cdb.Read("Port", ActualPort);
         ok = (*ActualPort == 44488);
-        REPORT_ERROR_PARAMETERS(ErrorManagement::InternalSetupError, "actual port number value is %d", *ActualPort);
+        REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::InternalSetupError, "actual port number value is %d", *ActualPort);
     }*/
     return ok;
 }

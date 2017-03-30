@@ -147,7 +147,7 @@ bool UDPReceiver::AllocateMemory(){
         if (ok){
             uint32 LastSignalByteSize = 0u;
             ok = GetSignalByteSize(nOfSignals - 1u, LastSignalByteSize);
-            dataBuffer= GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalsMemoryOffset[nOfSignals - 1u] + LastSignalByteSize);
+            dataBuffer = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalsMemoryOffset[nOfSignals - 1u] + LastSignalByteSize);
             sequenceNumberPtr = &((static_cast<uint64 *>(dataBuffer))[0]);
             timerPtr = &((static_cast<uint64 *>(dataBuffer))[1]);
         }else{

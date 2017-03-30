@@ -22,10 +22,14 @@
 #
 #############################################################
 
-OBJSX= 
+SPB=SysLogger.x
 
 ifdef EFDA_MARTe_DIR
 SPB+=BaseLib2Wrapper.x
+endif
+
+ifdef EPICS_BASE
+SPB   += EPICS.x
 endif
 
 PACKAGE=Components
@@ -34,8 +38,12 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+LIBRARIES_STATIC=$(BUILD_DIR)/SysLogger/SysLogger$(LIBEXT)
 ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2Wrapper$(LIBEXT)
+endif
+ifdef EPICS_BASE
+LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICS$(LIBEXT)
 endif
 
 all: $(OBJS)  $(SUBPROJ)  \

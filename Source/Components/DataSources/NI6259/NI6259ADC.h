@@ -59,8 +59,8 @@ const uint32 NI6259ADC_HEADER_SIZE = 2u;
  *     DelayDivisor = 3 //Mandatory
  *     ClockSampleSource = "SI_TC" //Mandatory. Sampling clock source. Possible values:SI_TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, PULSE, GPCRT0_OUT, STAR_TRIGGER, GPCTR1_OUT, SCXI_TRIG1, ANALOG_TRIGGER, LOW
  *     ClockSamplePolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Mandatory. Sampling clock polarity. Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
- *     ClockConvertSource = "SI2TC" //Mandatory. Convert clock source. Default = SI2TC. Possible values:SI2TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, GPCRT0_OUT, STAR_TRIGGER, ANALOG_TRIGGER, LOW
- *     ClockConvertPolarity = "RISING_EDGE" //Mandatory. Convert clock polarity. Default = RISING_EDGE. Possible values:RISING_EDGE, FALLING_EDGE
+ *     ClockConvertSource = "SI2TC" //Mandatory. Convert clock source. Possible values:SI2TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, GPCRT0_OUT, STAR_TRIGGER, ANALOG_TRIGGER, LOW
+ *     ClockConvertPolarity = "RISING_EDGE" //Mandatory. Convert clock polarity. Possible values:RISING_EDGE, FALLING_EDGE
  *     CPUs = 0xf //CPUs where the thread which reads data from the board is allowed to run on.
  *     Signals = {
  *          Counter = { //Mandatory. Number of ticks since last state change.
@@ -209,6 +209,11 @@ private:
     uint32 timeValue;
 
     /**
+     * The counter value. Different from counter to avoid synchronisation issues.
+     */
+    uint32 counterValue;
+
+    /**
      * The EmbeddedThread where the Execute method waits for the ADC data to be available.
      */
     SingleThreadService executor;
@@ -332,6 +337,11 @@ private:
      * The thread CPUs mask.
      */
     uint32 cpuMask;
+
+    /**
+     * Semaphore associated with the counter reset
+     */
+    FastPollingMutexSem counterResetFastMux;
 
 };
 }

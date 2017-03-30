@@ -4,6 +4,7 @@ au-misra-cpp-alt.lnt
 marte_flint_base_configuration.lnt
 marte_flint_exceptions.lnt
 marte_flint_exceptions_false_positives.lnt
+marte_components_flint_exceptions.lnt
 
 /* 
  * Enable all warnings 

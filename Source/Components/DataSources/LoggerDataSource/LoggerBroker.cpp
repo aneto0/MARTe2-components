@@ -135,7 +135,7 @@ bool LoggerBroker::Execute() {
     uint32 n;
     for (n = 0u; n < numberOfCopies; n++) {
         if ((signalNames != NULL_PTR(StreamString *)) && (outputSignals != NULL_PTR(AnyType *))) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "%s:%!", signalNames[n].Buffer(), outputSignals[n])
+            REPORT_ERROR(ErrorManagement::Information, "%s:%!", signalNames[n].Buffer(), outputSignals[n]);
         }
     }
     return true;
