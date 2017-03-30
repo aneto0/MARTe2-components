@@ -44,65 +44,146 @@ public:
      * @brief Tests the constructor.
      */
     bool TestConstructor();
-
+    
+    /**
+     * @brief Tests the data configuration when no input is made
+     */
     bool TestInitialise_Empty();
 
+    /**
+     * @brief Tests the data configuration when a valid port is input
+     */
     bool TestInitialise_Port();
     
+    /**
+     * @brief Tests the data configuration when a valid port is input, however required administator privileges to use
+     */
     bool TestInitialise_Restricted_Port();
 
+    /**
+     * @brief Tests the data configuration when an empty port is entered
+     */
     bool TestInitialise_False_Port_1();
 
+    /**
+     * @brief Tests the data configuration when a port number that is too large is entered
+     */
     bool TestInitialise_False_Port_2();
 
+    /**
+     * @brief Tests the data configuration when a port number that is too small (negative number) is entered
+     */
     bool TestInitialise_False_Port_3();
 
+    /**
+     * @brief Tests the data configuration when text is inputted as a port number
+     */
     bool TestInitialise_False_Port_4();
 
+    /**
+     * @brief Tests the data configuration when a correct (not infinite) timeout has be inputted
+     */
     bool TestInitialise_TargetAddress();
 
+    
     bool TestInitialise_False_TargetAddress_1();
 
+    
     bool TestInitialise_False_TargetAddress_2();
 
+    
     bool TestInitialise_False_TargetAddress_3();
 
+    
     bool TestInitialise_False_TargetAddress_4();
 
+    
     bool TestInitialise_False_TargetAddress_5();
 
+    /**
+     * @brief Tests the database configures correctly with a correct standard, minimum configuration
+     */
     bool TestSetConfiguredDatabase();
 
+    /**
+     * @brief Tests the database configures correctly with a correct standard configuration, with more than minimum number of signals
+     */
     bool TestSetConfiguredDatabase_More_Minimum_Signals();
 
+    /**
+     * @brief Tests the database configuration with no data signals defined
+     */
     bool TestSetConfiguredDatabase_False_NOfSignals();
 
+
+    /**
+     * @brief Tests the database configuration with the first signal being defined at an incorrect size (16 bit)
+     */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Size1();
 
+    /**
+     * @brief Tests the database configuration with the second signal being defined at an incorrect size (16 bit)
+     */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Size2();
 
+    /**
+     * @brief Tests the database configuration with the first signal being defined as a incorrect type (float)
+     */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Type1();
 
+    /**
+     * @brief Tests the database configuration with the second signal being defined as a incorrect type (float)
+     */
     bool TestSetConfiguredDatabase_Incorrect_Signal_Type2();
 
+    /**
+     * @brief Tests the AllocateMemory method.
+     */
     bool TestAllocateMemory();
 
+    /**
+     * @brief Tests the AllocateMemory method, when incorrect data is passed through
+     */
     bool TestAllocateMemory_False();
 
+    /**
+     * @brief Tests the GetNumberOfMemoryBuffers method.
+     */
     bool TestGetNumberOfMemoryBuffers();
 
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method.
+     */
     bool TestGetSignalMemoryBuffer();
 
+    /**
+     * @brief Tests the GetBrokerName when passed input signals.
+     */
     bool TestGetBrokerName_InputSignals();
 
+    /**
+     * @brief Tests the GetBrokerName when passed output signals.
+     */
     bool TestGetBrokerName_OutputSignals();
 
+    /**
+     * @brief Tests the GetOutputBrokers method.
+     */
     bool TestGetOutputBrokers();
 
+    /**
+     * @brief Tests the GetInputBrokers method.
+     */
     bool TestGetInputBrokers();
 
+    /**
+     * @brief Tests the PrepareNextState method.
+     */
     bool TestPrepareNextState();
 
+    /**
+     * @brief Tests the Synchronise method.
+     */
     bool TestSynchronise();
 
 };
@@ -112,4 +193,3 @@ public:
 /*---------------------------------------------------------------------------*/
 
 #endif /* UDPSenderTEST_H_ */
-
