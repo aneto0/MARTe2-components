@@ -45,8 +45,7 @@
 
 namespace MARTe {
 
-UDPSender::UDPSender() :
-        DataSourceI() {
+UDPSender::UDPSender() :DataSourceI() {
     timerPtr = NULL_PTR(uint64*);
     sequenceNumberPtr = NULL_PTR(uint64*);
     dataBuffer = NULL_PTR(void*);
@@ -61,29 +60,33 @@ UDPSender::UDPSender() :
 
 /*lint -e{1551} Justification: the destructor must guarantee that the client sending is closed.*/
 UDPSender::~UDPSender() {
-    if (!client.Close()) {
+    if (!client.Close()){
         REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
     }
-    GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(dataBuffer);
-
-    if (sequenceNumberPtr == NULL_PTR(uint64*)) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"sequenceNumberPtr\" was not initialised!");
+    
+    if (dataBuffer == NULL_PTR(void*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"dataBuffer\" was not initialised!");
+    }else{
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(dataBuffer);
+        dataBuffer = NULL_PTR(void*);
     }
-    else {
+
+    if (sequenceNumberPtr == NULL_PTR(uint64*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"sequenceNumberPtr\" was not initialised!");
+    }else{
         sequenceNumberPtr = NULL_PTR(uint64*);
     }
-
-    if (timerPtr == NULL_PTR(uint64*)) {
+    
+    if (timerPtr == NULL_PTR(uint64*)){
         REPORT_ERROR(ErrorManagement::FatalError, "Variable \"timerPtr\" was not initialised!");
-    }
-    else {
+    }else{
         timerPtr = NULL_PTR(uint64*);
     }
 
-    if (signalsMemoryOffset == NULL_PTR(uint32*)) {
+    if (signalsMemoryOffset == NULL_PTR(uint32*)){
         REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
-    }
-    else {
+    }else{
+        delete signalsMemoryOffset;
         signalsMemoryOffset = NULL_PTR(uint32*);
     }
 }
