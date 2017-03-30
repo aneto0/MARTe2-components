@@ -61,15 +61,24 @@ UDPReceiver::~UDPReceiver(){
     if (!synchSem.Post()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem.");
     }
+    
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
         }
     }
+    
     if (!server.Close()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP reciever server.");
     }
-    GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(dataBuffer);
+    
+    if (dataBuffer == NULL_PTR(void*)){
+        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"dataBuffer\" was not initialised!");
+    }else{
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(dataBuffer);
+        dataBuffer = NULL_PTR(void*);
+    }
+    
     if (sequenceNumberPtr == NULL_PTR(uint64*)){
         REPORT_ERROR(ErrorManagement::FatalError, "Variable \"sequenceNumberPtr\" was not initialised!");
     }else{
@@ -85,6 +94,7 @@ UDPReceiver::~UDPReceiver(){
     if (signalsMemoryOffset == NULL_PTR(uint32*)){
         REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
     }else{
+        delete signalsMemoryOffset;
         signalsMemoryOffset = NULL_PTR(uint32*);
     }
 }
