@@ -50,13 +50,13 @@ namespace MARTe{
  *     Port = "44488" //Optional (default 44488) The port of the UDPReciever
  *     Signals = {
  *          Counter = { //Mandatory. Number of ticks since last state change.
- *              Type = uint32 //Mandatory (Note: Sender and Receiver must be same type). int32, int64, uint64 also supported.
+ *              Type = uint64 //Mandatory (Note: Sender and Receiver must be same type),  int64 also supported.
  *          }
  *          Time = { //Mandatory. Elapsed time in micro-seconds since last state change.
- *               Type = uint32 //Mandatory (Note: Sender and Receiver must be same type). int32, int64, uint64 also supported.
+ *               Type = uint64 //Mandatory (Note: Sender and Receiver must be same type),  int64 also supported.
  *          }
  *          Signal1 = { //One or more extra signals shall be defined
- *              Type = float32 //Mandatory (Note: Sender and Receiver must be same type). All other MARTe types are supported
+ *              Type = float32 //Mandatory (Note: Sender and Receiver must be same type). All other MARTe2 types are supported
  *          }
  *          Signal2 = {
  *             ...
@@ -200,7 +200,10 @@ private:
      * The socket that will connect to the receiver
      */  
     UDPSocket client;
-
+    
+    /**
+     * The total size of the packet being sent
+     */  
     uint32 totalPacketSize;
 };
 }
