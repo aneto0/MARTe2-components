@@ -29,6 +29,7 @@ SPB    = LinuxTimer.x LoggerDataSource.x EpicsDataSource.x
 ifdef CODAC_ROOT
 SPB    += NI6259.x
 SPB    += NI6368.x
+SPB    += DAN.x
 endif
 
 ifdef MDSPLUS_DIR
