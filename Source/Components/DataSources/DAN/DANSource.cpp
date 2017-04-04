@@ -93,6 +93,7 @@ uint32 DANSource::GetNumberOfMemoryBuffers() {
 bool DANSource::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
     bool ok = (dataSourceMemory != NULL_PTR(char8 *));
     if (ok) {
+        Get this directly from the DANStreams
         /*lint -e{613} dataSourceMemory cannot be NULL here*/
         char8 *memPtr = &dataSourceMemory[offsets[signalIdx]];
         signalAddress = reinterpret_cast<void *&>(memPtr);
