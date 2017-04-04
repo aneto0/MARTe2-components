@@ -33,6 +33,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
+#include "DANStream.h"
 #include "ProcessorType.h"
 #include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "MessageI.h"
@@ -184,6 +185,10 @@ DANSource    ();
      */
     int32 GetTimeSignalIdx() const;
 
+    /**
+     * TODO
+     */
+    static dan_DataCore GetDANDataCore() const;
 private:
 
     /**
@@ -256,10 +261,6 @@ private:
      */
     static dan_DataCore danDataCore;
 
-    /**
-     * TODO
-     */
-    dan_Source danSource;
 
     /**
      * TODO
@@ -275,6 +276,16 @@ private:
      * TODO
      */
     uint32 totalSignalMemory;
+
+    /**
+     * TODO
+     */
+    DANStream **danStreams;
+
+    /**
+     * TODO
+     */
+    uint32 nOfDANStreams;
 
 };
 }

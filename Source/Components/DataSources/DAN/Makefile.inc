@@ -47,7 +47,7 @@ INCLUDES += -I$(CODAC_ROOT)/include
 endif
 
 ifdef CODAC_ROOT
-LIBRARIES += -L$(CODAC_ROOT)/lib -ldan_api -ldan_client_api -ldan_stream
+LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
 endif
 
 # Override CPPFLAGS due to scoped enums

@@ -40,6 +40,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+dan_DataCore MARTe::DANSource::danDataCore = NULL_PTR(dan_DataCore);
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -60,8 +61,8 @@ DANSource::DANSource() :
     danBufferMultiplier = 0u;
     totalSignalMemory = 0u;
     samplingRate = 0.0F;
-    danDataCore = NULL_PTR(dan_DataCore);
-    danSource = NULL_PTR(dan_Source);
+    nOfDANStreams = 0u;
+    danStreams = NULL_PTR(DANStream *);
     brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -77,9 +78,6 @@ DANSource::~DANSource() {
     }
     if (offsets != NULL_PTR(uint32 *)) {
         delete[] offsets;
-    }
-    if ((danDataCore != NULL_PTR(dan_DataCore)) && (danSource != NULL_PTR(dan_Source))) {
-        dan_publisher_unpublishSource(danDataCore, danSource);
     }
 }
 
@@ -148,8 +146,9 @@ bool DANSource::Synchronise() {
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to tcn_get_time");
     }
-    if (ok) {
-        ok = dan_publisher_putDataBlock(danSource, hpnTimeStamp, dataSourceMemory, totalSignalMemory, NULL_PTR(char8 *));
+    uint32 s;
+    for(s=0u; (s<nOfDANStreams) && (ok); s++) {
+        ok = danStreams[s]->PutData(hpnTimeStamp);
     }
     return ok;
 }
@@ -246,10 +245,25 @@ bool DANSource::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Failed to tcn_init");
         }
     }
+    if (ok) {
+        ok = data.MoveRelative("Signals");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
+        }
+        if (ok) {
+            //Do not allow to add signals in run-time
+            ok = data.Write("Locked", 1);
+        }
+        if (ok) {
+            ok = data.Copy(originalSignalInformation);
+        }
+        if (ok) {
+            ok = originalSignalInformation.MoveToRoot();
+        }
+    }
     return ok;
 }
 
-//TODO prevent configuration builder from adding new signals in runtime.
 bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
@@ -414,6 +428,11 @@ bool DANSource::IsStoreOnTrigger() const {
 int32 DANSource::GetTimeSignalIdx() const {
     return timeSignalIdx;
 }
+
+dan_DataCore DANSource::GetDANDataCore() const {
+    return danDataCore;
+}
+
 
 CLASS_REGISTER(DANSource, "1.0")
 CLASS_METHOD_REGISTER(DANSource, OpenStream)
