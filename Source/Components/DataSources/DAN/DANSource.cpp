@@ -160,7 +160,6 @@ bool DANSource::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     return ok;
 }
 
-//TODO handle absolute time
 bool DANSource::Synchronise() {
     bool ok = true;
     uint32 s;

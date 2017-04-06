@@ -107,9 +107,10 @@ void DANStream::SetRelativeTimeSignal(uint32 *timeRelativeSignalIn) {
     }
 }
 
+#include <stdio.h>
 bool DANStream::PutData() {
     bool ok = true;
-    uint64 timeStamp;
+    uint64 timeStamp = 0u;
     if (useExternalAbsoluteTimingSignal) {
         timeStamp = *timeAbsoluteSignal;
     }
@@ -125,7 +126,6 @@ bool DANStream::PutData() {
         timeStamp += writeCounts * static_cast<uint64>(numberOfSamples) * periodNanos;
         writeCounts++;
     }
-
     if ((blockInterleavedMemory != NULL_PTR(char8 *)) && (blockMemory != NULL_PTR(char8 *))) {
         uint32 s;
         uint32 z;
@@ -138,7 +138,8 @@ bool DANStream::PutData() {
             }
         }
         if (ok) {
-            ok = (dan_publisher_putDataBlock(danSource, timeStamp, blockInterleavedMemory, blockSize, NULL_PTR(char8 *)) == 0u);
+            //TODO. This will have to be updated to match all the other function calls where success => ret == 0
+            ok = (dan_publisher_putDataBlock(danSource, timeStamp, blockInterleavedMemory, blockSize, NULL_PTR(char8 *)) == 1);
         }
     }
     else {
@@ -157,15 +158,16 @@ bool DANStream::OpenStream() {
 
 bool DANStream::CloseStream() {
     return (dan_publisher_closeStream(danSource) == 0u);
+    return true;
 }
 
 void DANStream::Finalise() {
-    blockMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfSignals * typeSize));
-    blockInterleavedMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfSignals * typeSize));
+    blockSize = numberOfSignals * typeSize * numberOfSamples;
+    blockMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(blockSize));
+    blockInterleavedMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(blockSize));
     danSourceName.Seek(0LLU);
     danSourceName.Printf("%s_%s", baseName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(td));
     danSourceName.Seek(0LLU);
-    blockSize = numberOfSignals * typeSize * numberOfSamples;
     uint32 danBufferSize = blockSize * danBufferMultiplier;
     danSource = dan_publisher_publishSource_withDAQBuffer(DANSource::GetDANDataCore(), danSourceName.Buffer(), danBufferSize);
 }
