@@ -39,7 +39,6 @@
 #include "MessageI.h"
 #include "RegisteredMethodsMessageFilter.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -188,7 +187,7 @@ DANSource    ();
     /**
      * TODO
      */
-    static dan_DataCore GetDANDataCore() const;
+    static dan_DataCore GetDANDataCore();
 private:
 
     /**
@@ -222,16 +221,6 @@ private:
     int32 timeSignalIdx;
 
     /**
-     * Offset of each signal in the dataSourceMemory
-     */
-    uint32 *offsets;
-
-    /**
-     * Memory holding all the signals that are to be stored, for each cycle, in MDSplus
-     */
-    char8 *dataSourceMemory;
-
-    /**
      * The affinity of the thread that asynchronously flushes data into MDSplus.
      */
     ProcessorType cpuMask;
@@ -261,7 +250,6 @@ private:
      */
     static dan_DataCore danDataCore;
 
-
     /**
      * TODO
      */
@@ -275,17 +263,32 @@ private:
     /**
      * TODO
      */
-    uint32 totalSignalMemory;
-
-    /**
-     * TODO
-     */
     DANStream **danStreams;
 
     /**
      * TODO
      */
     uint32 nOfDANStreams;
+
+    /**
+     * TODO
+     */
+    bool useAbsoluteTime;
+
+    /**
+     * TODO
+     */
+    uint32 timeUInt32;
+
+    /**
+     * TODO
+     */
+    uint64 timeUInt64;
+
+    /**
+     * TODO
+     */
+    uint8 trigger;
 
 };
 }

@@ -54,15 +54,15 @@ DANSource::DANSource() :
     numberOfPostTriggers = 0u;
     numberOfBuffers = 0u;
     timeSignalIdx = -1;
-    dataSourceMemory = NULL_PTR(char8 *);
-    offsets = NULL_PTR(uint32 *);
     cpuMask = 0xfu;
     stackSize = 0u;
     danBufferMultiplier = 0u;
-    totalSignalMemory = 0u;
     samplingRate = 0.0F;
     nOfDANStreams = 0u;
-    danStreams = NULL_PTR(DANStream *);
+    timeUInt32 = 0u;
+    timeUInt64 = 0u;
+    useAbsoluteTime = false;
+    danStreams = NULL_PTR(DANStream **);
     brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -73,12 +73,15 @@ DANSource::DANSource() :
 }
 
 DANSource::~DANSource() {
-    if (dataSourceMemory != NULL_PTR(char8 *)) {
-        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(dataSourceMemory));
+    if (danStreams != NULL_PTR(DANStream **)) {
+        uint32 s;
+        for (s = 0u; s < nOfDANStreams; s++) {
+            delete danStreams[s];
+        }
+
+        delete[] danStreams;
     }
-    if (offsets != NULL_PTR(uint32 *)) {
-        delete[] offsets;
-    }
+
 }
 
 bool DANSource::AllocateMemory() {
@@ -91,12 +94,30 @@ uint32 DANSource::GetNumberOfMemoryBuffers() {
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
 bool DANSource::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    bool ok = (dataSourceMemory != NULL_PTR(char8 *));
-    if (ok) {
-        Get this directly from the DANStreams
-        /*lint -e{613} dataSourceMemory cannot be NULL here*/
-        char8 *memPtr = &dataSourceMemory[offsets[signalIdx]];
-        signalAddress = reinterpret_cast<void *&>(memPtr);
+    uint32 d;
+    bool ok = false;
+    if (storeOnTrigger) {
+        if (signalIdx == 0u) {
+            signalAddress = &trigger;
+            ok = true;
+        }
+    }
+    bool useTimeSignal = (timeSignalIdx > -1);
+    if (useTimeSignal) {
+        if (static_cast<uint32>(timeSignalIdx) == signalIdx) {
+            if (useAbsoluteTime) {
+                signalAddress = &timeUInt64;
+            }
+            else {
+                signalAddress = &timeUInt32;
+            }
+            ok = true;
+        }
+    }
+    if (danStreams != NULL_PTR(DANStream **)) {
+        for (d = 0u; (d < nOfDANStreams) && (!ok); d++) {
+            ok = danStreams[d]->GetSignalMemoryBuffer(signalIdx, signalAddress);
+        }
     }
     return ok;
 }
@@ -142,36 +163,50 @@ bool DANSource::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
 
 //TODO handle absolute time
 bool DANSource::Synchronise() {
-    hpn_timestamp_t hpnTimeStamp;
-    bool ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed to tcn_get_time");
-    }
+    bool ok = true;
     uint32 s;
-    for(s=0u; (s<nOfDANStreams) && (ok); s++) {
-        ok = danStreams[s]->PutData(hpnTimeStamp);
+    for (s = 0u; (s < nOfDANStreams) && (ok); s++) {
+        ok = danStreams[s]->PutData();
     }
     return ok;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
 bool DANSource::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
-    return true;
+    uint32 s;
+    for (s = 0u; (s < nOfDANStreams); s++) {
+        danStreams[s]->Reset();
+    }
+    bool ok = true;
+    if (!useAbsoluteTime) {
+        hpn_timestamp_t hpnTimeStamp;
+        ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
+        if (ok) {
+            for (s = 0u; (s < nOfDANStreams); s++) {
+                danStreams[s]->SetAbsoluteStartTime(hpnTimeStamp);
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::FatalError, "Failed to tcn_get_time");
+        }
+    }
+    return ok;
 }
 
 bool DANSource::Initialise(StructuredDataI& data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("NumberOfBuffers", numberOfBuffers);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be specified");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be specified");
+        }
     }
     if (ok) {
         ok = (numberOfBuffers > 0u);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be > 0u");
+
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be > 0u");
+        }
     }
     if (ok) {
         uint32 cpuMaskIn;
@@ -232,7 +267,7 @@ bool DANSource::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        if (danDataCore != NULL_PTR(dan_DataCore)) {
+        if (danDataCore == NULL_PTR(dan_DataCore)) {
             danDataCore = dan_initLibrary();
             ok = (danDataCore != NULL_PTR(dan_DataCore));
         }
@@ -262,6 +297,9 @@ bool DANSource::Initialise(StructuredDataI& data) {
             ok = originalSignalInformation.MoveToRoot();
         }
     }
+    if (ok) {
+        ok = data.MoveToAncestor(1u);
+    }
     return ok;
 }
 
@@ -270,10 +308,8 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = data.MoveRelative("Signals");
     }
-    //Check signal properties and compute memory
-    totalSignalMemory = 0u;
+    //Do not allow samples
     if (ok) {
-        //Do not allow samples
         uint32 functionNumberOfSignals = 0u;
         uint32 n;
         if (GetFunctionNumberOfSignals(OutputSignals, 0u, functionNumberOfSignals)) {
@@ -288,42 +324,16 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
                 }
             }
         }
-
-        offsets = new uint32[GetNumberOfSignals()];
-        uint32 nOfSignals = GetNumberOfSignals();
-        //Count the number of bytes
-        for (n = 0u; (n < nOfSignals) && (ok); n++) {
-            offsets[n] = totalSignalMemory;
-            uint32 nBytes = 0u;
-            ok = GetSignalByteSize(n, nBytes);
-            totalSignalMemory += nBytes;
-        }
-    }
-    //Allocate memory
-    if (ok) {
-        dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalSignalMemory));
-    }
-
-    if (ok) {
-        //If the trigger is defined this signal will not be added to the data block (as it will have a different type)
-        uint32 danBufferSize = totalSignalMemory;
-        if (IsStoreOnTrigger()) {
-            danBufferSize -= sizeof(uint8);
-        }
-        danBufferSize *= danBufferMultiplier;
-        danSource = dan_publisher_publishSource_withDAQBuffer(danDataCore, GetName(), danBufferSize);
     }
 
     //Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
     if (ok) {
-        //Count the number of signals
         uint32 n;
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
             ok = data.MoveRelative(data.GetChildName(n));
             if (ok) {
-                //Have to mix and match between the original setting of the DataSource signal (i.e. the one MDS+ related)
-                //and the ones which are later added by the RealTimeApplicationConfigurationBuilder
+                //Have to read properties from the original configuration file
                 ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(n));
             }
             //Check if the signal is defined as a TimeSignal
@@ -335,6 +345,69 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
                 }
                 if (timeSignal > 0u) {
                     timeSignalIdx = static_cast<int32>(n);
+                    uint32 absoluteTime;
+                    if (originalSignalInformation.Read("AbsoluteTime", absoluteTime)) {
+                        useAbsoluteTime = (absoluteTime == 1u);
+                    }
+                }
+            }
+            //Check if the signal Period or the SamplingFrequency are defined
+            float64 period;
+            uint32 samplingFrequency;
+            uint32 numberOfElements;
+            TypeDescriptor typeDesc;
+            //Only add signals that have Period SamplingFrequency specified
+            bool addSignal = false;
+            if (ok) {
+                addSignal = (originalSignalInformation.Read("Period", period));
+                if (addSignal) {
+                    if (period > 0.F) {
+                        float64 samplingFrequencyF = 1.F / period + 0.5;
+                        samplingFrequency = static_cast<uint32>(samplingFrequencyF);
+                    }
+                    else {
+                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Period shall be > 0");
+                    }
+                }
+                else {
+                    addSignal = (originalSignalInformation.Read("SamplingFrequency", samplingFrequency));
+                }
+                if (!addSignal) {
+                    StreamString signalName;
+                    (void) GetSignalName(n, signalName);
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "No Period nor SamplingFrequency specified for signal %s", signalName.Buffer());
+                }
+            }
+            //Only add signals that had Period or SamplingFrequency specified
+            if ((ok) && (addSignal)) {
+                ok = GetSignalNumberOfElements(n, numberOfElements);
+                if (ok) {
+                    typeDesc = GetSignalType(n);
+                    bool found = false;
+                    uint32 t;
+                    for (t = 0u; (t < nOfDANStreams) && (!found); t++) {
+                        found = (danStreams[t]->GetSamplingFrequency() == samplingFrequency);
+                        if (found) {
+                            found = (danStreams[t]->GetType() == typeDesc);
+                        }
+                        if (found) {
+                            danStreams[t]->AddSignal(n);
+                        }
+                    }
+                    if (!found) {
+                        DANStream **newDanStreams = new DANStream *[nOfDANStreams + 1u];
+                        for (t = 0u; t < nOfDANStreams; t++) {
+                            newDanStreams[t] = danStreams[t];
+                        }
+                        if (danStreams != NULL_PTR(DANStream **)) {
+                            delete[] danStreams;
+                        }
+                        danStreams = newDanStreams;
+
+                        danStreams[nOfDANStreams] = new DANStream(typeDesc, GetName(), danBufferMultiplier, samplingFrequency, numberOfElements);
+                        danStreams[nOfDANStreams]->AddSignal(n);
+                        nOfDANStreams++;
+                    }
                 }
             }
             if (ok) {
@@ -368,12 +441,37 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (useTimeSignal) {
         if (ok) {
-            ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == UnsignedInteger32Bit);
-            if (!ok) {
-                ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == SignedInteger32Bit);
+            if (useAbsoluteTime) {
+                ok = (GetSignalType(static_cast<uint64>(timeSignalIdx)) == UnsignedInteger64Bit);
+                if (!ok) {
+                    ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == SignedInteger64Bit);
+                }
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal with IsAbsoluteTime shall have type uint64 or int64");
+                }
             }
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall have type uint32 or int32");
+            else {
+                ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == UnsignedInteger32Bit);
+                if (!ok) {
+                    ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == SignedInteger32Bit);
+                }
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall have type uint32 or int32");
+                }
+            }
+        }
+    }
+    uint32 s;
+    if (ok) {
+        for (s = 0u; (s < nOfDANStreams); s++) {
+            danStreams[s]->Finalise();
+            if (useTimeSignal) {
+                if (useAbsoluteTime) {
+                    danStreams[s]->SetAbsoluteTimeSignal(&timeUInt64);
+                }
+                else {
+                    danStreams[s]->SetRelativeTimeSignal(&timeUInt32);
+                }
             }
         }
     }
@@ -382,24 +480,23 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
 }
 
 ErrorManagement::ErrorType DANSource::OpenStream() {
-    bool ok = (dan_publisher_openStream(danSource, samplingRate, 0u) == 0u);
-    if (ok) {
-        if (brokerAsyncTrigger != NULL_PTR(MemoryMapAsyncTriggerOutputBroker *)) {
-            brokerAsyncTrigger->ResetPreTriggerBuffers();
-        }
+    uint32 t;
+    bool ok = (danStreams != NULL_PTR(DANStream **));
+    for (t = 0u; (t < nOfDANStreams) && (ok); t++) {
+        ok = danStreams[t]->OpenStream();
     }
     ErrorManagement::ErrorType ret(ok);
     return ret;
 }
 
 ErrorManagement::ErrorType DANSource::CloseStream() {
-    bool ok;
-    if (danSource != NULL_PTR(dan_Source)) {
-        ok = (dan_publisher_closeStream(danSource) == 0u);
+    uint32 t;
+    bool ok = (danStreams != NULL_PTR(DANStream **));
+    for (t = 0u; (t < nOfDANStreams) && (ok); t++) {
+        ok = danStreams[t]->CloseStream();
     }
-
-    ErrorManagement::ErrorType err(ok);
-    return err;
+    ErrorManagement::ErrorType ret(ok);
+    return ret;
 }
 
 const ProcessorType& DANSource::GetCPUMask() const {
@@ -430,10 +527,9 @@ int32 DANSource::GetTimeSignalIdx() const {
     return timeSignalIdx;
 }
 
-dan_DataCore DANSource::GetDANDataCore() const {
+dan_DataCore DANSource::GetDANDataCore() {
     return danDataCore;
 }
-
 
 CLASS_REGISTER(DANSource, "1.0")
 CLASS_METHOD_REGISTER(DANSource, OpenStream)

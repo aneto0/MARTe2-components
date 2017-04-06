@@ -44,7 +44,7 @@ public:
     /**
      * TODO
      */
-    DANStream(TypeDescriptor tdIn, StreamString baseName, uint32 danBufferMultiplierIn);
+    DANStream(TypeDescriptor tdIn, StreamString baseName, uint32 danBufferMultiplierIn, uint32 samplingFrequencyIn, uint32 numberOfSamplesIn);
 
     /**
      * TODO
@@ -57,9 +57,14 @@ public:
     TypeDescriptor GetType();
 
     /**
+     *
+     */
+    uint32 GetSamplingFrequency();
+
+    /**
      * TODO
      */
-    void AddSignal(void * const signalIn);
+    void AddSignal(uint32 signalIdx);
 
     /**
      * TODO
@@ -69,28 +74,57 @@ public:
     /**
      * TODO
      */
-    bool PutData(uint64 timeStamp);
+    bool PutData();
 
     /**
      * TODO
      */
-    bool OpenStream(float64 samplingRate);
+    bool OpenStream();
 
     /**
      * TODO
      */
     bool CloseStream();
 
+    /**
+     * TODO
+     */
+    bool GetSignalMemoryBuffer(const uint32 signalIdx, void*& signalAddress);
+
+    /**
+     * TODO
+     */
+    void Reset();
+
+    /**
+     * TODO
+     */
+    void SetAbsoluteTimeSignal(uint64 *timeAbsoluteSignalIn);
+
+    /**
+     * TODO
+     */
+    void SetRelativeTimeSignal(uint32 *timeRelativeSignalIn);
+
+    /**
+     * TODO
+     */
+    void SetAbsoluteStartTime(uint64 absoluteStartTimeIn);
+
 private:
     TypeDescriptor td;
 
-    char8 **signalList;
+    uint32 *signalIndexOffset;
 
     char8 *blockMemory;
 
-    uint32 nOfSignals;
+    char8 *blockInterleavedMemory;
+
+    uint32 numberOfSignals;
 
     uint32 typeSize;
+
+    uint32 blockSize;
 
     /**
      * TODO
@@ -106,6 +140,56 @@ private:
      *
      */
     uint32 danBufferMultiplier;
+
+    /**
+     *
+     */
+    uint32 samplingFrequency;
+
+    /**
+     *
+     */
+    uint64 periodNanos;
+
+    /**
+     *
+     */
+    uint32 numberOfSamples;
+
+    /**
+     *
+     */
+    uint64 writeCounts;
+
+    /**
+     *
+     */
+    bool useExternalAbsoluteTimingSignal;
+
+    /**
+     *
+     */
+    bool useExternalRelativeTimingSignal;
+
+    /**
+     *
+     */
+    uint64 *timeAbsoluteSignal;
+
+    /**
+     *
+     */
+    uint32 *timeRelativeSignal;
+
+    /**
+     *
+     */
+    uint64 absoluteStartTime;
+
+    /**
+     *
+     */
+    StreamString danSourceName;
 };
 
 }
