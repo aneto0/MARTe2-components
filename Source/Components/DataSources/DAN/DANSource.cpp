@@ -57,7 +57,6 @@ DANSource::DANSource() :
     cpuMask = 0xfu;
     stackSize = 0u;
     danBufferMultiplier = 0u;
-    samplingRate = 0.0F;
     nOfDANStreams = 0u;
     timeUInt32 = 0u;
     timeUInt64 = 0u;
@@ -234,12 +233,6 @@ bool DANSource::Initialise(StructuredDataI& data) {
         ok = data.Read("DanBufferMultiplier", danBufferMultiplier);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "DanBufferMultiplier shall be specified");
-        }
-    }
-    if (ok) {
-        ok = data.Read("SamplingRate", samplingRate);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "SamplingRate shall be specified");
         }
     }
     uint32 storeOnTriggerU = 0u;
