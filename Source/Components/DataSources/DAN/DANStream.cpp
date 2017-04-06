@@ -138,8 +138,8 @@ bool DANStream::PutData() {
             }
         }
         if (ok) {
-            //TODO. This will have to be updated to match all the other function calls where success => ret == 0
-            ok = (dan_publisher_putDataBlock(danSource, timeStamp, blockInterleavedMemory, blockSize, NULL_PTR(char8 *)) == 1);
+            //Check for >= 0 as true means == 1 but on CCS 6.0 true will be == 0
+            ok = (dan_publisher_putDataBlock(danSource, timeStamp, blockInterleavedMemory, blockSize, NULL_PTR(char8 *)) >= 0);
         }
     }
     else {
