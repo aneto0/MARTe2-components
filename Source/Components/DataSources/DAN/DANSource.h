@@ -355,5 +355,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* SOURCE_COMPONENTS_DATASOURCES_DAN_DANSOURCE_H_ */
+#endif /* DAN_DANSOURCE_H_ */
 

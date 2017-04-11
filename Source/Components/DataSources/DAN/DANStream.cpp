@@ -107,7 +107,6 @@ void DANStream::SetRelativeTimeSignal(uint32 *timeRelativeSignalIn) {
     }
 }
 
-#include <stdio.h>
 bool DANStream::PutData() {
     bool ok = true;
     uint64 timeStamp = 0u;
