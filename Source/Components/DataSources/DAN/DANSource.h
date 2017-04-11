@@ -88,7 +88,6 @@ class DANSource: public DataSourceI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     /**
      * @brief Default constructor.
      * @details Initialises all the optional parameters as described in the class description.
      * Registers the RPC OpenStream and CloseStream callback functions.
