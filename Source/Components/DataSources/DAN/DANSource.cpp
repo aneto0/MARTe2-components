@@ -60,6 +60,7 @@ DANSource::DANSource() :
     nOfDANStreams = 0u;
     timeUInt32 = 0u;
     timeUInt64 = 0u;
+    trigger = 0u;
     useAbsoluteTime = false;
     danStreams = NULL_PTR(DANStream **);
     brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
@@ -509,6 +510,10 @@ uint32 DANSource::GetNumberOfPreTriggers() const {
 
 uint32 DANSource::GetStackSize() const {
     return stackSize;
+}
+
+bool DANSource::IsAbsoluteTime() const {
+    return useAbsoluteTime;
 }
 
 bool DANSource::IsStoreOnTrigger() const {

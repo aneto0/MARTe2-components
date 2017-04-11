@@ -3,7 +3,6 @@
  * @brief Header file for class DANSource
  * @date 04/04/2017
  * @author Andre Neto
- * @author Lana Abadie
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -43,21 +42,62 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-/**
- * TODO
- */
 namespace MARTe {
+/**
+ * @brief A DataSourceI which allows to store signals in an ITER DAN database.
+ *
+ * @details Data written into this data source is temporarily stored in a circular buffer and
+ * asynchronously flushed to the DAN database in the context of a separate thread.
+ * This circular buffer can either be continuously stored or stored only when a given event occurs (see StoreOnTrigger below).
+ *
+ * This DataSourceI has the functions OpenStream and CloseStream registered as an RPC.
+ *
+ * The configuration syntax is (names are only given as an example):
+ * +DANSource_0 = {
+ *     Class = DAN::DANSource
+ *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
+ *     CPUMask = 15 //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data into the DAN database.
+ *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
+ *     DanBufferMultiplier = 4 //Compulsory. Number of buffer that the dan_publisher_publishSource_withDAQBuffer will use to buffer the data written by the DataSourceI
+ *     StoreOnTrigger = 1 //Compulsory. If 0 all the data in the circular buffer is continuously stored. If 1 data is stored when the Trigger signal is 1 (see below).
+ *     NumberOfPreTriggers = 2 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store before the trigger.
+ *     NumberOfPostTriggers = 1 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store after the trigger.
+ *
+ *     Signals = {
+ *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be set in index 0 of the Signals node. When the value of this signal is 1 data will be stored.
+ *             Type = 'uint8" //Type must be uint8
+ *         }
+ *         Time = { //Compulsory when StoreOnTrigger = 1. Can be store in any index, but TimeSignal must be set = 1
+ *             Type = "uint32" //Type must be uint32, int32, uint64 or int64
+ *             TimeSignal = 1 //When set, this signal will be considered as the time source against which all signals will be stored.
+ *                            //When not set (i.e. when no TimeSignal is defined) the time will computed as the absolute time at the latest state change (given by tcn_get_time) + the number of cycles multiplied by the signal Period (or 1/SamplingFrequency)
+ *             AbsoluteTime = 0 //Optional. If 1 the Type shall be uint64 or int64 and the absolute time given by this signal will be used to time stamp the samples.
+ *                              //          If 0 and TimeSignal = 1 the time will computed as the absolute time at the latest state change (given by tcn_get_time) + the time given by this time signal (which is assumed to be relative).
+ *         }
+ *         SignalUInt16F = { //As many as required.
+ *             Period = 1e-3 //Compulsory if SamplingFrequency not set. Period between signal samples.
+ *             SamplingFrequency = 1000 //Compulsory if Period not set. 1/Period between signal samples.
+ *         }
+ *         ...
+ *     }
+ * }
+ *
+ * A DANStream instance will be created for every different signal_type/sampling_frequency pair.
+ */
 class DANSource: public DataSourceI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO.
+     /**
+     * @brief Default constructor.
+     * @details Initialises all the optional parameters as described in the class description.
+     * Registers the RPC OpenStream and CloseStream callback functions.
      */
 DANSource    ();
 
     /**
      * @brief Destructor.
-     * @details TODO.
+     * @details Closes all the DANStream instances.
      */
     virtual ~DANSource();
 
@@ -110,13 +150,16 @@ DANSource    ();
             void * const gamMemPtr);
 
     /**
-     * @brief TODO.
+     * @brief Calls PutData on all the DANStream instances.
+     * @return true if the DANStream::PutData returns true on all the streams.
      */
     virtual bool Synchronise();
 
     /**
-     * @brief See DataSourceI::PrepareNextState. NOOP.
-     * @return true.
+     * @brief Calls DANStream::Reset on all the DANStream instances.
+     * @details If AbsoluteTime = 1 in the configuration entry, calls DANStream::SetAbsoluteStartTime with the
+     *  time given by tcn_get_time.
+     * @return ok if tcn_get_time succeeds.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
             const char8 * const nextStateName);
@@ -128,23 +171,36 @@ DANSource    ();
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief TODO.
+     * @brief Final verification of all the parameters and setup of the DANStream instances.
+     * @details This method verifies that all the parameters (e.g. number of samples) requested by the GAMs interacting with this DataSource
+     *  are valid and consistent with the parameters set during the initialisation phase.
+     * In particular the following conditions shall be met:
+     * - If relevant, the Trigger signal shall have type uint8
+     * - If relevant, the Time signal shall have type uint32, int32, uint64 or int64
+     * - The number of samples of all the DAN signals is one.
+     * - For every signal either the Period or the SamplingFrequency is specified.
+     * - At least one DAN signal (apart from the eventual Trigger and Time signal) is set.
+     *
+     * A DANStream instance will be created for every different signal_type/sampling_frequency pair.
+     * @return true if all the parameters are valid.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @brief TODO.
+     * @brief Calls dan_publisher_openStream on every DANStream.
+     * @return true if all dan_publisher_openStream return >= 0.
      */
     ErrorManagement::ErrorType OpenStream();
 
     /**
-     * @brief TODO.
+     * @brief Calls dan_publisher_closeStream on every DANStream.
+     * @return true if all dan_publisher_closeStream return 0.
      */
     ErrorManagement::ErrorType CloseStream();
 
     /**
-     * @brief Gets the affinity of the thread which is going to be used to asynchronously store the data in the MDS plus database.
-     * @return the affinity of the thread which is going to be used to asynchronously store the data in the MDS database.
+     * @brief Gets the affinity of the thread which is going to be used to asynchronously store the data in the DAN database.
+     * @return the affinity of the thread which is going to be used to asynchronously store the data in the DAN database.
      */
     const ProcessorType& GetCPUMask() const;
 
@@ -167,16 +223,22 @@ DANSource    ();
     uint32 GetNumberOfPreTriggers() const;
 
     /**
-     * @brief Gets the stack size of the thread which is going to be used to asynchronously store the data in the MDS plus database.
-     * @return the stack size of the thread which is going to be used to asynchronously store the data in the MDS plus database.
+     * @brief Gets the stack size of the thread which is going to be used to asynchronously store the data in the DAN database.
+     * @return the stack size of the thread which is going to be used to asynchronously store the data in the DAN database.
      */
     uint32 GetStackSize() const;
 
     /**
-     * @brief Returns true if the data is going to be stored in MDS plus based on the occurrence of an external trigger.
-     * @return true if the data is going to be stored in MDS plus based on a trigger event.
+     * @brief Returns true if the data is going to be stored in DAN is based on the occurrence of an external trigger.
+     * @return true if the data is going to be stored in DAN is based on a trigger event.
      */
     bool IsStoreOnTrigger() const;
+
+    /**
+     * @brief Checks is AbsoluteTime = 1 was set in the configuration entry.
+     * @return true if AbsoluteTime = 1 was set in the TimeSignal of the configuration entry.
+     */
+    bool IsAbsoluteTime() const;
 
     /**
      * @brief Returns the index of the signal which is going to provide the time if the data is based on an external trigger.
@@ -185,18 +247,14 @@ DANSource    ();
     int32 GetTimeSignalIdx() const;
 
     /**
-     * TODO
+     * @brief Gets the singleton dan_DataCore.
+     * @return the singleton dan_DataCore.
      */
     static dan_DataCore GetDANDataCore();
 private:
 
     /**
-     * The tree pulse number.
-     */
-    int32 pulseNumber;
-
-    /**
-     * True if the data is only to be stored in MDS plus following a trigger.
+     * True if the data is only to be stored in DAN following a trigger.
      */
     bool storeOnTrigger;
 
@@ -226,7 +284,7 @@ private:
     ProcessorType cpuMask;
 
     /**
-     * The size of the stack of the thread that asynchronously flushes data into MDSplus.
+     * The size of the stack of the thread that asynchronously flushes data into DAN.
      */
     uint32 stackSize;
 
@@ -241,52 +299,52 @@ private:
     ReferenceT<RegisteredMethodsMessageFilter> filter;
 
     /**
-     * The asynchronous triggered broker that provides the interface between the GAMs and the MDS+ memory
+     * The asynchronous triggered broker that provides the interface between the GAMs and the DAN memory
      */
     MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
 
     /**
-     * TODO
+     * dan_DataCore singleton that is required by all the DANStream instances.
      */
     static dan_DataCore danDataCore;
 
     /**
-     * TODO
+     * Number of internal buffers (number of signal copies) that the DAN library should allocate.
      */
     uint32 danBufferMultiplier;
 
     /**
-     * TODO
+     * The signal sampling rate.
      */
     float64 samplingRate;
 
     /**
-     * TODO
+     * List of DANStream instances (one for each type/samplingRate pair).
      */
     DANStream **danStreams;
 
     /**
-     * TODO
+     * Number of of DANStream instances (one for each type/samplingRate pair).
      */
     uint32 nOfDANStreams;
 
     /**
-     * TODO
+     * True if the time stamps should be marked against an absolute time.
      */
     bool useAbsoluteTime;
 
     /**
-     * TODO
+     * Holds the time as a uint32. This variable is shared by the DANStream instances.
      */
     uint32 timeUInt32;
 
     /**
-     * TODO
+     * Holds the time as a uint64. This variable is shared by the DANStream instances.
      */
     uint64 timeUInt64;
 
     /**
-     * TODO
+     * Holds the trigger to be used by the MemoryMapAsyncTriggerOutputBroker.
      */
     uint8 trigger;
 
