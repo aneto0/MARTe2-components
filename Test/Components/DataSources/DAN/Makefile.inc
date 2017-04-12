@@ -48,6 +48,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
+INCLUDES += -I/usr/include/libxml2
 INCLUDES += -I../../../../Source/Components/DataSources/DAN
 
 ifdef CODAC_ROOT
@@ -55,7 +56,7 @@ INCLUDES += -I$(CODAC_ROOT)/include
 endif
 
 ifdef CODAC_ROOT
-LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
+LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2 -ldan_stream_reader_cpp
 endif
 
 

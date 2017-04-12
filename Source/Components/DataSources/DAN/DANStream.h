@@ -27,6 +27,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "dan/dan_DataCore.h"
 #include "dan/dan_Source.h"
 
 /*---------------------------------------------------------------------------*/
@@ -72,6 +73,18 @@ public:
      * @return the signal sampling frequency associated to this stream.
      */
     uint32 GetSamplingFrequency();
+
+    /**
+     * @brief Gets the number of buffers that will be used by the DAN library to store the signals in order to avoid buffer overwrites after a PutData.
+     * @return the the number of buffers that will be used by the DAN library.
+     */
+    uint32 GetDANBufferMultiplier();
+
+    /**
+     * @brief Gets the number of samples written on every PutData call.
+     * @return the number of samples
+     */
+    uint32 GetNumberOfSamples();
 
     /**
      * @brief Adds a new signal to this stream.

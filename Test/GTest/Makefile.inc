@@ -39,7 +39,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 # Current assumption is prior installation of CODAC Core System on the build node
 ifdef CODAC_ROOT
-LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core
+LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ldan_stream_reader_cpp -ltcn -llog -lxml2
 endif
 
 ifdef SDN_CORE_LIBRARY_DIR

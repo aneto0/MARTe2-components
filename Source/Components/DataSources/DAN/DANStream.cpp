@@ -26,6 +26,7 @@
 /*---------------------------------------------------------------------------*/
 #include "dan/dan_DataCore.h"
 #include "dan/dan_Source.h"
+#include "tcn.h"
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -83,6 +84,14 @@ TypeDescriptor DANStream::GetType() {
 
 uint32 DANStream::GetSamplingFrequency() {
     return samplingFrequency;
+}
+
+uint32 DANStream::GetDANBufferMultiplier() {
+    return danBufferMultiplier;
+}
+
+uint32 DANStream::GetNumberOfSamples() {
+    return numberOfSamples;
 }
 
 void DANStream::Reset() {
@@ -157,7 +166,6 @@ bool DANStream::OpenStream() {
 
 bool DANStream::CloseStream() {
     return (dan_publisher_closeStream(danSource) == 0u);
-    return true;
 }
 
 void DANStream::Finalise() {

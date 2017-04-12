@@ -24,11 +24,13 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include <limits.h>
+#include "gtest/gtest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
+#include "DANStreamTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -37,7 +39,42 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+TEST(DANStreamGTest,TestConstructor) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestConstructor());
+}
 
+TEST(DANStreamGTest,TestGetType) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestGetType());
+}
 
+TEST(DANStreamGTest,TestGetSamplingFrequency) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestGetSamplingFrequency());
+}
 
+TEST(DANStreamGTest,TestGetDANBufferMultiplier) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestGetDANBufferMultiplier());
+}
+
+TEST(DANStreamGTest,TestGetNumberOfSamples) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestGetNumberOfSamples());
+}
+
+TEST(DANStreamGTest,TestAddSignal) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestAddSignal());
+}
+
+TEST(DANStreamGTest,TestFinalise) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestFinalise());
+}
 	
+TEST(DANStreamGTest,TestPutData) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestPutData());
+}
