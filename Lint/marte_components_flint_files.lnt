@@ -4,6 +4,7 @@
 -i%MDSPLUS_DIR%/include
 -i%SDN_CORE_INCLUDE_DIR%
 
+-i./Source/Components/DataSources/DAN/
 -i./Source/Components/DataSources/EpicsDataSource/
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
@@ -19,20 +20,15 @@
 -i./Source/Components/Interfaces/EPICS/
 -i./Source/Components/Interfaces/SysLogger/
 
-Atomic2.h
-EpicsInputDataSource.cpp
-EpicsOutputDataSource.cpp
-Signal.h
-Platform.cpp
-SharedDataArea.cpp
-Sigblock.cpp
-SigblockDoubleBuffer.cpp
-Types.h
+/*Atomic2.h
 BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
 ConversionGAM.cpp
-ConversionHelper.cpp
+ConversionHelper.cpp*/
+DANStream.cpp
+/*EpicsInputDataSource.cpp
+EpicsOutputDataSource.cpp
 EPICSPV.cpp
 EPICSCAClient.cpp
 FilterGAM.cpp
@@ -49,6 +45,12 @@ NI6368ADC.cpp
 NI6368ADCInputBroker.cpp
 NI6368DAC.cpp
 NI6368DIO.cpp
+Platform.cpp
+Sigblock.cpp
+SigblockDoubleBuffer.cpp
+Signal.h
 SDNPublisher.cpp
 SDNSubscriber.cpp
+SharedDataArea.cpp
 SysLogger.cpp
+Types.h*/

@@ -55,7 +55,7 @@ public:
      * @param[in] samplingFrequencyIn the stream sampling frequency.
      * @param[in] numberOfSamplesIn the number of samples written on every PutData call.
      */
-    DANStream(TypeDescriptor tdIn, StreamString baseName, uint32 danBufferMultiplierIn, uint32 samplingFrequencyIn, uint32 numberOfSamplesIn);
+    DANStream(const TypeDescriptor & tdIn, StreamString baseNameIn, uint32 danBufferMultiplierIn, float64 samplingFrequencyIn, uint32 numberOfSamplesIn);
 
     /**
      * @brief Frees the allocated memory and calls dan_publisher_unpublishSource.
@@ -66,25 +66,25 @@ public:
      * @brief Gets the signal type associated to this stream.
      * @return the signal type associated to this stream.
      */
-    TypeDescriptor GetType();
+    TypeDescriptor GetType() const;
 
     /**
      * @brief Gets the signal sampling frequency associated to this stream.
      * @return the signal sampling frequency associated to this stream.
      */
-    uint32 GetSamplingFrequency();
+    float64 GetSamplingFrequency() const;
 
     /**
      * @brief Gets the number of buffers that will be used by the DAN library to store the signals in order to avoid buffer overwrites after a PutData.
      * @return the the number of buffers that will be used by the DAN library.
      */
-    uint32 GetDANBufferMultiplier();
+    uint32 GetDANBufferMultiplier() const;
 
     /**
      * @brief Gets the number of samples written on every PutData call.
      * @return the number of samples
      */
-    uint32 GetNumberOfSamples();
+    uint32 GetNumberOfSamples() const;
 
     /**
      * @brief Adds a new signal to this stream.
@@ -205,7 +205,7 @@ private:
     /**
      * Sampling frequency of the signals acquired by this DANStream.
      */
-    uint32 samplingFrequency;
+    float64 samplingFrequency;
 
     /**
      * 1 / Sampling frequency of the signals acquired by this DANStream.
@@ -251,6 +251,10 @@ private:
      * The name of the DANSource that holds this DANStream.
      */
     StreamString danSourceName;
+
+    /*lint -e{1712} This class does not have a default constructor because
+     * the constructor input parameters must be defined on construction and both remain constant
+     * during the object's lifetime*/
 };
 
 }

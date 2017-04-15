@@ -46,9 +46,9 @@
 
 namespace MARTe {
 
-DANStream::DANStream(TypeDescriptor tdIn, StreamString baseNameIn, uint32 danBufferMultiplierIn, uint32 samplingFrequencyIn, uint32 numberOfSamplesIn) {
+DANStream::DANStream(const TypeDescriptor & tdIn, const StreamString baseNameIn, const uint32 danBufferMultiplierIn, const float64 samplingFrequencyIn, const uint32 numberOfSamplesIn) {
     td = tdIn;
-    typeSize = td.numberOfBits / 8u;
+    typeSize = static_cast<uint32>(td.numberOfBits) / 8u;
     numberOfSignals = 0u;
     blockSize = 0u;
     useExternalAbsoluteTimingSignal = false;
@@ -61,7 +61,8 @@ DANStream::DANStream(TypeDescriptor tdIn, StreamString baseNameIn, uint32 danBuf
     danBufferMultiplier = danBufferMultiplierIn;
     samplingFrequency = samplingFrequencyIn;
     numberOfSamples = numberOfSamplesIn;
-    periodNanos = 1e9 / samplingFrequency;
+    float64 periodNanosF = (1e9 / samplingFrequency);
+    periodNanos = static_cast<uint64>(periodNanosF);
     absoluteStartTime = 0u;
     timeAbsoluteSignal = NULL_PTR(uint64 *);
     timeRelativeSignal = NULL_PTR(uint32 *);
@@ -69,6 +70,7 @@ DANStream::DANStream(TypeDescriptor tdIn, StreamString baseNameIn, uint32 danBuf
     danSourceName = "";
 }
 
+/*lint -e{1551} the destructor must guarantee that the DANSource is unpublished at the of the object life-cycle. The internal buffering memory is also cleaned in this function.*/
 DANStream::~DANStream() {
     if (signalIndexOffset != NULL_PTR(uint32 *)) {
         delete[] signalIndexOffset;
@@ -76,21 +78,28 @@ DANStream::~DANStream() {
     if ((DANSource::GetDANDataCore() != NULL_PTR(dan_DataCore)) && (danSource != NULL_PTR(dan_Source))) {
         dan_publisher_unpublishSource(DANSource::GetDANDataCore(), danSource);
     }
+    if (blockMemory != NULL_PTR(char8 *)) {
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(blockMemory));
+    }
+    if (blockInterleavedMemory != NULL_PTR(char8 *)) {
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(blockInterleavedMemory));
+    }
+    /*lint -e{1740} the pointer danSource is cleaned by the dan_publisher_unpublishSource the pointers timeRelativeSignals and timeAbsoluteSignal are cleaned by the DANSource*/
 }
 
-TypeDescriptor DANStream::GetType() {
+TypeDescriptor DANStream::GetType() const {
     return td;
 }
 
-uint32 DANStream::GetSamplingFrequency() {
+float64 DANStream::GetSamplingFrequency() const {
     return samplingFrequency;
 }
 
-uint32 DANStream::GetDANBufferMultiplier() {
+uint32 DANStream::GetDANBufferMultiplier() const {
     return danBufferMultiplier;
 }
 
-uint32 DANStream::GetNumberOfSamples() {
+uint32 DANStream::GetNumberOfSamples() const {
     return numberOfSamples;
 }
 
@@ -98,18 +107,18 @@ void DANStream::Reset() {
     writeCounts = 0u;
 }
 
-void DANStream::SetAbsoluteStartTime(uint64 absoluteStartTimeIn) {
+void DANStream::SetAbsoluteStartTime(const uint64 absoluteStartTimeIn) {
     absoluteStartTime = absoluteStartTimeIn;
 }
 
-void DANStream::SetAbsoluteTimeSignal(uint64 *timeAbsoluteSignalIn) {
+void DANStream::SetAbsoluteTimeSignal(uint64 * const timeAbsoluteSignalIn) {
     timeAbsoluteSignal = timeAbsoluteSignalIn;
     if (timeAbsoluteSignal != NULL_PTR(uint64 *)) {
         useExternalAbsoluteTimingSignal = true;
     }
 }
 
-void DANStream::SetRelativeTimeSignal(uint32 *timeRelativeSignalIn) {
+void DANStream::SetRelativeTimeSignal(uint32 * const timeRelativeSignalIn) {
     timeRelativeSignal = timeRelativeSignalIn;
     if (timeRelativeSignal != NULL_PTR(uint32 *)) {
         useExternalRelativeTimingSignal = true;
@@ -120,10 +129,12 @@ bool DANStream::PutData() {
     bool ok = true;
     uint64 timeStamp = 0u;
     if (useExternalAbsoluteTimingSignal) {
+        /*lint -e{613} timeAbsoluteSignal cannot be NULL as otherwise useExternalAbsoluteTimingSignal=false*/
         timeStamp = *timeAbsoluteSignal;
     }
     else if (useExternalRelativeTimingSignal) {
         //Time in nanoseconds
+        /*lint -e{613} timeRelativeSignal cannot be NULL as otherwise useExternalRelativeTimingSignal=false*/
         uint64 timeRelativeSignalNanos = static_cast<uint64>(*timeRelativeSignal);
         timeRelativeSignalNanos *= 1000u;
         timeStamp = absoluteStartTime;
@@ -140,14 +151,19 @@ bool DANStream::PutData() {
         //Interleave the memory data
         for (s = 0u; (s < numberOfSignals) && (ok); s++) {
             for (z = 0u; (z < numberOfSamples) && (ok); z++) {
-                char8 *src = &blockMemory[s * numberOfSamples * typeSize + z * typeSize];
-                char8 *dest = &blockInterleavedMemory[s * typeSize + (z * numberOfSignals * typeSize)];
+                uint32 blockMemoryIdx = s * numberOfSamples * typeSize;
+                blockMemoryIdx += (z * typeSize);
+                char8 *src = &blockMemory[blockMemoryIdx];
+
+                uint32 blockInterleavedMemoryIdx = s * typeSize;
+                blockInterleavedMemoryIdx += (z * numberOfSignals * typeSize);
+                char8 *dest = &blockInterleavedMemory[blockInterleavedMemoryIdx];
                 ok = MemoryOperationsHelper::Copy(dest, src, typeSize);
             }
         }
         if (ok) {
             //Check for >= 0 as true means == 1 but on CCS 6.0 true will be == 0
-            ok = (dan_publisher_putDataBlock(danSource, timeStamp, blockInterleavedMemory, blockSize, NULL_PTR(char8 *)) >= 0);
+            ok = (dan_publisher_putDataBlock(danSource, timeStamp, blockInterleavedMemory, static_cast<ssize_t>(blockSize), NULL_PTR(char8 *)) >= 0);
         }
     }
     else {
@@ -157,7 +173,7 @@ bool DANStream::PutData() {
 }
 
 bool DANStream::OpenStream() {
-    bool ok = (dan_publisher_openStream(danSource, static_cast<float64>(samplingFrequency), 0u) == 0u);
+    bool ok = (dan_publisher_openStream(danSource, samplingFrequency, static_cast<ssize_t>(0)) == 0);
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to dan_publisher_openStream for %s", danSourceName.Buffer());
     }
@@ -165,24 +181,26 @@ bool DANStream::OpenStream() {
 }
 
 bool DANStream::CloseStream() {
-    return (dan_publisher_closeStream(danSource) == 0u);
+    return (dan_publisher_closeStream(danSource) == 0);
 }
 
 void DANStream::Finalise() {
     blockSize = numberOfSignals * typeSize * numberOfSamples;
     blockMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(blockSize));
     blockInterleavedMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(blockSize));
-    danSourceName.Seek(0LLU);
-    danSourceName.Printf("%s_%s", baseName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(td));
-    danSourceName.Seek(0LLU);
+    (void) danSourceName.Seek(0LLU);
+    (void) danSourceName.Printf("%s_%s", baseName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(td));
+    (void) danSourceName.Seek(0LLU);
     uint32 danBufferSize = blockSize * danBufferMultiplier;
-    danSource = dan_publisher_publishSource_withDAQBuffer(DANSource::GetDANDataCore(), danSourceName.Buffer(), danBufferSize);
+    danSource = dan_publisher_publishSource_withDAQBuffer(DANSource::GetDANDataCore(), danSourceName.Buffer(), static_cast<ssize_t>(danBufferSize));
 }
 
-void DANStream::AddSignal(uint32 signalIdx) {
-    uint32* newSignalIndexOffset = new uint32[numberOfSignals + 1u];
+void DANStream::AddSignal(const uint32 signalIdx) {
+    uint32 numberOfSignalsP1 = (numberOfSignals + 1u);
+    uint32 *newSignalIndexOffset = new uint32[numberOfSignalsP1];
     uint32 i;
     for (i = 0u; i < numberOfSignals; i++) {
+        /*lint -e{613} signalIndexOffset cannot be NULL as numberOfSignals is initialised to zero in the constructor*/
         newSignalIndexOffset[i] = signalIndexOffset[i];
     }
     if (numberOfSignals > 0u) {
@@ -197,10 +215,12 @@ bool DANStream::GetSignalMemoryBuffer(const uint32 signalIdx, void*& signalAddre
     uint32 s;
     bool found = false;
     for (s = 0u; (s < numberOfSignals) && (!found); s++) {
+        /*lint -e{613} signalIndexOffset cannot be NULL as numberOfSignals is initialised to zero in the constructor*/
         found = (signalIndexOffset[s] == signalIdx);
         if (found) {
             if (blockMemory != NULL_PTR(char8 *)) {
-                char8* memSignalAddress = &blockMemory[s * typeSize * numberOfSamples];
+                uint32 memSignalAddressIdx = (s * typeSize * numberOfSamples);
+                char8* memSignalAddress = &blockMemory[memSignalAddressIdx];
                 signalAddress = reinterpret_cast<void *&>(memSignalAddress);
             }
             else {

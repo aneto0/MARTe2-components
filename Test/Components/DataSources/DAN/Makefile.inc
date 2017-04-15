@@ -59,6 +59,8 @@ ifdef CODAC_ROOT
 LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2 -ldan_stream_reader_cpp
 endif
 
+#TODO Temporary to fix in hpn.h
+CPPFLAGS += -Wno-error=narrowing
 
 all: $(OBJS) \
 	$(BUILD_DIR)/DANTest$(LIBEXT)

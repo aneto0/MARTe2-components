@@ -50,8 +50,8 @@ ifdef CODAC_ROOT
 LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
 endif
 
-# Override CPPFLAGS due to scoped enums
-CPPFLAGS += -std=c++0x
+# Override CPPFLAGS due to scoped enums. Allow narrowing. TODO file bug report.
+CPPFLAGS += -std=c++0x -Wno-error=narrowing
 
 all: $(OBJS)    \
     $(BUILD_DIR)/DAN$(LIBEXT) \
