@@ -51,7 +51,7 @@ bool DANStreamTest::TestConstructor() {
     DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8);
     bool ok = (ds.GetType() == Float32Bit);
     ok &= (ds.GetDANBufferMultiplier() == 4);
-    ok &= (ds.GetSamplingFrequency() == 2e6);
+    ok &= (ds.GetPeriodNanos() == 500);
     ok &= (ds.GetNumberOfSamples() == 8);
 
     return true;

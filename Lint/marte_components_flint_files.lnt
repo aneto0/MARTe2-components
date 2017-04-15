@@ -26,6 +26,7 @@ BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
 ConversionGAM.cpp
 ConversionHelper.cpp*/
+DANSource.cpp
 DANStream.cpp
 /*EpicsInputDataSource.cpp
 EpicsOutputDataSource.cpp

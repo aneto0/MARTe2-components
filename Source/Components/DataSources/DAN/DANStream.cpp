@@ -91,8 +91,8 @@ TypeDescriptor DANStream::GetType() const {
     return td;
 }
 
-float64 DANStream::GetSamplingFrequency() const {
-    return samplingFrequency;
+uint64 DANStream::GetPeriodNanos() const {
+    return periodNanos;
 }
 
 uint32 DANStream::GetDANBufferMultiplier() const {

@@ -26,7 +26,6 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #include "dan/dan_DataCore.h"
-#include "dan/dan_Source.h"
 #include "tcn.h"
 
 /*---------------------------------------------------------------------------*/
@@ -40,7 +39,9 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-dan_DataCore MARTe::DANSource::danDataCore = NULL_PTR(dan_DataCore);
+namespace MARTe {
+dan_DataCore DANSource::danDataCore = NULL_PTR(dan_DataCore);
+}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -48,7 +49,8 @@ dan_DataCore MARTe::DANSource::danDataCore = NULL_PTR(dan_DataCore);
 namespace MARTe {
 
 DANSource::DANSource() :
-        DataSourceI(), MessageI() {
+        DataSourceI(),
+        MessageI() {
     storeOnTrigger = false;
     numberOfPreTriggers = 0u;
     numberOfPostTriggers = 0u;
@@ -72,6 +74,7 @@ DANSource::DANSource() :
     }
 }
 
+/*lint -e{1551} -e{1740} must destroy all the DANStreams in the destructor. The brokerAsyncTrigger is freed by the framework.*/
 DANSource::~DANSource() {
     if (danStreams != NULL_PTR(DANStream **)) {
         uint32 s;
@@ -165,6 +168,7 @@ bool DANSource::Synchronise() {
     bool ok = true;
     uint32 s;
     for (s = 0u; (s < nOfDANStreams) && (ok); s++) {
+        /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
         ok = danStreams[s]->PutData();
     }
     return ok;
@@ -174,6 +178,7 @@ bool DANSource::Synchronise() {
 bool DANSource::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
     uint32 s;
     for (s = 0u; (s < nOfDANStreams); s++) {
+        /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
         danStreams[s]->Reset();
     }
     bool ok = true;
@@ -182,6 +187,7 @@ bool DANSource::PrepareNextState(const char8* const currentStateName, const char
         ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
         if (ok) {
             for (s = 0u; (s < nOfDANStreams); s++) {
+                /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
                 danStreams[s]->SetAbsoluteStartTime(hpnTimeStamp);
             }
         }
@@ -296,6 +302,7 @@ bool DANSource::Initialise(StructuredDataI& data) {
     return ok;
 }
 
+/*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
 bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
@@ -346,7 +353,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
             }
             //Check if the signal Period or the SamplingFrequency are defined
             float64 period;
-            uint32 samplingFrequency;
+            float64 samplingFrequency = 0.F;
             uint32 numberOfElements;
             TypeDescriptor typeDesc;
             //Only add signals that have Period SamplingFrequency specified
@@ -355,20 +362,25 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
                 addSignal = (originalSignalInformation.Read("Period", period));
                 if (addSignal) {
                     if (period > 0.F) {
-                        float64 samplingFrequencyF = 1.F / period + 0.5;
-                        samplingFrequency = static_cast<uint32>(samplingFrequencyF);
+                        samplingFrequency = (1.F / period) + 0.5;
                     }
                     else {
                         REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Period shall be > 0");
+                        ok = false;
                     }
                 }
                 else {
                     addSignal = (originalSignalInformation.Read("SamplingFrequency", samplingFrequency));
+                    ok = (samplingFrequency > 0.F);
+                    if (!ok) {
+                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "SamplingFrequency shall be > 0");
+                    }
                 }
                 if (!addSignal) {
                     StreamString signalName;
                     (void) GetSignalName(n, signalName);
                     REPORT_ERROR_STATIC(ErrorManagement::Warning, "No Period nor SamplingFrequency specified for signal %s", signalName.Buffer());
+                    ok = false;
                 }
             }
             //Only add signals that had Period or SamplingFrequency specified
@@ -379,7 +391,10 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
                     bool found = false;
                     uint32 t;
                     for (t = 0u; (t < nOfDANStreams) && (!found); t++) {
-                        found = (danStreams[t]->GetSamplingFrequency() == samplingFrequency);
+                        /*lint -e{414} samplingFrequency != 0 is checked above*/
+                        float64 periodNanosF = (1e9 / samplingFrequency);
+                        uint64 periodNanos = static_cast<uint64>(periodNanosF);
+                        found = (danStreams[t]->GetPeriodNanos() == periodNanos);
                         if (found) {
                             found = (danStreams[t]->GetType() == typeDesc);
                         }
@@ -388,7 +403,8 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
                         }
                     }
                     if (!found) {
-                        DANStream **newDanStreams = new DANStream *[nOfDANStreams + 1u];
+                        uint32 nOfDANStreamsP1 = (nOfDANStreams + 1u);
+                        DANStream **newDanStreams = new DANStream *[nOfDANStreamsP1];
                         for (t = 0u; t < nOfDANStreams; t++) {
                             newDanStreams[t] = danStreams[t];
                         }
@@ -435,7 +451,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
     if (useTimeSignal) {
         if (ok) {
             if (useAbsoluteTime) {
-                ok = (GetSignalType(static_cast<uint64>(timeSignalIdx)) == UnsignedInteger64Bit);
+                ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == UnsignedInteger64Bit);
                 if (!ok) {
                     ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == SignedInteger64Bit);
                 }
@@ -476,20 +492,24 @@ ErrorManagement::ErrorType DANSource::OpenStream() {
     uint32 t;
     bool ok = (danStreams != NULL_PTR(DANStream **));
     for (t = 0u; (t < nOfDANStreams) && (ok); t++) {
+        /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
         ok = danStreams[t]->OpenStream();
     }
     ErrorManagement::ErrorType ret(ok);
     return ret;
+    /*lint -e{1762} function cannot be constant as it is registered as an RPC for CLASS_METHOD_REGISTER*/
 }
 
 ErrorManagement::ErrorType DANSource::CloseStream() {
     uint32 t;
     bool ok = (danStreams != NULL_PTR(DANStream **));
     for (t = 0u; (t < nOfDANStreams) && (ok); t++) {
+        /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
         ok = danStreams[t]->CloseStream();
     }
     ErrorManagement::ErrorType ret(ok);
     return ret;
+    /*lint -e{1762} function cannot be constant as it is registered as an RPC for CLASS_METHOD_REGISTER*/
 }
 
 const ProcessorType& DANSource::GetCPUMask() const {

@@ -69,10 +69,10 @@ public:
     TypeDescriptor GetType() const;
 
     /**
-     * @brief Gets the signal sampling frequency associated to this stream.
-     * @return the signal sampling frequency associated to this stream.
+     * @brief Gets the signal period in nano-seconds associated to this stream.
+     * @return the signal period in nano-seconds associated to this stream.
      */
-    float64 GetSamplingFrequency() const;
+    uint64 GetPeriodNanos() const;
 
     /**
      * @brief Gets the number of buffers that will be used by the DAN library to store the signals in order to avoid buffer overwrites after a PutData.
