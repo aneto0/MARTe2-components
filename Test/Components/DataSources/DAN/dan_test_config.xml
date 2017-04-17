@@ -8,9 +8,148 @@
 
  <danApi >
      <version >1.0.0</version>
-
-     <source name="DANStreamTest_uint32" >
+	<source name="DANStreamTest_uint16" >
+         <itemDanType >danUInt16</itemDanType>
+         <checkPolicy >NO_CHECK</checkPolicy>
+         <maxTransferRate >100000</maxTransferRate>
+         <streamType >DATA_D0</streamType>
+         <dataModel >DM_BLOCK2D_VAR</dataModel>
+         <advancedSource >
+             <queueSize >1000</queueSize>
+             <profMonitoring >1</profMonitoring>
+             <timeFormat >UTC</timeFormat>
+             <debug >
+                 <srvChunkHeaderSize >20</srvChunkHeaderSize>
+                 <srvChunkSize >10000</srvChunkSize>
+                 <srvBufferSize >2</srvBufferSize>
+            </debug>
+        </advancedSource>
+         <deviceInfo >
+             <deviceName >MARTeTest</deviceName>
+             <deviceVersion >v1.3</deviceVersion>
+             <operationalMode >0</operationalMode>
+             <manufactureCode >N1134342</manufactureCode>
+        </deviceInfo>
+         <channelsInfo sequence="SEQUENCIAL" >
+             <channel number="0" pvName="Signal1" label="Signal1" status="ENABLE" ></channel>
+             <channel number="1" pvName="Signal2" label="Signal2" status="ENABLE" ></channel>
+             <channel number="2" pvName="Signal3" label="Signal3" status="ENABLE" ></channel>
+        </channelsInfo>
+    </source>
+    <source name="DANStreamTest_int16" >
+         <itemDanType >danInt16</itemDanType>
+         <checkPolicy >NO_CHECK</checkPolicy>
+         <maxTransferRate >100000</maxTransferRate>
+         <streamType >DATA_D0</streamType>
+         <dataModel >DM_BLOCK2D_VAR</dataModel>
+         <advancedSource >
+             <queueSize >1000</queueSize>
+             <profMonitoring >1</profMonitoring>
+             <timeFormat >UTC</timeFormat>
+             <debug >
+                 <srvChunkHeaderSize >20</srvChunkHeaderSize>
+                 <srvChunkSize >10000</srvChunkSize>
+                 <srvBufferSize >2</srvBufferSize>
+            </debug>
+        </advancedSource>
+         <deviceInfo >
+             <deviceName >MARTeTest</deviceName>
+             <deviceVersion >v1.3</deviceVersion>
+             <operationalMode >0</operationalMode>
+             <manufactureCode >N1134342</manufactureCode>
+        </deviceInfo>
+         <channelsInfo sequence="SEQUENCIAL" >
+             <channel number="0" pvName="Signal1" label="Signal1" status="ENABLE" ></channel>
+             <channel number="1" pvName="Signal2" label="Signal2" status="ENABLE" ></channel>
+             <channel number="2" pvName="Signal3" label="Signal3" status="ENABLE" ></channel>
+        </channelsInfo>
+    </source>
+    <source name="DANStreamTest_uint32" >
          <itemDanType >danUInt32</itemDanType>
+         <checkPolicy >NO_CHECK</checkPolicy>
+         <maxTransferRate >100000</maxTransferRate>
+         <streamType >DATA_D0</streamType>
+         <dataModel >DM_BLOCK2D_VAR</dataModel>
+         <advancedSource >
+             <queueSize >1000</queueSize>
+             <profMonitoring >1</profMonitoring>
+             <timeFormat >UTC</timeFormat>
+             <debug >
+                 <srvChunkHeaderSize >20</srvChunkHeaderSize>
+                 <srvChunkSize >10000</srvChunkSize>
+                 <srvBufferSize >2</srvBufferSize>
+            </debug>
+        </advancedSource>
+         <deviceInfo >
+             <deviceName >MARTeTest</deviceName>
+             <deviceVersion >v1.3</deviceVersion>
+             <operationalMode >0</operationalMode>
+             <manufactureCode >N1134342</manufactureCode>
+        </deviceInfo>
+         <channelsInfo sequence="SEQUENCIAL" >
+             <channel number="0" pvName="Signal1" label="Signal1" status="ENABLE" ></channel>
+             <channel number="1" pvName="Signal2" label="Signal2" status="ENABLE" ></channel>
+             <channel number="2" pvName="Signal3" label="Signal3" status="ENABLE" ></channel>
+        </channelsInfo>
+    </source>
+    <source name="DANStreamTest_int32" >
+         <itemDanType >danInt32</itemDanType>
+         <checkPolicy >NO_CHECK</checkPolicy>
+         <maxTransferRate >100000</maxTransferRate>
+         <streamType >DATA_D0</streamType>
+         <dataModel >DM_BLOCK2D_VAR</dataModel>
+         <advancedSource >
+             <queueSize >1000</queueSize>
+             <profMonitoring >1</profMonitoring>
+             <timeFormat >UTC</timeFormat>
+             <debug >
+                 <srvChunkHeaderSize >20</srvChunkHeaderSize>
+                 <srvChunkSize >10000</srvChunkSize>
+                 <srvBufferSize >2</srvBufferSize>
+            </debug>
+        </advancedSource>
+         <deviceInfo >
+             <deviceName >MARTeTest</deviceName>
+             <deviceVersion >v1.3</deviceVersion>
+             <operationalMode >0</operationalMode>
+             <manufactureCode >N1134342</manufactureCode>
+        </deviceInfo>
+         <channelsInfo sequence="SEQUENCIAL" >
+             <channel number="0" pvName="Signal1" label="Signal1" status="ENABLE" ></channel>
+             <channel number="1" pvName="Signal2" label="Signal2" status="ENABLE" ></channel>
+             <channel number="2" pvName="Signal3" label="Signal3" status="ENABLE" ></channel>
+        </channelsInfo>
+    </source>
+    <source name="DANStreamTest_uint64" >
+         <itemDanType >danUInt64</itemDanType>
+         <checkPolicy >NO_CHECK</checkPolicy>
+         <maxTransferRate >100000</maxTransferRate>
+         <streamType >DATA_D0</streamType>
+         <dataModel >DM_BLOCK2D_VAR</dataModel>
+         <advancedSource >
+             <queueSize >1000</queueSize>
+             <profMonitoring >1</profMonitoring>
+             <timeFormat >UTC</timeFormat>
+             <debug >
+                 <srvChunkHeaderSize >20</srvChunkHeaderSize>
+                 <srvChunkSize >10000</srvChunkSize>
+                 <srvBufferSize >2</srvBufferSize>
+            </debug>
+        </advancedSource>
+         <deviceInfo >
+             <deviceName >MARTeTest</deviceName>
+             <deviceVersion >v1.3</deviceVersion>
+             <operationalMode >0</operationalMode>
+             <manufactureCode >N1134342</manufactureCode>
+        </deviceInfo>
+         <channelsInfo sequence="SEQUENCIAL" >
+             <channel number="0" pvName="Signal1" label="Signal1" status="ENABLE" ></channel>
+             <channel number="1" pvName="Signal2" label="Signal2" status="ENABLE" ></channel>
+             <channel number="2" pvName="Signal3" label="Signal3" status="ENABLE" ></channel>
+        </channelsInfo>
+    </source>
+    <source name="DANStreamTest_int64" >
+         <itemDanType >danInt64</itemDanType>
          <checkPolicy >NO_CHECK</checkPolicy>
          <maxTransferRate >100000</maxTransferRate>
          <streamType >DATA_D0</streamType>
@@ -64,8 +203,7 @@
              <channel number="1" pvName="Signal2" label="Signal2" status="ENABLE" ></channel>
              <channel number="2" pvName="Signal3" label="Signal3" status="ENABLE" ></channel>
         </channelsInfo>
-    </source>
-    
+    </source>    
     <source name="DANStreamTest_float64" >
          <itemDanType >danDouble</itemDanType>
          <checkPolicy >NO_CHECK</checkPolicy>

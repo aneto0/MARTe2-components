@@ -80,9 +80,44 @@ public:
     bool TestFinalise();
 
     /**
-     * @brief Tests the PutData method.
+     * @brief Tests the PutData method with uint16.
      */
-    bool TestPutData();
+    bool TestPutData_UInt16();
+
+    /**
+     * @brief Tests the PutData method with int16.
+     */
+    bool TestPutData_Int16();
+
+    /**
+     * @brief Tests the PutData method with uint32.
+     */
+    bool TestPutData_UInt32();
+
+    /**
+     * @brief Tests the PutData method with int32.
+     */
+    bool TestPutData_Int32();
+
+    /**
+     * @brief Tests the PutData method with uint64.
+     */
+    bool TestPutData_UInt64();
+
+    /**
+     * @brief Tests the PutData method with int64.
+     */
+    bool TestPutData_Int64();
+
+    /**
+     * @brief Tests the PutData method with float32.
+     */
+    bool TestPutData_Float32();
+
+    /**
+     * @brief Tests the PutData method with float64.
+     */
+    bool TestPutData_Float64();
 
     /**
      * @brief Tests the OpenStream method.

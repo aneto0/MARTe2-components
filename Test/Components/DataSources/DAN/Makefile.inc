@@ -60,7 +60,7 @@ LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_str
 endif
 
 #TODO Temporary to fix in hpn.h
-CPPFLAGS += -Wno-error=narrowing
+#CPPFLAGS += -Wno-error=narrowing
 
 all: $(OBJS) \
 	$(BUILD_DIR)/DANTest$(LIBEXT)

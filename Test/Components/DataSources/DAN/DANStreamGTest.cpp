@@ -74,7 +74,42 @@ TEST(DANStreamGTest,TestFinalise) {
     ASSERT_TRUE(test.TestFinalise());
 }
 	
-TEST(DANStreamGTest,TestPutData) {
+TEST(DANStreamGTest,TestPutData_UInt16) {
     DANStreamTest test;
-    ASSERT_TRUE(test.TestPutData());
+    ASSERT_TRUE(test.TestPutData_UInt16());
+}
+
+TEST(DANStreamGTest,TestPutData_Int16) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestPutData_Int16());
+}
+
+TEST(DANStreamGTest,TestPutData_UInt32) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestPutData_UInt32());
+}
+
+TEST(DANStreamGTest,TestPutData_Int32) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestPutData_Int32());
+}
+
+TEST(DANStreamGTest,TestPutData_UInt64) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestPutData_UInt64());
+}
+
+TEST(DANStreamGTest,TestPutData_Int64) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestPutData_Int64());
+}
+
+TEST(DANStreamGTest,TestPutData_Float32) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestPutData_Float32());
+}
+
+TEST(DANStreamGTest,TestPutData_Float64) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestPutData_Float64());
 }

@@ -32,6 +32,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "DANSource.h"
 #include "DANStream.h"
@@ -41,6 +42,177 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+
+/**
+ * Checks the PutData function against a list of know types.
+ */
+template<typename typeToCheck> static bool TestPutDataT() {
+    using namespace MARTe;
+
+    //To discover the type
+    typeToCheck tDiscover;
+    AnyType typeDiscover(tDiscover);
+
+    //Delete any previous DAN test files
+    DirectoryScanner hd5FilesToTest;
+    hd5FilesToTest.Scan("/tmp/data/", "*DANStreamTest*");
+    uint32 i = 0u;
+    while (hd5FilesToTest.ListPeek(i)) {
+        Directory *toDelete = static_cast<Directory *>(hd5FilesToTest.ListPeek(i));
+        toDelete->Delete();
+        i++;
+    }
+
+    //This is required in order to create the dan_initLibrary
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 1);
+    cdb.Write("StackSize", 1048576);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 0);
+    cdb.CreateAbsolute("Signals");
+    cdb.MoveToRoot();
+    DANSource danSource;
+    bool ok = danSource.Initialise(cdb);
+
+    const uint32 numberOfSamples = 5;
+
+    DANStream ds(typeDiscover.GetTypeDescriptor(), "DANStreamTest", 4, 1e3, numberOfSamples);
+    ds.AddSignal(0u);
+    ds.AddSignal(2u);
+    ds.AddSignal(5u);
+    ds.Finalise();
+    typeToCheck *signal0Ptr = NULL;
+    ok &= ds.GetSignalMemoryBuffer(0u, reinterpret_cast<void *&>(signal0Ptr));
+    ok &= (signal0Ptr != NULL);
+    typeToCheck *signal2Ptr = NULL;
+    ok &= ds.GetSignalMemoryBuffer(2u, reinterpret_cast<void *&>(signal2Ptr));
+    ok &= (signal2Ptr != NULL);
+    typeToCheck *signal5Ptr = NULL;
+    ok &= ds.GetSignalMemoryBuffer(5u, reinterpret_cast<void *&>(signal5Ptr));
+    ok &= (signal5Ptr != NULL);
+
+    TimeStamp now;
+    HighResolutionTimer::GetTimeStamp(now);
+    ds.OpenStream();
+    if (ok) {
+        hpn_timestamp_t hpnTimeStamp;
+        ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
+        if (ok) {
+            ds.SetAbsoluteStartTime(hpnTimeStamp);
+        }
+    }
+
+    uint32 j;
+    uint32 c;
+    uint32 k = 1;
+    const uint32 numberOfWrites = 3u;
+    const uint32 numberOfChannels = 3u;
+    typeToCheck *signalPtrs[numberOfChannels] = { signal0Ptr, signal2Ptr, signal5Ptr };
+    for (k = 0; (k < numberOfWrites) && (ok); k++) {
+        for (j = 0; j < numberOfSamples; j++) {
+            for (c = 0; c < numberOfChannels; c++) {
+                signalPtrs[c][j] = (k * numberOfSamples + c + j);
+            }
+        }
+        if (ok) {
+            ok = ds.PutData();
+        }
+    }
+    //This second PutData is required to overcome a bug in the danStreamReader
+    if (ok) {
+        ok = ds.PutData();
+    }
+
+    //Wait for the file to be created...
+    bool found = false;
+    uint32 timeoutCounter = 0u;
+    const uint32 maxTimeoutCounter = 30u;
+    while ((!found) && (timeoutCounter < maxTimeoutCounter)) {
+        hd5FilesToTest.Scan("/tmp/data/", "*DANStreamTest*");
+        found = (static_cast<Directory *>(hd5FilesToTest.ListPeek(0u)) != NULL);
+        if (!found) {
+            Sleep::Sec(0.1);
+        }
+        timeoutCounter++;
+    }
+    ok = found;
+    ds.CloseStream();
+
+    DanStreamReaderCpp danStreamReader;
+    const uint32 expectedNSamples = 20u;
+    if (ok) {
+        found = false;
+        timeoutCounter = 0;
+        while ((ok) && (!found) && (timeoutCounter < maxTimeoutCounter)) {
+            StreamString hd5FileName = static_cast<Directory *>(hd5FilesToTest.ListPeek(0u))->GetName();
+            ok = (danStreamReader.openFile(hd5FileName.Buffer()) == 0);
+            found = (danStreamReader.getCurSamples() == expectedNSamples);
+            if (!found) {
+                danStreamReader.closeFile();
+                Sleep::Sec(0.1);
+            }
+            timeoutCounter++;
+        }
+        if (ok) {
+            ok = found;
+        }
+    }
+
+    const char8 *channelNames[] = { "Signal1", "Signal2", "Signal3" };
+    for (c = 0; (c < numberOfChannels) && (ok); c++) {
+        DanDataHolder *pDataChannel = NULL;
+        if (ok) {
+            DataInterval interval = danStreamReader.getIntervalWhole();
+            danStreamReader.setChannel(channelNames[c]);
+            pDataChannel = danStreamReader.getRawValuesNative(&interval, -1);
+            ok = (pDataChannel != NULL);
+        }
+        if (ok) {
+            const typeToCheck *channelDataStored = NULL;
+            if (typeDiscover.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                channelDataStored = (typeToCheck *) pDataChannel->asUInt16();
+            }
+            else if (typeDiscover.GetTypeDescriptor() == SignedInteger16Bit) {
+                channelDataStored = (typeToCheck *) pDataChannel->asInt16();
+            }
+            else if (typeDiscover.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                channelDataStored = (typeToCheck *) pDataChannel->asUInt32();
+            }
+            else if (typeDiscover.GetTypeDescriptor() == SignedInteger32Bit) {
+                channelDataStored = (typeToCheck *) pDataChannel->asInt32();
+            }
+            else if (typeDiscover.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                channelDataStored = (typeToCheck *) pDataChannel->asUInt64();
+            }
+            else if (typeDiscover.GetTypeDescriptor() == SignedInteger64Bit) {
+                channelDataStored = (typeToCheck *) pDataChannel->asInt64();
+            }
+            else if (typeDiscover.GetTypeDescriptor() == Float32Bit) {
+                channelDataStored = (typeToCheck *) pDataChannel->asFloat();
+            }
+            else if (typeDiscover.GetTypeDescriptor() == Float64Bit) {
+                channelDataStored = (typeToCheck *) pDataChannel->asDouble();
+            }
+            for (k = 0; k < numberOfWrites; k++) {
+                for (j = 0; (j < numberOfSamples) && ok; j++) {
+                    ok &= ((typeToCheck) channelDataStored[(k * numberOfSamples) + j] == (typeToCheck) (k * numberOfSamples + c + j));
+                    if (!ok) {
+                        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d, %d] %e != %e", k, j, (typeToCheck )channelDataStored[(k * numberOfSamples) + j],
+                                            (typeToCheck )(k * numberOfSamples + c + j));
+                    }
+                }
+            }
+
+            delete pDataChannel;
+        }
+    }
+    if (ok) {
+        danStreamReader.closeFile();
+    }
+
+    return ok;
+}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -111,124 +283,36 @@ bool DANStreamTest::TestFinalise() {
     return TestAddSignal();
 }
 
-bool DANStreamTest::TestPutData() {
-    using namespace MARTe;
+bool DANStreamTest::TestPutData_UInt16() {
+    return TestPutDataT<MARTe::uint16>();
+}
 
-    //Delete any previous DAN test files
-    DirectoryScanner hd5FilesToTest;
-    hd5FilesToTest.Scan("/tmp/data/", "*DANStreamTest*");
-    uint32 i = 0u;
-    while (hd5FilesToTest.ListPeek(i)) {
-        Directory *toDelete = static_cast<Directory *>(hd5FilesToTest.ListPeek(i));
-        toDelete->Delete();
-        i++;
-    }
+bool DANStreamTest::TestPutData_Int16() {
+    return TestPutDataT<MARTe::int16>();
+}
 
-    //This is required in order to create the dan_initLibrary
-    ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 1);
-    cdb.Write("StackSize", 1048576);
-    cdb.Write("DanBufferMultiplier", 4);
-    cdb.Write("StoreOnTrigger", 0);
-    cdb.CreateAbsolute("Signals");
-    cdb.MoveToRoot();
-    DANSource danSource;
-    bool ok = danSource.Initialise(cdb);
+bool DANStreamTest::TestPutData_UInt32() {
+    return TestPutDataT<MARTe::uint32>();
+}
 
-    const uint32 numberOfSamples = 5;
+bool DANStreamTest::TestPutData_Int32() {
+    return TestPutDataT<MARTe::int32>();
+}
 
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 1e3, numberOfSamples);
-    ds.AddSignal(0u);
-    ds.AddSignal(2u);
-    ds.AddSignal(5u);
-    ds.Finalise();
-    float32 *signal0Ptr = NULL;
-    ok &= ds.GetSignalMemoryBuffer(0u, reinterpret_cast<void *&>(signal0Ptr));
-    ok &= (signal0Ptr != NULL);
-    float32 *signal2Ptr = NULL;
-    ok &= ds.GetSignalMemoryBuffer(2u, reinterpret_cast<void *&>(signal2Ptr));
-    ok &= (signal2Ptr != NULL);
-    float32 *signal5Ptr = NULL;
-    ok &= ds.GetSignalMemoryBuffer(5u, reinterpret_cast<void *&>(signal5Ptr));
-    ok &= (signal5Ptr != NULL);
+bool DANStreamTest::TestPutData_UInt64() {
+    return TestPutDataT<MARTe::uint64>();
+}
 
-    TimeStamp now;
-    HighResolutionTimer::GetTimeStamp(now);
-    ds.OpenStream();
-    if (ok) {
-        hpn_timestamp_t hpnTimeStamp;
-        ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
-        ds.SetAbsoluteStartTime(hpnTimeStamp);
-    }
+bool DANStreamTest::TestPutData_Int64() {
+    return TestPutDataT<MARTe::int64>();
+}
 
-    uint32 j;
-    uint32 c;
-    uint32 k = 1;
-    const uint32 numberOfWrites = 3u;
-    const uint32 numberOfChannels = 3u;
-    float32 *signalPtrs[numberOfChannels] = { signal0Ptr, signal2Ptr, signal5Ptr };
-    for (k = 0; k < numberOfWrites; k++) {
-        for (j = 0; j < numberOfSamples; j++) {
-            for (c = 0; c < numberOfChannels; c++) {
-                signalPtrs[c][j] = (k * numberOfSamples + i + c + j);
-            }
-        }
-        if (ok) {
-            ok = ds.PutData();
-        }
-    }
-    //This second PutData is required to overcome a bug in the danStreamReader
-    if (ok) {
-        ok = ds.PutData();
-    }
+bool DANStreamTest::TestPutData_Float32() {
+    return TestPutDataT<MARTe::float32>();
+}
 
-    //Wait for the file to be created...
-    bool found = false;
-    uint32 timeoutCounter = 0u;
-    const uint32 maxTimeoutCounter = 30u;
-    while ((!found) && (timeoutCounter < maxTimeoutCounter)) {
-        hd5FilesToTest.Scan("/tmp/data/", "*DANStreamTest*");
-        found = (static_cast<Directory *>(hd5FilesToTest.ListPeek(0u)) != NULL);
-        if (!found) {
-            Sleep::Sec(0.1);
-        }
-        timeoutCounter++;
-    }
-    ok = found;
-    ds.CloseStream();
-
-    DanStreamReaderCpp danStreamReader;
-    if (ok) {
-        StreamString hd5FileName = static_cast<Directory *>(hd5FilesToTest.ListPeek(0u))->GetName();
-        ok = (danStreamReader.openFile(hd5FileName.Buffer()) == 0);
-    }
-
-    const char8 *channelNames[] = { "Signal1", "Signal2", "Signal3" };
-    for (c = 0; c < numberOfChannels; c++) {
-        DanDataHolder *pDataChannel = NULL;
-        if (ok) {
-            DataInterval interval = danStreamReader.getIntervalWhole();
-            danStreamReader.setChannel(channelNames[c]);
-            pDataChannel = danStreamReader.getRawValuesNative(&interval, -1);
-            ok = (pDataChannel != NULL);
-        }
-        if (ok) {
-            const float32 *channelDataStored = pDataChannel->asFloat();
-            for (k = 0; k < numberOfWrites; k++) {
-                for (j = 0; (j < numberOfSamples) && ok; j++) {
-                    ok &= (channelDataStored[(k * numberOfSamples) + j] == (k * numberOfSamples + i + c + j));
-                }
-            }
-
-            delete pDataChannel;
-        }
-    }
-    if (ok) {
-        danStreamReader.closeFile();
-    }
-
-    return ok;
+bool DANStreamTest::TestPutData_Float64() {
+    return TestPutDataT<MARTe::float64>();
 }
 
 bool DANStreamTest::TestOpenStream() {

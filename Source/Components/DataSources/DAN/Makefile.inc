@@ -51,7 +51,7 @@ LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_str
 endif
 
 # Override CPPFLAGS due to scoped enums. Allow narrowing. TODO file bug report.
-CPPFLAGS += -std=c++0x -Wno-error=narrowing
+#CPPFLAGS += -std=c++0x -Wno-error=narrowing
 
 all: $(OBJS)    \
     $(BUILD_DIR)/DAN$(LIBEXT) \
