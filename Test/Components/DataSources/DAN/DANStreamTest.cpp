@@ -46,7 +46,7 @@
 /**
  * Checks the PutData function against a list of know types.
  */
-template<typename typeToCheck> static bool TestPutDataT() {
+template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = false, bool useRelativeTime = false) {
     using namespace MARTe;
 
     //To discover the type
@@ -76,8 +76,15 @@ template<typename typeToCheck> static bool TestPutDataT() {
     bool ok = danSource.Initialise(cdb);
 
     const uint32 numberOfSamples = 5;
+    const uint32 numberOfWrites = 3u;
+    const uint32 numberOfChannels = 3u;
+    const float64 samplingFrequency = 1e3;
+    const uint64 periodNanos = 1e9 / samplingFrequency;
+    //The +1 is to cater for the extra write that is needed below in order to handle a bug in DAN
+    uint64 externalTimeAbsoluteArr[numberOfWrites + 1];
+    uint32 externalTimeRelativeArr[numberOfWrites + 1];
 
-    DANStream ds(typeDiscover.GetTypeDescriptor(), "DANStreamTest", 4, 1e3, numberOfSamples);
+    DANStream ds(typeDiscover.GetTypeDescriptor(), "DANStreamTest", 4, samplingFrequency, numberOfSamples);
     ds.AddSignal(0u);
     ds.AddSignal(2u);
     ds.AddSignal(5u);
@@ -95,21 +102,38 @@ template<typename typeToCheck> static bool TestPutDataT() {
     TimeStamp now;
     HighResolutionTimer::GetTimeStamp(now);
     ds.OpenStream();
+    hpn_timestamp_t hpnTimeStamp;
     if (ok) {
-        hpn_timestamp_t hpnTimeStamp;
+        uint32 j;
         ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
-        if (ok) {
-            ds.SetAbsoluteStartTime(hpnTimeStamp);
+        if (!useAbsoluteTime) {
+            if (ok) {
+                ds.SetAbsoluteStartTime(hpnTimeStamp);
+                if (useRelativeTime) {
+                    for (j = 0; (j < (numberOfWrites + 1)) && (ok); j++) {
+                        externalTimeRelativeArr[j] = (j * periodNanos * numberOfSamples / 1000); //Relative time is in us
+                    }
+                }
+            }
+        }
+        else {
+            for (j = 0; (j < (numberOfWrites + 1)) && (ok); j++) {
+                externalTimeAbsoluteArr[j] = (hpnTimeStamp + j * periodNanos * numberOfSamples);
+            }
         }
     }
 
     uint32 j;
     uint32 c;
     uint32 k = 1;
-    const uint32 numberOfWrites = 3u;
-    const uint32 numberOfChannels = 3u;
     typeToCheck *signalPtrs[numberOfChannels] = { signal0Ptr, signal2Ptr, signal5Ptr };
     for (k = 0; (k < numberOfWrites) && (ok); k++) {
+        if (useAbsoluteTime) {
+            ds.SetAbsoluteTimeSignal(&externalTimeAbsoluteArr[k]);
+        }
+        else if (useRelativeTime) {
+            ds.SetRelativeTimeSignal(&externalTimeRelativeArr[k]);
+        }
         for (j = 0; j < numberOfSamples; j++) {
             for (c = 0; c < numberOfChannels; c++) {
                 signalPtrs[c][j] = (k * numberOfSamples + c + j);
@@ -121,6 +145,12 @@ template<typename typeToCheck> static bool TestPutDataT() {
     }
     //This second PutData is required to overcome a bug in the danStreamReader
     if (ok) {
+        if (useAbsoluteTime) {
+            ds.SetAbsoluteTimeSignal(&externalTimeAbsoluteArr[k]);
+        }
+        else if (useRelativeTime) {
+            ds.SetRelativeTimeSignal(&externalTimeRelativeArr[k]);
+        }
         ok = ds.PutData();
     }
 
@@ -167,6 +197,12 @@ template<typename typeToCheck> static bool TestPutDataT() {
             danStreamReader.setChannel(channelNames[c]);
             pDataChannel = danStreamReader.getRawValuesNative(&interval, -1);
             ok = (pDataChannel != NULL);
+            if (ok) {
+                ok = (interval.getTimeFrom() == (long) hpnTimeStamp);
+            }
+            if (ok) {
+                ok = (interval.getTimeTo() == (long) (hpnTimeStamp + (expectedNSamples - 1) * periodNanos));
+            }
         }
         if (ok) {
             const typeToCheck *channelDataStored = NULL;
@@ -195,7 +231,7 @@ template<typename typeToCheck> static bool TestPutDataT() {
                 channelDataStored = (typeToCheck *) pDataChannel->asDouble();
             }
             for (k = 0; k < numberOfWrites; k++) {
-                for (j = 0; (j < numberOfSamples) && ok; j++) {
+                for (j = 0; (j < numberOfSamples) && (ok); j++) {
                     ok &= ((typeToCheck) channelDataStored[(k * numberOfSamples) + j] == (typeToCheck) (k * numberOfSamples + c + j));
                     if (!ok) {
                         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d, %d] %e != %e", k, j, (typeToCheck )channelDataStored[(k * numberOfSamples) + j],
@@ -316,29 +352,37 @@ bool DANStreamTest::TestPutData_Float64() {
 }
 
 bool DANStreamTest::TestOpenStream() {
-    return true;
+    return TestPutDataT<MARTe::float32>();
 }
 
 bool DANStreamTest::TestCloseStream() {
-    return true;
+    return TestPutDataT<MARTe::float32>();
 }
 
 bool DANStreamTest::TestGetSignalMemoryBuffer() {
-    return true;
+    return TestAddSignal();
 }
 
 bool DANStreamTest::TestReset() {
-    return true;
+    return false;
 }
 
 bool DANStreamTest::TestSetAbsoluteTimeSignal() {
-    return true;
+    bool ok = TestPutDataT<MARTe::int16>(true);
+    if (ok) {
+        ok = TestPutDataT<MARTe::int64>(true);
+    }
+    return ok;
 }
 
 bool DANStreamTest::TestSetRelativeTimeSignal() {
-    return true;
+    bool ok = TestPutDataT<MARTe::int16>(false, true);
+    if (ok) {
+        ok = TestPutDataT<MARTe::int64>(false, true);
+    }
+    return ok;
 }
 
 bool DANStreamTest::TestSetAbsoluteStartTime() {
-    return true;
+    return TestPutDataT<MARTe::float32>(false, false);
 }

@@ -113,3 +113,38 @@ TEST(DANStreamGTest,TestPutData_Float64) {
     DANStreamTest test;
     ASSERT_TRUE(test.TestPutData_Float64());
 }
+
+TEST(DANStreamGTest,TestOpenStream) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestOpenStream());
+}
+
+TEST(DANStreamGTest,TestCloseStream) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestCloseStream());
+}
+
+TEST(DANStreamGTest,TestGetSignalMemoryBuffer) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+}
+
+TEST(DANStreamGTest,TestReset) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestReset());
+}
+
+TEST(DANStreamGTest,TestSetAbsoluteTimeSignal) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestSetAbsoluteTimeSignal());
+}
+
+TEST(DANStreamGTest,TestSetRelativeTimeSignal) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestSetRelativeTimeSignal());
+}
+
+TEST(DANStreamGTest,TestSetAbsoluteStartTime) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestSetAbsoluteStartTime());
+}
