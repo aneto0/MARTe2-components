@@ -125,6 +125,11 @@ public:
     bool TestOpenStream();
 
     /**
+     * @brief Tests that the OpenStream method fails if no danSource is specified.
+     */
+    bool TestOpenStream_NoFinalise();
+
+    /**
      * @brief Tests the CloseStream method.
      */
     bool TestCloseStream();

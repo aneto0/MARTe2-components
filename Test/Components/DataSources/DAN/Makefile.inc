@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  DANStreamTest.x
+OBJSX +=  DANSourceTest.x DANStreamTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..

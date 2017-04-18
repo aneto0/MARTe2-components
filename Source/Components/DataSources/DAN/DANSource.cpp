@@ -49,8 +49,7 @@ dan_DataCore DANSource::danDataCore = NULL_PTR(dan_DataCore);
 namespace MARTe {
 
 DANSource::DANSource() :
-        DataSourceI(),
-        MessageI() {
+        DataSourceI(), MessageI() {
     storeOnTrigger = false;
     numberOfPreTriggers = 0u;
     numberOfPostTriggers = 0u;
@@ -64,6 +63,7 @@ DANSource::DANSource() :
     timeUInt64 = 0u;
     trigger = 0u;
     useAbsoluteTime = false;
+    absoluteStartTime = 0LLU;
     danStreams = NULL_PTR(DANStream **);
     brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -186,9 +186,10 @@ bool DANSource::PrepareNextState(const char8* const currentStateName, const char
         hpn_timestamp_t hpnTimeStamp;
         ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
         if (ok) {
+            absoluteStartTime = static_cast<uint64>(hpnTimeStamp);
             for (s = 0u; (s < nOfDANStreams); s++) {
                 /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
-                danStreams[s]->SetAbsoluteStartTime(hpnTimeStamp);
+                danStreams[s]->SetAbsoluteStartTime(absoluteStartTime);
             }
         }
         else {
@@ -245,9 +246,9 @@ bool DANSource::Initialise(StructuredDataI& data) {
     if (ok) {
         ok = data.Read("StoreOnTrigger", storeOnTriggerU);
         storeOnTrigger = (storeOnTriggerU == 1u);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger shall be specified");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger shall be specified");
+        }
     }
     if (storeOnTrigger) {
         if (ok) {
@@ -362,7 +363,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
                 addSignal = (originalSignalInformation.Read("Period", period));
                 if (addSignal) {
                     if (period > 0.F) {
-                        samplingFrequency = (1.F / period) + 0.5;
+                        samplingFrequency = (1.F / period);
                     }
                     else {
                         REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Period shall be > 0");
@@ -371,16 +372,17 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
                 }
                 else {
                     addSignal = (originalSignalInformation.Read("SamplingFrequency", samplingFrequency));
-                    ok = (samplingFrequency > 0.F);
-                    if (!ok) {
-                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "SamplingFrequency shall be > 0");
+                    if (addSignal) {
+                        ok = (samplingFrequency > 0.F);
+                        if (!ok) {
+                            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "SamplingFrequency shall be > 0");
+                        }
                     }
                 }
                 if (!addSignal) {
                     StreamString signalName;
                     (void) GetSignalName(n, signalName);
                     REPORT_ERROR_STATIC(ErrorManagement::Warning, "No Period nor SamplingFrequency specified for signal %s", signalName.Buffer());
-                    ok = false;
                 }
             }
             //Only add signals that had Period or SamplingFrequency specified
@@ -542,6 +544,10 @@ bool DANSource::IsStoreOnTrigger() const {
 
 int32 DANSource::GetTimeSignalIdx() const {
     return timeSignalIdx;
+}
+
+uint64 DANSource::GetAbsoluteStartTime() const {
+    return absoluteStartTime;
 }
 
 dan_DataCore DANSource::GetDANDataCore() {

@@ -64,10 +64,10 @@ namespace MARTe {
  *     NumberOfPostTriggers = 1 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store after the trigger.
  *
  *     Signals = {
- *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be set in index 0 of the Signals node. When the value of this signal is 1 data will be stored.
+ *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be set in index 0 of the Signals node. When the value of this signal is 1 data will be stored. Shall not be added if StoreOnTrigger = 0.
  *             Type = 'uint8" //Type must be uint8
  *         }
- *         Time = { //Compulsory when StoreOnTrigger = 1. Can be store in any index, but TimeSignal must be set = 1
+ *         Time = { //Compulsory when StoreOnTrigger = 1. Can be stored in any index, but TimeSignal must be set = 1. Shall not be added if StoreOnTrigger = 0.
  *             Type = "uint32" //Type must be uint32, int32, uint64 or int64
  *             TimeSignal = 1 //When set, this signal will be considered as the time source against which all signals will be stored.
  *                            //When not set (i.e. when no TimeSignal is defined) the time will computed as the absolute time at the latest state change (given by tcn_get_time) + the number of cycles multiplied by the signal Period (or 1/SamplingFrequency)
@@ -82,7 +82,7 @@ namespace MARTe {
  *     }
  * }
  *
- * A DANStream instance will be created for every different signal_type/sampling_frequency pair.
+ * A DANStream instance will be created for every different signal_type/sampling_frequency pair. Signals must be listed in the same order as they appear on the DAN xml.
  */
 class DANSource: public DataSourceI, public MessageI {
 public:
@@ -156,8 +156,7 @@ DANSource    ();
 
     /**
      * @brief Calls DANStream::Reset on all the DANStream instances.
-     * @details If AbsoluteTime = 1 in the configuration entry, calls DANStream::SetAbsoluteStartTime with the
-     *  time given by tcn_get_time.
+     * @details If AbsoluteTime = 0 in the configuration entry, calls DANStream::SetAbsoluteStartTime with the current time given by tcn_get_time.
      * @return ok if tcn_get_time succeeds.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
@@ -250,6 +249,12 @@ DANSource    ();
      * @return the singleton dan_DataCore.
      */
     static dan_DataCore GetDANDataCore();
+
+    /**
+     * @brief Gets the latest set absolute start time in nano-seconds (see PrepareNextState)
+     * @return the latest set absolute start time in nano-seconds
+     */
+    uint64 GetAbsoluteStartTime() const;
 private:
 
     /**
@@ -346,6 +351,11 @@ private:
      * Holds the trigger to be used by the MemoryMapAsyncTriggerOutputBroker.
      */
     uint8 trigger;
+
+    /**
+     * The latest set absolute start time
+     */
+    uint64 absoluteStartTime;
 
 };
 }

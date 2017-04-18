@@ -53,16 +53,6 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
     typeToCheck tDiscover;
     AnyType typeDiscover(tDiscover);
 
-    //Delete any previous DAN test files
-    DirectoryScanner hd5FilesToTest;
-    hd5FilesToTest.Scan("/tmp/data/", "*DANStreamTest*");
-    uint32 i = 0u;
-    while (hd5FilesToTest.ListPeek(i)) {
-        Directory *toDelete = static_cast<Directory *>(hd5FilesToTest.ListPeek(i));
-        toDelete->Delete();
-        i++;
-    }
-
     //This is required in order to create the dan_initLibrary
     ConfigurationDatabase cdb;
     cdb.Write("NumberOfBuffers", 10);
@@ -101,6 +91,16 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
 
     uint32 r;
     for (r = 0; (r < numberOfRuns) && (ok); r++) {
+        //Delete any previous DAN test files
+        DirectoryScanner hd5FilesToTest;
+        hd5FilesToTest.Scan("/tmp/data/", "*DANStreamTest*");
+        uint32 i = 0u;
+        while (hd5FilesToTest.ListPeek(i)) {
+            Directory *toDelete = static_cast<Directory *>(hd5FilesToTest.ListPeek(i));
+            toDelete->Delete();
+            i++;
+        }
+
         ds.Reset();
 
         ok = ds.OpenStream();
@@ -240,8 +240,7 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
                     for (j = 0; (j < numberOfSamples) && (ok); j++) {
                         ok &= ((typeToCheck) channelDataStored[(k * numberOfSamples) + j] == (typeToCheck) (k * numberOfSamples + c + j));
                         if (!ok) {
-                            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d, %d] %e != %e", k, j, (typeToCheck )channelDataStored[(k * numberOfSamples) + j],
-                                                (typeToCheck )(k * numberOfSamples + c + j));
+                            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d, %d] %e != %e", k, j, (typeToCheck )channelDataStored[(k * numberOfSamples) + j], (typeToCheck )(k * numberOfSamples + c + j));
                         }
                     }
                 }
@@ -358,11 +357,62 @@ bool DANStreamTest::TestPutData_Float64() {
 }
 
 bool DANStreamTest::TestOpenStream() {
-    return TestPutDataT<MARTe::float32>();
+    using namespace MARTe;
+    //This is required in order to create the dan_initLibrary
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 1);
+    cdb.Write("StackSize", 1048576);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 0);
+    cdb.CreateAbsolute("Signals");
+    cdb.MoveToRoot();
+    DANSource danSource;
+    bool ok = danSource.Initialise(cdb);
+
+    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8);
+    ds.AddSignal(2u);
+    ds.AddSignal(0u);
+    ds.AddSignal(1u);
+    ds.Finalise();
+
+    ok &= ds.OpenStream();
+    ds.CloseStream();
+
+    return ok;
+}
+
+bool DANStreamTest::TestOpenStream_NoFinalise() {
+    using namespace MARTe;
+    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8);
+
+    return !ds.OpenStream();
 }
 
 bool DANStreamTest::TestCloseStream() {
-    return TestPutDataT<MARTe::float32>();
+    using namespace MARTe;
+    //This is required in order to create the dan_initLibrary
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 1);
+    cdb.Write("StackSize", 1048576);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 0);
+    cdb.CreateAbsolute("Signals");
+    cdb.MoveToRoot();
+    DANSource danSource;
+    bool ok = danSource.Initialise(cdb);
+
+    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8);
+    ds.AddSignal(2u);
+    ds.AddSignal(0u);
+    ds.AddSignal(1u);
+    ds.Finalise();
+
+    ds.OpenStream();
+    ok &= ds.CloseStream();
+
+    return ok;
 }
 
 bool DANStreamTest::TestGetSignalMemoryBuffer() {

@@ -119,6 +119,11 @@ TEST(DANStreamGTest,TestOpenStream) {
     ASSERT_TRUE(test.TestOpenStream());
 }
 
+TEST(DANStreamGTest,TestOpenStream_NoFinalise) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestOpenStream_NoFinalise());
+}
+
 TEST(DANStreamGTest,TestCloseStream) {
     DANStreamTest test;
     ASSERT_TRUE(test.TestCloseStream());

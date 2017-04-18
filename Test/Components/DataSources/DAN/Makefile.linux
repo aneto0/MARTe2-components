@@ -28,6 +28,6 @@ TARGET=linux
 
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-OBJSX = DANStreamGTest.x 
+OBJSX = DANSourceGTest.x DANStreamGTest.x 
 
 include Makefile.inc
