@@ -84,4 +84,17 @@ TEST(DANSourceGTest,TestGetOutputBrokers) {
     ASSERT_TRUE(test.TestGetOutputBrokers());
 }
 
-	
+TEST(DANSourceGTest,TestIntegratedInApplication_NoTrigger) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger());
+}
+
+TEST(DANSourceGTest,TestIntegratedInApplication_Trigger) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger());
+}
+
+TEST(DANSourceGTest,TestIntegratedInApplication_Trigger_AbsoluteTime) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_AbsoluteTime());
+}

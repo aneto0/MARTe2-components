@@ -118,13 +118,14 @@ public:
             if (generateTrigger) {
                 trigger = reinterpret_cast<uint8 *>(GetOutputSignalMemory(0));
                 *trigger = triggerToGenerate[counter];
+                uint32 relativeTime = static_cast<uint32>((counter * (period * 1e6) * elements[2]));
                 if (useAbsoluteTime) {
                     absTimeSignal = reinterpret_cast<uint64 *>(GetOutputSignalMemory(1));
-                    *absTimeSignal = absTimeStamp + (*timeSignal * 1000);
+                    *absTimeSignal = absTimeStamp + relativeTime;
                 }
                 else {
                     timeSignal = reinterpret_cast<uint32 *>(GetOutputSignalMemory(1));
-                    *timeSignal = (counter * (period * 1e6) * elements[2]);
+                    *timeSignal = relativeTime;
                 }
                 n = 2;
             }
@@ -285,7 +286,7 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     return ok;
 }
 
-template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnTimeStamp, const MARTe::uint64 periodNanos, MARTe::uint32 *signalToVerify, MARTe::uint32 toVerifyNumberOfElements) {
+template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnTimeStamp, const MARTe::uint64 periodNanos, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerifyRelative, MARTe::uint32 toVerifyNumberOfElements) {
     using namespace MARTe;
     //To discover the type
     typeToCheck tDiscover;
@@ -326,25 +327,26 @@ template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnT
         }
     }
 
+    //Remove the following line when DAN bug 9699 is solved.
+    toVerifyNumberOfElements--;
+
     const char8 *channelNames[] = { "Signal1", "Signal2", "Signal3" };
     const uint32 numberOfChannels = 3;
     uint32 c;
     for (c = 0; (c < numberOfChannels) && (ok); c++) {
         DanDataHolder *pDataChannel = NULL;
+        DanDataHolder *pDataTime = NULL;
+        const uint64 *absTimeStored = NULL;
         if (ok) {
             DataInterval interval = danStreamReader.getIntervalWhole();
             danStreamReader.setChannel(channelNames[c]);
             pDataChannel = danStreamReader.getRawValuesNative(&interval, -1);
+            pDataTime = danStreamReader.getTimeAbs(&interval, -1);
+            absTimeStored = reinterpret_cast<const uint64 *>(pDataTime->asUInt64());
+
             ok = (pDataChannel != NULL);
             if (ok) {
                 ok = (interval.getTimeFrom() == (long) hpnTimeStamp);
-            }
-            if (ok) {
-                ok = (interval.getTimeTo() == (long) (hpnTimeStamp + (toVerifyNumberOfElements - 1) * periodNanos));
-                if (!ok) {
-                    //Try again and check if this is because of DAN bug 9699
-                    ok = (interval.getTimeTo() == (long) (hpnTimeStamp + (toVerifyNumberOfElements + c - 1) * periodNanos));
-                }
             }
         }
         if (ok) {
@@ -374,17 +376,24 @@ template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnT
                 channelDataStored = (typeToCheck *) pDataChannel->asDouble();
             }
             uint32 k;
-            //Remove the following line when DAN bug 9699 is solved.
-            toVerifyNumberOfElements--;
             for (k = 0; (k < toVerifyNumberOfElements) && (ok); k++) {
                 ok = (((uint32) channelDataStored[k]) == signalToVerify[k]);
                 if (!ok) {
-                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d] %d != %d", k, (uint32) channelDataStored[k], signalToVerify[k]);
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d] %d != %d", k, (uint32 ) channelDataStored[k], signalToVerify[k]);
                 }
-
+                if (ok) {
+                    if (timeToVerifyRelative == NULL) {
+                        ok = (absTimeStored[k] == (hpnTimeStamp + (k * periodNanos)));
+                    }
+                    else {
+                        //ok = (absTimeStored[k] == (hpnTimeStamp + (timeToVerifyRelative[k] * 1000)));
+                        //TODO there seems to be a bug with the DanStreamReaderCpp that does not compute well discontinuous time samples
+                    }
+                }
             }
 
             delete pDataChannel;
+            delete pDataTime;
         }
     }
     if (ok) {
@@ -393,8 +402,9 @@ template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnT
     return ok;
 }
 
-static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements, MARTe::uint8 *triggerToGenerate, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify,
-                                    MARTe::uint32 toVerifyNumberOfElements, MARTe::uint32 numberOfBuffers, MARTe::uint32 numberOfPreTriggers, MARTe::uint32 numberOfPostTriggers, MARTe::float32 period, MARTe::uint32 sleepMSec = 10) {
+static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements, MARTe::uint8 *triggerToGenerate, MARTe::uint32 *signalToVerify,
+                                    MARTe::uint32 *timeToVerifyRelative, MARTe::uint32 toVerifyNumberOfElements, MARTe::uint32 numberOfBuffers, MARTe::uint32 numberOfPreTriggers, MARTe::uint32 numberOfPostTriggers, MARTe::float32 period,
+                                    MARTe::uint32 sleepMSec = 10, bool useAbsTime = false) {
     using namespace MARTe;
     //Delete any previous DAN test files
     DirectoryScanner hd5FilesToTest;
@@ -506,7 +516,36 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     godb->Purge();
 
     if (ok) {
-        ok = VerifyData<uint16>(danSource->GetAbsoluteStartTime(), period * 1e9, signalToVerify, toVerifyNumberOfElements);
+        uint64 absTime = 0;
+        if (useAbsTime) {
+            absTime = gam->absTimeStamp;
+        }
+        else {
+            absTime = danSource->GetAbsoluteStartTime();
+        }
+
+        ok = VerifyData<uint16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+        if (ok) {
+            ok = VerifyData<uint32>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+        }
+        if (ok) {
+            ok = VerifyData<uint64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+        }
+        if (ok) {
+            ok = VerifyData<int16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+        }
+        if (ok) {
+            ok = VerifyData<int32>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+        }
+        if (ok) {
+            ok = VerifyData<int64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+        }
+        if (ok) {
+            ok = VerifyData<float32>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+        }
+        if (ok) {
+            ok = VerifyData<float64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+        }
     }
 
     return ok;
@@ -963,6 +1002,242 @@ static const MARTe::char8 * const config2 = ""
         "    }"
         "}";
 
+//Configuration with a trigger source and absolute time
+static const MARTe::char8 * const config3 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            AbsoluteTime = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                Time = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_2 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt32F_1 = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt32F_2 = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt64F_1 = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt64F_2 = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt16F_1 = {"
+        "                    Type = int16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt16F_2 = {"
+        "                    Type = int16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt32F_1 = {"
+        "                    Type = int32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt32F_2 = {"
+        "                    Type = int32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt64F_1 = {"
+        "                    Type = int64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt64F_2 = {"
+        "                    Type = int64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat32F_1 = {"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat32F_2 = {"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat64F_1 = {"
+        "                    Type = float64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat64F_2 = {"
+        "                    Type = float64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat64F_3 = {"
+        "                    Type = float64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat32F_3 = {"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt64F_3 = {"
+        "                    Type = int64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt32F_3 = {"
+        "                    Type = int32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt16F_3 = {"
+        "                    Type = int16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt64F_3 = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt32F_3 = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_3 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 1"
+        "            DanBufferMultiplier = 4"
+        "            NumberOfPreTriggers = 2"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint64"
+        "                    TimeSignal = 1"
+        "                    AbsoluteTime = 1"
+        "                }"
+        "                SignalUInt16F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt16F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt32F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt32F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt64F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt64F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt16F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt16F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt32F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt32F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt64F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt64F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat32F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat32F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat64F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat64F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt16F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt32F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt64F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt16F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt32F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt64F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat32F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat64F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -1072,19 +1347,19 @@ bool DANSourceTest::TestGetOutputBrokers() {
 
 bool DANSourceTest::TestIntegratedInApplication_NoTrigger() {
     using namespace MARTe;
-    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-    uint32 timeToVerify[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22 };
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4,
+            5, 6, 7, 8, 9, 10, 11, 12 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     const uint32 numberOfBuffers = 16;
     const float32 period = 1e-3;
-    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period);
+    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, NULL, numberOfElements, numberOfBuffers, 0, 0, period);
 }
 
 bool DANSourceTest::TestIntegratedInApplication_Trigger() {
     using namespace MARTe;
     uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
     uint32 signalToVerify[] = { 1, 2, 3, 4, 6, 7, 8, 9 };
-    uint32 timeToVerify[] = { 0, 2, 4, 6, 10, 12, 14, 16 };
+    uint32 timeToVerifyRelative[] = { 0, 1000, 2000, 3000, 5000, 6000, 7000, 8000 };
     uint8 triggerToGenerate[] = { 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
@@ -1092,5 +1367,20 @@ bool DANSourceTest::TestIntegratedInApplication_Trigger() {
     const uint32 numberOfPreTriggers = 2;
     const uint32 numberOfPostTriggers = 1;
     const float32 period = 1e-3;
-    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period);
+    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerifyRelative, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period);
+}
+
+bool DANSourceTest::TestIntegratedInApplication_Trigger_AbsoluteTime() {
+    using namespace MARTe;
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+    uint32 signalToVerify[] = { 1, 2, 3, 4, 6, 7, 8, 9 };
+    uint32 timeToVerifyRelative[] = { 0, 1000, 2000, 3000, 5000, 6000, 7000, 8000 };
+    uint8 triggerToGenerate[] = { 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+    uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
+    const uint32 numberOfBuffers = 16;
+    const uint32 numberOfPreTriggers = 2;
+    const uint32 numberOfPostTriggers = 1;
+    const float32 period = 1e-3;
+    return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerifyRelative, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, 10, true);
 }

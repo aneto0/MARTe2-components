@@ -96,12 +96,17 @@ public:
     bool TestIntegratedInApplication_Trigger();
 
     /**
-     * @brief Tests the Synchronise method
+     * @brief Tests the DANSource integrated in an application which asynchronously stores data based on a trigger event and using absolute time.
+     */
+    bool TestIntegratedInApplication_Trigger_AbsoluteTime();
+
+    /**
+     * @brief Tests the Synchronise method. This is tested by the TestIntegratedInApplication_NoTrigger.
      */
     bool TestSynchronise();
 
     /**
-     * @brief Tests the PrepareNextState method
+     * @brief Tests the PrepareNextState method. This is tested by the TestIntegratedInApplication_Trigger_AbsoluteTime.
      */
     bool TestPrepareNextState();
 

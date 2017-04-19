@@ -84,7 +84,10 @@ DANSource::~DANSource() {
 
         delete[] danStreams;
     }
-
+    if (danDataCore != NULL_PTR(dan_DataCore)) {
+        dan_closeLibrary(danDataCore);
+        danDataCore = NULL_PTR(dan_DataCore);
+    }
 }
 
 bool DANSource::AllocateMemory() {
