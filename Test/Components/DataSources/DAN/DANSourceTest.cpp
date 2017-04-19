@@ -318,7 +318,7 @@ template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnT
             found = (danStreamReader.getCurSamples() == toVerifyNumberOfElements);
             if (!found) {
                 danStreamReader.closeFile();
-                Sleep::Sec(0.1);
+                Sleep::Sec(0.5);
             }
             timeoutCounter++;
         }
