@@ -24,15 +24,14 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "dan/dan_DataCore.h"
-#include "dan/dan_Source.h"
-#include "tcn.h"
+#include <tcn.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "CompilerTypes.h"
+#include "DANAPI.h"
 #include "DANSource.h"
 #include "DANStream.h"
 
@@ -43,7 +42,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
 namespace MARTe {
 
 DANStream::DANStream(const TypeDescriptor & tdIn, const StreamString baseNameIn, const uint32 danBufferMultiplierIn, const float64 samplingFrequencyIn, const uint32 numberOfSamplesIn) {
@@ -56,7 +54,7 @@ DANStream::DANStream(const TypeDescriptor & tdIn, const StreamString baseNameIn,
     signalIndexOffset = NULL_PTR(uint32 *);
     blockMemory = NULL_PTR(char8 *);
     blockInterleavedMemory = NULL_PTR(char8 *);
-    danSource = NULL_PTR(dan_Source);
+    danSource = NULL_PTR(void *);
     baseName = baseNameIn;
     danBufferMultiplier = danBufferMultiplierIn;
     samplingFrequency = samplingFrequencyIn;
@@ -75,8 +73,8 @@ DANStream::~DANStream() {
     if (signalIndexOffset != NULL_PTR(uint32 *)) {
         delete[] signalIndexOffset;
     }
-    if ((DANSource::GetDANDataCore() != NULL_PTR(dan_DataCore)) && (danSource != NULL_PTR(dan_Source))) {
-        dan_publisher_unpublishSource(DANSource::GetDANDataCore(), danSource);
+    if (danSource != NULL_PTR(void *)) {
+        DANAPI::UnpublishSource(danSource);
     }
     if (blockMemory != NULL_PTR(char8 *)) {
         GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(blockMemory));
@@ -163,7 +161,7 @@ bool DANStream::PutData() {
         }
         if (ok) {
             //Check for >= 0 as true means == 1 but on CCS 6.0 true will be == 0
-            ok = (dan_publisher_putDataBlock(danSource, timeStamp, blockInterleavedMemory, static_cast<ssize_t>(blockSize), NULL_PTR(char8 *)) >= 0);
+            ok = DANAPI::PutDataBlock(danSource, timeStamp, blockInterleavedMemory, blockSize);
         }
     }
     else {
@@ -173,7 +171,7 @@ bool DANStream::PutData() {
 }
 
 bool DANStream::OpenStream() {
-    bool ok = (dan_publisher_openStream(danSource, samplingFrequency, static_cast<ssize_t>(0)) == 0);
+    bool ok = DANAPI::OpenStream(danSource, samplingFrequency);
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to dan_publisher_openStream for %s", danSourceName.Buffer());
     }
@@ -181,7 +179,7 @@ bool DANStream::OpenStream() {
 }
 
 bool DANStream::CloseStream() {
-    return (dan_publisher_closeStream(danSource) == 0);
+    return DANAPI::CloseStream(danSource);
 }
 
 void DANStream::Finalise() {
@@ -192,7 +190,7 @@ void DANStream::Finalise() {
     (void) danSourceName.Printf("%s_%s", baseName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(td));
     (void) danSourceName.Seek(0LLU);
     uint32 danBufferSize = blockSize * danBufferMultiplier;
-    danSource = dan_publisher_publishSource_withDAQBuffer(DANSource::GetDANDataCore(), danSourceName.Buffer(), static_cast<ssize_t>(danBufferSize));
+    danSource = DANAPI::PublishSource(danSourceName.Buffer(), danBufferSize);
 }
 
 void DANStream::AddSignal(const uint32 signalIdx) {
@@ -230,4 +228,5 @@ bool DANStream::GetSignalMemoryBuffer(const uint32 signalIdx, void*& signalAddre
     }
     return found;
 }
+
 }

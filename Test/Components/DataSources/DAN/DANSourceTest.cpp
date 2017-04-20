@@ -1238,6 +1238,609 @@ static const MARTe::char8 * const config3 = ""
         "    }"
         "}";
 
+//Configuration with more than one sample
+static const MARTe::char8 * const config4 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                    Samples = 10"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 0"
+        "            DanBufferMultiplier = 4"
+        "            Signals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with more than one more than one time signal
+static const MARTe::char8 * const config5 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            AbsoluteTime = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                TimeRel = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                Time = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 1"
+        "            DanBufferMultiplier = 4"
+        "            NumberOfPreTriggers = 2"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                TimeRel = {"
+        "                    Type = uint32"
+        "                    TimeSignal = 1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint64"
+        "                    TimeSignal = 1"
+        "                    AbsoluteTime = 1"
+        "                }"
+        "                SignalUInt16F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with no DAN signals
+static const MARTe::char8 * const config6 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            AbsoluteTime = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                Time = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 1"
+        "            DanBufferMultiplier = 4"
+        "            NumberOfPreTriggers = 2"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint64"
+        "                    TimeSignal = 1"
+        "                    AbsoluteTime = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with no time signal
+static const MARTe::char8 * const config7 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            AbsoluteTime = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 1"
+        "            DanBufferMultiplier = 4"
+        "            NumberOfPreTriggers = 2"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with a time signal that is not uint32
+static const MARTe::char8 * const config8 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                TimeRel = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 1"
+        "            DanBufferMultiplier = 4"
+        "            NumberOfPreTriggers = 2"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                TimeRel = {"
+        "                    Type = uint16"
+        "                    TimeSignal = 1"
+        "                }"
+        "                SignalUInt16F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with an absolute time signal that is not uint64
+static const MARTe::char8 * const config9 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 1"
+        "            DanBufferMultiplier = 4"
+        "            NumberOfPreTriggers = 2"
+        "            NumberOfPostTriggers = 1"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    TimeSignal = 1"
+        "                    AbsoluteTime = 1"
+        "                }"
+        "                SignalUInt16F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Standard configuration with no trigger source
+static const MARTe::char8 * const config10 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM2 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                SignalUInt16F_2 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 0"
+        "            DanBufferMultiplier = 4"
+        "            Signals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt16F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1 GAM2}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+
+//Standard configuration with Period = 0
+static const MARTe::char8 * const config11 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 0"
+        "            DanBufferMultiplier = 4"
+        "            Signals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Period = 0"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Standard configuration with SamplingFrequency = 0
+static const MARTe::char8 * const config12 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 0"
+        "            DanBufferMultiplier = 4"
+        "            Signals = {"
+        "                SignalUInt16F_1 = {"
+        "                    SamplingFrequency = 0"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -1252,7 +1855,6 @@ bool DANSourceTest::TestConstructor() {
     ok &= (ds.IsAbsoluteTime() == false);
     ok &= (ds.IsStoreOnTrigger() == false);
     ok &= (ds.GetTimeSignalIdx() == -1);
-    ok &= (DANSource::GetDANDataCore() == NULL);
     return ok;
 }
 
@@ -1383,4 +1985,280 @@ bool DANSourceTest::TestIntegratedInApplication_Trigger_AbsoluteTime() {
     const uint32 numberOfPostTriggers = 1;
     const float32 period = 1e-3;
     return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerifyRelative, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, 10, true);
+}
+
+bool DANSourceTest::TestInitialise() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 3);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    ok &= (test.GetNumberOfBuffers() == 10);
+    ok &= (test.GetCPUMask() == 15);
+    ok &= (test.GetStackSize() == 10000000);
+    ok &= (test.GetDANBufferMultiplier() == 4);
+    ok &= (test.IsStoreOnTrigger());
+    ok &= (test.GetNumberOfPreTriggers() == 2);
+    ok &= (test.GetNumberOfPostTriggers() == 3);
+    return ok;
+}
+
+bool DANSourceTest::TestInitialise_False_NumberOfBuffers() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+
+bool DANSourceTest::TestInitialise_False_NumberOfBuffers_0() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("NumberOfBuffers", 0);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool DANSourceTest::TestInitialise_False_CPUMask() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool DANSourceTest::TestInitialise_False_StackSize() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool DANSourceTest::TestInitialise_False_StackSize_0() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 0);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool DANSourceTest::TestInitialise_False_DanBufferMultiplier() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool DANSourceTest::TestInitialise_False_StoreOnTrigger() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool DANSourceTest::TestInitialise_False_NumberOfPreTriggers() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool DANSourceTest::TestInitialise_False_NumberOfPostTriggers() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool DANSourceTest::TestInitialise_False_Signals() {
+    using namespace MARTe;
+    DANSource test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool DANSourceTest::TestSetConfiguredDatabase_False_NumberOfSamples() {
+    return !TestIntegratedInApplication(config4, true);
+}
+
+bool DANSourceTest::TestSetConfiguredDatabase_False_MoreThanOneTimeSignal() {
+    return !TestIntegratedInApplication(config5, true);
+}
+
+bool DANSourceTest::TestSetConfiguredDatabase_False_NoDANSignals() {
+    return !TestIntegratedInApplication(config6, true);
+}
+
+bool DANSourceTest::TestSetConfiguredDatabase_False_NoTimeSignal() {
+    return !TestIntegratedInApplication(config7, true);
+}
+
+bool DANSourceTest::TestSetConfiguredDatabase_False_TimeSignal_NotUInt32() {
+    return !TestIntegratedInApplication(config8, true);
+}
+
+bool DANSourceTest::TestSetConfiguredDatabase_False_AbsTimeSignal_NotUInt64() {
+    return !TestIntegratedInApplication(config9, true);
+}
+
+bool DANSourceTest::TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction() {
+    return !TestIntegratedInApplication(config10, true);
+}
+
+bool DANSourceTest::TestSetConfiguredDatabase_False_Period_0() {
+    return !TestIntegratedInApplication(config11, true);
+}
+
+bool DANSourceTest::TestSetConfiguredDatabase_False_SamplingFrequency_0() {
+    return !TestIntegratedInApplication(config12, true);
+}
+
+bool DANSourceTest::TestGetCPUMask() {
+    return TestInitialise();
+}
+
+bool DANSourceTest::TestGetNumberOfBuffers() {
+    return TestInitialise();
+}
+
+bool DANSourceTest::TestGetNumberOfPostTriggers() {
+    return TestInitialise();
+}
+
+bool DANSourceTest::TestGetNumberOfPreTriggers() {
+    return TestInitialise();
+}
+
+bool DANSourceTest::TestGetStackSize() {
+    return TestInitialise();
+}
+
+bool DANSourceTest::TestIsStoreOnTrigger() {
+    return TestInitialise();
+}
+
+bool DANSourceTest::TestGetTimeSignalIdx() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config2, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<DANSource> test;
+    if (ok) {
+        test = godb->Find("Test.Data.DANStreamTest");
+        ok = test.IsValid();
+    }
+    if (ok) {
+        ok = (test->GetTimeSignalIdx() == 1);
+    }
+    if (ok) {
+        ok = (!test->IsAbsoluteTime());
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool DANSourceTest::TestIsAbsoluteTime() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config3, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<DANSource> test;
+    if (ok) {
+        test = godb->Find("Test.Data.DANStreamTest");
+        ok = test.IsValid();
+    }
+    if (ok) {
+        ok = (test->IsAbsoluteTime());
+    }
+    godb->Purge();
+    return ok;
 }

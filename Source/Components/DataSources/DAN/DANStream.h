@@ -27,8 +27,6 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "dan/dan_DataCore.h"
-#include "dan/dan_Source.h"
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -190,7 +188,7 @@ private:
     /**
      * Pointer to the dan_Source
      */
-    dan_Source danSource;
+    void *danSource;
 
     /**
      * The name of DANSource that holds this DANStream.

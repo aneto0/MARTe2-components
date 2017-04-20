@@ -116,17 +116,112 @@ public:
     bool TestInitialise();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method
+     * @brief Tests the Initialise method without specifying the number of buffers.
+     */
+    bool TestInitialise_False_NumberOfBuffers();
+
+    /**
+     * @brief Tests the Initialise method specifying 0 buffers.
+     */
+    bool TestInitialise_False_NumberOfBuffers_0();
+
+    /**
+     * @brief Tests the Initialise method without specifying the CPU mask.
+     */
+    bool TestInitialise_False_CPUMask();
+
+    /**
+     * @brief Tests the Initialise method without specifying the stack size.
+     */
+    bool TestInitialise_False_StackSize();
+
+    /**
+     * @brief Tests the Initialise method specifying the stack size = 0.
+     */
+    bool TestInitialise_False_StackSize_0();
+
+    /**
+     * @brief Tests the Initialise method without specifying the tree name.
+     */
+    bool TestInitialise_False_DanBufferMultiplier();
+
+    /**
+     * @brief Tests the Initialise method without specifying the StoreOnTrigger.
+     */
+    bool TestInitialise_False_StoreOnTrigger();
+
+    /**
+     * @brief Tests the Initialise method without specifying the NumberOfPreTriggers.
+     */
+    bool TestInitialise_False_NumberOfPreTriggers();
+
+    /**
+     * @brief Tests the Initialise method without specifying the NumberOfPostTriggers.
+     */
+    bool TestInitialise_False_NumberOfPostTriggers();
+
+    /**
+     * @brief Tests the Initialise method without specifying the Signals.
+     */
+    bool TestInitialise_False_Signals();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method. This is tested by the TestIntegratedInApplication_NoTrigger.
      */
     bool TestSetConfiguredDatabase();
 
     /**
-     * @brief Tests the OpenStream method
+     * @brief Tests the SetConfiguredDatabase with more than one sample.
+     */
+    bool TestSetConfiguredDatabase_False_NumberOfSamples();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with more than one time signal.
+     */
+    bool TestSetConfiguredDatabase_False_MoreThanOneTimeSignal();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with no DANSource signals defined.
+     */
+    bool TestSetConfiguredDatabase_False_NoDANSignals();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with no TimeSignal defined.
+     */
+    bool TestSetConfiguredDatabase_False_NoTimeSignal();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with TimeSignal defined as not uint32.
+     */
+    bool TestSetConfiguredDatabase_False_TimeSignal_NotUInt32();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with an absolute TimeSignal defined as not uint64.
+     */
+    bool TestSetConfiguredDatabase_False_AbsTimeSignal_NotUInt64();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with more than one function interacting with the DANSource.
+     */
+    bool TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase specifying signal period of 0.
+     */
+    bool TestSetConfiguredDatabase_False_Period_0();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase specifying a sampling frequency of 0.
+     */
+    bool TestSetConfiguredDatabase_False_SamplingFrequency_0();
+
+    /**
+     * @brief Tests the OpenStream method. This is tested by the TestIntegratedInApplication_NoTrigger.
      */
     bool TestOpenStream();
 
     /**
-     * @brief Tests the CloseStream method
+     * @brief Tests the CloseStream method. This is tested by the TestIntegratedInApplication_NoTrigger.
      */
     bool TestCloseStream();
 
@@ -170,10 +265,6 @@ public:
      */
     bool TestGetTimeSignalIdx();
 
-    /**
-     * @brief Tests the GetDANDataCore method
-     */
-    bool TestGetDANDataCore();
 };
 
 /*---------------------------------------------------------------------------*/

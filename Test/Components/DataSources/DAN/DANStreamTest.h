@@ -80,6 +80,11 @@ public:
     bool TestFinalise();
 
     /**
+     * @brief Tests the PutData method without allocating the memory.
+     */
+    bool TestPutData_False();
+
+    /**
      * @brief Tests the PutData method with uint16.
      */
     bool TestPutData_UInt16();

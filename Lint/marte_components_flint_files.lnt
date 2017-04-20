@@ -20,15 +20,15 @@
 -i./Source/Components/Interfaces/EPICS/
 -i./Source/Components/Interfaces/SysLogger/
 
-/*Atomic2.h
+Atomic2.h
 BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
 ConversionGAM.cpp
-ConversionHelper.cpp*/
+ConversionHelper.cpp
 DANSource.cpp
 DANStream.cpp
-/*EpicsInputDataSource.cpp
+EpicsInputDataSource.cpp
 EpicsOutputDataSource.cpp
 EPICSPV.cpp
 EPICSCAClient.cpp
@@ -54,4 +54,4 @@ SDNPublisher.cpp
 SDNSubscriber.cpp
 SharedDataArea.cpp
 SysLogger.cpp
-Types.h*/
+Types.h

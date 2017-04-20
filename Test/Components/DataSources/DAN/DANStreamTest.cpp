@@ -301,11 +301,14 @@ bool DANStreamTest::TestAddSignal() {
     bool ok = danSource.Initialise(cdb);
 
     DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8);
+    float32 *signalPtr = NULL;
+
     ds.AddSignal(2u);
     ds.AddSignal(0u);
     ds.AddSignal(1u);
+    ok &= !ds.GetSignalMemoryBuffer(0u, reinterpret_cast<void *&>(signalPtr));
+
     ds.Finalise();
-    float32 *signalPtr = NULL;
     ok &= ds.GetSignalMemoryBuffer(0u, reinterpret_cast<void *&>(signalPtr));
     ok &= (signalPtr != NULL);
     signalPtr = NULL;
@@ -322,6 +325,28 @@ bool DANStreamTest::TestAddSignal() {
 
 bool DANStreamTest::TestFinalise() {
     return TestAddSignal();
+}
+
+bool DANStreamTest::TestPutData_False() {
+    using namespace MARTe;
+
+    //This is required in order to create the dan_initLibrary
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 1);
+    cdb.Write("StackSize", 1048576);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 0);
+    cdb.CreateAbsolute("Signals");
+    cdb.MoveToRoot();
+    DANSource danSource;
+    danSource.Initialise(cdb);
+
+    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 1000);
+    ds.AddSignal(0u);
+    ds.AddSignal(2u);
+    ds.AddSignal(5u);
+    return !ds.PutData();
 }
 
 bool DANStreamTest::TestPutData_UInt16() {

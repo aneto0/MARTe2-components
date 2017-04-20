@@ -58,13 +58,13 @@ namespace MARTe {
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
  *     CPUMask = 15 //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data into the DAN database.
  *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
- *     DanBufferMultiplier = 4 //Compulsory. Number of buffer that the dan_publisher_publishSource_withDAQBuffer will use to buffer the data written by the DataSourceI
+ *     DanBufferMultiplier = 4 //Compulsory. Number of buffers that the dan_publisher_publishSource_withDAQBuffer will use to buffer the data written by the DataSourceI
  *     StoreOnTrigger = 1 //Compulsory. If 0 all the data in the circular buffer is continuously stored. If 1 data is stored when the Trigger signal is 1 (see below).
  *     NumberOfPreTriggers = 2 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store before the trigger.
  *     NumberOfPostTriggers = 1 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store after the trigger.
  *
  *     Signals = {
- *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be set in index 0 of the Signals node. When the value of this signal is 1 data will be stored. Shall not be added if StoreOnTrigger = 0.
+ *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be set in index 0 of the Signals node. When the value of this signal is 1 data will be stored into the DAN database. Shall not be added if StoreOnTrigger = 0.
  *             Type = 'uint8" //Type must be uint8
  *         }
  *         Time = { //Compulsory when StoreOnTrigger = 1. Can be stored in any index, but TimeSignal must be set = 1. Shall not be added if StoreOnTrigger = 0.
@@ -245,16 +245,17 @@ DANSource    ();
     int32 GetTimeSignalIdx() const;
 
     /**
-     * @brief Gets the singleton dan_DataCore.
-     * @return the singleton dan_DataCore.
-     */
-    static dan_DataCore GetDANDataCore();
-
-    /**
      * @brief Gets the latest set absolute start time in nano-seconds (see PrepareNextState)
      * @return the latest set absolute start time in nano-seconds
      */
     uint64 GetAbsoluteStartTime() const;
+
+    /**
+     * @brief Gets the number of buffers that the dan_publisher_publishSource_withDAQBuffer will use to buffer the data written by the DataSourceI
+     * @return the number of buffers that the dan_publisher_publishSource_withDAQBuffer will use .
+     */
+    uint32 GetDANBufferMultiplier() const;
+
 private:
 
     /**
@@ -310,7 +311,7 @@ private:
     /**
      * dan_DataCore singleton that is required by all the DANStream instances.
      */
-    static dan_DataCore danDataCore;
+    //static dan_DataCore danDataCore;
 
     /**
      * Number of internal buffers (number of signal copies) that the DAN library should allocate.

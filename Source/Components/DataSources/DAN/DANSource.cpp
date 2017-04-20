@@ -25,23 +25,20 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "dan/dan_DataCore.h"
-#include "tcn.h"
+#include <tcn.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
+#include "DANAPI.h"
 #include "DANSource.h"
 #include "MemoryMapAsyncOutputBroker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-namespace MARTe {
-dan_DataCore DANSource::danDataCore = NULL_PTR(dan_DataCore);
-}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -84,10 +81,7 @@ DANSource::~DANSource() {
 
         delete[] danStreams;
     }
-    if (danDataCore != NULL_PTR(dan_DataCore)) {
-        dan_closeLibrary(danDataCore);
-        danDataCore = NULL_PTR(dan_DataCore);
-    }
+    DANAPI::CloseLibrary();
 }
 
 bool DANSource::AllocateMemory() {
@@ -270,10 +264,7 @@ bool DANSource::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        if (danDataCore == NULL_PTR(dan_DataCore)) {
-            danDataCore = dan_initLibrary();
-            ok = (danDataCore != NULL_PTR(dan_DataCore));
-        }
+        ok = DANAPI::InitLibrary();
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Failed to dan_initLibrary");
         }
@@ -433,6 +424,12 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
+        ok = (nOfDANStreams > 0u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "At least one signal to be stored in DAN shall be defined.");
+        }
+    }
+    if (ok) {
         ok = data.MoveToAncestor(1u);
     }
     //Only one and one GAM allowed to interact with this DataSourceI
@@ -553,9 +550,13 @@ uint64 DANSource::GetAbsoluteStartTime() const {
     return absoluteStartTime;
 }
 
+uint32 DANSource::GetDANBufferMultiplier() const {
+    return danBufferMultiplier;
+}
+/*
 dan_DataCore DANSource::GetDANDataCore() {
     return danDataCore;
-}
+}**/
 
 CLASS_REGISTER(DANSource, "1.0")
 CLASS_METHOD_REGISTER(DANSource, OpenStream)

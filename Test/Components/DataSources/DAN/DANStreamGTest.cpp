@@ -73,7 +73,12 @@ TEST(DANStreamGTest,TestFinalise) {
     DANStreamTest test;
     ASSERT_TRUE(test.TestFinalise());
 }
-	
+
+TEST(DANStreamGTest,TestPutData_False) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestPutData_False());
+}
+
 TEST(DANStreamGTest,TestPutData_UInt16) {
     DANStreamTest test;
     ASSERT_TRUE(test.TestPutData_UInt16());

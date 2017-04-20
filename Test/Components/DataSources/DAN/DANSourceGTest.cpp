@@ -98,3 +98,143 @@ TEST(DANSourceGTest,TestIntegratedInApplication_Trigger_AbsoluteTime) {
     DANSourceTest test;
     ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_AbsoluteTime());
 }
+
+TEST(DANSourceGTest,TestInitialise) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(DANSourceGTest,TestInitialise_False_NumberOfBuffers) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers());
+}
+
+TEST(DANSourceGTest,TestInitialise_False_NumberOfBuffers_0) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers_0());
+}
+
+TEST(DANSourceGTest,TestInitialise_False_CPUMask) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False_CPUMask());
+}
+
+TEST(DANSourceGTest,TestInitialise_False_StackSize) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False_StackSize());
+}
+
+TEST(DANSourceGTest,TestInitialise_False_StackSize_0) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False_StackSize_0());
+}
+
+TEST(DANSourceGTest,TestInitialise_False_DanBufferMultiplier) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False_DanBufferMultiplier());
+}
+
+TEST(DANSourceGTest,TestInitialise_False_StoreOnTrigger) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False_StoreOnTrigger());
+}
+
+TEST(DANSourceGTest,TestInitialise_False_NumberOfPreTriggers) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NumberOfPreTriggers());
+}
+
+TEST(DANSourceGTest,TestInitialise_False_NumberOfPostTriggers) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NumberOfPostTriggers());
+}
+
+TEST(DANSourceGTest,TestInitialise_False_Signals) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Signals());
+}
+
+TEST(DANSourceGTest,TestSetConfiguredDatabase_False_MoreThanOneTimeSignal) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneTimeSignal());
+}
+
+TEST(DANSourceGTest,TestSetConfiguredDatabase_False_NoDANSignals) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoDANSignals());
+}
+
+TEST(DANSourceGTest,TestSetConfiguredDatabase_False_NoTimeSignal) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoTimeSignal());
+}
+
+TEST(DANSourceGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NumberOfSamples());
+}
+
+TEST(DANSourceGTest,TestSetConfiguredDatabase_False_TimeSignal_NotUInt32) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimeSignal_NotUInt32());
+}
+
+TEST(DANSourceGTest,TestSetConfiguredDatabase_False_AbsTimeSignal_NotUInt64) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_AbsTimeSignal_NotUInt64());
+}
+
+TEST(DANSourceGTest,TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction());
+}
+
+TEST(DANSourceGTest,TestSetConfiguredDatabase_False_Period_0) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_Period_0());
+}
+
+TEST(DANSourceGTest,TestSetConfiguredDatabase_False_SamplingFrequency_0) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_SamplingFrequency_0());
+}
+
+TEST(DANSourceGTest,TestGetCPUMask) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestGetCPUMask());
+}
+
+TEST(DANSourceGTest,TestGetNumberOfBuffers) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestGetNumberOfBuffers());
+}
+
+TEST(DANSourceGTest,TestGetNumberOfPostTriggers) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestGetNumberOfPostTriggers());
+}
+
+TEST(DANSourceGTest,TestGetNumberOfPreTriggers) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestGetNumberOfPreTriggers());
+}
+
+TEST(DANSourceGTest,TestGetStackSize) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestGetStackSize());
+}
+
+TEST(DANSourceGTest,TestIsStoreOnTrigger) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestIsStoreOnTrigger());
+}
+
+TEST(DANSourceGTest,TestGetTimeSignalIdx) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestGetTimeSignalIdx());
+}
+
+TEST(DANSourceGTest,TestIsAbsoluteTime) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestIsAbsoluteTime());
+}
