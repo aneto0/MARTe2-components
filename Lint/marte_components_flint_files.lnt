@@ -5,6 +5,7 @@
 -i%SDN_CORE_INCLUDE_DIR%
 
 -i./Source/Components/DataSources/DAN/
+-i./Source/Components/DataSources/EPICSCA/
 -i./Source/Components/DataSources/EpicsDataSource/
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
@@ -32,6 +33,8 @@ EpicsInputDataSource.cpp
 EpicsOutputDataSource.cpp
 EPICSPV.cpp
 EPICSCAClient.cpp
+EPICSCAInput.cpp
+EPICSCAOutput.cpp
 FilterGAM.cpp
 IOGAM.cpp
 LinuxTimer.cpp

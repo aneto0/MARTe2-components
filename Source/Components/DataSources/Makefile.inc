@@ -36,6 +36,10 @@ ifdef MDSPLUS_DIR
 SPB    += MDSWriter.x
 endif
 
+ifdef EPICS_BASE
+SPB   += EPICSCA.x
+endif
+
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 # Current assumption is prior installation of CODAC Core System on the build node
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
@@ -60,6 +64,10 @@ endif
 
 ifdef MDSPLUS_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriter$(LIBEXT)
+endif
+
+ifdef EPICS_BASE
+LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSCA/EPICSCA$(LIBEXT)
 endif
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.

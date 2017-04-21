@@ -1,6 +1,6 @@
 /**
- * @file EPICSCAInput.h
- * @brief Header file for class EPICSCAInput
+ * @file EPICSCAOutput.h
+ * @brief Header file for class EPICSCAOutput
  * @date 20/04/2017
  * @author Andre Neto
  *
@@ -16,22 +16,24 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSCAInput
+ * @details This header file contains the declaration of the class EPICSCAOutput
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSCAINPUT_H_
-#define EPICSCAINPUT_H_
+#ifndef EPICSCAOUTPUT_H_
+#define EPICSCAOUTPUT_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#include <cadef.h>
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
+#include "EPICSCAInput.h"
 #include "EmbeddedServiceMethodBinderI.h"
 #include "EventSem.h"
 #include "SingleThreadService.h"
@@ -40,12 +42,15 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+//Maximum size that a PV name may have
+
 /**
- * @brief A DataSource which provides an input interface to an EPICS channel access source.
+ * @brief A DataSource which allows to output data into any number of PVs using the EPICS channel access client protocol.
+ * Data is asynchronously ca_put in the context of a different thread (w.r.t. to the real-time thread).
  *
  * The configuration syntax is (names are only given as an example):
- * +EPICSCAInput_1 = {
- *     Class = EPICSCADataSource::EPICSCAInput
+ * +EPICSCAOutput_1 = {
+ *     Class = EPICSCA::EPICSCAOutput
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
  *     CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
  *     Signals = {
@@ -57,20 +62,20 @@ namespace MARTe {
  *     }
  * }
  */
-class EPICSCAInput: public DataSourceI, public EmbeddedServiceMethodBinderI {
+class EPICSCAOutput: public DataSourceI, public EmbeddedServiceMethodBinderI {
 public:
     CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Default constructor. NOOP.
      */
-EPICSCAInput    ();
+EPICSCAOutput    ();
 
     /**
      * @brief Destructor.
      * @details TODO.
      */
-    virtual ~EPICSCAInput();
+    virtual ~EPICSCAOutput();
 
     /**
      * @brief See DataSourceI::AllocateMemory. NOOP.
@@ -95,16 +100,15 @@ EPICSCAInput    ();
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @details Only InputSignals are supported.
-     * @return MemoryMapInputBroker.
+     * @details Only OutputSignals are supported.
+     * @return MemoryMapAsyncOutputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
-     * @details adds a memory MemoryMapInputBroker instance to the inputBrokers
-     * @return true.
+     * @return false.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
             const char8* const functionName,
@@ -112,7 +116,8 @@ EPICSCAInput    ();
 
     /**
      * @brief See DataSourceI::GetOutputBrokers.
-     * @return false.
+     * @details adds a memory MemoryMapOutputBroker instance to the outputBrokers
+     * @return true.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
             const char8* const functionName,
@@ -143,19 +148,19 @@ EPICSCAInput    ();
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @brief Gets the affinity of the thread which is going to be used to asynchronously read data from the ca_create_subscription.
-     * @return the the affinity of the thread which is going to be used to asynchronously read data from the ca_create_subscription.
+     * @brief Gets the affinity of the thread which is going to be used to asynchronously write data with ca_put.
+     * @return the affinity of the thread which is going to be used to asynchronously write data with ca_put.
      */
-    const ProcessorType& GetCPUMask() const;
+    uint32 GetCPUMask() const;
 
     /**
-     * @brief Gets the stack size of the thread which is going to be used to asynchronously read data from the ca_create_subscription.
-     * @return the stack size of the thread which is going to be used to asynchronously read data from the ca_create_subscription.
+     * @brief Gets the stack size of the thread which is going to be used to asynchronously write data with ca_put.
+     * @return the stack size of the thread which is going to be used to asynchronously write data with ca_put.
      */
     uint32 GetStackSize() const;
 
     /**
-     * @brief Provides the context to execute all the EPICS relevant calls.
+     * @brief Provides the context to execute all the EPICS ca_put calls.
      * @details Executes in the context of a spawned thread the following EPICS calls:
      * ca_context_create, ca_create_channel, ca_create_subscription, ca_clear_subscription,
      * ca_clear_event, ca_clear_channel, ca_detach_context and ca_context_destroy
@@ -164,23 +169,33 @@ EPICSCAInput    ();
     virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
 
     /**
+     * @brief See DataSourceI::Synchronise.
+     * @return false.
+     */
+    virtual bool Synchronise();
+
+    /**
      * @brief Registered as the ca_create_subscription callback function.
      * It calls updates the memory of the corresponding PV variable.
      */
-    friend void EPICSCAInputEventCallback(struct event_handler_args args);
+    friend void EPICSCAOutputEventCallback(struct event_handler_args args);
 
 private:
 
     /**
-     * Struct
+     * Wraps a PV
      */
     struct PVWrapper {
         //The channel identifier
         chid pvChid;
+        //The event identifier
+        evid pvEvid;
         //The PV type
         chtype pvType;
         //The memory of the signal associated to this channel
         void *memory;
+        //The PV name
+        char8 pvName[PV_NAME_MAX_SIZE];
     };
 
     /**
@@ -207,6 +222,21 @@ private:
      * Stores the configuration information received at Initialise.
      */
     ConfigurationDatabase originalSignalInformation;
+
+    /**
+     * Semaphore to synchronise the real-time thread with the ca_put thread.
+     */
+    EventSem evtSem;
+
+    /**
+     * Protects the access to the evtSem
+     */
+    FastPollingMutexSem fastMux;
+
+    /**
+     * Protects the access to the evtSem reset
+     */
+    bool evtSemPosted;
 };
 }
 
