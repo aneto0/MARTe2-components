@@ -106,9 +106,29 @@ public:
     bool TestSetConfiguredDatabase_False_NoSignals();
 
     /**
+     * @brief Tests the SetConfiguredDatabase method without specifying the signal PV name.
+     */
+    bool TestSetConfiguredDatabase_False_PVName();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method specifying more than one sample.
+     */
+    bool TestSetConfiguredDatabase_False_Samples();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method with an unsupported type.
+     */
+    bool TestSetConfiguredDatabase_False_UnsupportedType();
+
+    /**
      * @brief Tests that the PV values are correctly captured by the DataSourceI
      */
     bool TestExecute();
+
+    /**
+     * @brief Tests that the PV values are correctly captured by the DataSourceI when using arrays.
+     */
+    bool TestExecute_Arrays();
 
 };
 

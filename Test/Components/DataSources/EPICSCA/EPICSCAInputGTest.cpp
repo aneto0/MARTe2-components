@@ -108,4 +108,9 @@ TEST(EPICSCAInputGTest,TestExecute) {
     EPICSCAInputTest test;
     ASSERT_TRUE(test.TestExecute());
 }
+
+TEST(EPICSCAInputGTest,TestExecute_Arrays) {
+    EPICSCAInputTest test;
+    ASSERT_TRUE(test.TestExecute_Arrays());
+}
 	

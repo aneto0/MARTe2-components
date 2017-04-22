@@ -57,6 +57,10 @@ struct PVWrapper {
     chtype pvType;
     //The memory of the signal associated to this channel
     void *memory;
+    //The number of elements > 0
+    uint32 numberOfElements;
+    //The memory size
+    uint32 memorySize;
     //The PV name
     char8 pvName[PV_NAME_MAX_SIZE];
 };
@@ -73,7 +77,8 @@ struct PVWrapper {
  *     Signals = {
  *          PV1 = { //At least one shall be defined
  *             PVName = My::PV1 //Compulsory. Name of the PV.
- *             Type = uint32 //Compulsory. Supported types are int32, uint32, float32 and float64
+ *             Type = uint32 //Compulsory. Supported types are uint16, int16, int32, uint32, uint64, int64, float32 and float64
+ *             NumberOfElements = 1 //Arrays also supported
  *          }
  *          ...
  *     }

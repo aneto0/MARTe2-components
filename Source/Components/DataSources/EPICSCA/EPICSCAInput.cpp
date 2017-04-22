@@ -47,18 +47,7 @@ void EPICSCAInputEventCallback(struct event_handler_args const args) {
     (void) eventCallbackFastMux.FastLock();
     PVWrapper *pv = static_cast<PVWrapper *>(args.usr);
     if (pv != NULL_PTR(PVWrapper *)) {
-        if (pv->pvType == DBR_INT) {
-            *(reinterpret_cast<uint32 *>(pv->memory)) = *(reinterpret_cast<const uint32 *>(args.dbr));
-        }
-        else if (pv->pvType == DBR_FLOAT) {
-            *(reinterpret_cast<float32 *>(pv->memory)) = *(reinterpret_cast<const float32 *>(args.dbr));
-        }
-        else if (pv->pvType == DBR_DOUBLE) {
-            *(reinterpret_cast<float64 *>(pv->memory)) = *(reinterpret_cast<const float64 *>(args.dbr));
-        }
-        else {
-            //Should never enter here...
-        }
+        (void) MemoryOperationsHelper::Copy(pv->memory, args.dbr, pv->memorySize);
     }
     eventCallbackFastMux.FastUnLock();
 }
@@ -68,7 +57,9 @@ void EPICSCAInputEventCallback(struct event_handler_args const args) {
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 EPICSCAInput::EPICSCAInput() :
-        DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
+        DataSourceI(),
+        EmbeddedServiceMethodBinderI(),
+        executor(*this) {
     pvs = NULL_PTR(PVWrapper *);
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
@@ -183,11 +174,17 @@ bool EPICSCAInput::SetConfiguredDatabase(StructuredDataI & data) {
             TypeDescriptor td = GetSignalType(n);
             if (ok) {
                 (void) StringHelper::CopyN(&pvs[n].pvName[0], pvName.Buffer(), PV_NAME_MAX_SIZE);
-                if (td == SignedInteger32Bit) {
-                    pvs[n].pvType = DBR_INT;
+                if (td == SignedInteger16Bit) {
+                    pvs[n].pvType = DBR_SHORT;
+                }
+                else if (td == UnsignedInteger16Bit) {
+                    pvs[n].pvType = DBR_SHORT;
+                }
+                else if (td == SignedInteger32Bit) {
+                    pvs[n].pvType = DBR_LONG;
                 }
                 else if (td == UnsignedInteger32Bit) {
-                    pvs[n].pvType = DBR_INT;
+                    pvs[n].pvType = DBR_LONG;
                 }
                 else if (td == Float32Bit) {
                     pvs[n].pvType = DBR_FLOAT;
@@ -200,10 +197,18 @@ bool EPICSCAInput::SetConfiguredDatabase(StructuredDataI & data) {
                     ok = false;
                 }
             }
+            uint32 numberOfElements = 1u;
             if (ok) {
-                uint32 mallocSize = td.numberOfBits;
-                mallocSize /= 8u;
-                pvs[n].memory = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(mallocSize);
+                ok = GetSignalNumberOfElements(n, numberOfElements);
+            }
+            if (ok) {
+                pvs[n].numberOfElements = numberOfElements;
+            }
+            if (ok) {
+                pvs[n].memorySize = td.numberOfBits;
+                pvs[n].memorySize /= 8u;
+                pvs[n].memorySize *= numberOfElements;
+                pvs[n].memory = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(pvs[n].memorySize);
                 ok = originalSignalInformation.MoveToAncestor(1u);
             }
         }
@@ -290,7 +295,7 @@ ErrorManagement::ErrorType EPICSCAInput::Execute(const ExecutionInfo& info) {
                 }
                 if (err.ErrorsCleared()) {
                     /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                    if (ca_create_subscription(pvs[n].pvType, 1u, pvs[n].pvChid, DBE_VALUE, &EPICSCAInputEventCallback, &pvs[n], &pvs[n].pvEvid) != ECA_NORMAL) {
+                    if (ca_create_subscription(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, DBE_VALUE, &EPICSCAInputEventCallback, &pvs[n], &pvs[n].pvEvid) != ECA_NORMAL) {
                         err = ErrorManagement::FatalError;
                         REPORT_ERROR(err, "ca_create_subscription failed for PV %s", pvs[n].pvName);
                     }

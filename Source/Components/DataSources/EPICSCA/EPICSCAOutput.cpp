@@ -40,7 +40,9 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 EPICSCAOutput::EPICSCAOutput() :
-        DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
+        DataSourceI(),
+        EmbeddedServiceMethodBinderI(),
+        executor(*this) {
     pvs = NULL_PTR(PVWrapper *);
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
@@ -148,9 +150,14 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
             pvs[n].memory = NULL_PTR(void *);
         }
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
-            //Have to mix and match between the original setting of the DataSource signal
-            //and the ones which are later added by the RealTimeApplicationConfigurationBuilder
-            ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(n));
+            //Note that the RealTimeApplicationConfigurationBuilder is allowed to change the order of the signals w.r.t. to the originalSignalInformation
+            StreamString orderedSignalName;
+            ok = GetSignalName(n, orderedSignalName);
+            if (ok) {
+                //Have to mix and match between the original setting of the DataSource signal
+                //and the ones which are later added by the RealTimeApplicationConfigurationBuilder
+                ok = originalSignalInformation.MoveRelative(orderedSignalName.Buffer());
+            }
             StreamString pvName;
             if (ok) {
                 ok = originalSignalInformation.Read("PVName", pvName);
