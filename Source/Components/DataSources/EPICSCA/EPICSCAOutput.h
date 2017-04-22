@@ -181,23 +181,6 @@ EPICSCAOutput    ();
     friend void EPICSCAOutputEventCallback(struct event_handler_args args);
 
 private:
-
-    /**
-     * Wraps a PV
-     */
-    struct PVWrapper {
-        //The channel identifier
-        chid pvChid;
-        //The event identifier
-        evid pvEvid;
-        //The PV type
-        chtype pvType;
-        //The memory of the signal associated to this channel
-        void *memory;
-        //The PV name
-        char8 pvName[PV_NAME_MAX_SIZE];
-    };
-
     /**
      * List of PVs.
      */

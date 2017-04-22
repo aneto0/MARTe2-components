@@ -170,11 +170,17 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
 
             if (ok) {
                 (void) StringHelper::CopyN(&pvs[n].pvName[0], pvName.Buffer(), PV_NAME_MAX_SIZE);
-                if (td == SignedInteger32Bit) {
-                    pvs[n].pvType = DBR_INT;
+                if (td == SignedInteger16Bit) {
+                    pvs[n].pvType = DBR_SHORT;
+                }
+                else if (td == UnsignedInteger16Bit) {
+                    pvs[n].pvType = DBR_SHORT;
+                }
+                else if (td == SignedInteger32Bit) {
+                    pvs[n].pvType = DBR_LONG;
                 }
                 else if (td == UnsignedInteger32Bit) {
-                    pvs[n].pvType = DBR_INT;
+                    pvs[n].pvType = DBR_LONG;
                 }
                 else if (td == Float32Bit) {
                     pvs[n].pvType = DBR_FLOAT;
@@ -187,10 +193,18 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
                     ok = false;
                 }
             }
+            uint32 numberOfElements = 1u;
             if (ok) {
-                uint32 mallocSize = td.numberOfBits;
-                mallocSize /= 8u;
-                pvs[n].memory = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(mallocSize);
+                ok = GetSignalNumberOfElements(n, numberOfElements);
+            }
+            if (ok) {
+                pvs[n].numberOfElements = numberOfElements;
+            }
+            if (ok) {
+                pvs[n].memorySize = td.numberOfBits;
+                pvs[n].memorySize /= 8u;
+                pvs[n].memorySize *= numberOfElements;
+                pvs[n].memory = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(pvs[n].memorySize);
                 ok = originalSignalInformation.MoveToAncestor(1u);
             }
         }
@@ -289,7 +303,7 @@ ErrorManagement::ErrorType EPICSCAOutput::Execute(const ExecutionInfo& info) {
             if (pvs != NULL_PTR(PVWrapper *)) {
                 for (n = 0u; (n < nOfSignals); n++) {
                     /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                    if (ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory) != ECA_NORMAL) {
+                    if (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) != ECA_NORMAL) {
                         err = ErrorManagement::FatalError;
                         REPORT_ERROR(err, "ca_put failed for PV: %s", pvs[n].pvName);
                     }

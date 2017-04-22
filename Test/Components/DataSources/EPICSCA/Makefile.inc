@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  EPICSCAInputTest.x
+OBJSX +=  EPICSCAInputTest.x EPICSCAOutputTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
