@@ -66,9 +66,9 @@ public:
     bool TestGetBrokerName();
 
     /**
-     * @brief Tests that the GetBrokerName method correctly returns an empty string for OutputSignals.
+     * @brief Tests that the GetBrokerName method correctly returns an empty string for InputSignals.
      */
-    bool TestGetBrokerName_OutputSignals();
+    bool TestGetBrokerName_InputSignals();
 
     /**
      * @brief Tests the GetInputBrokers method
@@ -96,6 +96,11 @@ public:
     bool TestInitialise_False_Signals();
 
     /**
+     * @brief Tests the Initialise method without specifying the NumberOfBuffers
+     */
+    bool TestInitialise_False_NumberOfBuffers();
+
+    /**
      * @brief Tests the SetConfiguredDatabase method.
      */
     bool TestSetConfiguredDatabase();
@@ -121,6 +126,11 @@ public:
     bool TestSetConfiguredDatabase_False_UnsupportedType();
 
     /**
+     * @brief Tests the SetConfiguredDatabase method with more than one GAM interacting with the DataSourceI.
+     */
+    bool TestSetConfiguredDatabase_False_MoreThanOneGAM();
+
+    /**
      * @brief Tests that the PV values are correctly written by the DataSourceI
      */
     bool TestExecute();
@@ -129,6 +139,21 @@ public:
      * @brief Tests that the PV values are correctly written by the DataSourceI when using arrays.
      */
     bool TestExecute_Arrays();
+
+    /**
+     * @brief Tests the GetCPUMask method.
+     */
+    bool TestGetCPUMask();
+
+    /**
+     * @brief Tests the GetStackSize method.
+     */
+    bool TestGetStackSize();
+
+    /**
+     * @brief Tests the GetNumberOfBuffers method.
+     */
+    bool TestGetNumberOfBuffers();
 
 };
 

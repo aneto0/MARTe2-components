@@ -94,6 +94,16 @@ TEST(EPICSCAInputGTest,TestInitialise_False_Signals) {
     ASSERT_TRUE(test.TestInitialise_False_Signals());
 }
 
+TEST(EPICSCAInputGTest,TestGetCPUMask) {
+    EPICSCAInputTest test;
+    ASSERT_TRUE(test.TestGetCPUMask());
+}
+
+TEST(EPICSCAInputGTest,TestGetStackSize) {
+    EPICSCAInputTest test;
+    ASSERT_TRUE(test.TestGetStackSize());
+}
+
 TEST(EPICSCAInputGTest,TestSetConfiguredDatabase) {
     EPICSCAInputTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
@@ -102,6 +112,21 @@ TEST(EPICSCAInputGTest,TestSetConfiguredDatabase) {
 TEST(EPICSCAInputGTest,TestSetConfiguredDatabase_False_NoSignals) {
     EPICSCAInputTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoSignals());
+}
+
+TEST(EPICSCAInputGTest,TestSetConfiguredDatabase_False_PVName) {
+    EPICSCAInputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_PVName());
+}
+
+TEST(EPICSCAInputGTest,TestSetConfiguredDatabase_False_Samples) {
+    EPICSCAInputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_Samples());
+}
+
+TEST(EPICSCAInputGTest,TestSetConfiguredDatabase_False_UnsupportedType) {
+    EPICSCAInputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_UnsupportedType());
 }
 
 TEST(EPICSCAInputGTest,TestExecute) {

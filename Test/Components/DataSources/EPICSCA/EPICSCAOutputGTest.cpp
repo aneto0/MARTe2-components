@@ -64,9 +64,9 @@ TEST(EPICSCAOutputGTest,TestGetBrokerName) {
     ASSERT_TRUE(test.TestGetBrokerName());
 }
 
-TEST(EPICSCAOutputGTest,TestGetBrokerName_OutputSignals) {
+TEST(EPICSCAOutputGTest,TestGetBrokerName_InputSignals) {
     EPICSCAOutputTest test;
-    ASSERT_TRUE(test.TestGetBrokerName_OutputSignals());
+    ASSERT_TRUE(test.TestGetBrokerName_InputSignals());
 }
 
 TEST(EPICSCAOutputGTest,TestGetInputBrokers) {
@@ -94,6 +94,26 @@ TEST(EPICSCAOutputGTest,TestInitialise_False_Signals) {
     ASSERT_TRUE(test.TestInitialise_False_Signals());
 }
 
+TEST(EPICSCAOutputGTest,TestInitialise_False_NumberOfBuffers) {
+    EPICSCAOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers());
+}
+
+TEST(EPICSCAOutputGTest,TestGetCPUMask) {
+    EPICSCAOutputTest test;
+    ASSERT_TRUE(test.TestGetCPUMask());
+}
+
+TEST(EPICSCAOutputGTest,TestGetStackSize) {
+    EPICSCAOutputTest test;
+    ASSERT_TRUE(test.TestGetStackSize());
+}
+
+TEST(EPICSCAOutputGTest,TestGetNumberOfBuffers) {
+    EPICSCAOutputTest test;
+    ASSERT_TRUE(test.TestGetNumberOfBuffers());
+}
+
 TEST(EPICSCAOutputGTest,TestSetConfiguredDatabase) {
     EPICSCAOutputTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
@@ -102,6 +122,26 @@ TEST(EPICSCAOutputGTest,TestSetConfiguredDatabase) {
 TEST(EPICSCAOutputGTest,TestSetConfiguredDatabase_False_NoSignals) {
     EPICSCAOutputTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoSignals());
+}
+
+TEST(EPICSCAOutputGTest,TestSetConfiguredDatabase_False_MoreThanOneGAM) {
+    EPICSCAOutputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneGAM());
+}
+
+TEST(EPICSCAOutputGTest,TestSetConfiguredDatabase_False_PVName) {
+    EPICSCAOutputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_PVName());
+}
+
+TEST(EPICSCAOutputGTest,TestSetConfiguredDatabase_False_Samples) {
+    EPICSCAOutputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_Samples());
+}
+
+TEST(EPICSCAOutputGTest,TestSetConfiguredDatabase_False_UnsupportedType) {
+    EPICSCAOutputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_UnsupportedType());
 }
 
 TEST(EPICSCAOutputGTest,TestExecute) {

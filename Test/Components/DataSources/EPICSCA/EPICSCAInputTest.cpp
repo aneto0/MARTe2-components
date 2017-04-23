@@ -830,6 +830,14 @@ bool EPICSCAInputTest::TestInitialise_False_Signals() {
     return !test.Initialise(cdb);
 }
 
+bool EPICSCAInputTest::TestGetStackSize() {
+    return TestInitialise();
+}
+
+bool EPICSCAInputTest::TestGetCPUMask() {
+    return TestInitialise();
+}
+
 bool EPICSCAInputTest::TestSetConfiguredDatabase() {
     return TestIntegratedInApplication(config1, true);
 }

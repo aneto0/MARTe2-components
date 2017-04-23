@@ -235,12 +235,8 @@ bool EPICSCAInput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bu
         ok = (signalIdx < GetNumberOfSignals());
     }
     if (ok) {
-        if (pvs != NULL_PTR(PVWrapper *)) {
-            signalAddress = pvs[signalIdx].memory;
-        }
-        else {
-            ok = false;
-        }
+        //lint -e{613} pvs cannot as otherwise ok would be false
+        signalAddress = pvs[signalIdx].memory;
     }
     return ok;
 }

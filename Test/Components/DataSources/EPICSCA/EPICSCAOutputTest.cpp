@@ -236,6 +236,7 @@ static const MARTe::char8 * const config1 = ""
         "            Class = EPICSCAOutput"
         "            CPUMask = 15"
         "            StackSize = 10000000"
+        "            NumberOfBuffers = 8"
         "            Signals = {"
         "                SignalUInt16 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt16\""
@@ -315,6 +316,7 @@ static const MARTe::char8 * const config2 = ""
         "            Class = EPICSCAOutput"
         "            CPUMask = 15"
         "            StackSize = 10000000"
+        "            NumberOfBuffers = 8"
         "            Signals = {"
         "                SignalUInt32 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt32\""
@@ -334,6 +336,7 @@ static const MARTe::char8 * const config2 = ""
         "            Class = EPICSCAOutput"
         "            CPUMask = 15"
         "            StackSize = 10000000"
+        "            NumberOfBuffers = 8"
         "            Signals = {"
         "                Locked = 0"
         "            }"
@@ -416,6 +419,7 @@ static const MARTe::char8 * const config3 = ""
         "            Class = EPICSCAOutput"
         "            CPUMask = 15"
         "            StackSize = 10000000"
+        "            NumberOfBuffers = 8"
         "            Signals = {"
         "                SignalUInt16 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt16Arr\""
@@ -495,6 +499,7 @@ static const MARTe::char8 * const config4 = ""
         "            Class = EPICSCAOutput"
         "            CPUMask = 15"
         "            StackSize = 10000000"
+        "            NumberOfBuffers = 8"
         "            Signals = {"
         "                SignalUInt32 = {"
         "                    Type = uint32"
@@ -577,6 +582,7 @@ static const MARTe::char8 * const config5 = ""
         "            Class = EPICSCAOutput"
         "            CPUMask = 15"
         "            StackSize = 10000000"
+        "            NumberOfBuffers = 8"
         "            Signals = {"
         "                SignalUInt16 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt16\""
@@ -664,6 +670,7 @@ static const MARTe::char8 * const config6 = ""
         "            Class = EPICSCAOutput"
         "            CPUMask = 15"
         "            StackSize = 10000000"
+        "            NumberOfBuffers = 8"
         "            Signals = {"
         "                SignalUInt8 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt8\""
@@ -695,6 +702,99 @@ static const MARTe::char8 * const config6 = ""
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
         "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = EPICSCAOutputSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Standard configuration with more than one GAM interacting with the data source.
+static const MARTe::char8 * const config7 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = EPICSCAOutputGAMTestHelper"
+        "            OutputSignals = {"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = EPICSCAOutputTest"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = EPICSCAOutputTest"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = EPICSCAOutputTest"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = EPICSCAOutputTest"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = EPICSCAOutputTest"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM2 = {"
+        "            Class = EPICSCAOutputGAMTestHelper"
+        "            OutputSignals = {"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = EPICSCAOutputTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +EPICSCAOutputTest = {"
+        "            Class = EPICSCAOutput"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            NumberOfBuffers = 8"
+        "            Signals = {"
+        "                SignalUInt16 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt16\""
+        "                }"
+        "                SignalInt16 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Int16\""
+        "                }"
+        "                SignalUInt32 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt32\""
+        "                }"
+        "                SignalInt32 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Int32\""
+        "                }"
+        "                SignalFloat32 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Float32\""
+        "                }"
+        "                SignalFloat64 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Float64\""
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1 GAM2}"
         "                }"
         "            }"
         "        }"
@@ -746,11 +846,11 @@ bool EPICSCAOutputTest::TestGetSignalMemoryBuffer() {
     return ok;
 }
 
-bool EPICSCAOutputTest::TestGetBrokerName_OutputSignals() {
+bool EPICSCAOutputTest::TestGetBrokerName_InputSignals() {
     using namespace MARTe;
     EPICSCAOutput test;
     ConfigurationDatabase cdb;
-    bool ok = (StringHelper::Compare(test.GetBrokerName(cdb, OutputSignals), "") == 0);
+    bool ok = (StringHelper::Compare(test.GetBrokerName(cdb, InputSignals), "") == 0);
 
     return ok;
 }
@@ -781,12 +881,14 @@ bool EPICSCAOutputTest::TestInitialise() {
     ConfigurationDatabase cdb;
     cdb.Write("CPUs", 1);
     cdb.Write("StackSize", 100000);
+    cdb.Write("NumberOfBuffers", 10);
     cdb.CreateAbsolute("Signals");
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
     if (ok) {
         ok = (test.GetCPUMask() == 1);
         ok &= (test.GetStackSize() == 100000);
+        ok &= (test.GetNumberOfBuffers() == 10);
     }
     return ok;
 }
@@ -795,12 +897,14 @@ bool EPICSCAOutputTest::TestInitialise_Defaults() {
     using namespace MARTe;
     EPICSCAOutput test;
     ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 11);
     cdb.CreateAbsolute("Signals");
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
     if (ok) {
         ok = (test.GetCPUMask() == 0xff);
         ok &= (test.GetStackSize() == (THREADS_DEFAULT_STACKSIZE * 4u));
+        ok &= (test.GetNumberOfBuffers() == 11);
     }
     return ok;
 }
@@ -811,6 +915,18 @@ bool EPICSCAOutputTest::TestInitialise_False_Signals() {
     ConfigurationDatabase cdb;
     cdb.Write("CPUs", 1);
     cdb.Write("StackSize", 100000);
+    cdb.Write("NumberOfBuffers", 11);
+    return !test.Initialise(cdb);
+}
+
+bool EPICSCAOutputTest::TestInitialise_False_NumberOfBuffers() {
+    using namespace MARTe;
+    EPICSCAOutput test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUs", 1);
+    cdb.Write("StackSize", 100000);
+    cdb.CreateAbsolute("Signals");
+    cdb.MoveToRoot();
     return !test.Initialise(cdb);
 }
 
@@ -832,6 +948,22 @@ bool EPICSCAOutputTest::TestSetConfiguredDatabase_False_Samples() {
 
 bool EPICSCAOutputTest::TestSetConfiguredDatabase_False_UnsupportedType() {
     return !TestIntegratedInApplication(config6, true);
+}
+
+bool EPICSCAOutputTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
+    return !TestIntegratedInApplication(config7, true);
+}
+
+bool EPICSCAOutputTest::TestGetCPUMask() {
+    return TestInitialise();
+}
+
+bool EPICSCAOutputTest::TestGetStackSize() {
+    return TestInitialise();
+}
+
+bool EPICSCAOutputTest::TestGetNumberOfBuffers() {
+    return TestInitialise();
 }
 
 bool EPICSCAOutputTest::TestExecute() {
@@ -891,13 +1023,14 @@ bool EPICSCAOutputTest::TestExecute() {
         bool done = 0;
         uint32 doneC = 0;
         uint32 timeOutCounts = 50;
+        *gam1->uint16Signal = 1;
+        *gam1->uint32Signal = 2;
+        *gam1->float64Signal = 3;
+        *gam1->int16Signal = 4;
+        *gam1->int32Signal = 5;
+        *gam1->float32Signal = 6;
+
         while ((!done) && (timeOutCounts > 0u) && (ok)) {
-            *gam1->uint16Signal = 1;
-            *gam1->uint32Signal = 2;
-            *gam1->float64Signal = 3;
-            *gam1->int16Signal = 4;
-            *gam1->int32Signal = 5;
-            *gam1->float32Signal = 6;
             scheduler->ExecuteThreadCycle(0);
 
             for (n = 0u; (n < NUMBER_OF_PVS) && (ok); n++) {
@@ -1003,12 +1136,12 @@ bool EPICSCAOutputTest::TestExecute_Arrays() {
         float64Values = new float64[numberOfElements];
         uint32 n;
         for (n = 0u; (n < numberOfElements); n++) {
-            uint16Values[n] = 2 * n + 1;
-            int16Values[n] = 3 * n + 1;
-            uint32Values[n] = 4 * n + 1;
-            int32Values[n] = 5 * n + 1;
-            float32Values[n] = 6 * n + 1;
-            float64Values[n] = 7 * n + 1;
+            gam1->uint16Signal[n] = 2 * n + 1;
+            gam1->int16Signal[n] = 3 * n + 1;
+            gam1->uint32Signal[n] = 4 * n + 1;
+            gam1->int32Signal[n] = 5 * n + 1;
+            gam1->float32Signal[n] = 6 * n + 1;
+            gam1->float64Signal[n] = 7 * n + 1;
         }
     }
     void *pvMemory[] = { uint16Values, int16Values, uint32Values, int32Values, float32Values, float64Values };
@@ -1027,7 +1160,7 @@ bool EPICSCAOutputTest::TestExecute_Arrays() {
         uint32 timeOutCounts = 50;
         while ((!done) && (timeOutCounts > 0u) && (ok)) {
             for (n = 0u; (n < NUMBER_OF_PVS) && (ok); n++) {
-                ca_array_put(pvTypes[n], numberOfElements, pvChids[n], pvMemory[n]);
+                ca_array_get(pvTypes[n], numberOfElements, pvChids[n], pvMemory[n]);
             }
             if (ok) {
                 ca_pend_io(1.0);

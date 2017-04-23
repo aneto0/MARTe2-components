@@ -40,42 +40,40 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 EPICSCAOutput::EPICSCAOutput() :
-        DataSourceI(),
-        EmbeddedServiceMethodBinderI(),
-        executor(*this) {
+        DataSourceI() {
     pvs = NULL_PTR(PVWrapper *);
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
-    if (!evtSem.Create()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not create the EventSem");
-    }
-    (void) evtSem.Reset();
-    fastMux.Create();
-    evtSemPosted = false;
+    numberOfBuffers = 0u;
+    threadContextSet = false;
 }
 
-/*lint -e{1551} must stop the SingleThreadService in the destructor.*/
+/*lint -e{1551} must free the memory allocated to the different PVs.*/
 EPICSCAOutput::~EPICSCAOutput() {
-    if (!executor.Stop()) {
-        if (!executor.Stop()) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
-        }
-    }
     uint32 nOfSignals = GetNumberOfSignals();
     if (pvs != NULL_PTR(PVWrapper *)) {
         uint32 n;
         for (n = 0u; (n < nOfSignals); n++) {
+            if (pvs[n].pvChid != NULL_PTR(chid)) {
+                (void) ca_clear_channel(pvs[n].pvChid);
+            }
             if (pvs[n].memory != NULL_PTR(void *)) {
                 GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(pvs[n].memory);
             }
         }
         delete[] pvs;
     }
-    (void) evtSem.Close();
 }
 
 bool EPICSCAOutput::Initialise(StructuredDataI & data) {
     bool ok = ReferenceContainer::Initialise(data);
+    if (ok) {
+        ok = data.Read("NumberOfBuffers", numberOfBuffers);
+
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be specified");
+        }
+    }
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
             REPORT_ERROR(ErrorManagement::Information, "No CPUs defined. Using default = %d", cpuMask);
@@ -83,8 +81,6 @@ bool EPICSCAOutput::Initialise(StructuredDataI & data) {
         if (!data.Read("StackSize", stackSize)) {
             REPORT_ERROR(ErrorManagement::Information, "No StackSize defined. Using default = %d", stackSize);
         }
-        executor.SetStackSize(stackSize);
-        executor.SetCPUMask(cpuMask);
     }
     if (ok) {
         ok = data.MoveRelative("Signals");
@@ -148,6 +144,7 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
         uint32 n;
         for (n = 0u; (n < nOfSignals); n++) {
             pvs[n].memory = NULL_PTR(void *);
+            pvs[n].pvChid = NULL_PTR(chid);
         }
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
             //Note that the RealTimeApplicationConfigurationBuilder is allowed to change the order of the signals w.r.t. to the originalSignalInformation
@@ -209,10 +206,6 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
             }
         }
     }
-
-    if (ok) {
-        ok = (executor.Start() == ErrorManagement::NoError);
-    }
     return ok;
 }
 
@@ -231,12 +224,8 @@ bool EPICSCAOutput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 b
         ok = (signalIdx < GetNumberOfSignals());
     }
     if (ok) {
-        if (pvs != NULL_PTR(PVWrapper *)) {
-            signalAddress = pvs[signalIdx].memory;
-        }
-        else {
-            ok = false;
-        }
+        //lint -e{613} pvs cannot as otherwise ok would be false
+        signalAddress = pvs[signalIdx].memory;
     }
     return ok;
 }
@@ -257,7 +246,7 @@ bool EPICSCAOutput::GetInputBrokers(ReferenceContainer& inputBrokers, const char
 
 bool EPICSCAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
     ReferenceT<MemoryMapAsyncOutputBroker> broker("MemoryMapAsyncOutputBroker");
-    bool ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
+    bool ok = broker->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
     if (ok) {
         ok = outputBrokers.Insert(broker);
     }
@@ -270,69 +259,6 @@ bool EPICSCAOutput::PrepareNextState(const char8* const currentStateName, const 
     return true;
 }
 
-ErrorManagement::ErrorType EPICSCAOutput::Execute(const ExecutionInfo& info) {
-    ErrorManagement::ErrorType err = ErrorManagement::NoError;
-    if (info.GetStage() == ExecutionInfo::StartupStage) {
-        /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-        if (ca_context_create(ca_enable_preemptive_callback) != ECA_NORMAL) {
-            err = ErrorManagement::FatalError;
-            REPORT_ERROR(err, "ca_enable_preemptive_callback failed");
-        }
-
-        uint32 n;
-        uint32 nOfSignals = GetNumberOfSignals();
-        if (pvs != NULL_PTR(PVWrapper *)) {
-            for (n = 0u; (n < nOfSignals); n++) {
-                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                if (ca_create_channel(&pvs[n].pvName[0], NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvs[n].pvChid) != ECA_NORMAL) {
-                    err = ErrorManagement::FatalError;
-                    REPORT_ERROR(err, "ca_create_channel failed for PV with name %s", pvs[n].pvName);
-                }
-            }
-        }
-    }
-    else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        uint32 n;
-        uint32 nOfSignals = GetNumberOfSignals();
-        if (fastMux.FastLock() == ErrorManagement::NoError) {
-            evtSemPosted = false;
-            fastMux.FastUnLock();
-        }
-        //Wait at most one second.
-        if (evtSem.Wait(1000u) == ErrorManagement::NoError) {
-            if (pvs != NULL_PTR(PVWrapper *)) {
-                for (n = 0u; (n < nOfSignals); n++) {
-                    /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                    if (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) != ECA_NORMAL) {
-                        err = ErrorManagement::FatalError;
-                        REPORT_ERROR(err, "ca_put failed for PV: %s", pvs[n].pvName);
-                    }
-                }
-            }
-        }
-        //Try to reset the semaphore unless there was a new Post already performed.
-        if (fastMux.FastLock() == ErrorManagement::NoError) {
-            if (!evtSemPosted) {
-                (void) evtSem.Reset();
-            }
-            fastMux.FastUnLock();
-        }
-    }
-    else {
-        uint32 n;
-        uint32 nOfSignals = GetNumberOfSignals();
-        if (pvs != NULL_PTR(PVWrapper *)) {
-            for (n = 0u; (n < nOfSignals); n++) {
-                (void) ca_clear_channel(pvs[n].pvChid);
-            }
-        }
-        ca_detach_context();
-        ca_context_destroy();
-    }
-
-    return err;
-}
-
 uint32 EPICSCAOutput::GetStackSize() const {
     return stackSize;
 }
@@ -341,12 +267,44 @@ uint32 EPICSCAOutput::GetCPUMask() const {
     return cpuMask;
 }
 
+uint32 EPICSCAOutput::GetNumberOfBuffers() const {
+    return numberOfBuffers;
+}
+
 bool EPICSCAOutput::Synchronise() {
     bool ok = true;
-    if (fastMux.FastLock() == ErrorManagement::NoError) {
-        (void) evtSem.Post();
-        evtSemPosted = true;
-        fastMux.FastUnLock();
+    uint32 n;
+    uint32 nOfSignals = GetNumberOfSignals();
+    if (!threadContextSet) {
+        /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+        ok = (ca_context_create(ca_enable_preemptive_callback) == ECA_NORMAL);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::FatalError, "ca_enable_preemptive_callback failed");
+        }
+        threadContextSet = ok;
+        if (pvs != NULL_PTR(PVWrapper *)) {
+            for (n = 0u; (n < nOfSignals); n++) {
+                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                ok = (ca_create_channel(&pvs[n].pvName[0], NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvs[n].pvChid) == ECA_NORMAL);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "ca_create_channel failed for PV with name %s", pvs[n].pvName);
+                }
+            }
+        }
+    }
+
+    //Allow to write event at the first time!
+    if (threadContextSet) {
+        if (pvs != NULL_PTR(PVWrapper *)) {
+            for (n = 0u; (n < nOfSignals); n++) {
+                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                ok = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "ca_put failed for PV: %s", pvs[n].pvName);
+                }
+                (void) ca_pend_io(0.1);
+            }
+        }
     }
 
     return ok;

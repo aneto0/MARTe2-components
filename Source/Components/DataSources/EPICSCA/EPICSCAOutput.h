@@ -53,6 +53,7 @@ namespace MARTe {
  *     Class = EPICSCA::EPICSCAOutput
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
  *     CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
+ *     NumberOfBuffers = 10 //Compulsory. Number of buffers in a circular buffer that asynchronously writes the PV values. Each buffer is capable of holding a copy of all the DataSourceI signals.
  *     Signals = {
  *          PV1 = { //At least one shall be defined
  *             PVName = My::PV1 //Compulsory. Name of the PV.
@@ -62,7 +63,7 @@ namespace MARTe {
  *     }
  * }
  */
-class EPICSCAOutput: public DataSourceI, public EmbeddedServiceMethodBinderI {
+class EPICSCAOutput: public DataSourceI {
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -160,17 +161,17 @@ EPICSCAOutput    ();
     uint32 GetStackSize() const;
 
     /**
-     * @brief Provides the context to execute all the EPICS ca_put calls.
-     * @details Executes in the context of a spawned thread the following EPICS calls:
-     * ca_context_create, ca_create_channel, ca_create_subscription, ca_clear_subscription,
-     * ca_clear_event, ca_clear_channel, ca_detach_context and ca_context_destroy
-     * @return ErrorManagement::NoError if all the EPICS calls return without any error.
+     * @brief Gets the number of buffers in the circular buffer that asynchronously writes the PV values.
+     * @return the number of buffers in the circular buffer that asynchronously writes the PV values.
      */
-    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+    uint32 GetNumberOfBuffers() const;
 
     /**
-     * @brief See DataSourceI::Synchronise.
-     * @return false.
+     * @brief Provides the context to execute all the EPICS ca_put calls.
+     * @details Executes in the context of the MemoryMapAsyncOutputBroker thread the following EPICS calls:
+     * ca_context_create, ca_create_channel, ca_create_subscription, ca_clear_subscription,
+     * ca_clear_event, ca_clear_channel, ca_detach_context and ca_context_destroy
+     * @return true if all the EPICS calls return without any error.
      */
     virtual bool Synchronise();
 
@@ -197,29 +198,19 @@ private:
     uint32 stackSize;
 
     /**
-     * The EmbeddedThread where the ca_pend_event is executed.
-     */
-    SingleThreadService executor;
-
-    /**
      * Stores the configuration information received at Initialise.
      */
     ConfigurationDatabase originalSignalInformation;
 
     /**
-     * Semaphore to synchronise the real-time thread with the ca_put thread.
+     * The number of buffers for the circular buffer that flushes data into EPICS
      */
-    EventSem evtSem;
+    uint32 numberOfBuffers;
 
     /**
-     * Protects the access to the evtSem
+     * True once the epics thread context is set
      */
-    FastPollingMutexSem fastMux;
-
-    /**
-     * Protects the access to the evtSem reset
-     */
-    bool evtSemPosted;
+    bool threadContextSet;
 };
 }
 
