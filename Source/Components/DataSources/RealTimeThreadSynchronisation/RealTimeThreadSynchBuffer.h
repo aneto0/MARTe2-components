@@ -32,6 +32,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
+#include "EventSem.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -56,7 +57,7 @@ public:
     /**
      * TODO
      */
-    bool AllocateMemory();
+    bool AllocateMemory(uint32 sampleMemorySizeIn, uint32 *memoryOffSetsIn, void *dataSourceMemoryIn);
 
     /**
      * TODO
@@ -66,12 +67,17 @@ public:
     /**
      * TODO
      */
-    bool AddSample(void *sampleToAdd);
+    bool AddSample();
 
     /**
      * TODO
      */
     bool Wait();
+
+    /**
+     * TODO
+     */
+    const char8 *const GetGAMName();
 
 private:
     /**
@@ -82,7 +88,12 @@ private:
     /**
      * TODO
      */
-    uint32 memoryOffsets;
+    void *dataSourceMemory;
+
+    /**
+     * TODO
+     */
+    uint32 *memoryOffsets;
 
     /**
      * TODO
@@ -118,6 +129,11 @@ private:
      * TODO
      */
     EventSem synchSem;
+
+    /**
+     * TODO
+     */
+    StreamString gamName;
 
 };
 }

@@ -24,7 +24,7 @@
 
 OBJSX= 
 
-SPB    = LinuxTimer.x LoggerDataSource.x EpicsDataSource.x
+SPB    = EpicsDataSource.x LinuxTimer.x LoggerDataSource.x RealTimeThreadSynchronisation.x
 
 ifdef CODAC_ROOT
 SPB    += NI6259.x

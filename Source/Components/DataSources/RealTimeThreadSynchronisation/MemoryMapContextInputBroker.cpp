@@ -58,7 +58,7 @@ void MemoryMapContextInputBroker::SetContext(RealTimeThreadSynchBuffer *realTime
 
 bool MemoryMapContextInputBroker::Execute() {
     bool ret = true;
-    if (realTimeSynchBuffer != NULL_PTR(DataSourceI *)) {
+    if (realTimeSynchBuffer != NULL_PTR(RealTimeThreadSynchBuffer *)) {
         ret = realTimeSynchBuffer->Wait();
     }
     if (ret) {

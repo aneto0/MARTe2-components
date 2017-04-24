@@ -48,13 +48,17 @@ RealTimeThreadSynchBuffer::RealTimeThreadSynchBuffer(DataSourceI *dataSourceIn, 
     dataSource = dataSourceIn;
     memory = NULL_PTR(char8 *);
     memoryOffsets = NULL_PTR(uint32 *);
+    dataSourceMemory = NULL_PTR(void *);
     numberOfSamples = 0u;
     currentSample = 0u;
     sampleMemorySize = 0u;
+    if (dataSource != NULL_PTR(DataSourceI *)) {
+        (void) dataSource->GetFunctionName(functionIdx, gamName);
+    }
 }
 
 RealTimeThreadSynchBuffer::~RealTimeThreadSynchBuffer() {
-    if (memory != NULL_PTR(void **)) {
+    if (memory != NULL_PTR(char8 *)) {
         GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(memory));
     }
     if (memoryOffsets != NULL_PTR(uint32 *)) {
@@ -64,7 +68,7 @@ RealTimeThreadSynchBuffer::~RealTimeThreadSynchBuffer() {
     (void) synchSem.Close();
 }
 
-bool RealTimeThreadSynchBuffer::AllocateMemory() {
+bool RealTimeThreadSynchBuffer::AllocateMemory(uint32 sampleMemorySizeIn, uint32 *memoryOffSetsIn, void *dataSourceMemoryIn) {
     bool ok = false;
     if (dataSource != NULL_PTR(DataSourceI *)) {
         uint32 numberOfFunctionSignals;
@@ -86,25 +90,15 @@ bool RealTimeThreadSynchBuffer::AllocateMemory() {
             }
         }
         if (ok) {
-            memoryOffsets = new uint32[numberOfFunctionSignals];
-            uint32 s;
-            for (s = 0u; (s < numberOfFunctionSignals) && (ok); s++) {
-                StreamString signalAlias;
-                ok = dataSource->GetFunctionSignalAlias(InputSignals, functionIdx, s, signalAlias);
-                uint32 signalIdx = 0u;
-                if (ok) {
-                    ok = dataSource->GetSignalIndex(signalIdx, signalAlias.Buffer());
-                }
-                uint32 size = 0u;
-                if (ok) {
-                    ok = dataSource->GetSignalByteSize(signalIdx, size);
-                    memoryOffsets[s] = sampleMemorySize;
-                    sampleMemorySize += size;
-                }
+            uint32 numberOfSignals = dataSource->GetNumberOfSignals();
+            memoryOffsets = new uint32[numberOfSignals];
+            uint32 k;
+            for (k=0u; k<numberOfSignals; k++) {
+                memoryOffsets[k] = memoryOffSetsIn[k];
             }
-            if (ok) {
-                memory[s] = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(sampleMemorySize * numberOfSamples);
-            }
+            sampleMemorySize = sampleMemorySizeIn;
+            memory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(sampleMemorySize * numberOfSamples));
+            dataSourceMemory = dataSourceMemoryIn;
         }
     }
     if (ok) {
@@ -117,25 +111,17 @@ bool RealTimeThreadSynchBuffer::AllocateMemory() {
 }
 
 bool RealTimeThreadSynchBuffer::GetSignalMemoryBuffer(const uint32 signalIdx, void *&signalAddress) {
-    bool ok = false;
-    if ((dataSource != NULL_PTR(DataSourceI *)) && (memory != NULL_PTR(void *))) {
-        StreamString signalName;
-        ok = dataSource->GetSignalName(signalIdx, signalName);
-        uint32 idx;
-        if (ok) {
-            ok = dataSource->GetFunctionSignalIndex(InputSignals, functionIdx, idx, signalName.Buffer());
-        }
-        if (ok) {
-            signalAddress = reinterpret_cast<void *&>(&memory[memoryOffsets[idx]]);
-        }
+    bool ok = (memory != NULL_PTR(void *));
+    if (ok) {
+        signalAddress = reinterpret_cast<void *>(&memory[memoryOffsets[signalIdx]]);
     }
     return ok;
 }
 
-bool RealTimeThreadSynchBuffer::AddSample(void *sampleToAdd) {
+bool RealTimeThreadSynchBuffer::AddSample() {
     bool ok = false;
-    if ((dataSource != NULL_PTR(DataSourceI *)) && (memory != NULL_PTR(void *)) && (sampleToAdd != NULL_PTR(void *))) {
-        ok = MemoryOperationsHelper::Copy(&memory[currentSample * sampleMemorySize], sampleToAdd, sampleMemorySize);
+    if ((dataSource != NULL_PTR(DataSourceI *)) && (memory != NULL_PTR(void *)) && (dataSourceMemory != NULL_PTR(void *))) {
+        ok = MemoryOperationsHelper::Copy(&memory[currentSample * sampleMemorySize], dataSourceMemory, sampleMemorySize);
     }
     currentSample++;
     if (currentSample == numberOfSamples) {
@@ -151,6 +137,10 @@ bool RealTimeThreadSynchBuffer::Wait() {
         ok = synchSem.Reset();
     }
     return ok;
+}
+
+const char8 * const RealTimeThreadSynchBuffer::GetGAMName() {
+    return gamName.Buffer();
 }
 
 }

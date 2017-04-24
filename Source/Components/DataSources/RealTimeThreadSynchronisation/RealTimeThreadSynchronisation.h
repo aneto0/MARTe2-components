@@ -32,6 +32,8 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
+#include "EventSem.h"
+#include "RealTimeThreadSynchBuffer.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -135,6 +137,36 @@ RealTimeThreadSynchronisation    ();
      */
     virtual bool Synchronise();
 
+private:
+    /**
+     * TODO
+     */
+    RealTimeThreadSynchBuffer **synchInputBuffers;
+
+    /**
+     * TODO
+     */
+    uint32 numberOfSyncGAMs;
+
+    /**
+     * TODO
+     */
+    char8 *memory;
+
+    /**
+     * TODO
+     */
+    uint32 memorySize;
+
+    /**
+     * TODO
+     */
+    uint32 *memoryOffsets;
+
+    /**
+     * TODO
+     */
+    int32 currentInitBrokerIndex;
 };
 }
 
