@@ -66,7 +66,7 @@ EPICSCAOutput::~EPICSCAOutput() {
 }
 
 bool EPICSCAOutput::Initialise(StructuredDataI & data) {
-    bool ok = ReferenceContainer::Initialise(data);
+    bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("NumberOfBuffers", numberOfBuffers);
 

@@ -88,7 +88,7 @@ EPICSCAInput::~EPICSCAInput() {
 }
 
 bool EPICSCAInput::Initialise(StructuredDataI & data) {
-    bool ok = ReferenceContainer::Initialise(data);
+    bool ok = DataSourceI::Initialise(data);
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
             REPORT_ERROR(ErrorManagement::Information, "No CPUs defined. Using default = %d", cpuMask);
