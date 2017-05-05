@@ -24,7 +24,10 @@
 
 OBJSX= 
 
-SPB    = EpicsDataSource.x LinuxTimer.x LoggerDataSource.x RealTimeThreadSynchronisation.x
+SPB    = EpicsDataSource.x \
+    LinuxTimer.x \
+    LoggerDataSource.x \
+    RealTimeThreadSynchronisation.x
 
 ifdef CODAC_ROOT
 SPB    += NI6259.x
@@ -55,6 +58,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/EpicsDataSource/EpicsDataSource$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadSynchronisation/RealTimeThreadSynchronisation$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/DAN/DAN$(LIBEXT)

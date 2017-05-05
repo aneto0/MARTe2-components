@@ -24,7 +24,10 @@
 #
 #############################################################
 
-SPB    = EpicsDataSource.x LinuxTimer.x LoggerDataSource.x
+SPB    = EpicsDataSource.x \
+        LinuxTimer.x \
+        LoggerDataSource.x \
+        RealTimeThreadSynchronisation.x
 
 ifdef CODAC_ROOT
 SPB+=NI6259.x NI6368.x DAN.x
@@ -53,6 +56,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC+=$(BUILD_DIR)/EpicsDataSource/EpicsDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadSynchronisation/RealTimeThreadSynchronisationTest$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/DAN/DANTest$(LIBEXT)

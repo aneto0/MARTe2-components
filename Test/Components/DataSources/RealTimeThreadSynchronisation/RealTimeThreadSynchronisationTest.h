@@ -1,6 +1,6 @@
 /**
- * @file EPICSCAInputTest.h
- * @brief Header file for class EPICSCAInputTest
+ * @file RealTimeThreadSynchronisationTest.h
+ * @brief Header file for class RealTimeThreadSynchronisationTest
  * @date 21/04/2017
  * @author Andre Neto
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSCAInputTest
+ * @details This header file contains the declaration of the class RealTimeThreadSynchronisationTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSCA_EPICSCAINPUTTEST_H_
-#define EPICSCA_EPICSCAINPUTTEST_H_
+#ifndef REALTIMETHREADSYNCHRONISATIONTEST_H_
+#define REALTIMETHREADSYNCHRONISATIONTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -36,9 +36,9 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * @brief Tests the EPICSCAInput public methods.
+ * @brief Tests the RealTimeThreadSynchronisation public methods.
  */
-class EPICSCAInputTest {
+class RealTimeThreadSynchronisationTest {
 public:
     /**
      * @brief Tests the constructor.
@@ -146,5 +146,5 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSCA_EPICSCAINPUTTEST_H_ */
+#endif /* REALTIMETHREADSYNCHRONISATIONTEST_H_ */
 

@@ -109,7 +109,8 @@ bool RealTimeThreadSynchronisation::GetInputBrokers(ReferenceContainer& inputBro
     bool ok = false;
     if (synchInputBuffers != NULL_PTR(RealTimeThreadSynchBuffer **)) {
         for (n = 0u; (n < numberOfSyncGAMs) && (!ok); n++) {
-            if (synchInputBuffers[n]->GetGAMName() == functionName) {
+            StreamString gamName = synchInputBuffers[n]->GetGAMName();
+            if (gamName == functionName) {
                 broker->SetContext(synchInputBuffers[n]);
                 currentInitBrokerIndex = static_cast<uint32>(n);
                 ok = true;
@@ -129,7 +130,7 @@ bool RealTimeThreadSynchronisation::GetInputBrokers(ReferenceContainer& inputBro
 bool RealTimeThreadSynchronisation::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
     ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
     currentInitBrokerIndex = -1;
-    bool ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+    bool ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
     if (ok) {
         ok = outputBrokers.Insert(broker);
     }
@@ -160,10 +161,10 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
     }
     //A function shall either or write from this DataSourceI but not both things at the same time
     bool producerFound = false;
+    numberOfSyncGAMs = (numberOfFunctions - 1u);
+    uint32 n;
     if (ok) {
-        numberOfSyncGAMs = (numberOfFunctions - 1u);
         synchInputBuffers = new RealTimeThreadSynchBuffer*[numberOfSyncGAMs];
-        uint32 n;
         //Compute the memory for the output function
         for (n = 0u; (n < numberOfFunctions) && (ok); n++) {
             uint32 numberOfSignals;
@@ -210,19 +211,21 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
                         memory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
                     }
                 }
-                else {
-                    synchInputBuffers[n] = new RealTimeThreadSynchBuffer(this, n);
-                    ok = synchInputBuffers[n]->AllocateMemory(memorySize, memoryOffsets, memory);
-                }
-            }
-        }
-        if (ok) {
-            ok = producerFound;
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "One and exactly one function shall write into this DataSourceI and none was found");
             }
         }
     }
+    if (ok) {
+        ok = producerFound;
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "One and exactly one function shall write into this DataSourceI and none was found");
+        }
+    }
+    //Create the synchInputBuffers
+    for (n = 0u; (n < numberOfSyncGAMs) && (ok); n++) {
+        synchInputBuffers[n] = new RealTimeThreadSynchBuffer(this, n);
+        ok = synchInputBuffers[n]->AllocateMemory(memorySize, memoryOffsets, memory);
+    }
+
     return ok;
 }
 
