@@ -29,9 +29,8 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "MemoryMapContextInputBroker.h"
 #include "MemoryMapSynchronisedOutputBroker.h"
-#include "RealTimeThreadSynchBuffer.h"
+#include "RealTimeThreadSynchBroker.h"
 #include "RealTimeThreadSynchronisation.h"
 
 /*---------------------------------------------------------------------------*/
@@ -49,13 +48,13 @@ RealTimeThreadSynchronisation::RealTimeThreadSynchronisation() :
     memorySize = 0u;
     numberOfSyncGAMs = 0u;
     memoryOffsets = NULL_PTR(uint32 *);
-    synchInputBuffers = NULL_PTR(RealTimeThreadSynchBuffer **);
+    synchInputBrokers = NULL_PTR(RealTimeThreadSynchBroker **);
     currentInitBrokerIndex = -1;
 }
 
 RealTimeThreadSynchronisation::~RealTimeThreadSynchronisation() {
-    if (synchInputBuffers != NULL_PTR(RealTimeThreadSynchBuffer **)) {
-        delete[] synchInputBuffers;
+    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
+        delete[] synchInputBrokers;
     }
     if (memory != NULL_PTR(char8 *)) {
         GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(memory));
@@ -82,21 +81,21 @@ bool RealTimeThreadSynchronisation::GetSignalMemoryBuffer(const uint32 signalIdx
         ok = (memory != NULL_PTR(char8 *));
     }
     if (ok) {
-        ok = (synchInputBuffers != NULL_PTR(RealTimeThreadSynchBuffer **));
+        ok = (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **));
     }
     if (ok) {
         if (currentInitBrokerIndex == -1) {
             signalAddress = reinterpret_cast<void *>(&memory[memoryOffsets[signalIdx]]);
         }
         else {
-            ok = synchInputBuffers[currentInitBrokerIndex]->GetSignalMemoryBuffer(signalIdx, signalAddress);
+            ok = synchInputBrokers[currentInitBrokerIndex]->GetSignalMemoryBuffer(signalIdx, signalAddress);
         }
     }
     return ok;
 }
 
 const char8 *RealTimeThreadSynchronisation::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
-    const char8 *brokerName = "MemoryMapContextInputBroker";
+    const char8 *brokerName = "RealTimeThreadSynchBroker";
     if (direction == OutputSignals) {
         brokerName = "MemoryMapSynchronisedOutputBroker";
     }
@@ -104,20 +103,20 @@ const char8 *RealTimeThreadSynchronisation::GetBrokerName(StructuredDataI &data,
 }
 
 bool RealTimeThreadSynchronisation::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT<MemoryMapContextInputBroker> broker("MemoryMapContextInputBroker");
-    uint32 n;
+    ReferenceT<RealTimeThreadSynchBroker> broker;
     bool ok = false;
-    if (synchInputBuffers != NULL_PTR(RealTimeThreadSynchBuffer **)) {
+    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
+        uint32 n;
         for (n = 0u; (n < numberOfSyncGAMs) && (!ok); n++) {
-            StreamString gamName = synchInputBuffers[n]->GetGAMName();
+            StreamString gamName = synchInputBrokers[n]->GetGAMName();
             if (gamName == functionName) {
-                broker->SetContext(synchInputBuffers[n]);
                 currentInitBrokerIndex = static_cast<uint32>(n);
                 ok = true;
+                broker = synchInputBrokersContainer.Get(n);
             }
         }
     }
-    if (ok) {
+    if (broker.IsValid()) {
         ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
     }
     if (ok) {
@@ -164,7 +163,7 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
     numberOfSyncGAMs = (numberOfFunctions - 1u);
     uint32 n;
     if (ok) {
-        synchInputBuffers = new RealTimeThreadSynchBuffer*[numberOfSyncGAMs];
+        synchInputBrokers = new RealTimeThreadSynchBroker*[numberOfSyncGAMs];
         //Compute the memory for the output function
         for (n = 0u; (n < numberOfFunctions) && (ok); n++) {
             uint32 numberOfSignals;
@@ -182,6 +181,10 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
                 }
                 //Check that the number of samples is exactly one.
                 if (ok) {
+                    if (numberOfFunctionSignals != numberOfSignals) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Warning, "The GAM which writes to this RealTimeThreadSynchronisation does not produce all the signals.");
+                    }
+
                     memoryOffsets = new uint32[numberOfFunctionSignals];
 
                     uint32 numberOfSamplesRead;
@@ -196,6 +199,7 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
                         }
                     }
                 }
+
                 if (ok) {
                     uint32 numberOfSignals = GetNumberOfSignals();
                     uint32 s;
@@ -212,6 +216,11 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
                     }
                 }
             }
+            else {
+                ReferenceT<RealTimeThreadSynchBroker> synchInputBroker(new RealTimeThreadSynchBroker());
+                synchInputBrokersContainer.Insert(synchInputBroker);
+                synchInputBroker->SetFunctionIndex(this, n);
+            }
         }
     }
     if (ok) {
@@ -220,10 +229,11 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
             REPORT_ERROR(ErrorManagement::ParametersError, "One and exactly one function shall write into this DataSourceI and none was found");
         }
     }
-    //Create the synchInputBuffers
+    //Create the synchInputBrokers
     for (n = 0u; (n < numberOfSyncGAMs) && (ok); n++) {
-        synchInputBuffers[n] = new RealTimeThreadSynchBuffer(this, n);
-        ok = synchInputBuffers[n]->AllocateMemory(memorySize, memoryOffsets, memory);
+        ReferenceT<RealTimeThreadSynchBroker> synchInputBroker = synchInputBrokersContainer.Get(n);
+        synchInputBrokers[n] = dynamic_cast<RealTimeThreadSynchBroker *>(synchInputBroker.operator ->());
+        synchInputBrokers[n]->AllocateMemory(memory, memoryOffsets);
     }
 
     return ok;
@@ -233,7 +243,7 @@ bool RealTimeThreadSynchronisation::Synchronise() {
     bool ok = true;
     uint32 u;
     for (u = 0u; (u < numberOfSyncGAMs) && (ok); u++) {
-        ok = synchInputBuffers[u]->AddSample();
+        ok = synchInputBrokers[u]->AddSample();
     }
 
     return ok;

@@ -33,7 +33,7 @@
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
 #include "EventSem.h"
-#include "RealTimeThreadSynchBuffer.h"
+#include "RealTimeThreadSynchBroker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -79,7 +79,7 @@ RealTimeThreadSynchronisation    ();
 
     /**
      * TODO
-     * @brief See DataSourceI::GetNumberOfMemoryBuffers.
+     * @brief See DataSourceI::GetNumberOfMemoryBrokers.
      * @details Only InputSignals are supported.
      * @return MemoryMapInputBroker.
      */
@@ -141,7 +141,12 @@ private:
     /**
      * TODO
      */
-    RealTimeThreadSynchBuffer **synchInputBuffers;
+    RealTimeThreadSynchBroker **synchInputBrokers;
+
+    /**
+     * TODO
+     */
+    ReferenceContainer synchInputBrokersContainer;
 
     /**
      * TODO

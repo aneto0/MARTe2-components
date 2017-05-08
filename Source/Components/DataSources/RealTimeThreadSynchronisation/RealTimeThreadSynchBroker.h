@@ -1,6 +1,6 @@
 /**
- * @file RealTimeThreadSynchBuffer.h
- * @brief Header file for class RealTimeThreadSynchBuffer
+ * @file RealTimeThreadSynchBroker.h
+ * @brief Header file for class RealTimeThreadSynchBroker
  * @date 24/04/2017
  * @author Andre Neto
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class RealTimeThreadSynchBuffer
+ * @details This header file contains the declaration of the class RealTimeThreadSynchBroker
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef REALTIMETHREADSYNCHBUFFER_H_
-#define REALTIMETHREADSYNCHBUFFER_H_
+#ifndef REALTIMETHREADSYNCHBROKER_H_
+#define REALTIMETHREADSYNCHBROKER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -33,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
 #include "EventSem.h"
+#include "MemoryMapInputBroker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -42,22 +43,28 @@ namespace MARTe {
 /**
  * TODO
  */
-class RealTimeThreadSynchBuffer {
+class RealTimeThreadSynchBroker : public MemoryMapInputBroker {
 public:
+    CLASS_REGISTER_DECLARATION()
     /**
      * TODO
      */
-    RealTimeThreadSynchBuffer(DataSourceI *dataSourceIn, uint32 functionIdxIn);
+    RealTimeThreadSynchBroker();
 
     /**
      * TODO
      */
-    ~RealTimeThreadSynchBuffer();
+    virtual ~RealTimeThreadSynchBroker();
 
     /**
      * TODO
      */
-    bool AllocateMemory(uint32 sampleMemorySizeIn, uint32 *memoryOffSetsIn, void *dataSourceMemoryIn);
+    void SetFunctionIndex(DataSourceI *dataSourceIn, uint32 functionIdxIn);
+
+    /**
+     * TODO
+     */
+    bool AllocateMemory(char8 *dataSourceMemoryIn, uint32 *dataSourceMemoryOffsetsIn);
 
     /**
      * TODO
@@ -79,31 +86,36 @@ public:
      */
     const char8 *const GetGAMName();
 
+    /**
+     * TODO
+     */
+    virtual bool Execute();
+
 private:
     /**
      * TODO
      */
-    char8 *memory;
+    uint32 numberOfDataSourceSignals;
 
     /**
      * TODO
      */
-    void *dataSourceMemory;
+    char8 **signalMemory;
 
     /**
      * TODO
      */
-    uint32 *memoryOffsets;
+    uint32 *signalSize;
 
     /**
      * TODO
      */
-    uint32 sampleMemorySize;
+    char8 *dataSourceMemory;
 
     /**
      * TODO
      */
-    uint32 numberOfSignals;
+    uint32 *dataSourceMemoryOffsets;
 
     /**
      * TODO
@@ -143,5 +155,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* REALTIMETHREADSYNCHBUFFER_H_ */
+#endif /* REALTIMETHREADSYNCHBROKER_H_ */
 	

@@ -78,46 +78,46 @@ public:
         for(n=0; n<numberOfSignals; n++) {
             if (GetSignalType(OutputSignals, n) == UnsignedInteger16Bit) {
                 uint16Signal = reinterpret_cast<uint16 *>(GetOutputSignalMemory(n));
-                GetSignalNumberOfElements(OutputSignals, 0, uint16SignalElements);
-                GetSignalNumberOfSamples(OutputSignals, 0, uint16SignalSamples);
+                GetSignalNumberOfElements(OutputSignals, n, uint16SignalElements);
+                GetSignalNumberOfSamples(OutputSignals, n, uint16SignalSamples);
             }
             else if (GetSignalType(OutputSignals, n) == UnsignedInteger32Bit) {
                 uint32Signal = reinterpret_cast<uint32 *>(GetOutputSignalMemory(n));
-                GetSignalNumberOfElements(OutputSignals, 0, uint32SignalElements);
-                GetSignalNumberOfSamples(OutputSignals, 0, uint32SignalSamples);
+                GetSignalNumberOfElements(OutputSignals, n, uint32SignalElements);
+                GetSignalNumberOfSamples(OutputSignals, n, uint32SignalSamples);
             }
             else if (GetSignalType(OutputSignals, n) == UnsignedInteger64Bit) {
                 uint64Signal = reinterpret_cast<uint64 *>(GetOutputSignalMemory(n));
-                GetSignalNumberOfElements(OutputSignals, 0, uint64SignalElements);
-                GetSignalNumberOfSamples(OutputSignals, 0, uint64SignalSamples);
+                GetSignalNumberOfElements(OutputSignals, n, uint64SignalElements);
+                GetSignalNumberOfSamples(OutputSignals, n, uint64SignalSamples);
             }
             else if (GetSignalType(OutputSignals, n) == SignedInteger32Bit) {
                 int32Signal = reinterpret_cast<int32 *>(GetOutputSignalMemory(n));
-                GetSignalNumberOfElements(OutputSignals, 0, int32SignalElements);
-                GetSignalNumberOfSamples(OutputSignals, 0, int32SignalSamples);
+                GetSignalNumberOfElements(OutputSignals, n, int32SignalElements);
+                GetSignalNumberOfSamples(OutputSignals, n, int32SignalSamples);
             }
         }
         numberOfSignals = GetNumberOfInputSignals();
         for(n=0; n<numberOfSignals; n++) {
             if (GetSignalType(InputSignals, n) == UnsignedInteger16Bit) {
                 uint16Signal = reinterpret_cast<uint16 *>(GetInputSignalMemory(n));
-                GetSignalNumberOfElements(InputSignals, 0, uint16SignalElements);
-                GetSignalNumberOfSamples(InputSignals, 0, uint16SignalSamples);
+                GetSignalNumberOfElements(InputSignals, n, uint16SignalElements);
+                GetSignalNumberOfSamples(InputSignals, n, uint16SignalSamples);
             }
             else if (GetSignalType(InputSignals, n) == UnsignedInteger32Bit) {
                 uint32Signal = reinterpret_cast<uint32 *>(GetInputSignalMemory(n));
-                GetSignalNumberOfElements(InputSignals, 0, uint32SignalElements);
-                GetSignalNumberOfSamples(InputSignals, 0, uint32SignalSamples);
+                GetSignalNumberOfElements(InputSignals, n, uint32SignalElements);
+                GetSignalNumberOfSamples(InputSignals, n, uint32SignalSamples);
             }
             else if (GetSignalType(InputSignals, n) == UnsignedInteger64Bit) {
                 uint64Signal = reinterpret_cast<uint64 *>(GetInputSignalMemory(n));
-                GetSignalNumberOfElements(InputSignals, 0, uint64SignalElements);
-                GetSignalNumberOfSamples(InputSignals, 0, uint64SignalSamples);
+                GetSignalNumberOfElements(InputSignals, n, uint64SignalElements);
+                GetSignalNumberOfSamples(InputSignals, n, uint64SignalSamples);
             }
             else if (GetSignalType(InputSignals, n) == SignedInteger32Bit) {
                 int32Signal = reinterpret_cast<int32 *>(GetInputSignalMemory(n));
-                GetSignalNumberOfElements(InputSignals, 0, int32SignalElements);
-                GetSignalNumberOfSamples(InputSignals, 0, int32SignalSamples);
+                GetSignalNumberOfElements(InputSignals, n, int32SignalElements);
+                GetSignalNumberOfSamples(InputSignals, n, int32SignalSamples);
             }
         }
 
@@ -1022,7 +1022,6 @@ bool RealTimeThreadSynchronisationTest::TestExecute() {
         }
         for (e = 0u; (e < gam1Thread1->int32SignalElements); e++) {
             gam1Thread1->int32Signal[e] = (j + e);
-            printf("[%d]\n", gam1Thread1->int32Signal[e]);
         }
         scheduler->ExecuteThreadCycle(0);
         scheduler->ExecuteThreadCycle(1);
@@ -1039,55 +1038,54 @@ bool RealTimeThreadSynchronisationTest::TestExecute() {
         }
         for (e = 0u; (e < gam1Thread1->int32SignalElements) && (ok); e++) {
             ok = (gam1Thread1->int32Signal[e] == gam1Thread2->int32Signal[e]);
-            printf("[%d] vs [%d]\n", gam1Thread1->int32Signal[e], gam1Thread2->int32Signal[e]);
         }
         //Thread 3 should store 2 samples of each signal
-        if ((j != 0) && ((j % 2) == 0)) {
+        if (((j + 1) % 2) == 0) {
             scheduler->ExecuteThreadCycle(2);
-            int32 s;
-            for (s = gam1Thread1->uint16SignalSamples; (s >= 0) && (ok); s--) {
-                for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
-                    ok = (gam1Thread3->uint16Signal[s * gam1Thread1->uint16SignalElements + e] == (j - s + e));
+            uint32 s;
+            for (s = 0; (s < gam1Thread3->uint16SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint16SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->uint16Signal[s * gam1Thread3->uint16SignalElements + e] == (j + s - (gam1Thread3->uint16SignalSamples - 1) + e));
                 }
             }
-            for (s = gam1Thread1->uint32SignalElements; (s >= 0) && (ok); s--) {
-                for (e = 0u; (e < gam1Thread1->uint32SignalElements) && (ok); e++) {
-                    ok = (gam1Thread3->uint32Signal[s * gam1Thread1->uint32SignalElements + e] == (j - s + e));
+            for (s = 0; (s < gam1Thread3->uint32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->uint32Signal[s * gam1Thread3->uint32SignalElements + e] == (j + s - (gam1Thread3->uint32SignalSamples - 1) + e));
                 }
             }
-            for (s = gam1Thread1->uint64SignalSamples; (s >= 0) && (ok); s--) {
-                for (e = 0u; (e < gam1Thread1->uint64SignalElements) && (ok); e++) {
-                    ok = (gam1Thread3->uint64Signal[s * gam1Thread1->uint64SignalElements + e] == (j - s + e));
+            for (s = 0; (s < gam1Thread3->uint64SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint64SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->uint64Signal[s * gam1Thread3->uint64SignalElements + e] == (j + s - (gam1Thread3->uint64SignalSamples - 1) + e));
                 }
             }
-            for (s = gam1Thread1->int32SignalSamples; (s >= 0) && (ok); s--) {
-                for (e = 0u; (e < gam1Thread1->int32SignalElements) && (ok); e++) {
-                    ok = (gam1Thread3->int32Signal[s * gam1Thread1->int32SignalElements + e] == static_cast<int32>(j - s + e));
+            for (s = 0; (s < gam1Thread3->int32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->int32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->int32Signal[s * gam1Thread3->int32SignalElements + e] == static_cast<int32>(j + s - (gam1Thread3->int32SignalSamples - 1) + e));
                 }
             }
         }
         //Thread 4 should store 4 samples of each signal
-        if ((j != 0) && ((j % 4) == 0)) {
+        if (((j + 1) % 4) == 0) {
             scheduler->ExecuteThreadCycle(3);
-            int32 s;
-            for (s = gam1Thread1->uint16SignalSamples; (s >= 0) && (ok); s--) {
-                for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
-                    ok = (gam1Thread3->uint16Signal[s * gam1Thread1->uint16SignalElements + e] == (j - s + e));
+            uint32 s;
+            for (s = 0; (s < gam1Thread4->uint16SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint16SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->uint16Signal[s * gam1Thread4->uint16SignalElements + e] == (j + s - (gam1Thread4->uint16SignalSamples - 1) + e));
                 }
             }
-            for (s = gam1Thread1->uint32SignalElements; (s >= 0) && (ok); s--) {
-                for (e = 0u; (e < gam1Thread1->uint32SignalElements) && (ok); e++) {
-                    ok = (gam1Thread3->uint32Signal[s * gam1Thread1->uint32SignalElements + e] == (j - s + e));
+            for (s = 0; (s < gam1Thread4->uint32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->uint32Signal[s * gam1Thread4->uint32SignalElements + e] == (j + s - (gam1Thread4->uint32SignalSamples - 1) + e));
                 }
             }
-            for (s = gam1Thread1->uint64SignalSamples; (s >= 0) && (ok); s--) {
-                for (e = 0u; (e < gam1Thread1->uint64SignalElements) && (ok); e++) {
-                    ok = (gam1Thread3->uint64Signal[s * gam1Thread1->uint64SignalElements + e] == (j - s + e));
+            for (s = 0; (s < gam1Thread4->uint64SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint64SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->uint64Signal[s * gam1Thread4->uint64SignalElements + e] == (j + s - (gam1Thread4->uint64SignalSamples - 1) + e));
                 }
             }
-            for (s = gam1Thread1->int32SignalSamples; (s >= 0) && (ok); s--) {
-                for (e = 0u; (e < gam1Thread1->int32SignalElements) && (ok); e++) {
-                    ok = (gam1Thread3->int32Signal[s * gam1Thread1->int32SignalElements + e] == static_cast<int32>(j - s + e));
+            for (s = 0; (s < gam1Thread4->int32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->int32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->int32Signal[s * gam1Thread4->int32SignalElements + e] == static_cast<int32>(j + s - (gam1Thread4->int32SignalSamples - 1) + e));
                 }
             }
         }

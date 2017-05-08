@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX=MemoryMapContextInputBroker.x RealTimeThreadSynchBuffer.x RealTimeThreadSynchronisation.x
+OBJSX=RealTimeThreadSynchBroker.x RealTimeThreadSynchronisation.x
 
 PACKAGE=Components/DataSources
 
