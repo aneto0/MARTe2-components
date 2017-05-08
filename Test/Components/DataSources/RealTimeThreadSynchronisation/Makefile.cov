@@ -28,7 +28,7 @@ TARGET=cov
 
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-OBJSX = RealTimeThreadSynchronisationGTest.x 
+OBJSX = RealTimeThreadSynchBrokerGTest.x RealTimeThreadSynchronisationGTest.x 
 
 include Makefile.inc
 

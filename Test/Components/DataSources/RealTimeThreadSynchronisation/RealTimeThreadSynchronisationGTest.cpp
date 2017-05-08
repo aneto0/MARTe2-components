@@ -44,8 +44,88 @@ TEST(RealTimeThreadSynchronisationGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(RealTimeThreadSynchronisationGTest,TestExecute) {
+TEST(RealTimeThreadSynchronisationGTest,TestAllocateMemory) {
     RealTimeThreadSynchronisationTest test;
-    ASSERT_TRUE(test.TestExecute());
+    ASSERT_TRUE(test.TestAllocateMemory());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestGetNumberOfMemoryBuffers) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestGetSignalMemoryBuffer) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestGetBrokerName) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestGetBrokerName());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestGetInputBrokers) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestGetOutputBrokers) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestPrepareNextState) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestInitialise) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_NoInteraction) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_NoInteraction());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_ProducerOnly) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_ProducerOnly());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_False_NoProducer) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoProducer());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_False_MoreThanOneProducer) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneProducer());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_Warning_NotAllSignals) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Warning_NotAllSignals());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_False_MoreThanOneOutputSample) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneOutputSample());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_False_DifferentInputSamplesFromSameFunction) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_DifferentInputSamplesFromSameFunction());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSynchronise) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSynchronise());
 }
 	

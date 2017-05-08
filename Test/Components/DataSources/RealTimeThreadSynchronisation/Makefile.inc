@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  RealTimeThreadSynchronisationTest.x
+OBJSX +=  RealTimeThreadSynchBrokerTest.x RealTimeThreadSynchronisationTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..

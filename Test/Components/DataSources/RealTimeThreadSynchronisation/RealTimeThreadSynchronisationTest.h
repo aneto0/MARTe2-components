@@ -66,11 +66,6 @@ public:
     bool TestGetBrokerName();
 
     /**
-     * @brief Tests that the GetBrokerName method correctly returns an empty string for OutputSignals.
-     */
-    bool TestGetBrokerName_OutputSignals();
-
-    /**
      * @brief Tests the GetInputBrokers method
      */
     bool TestGetInputBrokers();
@@ -81,29 +76,14 @@ public:
     bool TestGetOutputBrokers();
 
     /**
+     * @brief Tests the PrepareNextState method
+     */
+    bool TestPrepareNextState();
+
+    /**
      * @brief Tests the Initialise method
      */
     bool TestInitialise();
-
-    /**
-     * @brief Tests the Initialise method with defaults
-     */
-    bool TestInitialise_Defaults();
-
-    /**
-     * @brief Tests the Initialise method without specifying the Signals
-     */
-    bool TestInitialise_False_Signals();
-
-    /**
-     * @brief Tests the GetCPUMask method.
-     */
-    bool TestGetCPUMask();
-
-    /**
-     * @brief Tests the GetStackSize method.
-     */
-    bool TestGetStackSize();
 
     /**
      * @brief Tests the SetConfiguredDatabase method.
@@ -111,34 +91,44 @@ public:
     bool TestSetConfiguredDatabase();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method without specifying any signals.
+     * @brief Tests the SetConfiguredDatabase method without specifying any consumer or producer GAM.
      */
-    bool TestSetConfiguredDatabase_False_NoSignals();
+    bool TestSetConfiguredDatabase_NoInteraction();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method without specifying the signal PV name.
+     * @brief Tests the SetConfiguredDatabase method with only a producer but no consumer GAMs.
      */
-    bool TestSetConfiguredDatabase_False_PVName();
+    bool TestSetConfiguredDatabase_ProducerOnly();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method specifying more than one sample.
+     * @brief Tests the SetConfiguredDatabase method with no producer.
      */
-    bool TestSetConfiguredDatabase_False_Samples();
+    bool TestSetConfiguredDatabase_False_NoProducer();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method with an unsupported type.
+     * @brief Tests the SetConfiguredDatabase method with more than one producer.
      */
-    bool TestSetConfiguredDatabase_False_UnsupportedType();
+    bool TestSetConfiguredDatabase_False_MoreThanOneProducer();
 
     /**
-     * @brief Tests that the PV values are correctly captured by the DataSourceI
+     * @brief Tests the SetConfiguredDatabase method without writing all the signals.
      */
-    bool TestExecute();
+    bool TestSetConfiguredDatabase_Warning_NotAllSignals();
 
     /**
-     * @brief Tests that the PV values are correctly captured by the DataSourceI when using arrays.
+     * @brief Tests the SetConfiguredDatabase method writing more than one sample.
      */
-    bool TestExecute_Arrays();
+    bool TestSetConfiguredDatabase_False_MoreThanOneOutputSample();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase reading a different number of samples from the same GAM.
+     */
+    bool TestSetConfiguredDatabase_False_DifferentInputSamplesFromSameFunction();
+
+    /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI
+     */
+    bool TestSynchronise();
 
 };
 

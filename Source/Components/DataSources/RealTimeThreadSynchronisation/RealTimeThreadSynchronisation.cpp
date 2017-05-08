@@ -81,14 +81,13 @@ bool RealTimeThreadSynchronisation::GetSignalMemoryBuffer(const uint32 signalIdx
         ok = (memory != NULL_PTR(char8 *));
     }
     if (ok) {
-        ok = (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **));
-    }
-    if (ok) {
         if (currentInitBrokerIndex == -1) {
             signalAddress = reinterpret_cast<void *>(&memory[memoryOffsets[signalIdx]]);
         }
         else {
-            ok = synchInputBrokers[currentInitBrokerIndex]->GetSignalMemoryBuffer(signalIdx, signalAddress);
+            if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
+                ok = synchInputBrokers[currentInitBrokerIndex]->GetSignalMemoryBuffer(signalIdx, signalAddress);
+            }
         }
     }
     return ok;
@@ -143,7 +142,7 @@ bool RealTimeThreadSynchronisation::PrepareNextState(const char8* const currentS
 }
 
 bool RealTimeThreadSynchronisation::Initialise(StructuredDataI & data) {
-    bool ok = ReferenceContainer::Initialise(data);
+    bool ok = DataSourceI::Initialise(data);
     return ok;
 }
 
@@ -151,41 +150,37 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     //At most one output function is allowed to interact with the RealTimeThreadSynchronisation
     uint32 numberOfFunctions = GetNumberOfFunctions();
-    if (ok) {
-        //At least one consumer function (plus the producer)
-        ok = (numberOfFunctions > 1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "One and exactly one function shall write into the DataSourceI and at least one function shall read from it");
-        }
-    }
-    //A function shall either or write from this DataSourceI but not both things at the same time
+    //A function shall either read or write from/to this DataSourceI but not both things at the same time
     bool producerFound = false;
-    numberOfSyncGAMs = (numberOfFunctions - 1u);
+    if (numberOfFunctions > 0u) {
+        numberOfSyncGAMs = (numberOfFunctions - 1u);
+    }
+    else {
+        numberOfSyncGAMs = 0u;
+    }
     uint32 n;
     if (ok) {
-        synchInputBrokers = new RealTimeThreadSynchBroker*[numberOfSyncGAMs];
+        if (numberOfSyncGAMs > 0u) {
+            synchInputBrokers = new RealTimeThreadSynchBroker*[numberOfSyncGAMs];
+        }
         //Compute the memory for the output function
         for (n = 0u; (n < numberOfFunctions) && (ok); n++) {
-            uint32 numberOfSignals;
-            ok = GetFunctionNumberOfSignals(OutputSignals, n, numberOfSignals);
-            bool isProducer = (numberOfSignals > 0u);
+            uint32 numberOfFunctionSignals;
+            ok = GetFunctionNumberOfSignals(OutputSignals, n, numberOfFunctionSignals);
+            bool isProducer = (numberOfFunctionSignals > 0u);
             if (isProducer) {
                 ok = !producerFound;
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "One and exactly one function shall write into this DataSourceI and more than one was found");
                 }
-                producerFound = isProducer;
-                uint32 numberOfFunctionSignals;
                 if (ok) {
-                    ok = GetFunctionNumberOfSignals(OutputSignals, n, numberOfFunctionSignals);
-                }
-                //Check that the number of samples is exactly one.
-                if (ok) {
-                    if (numberOfFunctionSignals != numberOfSignals) {
+                    producerFound = isProducer;
+                    if (numberOfFunctionSignals != GetNumberOfSignals()) {
                         REPORT_ERROR_STATIC(ErrorManagement::Warning, "The GAM which writes to this RealTimeThreadSynchronisation does not produce all the signals.");
                     }
 
                     memoryOffsets = new uint32[numberOfFunctionSignals];
+                    //Check that the number of samples is exactly one.
 
                     uint32 numberOfSamplesRead;
                     uint32 s;
@@ -224,16 +219,18 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
         }
     }
     if (ok) {
-        ok = producerFound;
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "One and exactly one function shall write into this DataSourceI and none was found");
+        if (numberOfFunctions > 0u) {
+            ok = producerFound;
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "One and exactly one function shall write into this DataSourceI and none was found");
+            }
         }
     }
     //Create the synchInputBrokers
     for (n = 0u; (n < numberOfSyncGAMs) && (ok); n++) {
         ReferenceT<RealTimeThreadSynchBroker> synchInputBroker = synchInputBrokersContainer.Get(n);
         synchInputBrokers[n] = dynamic_cast<RealTimeThreadSynchBroker *>(synchInputBroker.operator ->());
-        synchInputBrokers[n]->AllocateMemory(memory, memoryOffsets);
+        ok = synchInputBrokers[n]->AllocateMemory(memory, memoryOffsets);
     }
 
     return ok;
