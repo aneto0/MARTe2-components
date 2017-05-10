@@ -39,36 +39,131 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+/**
+ * @brief A DataSource which allows to synchronise multiple real-time threads.
+ * @details A GAM will write into this DataSource on a given thread. One more GAMs (each on its thread) will read and
+ *  synchronise against this DataSource. If the number of samples read from the GAM is great than one the DataSource will
+ *  block until the specified number of samples is available. This feature allows to run and synchronise threads at a lower frequency.
+ *
+ * Only one GAM is allowed to write into this DataSource. More than one GAM may read in the same thread, but it should be noted that the
+ *  reading is blocking and this will force multiple synchronisation points (which has an unspecified behaviour and thus should be avoided).
+ *
+ * The number of samples of the signals of the GAM writing into this DataSource shall be exactly 1.
+ *
+ * The number of samples for all the signals of any given GAM reading from this DataSource shall be the same.
+ *
+ * The configuration syntax is (names are only given as an example):
+ * +Functions = {"
+ *   +GAM1 = {
+ *     Class = AGAM
+ *     OutputSignals = {
+ *       Signal1 = {
+ *         SignalType = uint32
+ *         NumberOfDimensions = 1
+ *         NumberOfElements = 4
+ *         DataSource = RealTimeThreadSynch"
+ *       }
+ *       Signal2 = {
+ *         SignalType = float64
+ *         NumberOfDimensions = 1
+ *         NumberOfElements = 1
+ *         DataSource = RealTimeThreadSynch"
+ *       }
+ *     }
+ *   }
+ *   +GAM2 = {
+ *     Class = AnotherGAM
+ *     InputSignals = {
+ *       Signal1 = {
+ *         SignalType = uint32
+ *         NumberOfDimensions = 1
+ *         NumberOfElements = 4
+ *         DataSource = RealTimeThreadSynch"
+ *         NumberOfSamples = 2 //Will run at half the frequency
+ *       }
+ *       Signal2 = {
+ *         SignalType = float64
+ *         NumberOfDimensions = 1
+ *         NumberOfElements = 1
+ *         DataSource = RealTimeThreadSynch"
+ *         NumberOfSamples = 2 //Will run at half the frequency
+ *       }
+ *     }
+ *   }
+ *   +GAM3 = {
+ *     Class = AnotherGAM
+ *     InputSignals = {
+ *       Signal1 = {
+ *         SignalType = uint32
+ *         NumberOfDimensions = 1
+ *         NumberOfElements = 4
+ *         DataSource = RealTimeThreadSynch"
+ *         NumberOfSamples = 4 //Will run at a quarter of the frequency
+ *       }
+ *       Signal2 = {
+ *         SignalType = float64
+ *         NumberOfDimensions = 1
+ *         NumberOfElements = 1
+ *         DataSource = RealTimeThreadSynch"
+ *         NumberOfSamples = 4 //Will run at a quarter of the frequency
+ *       }
+ *     }
+ *   }
+ * }
+ * +States = {
+ *   Class = ReferenceContainer
+ *   +State1 = {
+ *     Class = RealTimeState
+ *     +Threads = {
+ *       Class = ReferenceContainer
+ *       +Thread1 = {
+ *         Class = RealTimeThread
+ *         Functions = {GAM1Thread1}
+ *       }
+ *       +Thread2 = {
+ *         Class = RealTimeThread
+ *         Functions = {GAM1Thread2}
+ *       }
+ *       +Thread3 = {
+ *         Class = RealTimeThread
+ *         Functions = {GAM1Thread3}
+ *       }
+ *     }
+ *   }
+ * }
+ * +Data = {
+ *   +RealTimeSynch = {
+ *     Class = RealTimeThreadSynchronisation
+ *   }
+ * }
+ */
 class RealTimeThreadSynchronisation: public DataSourceI {
 public:
     CLASS_REGISTER_DECLARATION()
 
     /**
-     * TODO
+     * @brief Default constructor. NOOP
      */
 RealTimeThreadSynchronisation    ();
 
     /**
-     * TODO
+     * @brief Destructor. Frees the DataSource memory (allocated to store a copy of all the signals).
      */
     virtual ~RealTimeThreadSynchronisation();
 
     /**
-     * TODO
      * @brief See DataSourceI::AllocateMemory. NOOP.
      * @return true.
      */
     virtual bool AllocateMemory();
 
     /**
-     * TODO
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
      * @return 1.
      */
     virtual uint32 GetNumberOfMemoryBuffers();
 
     /**
-     * TODO
      * @brief See DataSourceI::GetSignalMemoryBuffer.
      * @pre
      *   SetConfiguredDatabase
@@ -78,35 +173,31 @@ RealTimeThreadSynchronisation    ();
             void *&signalAddress);
 
     /**
-     * TODO
-     * @brief See DataSourceI::GetNumberOfMemoryBrokers.
-     * @details Only InputSignals are supported.
-     * @return MemoryMapInputBroker.
+     * @brief See DataSourceI::GetBrokerName.
+     * @return RealTimeThreadSynchBroker if direction == InputSignals, MemoryMapSynchronisedOutputBroker otherwise.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
 
     /**
-     * TODO
      * @brief See DataSourceI::GetInputBrokers.
-     * @details adds a memory MemoryMapInputBroker instance to the inputBrokers
-     * @return true.
+     * @details Creates a new instance of a RealTimeThreadSynchBroker and inserts it into the \a inputBrokers list.
+     * @return true if RealTimeThreadSynchBroker::Init initialises correctly.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
             const char8* const functionName,
             void * const gamMemPtr);
 
     /**
-     * TODO
      * @brief See DataSourceI::GetOutputBrokers.
-     * @return false.
+     * @details Creates a new instance of a MemoryMapSynchronisedOutputBroker and inserts it into the \a outputBrokers list.
+     * @return true if MemoryMapSynchronisedOutputBroker::Init initialises correctly.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
             const char8* const functionName,
             void * const gamMemPtr);
 
     /**
-     * TODO
      * @brief See DataSourceI::PrepareNextState. NOOP.
      * @return true.
      */
@@ -114,62 +205,62 @@ RealTimeThreadSynchronisation    ();
             const char8 * const nextStateName);
 
     /**
-     * TODO
-     * @brief Loads and verifies the configuration parameters detailed in the class description.
-     * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
+     * @brief Calls DataSourceI::Initialise.
+     * @return see DataSourceI::Initialise.
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * TODO
      * @brief Final verification of all the parameters. Setup of the memory required to hold all the signals.
      * @details This method verifies that all the parameters requested by the GAMs interacting with this DataSource
-     *  are valid and consistent with the parameters set during the initialisation phase.
-     * In particular the following conditions shall be met:
-     * - All the signals have the PVName defined
-     * - All the signals have one of the following types: uint32, int32, float32 or float64.
+     *  are valid and consistent the following rules:
+     * - Only one GAM is writing signals into this DataSourceI instance.
+     * - The number of written samples is exactly one.
+     * - The number of read samples is constant for all the signal of any given GAM (but may different between GAMs).
+     * - If there is a GAM reading from this DataSourceI, then there must be a GAM writing into this DataSourceI.
      * @return true if all the parameters are valid and the conditions above are met.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @brief TODO.
+     * @brief Calls RealTimeThreadSynchBroker::AddSample on all the brokers.
+     * @return true if all the AddSample calls return true.
      */
     virtual bool Synchronise();
 
 private:
     /**
-     * TODO
-     */
-    RealTimeThreadSynchBroker **synchInputBrokers;
-
-    /**
-     * TODO
+     * List of input brokers. One for each GAM reading from this DataSourceI.
      */
     ReferenceContainer synchInputBrokersContainer;
 
     /**
-     * TODO
+     * Accelerator for the list of input brokers. One for each GAM reading from this DataSourceI.
+     */
+    RealTimeThreadSynchBroker **synchInputBrokers;
+
+    /**
+     * Number of GAMs reading from this DataSourceI.
      */
     uint32 numberOfSyncGAMs;
 
     /**
-     * TODO
+     * Memory which holds the latest values of the signals written into this DataSourceI.
      */
     char8 *memory;
 
     /**
-     * TODO
+     * Size required to hold the latest values of the signals written into this DataSourceI.
      */
     uint32 memorySize;
 
     /**
-     * TODO
+     * Offsets of the signals in the memory area.
      */
     uint32 *memoryOffsets;
 
     /**
-     * TODO
+     * Allows to correctly synchronise the GetInputBrokers->RealTimeThreadSynchBroker::Init with the GetSignalMemoryBuffer function.
      */
     int32 currentInitBrokerIndex;
 };

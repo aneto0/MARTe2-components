@@ -163,24 +163,19 @@ bool RealTimeThreadSynchBroker::AddSample() {
     return ok;
 }
 
-bool RealTimeThreadSynchBroker::Wait() {
-    bool ok = (synchSem.Wait() == ErrorManagement::NoError);
-    if (ok) {
-        ok = synchSem.Reset();
-    }
-    return ok;
-}
-
 const char8 * const RealTimeThreadSynchBroker::GetGAMName() {
     return gamName.Buffer();
 }
 
 bool RealTimeThreadSynchBroker::Execute() {
-    bool ret = Wait();
-    if (ret) {
-        ret = MemoryMapInputBroker::Execute();
+    bool ok = (synchSem.Wait() == ErrorManagement::NoError);
+    if (ok) {
+        ok = synchSem.Reset();
     }
-    return ret;
+    if (ok) {
+        ok = MemoryMapInputBroker::Execute();
+    }
+    return ok;
 }
 
 CLASS_REGISTER(RealTimeThreadSynchBroker, "1.0")

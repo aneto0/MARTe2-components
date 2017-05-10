@@ -41,109 +41,116 @@
 
 namespace MARTe {
 /**
- * TODO
+ * @brief Input broker for the RealTimeThreadSynchronisation DataSourceI.
+ * @details A MemoryMapInputBroker which will store in memory the required number of samples copies of the DataSourceI memory.
+ * It will lock in Execute until the required number of samples are added by calling the AddSample method.
  */
 class RealTimeThreadSynchBroker : public MemoryMapInputBroker {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * TODO
+     * @brief Default constructor. NOOP.
      */
     RealTimeThreadSynchBroker();
 
     /**
-     * TODO
+     * @brief Destructor.
      */
     virtual ~RealTimeThreadSynchBroker();
 
     /**
-     * TODO
+     * @brief Sets the index of the function in the DataSourceI associated to this broker instance.
+     * @param[in] dataSourceIn the RealTimeThreadSynchronisation DataSourceI instance using this broker.
+     * @param[in] functionIdxIn the index of the function in the DataSourceI.
      */
     void SetFunctionIndex(DataSourceI *dataSourceIn, uint32 functionIdxIn);
 
     /**
-     * TODO
+     * @brief Allocates memory to hold N copies of the dataSourceMemoryIn, where the N is the number of samples that are to be
+     * stored by the signals allocated to this broker.
+     * @param[in] dataSourceMemoryIn the RealTimeThreadSynchronisation DataSourceI memory holding the latest values.
+     * @param[in] dataSourceMemoryOffsetsIn the signals offsets in the \a dataSourceMemoryIn.
+     * @return true if the number of samples is the same for all signals and if the memory could be successfully allocated.
      */
     bool AllocateMemory(char8 *dataSourceMemoryIn, uint32 *dataSourceMemoryOffsetsIn);
 
     /**
-     * TODO
+     * @brief Proxy method to the DataSourceI::GetSignalMemoryBuffer
      */
     bool GetSignalMemoryBuffer(const uint32 signalIdx, void *&signalAddress);
 
     /**
-     * TODO
+     * @brief Adds a new sample of all the signals into the memory managed by this broker.
+     * @return true if the memory could be successfully copied.
      */
     bool AddSample();
 
     /**
-     * TODO
-     */
-    bool Wait();
-
-    /**
-     * TODO
+     * @brief Gets the name of the GAM interacting with the DataSourceI that uses this broker instance.
+     * @return the name of the GAM interacting with the DataSourceI that uses this broker instance.
      */
     const char8 *const GetGAMName();
 
     /**
-     * TODO
+     * @brief Locks until the expected number of samples is written into this broker instance (see AddSample) and then copies the samples
+     * using the MemoryMapInputBroker::Execute().
+     * @return true if MemoryMapInputBroker::Execute().
      */
     virtual bool Execute();
 
 private:
     /**
-     * TODO
+     * Number of signals in the DataSourceI (not all will necessarily be writing to this broker instance).
      */
     uint32 numberOfDataSourceSignals;
 
     /**
-     * TODO
+     * Memory to hold N samples of all the DataSourceI signals.
      */
     char8 **signalMemory;
 
     /**
-     * TODO
+     * Size of each signal to be copied.
      */
     uint32 *signalSize;
 
     /**
-     * TODO
+     * Pointer to the memory of the DataSourceI.
      */
     char8 *dataSourceMemory;
 
     /**
-     * TODO
+     * Offsets in the memory of the DataSourceI.
      */
     uint32 *dataSourceMemoryOffsets;
 
     /**
-     * TODO
+     * Pointer to the DataSourceI associated to this broker instance.
      */
     DataSourceI *dataSource;
 
     /**
-     * TODO
+     * Index of the function in the DataSourceI associated to this broker instance.
      */
     uint32 functionIdx;
 
     /**
-     * TODO
+     * Number of samples to be read from this DataSourceI.
      */
     uint32 numberOfSamples;
 
     /**
-     * TODO
+     * The current samples being written.
      */
     uint32 currentSample;
 
     /**
-     * TODO
+     * Semaphore which will lock until all the samples are written.
      */
     EventSem synchSem;
 
     /**
-     * TODO
+     * The name of the GAM interacting with the DataSourceI that uses this broker instance.
      */
     StreamString gamName;
 
