@@ -66,11 +66,6 @@ bool RealTimeThreadSynchBrokerTest::TestAddSample() {
     return test.TestSynchronise();
 }
 
-bool RealTimeThreadSynchBrokerTest::TestWait() {
-    RealTimeThreadSynchronisationTest test;
-    return test.TestSynchronise();
-}
-
 bool RealTimeThreadSynchBrokerTest::TestGetGAMName() {
     RealTimeThreadSynchronisationTest test;
     return test.TestSetConfiguredDatabase();

@@ -68,11 +68,6 @@ public:
     bool TestAddSample();
 
     /**
-     * @brief Tests the Wait method.
-     */
-    bool TestWait();
-
-    /**
      * @brief Tests the GetGAMName method.
      */
     bool TestGetGAMName();

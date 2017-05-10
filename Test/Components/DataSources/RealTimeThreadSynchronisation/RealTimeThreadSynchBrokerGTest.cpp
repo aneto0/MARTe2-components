@@ -64,11 +64,6 @@ TEST(RealTimeThreadSynchBrokerGTest,TestAddSample) {
     ASSERT_TRUE(test.TestAddSample());
 }
 
-TEST(RealTimeThreadSynchBrokerGTest,TestWait) {
-    RealTimeThreadSynchBrokerTest test;
-    ASSERT_TRUE(test.TestWait());
-}
-
 TEST(RealTimeThreadSynchBrokerGTest,TestGetGAMName) {
     RealTimeThreadSynchBrokerTest test;
     ASSERT_TRUE(test.TestGetGAMName());
