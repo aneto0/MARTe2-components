@@ -55,6 +55,8 @@ RealTimeThreadSynchBroker::RealTimeThreadSynchBroker() :
     dataSource = NULL_PTR(DataSourceI *);
 }
 
+/*lint -e{1551} -e{1740} must free the allocated memory in the destructor and close the semaphore. The dataSourceMemory,
+ * the dataSourceMemoryOffsets are freed by the DataSourceI not by the broker. The dataSource is freed by the framework.*/
 RealTimeThreadSynchBroker::~RealTimeThreadSynchBroker() {
     if (signalMemory != NULL_PTR(char8 **)) {
         uint32 s;
@@ -73,7 +75,7 @@ RealTimeThreadSynchBroker::~RealTimeThreadSynchBroker() {
     (void) synchSem.Close();
 }
 
-void RealTimeThreadSynchBroker::SetFunctionIndex(DataSourceI *dataSourceIn, uint32 functionIdxIn) {
+void RealTimeThreadSynchBroker::SetFunctionIndex(DataSourceI * const dataSourceIn, const uint32 functionIdxIn) {
     dataSource = dataSourceIn;
     functionIdx = functionIdxIn;
     if (dataSource != NULL_PTR(DataSourceI *)) {
@@ -81,7 +83,7 @@ void RealTimeThreadSynchBroker::SetFunctionIndex(DataSourceI *dataSourceIn, uint
     }
 }
 
-bool RealTimeThreadSynchBroker::AllocateMemory(char8 *dataSourceMemoryIn, uint32 *dataSourceMemoryOffsetsIn) {
+bool RealTimeThreadSynchBroker::AllocateMemory(char8 * const dataSourceMemoryIn, uint32 * const dataSourceMemoryOffsetsIn) {
     bool ok = false;
     if (dataSource != NULL_PTR(DataSourceI *)) {
         dataSourceMemory = dataSourceMemoryIn;
@@ -137,9 +139,10 @@ bool RealTimeThreadSynchBroker::AllocateMemory(char8 *dataSourceMemoryIn, uint32
     return ok;
 }
 
-bool RealTimeThreadSynchBroker::GetSignalMemoryBuffer(const uint32 signalIdx, void *&signalAddress) {
+bool RealTimeThreadSynchBroker::GetSignalMemoryBuffer(const uint32 signalIdx, void *&signalAddress) const {
     bool ok = (signalMemory != NULL_PTR(char8 **));
     if (ok) {
+        /*lint -e{613} signalMemory cannot be NULL as otherwise ok = false*/
         signalAddress = reinterpret_cast<void *>(&signalMemory[signalIdx][0u]);
     }
     return ok;
@@ -147,12 +150,14 @@ bool RealTimeThreadSynchBroker::GetSignalMemoryBuffer(const uint32 signalIdx, vo
 
 bool RealTimeThreadSynchBroker::AddSample() {
     bool ok = false;
-    if ((dataSource != NULL_PTR(DataSourceI *)) && (signalMemory != NULL_PTR(char8 **)) && (dataSourceMemory != NULL_PTR(void *))) {
-        uint32 s;
-        for (s = 0u; s < numberOfDataSourceSignals; s++) {
-            if (signalMemory[s] != NULL_PTR(char8 *)) {
-                ok = MemoryOperationsHelper::Copy(&signalMemory[s][currentSample * signalSize[s]], &dataSourceMemory[dataSourceMemoryOffsets[s]], signalSize[s]);
-            }
+    uint32 s;
+    for (s = 0u; s < numberOfDataSourceSignals; s++) {
+        /*lint -e{613} All the memory must have been successfully allocated. For performance reasons the memory allocation is not checked at every iteration.*/
+        if (signalMemory[s] != NULL_PTR(char8 *)) {
+            uint32 signalIdx = currentSample * signalSize[s];
+            void *destination = &signalMemory[s][signalIdx];
+            const void *source = &dataSourceMemory[dataSourceMemoryOffsets[s]];
+            ok = MemoryOperationsHelper::Copy(destination, source, signalSize[s]);
         }
     }
     currentSample++;

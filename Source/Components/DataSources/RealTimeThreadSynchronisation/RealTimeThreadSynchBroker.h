@@ -77,11 +77,13 @@ public:
     /**
      * @brief Proxy method to the DataSourceI::GetSignalMemoryBuffer
      */
-    bool GetSignalMemoryBuffer(const uint32 signalIdx, void *&signalAddress);
+    bool GetSignalMemoryBuffer(const uint32 signalIdx, void *&signalAddress) const;
 
     /**
      * @brief Adds a new sample of all the signals into the memory managed by this broker.
      * @return true if the memory could be successfully copied.
+     * @pre
+     *   All the memory must have been successfully allocated. For performance reasons the memory allocation is not checked at every iteration.
      */
     bool AddSample();
 
@@ -123,11 +125,6 @@ private:
      * Offsets in the memory of the DataSourceI.
      */
     uint32 *dataSourceMemoryOffsets;
-
-    /**
-     * Pointer to the DataSourceI associated to this broker instance.
-     */
-    DataSourceI *dataSource;
 
     /**
      * Index of the function in the DataSourceI associated to this broker instance.

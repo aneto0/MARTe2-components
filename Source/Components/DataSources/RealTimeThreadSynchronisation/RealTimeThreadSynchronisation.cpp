@@ -52,6 +52,7 @@ RealTimeThreadSynchronisation::RealTimeThreadSynchronisation() :
     currentInitBrokerIndex = -1;
 }
 
+/*lint -e{1551} must free the allocated memory in the destructor. */
 RealTimeThreadSynchronisation::~RealTimeThreadSynchronisation() {
     if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
         delete[] synchInputBrokers;
@@ -72,6 +73,7 @@ uint32 RealTimeThreadSynchronisation::GetNumberOfMemoryBuffers() {
     return 1u;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
 bool RealTimeThreadSynchronisation::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) {
     bool ok = (signalIdx < GetNumberOfSignals());
     if (ok) {
@@ -82,7 +84,9 @@ bool RealTimeThreadSynchronisation::GetSignalMemoryBuffer(const uint32 signalIdx
     }
     if (ok) {
         if (currentInitBrokerIndex == -1) {
-            signalAddress = reinterpret_cast<void *>(&memory[memoryOffsets[signalIdx]]);
+            if ((memory != NULL_PTR(char8 *)) && (memoryOffsets != NULL_PTR(uint32 *))) {
+                signalAddress = reinterpret_cast<void *>(&memory[memoryOffsets[signalIdx]]);
+            }
         }
         else {
             if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
@@ -93,6 +97,7 @@ bool RealTimeThreadSynchronisation::GetSignalMemoryBuffer(const uint32 signalIdx
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
 const char8 *RealTimeThreadSynchronisation::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
     const char8 *brokerName = "RealTimeThreadSynchBroker";
     if (direction == OutputSignals) {
@@ -109,7 +114,7 @@ bool RealTimeThreadSynchronisation::GetInputBrokers(ReferenceContainer& inputBro
         for (n = 0u; (n < numberOfSyncGAMs) && (!ok); n++) {
             StreamString gamName = synchInputBrokers[n]->GetGAMName();
             if (gamName == functionName) {
-                currentInitBrokerIndex = static_cast<uint32>(n);
+                currentInitBrokerIndex = static_cast<int32>(n);
                 ok = true;
                 broker = synchInputBrokersContainer.Get(n);
             }
@@ -187,7 +192,7 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
                     for (s = 0u; (s < numberOfFunctionSignals) && (ok); s++) {
                         ok = GetFunctionSignalSamples(OutputSignals, n, s, numberOfSamplesRead);
                         if (ok) {
-                            ok = (numberOfSamplesRead == 1);
+                            ok = (numberOfSamplesRead == 1u);
                             if (!ok) {
                                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "The number of samples of the output function shall be one");
                             }
@@ -196,11 +201,11 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
                 }
 
                 if (ok) {
-                    uint32 numberOfSignals = GetNumberOfSignals();
+                    uint32 nOfSignals = GetNumberOfSignals();
                     uint32 s;
-                    for (s = 0u; (s < numberOfSignals) && (ok); s++) {
-                        uint32 size = 0u;
-                        if (ok) {
+                    if (memoryOffsets != NULL_PTR(uint32 *)) {
+                        for (s = 0u; (s < nOfSignals) && (ok); s++) {
+                            uint32 size = 0u;
                             ok = GetSignalByteSize(s, size);
                             memoryOffsets[s] = memorySize;
                             memorySize += size;
@@ -213,7 +218,7 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
             }
             else {
                 ReferenceT<RealTimeThreadSynchBroker> synchInputBroker(new RealTimeThreadSynchBroker());
-                synchInputBrokersContainer.Insert(synchInputBroker);
+                (void) synchInputBrokersContainer.Insert(synchInputBroker);
                 synchInputBroker->SetFunctionIndex(this, n);
             }
         }
@@ -227,20 +232,23 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
         }
     }
     //Create the synchInputBrokers
-    for (n = 0u; (n < numberOfSyncGAMs) && (ok); n++) {
-        ReferenceT<RealTimeThreadSynchBroker> synchInputBroker = synchInputBrokersContainer.Get(n);
-        synchInputBrokers[n] = dynamic_cast<RealTimeThreadSynchBroker *>(synchInputBroker.operator ->());
-        ok = synchInputBrokers[n]->AllocateMemory(memory, memoryOffsets);
+    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
+        for (n = 0u; (n < numberOfSyncGAMs) && (ok); n++) {
+            ReferenceT<RealTimeThreadSynchBroker> synchInputBroker = synchInputBrokersContainer.Get(n);
+            synchInputBrokers[n] = dynamic_cast<RealTimeThreadSynchBroker *>(synchInputBroker.operator ->());
+            ok = synchInputBrokers[n]->AllocateMemory(memory, memoryOffsets);
+        }
     }
-
     return ok;
 }
 
 bool RealTimeThreadSynchronisation::Synchronise() {
     bool ok = true;
     uint32 u;
-    for (u = 0u; (u < numberOfSyncGAMs) && (ok); u++) {
-        ok = synchInputBrokers[u]->AddSample();
+    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
+        for (u = 0u; (u < numberOfSyncGAMs) && (ok); u++) {
+            ok = synchInputBrokers[u]->AddSample();
+        }
     }
 
     return ok;
