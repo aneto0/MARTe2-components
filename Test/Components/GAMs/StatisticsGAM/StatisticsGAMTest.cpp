@@ -397,7 +397,7 @@ bool StatisticsGAMTest::TestSquareRoot() {
 
     if (ok) {
         int8 input = 9;
-	int8 result = SquareRoot<int8> (input);
+	int8 result = FastMath::SquareRoot<int8> (input);
 	ok = (result == 3);
 	if (!ok) {
 	    REPORT_ERROR_STATIC(ErrorManagement::Information, "Result is '%!'", result);
@@ -406,7 +406,7 @@ bool StatisticsGAMTest::TestSquareRoot() {
 
     if (ok) {
         int8 input = -7 * -15;
-	int8 result = SquareRoot<int8> (input);
+	int8 result = FastMath::SquareRoot<int8> (input);
 	ok = (result == 10);
 	if (!ok) {
 	    REPORT_ERROR_STATIC(ErrorManagement::Information, "Result is '%!'", result);
@@ -414,9 +414,9 @@ bool StatisticsGAMTest::TestSquareRoot() {
     }
 
     if (ok) {
-        int8 input = -9; // WARNING - Implementation will cast -> re-interpret as 253
-	int8 result = SquareRoot<int8> (input);
-	ok = (result == 15);
+        int8 input = -9;
+	int8 result = FastMath::SquareRoot<int8> (input);
+	ok = (result == 3);
 	if (!ok) {
 	    REPORT_ERROR_STATIC(ErrorManagement::Information, "Result is '%!'", result);
 	}
