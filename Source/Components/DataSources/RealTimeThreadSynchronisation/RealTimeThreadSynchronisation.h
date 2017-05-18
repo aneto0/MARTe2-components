@@ -134,6 +134,9 @@ namespace MARTe {
  * +Data = {
  *   +RealTimeSynch = {
  *     Class = RealTimeThreadSynchronisation
+ *     Timeout = 1000 //Timeout in ms to wait for the thread to cycle.
+ *                    //If this parameter is not set it will wait forever to be triggered and might lock a state change.
+ *                    //Default is 1000
  *   }
  * }
  */
@@ -228,6 +231,12 @@ RealTimeThreadSynchronisation    ();
      */
     virtual bool Synchronise();
 
+    /**
+     * @brief Gets the synchronisation timeout.
+     * @return the synchronisation timeout.
+     */
+    TimeoutType GetSynchroniseTimeout() const;
+
 private:
     /**
      * List of input brokers. One for each GAM reading from this DataSourceI.
@@ -263,6 +272,11 @@ private:
      * Allows to correctly synchronise the GetInputBrokers->RealTimeThreadSynchBroker::Init with the GetSignalMemoryBuffer function.
      */
     int32 currentInitBrokerIndex;
+
+    /**
+     * Synchronisation timeout
+     */
+    TimeoutType timeout;
 };
 }
 

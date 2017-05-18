@@ -62,8 +62,9 @@ public:
      * @brief Sets the index of the function in the DataSourceI associated to this broker instance.
      * @param[in] dataSourceIn the RealTimeThreadSynchronisation DataSourceI instance using this broker.
      * @param[in] functionIdxIn the index of the function in the DataSourceI.
+     * @param[in] timeoutIn the maximum time to wait for the expected number of samples to be available.
      */
-    void SetFunctionIndex(DataSourceI *dataSourceIn, uint32 functionIdxIn);
+    void SetFunctionIndex(DataSourceI *dataSourceIn, uint32 functionIdxIn, const TimeoutType & timeoutIn);
 
     /**
      * @brief Allocates memory to hold N copies of the dataSourceMemoryIn, where the N is the number of samples that are to be
@@ -151,6 +152,10 @@ private:
      */
     StreamString gamName;
 
+    /**
+     * Synchronisation timeout
+     */
+    TimeoutType timeout;
 };
 }
 

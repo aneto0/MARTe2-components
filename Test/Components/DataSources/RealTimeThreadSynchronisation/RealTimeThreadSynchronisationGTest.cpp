@@ -84,6 +84,16 @@ TEST(RealTimeThreadSynchronisationGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
+TEST(RealTimeThreadSynchronisationGTest,TestInitialise_Timeout) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestInitialise_Timeout());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestGetSynchroniseTimeout) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestGetSynchroniseTimeout());
+}
+
 TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase) {
     RealTimeThreadSynchronisationTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());

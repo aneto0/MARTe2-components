@@ -1045,7 +1045,6 @@ static const MARTe::char8 * const config6 = ""
         "    }"
         "}";
 
-
 //Configuration with more than one output sample
 static const MARTe::char8 * const config7 = ""
         "$Test = {"
@@ -1423,7 +1422,30 @@ bool RealTimeThreadSynchronisationTest::TestInitialise() {
     using namespace MARTe;
     RealTimeThreadSynchronisation test;
     ConfigurationDatabase cdb;
-    return test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = (test.GetSynchroniseTimeout() == 1000);
+    }
+
+    return ok;
+}
+
+bool RealTimeThreadSynchronisationTest::TestInitialise_Timeout() {
+    using namespace MARTe;
+    RealTimeThreadSynchronisation test;
+    ConfigurationDatabase cdb;
+    uint32 timeoutToTest = 100;
+    cdb.Write("Timeout", timeoutToTest);
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = (test.GetSynchroniseTimeout() == timeoutToTest);
+    }
+
+    return ok;
+}
+
+bool RealTimeThreadSynchronisationTest::TestGetSynchroniseTimeout() {
+    return TestInitialise_Timeout();
 }
 
 bool RealTimeThreadSynchronisationTest::TestSetConfiguredDatabase() {
@@ -1520,7 +1542,7 @@ bool RealTimeThreadSynchronisationTest::TestSynchronise() {
         scheduler->ExecuteThreadCycle(0);
         scheduler->ExecuteThreadCycle(1);
 
-        //Thread 2 should always have the same values of thread 1
+//Thread 2 should always have the same values of thread 1
         for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
             ok = (gam1Thread1->uint16Signal[e] == gam1Thread2->uint16Signal[e]);
         }
@@ -1533,7 +1555,7 @@ bool RealTimeThreadSynchronisationTest::TestSynchronise() {
         for (e = 0u; (e < gam1Thread1->int32SignalElements) && (ok); e++) {
             ok = (gam1Thread1->int32Signal[e] == gam1Thread2->int32Signal[e]);
         }
-        //Thread 3 should store 2 samples of each signal
+//Thread 3 should store 2 samples of each signal
         if (((j + 1) % 2) == 0) {
             scheduler->ExecuteThreadCycle(2);
             uint32 s;
@@ -1558,7 +1580,7 @@ bool RealTimeThreadSynchronisationTest::TestSynchronise() {
                 }
             }
         }
-        //Thread 4 should store 4 samples of each signal
+//Thread 4 should store 4 samples of each signal
         if (((j + 1) % 4) == 0) {
             scheduler->ExecuteThreadCycle(3);
             uint32 s;

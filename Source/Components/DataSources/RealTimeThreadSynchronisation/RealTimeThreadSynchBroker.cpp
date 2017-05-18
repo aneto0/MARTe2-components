@@ -75,9 +75,10 @@ RealTimeThreadSynchBroker::~RealTimeThreadSynchBroker() {
     (void) synchSem.Close();
 }
 
-void RealTimeThreadSynchBroker::SetFunctionIndex(DataSourceI * const dataSourceIn, const uint32 functionIdxIn) {
+void RealTimeThreadSynchBroker::SetFunctionIndex(DataSourceI * const dataSourceIn, const uint32 functionIdxIn, const TimeoutType & timeoutIn) {
     dataSource = dataSourceIn;
     functionIdx = functionIdxIn;
+    timeout = timeoutIn;
     if (dataSource != NULL_PTR(DataSourceI *)) {
         (void) dataSource->GetFunctionName(functionIdx, gamName);
     }
@@ -173,7 +174,7 @@ const char8 * const RealTimeThreadSynchBroker::GetGAMName() {
 }
 
 bool RealTimeThreadSynchBroker::Execute() {
-    bool ok = (synchSem.Wait() == ErrorManagement::NoError);
+    bool ok = (synchSem.Wait(timeout) == ErrorManagement::NoError);
     if (ok) {
         ok = synchSem.Reset();
     }

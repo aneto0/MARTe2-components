@@ -86,6 +86,16 @@ public:
     bool TestInitialise();
 
     /**
+     * @brief Tests the Initialise method with a timeout different from the default timeout
+     */
+    bool TestInitialise_Timeout();
+
+    /**
+     * @brief Tests the GetSynchroniseTimeout method.
+     */
+    bool TestGetSynchroniseTimeout();
+
+    /**
      * @brief Tests the SetConfiguredDatabase method.
      */
     bool TestSetConfiguredDatabase();

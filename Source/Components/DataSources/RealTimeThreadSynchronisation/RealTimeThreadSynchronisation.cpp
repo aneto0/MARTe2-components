@@ -148,6 +148,15 @@ bool RealTimeThreadSynchronisation::PrepareNextState(const char8* const currentS
 
 bool RealTimeThreadSynchronisation::Initialise(StructuredDataI & data) {
     bool ok = DataSourceI::Initialise(data);
+    if (ok) {
+        uint32 timeoutMillis = 0u;
+        if (data.Read("Timeout", timeoutMillis)) {
+            timeout = timeoutMillis;
+        }
+        else {
+            timeout = 1000u;
+        }
+    }
     return ok;
 }
 
@@ -219,7 +228,7 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
             else {
                 ReferenceT<RealTimeThreadSynchBroker> synchInputBroker(new RealTimeThreadSynchBroker());
                 (void) synchInputBrokersContainer.Insert(synchInputBroker);
-                synchInputBroker->SetFunctionIndex(this, n);
+                synchInputBroker->SetFunctionIndex(this, n, timeout);
             }
         }
     }
@@ -240,6 +249,10 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
         }
     }
     return ok;
+}
+
+TimeoutType RealTimeThreadSynchronisation::GetSynchroniseTimeout() const {
+    return timeout;
 }
 
 bool RealTimeThreadSynchronisation::Synchronise() {
