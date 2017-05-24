@@ -45,22 +45,51 @@ public:
 
     virtual ~Waveform();
 
-    virtual bool Initialise(StructuredDataI & data);
+//    virtual bool Initialise(StructuredDataI & data);
 
     virtual bool Setup();
 
     virtual bool Execute();
 
-    virtual bool GetUInt8Value(uint8 *outputValue) = 0;
+    virtual bool GetUInt8Value() = 0;
 
-    virtual bool GetInt8Value(int8 *outputValue) = 0;
+    virtual bool GetInt8Value() = 0;
 
-    virtual bool GetUInt16Value(uint16 *outputValue) = 0;
+    virtual bool GetUInt16Value() = 0;
 
-    virtual bool GetInt16Value(int16 *outputValue) = 0;
+    virtual bool GetInt16Value() = 0;
+
+    virtual bool GetUInt32Value() = 0;
+
+    virtual bool GetInt32Value() = 0;
+
+    virtual bool GetUInt64Value() = 0;
+
+    virtual bool GetInt64Value() = 0;
+
+    virtual bool GetFloat32Value() = 0;
+
+    virtual bool GetFloat64Value() = 0;
+
+/*    virtual bool GetInt8Value() = 0;
+
+    virtual bool GetUInt16Value() = 0;
 
     uint32 GetNumberOfOutputValues();
+*/
+protected:
+    uint32 *inputTime;
+    void **outputValue;
+    uint32 numberOfOutputElements;
+    uint32 numberOfOutputSignals;
+
 private:
+    TypeDescriptor typeVariableIn;
+    TypeDescriptor typeVariableOut;
+    uint32 numberOfInputSignals;
+    uint32 numberOfInputElements;
+    uint32 numberOfInputSamples;
+    uint32 numberOfOutputSamples;
 
 };
 
