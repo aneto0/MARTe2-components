@@ -49,6 +49,16 @@ Waveform::Waveform() {
     numberOfOutputElements = 0u;
     numberOfInputSamples = 0u;
     numberOfOutputSamples = 0u;
+    startTriggerTime = NULL_PTR(uint32 *);
+    stopTriggerTime = NULL_PTR(uint32 *);
+    numberOfStartTriggers = 0;
+    numberOfStopTriggers = 0;
+    triggersOn = false;
+    indexStartTriggersArray = 0;
+    indexStopTriggersArray = 0;
+    signalOn = false;
+    utimeIncrement = 0;
+    ucurrentTime = 0;
 }
 
 Waveform::~Waveform() {
@@ -59,8 +69,55 @@ Waveform::~Waveform() {
         delete[] outputValue;
         outputValue = NULL_PTR(void **);
     }
+    if(startTriggerTime != NULL_PTR(uint32 *)){
+        delete[] startTriggerTime;
+        startTriggerTime = NULL_PTR(uint32 *);
+    }
+    if(stopTriggerTime != NULL_PTR(uint32 *)){
+        delete[] stopTriggerTime;
+        stopTriggerTime = NULL_PTR(uint32 *);
+    }
 }
 
+bool Waveform::Initialise(StructuredDataI& data) {
+    bool ok = GAM::Initialise(data);
+
+    AnyType functionsArray = data.GetType("StartTriggerTime");
+    AnyType functionsArray2;
+    if (functionsArray.GetDataPointer() != NULL_PTR(void *)) {
+        numberOfStartTriggers = functionsArray.GetNumberOfElements(0u);
+        if (numberOfStartTriggers > 0) {
+            startTriggerTime = new uint32[numberOfStartTriggers];
+            Vector<uint32> startTriggerTimeVector(startTriggerTime, numberOfStartTriggers);
+            data.Read("StartTriggerTime", startTriggerTimeVector);
+            functionsArray2 = data.GetType("StopTriggerTime");
+            numberOfStopTriggers = functionsArray2.GetNumberOfElements(0u);
+            if (numberOfStartTriggers > numberOfStopTriggers) {
+                if (2 > (numberOfStartTriggers - numberOfStopTriggers)) {
+                    stopTriggerTime = new uint32[numberOfStopTriggers];
+                    Vector<uint32> stopTriggerTimeVector(stopTriggerTime, numberOfStopTriggers);
+                    data.Read("StopTriggerTime", stopTriggerTimeVector);
+                    if (Waveform::ValidateTimeTriggers()) {
+                        triggersOn = true;
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::Warning, "Wrong trigger time. Trigger mechanism ignored.");
+                    }
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::Warning, "(numberOfStartTriggers - numberOfStopTriggers) > 1. Trigger mechanism ignored.");
+                }
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::Warning, "numberOfStopTriggers > numberOfStartTriggers. Trigger mechanism ignored.");
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::Warning, "numberOfStartTriggers is 0. Trigger mechanism ignored.");
+        }
+    }
+    return ok;
+}
 bool Waveform::Setup() {
     bool ok = true;
     numberOfInputSignals = GetNumberOfInputSignals();
@@ -92,16 +149,24 @@ bool Waveform::Setup() {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output numberOfElements");
         }
+        if (ok) {
+            ok = (numberOfOutputElements != 0u);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOutputElements must be positive");
+            }
+        }
         for (uint32 i = 1u; i < numberOfOutputSignals && ok; i++) {
             uint32 auxNumberOfSamples;
             ok = GetSignalNumberOfElements(OutputSignals, i, auxNumberOfSamples);
             if (ok) {
-                if (auxNumberOfSamples != numberOfOutputElements) {
+                ok = auxNumberOfSamples == numberOfOutputElements;
+                if (!ok) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples between channels is different");
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading the number of samples for signal %u", i);
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output numberOfElements for signal %u", i)
+            ;
 
         }
     }
@@ -120,15 +185,26 @@ if (ok) {
 }
 
 if (ok) {
-    for (uint32 i = 1; i < numberOfOutputSignals && ok; i++) {
-        ok = GetSignalNumberOfSamples(OutputSignals, 0, numberOfOutputSamples);
+    ok = GetSignalNumberOfSamples(OutputSignals, 0, numberOfOutputSamples);
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading numberOfOutputSamples");
+    }
+    if (ok) {
+        ok = (numberOfOutputSamples == 1);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOutputSamples must be 1");
+        }
+    }
+    for (uint32 i = 1u; i < numberOfOutputSignals && ok; i++) {
+        ok = GetSignalNumberOfSamples(OutputSignals, i, numberOfOutputSamples);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading numberOfOutputSamples");
         }
         if (ok) {
             ok = (numberOfOutputSamples == 1u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOutputSamples must be 1");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOutputSamples must be 1 for signal %u", i)
+                ;
             }
         }
     }
@@ -138,13 +214,16 @@ if (ok) {
     typeVariableIn = GetSignalType(InputSignals, 0u);
     ok = (typeVariableIn == SignedInteger32Bit || typeVariableIn == UnsignedInteger32Bit);
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading input typeVariable. Variable type is null");
+        REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading input typeVariable.");
     }
 }
 
 if (ok) {
     typeVariableOut = GetSignalType(OutputSignals, 0u);
-    ok = ((typeVariableOut == Float32Bit) || (typeVariableOut == Float64Bit) || (typeVariableOut == SignedInteger8Bit) || (typeVariableOut == UnsignedInteger8Bit) || (typeVariableOut == SignedInteger16Bit) || (typeVariableOut == UnsignedInteger16Bit) || (typeVariableOut == SignedInteger32Bit) || (typeVariableOut == UnsignedInteger32Bit) || (typeVariableOut == SignedInteger64Bit) || (typeVariableOut == UnsignedInteger64Bit));
+    ok = ((typeVariableOut == Float32Bit) || (typeVariableOut == Float64Bit) || (typeVariableOut == SignedInteger8Bit)
+            || (typeVariableOut == UnsignedInteger8Bit) || (typeVariableOut == SignedInteger16Bit) || (typeVariableOut == UnsignedInteger16Bit)
+            || (typeVariableOut == SignedInteger32Bit) || (typeVariableOut == UnsignedInteger32Bit) || (typeVariableOut == SignedInteger64Bit)
+            || (typeVariableOut == UnsignedInteger64Bit));
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InitialisationError, "Variable type is not supported");
     }
@@ -153,12 +232,14 @@ if (ok) {
         auxTypeVariable = GetSignalType(OutputSignals, i);
         ok = (auxTypeVariable == typeVariableOut);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "All type descriptors should be equal");
+            REPORT_ERROR(ErrorManagement::ParametersError, "All type descriptors should be equal. Signal type %u different from the first one", i)
+            ;
         }
     }
 }
-outputValue = new void *[numberOfOutputSignals];
+
 if (ok) {
+    outputValue = new void *[numberOfOutputSignals];
     inputTime = static_cast<uint32 *>(GetInputSignalMemory(0));
     for (uint32 i = 0u; i < numberOfOutputSignals; i++) {
         outputValue[i] = (GetOutputSignalMemory(i));
@@ -170,39 +251,39 @@ return ok;
 
 bool Waveform::Execute() {
 
-    bool ok = true;
-    //Check type and call correct function.
-    if (typeVariableOut == UnsignedInteger8Bit) {
-        ok = GetUInt8Value();
-    }
-    else if (typeVariableOut == SignedInteger8Bit) {
-        ok = GetInt8Value();
-    }
-    else if (typeVariableOut == UnsignedInteger16Bit) {
-        ok = GetUInt16Value();
-    }
-    else if (typeVariableOut == SignedInteger16Bit) {
-        ok = GetInt16Value();
-    }
-    else if (typeVariableOut == UnsignedInteger32Bit) {
-        ok = GetUInt32Value();
-    }
-    else if (typeVariableOut == SignedInteger32Bit) {
-        ok = GetInt32Value();
-    }
-    else if (typeVariableOut == UnsignedInteger64Bit) {
-        ok = GetUInt64Value();
-    }
-    else if (typeVariableOut == SignedInteger64Bit) {
-        ok = GetInt64Value();
-    }
-    else if (typeVariableOut == Float32Bit) {
-        ok = GetFloat32Value();
-    }
-    else if (typeVariableOut == Float64Bit) {
-        ok = GetFloat64Value();
-    }
-    return ok;
+bool ok = true;
+//Check type and call correct function.
+if (typeVariableOut == UnsignedInteger8Bit) {
+    ok = GetUInt8Value();
+}
+else if (typeVariableOut == SignedInteger8Bit) {
+    ok = GetInt8Value();
+}
+else if (typeVariableOut == UnsignedInteger16Bit) {
+    ok = GetUInt16Value();
+}
+else if (typeVariableOut == SignedInteger16Bit) {
+    ok = GetInt16Value();
+}
+else if (typeVariableOut == UnsignedInteger32Bit) {
+    ok = GetUInt32Value();
+}
+else if (typeVariableOut == SignedInteger32Bit) {
+    ok = GetInt32Value();
+}
+else if (typeVariableOut == UnsignedInteger64Bit) {
+    ok = GetUInt64Value();
+}
+else if (typeVariableOut == SignedInteger64Bit) {
+    ok = GetInt64Value();
+}
+else if (typeVariableOut == Float32Bit) {
+    ok = GetFloat32Value();
+}
+else if (typeVariableOut == Float64Bit) {
+    ok = GetFloat64Value();
+}
+return ok;
 }
 
 }

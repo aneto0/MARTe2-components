@@ -48,7 +48,7 @@ class WaveformSinGAMTestHelper: public WaveformSin {
 public:
     CLASS_REGISTER_DECLARATION()
 
-WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 elementsOut=4, uint32 samplesOut=1) {
+WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 elementsOut=4, uint32 samplesOut=1 ) {
         numberOfElementsIn = elementsIn;
         numberOfSamplesIn = samplesIn;
         if(numberOfElementsIn > numberOfSamplesIn) {
@@ -62,7 +62,7 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
         numberOfElementsOut = elementsOut;
         numberOfSamplesOut = samplesOut;
 
-        byteSizeOut = numberOfElementsOut * sizeof(uint8);
+        byteSizeOut = 0;
         frequency = 0;
         phase = 0;
         amplitude = 0;
@@ -109,7 +109,7 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
     bool IsInitialised() {
         return isInitialised;
     }
-    bool InitialiseConfigDataBaseSignal1(StreamString type ="uint8" ) {
+    bool InitialiseConfigDataBaseSignal1(TypeDescriptor type =UnsignedInteger8Bit ) {
         bool ok = true;
         uint32 totalByteSizeIn = byteSizeIn;
         ok &= configSignals.CreateAbsolute("Signals.InputSignals");
@@ -124,13 +124,13 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
         ok &= configSignals.MoveToAncestor(1u);
         ok &= configSignals.Write("ByteSize", totalByteSizeIn);
 
-        uint32 totalByteSizeOut = byteSizeOut;
+        uint32 totalByteSizeOut = numberOfElementsOut * type.numberOfBits/8;
         ok &= configSignals.MoveToRoot();
         ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
         ok &= configSignals.CreateRelative("0");
         ok &= configSignals.Write("QualifiedName", "OutputSignal1");
         ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", type.Buffer());
+        ok &= configSignals.Write("Type", TypeDescriptor::GetTypeNameFromTypeDescriptor(type));
         ok &= configSignals.Write("NumberOfDimensions", 1);
 
         ok &= configSignals.Write("NumberOfElements", numberOfElementsOut);
@@ -193,17 +193,937 @@ WaveformSinGAMTest::~WaveformSinGAMTest() {
 //TODO Verify if manual additions are needed here
 }
 
+bool WaveformSinGAMTest::TestMissingAmplitude() {
+    using namespace MARTe;
+    bool ok = true;
+    WaveformSinGAMTestHelper gam;
+    ok &= gam.Initialise(gam.config);
+
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingFrequency() {
+    using namespace MARTe;
+    bool ok = true;
+    WaveformSinGAMTestHelper gam;
+    ok &= gam.config.Write("Amplitude", 10.0);
+    ok &= gam.Initialise(gam.config);
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingPhase() {
+    using namespace MARTe;
+    bool ok = true;
+    WaveformSinGAMTestHelper gam;
+    ok &= gam.config.Write("Amplitude", 10.0);
+    ok &= gam.config.Write("Frequency", 1.0);
+    ok &= gam.Initialise(gam.config);
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingOffset() {
+    using namespace MARTe;
+    bool ok = true;
+    WaveformSinGAMTestHelper gam;
+    ok &= gam.config.Write("Amplitude", 10.0);
+    ok &= gam.config.Write("Frequency", 1.0);
+    ok &= gam.config.Write("Phase", 0.0);
+    ok &= gam.Initialise(gam.config);
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestFrequency0() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+
+    ok &= gam.InitialiseWaveSin(10.0, 0.0, 0.0, 10);
+
+    gam.config.MoveToRoot();
+
+    ok &= gam.Initialise(gam.config);
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestMissingInputSignal() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingOutputSignal() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingInputNumberOfElements() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestWrongInputNumberOfElements() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 2);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingOutputNumberOfElements() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    //ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestWrongOutputNumberOfElements() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 0);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingSecondOutputNumberOfElements() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+//    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4 * 2);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestWrongSecondOutputNumberOfElements() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 3);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4 * 2);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingInputNumberOfSamples() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    //ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestWrongInputNumberOfSamples() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 2);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingOutputNumberOfSamples() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    //ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestWrongOutputNumberOfSamples() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 2);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingSeondOutputNumberOfSamples() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4 * 2);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.CreateRelative("1");
+    //ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestWrongSecondOutputNumberOfSamples() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4 * 2);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("Samples", 2);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingInputType() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    //ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4 * 2);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingOutputType() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    //ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4 * 2);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
+bool WaveformSinGAMTest::TestMissingSecondOutputType() {
+    bool ok = true;
+    using namespace MARTe;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+
+    ok &= gam.configSignals.MoveAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    //ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 4);
+    ok &= gam.configSignals.Write("ByteSize", 4);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", 4 * 2);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.Setup();
+    return !ok;
+}
+
 bool WaveformSinGAMTest::TestUInt8Execute() {
     bool ok = true;
     using namespace MARTe;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin();
-    StreamString a;
-    //example how to print a ConfigurationDatabase
 
     gam.config.MoveToRoot();
-    /*printf("size of a %llu\n", a.Size());
+    /*
+     //example how to print a ConfigurationDatabase
+     StreamString a;
+     printf("size of a %llu\n", a.Size());
      printf("%d\n", a.Printf("%!", gam.config));
      printf("size of a %llu\n", a.Size());
      printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
@@ -269,13 +1189,13 @@ bool WaveformSinGAMTest::TestInt8Execute() {
     using namespace MARTe;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
-    ok &= gam.InitialiseWaveSin(10 ,1, 0, 0);
+    ok &= gam.InitialiseWaveSin(10, 1, 0, 0);
     StreamString a;
     //example how to print a ConfigurationDatabase
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-    ok &= gam.InitialiseConfigDataBaseSignal1("int8");
+    ok &= gam.InitialiseConfigDataBaseSignal1(SignedInteger8Bit);
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
@@ -324,13 +1244,13 @@ bool WaveformSinGAMTest::TestInt16Execute() {
     using namespace MARTe;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
-    ok &= gam.InitialiseWaveSin(100 ,1, 0, 0);
+    ok &= gam.InitialiseWaveSin(100, 1, 0, 0);
     StreamString a;
     //example how to print a ConfigurationDatabase
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-    ok &= gam.InitialiseConfigDataBaseSignal1("int16");
+    ok &= gam.InitialiseConfigDataBaseSignal1(SignedInteger16Bit);
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
@@ -379,13 +1299,13 @@ bool WaveformSinGAMTest::TestUInt16Execute() {
     using namespace MARTe;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
-    ok &= gam.InitialiseWaveSin(100 ,1, 0, 100);
+    ok &= gam.InitialiseWaveSin(100, 1, 0, 100);
     StreamString a;
     //example how to print a ConfigurationDatabase
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-    ok &= gam.InitialiseConfigDataBaseSignal1("uint16");
+    ok &= gam.InitialiseConfigDataBaseSignal1(UnsignedInteger16Bit);
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
@@ -434,13 +1354,13 @@ bool WaveformSinGAMTest::TestInt32Execute() {
     using namespace MARTe;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
-    ok &= gam.InitialiseWaveSin(10000 ,1, 0, 0);
+    ok &= gam.InitialiseWaveSin(10000, 1, 0, 0);
     StreamString a;
     //example how to print a ConfigurationDatabase
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-    ok &= gam.InitialiseConfigDataBaseSignal1("int32");
+    ok &= gam.InitialiseConfigDataBaseSignal1(SignedInteger32Bit);
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
@@ -489,13 +1409,13 @@ bool WaveformSinGAMTest::TestUInt32Execute() {
     using namespace MARTe;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
-    ok &= gam.InitialiseWaveSin(10000 ,1, 0, 10000);
+    ok &= gam.InitialiseWaveSin(10000, 1, 0, 10000);
     StreamString a;
     //example how to print a ConfigurationDatabase
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-    ok &= gam.InitialiseConfigDataBaseSignal1("uint32");
+    ok &= gam.InitialiseConfigDataBaseSignal1(UnsignedInteger32Bit);
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
@@ -543,14 +1463,14 @@ bool WaveformSinGAMTest::TestInt64Execute() {
     bool ok = true;
     using namespace MARTe;
     WaveformSinGAMTestHelper gam;
+
     gam.SetName("Test");
-    ok &= gam.InitialiseWaveSin(10000 ,1, 0, 0);
-    StreamString a;
+    ok &= gam.InitialiseWaveSin(10000, 1, 0, 0);
     //example how to print a ConfigurationDatabase
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-    ok &= gam.InitialiseConfigDataBaseSignal1("int64");
+    ok &= gam.InitialiseConfigDataBaseSignal1(SignedInteger64Bit);
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
@@ -566,6 +1486,7 @@ bool WaveformSinGAMTest::TestInt64Execute() {
     if (ok) {
         gam.Execute();
     }
+
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         ok &= (gamMemoryOut[i] == 0.0);
@@ -599,13 +1520,13 @@ bool WaveformSinGAMTest::TestUInt64Execute() {
     using namespace MARTe;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
-    ok &= gam.InitialiseWaveSin(100000 ,1, 0, 10000);
+    ok &= gam.InitialiseWaveSin(100000, 1, 0, 10000);
     StreamString a;
     //example how to print a ConfigurationDatabase
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-    ok &= gam.InitialiseConfigDataBaseSignal1("uint64");
+    ok &= gam.InitialiseConfigDataBaseSignal1(UnsignedInteger64Bit);
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
@@ -654,13 +1575,13 @@ bool WaveformSinGAMTest::TestFloat32Execute() {
     using namespace MARTe;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
-    ok &= gam.InitialiseWaveSin(100000 ,1, 0, 10000);
+    ok &= gam.InitialiseWaveSin(100000, 1, 0, 10000);
     StreamString a;
     //example how to print a ConfigurationDatabase
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-    ok &= gam.InitialiseConfigDataBaseSignal1("float32");
+    ok &= gam.InitialiseConfigDataBaseSignal1(Float32Bit);
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
@@ -709,13 +1630,13 @@ bool WaveformSinGAMTest::TestFloat64Execute() {
     using namespace MARTe;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
-    ok &= gam.InitialiseWaveSin(100000 ,1, 0, 10000);
+    ok &= gam.InitialiseWaveSin(100000, 1, 0, 10000);
     StreamString a;
     //example how to print a ConfigurationDatabase
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-    ok &= gam.InitialiseConfigDataBaseSignal1("float64");
+    ok &= gam.InitialiseConfigDataBaseSignal1(Float64Bit);
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();

@@ -41,6 +41,50 @@ public:
     WaveformSinGAMTest();
     virtual ~WaveformSinGAMTest();
 
+    bool TestMissingAmplitude();
+
+    bool TestMissingFrequency();
+
+    bool TestMissingPhase();
+
+    bool TestMissingOffset();
+
+    bool TestFrequency0();
+
+    bool TestMissingInputSignal();
+
+    bool TestMissingOutputSignal();
+
+    bool TestMissingInputNumberOfElements();
+
+    bool TestWrongInputNumberOfElements();
+
+    bool TestMissingOutputNumberOfElements();
+
+    bool TestWrongOutputNumberOfElements();
+
+    bool TestMissingSecondOutputNumberOfElements();
+
+    bool TestWrongSecondOutputNumberOfElements();
+
+    bool TestMissingInputNumberOfSamples();
+
+    bool TestWrongInputNumberOfSamples();
+
+    bool TestMissingOutputNumberOfSamples();
+
+    bool TestWrongOutputNumberOfSamples();
+
+    bool TestMissingSeondOutputNumberOfSamples();
+
+    bool TestWrongSecondOutputNumberOfSamples();
+
+    bool TestMissingInputType();
+
+    bool TestMissingOutputType();
+
+    bool TestMissingSecondOutputType();
+
     bool TestUInt8Execute();
 
     bool TestInt8Execute();

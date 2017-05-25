@@ -45,7 +45,7 @@ public:
 
     virtual ~Waveform();
 
-//    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI & data);
 
     virtual bool Setup();
 
@@ -71,17 +71,28 @@ public:
 
     virtual bool GetFloat64Value() = 0;
 
-/*    virtual bool GetInt8Value() = 0;
+    /*    virtual bool GetInt8Value() = 0;
 
-    virtual bool GetUInt16Value() = 0;
+     virtual bool GetUInt16Value() = 0;
 
-    uint32 GetNumberOfOutputValues();
-*/
+     uint32 GetNumberOfOutputValues();
+     */
 protected:
     uint32 *inputTime;
     void **outputValue;
     uint32 numberOfOutputElements;
     uint32 numberOfOutputSignals;
+    /*Number of start triggers which will be executed.*/
+    uint32 *startTriggerTime;
+    uint32 *stopTriggerTime;
+    uint32 numberOfStartTriggers;
+    uint32 numberOfStopTriggers;
+    uint32 indexStartTriggersArray;
+    uint32 indexStopTriggersArray;
+    uint32 ucurrentTime;
+    uint32 utimeIncrement;
+    bool triggersOn;
+    bool signalOn;
 
 private:
     TypeDescriptor typeVariableIn;
@@ -91,6 +102,22 @@ private:
     uint32 numberOfInputSamples;
     uint32 numberOfOutputSamples;
 
+
+    bool ValidateTimeTriggers() {
+        bool ret = true;
+        if (numberOfStopTriggers > 0) {
+
+            for (uint32 i = 0; (i < numberOfStopTriggers - 1) && ret; i++) {
+                ret &= (stopTriggerTime[i] > startTriggerTime[i]);
+                ret &= (stopTriggerTime[i] < startTriggerTime[i+1]);
+            }
+            ret &= (stopTriggerTime[numberOfStopTriggers] > startTriggerTime[numberOfStartTriggers]);
+            if(numberOfStartTriggers > numberOfStopTriggers ){
+                ret &= (stopTriggerTime[numberOfStartTriggers] < startTriggerTime[numberOfStartTriggers]);
+            }
+        }
+        return ret;
+    }
 };
 
 }

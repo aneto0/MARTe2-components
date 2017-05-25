@@ -38,6 +38,117 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+TEST(WaveformSinGAMTest, TestMissingAmplitude) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingAmplitude());
+}
+
+TEST(WaveformSinGAMTest, TestMissingFrequency) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingFrequency());
+}
+
+TEST(WaveformSinGAMTest, TestMissingPhase) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingPhase());
+}
+
+TEST(WaveformSinGAMTest, TestMissingOffset) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingOffset());
+}
+
+TEST(WaveformSinGAMTest, TestFrequency0) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestFrequency0());
+}
+
+TEST(WaveformSinGAMTest, TestMissingInputSignal) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingInputSignal());
+}
+
+TEST(WaveformSinGAMTest, TestMissingOutputSignal) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingOutputSignal());
+}
+
+TEST(WaveformSinGAMTest, TestMissingInputNumberOfElements) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingInputNumberOfElements());
+}
+
+TEST(WaveformSinGAMTest, TestWrongInputNumberOfElements) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestWrongInputNumberOfElements());
+}
+
+TEST(WaveformSinGAMTest, TestMissingOutputNumberOfElements) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingOutputNumberOfElements());
+}
+
+TEST(WaveformSinGAMTest, TestWrongOutputNumberOfElements) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestWrongOutputNumberOfElements());
+}
+
+TEST(WaveformSinGAMTest, TestMissingSecondOutputNumberOfElements) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingSecondOutputNumberOfElements());
+}
+
+TEST(WaveformSinGAMTest, TestWrongSecondOutputNumberOfElements) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestWrongSecondOutputNumberOfElements());
+}
+
+TEST(WaveformSinGAMTest, TestMissingInputNumberOfSamples) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingInputNumberOfSamples());
+}
+
+TEST(WaveformSinGAMTest, TestWrongInputNumberOfSamples) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestWrongInputNumberOfSamples());
+}
+
+TEST(WaveformSinGAMTest, TestMissingOutputNumberOfSamples) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingOutputNumberOfSamples());
+}
+
+TEST(WaveformSinGAMTest, TestWrongOutputNumberOfSamples) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestWrongOutputNumberOfSamples());
+}
+
+TEST(WaveformSinGAMTest, TestMissingSeondOutputNumberOfSamples) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingSeondOutputNumberOfSamples());
+}
+
+TEST(WaveformSinGAMTest, TestWrongSecondOutputNumberOfSamples) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestWrongSecondOutputNumberOfSamples());
+}
+
+TEST(WaveformSinGAMTest, TestMissingInputType) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingInputType());
+}
+
+TEST(WaveformSinGAMTest, TestMissingOutputType) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingOutputType());
+}
+
+TEST(WaveformSinGAMTest, TestMissingSecondOutputType) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestMissingSecondOutputType());
+}
+
+
 
 TEST(WaveformSinGAMTest, TestUInt8Execute) {
     WaveformSinGAMTest test;
@@ -68,28 +179,30 @@ TEST(WaveformSinGAMTest, TestInt32Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestInt32Execute());
 }
-/*
+
+
 TEST(WaveformSinGAMTest, TestInt64Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestInt64Execute());
 }
 
+
 TEST(WaveformSinGAMTest, TestUInt64Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestUInt64Execute());
 }
-*/
+
 
 TEST(WaveformSinGAMTest, TestFloat32Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestFloat32Execute());
 }
-/*
+
 TEST(WaveformSinGAMTest, TestFloat64Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestFloat64Execute());
 }
-*/
+
 
 
 

@@ -103,6 +103,7 @@ private:
     /* it is used to determine when to save time0, time1 or when generate the signal */
     uint8 timeState;
 
+
 };
 
 }
