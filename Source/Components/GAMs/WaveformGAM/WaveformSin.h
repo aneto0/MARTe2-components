@@ -97,7 +97,6 @@ namespace MARTe {
  * }
  */
 
-//template<class T>
 class WaveformSin: public Waveform {
 public:
     CLASS_REGISTER_DECLARATION()

@@ -89,13 +89,13 @@ public:
     virtual ~Waveform();
 
     /**
-     * @brief Initialize the common variable from a configration file
+     * @brief Initialize the common variable from a configuration file
      * @details Initialise and verifies the trigger mechanism. This function checks the size of the startTriggerTime
      * and stopTriggerTime and checks that startTriggerTime[i] < stopTriggerTime[i]
      * @param[in] data. the GAM configuration
      * @return true if the trigger times are valid
      */
-    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief Setup the input output variables
@@ -106,56 +106,162 @@ public:
 
     /**
      * @brief Generic implementation of the output
-     * @detail This function decides the type function to call and calls the specific implementation of the signal generator
+     * @details This function decides the type function to call and calls the specific implementation of the signal generator
      * with the correct type defined in the configuration file
      */
     virtual bool Execute();
 
+    /**
+     * @brief Generic call function for uint8
+     * @details Virtual function which call specific waveform with uint8 type
+     */
     virtual bool GetUInt8Value() = 0;
 
+    /**
+     * @brief Generic call function for int8
+     * @details Virtual function which call specific waveform with int8 type
+     */
     virtual bool GetInt8Value() = 0;
 
+    /**
+     * @brief Generic call function for uint16
+     * @details Virtual function which call specific waveform with uint16 type
+     */
     virtual bool GetUInt16Value() = 0;
 
+    /**
+     * @brief Generic call function for int16
+     * @details Virtual function which call specific waveform with int16 type
+     */
     virtual bool GetInt16Value() = 0;
 
+    /**
+     * @brief Generic call function for uint64
+     * @details Virtual function which call specific waveform with uint64 type
+     */
     virtual bool GetUInt32Value() = 0;
 
+    /**
+     * @brief Generic call function for int64
+     * @details Virtual function which call specific waveform with int64 type
+     */
     virtual bool GetInt32Value() = 0;
 
+    /**
+     * @brief Generic call function for uint64
+     * @details Virtual function which call specific waveform with uint64 type
+     */
     virtual bool GetUInt64Value() = 0;
 
+    /**
+     * @brief Generic call function for int64
+     * @details Virtual function which call specific waveform with int64 type
+     */
     virtual bool GetInt64Value() = 0;
 
+    /**
+     * @brief Generic call function for float32
+     * @details Virtual function which call specific waveform with float32 type
+     */
     virtual bool GetFloat32Value() = 0;
 
+    /**
+     * @brief Generic call function for float64
+     * @details Virtual function which call specific waveform with float64 type
+     */
     virtual bool GetFloat64Value() = 0;
 
 protected:
+    /**
+     * pointer to the input time. It is the input of the GAM
+     */
     uint32 *inputTime;
+    /**
+     * Output pointer. It support several output signals
+     */
     void **outputValue;
+    /**
+     * Size of the output arrays. All outputs must have the same numberOfOutputElements
+     */
     uint32 numberOfOutputElements;
+
+    /**
+     * number of output signal. At least the nOfOutputSignals must be 1
+     */
     uint32 nOfOutputSignals;
-    /*Number of start triggers which will be executed.*/
+
+    /**
+     * Pinter to the start trigger time array.
+     */
     uint32 *startTriggerTime;
+    /**
+     * Pinter to the stop trigger time array.
+     */
     uint32 *stopTriggerTime;
+
+    /**
+     * Size of startTriggerTime array
+     */
     uint32 numberOfStartTriggers;
+
+    /**
+     * Size of stopTriggerTime array
+     */
     uint32 numberOfStopTriggers;
+
+    /**
+     * index used to indicate the current position of the startTriggerTime time
+     */
     uint32 indexStartTriggersArray;
+
+    /**
+     * index used to indicate the current position of the stopTriggerTime time
+     */
     uint32 indexStopTriggersArray;
+
+    /**
+     * current time in us
+     */
     uint32 ucurrentTime;
+
+    /**
+     * increment time between consecutive output samples in us
+     */
     uint32 utimeIncrement;
+
+    /**
+     * Indicates if the trigger mechanism is enabled.
+     */
     bool triggersOn;
+
+    /**
+     * Indicates if the signal generated is connected to the output or if the output is connected to 0
+     */
     bool signalOn;
-    /*first time received in us */
+
+    /**
+     * first time received in us
+     */
     uint32 time0;
-    /*first time received in us */
+
+    /**
+     * first time received in us
+     */
     uint32 time1;
-    /* diffTime = time1 - time0. It is used to know the sample frequency */
+
+    /**
+     * diffTime = time1 - time0. It is used to know the sample frequency
+     */
     float64 timeIncrement;
-    /* it is used to determine when to save time0, time1 or when generate the signal */
+
+    /**
+     * it is used to determine when time0, time1 are saved. The first iteration of his GAM is used to calculate the timeIncrement and the output is 0
+     */
     uint8 timeState;
 
+    /**
+     * Indicates which output signal must be computed
+     */
     uint32 indexOutputSignal;
 
 private:
