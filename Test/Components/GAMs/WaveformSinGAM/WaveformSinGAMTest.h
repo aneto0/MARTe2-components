@@ -51,6 +51,8 @@ public:
 
     bool TestFrequency0();
 
+    bool TestAmplitude0();
+
     bool TestMissingInputSignal();
 
     bool TestMissingOutputSignal();
@@ -104,6 +106,34 @@ public:
     bool TestFloat32Execute();
 
     bool TestFloat64Execute();
+
+    bool TestStopTriggerGreaterThanStartTrigger();
+
+    bool TestStartTriggerGreaterThanStopTriggerPluse2();
+
+    bool TestStartTriggerTimeArrayInconsistent();
+
+    bool TestUInt8ExecuteTrigger();
+
+    bool TestInt8ExecuteTrigger();
+
+    bool TestUInt16ExecuteTrigger();
+
+    bool TestInt16ExecuteTrigger();
+
+    bool TestUInt32ExecuteTrigger();
+
+    bool TestInt32ExecuteTrigger();
+
+    bool TestUInt64ExecuteTrigger();
+
+    bool TestInt64ExecuteTrigger();
+
+    bool TestFloat32ExecuteTrigger();
+
+    bool TestFloat64ExecuteTrigger();
+
+    bool TestExecuteTriggerDiffArrayLength();
 
 };
 

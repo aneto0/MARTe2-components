@@ -39,69 +39,163 @@
 
 namespace MARTe {
 
+
+/**
+ *@brief GAM which allows to implement a sinusoidal waveform.
+ *@details The configured coefficients (amplitude, frequency, phase, and offset) must be in flot64 and the implementation of the trigonometric functions is as follow
+ * \f$
+ * $output[i]= Amplitude * FastMath::Sin(2*FastMath::PI*frequency*time+phase)+offset
+ * where the phase must be in radiant and he frequency in Hz.
+ *
+ * The input is a single value indicating the current time. The output could be a single array of N elements or multiple equal outputs of N
+ * elements with different types (i.e example output1 type is uint8 output2 type float64.
+ * The first iteration the output is 0 due to the second time is needed to compute the time step (or time increment) for each output sample.
+ *
+ * The GAM supports the following types:
+ * int8
+ * uint8
+ * int16
+ * uint16
+ * int32
+ * uint32
+ * int64
+ * uint64
+ * float32
+ * float64
+ *
+ * Additionally a trigger mechanism is implemented allowing to specify time intervals (in us) in which the signal is switch off and on.
+ * The trigger intervals are specified in two arrays: one with the StartTriggerTime and another with  StopTriggerTime. If the
+ * two array are not consistent (i.e. start time is later than stop time) a warning is launched, the trigger mechanism is not activated
+ * but the GAM operates in normal conditions.
+ *
+ * The configuration syntax is (names and signal quantity are only given as an example):
+ * +waveformSin1 = {
+ *     Class = WaveformSinGAM
+ *     Amplitude = 10.0
+ *     Frequency = 1.0
+ *     Phase = 0.0
+ *     Offset = 1.1
+ *     StartTriggerTime = {100 300 500 700}
+ *     StopTriggerTime = {200 400 600} //the StopTriggerTime has one less time, it means that after the sequence of output on and off, the GAM will remain on forever
+ *
+ *     InputSignals = {
+ *         InputSignal1 = { //Filter will be applied to each signal. The number of input and output signals must be the same.
+ *             DataSource = "DDB1"
+ *             Type = uint32 //Supported type (int32 also valid since time cannot be negative)
+ *         }
+ *     }
+ *     OutputSignals = {
+ *         OutputSignal1 = {
+ *             DataSource = "LCD"
+ *             Type = float32
+ *         }
+ *         OutputSignal2 = {
+ *             DataSource = "LCD"
+ *             Type = float32
+ *         }
+ *     }
+ * }
+ */
+
 //template<class T>
 class WaveformSin: public Waveform {
 public:
-    CLASS_REGISTER_DECLARATION();
-
+    CLASS_REGISTER_DECLARATION()
+    /**
+     * @brief Default constructor
+     */
     WaveformSin();
 
+    /**
+     * @brief Default destructor
+     * @post
+     * amplitude = 0.0
+     * frequency = 0.0
+     * phase = 0.0
+     * offset = 0.0
+     */
     virtual ~WaveformSin();
 
+    /**
+     * @brief Initialise the GAM from a configuration file.
+     * @brief Load the parameters of for the sin implementation and verify its correctness and consistency
+     * @return true if all parameters are valid
+     */
     virtual bool Initialise(StructuredDataI & data);
 
-//    virtual bool GetValue(T *outputValue);
+    /**
+     * @brief computes the Sin in uin8.
+     * @brief this function calls the template implementation of the sin
+     */
     virtual bool GetUInt8Value();
 
+    /**
+     * @brief computes the Sin in int8.
+     * @brief this function calls the template implementation of the sin
+     */
     virtual bool GetInt8Value();
 
+    /**
+     * @brief computes the Sin in uint16.
+     * @brief this function calls the template implementation of the sin
+     */
     virtual bool GetUInt16Value();
 
+    /**
+     * @brief computes the Sin in in16.
+     * @brief this function calls the template implementation of the sin
+     */
     virtual bool GetInt16Value();
 
+    /**
+     * @brief computes the Sin in uin32.
+     * @brief this function calls the template implementation of the sin
+     */
     virtual bool GetUInt32Value();
 
+    /**
+     * @brief computes the Sin in int32.
+     * @brief this function calls the template implementation of the sin
+     */
     virtual bool GetInt32Value();
 
+    /**
+     * @brief computes the Sin in uin64.
+     * @brief this function calls the template implementation of the sin
+     */
     virtual bool GetUInt64Value();
 
+    /**
+     * @brief computes the Sin in int64.
+     * @brief this function calls the template implementation of the sin
+     */
     virtual bool GetInt64Value();
 
+    /**
+     * @brief computes the Sin in float32.
+     * @brief this function calls the template implementation of the sin
+     */
     virtual bool GetFloat32Value();
 
+    /**
+     * @brief computes the Sin in float64.
+     * @brief this function calls the template implementation of the sin
+     */
     virtual bool GetFloat64Value();
 
-    /*    virtual bool GetInt8Value(int8 *outputValue);
-
-     virtual bool GetUInt16Value(uint16 *outputValue);
-
-     virtual bool GetInt16Value(int16 *outputValue);
-
-     virtual bool GetUInt32Value(uint32 *outputValue);
-
-     virtual bool GetInt32Value(int32 *outputValue);
-
-     virtual bool GetUInt64Value(uint64 *outputValue);
-
-     virtual bool GetInt64Value(int64 *outputValue);
-
-     virtual bool GetFlaot32Value(float32 *outputValue);
-
-     virtual bool GetFloat64Value(float64 *outputValue);
+    /**
+     * @brief computes the Sin in the specified type.
      */
+    template<typename T>
+    bool GetValue();
+
+
 private:
     float64 amplitude;
     float64 frequency;
     float64 phase;
     float64 offset;
-    /*first time received in us */
-    uint32 time0;
-    /*first time received in us */
-    uint32 time1;
-    /* diffTime = time1 - time0. It is used to know the sample frequency */
-    double timeIncrement;
-    /* it is used to determine when to save time0, time1 or when generate the signal */
-    uint8 timeState;
+
 
 
 };

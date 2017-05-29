@@ -63,6 +63,11 @@ TEST(WaveformSinGAMTest, TestFrequency0) {
     ASSERT_TRUE(test.TestFrequency0());
 }
 
+TEST(WaveformSinGAMTest, TestAmplitude0) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestAmplitude0());
+}
+
 TEST(WaveformSinGAMTest, TestMissingInputSignal) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestMissingInputSignal());
@@ -201,6 +206,71 @@ TEST(WaveformSinGAMTest, TestFloat32Execute) {
 TEST(WaveformSinGAMTest, TestFloat64Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestFloat64Execute());
+}
+
+TEST(WaveformSinGAMTest, TestStopTriggerGreaterThanStartTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestStopTriggerGreaterThanStartTrigger());
+}
+
+TEST(WaveformSinGAMTest, TestStartTriggerGreaterThanStopTriggerPluse2) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestStartTriggerGreaterThanStopTriggerPluse2());
+}
+
+TEST(WaveformSinGAMTest, TestStartTriggerTimeArrayInconsistent) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestStartTriggerTimeArrayInconsistent());
+}
+
+TEST(WaveformSinGAMTest, TestInt8ExecuteTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestInt8ExecuteTrigger());
+}
+
+TEST(WaveformSinGAMTest, TestUInt16ExecuteTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestUInt16ExecuteTrigger());
+}
+
+TEST(WaveformSinGAMTest, TestInt16ExecuteTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestInt16ExecuteTrigger());
+}
+
+TEST(WaveformSinGAMTest, TestUInt32ExecuteTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestUInt32ExecuteTrigger());
+}
+
+TEST(WaveformSinGAMTest, TestInt32ExecuteTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestInt32ExecuteTrigger());
+}
+
+TEST(WaveformSinGAMTest, TestUInt64ExecuteTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestUInt64ExecuteTrigger());
+}
+
+TEST(WaveformSinGAMTest, TestInt64ExecuteTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestInt64ExecuteTrigger());
+}
+
+TEST(WaveformSinGAMTest, TestFloat32ExecuteTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestFloat32ExecuteTrigger());
+}
+
+TEST(WaveformSinGAMTest, TestFloat64ExecuteTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestFloat64ExecuteTrigger());
+}
+
+TEST(WaveformSinGAMTest, TestExecuteTriggerDiffArrayLength) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestExecuteTriggerDiffArrayLength());
 }
 
 

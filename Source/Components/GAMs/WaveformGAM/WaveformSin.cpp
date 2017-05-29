@@ -30,7 +30,6 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "FastMath.h"
-#include "math.h"
 #include "../WaveformGAM/WaveformSin.h"
 
 /*---------------------------------------------------------------------------*/
@@ -49,12 +48,9 @@ WaveformSin::WaveformSin() :
     frequency = 0.0;
     phase = 0.0;
     offset = 0.0;
-    time0 = 0u;
-    time1 = 0u;
-    timeIncrement = 0u;
-    timeState = 0u;
 
 }
+
 WaveformSin::~WaveformSin() {
 
 }
@@ -62,12 +58,12 @@ WaveformSin::~WaveformSin() {
 bool WaveformSin::Initialise(StructuredDataI& data) {
     bool ok = Waveform::Initialise(data);
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InitialisationError, "Error initialising the configuration data file");
+        REPORT_ERROR(ErrorManagement::InitialisationError, "Error. Waveform returns an initialization error");
     }
     if (ok) {
         ok = data.Read("Amplitude", amplitude);
         if (ok) {
-            ok = (amplitude != 0.0);
+            ok = !(IsEqual(amplitude, 0.0));
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "amplitude must be different from 0");
             }
@@ -79,7 +75,7 @@ bool WaveformSin::Initialise(StructuredDataI& data) {
     if (ok) {
         ok = data.Read("Frequency", frequency);
         if (ok) {
-            if (frequency == 0.0) {
+            if (IsEqual(frequency, 0.0)) {
                 REPORT_ERROR(ErrorManagement::Warning, "The frequency is 0. If phase = 0 the output will be always 0");
             }
         }
@@ -103,233 +99,91 @@ bool WaveformSin::Initialise(StructuredDataI& data) {
 }
 
 bool WaveformSin::GetUInt8Value() {
+    return WaveformSin::GetValue<uint8>();
+}
+
+template<typename T>
+bool WaveformSin::GetValue() {
+    ucurrentTime = *inputTime;
     if (timeState == 0) {
         time0 = *inputTime;
         timeState++;
+        for (uint32 i = 0; i < numberOfOutputElements; i++) {
+            static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(0);
+        }
     }
     else if (timeState == 1) {
         time1 = *inputTime;
+        utimeIncrement = (time1 - time0) / numberOfOutputElements;
         timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
         timeState++;
     }
     if (timeState == 2) {
-        for (uint32 j = 0; j < numberOfOutputSignals; j++) {
-            for (uint32 i = 0; i < numberOfOutputElements; i++) {
-                ucurrentTime += utimeIncrement;
-                if (triggersOn) {
-                    if (numberOfStartTriggers > indexStartTriggersArray) {
-                        if (startTriggerTime[indexStartTriggersArray] <= ucurrentTime) {
-                            signalOn = true;
-                            indexStartTriggersArray++;
-                        }
-                    }
-                    if (indexStopTriggersArray < numberOfStopTriggers) {
-                        if (stopTriggerTime[indexStopTriggersArray] <= ucurrentTime) {
-                            signalOn = false;
-                            numberOfStopTriggers++;
-                        }
+        for (uint32 i = 0; i < numberOfOutputElements; i++) {
+            if (triggersOn) {
+                if (numberOfStartTriggers > indexStartTriggersArray) {
+                    if (startTriggerTime[indexStartTriggersArray] <= ucurrentTime) {
+                        signalOn = true;
+                        indexStartTriggersArray++;
                     }
                 }
-                if (signalOn) {
-                    static_cast<uint8 *>(outputValue[j])[i] = static_cast<uint8>(amplitude
-                            * sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-                }
-                else {
-                    static_cast<uint8 *>(outputValue[j])[i] = 0;
+                if (indexStopTriggersArray < numberOfStopTriggers) {
+                    if (stopTriggerTime[indexStopTriggersArray] <= ucurrentTime) {
+                        signalOn = false;
+                        indexStopTriggersArray++;
+                    }
                 }
             }
+            else {
+                signalOn = true;
+            }
+            if (signalOn) {
+                static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(amplitude
+                        * FastMath::Sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
+            }
+            else {
+                static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(0);
+            }
+            ucurrentTime += utimeIncrement;
         }
     }
     return true;
 }
 
 bool WaveformSin::GetInt8Value() {
-    if (timeState == 0) {
-        time0 = *inputTime;
-        timeState++;
-    }
-    else if (timeState == 1) {
-        time1 = *inputTime;
-        timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
-        timeState++;
-    }
-    if (timeState == 2) {
-        for (uint32 j = 0; j < numberOfOutputSignals; j++) {
-            for (uint32 i = 0; i < numberOfOutputElements; i++) {
-                static_cast<int8 *>(outputValue[j])[i] = static_cast<int8>(amplitude
-                        * sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-            }
-        }
-    }
-    return true;
+    return WaveformSin::GetValue<int8>();
 }
 
 bool WaveformSin::GetInt16Value() {
-    if (timeState == 0) {
-        time0 = *inputTime;
-        timeState++;
-    }
-    else if (timeState == 1) {
-        time1 = *inputTime;
-        timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
-        timeState++;
-    }
-    if (timeState == 2) {
-        for (uint32 j = 0; j < numberOfOutputSignals; j++) {
-            for (uint32 i = 0; i < numberOfOutputElements; i++) {
-                static_cast<int16 *>(outputValue[j])[i] = static_cast<int16>(amplitude
-                        * sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-            }
-        }
-    }
-    return true;
+    return WaveformSin::GetValue<int16>();
 }
 
 bool WaveformSin::GetUInt16Value() {
-    if (timeState == 0) {
-        time0 = *inputTime;
-        timeState++;
-    }
-    else if (timeState == 1) {
-        time1 = *inputTime;
-        timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
-        timeState++;
-    }
-    if (timeState == 2) {
-        for (uint32 j = 0; j < numberOfOutputSignals; j++) {
-            for (uint32 i = 0; i < numberOfOutputElements; i++) {
-                static_cast<uint16 *>(outputValue[j])[i] = static_cast<uint16>(amplitude
-                        * sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-            }
-        }
-    }
-    return true;
+    return WaveformSin::GetValue<uint16>();
 }
 
 bool WaveformSin::GetInt32Value() {
-    if (timeState == 0) {
-        time0 = *inputTime;
-        timeState++;
-    }
-    else if (timeState == 1) {
-        time1 = *inputTime;
-        timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
-        timeState++;
-    }
-    if (timeState == 2) {
-        for (uint32 j = 0; j < numberOfOutputSignals; j++) {
-            for (uint32 i = 0; i < numberOfOutputElements; i++) {
-                static_cast<int32 *>(outputValue[j])[i] = static_cast<int32>(amplitude
-                        * sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-            }
-        }
-    }
-    return true;
+    return WaveformSin::GetValue<int32>();
 }
 
 bool WaveformSin::GetUInt32Value() {
-    if (timeState == 0) {
-        time0 = *inputTime;
-        timeState++;
-    }
-    else if (timeState == 1) {
-        time1 = *inputTime;
-        timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
-        timeState++;
-    }
-    if (timeState == 2) {
-        for (uint32 j = 0; j < numberOfOutputSignals; j++) {
-            for (uint32 i = 0; i < numberOfOutputElements; i++) {
-                static_cast<uint32 *>(outputValue[j])[i] = static_cast<uint32>(amplitude
-                        * sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-            }
-        }
-    }
-    return true;
+    return WaveformSin::GetValue<uint32>();
 }
 
 bool WaveformSin::GetInt64Value() {
-    if (timeState == 0) {
-        time0 = *inputTime;
-        timeState++;
-    }
-    else if (timeState == 1) {
-        time1 = *inputTime;
-        timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
-        timeState++;
-    }
-    if (timeState == 2) {
-        for (uint32 j = 0; j < numberOfOutputSignals; j++) {
-            for (uint32 i = 0; i < numberOfOutputElements; i++) {
-                static_cast<int64 *>(outputValue[j])[i] = static_cast<int64>(amplitude
-                        * sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-            }
-        }
-    }
-    return true;
+    return WaveformSin::GetValue<int64>();
 }
 
 bool WaveformSin::GetUInt64Value() {
-    if (timeState == 0) {
-        time0 = *inputTime;
-        timeState++;
-    }
-    else if (timeState == 1) {
-        time1 = *inputTime;
-        timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
-        timeState++;
-    }
-    if (timeState == 2) {
-        for (uint32 j = 0; j < numberOfOutputSignals; j++) {
-            for (uint32 i = 0; i < numberOfOutputElements; i++) {
-                static_cast<uint64 *>(outputValue[j])[i] = static_cast<uint64>(amplitude
-                        * sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-            }
-        }
-    }
-    return true;
+    return WaveformSin::GetValue<uint64>();
 }
 
 bool WaveformSin::GetFloat32Value() {
-    if (timeState == 0) {
-        time0 = *inputTime;
-        timeState++;
-    }
-    else if (timeState == 1) {
-        time1 = *inputTime;
-        timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
-        timeState++;
-    }
-    if (timeState == 2) {
-        for (uint32 j = 0; j < numberOfOutputSignals; j++) {
-            for (uint32 i = 0; i < numberOfOutputElements; i++) {
-                static_cast<float32 *>(outputValue[j])[i] = static_cast<float32>(amplitude
-                        * sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-            }
-        }
-    }
-    return true;
+    return WaveformSin::GetValue<float32>();
 }
 
 bool WaveformSin::GetFloat64Value() {
-    if (timeState == 0) {
-        time0 = *inputTime;
-        timeState++;
-    }
-    else if (timeState == 1) {
-        time1 = *inputTime;
-        timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
-        timeState++;
-    }
-    if (timeState == 2) {
-        for (uint32 j = 0; j < numberOfOutputSignals; j++) {
-            for (uint32 i = 0; i < numberOfOutputElements; i++) {
-                static_cast<float64 *>(outputValue[j])[i] = static_cast<float64>(amplitude
-                        * sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-            }
-        }
-    }
-    return true;
+    return WaveformSin::GetValue<float64>();
 }
 CLASS_REGISTER(WaveformSin, "1.0")
 

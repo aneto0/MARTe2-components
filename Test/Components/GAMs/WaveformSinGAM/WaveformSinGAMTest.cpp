@@ -35,7 +35,6 @@
 #include "WaveformSin.h"
 #include "WaveformSinGAMTest.h"
 #include "Vector.h"
-#include "math.h"
 #include "FastMath.h"
 #include "stdio.h"
 
@@ -98,6 +97,42 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
             ret &= config.Write("Frequency", frequency);
             ret &= config.Write("Phase", phase);
             ret &= config.Write("Offset", offset);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
+    }
+
+    bool InitialiseWaveSinTrigger(float32 A=10.0, float32 freq = 1.0, float32 angle = 0.0, float32 DC = 10.0) {
+        bool ret = true;
+        if(isInitialised == false) {
+            amplitude = A;
+            frequency = freq;
+            phase = angle;
+            offset = DC;
+            ret &= config.Write("Amplitude", amplitude);
+            ret &= config.Write("Frequency", frequency);
+            ret &= config.Write("Phase", phase);
+            ret &= config.Write("Offset", offset);
+            uint32 dimTrigger = 5;
+            uint32 *startTrigger = new uint32 [dimTrigger];
+            uint32 *stopTrigger = new uint32 [dimTrigger];
+            startTrigger[0] = 1250000;
+            stopTrigger[0] =1750000;
+            startTrigger[1] = 2000000;
+            stopTrigger[1] = 3250000;
+            startTrigger[2] = 3500000;
+            stopTrigger[2] = 3750000;
+            startTrigger[3] = 4000000;
+            stopTrigger[3] = 4250000;
+            startTrigger[4] = 4550000;
+            stopTrigger[4] = 4800000;
+            Vector<uint32> startTVect(startTrigger, dimTrigger);
+            Vector<uint32> stopTVect(stopTrigger, dimTrigger);
+            ret &= config.Write("StartTriggerTime", startTVect);
+            ret &= config.Write("StopTriggerTime", stopTVect);
             isInitialised = ret;
         }
         else {
@@ -194,7 +229,7 @@ WaveformSinGAMTest::~WaveformSinGAMTest() {
 }
 
 bool WaveformSinGAMTest::TestMissingAmplitude() {
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
     ok &= gam.Initialise(gam.config);
@@ -203,7 +238,7 @@ bool WaveformSinGAMTest::TestMissingAmplitude() {
 }
 
 bool WaveformSinGAMTest::TestMissingFrequency() {
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
     ok &= gam.config.Write("Amplitude", 10.0);
@@ -212,7 +247,7 @@ bool WaveformSinGAMTest::TestMissingFrequency() {
 }
 
 bool WaveformSinGAMTest::TestMissingPhase() {
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
     ok &= gam.config.Write("Amplitude", 10.0);
@@ -222,7 +257,7 @@ bool WaveformSinGAMTest::TestMissingPhase() {
 }
 
 bool WaveformSinGAMTest::TestMissingOffset() {
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
     ok &= gam.config.Write("Amplitude", 10.0);
@@ -234,7 +269,7 @@ bool WaveformSinGAMTest::TestMissingOffset() {
 
 bool WaveformSinGAMTest::TestFrequency0() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
 
@@ -246,9 +281,23 @@ bool WaveformSinGAMTest::TestFrequency0() {
     return ok;
 }
 
+bool WaveformSinGAMTest::TestAmplitude0() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+
+    ok &= gam.InitialiseWaveSin(0, 1, 0.0, 10);
+
+    gam.config.MoveToRoot();
+
+    ok &= gam.Initialise(gam.config);
+    return !ok;
+}
+
 bool WaveformSinGAMTest::TestMissingInputSignal() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
 
@@ -261,7 +310,7 @@ bool WaveformSinGAMTest::TestMissingInputSignal() {
 
 bool WaveformSinGAMTest::TestMissingOutputSignal() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -288,7 +337,7 @@ bool WaveformSinGAMTest::TestMissingOutputSignal() {
 
 bool WaveformSinGAMTest::TestMissingInputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -329,7 +378,7 @@ bool WaveformSinGAMTest::TestMissingInputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestWrongInputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -370,7 +419,7 @@ bool WaveformSinGAMTest::TestWrongInputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestMissingOutputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -411,7 +460,7 @@ bool WaveformSinGAMTest::TestMissingOutputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestWrongOutputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -452,7 +501,7 @@ bool WaveformSinGAMTest::TestWrongOutputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestMissingSecondOutputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -501,7 +550,7 @@ bool WaveformSinGAMTest::TestMissingSecondOutputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestWrongSecondOutputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -550,7 +599,7 @@ bool WaveformSinGAMTest::TestWrongSecondOutputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestMissingInputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -606,7 +655,7 @@ bool WaveformSinGAMTest::TestMissingInputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestWrongInputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -662,7 +711,7 @@ bool WaveformSinGAMTest::TestWrongInputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestMissingOutputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -718,7 +767,7 @@ bool WaveformSinGAMTest::TestMissingOutputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestWrongOutputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -774,7 +823,7 @@ bool WaveformSinGAMTest::TestWrongOutputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestMissingSeondOutputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -842,7 +891,7 @@ bool WaveformSinGAMTest::TestMissingSeondOutputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestWrongSecondOutputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -910,7 +959,7 @@ bool WaveformSinGAMTest::TestWrongSecondOutputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestMissingInputType() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -978,7 +1027,7 @@ bool WaveformSinGAMTest::TestMissingInputType() {
 
 bool WaveformSinGAMTest::TestMissingOutputType() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -1046,7 +1095,7 @@ bool WaveformSinGAMTest::TestMissingOutputType() {
 
 bool WaveformSinGAMTest::TestMissingSecondOutputType() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -1115,6 +1164,7 @@ bool WaveformSinGAMTest::TestMissingSecondOutputType() {
 bool WaveformSinGAMTest::TestUInt8Execute() {
     bool ok = true;
     using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin();
@@ -1158,7 +1208,7 @@ bool WaveformSinGAMTest::TestUInt8Execute() {
     }
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
-        ok &= (gamMemoryOut[i] == 0.0); //uint8(gam.amplitude[0] * sin(2.0 * FastMath::PI * gam.frequency[0] *() + gam.phase[0])));
+        ok &= (gamMemoryOut[i] == 0.0); //uint8(gam.amplitude[0] * Sin(2.0 * FastMath::PI * gam.frequency[0] *() + gam.phase[0])));
     }
     *gamMemoryIn = 1000000;
     if (ok) {
@@ -1168,7 +1218,7 @@ bool WaveformSinGAMTest::TestUInt8Execute() {
     uint8 aux = 0;
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = uint8(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     *gamMemoryIn = 2000000;
@@ -1178,7 +1228,7 @@ bool WaveformSinGAMTest::TestUInt8Execute() {
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = int8(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     return ok;
@@ -1186,7 +1236,7 @@ bool WaveformSinGAMTest::TestUInt8Execute() {
 
 bool WaveformSinGAMTest::TestInt8Execute() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10, 1, 0, 0);
@@ -1223,7 +1273,7 @@ bool WaveformSinGAMTest::TestInt8Execute() {
     int8 aux = 0;
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = int8(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     *gamMemoryIn = 2000000;
@@ -1233,7 +1283,7 @@ bool WaveformSinGAMTest::TestInt8Execute() {
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = int8(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     return ok;
@@ -1241,7 +1291,7 @@ bool WaveformSinGAMTest::TestInt8Execute() {
 
 bool WaveformSinGAMTest::TestInt16Execute() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(100, 1, 0, 0);
@@ -1278,7 +1328,7 @@ bool WaveformSinGAMTest::TestInt16Execute() {
     int16 aux = 0;
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = int16(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     *gamMemoryIn = 2000000;
@@ -1288,7 +1338,7 @@ bool WaveformSinGAMTest::TestInt16Execute() {
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = int16(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     return ok;
@@ -1296,7 +1346,7 @@ bool WaveformSinGAMTest::TestInt16Execute() {
 
 bool WaveformSinGAMTest::TestUInt16Execute() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(100, 1, 0, 100);
@@ -1333,7 +1383,7 @@ bool WaveformSinGAMTest::TestUInt16Execute() {
     uint16 aux = 0;
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = uint16(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     *gamMemoryIn = 2000000;
@@ -1343,7 +1393,7 @@ bool WaveformSinGAMTest::TestUInt16Execute() {
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = uint16(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     return ok;
@@ -1351,7 +1401,7 @@ bool WaveformSinGAMTest::TestUInt16Execute() {
 
 bool WaveformSinGAMTest::TestInt32Execute() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10000, 1, 0, 0);
@@ -1388,7 +1438,7 @@ bool WaveformSinGAMTest::TestInt32Execute() {
     int32 aux = 0;
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = int32(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     *gamMemoryIn = 2000000;
@@ -1398,7 +1448,7 @@ bool WaveformSinGAMTest::TestInt32Execute() {
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = int32(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     return ok;
@@ -1406,7 +1456,7 @@ bool WaveformSinGAMTest::TestInt32Execute() {
 
 bool WaveformSinGAMTest::TestUInt32Execute() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10000, 1, 0, 10000);
@@ -1443,7 +1493,7 @@ bool WaveformSinGAMTest::TestUInt32Execute() {
     uint32 aux = 0;
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = uint32(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     *gamMemoryIn = 2000000;
@@ -1453,7 +1503,7 @@ bool WaveformSinGAMTest::TestUInt32Execute() {
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = uint32(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     return ok;
@@ -1461,7 +1511,7 @@ bool WaveformSinGAMTest::TestUInt32Execute() {
 
 bool WaveformSinGAMTest::TestInt64Execute() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
 
     gam.SetName("Test");
@@ -1499,7 +1549,7 @@ bool WaveformSinGAMTest::TestInt64Execute() {
     int64 aux = 0;
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = int64(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     *gamMemoryIn = 2000000;
@@ -1509,7 +1559,7 @@ bool WaveformSinGAMTest::TestInt64Execute() {
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = int64(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     return ok;
@@ -1517,7 +1567,7 @@ bool WaveformSinGAMTest::TestInt64Execute() {
 
 bool WaveformSinGAMTest::TestUInt64Execute() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(100000, 1, 0, 10000);
@@ -1554,7 +1604,7 @@ bool WaveformSinGAMTest::TestUInt64Execute() {
     uint64 aux = 0;
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = uint64(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     *gamMemoryIn = 2000000;
@@ -1564,7 +1614,7 @@ bool WaveformSinGAMTest::TestUInt64Execute() {
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = uint64(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     return ok;
@@ -1572,7 +1622,7 @@ bool WaveformSinGAMTest::TestUInt64Execute() {
 
 bool WaveformSinGAMTest::TestFloat32Execute() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(100000, 1, 0, 10000);
@@ -1609,7 +1659,7 @@ bool WaveformSinGAMTest::TestFloat32Execute() {
     float32 aux = 0;
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = float32(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     *gamMemoryIn = 2000000;
@@ -1619,7 +1669,7 @@ bool WaveformSinGAMTest::TestFloat32Execute() {
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = float32(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     return ok;
@@ -1627,7 +1677,7 @@ bool WaveformSinGAMTest::TestFloat32Execute() {
 
 bool WaveformSinGAMTest::TestFloat64Execute() {
     bool ok = true;
-    using namespace MARTe;
+    using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(100000, 1, 0, 10000);
@@ -1664,7 +1714,7 @@ bool WaveformSinGAMTest::TestFloat64Execute() {
     float64 aux = 0;
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = float64(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     *gamMemoryIn = 2000000;
@@ -1674,7 +1724,1164 @@ bool WaveformSinGAMTest::TestFloat64Execute() {
     //Compare result against expected vale
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = float64(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestStopTriggerGreaterThanStartTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+
+    ok &= gam.config.Write("Amplitude", 10);
+    ok &= gam.config.Write("Frequency", 1);
+    ok &= gam.config.Write("Phase", 0);
+    ok &= gam.config.Write("Offset", 10);
+    uint32 dimTrigger = 5;
+    uint32 *startTrigger = new uint32[dimTrigger];
+    uint32 *stopTrigger = new uint32[dimTrigger];
+    startTrigger[0] = 1250000;
+    stopTrigger[0] = 1750000;
+    startTrigger[1] = 2000000;
+    stopTrigger[1] = 3250000;
+    startTrigger[2] = 3500000;
+    stopTrigger[2] = 3750000;
+    startTrigger[3] = 4000000;
+    stopTrigger[3] = 4250000;
+    startTrigger[4] = 4550000;
+    stopTrigger[4] = 4800000;
+    Vector<uint32> startTVect(startTrigger, dimTrigger);
+    Vector<uint32> stopTVect(stopTrigger, dimTrigger);
+    //ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StartTriggerTime", "");
+    ok &= gam.config.Write("StopTriggerTime", stopTVect);
+
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(UnsignedInteger8Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestStartTriggerGreaterThanStopTriggerPluse2() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+
+    ok &= gam.config.Write("Amplitude", 10);
+    ok &= gam.config.Write("Frequency", 1);
+    ok &= gam.config.Write("Phase", 0);
+    ok &= gam.config.Write("Offset", 10);
+    uint32 dimTrigger = 5;
+    uint32 *startTrigger = new uint32[dimTrigger];
+    uint32 *stopTrigger = new uint32[dimTrigger - 2];
+    startTrigger[0] = 1250000;
+    stopTrigger[0] = 1750000;
+    startTrigger[1] = 2000000;
+    stopTrigger[1] = 3250000;
+    startTrigger[2] = 3500000;
+    stopTrigger[2] = 3750000;
+    startTrigger[3] = 4000000;
+    //stopTrigger[3] = 4250000;
+    startTrigger[4] = 4550000;
+    // stopTrigger[4] = 4800000;
+    Vector<uint32> startTVect(startTrigger, dimTrigger);
+    Vector<uint32> stopTVect(stopTrigger, dimTrigger - 2);
+    //ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StopTriggerTime", stopTVect);
+
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(UnsignedInteger8Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestStartTriggerTimeArrayInconsistent() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+
+    ok &= gam.config.Write("Amplitude", 10);
+    ok &= gam.config.Write("Frequency", 1);
+    ok &= gam.config.Write("Phase", 0);
+    ok &= gam.config.Write("Offset", 10);
+    uint32 dimTrigger = 5;
+    uint32 *startTrigger = new uint32[dimTrigger];
+    uint32 *stopTrigger = new uint32[dimTrigger];
+    startTrigger[0] = 1250000;
+    stopTrigger[0] = 150000;
+    startTrigger[1] = 2000000;
+    stopTrigger[1] = 3250000;
+    startTrigger[2] = 3500000;
+    stopTrigger[2] = 3750000;
+    startTrigger[3] = 4000000;
+    stopTrigger[3] = 4250000;
+    startTrigger[4] = 4550000;
+    stopTrigger[4] = 4800000;
+    Vector<uint32> startTVect(startTrigger, dimTrigger);
+    Vector<uint32> stopTVect(stopTrigger, dimTrigger);
+    //ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StopTriggerTime", stopTVect);
+
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(UnsignedInteger8Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestUInt8ExecuteTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSinTrigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(UnsignedInteger8Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    uint8 *gamMemoryOut = static_cast<uint8 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0); //uint8(gam.amplitude[0] * Sin(2.0 * FastMath::PI * gam.frequency[0] *() + gam.phase[0])));
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    uint8 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = uint8(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = uint8(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = uint8(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = uint8(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = uint8(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = uint8(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0u);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestInt8ExecuteTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSinTrigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(SignedInteger8Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    int8 *gamMemoryOut = static_cast<int8 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    int8 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = int8(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = int8(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = int8(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = int8(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = int8(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = int8(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0u);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestUInt16ExecuteTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSinTrigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(UnsignedInteger16Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    uint16 *gamMemoryOut = static_cast<uint16 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    uint16 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = uint16(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = uint16(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = uint16(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = uint16(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = uint16(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = uint16(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0u);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestInt16ExecuteTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSinTrigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(SignedInteger16Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    int16 *gamMemoryOut = static_cast<int16 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    int16 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = int16(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = int16(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = int16(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = int16(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = int16(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = int16(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0u);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestUInt32ExecuteTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSinTrigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(UnsignedInteger32Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    uint32 *gamMemoryOut = static_cast<uint32 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    uint32 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = uint32(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = uint32(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = uint32(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = uint32(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = uint32(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = uint32(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0u);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestInt32ExecuteTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSinTrigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(SignedInteger32Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    int32 *gamMemoryOut = static_cast<int32 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    int32 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = int32(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = int32(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = int32(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = int32(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = int32(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = int32(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0u);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestUInt64ExecuteTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSinTrigger(1000, 1, 0, 1000);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(UnsignedInteger64Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    uint64 *gamMemoryOut = static_cast<uint64 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    uint64 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = uint64(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = uint64(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = uint64(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = uint64(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = uint64(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = uint64(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0u);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestInt64ExecuteTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSinTrigger(1000);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(SignedInteger64Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    int64 *gamMemoryOut = static_cast<int64 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    int64 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = int64(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = int64(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = int64(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = int64(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = int64(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = int64(gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0u);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestFloat32ExecuteTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSinTrigger(1000);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(Float32Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    float32 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = float32(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = float32(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = float32(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = float32(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = float32(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = float32(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0u);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestFloat64ExecuteTrigger() {
+    bool ok = true;
+    using namespace MARTe;using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSinTrigger(1000);
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(Float64Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    float64 *gamMemoryOut = static_cast<float64 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    float64 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = float64(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = float64(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = float64(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = float64(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = float64(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = float64(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0u);
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestExecuteTriggerDiffArrayLength() {
+    bool ok = true;
+    using namespace MARTe;
+    using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    gam.amplitude = 1000;
+    gam.frequency = 1;
+    gam.phase = 0;
+    gam.offset = 0;
+    ok &= gam.config.Write("Amplitude", gam.amplitude);
+    ok &= gam.config.Write("Frequency", gam.frequency);
+    ok &= gam.config.Write("Phase", gam.phase);
+    ok &= gam.config.Write("Offset", gam.offset);
+    uint32 dimTrigger = 5;
+    uint32 *startTrigger = new uint32[dimTrigger];
+    uint32 *stopTrigger = new uint32[dimTrigger - 1];
+    startTrigger[0] = 1250000;
+    stopTrigger[0] = 1750000;
+    startTrigger[1] = 2000000;
+    stopTrigger[1] = 3250000;
+    startTrigger[2] = 3500000;
+    stopTrigger[2] = 3750000;
+    startTrigger[3] = 4000000;
+    stopTrigger[3] = 4250000;
+    startTrigger[4] = 4550000;
+    Vector<uint32> startTVect(startTrigger, dimTrigger);
+    Vector<uint32> stopTVect(stopTrigger, dimTrigger - 1);
+    //ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StopTriggerTime", stopTVect);
+
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+    ok &= gam.InitialiseConfigDataBaseSignal1(SignedInteger64Bit);
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    int64 *gamMemoryOut = static_cast<int64 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    int64 aux = 0;
+    ok &= (gamMemoryOut[0] == 0.0);
+    for (uint32 i = 1; i < 3; i++) {
+        aux = int64(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    ok &= (gamMemoryOut[3] == 0.0);
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = int64(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 3000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+
+    aux = int64(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0);
+
+    aux = int64(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[2] == aux);
+
+    ok &= (gamMemoryOut[3] == 0u);
+
+    *gamMemoryIn = 4000000;
+    if (ok) {
+        gam.Execute();
+    }
+    aux = int64(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[0] == aux);
+
+    ok &= (gamMemoryOut[1] == 0u);
+    ok &= (gamMemoryOut[2] == 0u);
+
+    aux = int64(
+            gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    ok &= (gamMemoryOut[3] == aux);
+    *gamMemoryIn = 5000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = int64(
+                   gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+
+    *gamMemoryIn = 6000000;
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = int64(
+                gam.amplitude * Sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
     return ok;
