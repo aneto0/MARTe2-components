@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef TEST_COMPONENTS_GAMS_WAVEFORMSINGAM_WAVEFORMSINGAMTEST_H_
-#define TEST_COMPONENTS_GAMS_WAVEFORMSINGAM_WAVEFORMSINGAMTEST_H_
+#ifndef WAVEFORMSINGAMTEST_H_
+#define WAVEFORMSINGAMTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -141,5 +141,5 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* TEST_COMPONENTS_GAMS_WAVEFORMSINGAM_WAVEFORMSINGAMTEST_H_ */
+#endif /* WAVEFORMSINGAMTEST_H_ */
 

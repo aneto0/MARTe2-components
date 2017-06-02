@@ -1,8 +1,8 @@
 /**
  * @file Waveform.cpp
  * @brief Source file for class Waveform
- * @date May 19, 2017
- * @author aneto
+ * @date 19/05/2017
+ * @author Llorenc
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -44,33 +44,34 @@ Waveform::Waveform() :
         GAM() {
     inputTime = NULL_PTR(uint32 *);
     outputValue = NULL_PTR(void **);
+    outputFloat64 = NULL_PTR(float64 *);
     nOfInputSignals = 0u;
     nOfOutputSignals = 0u;
     numberOfInputElements = 0u;
     numberOfOutputElements = 0u;
     numberOfInputSamples = 0u;
     numberOfOutputSamples = 0u;
-    startTriggerTime = NULL_PTR(uint32 *);
-    stopTriggerTime = NULL_PTR(uint32 *);
+    startTriggerTime = NULL_PTR(float64 *);
+    stopTriggerTime = NULL_PTR(float64 *);
     numberOfStartTriggers = 0u;
     numberOfStopTriggers = 0u;
     triggersOn = false;
     indexStartTriggersArray = 0u;
     indexStopTriggersArray = 0u;
     signalOn = false;
-    utimeIncrement = 0u;
-    ucurrentTime = 0u;
+    currentTime = 0.0;
     time0 = 0u;
     time1 = 0u;
     timeIncrement = 0.0;
     timeState = 0u;
     typeVariableOut = NULL_PTR(TypeDescriptor *);
     indexOutputSignal = 0u;
+    triggersEnable = false;
 }
 
 Waveform::~Waveform() {
-    if(typeVariableOut == NULL_PTR(TypeDescriptor *)){
-        delete [] typeVariableOut;
+    if (typeVariableOut == NULL_PTR(TypeDescriptor *)) {
+        delete[] typeVariableOut;
         typeVariableOut = NULL_PTR(TypeDescriptor *);
     }
     if (outputValue != NULL_PTR(void **)) {
@@ -80,13 +81,17 @@ Waveform::~Waveform() {
         delete[] outputValue;
         outputValue = NULL_PTR(void **);
     }
-    if (startTriggerTime != NULL_PTR(uint32 *)) {
+    if (startTriggerTime != NULL_PTR(float64 *)) {
         delete[] startTriggerTime;
-        startTriggerTime = NULL_PTR(uint32 *);
+        startTriggerTime = NULL_PTR(float64 *);
     }
-    if (stopTriggerTime != NULL_PTR(uint32 *)) {
+    if (stopTriggerTime != NULL_PTR(float64 *)) {
         delete[] stopTriggerTime;
-        stopTriggerTime = NULL_PTR(uint32 *);
+        stopTriggerTime = NULL_PTR(float64 *);
+    }
+    if (outputFloat64 != NULL_PTR(float64 *)){
+        delete[] outputFloat64;
+        outputFloat64 = NULL_PTR(float64 *);
     }
 //lint -e{1740} only delete when new previously used.
 }
@@ -99,19 +104,19 @@ bool Waveform::Initialise(StructuredDataI& data) {
     if (functionsArray.GetDataPointer() != NULL_PTR(void *)) {
         numberOfStartTriggers = functionsArray.GetNumberOfElements(0u);
         if (numberOfStartTriggers > 0u) {
-            startTriggerTime = new uint32[numberOfStartTriggers];
-            Vector<uint32> startTriggerTimeVector(startTriggerTime, numberOfStartTriggers);
+            startTriggerTime = new float64[numberOfStartTriggers];
+            Vector<float64> startTriggerTimeVector(startTriggerTime, numberOfStartTriggers);
             if (data.Read("StartTriggerTime", startTriggerTimeVector)) {
                 functionsArray2 = data.GetType("StopTriggerTime");
                 if (functionsArray2.GetDataPointer() != NULL_PTR(void *)) {
                     numberOfStopTriggers = functionsArray2.GetNumberOfElements(0u);
                     if (numberOfStartTriggers >= numberOfStopTriggers) {
                         if (2u > (numberOfStartTriggers - numberOfStopTriggers)) {
-                            stopTriggerTime = new uint32[numberOfStopTriggers];
-                            Vector<uint32> stopTriggerTimeVector(stopTriggerTime, numberOfStopTriggers);
+                            stopTriggerTime = new float64[numberOfStopTriggers];
+                            Vector<float64> stopTriggerTimeVector(stopTriggerTime, numberOfStopTriggers);
                             if (data.Read("StopTriggerTime", stopTriggerTimeVector)) {
-                                if (Waveform::ValidateTimeTriggers()) {
-                                    triggersOn = true;
+                                if (ValidateTimeTriggers()) {
+                                    triggersEnable = true;
                                 }
                                 else {
                                     REPORT_ERROR(ErrorManagement::Warning, "Wrong trigger time. Trigger mechanism ignored.");
@@ -184,11 +189,14 @@ bool Waveform::Setup() {
             else {
                 //MISRA believe that i can be changed by REPORT_ERROR
                 const uint32 aux = i;
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output numberOfElements for signal %u", aux)
-                ;
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output numberOfElements for signal %u", aux);
+
 
             }
         }
+    }
+    if(ok){
+        outputFloat64 = new float64 [numberOfOutputElements];
     }
     if (ok) {
         ok = GetSignalNumberOfSamples(InputSignals, 0u, numberOfInputSamples);
@@ -223,8 +231,8 @@ bool Waveform::Setup() {
                 ok = (numberOfOutputSamples == 1u);
                 if (!ok) {
                     const uint32 aux = i;
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOutputSamples must be 1 for signal %u", aux)
-                    ;
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOutputSamples must be 1 for signal %u", aux);
+
                 }
             }
         }
@@ -239,15 +247,15 @@ bool Waveform::Setup() {
         }
     }
 
-    typeVariableOut = new TypeDescriptor [nOfOutputSignals];
+    typeVariableOut = new TypeDescriptor[nOfOutputSignals];
     if (ok) {
         for (uint32 i = 0u; (i < nOfOutputSignals) && ok; i++) {
             typeVariableOut[i] = GetSignalType(OutputSignals, i);
             ok = IsValidType(typeVariableOut[i]);
             if (!ok) {
                 const uint32 aux = i;
-                REPORT_ERROR(ErrorManagement::ParametersError, "Variable type not supported for signal %u", aux)
-                ;
+                REPORT_ERROR(ErrorManagement::ParametersError, "Variable type not supported for signal %u", aux);
+
             }
         }
     }
@@ -266,12 +274,19 @@ bool Waveform::Setup() {
 bool Waveform::Execute() {
 
     bool ok = true;
-    //Check type and call correct function.
-    for(indexOutputSignal = 0u; indexOutputSignal<numberOfOutputSignals; indexOutputSignal++){
-        //If due to MISRA warning about null pointer
-        if(typeVariableOut != NULL_PTR(TypeDescriptor *)){
+    if (timeState == static_cast<uint8>(0u)) {
+        if(inputTime != NULL_PTR(uint32 *)){
+            time0 = *inputTime;
+        }
+        timeState++;
+        signalOn = false;
+        if(inputTime != NULL_PTR(uint32 *)){
+            currentTime = static_cast<float64>(*inputTime) / 1e6;
+        }
+        ok = GetFloat64OutputValues();
+        for (indexOutputSignal = 0u; indexOutputSignal < numberOfOutputElements; indexOutputSignal++) {
             if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
-                ok = GetUInt8Value();
+               ok = GetUInt8Value();
             }
             else if (typeVariableOut[indexOutputSignal] == SignedInteger8Bit) {
                 ok = GetInt8Value();
@@ -289,10 +304,10 @@ bool Waveform::Execute() {
                 ok = GetInt32Value();
             }
             else if (typeVariableOut[indexOutputSignal] == UnsignedInteger64Bit) {
-                ok = GetUInt64Value();
+                ok = GetInt64Value();
             }
             else if (typeVariableOut[indexOutputSignal] == SignedInteger64Bit) {
-                ok = GetInt64Value();
+                ok = GetUInt64Value();
             }
             else if (typeVariableOut[indexOutputSignal] == Float32Bit) {
                 ok = GetFloat32Value();
@@ -301,11 +316,92 @@ bool Waveform::Execute() {
                 ok = GetFloat64Value();
             }
             else {
+            }
+        }
+        signalOn = true;
+    }
+    else if (timeState == static_cast<uint8>(1u)) {
+        if(inputTime != NULL_PTR(uint32 *)){
+            time1 = *inputTime;
+        }
+        if(numberOfOutputElements != 0u){
+            timeIncrement = ((static_cast<float64>(time1) - static_cast<float64>(time0)) / static_cast<float64>(numberOfOutputElements)) / 1e6;
+        }
+        timeState++;
+    }else{
 
+    }
+    if (timeState == static_cast<uint8>(2u)) {
+        if(inputTime != NULL_PTR(uint32 *)){
+            currentTime = static_cast<float64>(*inputTime) / 1e6;
+        }
+        ok = GetFloat64OutputValues();
+        //Check type and call correct function.
+        for (indexOutputSignal = 0u; indexOutputSignal < numberOfOutputSignals; indexOutputSignal++) {
+            //If due to MISRA warning about null pointer
+            if (typeVariableOut != NULL_PTR(TypeDescriptor *)) {
+                if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
+                    ok = GetUInt8Value();
+                }
+                else if (typeVariableOut[indexOutputSignal] == SignedInteger8Bit) {
+                    ok = GetInt8Value();
+                }
+                else if (typeVariableOut[indexOutputSignal] == UnsignedInteger16Bit) {
+                    ok = GetUInt16Value();
+                }
+                else if (typeVariableOut[indexOutputSignal] == SignedInteger16Bit) {
+                    ok = GetInt16Value();
+                }
+                else if (typeVariableOut[indexOutputSignal] == UnsignedInteger32Bit) {
+                    ok = GetUInt32Value();
+                }
+                else if (typeVariableOut[indexOutputSignal] == SignedInteger32Bit) {
+                    ok = GetInt32Value();
+                }
+                else if (typeVariableOut[indexOutputSignal] == UnsignedInteger64Bit) {
+                    ok = GetUInt64Value();
+                }
+                else if (typeVariableOut[indexOutputSignal] == SignedInteger64Bit) {
+                    ok = GetInt64Value();
+                }
+                else if (typeVariableOut[indexOutputSignal] == Float32Bit) {
+                    ok = GetFloat32Value();
+                }
+                else if (typeVariableOut[indexOutputSignal] == Float64Bit) {
+                    ok = GetFloat64Value();
+                }
+                else {
+                }
             }
         }
     }
     return ok;
+}
+
+void Waveform::TriggerMechanism() {
+    if (triggersEnable) {
+        if (numberOfStartTriggers > indexStartTriggersArray) {
+            if(startTriggerTime != NULL_PTR(float64 *)){
+                if (startTriggerTime[indexStartTriggersArray] <= currentTime) {
+                    triggersOn = true;
+                    indexStartTriggersArray++;
+                }
+            }
+        }
+        if (indexStopTriggersArray < numberOfStopTriggers) {
+            if(stopTriggerTime != NULL_PTR(float64 *)){
+                //lint -e{661} indexStopTriggersArray never goes out of range because it is checked "indexStopTriggersArray < numberOfStopTriggers"
+                if (stopTriggerTime[indexStopTriggersArray] <= currentTime) {
+                    triggersOn = false;
+                    indexStopTriggersArray++;
+                }
+            }
+        }
+    }
+    else {
+        triggersOn = true;
+    }
+    return;
 }
 
 }

@@ -23,7 +23,7 @@
 # $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
 #
 #############################################################
-OBJSX=Waveform.x WaveformSin.x
+OBJSX=Waveform.x WaveformSin.x WaveformPointsDef.x
 
 PACKAGE=Components/GAMs
 

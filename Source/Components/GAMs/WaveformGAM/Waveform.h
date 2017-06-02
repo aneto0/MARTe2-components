@@ -1,8 +1,8 @@
 /**
  * @file Waveform.h
  * @brief Header file for class Waveform
- * @date May 19, 2017
- * @author aneto
+ * @date 19/05/2017
+ * @author Llorenc
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -44,8 +44,13 @@ namespace MARTe {
  *
  * Three different GAMs are foreseen to use this generic Class:
  * WaveformSiGAM
- * WaveformDotsDefGAM
+ * WaveformPointsDefGAM
  * WaveformChirpGAM
+ *
+ * This class implements the generic function used by the children classes, which basically are the setup of the
+ * trigger mechanism and the selection of the output type.
+ *
+ * The trigger time must be specified in seconds and the type should be float64.
  */
 
 class Waveform: public GAM {
@@ -62,8 +67,8 @@ public:
      * numberOfOutputElements = 0u;
      * numberOfInputSamples = 0u;
      * numberOfOutputSamples = 0u;
-     * startTriggerTime = NULL_PTR(uint32 *);
-     * stopTriggerTime = NULL_PTR(uint32 *);
+     * startTriggerTime = NULL_PTR(float64 *);
+     * stopTriggerTime = NULL_PTR(float64 *);
      * numberOfStartTriggers = 0u;
      * numberOfStopTriggers = 0u;
      * triggersOn = false;
@@ -171,15 +176,16 @@ public:
      */
     virtual bool GetFloat64Value() = 0;
 
+    virtual bool GetFloat64OutputValues() = 0;
+
 protected:
-    /**
-     * pointer to the input time. It is the input of the GAM
-     */
-    uint32 *inputTime;
+
     /**
      * Output pointer. It support several output signals
      */
     void **outputValue;
+
+    float64 *outputFloat64;
     /**
      * Size of the output arrays. All outputs must have the same numberOfOutputElements
      */
@@ -191,13 +197,46 @@ protected:
     uint32 nOfOutputSignals;
 
     /**
+     * current time in s
+     */
+    float64 currentTime;
+
+    /**
+     * increment time between consecutive output samples in s
+     */
+    float64 timeIncrement;
+
+    /**
+     * Indicates if the trigger mechanism is enabled.
+     */
+    bool triggersOn;
+
+    /**
+     * Indicates if the signal generated is connected to the output or if the output is connected to 0
+     */
+    bool signalOn;
+
+    /**
+     * Indicates which output signal must be computed
+     */
+    uint32 indexOutputSignal;
+
+    void TriggerMechanism();
+private:
+
+    /**
+     * pointer to the input time. It is the input of the GAM
+     */
+    uint32 *inputTime;
+
+    /**
      * Pinter to the start trigger time array.
      */
-    uint32 *startTriggerTime;
+    float64 *startTriggerTime;
     /**
      * Pinter to the stop trigger time array.
      */
-    uint32 *stopTriggerTime;
+    float64 *stopTriggerTime;
 
     /**
      * Size of startTriggerTime array
@@ -220,26 +259,6 @@ protected:
     uint32 indexStopTriggersArray;
 
     /**
-     * current time in us
-     */
-    uint32 ucurrentTime;
-
-    /**
-     * increment time between consecutive output samples in us
-     */
-    uint32 utimeIncrement;
-
-    /**
-     * Indicates if the trigger mechanism is enabled.
-     */
-    bool triggersOn;
-
-    /**
-     * Indicates if the signal generated is connected to the output or if the output is connected to 0
-     */
-    bool signalOn;
-
-    /**
      * first time received in us
      */
     uint32 time0;
@@ -250,27 +269,16 @@ protected:
     uint32 time1;
 
     /**
-     * diffTime = time1 - time0. It is used to know the sample frequency
-     */
-    float64 timeIncrement;
-
-    /**
      * it is used to determine when time0, time1 are saved. The first iteration of his GAM is used to calculate the timeIncrement and the output is 0
      */
     uint8 timeState;
-
-    /**
-     * Indicates which output signal must be computed
-     */
-    uint32 indexOutputSignal;
-
-private:
     TypeDescriptor typeVariableIn;
     TypeDescriptor *typeVariableOut;
     uint32 nOfInputSignals;
     uint32 numberOfInputElements;
     uint32 numberOfInputSamples;
     uint32 numberOfOutputSamples;
+    bool triggersEnable;
 
     bool ValidateTimeTriggers() const {
         bool ret = true;
@@ -296,7 +304,7 @@ private:
         return ret;
     }
 
-    bool IsValidType(TypeDescriptor const &typeRef) const{
+    bool IsValidType(TypeDescriptor const &typeRef) const {
         bool retVal;
         bool *auxBool = (new bool[10u]);
         auxBool[0] = typeRef == Float32Bit;
@@ -309,13 +317,14 @@ private:
         auxBool[7] = typeRef == UnsignedInteger32Bit;
         auxBool[8] = typeRef == SignedInteger64Bit;
         auxBool[9] = typeRef == UnsignedInteger64Bit;
-        retVal = ((auxBool[0]) || (auxBool[1]) || (auxBool[2])
-                || (auxBool[3]) || (auxBool[4]) || (auxBool[5])
-                || (auxBool[6]) || (auxBool[7]) || (auxBool[8])
+        retVal = ((auxBool[0]) || (auxBool[1]) || (auxBool[2]) || (auxBool[3]) || (auxBool[4]) || (auxBool[5]) || (auxBool[6]) || (auxBool[7]) || (auxBool[8])
                 || (auxBool[9]));
-        delete [] auxBool;
+        delete[] auxBool;
         return retVal;
     }
+
+
+
 };
 
 }

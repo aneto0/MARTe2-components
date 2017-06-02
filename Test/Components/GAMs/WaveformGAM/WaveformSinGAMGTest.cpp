@@ -32,7 +32,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "WaveformSin.h"
-#include "WaveformSinGAMTest.h"
+#include "../WaveformGAM/WaveformSinGAMTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -153,12 +153,11 @@ TEST(WaveformSinGAMTest, TestMissingSecondOutputType) {
     ASSERT_TRUE(test.TestMissingSecondOutputType());
 }
 
-
-
 TEST(WaveformSinGAMTest, TestUInt8Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestUInt8Execute());
 }
+
 
 TEST(WaveformSinGAMTest, TestInt8Execute) {
     WaveformSinGAMTest test;
@@ -221,6 +220,11 @@ TEST(WaveformSinGAMTest, TestStartTriggerGreaterThanStopTriggerPluse2) {
 TEST(WaveformSinGAMTest, TestStartTriggerTimeArrayInconsistent) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestStartTriggerTimeArrayInconsistent());
+}
+
+TEST(WaveformSinGAMTest, TestUInt8ExecuteTrigger) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestUInt8ExecuteTrigger());
 }
 
 TEST(WaveformSinGAMTest, TestInt8ExecuteTrigger) {

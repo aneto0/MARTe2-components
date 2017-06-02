@@ -33,7 +33,7 @@
 
 #include "ConfigurationDatabase.h"
 #include "WaveformSin.h"
-#include "WaveformSinGAMTest.h"
+#include "../WaveformGAM/WaveformSinGAMTest.h"
 #include "Vector.h"
 #include "FastMath.h"
 #include "stdio.h"
@@ -62,10 +62,10 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
         numberOfSamplesOut = samplesOut;
 
         byteSizeOut = 0;
-        frequency = 0;
-        phase = 0;
-        amplitude = 0;
-        offset = 0;
+        frequency = 0.0;
+        phase = .00;
+        amplitude = 0.0;
+        offset = 0.0;
         isInitialised = false;
     }
 
@@ -86,7 +86,7 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
     void *GetOutputSignalsMemory(uint32 idx) {
         return GAM::GetOutputSignalMemory(idx);
     }
-    bool InitialiseWaveSin(float32 A=10.0, float32 freq = 1.0, float32 angle = 0.0, float32 DC = 10.0) {
+    bool InitialiseWaveSin(float64 A=10.0, float64 freq = 1.0, float64 angle = 0.0, float64 DC = 10.0) {
         bool ret = true;
         if(isInitialised == false) {
             amplitude = A;
@@ -105,7 +105,7 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
         return ret;
     }
 
-    bool InitialiseWaveSinTrigger(float32 A=10.0, float32 freq = 1.0, float32 angle = 0.0, float32 DC = 10.0) {
+    bool InitialiseWaveSinTrigger(float64 A=10.0, float64 freq = 1.0, float64 angle = 0.0, float64 DC = 10.0) {
         bool ret = true;
         if(isInitialised == false) {
             amplitude = A;
@@ -117,20 +117,20 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
             ret &= config.Write("Phase", phase);
             ret &= config.Write("Offset", offset);
             uint32 dimTrigger = 5;
-            uint32 *startTrigger = new uint32 [dimTrigger];
-            uint32 *stopTrigger = new uint32 [dimTrigger];
-            startTrigger[0] = 1250000;
-            stopTrigger[0] =1750000;
-            startTrigger[1] = 2000000;
-            stopTrigger[1] = 3250000;
-            startTrigger[2] = 3500000;
-            stopTrigger[2] = 3750000;
-            startTrigger[3] = 4000000;
-            stopTrigger[3] = 4250000;
-            startTrigger[4] = 4550000;
-            stopTrigger[4] = 4800000;
-            Vector<uint32> startTVect(startTrigger, dimTrigger);
-            Vector<uint32> stopTVect(stopTrigger, dimTrigger);
+            float64 *startTrigger = new float64 [dimTrigger];
+            float64 *stopTrigger = new float64 [dimTrigger];
+            startTrigger[0] = 1.25;
+            stopTrigger[0] =1.750000;
+            startTrigger[1] = 2.0;
+            stopTrigger[1] = 3.25;
+            startTrigger[2] = 3.5;
+            stopTrigger[2] = 3.750;
+            startTrigger[3] = 4.0;
+            stopTrigger[3] = 4.25;
+            startTrigger[4] = 4.55;
+            stopTrigger[4] = 4.8;
+            Vector<float64> startTVect(startTrigger, dimTrigger);
+            Vector<float64> stopTVect(stopTrigger, dimTrigger);
             ret &= config.Write("StartTriggerTime", startTVect);
             ret &= config.Write("StopTriggerTime", stopTVect);
             isInitialised = ret;
@@ -227,6 +227,7 @@ WaveformSinGAMTest::~WaveformSinGAMTest() {
 
 //TODO Verify if manual additions are needed here
 }
+
 
 bool WaveformSinGAMTest::TestMissingAmplitude() {
     using namespace MARTe;using namespace FastMath;
@@ -1741,20 +1742,20 @@ bool WaveformSinGAMTest::TestStopTriggerGreaterThanStartTrigger() {
     ok &= gam.config.Write("Phase", 0);
     ok &= gam.config.Write("Offset", 10);
     uint32 dimTrigger = 5;
-    uint32 *startTrigger = new uint32[dimTrigger];
-    uint32 *stopTrigger = new uint32[dimTrigger];
-    startTrigger[0] = 1250000;
-    stopTrigger[0] = 1750000;
-    startTrigger[1] = 2000000;
-    stopTrigger[1] = 3250000;
-    startTrigger[2] = 3500000;
-    stopTrigger[2] = 3750000;
-    startTrigger[3] = 4000000;
-    stopTrigger[3] = 4250000;
-    startTrigger[4] = 4550000;
-    stopTrigger[4] = 4800000;
-    Vector<uint32> startTVect(startTrigger, dimTrigger);
-    Vector<uint32> stopTVect(stopTrigger, dimTrigger);
+    float64 *startTrigger = new float64[dimTrigger];
+    float64 *stopTrigger = new float64[dimTrigger];
+    startTrigger[0] = 1.250000;
+    stopTrigger[0] = 1.750000;
+    startTrigger[1] = 2.000000;
+    stopTrigger[1] = 3.250000;
+    startTrigger[2] = 3.500000;
+    stopTrigger[2] = 3.750000;
+    startTrigger[3] = 4.000000;
+    stopTrigger[3] = 4.250000;
+    startTrigger[4] = 4.550000;
+    stopTrigger[4] = 4.800000;
+    Vector<float64> startTVect(startTrigger, dimTrigger);
+    Vector<float64> stopTVect(stopTrigger, dimTrigger);
     //ok &= gam.config.Write("StartTriggerTime", startTVect);
     ok &= gam.config.Write("StartTriggerTime", "");
     ok &= gam.config.Write("StopTriggerTime", stopTVect);
@@ -1780,20 +1781,20 @@ bool WaveformSinGAMTest::TestStartTriggerGreaterThanStopTriggerPluse2() {
     ok &= gam.config.Write("Phase", 0);
     ok &= gam.config.Write("Offset", 10);
     uint32 dimTrigger = 5;
-    uint32 *startTrigger = new uint32[dimTrigger];
-    uint32 *stopTrigger = new uint32[dimTrigger - 2];
-    startTrigger[0] = 1250000;
-    stopTrigger[0] = 1750000;
-    startTrigger[1] = 2000000;
-    stopTrigger[1] = 3250000;
-    startTrigger[2] = 3500000;
-    stopTrigger[2] = 3750000;
-    startTrigger[3] = 4000000;
+    float64 *startTrigger = new float64[dimTrigger];
+    float64 *stopTrigger = new float64[dimTrigger - 2];
+    startTrigger[0] = 1.250000;
+    stopTrigger[0] = 1.750000;
+    startTrigger[1] = 2.000000;
+    stopTrigger[1] = 3.250000;
+    startTrigger[2] = 3.500000;
+    stopTrigger[2] = 3.750000;
+    startTrigger[3] = 4.000000;
     //stopTrigger[3] = 4250000;
-    startTrigger[4] = 4550000;
+    startTrigger[4] = 4.550000;
     // stopTrigger[4] = 4800000;
-    Vector<uint32> startTVect(startTrigger, dimTrigger);
-    Vector<uint32> stopTVect(stopTrigger, dimTrigger - 2);
+    Vector<float64> startTVect(startTrigger, dimTrigger);
+    Vector<float64> stopTVect(stopTrigger, dimTrigger - 2);
     //ok &= gam.config.Write("StartTriggerTime", startTVect);
     ok &= gam.config.Write("StartTriggerTime", startTVect);
     ok &= gam.config.Write("StopTriggerTime", stopTVect);
@@ -1819,20 +1820,20 @@ bool WaveformSinGAMTest::TestStartTriggerTimeArrayInconsistent() {
     ok &= gam.config.Write("Phase", 0);
     ok &= gam.config.Write("Offset", 10);
     uint32 dimTrigger = 5;
-    uint32 *startTrigger = new uint32[dimTrigger];
-    uint32 *stopTrigger = new uint32[dimTrigger];
-    startTrigger[0] = 1250000;
-    stopTrigger[0] = 150000;
-    startTrigger[1] = 2000000;
-    stopTrigger[1] = 3250000;
-    startTrigger[2] = 3500000;
-    stopTrigger[2] = 3750000;
-    startTrigger[3] = 4000000;
-    stopTrigger[3] = 4250000;
-    startTrigger[4] = 4550000;
-    stopTrigger[4] = 4800000;
-    Vector<uint32> startTVect(startTrigger, dimTrigger);
-    Vector<uint32> stopTVect(stopTrigger, dimTrigger);
+    float64 *startTrigger = new float64[dimTrigger];
+    float64 *stopTrigger = new float64[dimTrigger];
+    startTrigger[0] = 1.25;
+    stopTrigger[0] = 1.5;
+    startTrigger[1] = 2.0;
+    stopTrigger[1] = 3.25;
+    startTrigger[2] = 3.5;
+    stopTrigger[2] = 3.75;
+    startTrigger[3] = 4.0;
+    stopTrigger[3] = 4.25;
+    startTrigger[4] = 4.55;
+    stopTrigger[4] = 4.8;
+    Vector<float64> startTVect(startTrigger, dimTrigger);
+    Vector<float64> stopTVect(stopTrigger, dimTrigger);
     //ok &= gam.config.Write("StartTriggerTime", startTVect);
     ok &= gam.config.Write("StartTriggerTime", startTVect);
     ok &= gam.config.Write("StopTriggerTime", stopTVect);
@@ -2770,19 +2771,19 @@ bool WaveformSinGAMTest::TestExecuteTriggerDiffArrayLength() {
     ok &= gam.config.Write("Phase", gam.phase);
     ok &= gam.config.Write("Offset", gam.offset);
     uint32 dimTrigger = 5;
-    uint32 *startTrigger = new uint32[dimTrigger];
-    uint32 *stopTrigger = new uint32[dimTrigger - 1];
-    startTrigger[0] = 1250000;
-    stopTrigger[0] = 1750000;
-    startTrigger[1] = 2000000;
-    stopTrigger[1] = 3250000;
-    startTrigger[2] = 3500000;
-    stopTrigger[2] = 3750000;
-    startTrigger[3] = 4000000;
-    stopTrigger[3] = 4250000;
-    startTrigger[4] = 4550000;
-    Vector<uint32> startTVect(startTrigger, dimTrigger);
-    Vector<uint32> stopTVect(stopTrigger, dimTrigger - 1);
+    float64 *startTrigger = new float64[dimTrigger];
+    float64 *stopTrigger = new float64[dimTrigger - 1];
+    startTrigger[0] = 1.25;
+    stopTrigger[0] = 1.75;
+    startTrigger[1] = 2.;
+    stopTrigger[1] = 3.25;
+    startTrigger[2] = 3.5;
+    stopTrigger[2] = 3.75;
+    startTrigger[3] = 4.0;
+    stopTrigger[3] = 4.25;
+    startTrigger[4] = 4.55;
+    Vector<float64> startTVect(startTrigger, dimTrigger);
+    Vector<float64> stopTVect(stopTrigger, dimTrigger - 1);
     //ok &= gam.config.Write("StartTriggerTime", startTVect);
     ok &= gam.config.Write("StartTriggerTime", startTVect);
     ok &= gam.config.Write("StopTriggerTime", stopTVect);

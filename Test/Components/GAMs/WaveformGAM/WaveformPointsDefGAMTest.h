@@ -1,0 +1,687 @@
+/**
+ * @file WaveformPointsDefGAMTest.h
+ * @brief Header file for class WaveformPointsDefGAMTest
+ * @date 30/05/2017
+ * @author Llorenc
+ *
+ * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
+ * the Development of Fusion Energy ('Fusion for Energy').
+ * Licensed under the EUPL, Version 1.1 or - as soon they will be approved
+ * by the European Commission - subsequent versions of the EUPL (the "Licence")
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+ *
+ * @warning Unless required by applicable law or agreed to in writing, 
+ * software distributed under the Licence is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the Licence permissions and limitations under the Licence.
+
+ * @details This header file contains the declaration of the class WaveformPointsDefGAMTest
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
+ */
+
+#ifndef WAVEFORMPOINTSDEFGAMTEST_H_
+#define WAVEFORMPOINTSDEFGAMTEST_H_
+
+/*---------------------------------------------------------------------------*/
+/*                        Standard header includes                           */
+/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+/*                        Project header includes                            */
+/*---------------------------------------------------------------------------*/
+#include "StreamString.h"
+#include "ConfigurationDatabase.h"
+#include "GAM.h"
+#include "WaveformPointsDef.h"
+#include "stdio.h"
+
+/*---------------------------------------------------------------------------*/
+/*                           Class declaration                               */
+/*---------------------------------------------------------------------------*/
+
+using namespace MARTe;
+
+class WaveformPointsDefGAMTest {
+//TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API WaveformPointsDefGAMTest)
+public:
+    WaveformPointsDefGAMTest();
+    virtual ~WaveformPointsDefGAMTest();
+
+    bool TestMissingPoints();
+
+    bool TestFailingReadingPointsValues();
+
+    bool TestMissingTimes();
+
+    bool TestDifferentSizePointsTimes();
+
+    bool TestFailingReadingTimesValues();
+
+    bool TestInvalidTimes();
+
+    bool TestInvalidTimes2();
+
+    bool TestFailWaveformSetup();
+
+    template<typename T2>
+    bool TestExecute(StreamString str);
+
+    template<typename T3>
+    bool TestExecuteTrigger(StreamString str);
+
+    template<typename T>
+    bool TestExecute2Signals(StreamString str);
+
+};
+
+/*---------------------------------------------------------------------------*/
+/*                        Inline method definitions                          */
+/*---------------------------------------------------------------------------*/
+namespace MARTe {
+
+class WaveformPointsDefGAMTestHelper: public WaveformPointsDef {
+public:
+
+    WaveformPointsDefGAMTestHelper(uint32 elementsIn = 1,
+                                   uint32 samplesIn = 1,
+                                   uint32 elementsOut = 4,
+                                   uint32 samplesOut = 1,
+                                   StreamString str = "int8") {
+        numberOfElementsIn = elementsIn;
+        numberOfSamplesIn = samplesIn;
+        byteSizeIn = numberOfElementsIn * sizeof(uint32);
+        // The input time could be int32 or uint32 both supported
+        numberOfElementsOut = elementsOut;
+        numberOfSamplesOut = samplesOut;
+
+        byteSizeOut = 0;
+        startTrigger = NULL;
+        stopTrigger = NULL;
+        elementsStartTrigger = 5;
+        elementsStopTrigger = 4;
+
+        typeStr = str;
+        type = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
+        isInitialised = false;
+        numberOfElementsY = 4;
+        numberOfElementsX = 4;
+        x1 = new float64[numberOfElementsX];
+        y1 = new float64[numberOfElementsY];
+        for (uint32 i = 0u; i < numberOfElementsX; i++) {
+            x1[i] = 0.0;
+            y1[i] = 0.0;
+        }
+        dimArrayCompare1 = 15;
+        refValues1 = new float64[dimArrayCompare1];
+        indexCompare1 = 0;
+        indexCompare2 = 0;
+    }
+
+    WaveformPointsDefGAMTestHelper(StreamString str) {
+        numberOfElementsIn = 1;
+        numberOfSamplesIn = 1;
+        byteSizeIn = numberOfElementsIn * sizeof(uint32);
+        // The input time could be int32 or uint32 both supported
+        numberOfElementsOut = 4;
+        numberOfSamplesOut = 1;
+
+        byteSizeOut = 0;
+        startTrigger = NULL;
+        stopTrigger = NULL;
+        elementsStartTrigger = 5;
+        elementsStopTrigger = 4;
+        typeStr = str;
+        type = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
+        isInitialised = false;
+        numberOfElementsY = 4;
+        numberOfElementsX = 4;
+        x1 = new float64[numberOfElementsX];
+        y1 = new float64[numberOfElementsY];
+        for (uint32 i = 0u; i < numberOfElementsX; i++) {
+            x1[i] = 0.0;
+            y1[i] = 0.0;
+        }
+        dimArrayCompare1 = 15;
+        refValues1 = new float64[dimArrayCompare1];
+        indexCompare1 = 0;
+        indexCompare2 = 0;
+        elementsStopTrigger = 4;
+    }
+
+    ~WaveformPointsDefGAMTestHelper() {
+        delete[] y1;
+        delete[] x1;
+        delete[] refValues1;
+        delete[] startTrigger;
+        delete[] stopTrigger;
+    }
+    void *GetInputSignalsMemory() {
+        return GAM::GetInputSignalsMemory();
+    }
+    void *GetOutputSignalsMemory() {
+        return GAM::GetOutputSignalsMemory();
+    }
+    void *GetInputSignalsMemory(uint32 idx) {
+        return GAM::GetInputSignalMemory(idx);
+    }
+
+    void *GetOutputSignalsMemory(uint32 idx) {
+        return GAM::GetOutputSignalMemory(idx);
+    }
+    bool InitialisePointsdef1() {
+        bool ret = true;
+        if (isInitialised == false) {
+            x1[0] = 0;
+            x1[1] = 1.25;
+            x1[2] = 2;
+            x1[3] = 3.5;
+            y1[0] = 0;
+            y1[1] = 6;
+            y1[2] = 5.25;
+            y1[3] = 2.25;
+            refValues1[0] = 0;
+            refValues1[1] = 1.2;
+            refValues1[2] = 2.4;
+            refValues1[3] = 3.6;
+            refValues1[4] = 4.8;
+            refValues1[5] = 6;
+            refValues1[6] = 5.75;
+            refValues1[7] = 5.5;
+            refValues1[8] = 5.25;
+            refValues1[9] = 4.75;
+            refValues1[10] = 4.25;
+            refValues1[11] = 3.75;
+            refValues1[12] = 3.25;
+            refValues1[13] = 2.75;
+            refValues1[14] = 2.25;
+
+            Vector<float64> yVec(y1, numberOfElementsY);
+            ret &= config.Write("Points", yVec);
+            Vector<float64> xVec(x1, numberOfElementsX);
+            ret &= config.Write("Times", xVec);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
+    }
+    bool IsEqualLargerMargins(float64 f1,
+                              float64 f2) {
+        float64 *min = reinterpret_cast<float64*>(const_cast<uint64*>(&EPSILON_FLOAT64));
+        float64 minLarger = *min * 3;
+        return ((f1 - f2) < (minLarger)) && ((f1 - f2) > -(minLarger));
+    }
+    bool InitialisePointsdef1Trigger() {
+        bool ret = true;
+
+        if (isInitialised == false) {
+            x1[0] = 0;
+            x1[1] = 1.25;
+            x1[2] = 2;
+            x1[3] = 3.5;
+            y1[0] = 0;
+            y1[1] = 6;
+            y1[2] = 5.25;
+            y1[3] = 2.25;
+            refValues1[0] = 0;
+            refValues1[1] = 1.2;
+            refValues1[2] = 2.4;
+            refValues1[3] = 3.6;
+            refValues1[4] = 4.8;
+            refValues1[5] = 6;
+            refValues1[6] = 5.75;
+            refValues1[7] = 5.5;
+            refValues1[8] = 5.25;
+            refValues1[9] = 4.75;
+            refValues1[10] = 4.25;
+            refValues1[11] = 3.75;
+            refValues1[12] = 3.25;
+            refValues1[13] = 2.75;
+            refValues1[14] = 2.25;
+            Vector<float64> yVec(y1, numberOfElementsY);
+            ret &= config.Write("Points", yVec);
+            Vector<float64> xVec(x1, numberOfElementsX);
+            ret &= config.Write("Times", xVec);
+
+            startTrigger = new float64[elementsStartTrigger];
+            stopTrigger = new float64[elementsStopTrigger];
+            startTrigger[0] = 1.25;
+            stopTrigger[0] = 1.75;
+            startTrigger[1] = 2.;
+            stopTrigger[1] = 3.25;
+            startTrigger[2] = 3.5;
+            stopTrigger[2] = 3.75;
+            startTrigger[3] = 4.;
+            stopTrigger[3] = 4.25;
+            startTrigger[4] = 4.55;
+            Vector<float64> startTVect(startTrigger, elementsStartTrigger);
+            Vector<float64> stopTVect(stopTrigger, elementsStopTrigger);
+            ret &= config.Write("StartTriggerTime", startTVect);
+            ret &= config.Write("StopTriggerTime", stopTVect);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+
+        return ret;
+
+    }
+
+    bool IsInitialised() {
+        return isInitialised;
+    }
+    bool InitialiseConfigDataBaseSignal1() {
+        bool ok = true;
+        uint32 totalByteSizeIn = byteSizeIn;
+        ok &= configSignals.CreateAbsolute("Signals.InputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("QualifiedName", "InputSignal1");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type", "uint32");
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+        ok &= configSignals.Write("NumberOfElements", 1);
+        ok &= configSignals.Write("ByteSize", totalByteSizeIn);
+
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.Write("ByteSize", totalByteSizeIn);
+
+        uint32 totalByteSizeOut = numberOfElementsOut * type.numberOfBits / 8;
+        ok &= configSignals.MoveToRoot();
+        ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("QualifiedName", "OutputSignal1");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type", TypeDescriptor::GetTypeNameFromTypeDescriptor(type));
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+
+        ok &= configSignals.Write("NumberOfElements", numberOfElementsOut);
+        ok &= configSignals.Write("ByteSize", totalByteSizeOut);
+
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.Write("ByteSize", totalByteSizeOut);
+
+        ok &= configSignals.MoveToRoot();
+
+        ok &= configSignals.CreateAbsolute("Memory.InputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.CreateRelative("Signals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("Samples", numberOfSamplesIn);
+
+        ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.CreateRelative("Signals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("Samples", numberOfSamplesOut);
+
+        ok &= configSignals.MoveToRoot();
+        return ok;
+    }
+
+    bool InitialiseConfigDataBaseSignal2() {
+        bool ok = true;
+        uint32 totalByteSizeIn = byteSizeIn;
+        ok &= configSignals.CreateAbsolute("Signals.InputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("QualifiedName", "InputSignal1");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type", "uint32");
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+        ok &= configSignals.Write("NumberOfElements", 1);
+        ok &= configSignals.Write("ByteSize", totalByteSizeIn);
+
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.Write("ByteSize", totalByteSizeIn);
+
+        uint32 totalByteSizeOut1 = numberOfElementsOut * type.numberOfBits / 8;
+        ok &= configSignals.MoveToRoot();
+        ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("QualifiedName", "OutputSignal1");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type", TypeDescriptor::GetTypeNameFromTypeDescriptor(type));
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+        ok &= configSignals.Write("NumberOfElements", numberOfElementsOut);
+        ok &= configSignals.Write("ByteSize", totalByteSizeOut1);
+
+        uint32 totalByteSizeOut2 = numberOfElementsOut * sizeof(uint32);
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.CreateRelative("1");
+        ok &= configSignals.Write("QualifiedName", "OutputSignal2");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.Write("Type","uint32");
+        ok &= configSignals.Write("NumberOfDimensions", 1);
+        ok &= configSignals.Write("NumberOfElements", numberOfElementsOut);
+        ok &= configSignals.Write("ByteSize", totalByteSizeOut2);
+
+        ok &= configSignals.MoveToAncestor(1u);
+
+        uint32 totalByteSizeOut = totalByteSizeOut1+ totalByteSizeOut2;
+        ok &= configSignals.Write("ByteSize", totalByteSizeOut);
+
+        ok &= configSignals.MoveToRoot();
+
+        ok &= configSignals.CreateAbsolute("Memory.InputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.CreateRelative("Signals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("Samples", numberOfSamplesIn);
+
+        ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("DataSource", "TestDataSource");
+        ok &= configSignals.CreateRelative("Signals");
+        ok &= configSignals.CreateRelative("0");
+        ok &= configSignals.Write("Samples", numberOfSamplesOut);
+        ok &= configSignals.MoveToAncestor(1u);
+        ok &= configSignals.CreateRelative("1");
+        ok &= configSignals.Write("Samples", numberOfSamplesOut);
+
+        ok &= configSignals.MoveToRoot();
+        return ok;
+    }
+
+    template<typename T>
+    bool ComparePointsdef1(T *output) {
+        bool ret = true;
+        static bool firstIteration = true;
+        for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
+            if (firstIteration) {
+                ret = (static_cast<T>(0.0) == output[i]);
+            }
+            else {
+                StreamString auxStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
+                if (auxStr == "float32") {
+                    ret = IsEqual(static_cast<float32>(refValues1[indexCompare1]), static_cast<float32>(output[i]));
+                }
+                else if (auxStr == "float64") {
+                    ret = IsEqualLargerMargins(static_cast<float64>(refValues1[indexCompare1]), static_cast<float64>(output[i]));
+                }
+                else {
+                    ret = (static_cast<T>(refValues1[indexCompare1]) == output[i]);
+                }
+            }
+            indexCompare1++;
+            if (indexCompare1 == dimArrayCompare1) {
+                indexCompare1 = 0;
+            }
+        }
+        if (firstIteration) {
+            firstIteration = false;
+        }
+        return ret;
+    }
+
+    template<typename T>
+     bool ComparePointsdef1Trigger(T *output,
+                                   float64 t,
+                                   float64 it) {
+         bool ret = true;
+         static bool firstIteration = true;
+         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
+             if (firstIteration) {
+                 ret = (static_cast<T>(0.0) == output[i]);
+             }
+             else {
+                 if (ShouldBeSignalOutOn(t)) {
+                     StreamString auxStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
+                     if (auxStr == "float32") {
+                         ret = IsEqual(static_cast<float32>(refValues1[indexCompare1]), static_cast<float32>(output[i]));
+                     }
+                     else if (auxStr == "float64") {
+                         ret = IsEqualLargerMargins(static_cast<float64>(refValues1[indexCompare1]), static_cast<float64>(output[i]));
+                     }
+                     else {
+                         ret = (static_cast<T>(refValues1[indexCompare1]) == output[i]);
+                     }
+                 }
+                 else {
+                     ret = (static_cast<T>(0.0) == output[i]);
+                 }
+             }
+             indexCompare1++;
+             if (indexCompare1 == dimArrayCompare1) {
+                 indexCompare1 = 0;
+             }
+             t += it;
+         }
+         if (firstIteration) {
+             firstIteration = false;
+         }
+         return ret;
+     }
+
+    template<typename T>
+     bool ComparePointsdef1Trigger2(T *output,
+                                   float64 t,
+                                   float64 it) {
+         bool ret = true;
+         static bool firstIteration = true;
+         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
+             if (firstIteration) {
+                 ret = (static_cast<T>(0.0) == output[i]);
+             }
+             else {
+                 if (ShouldBeSignalOutOn(t)) {
+                     StreamString auxStr = "uint32";
+                     if (auxStr == "float32") {
+                         ret = IsEqual(static_cast<float32>(refValues1[indexCompare2]), static_cast<float32>(output[i]));
+                     }
+                     else if (auxStr == "float64") {
+                         ret = IsEqualLargerMargins(static_cast<float64>(refValues1[indexCompare2]), static_cast<float64>(output[i]));
+                     }
+                     else {
+                         ret = (static_cast<T>(refValues1[indexCompare2]) == output[i]);
+                     }
+                 }
+                 else {
+                     ret = (static_cast<T>(0.0) == output[i]);
+                 }
+             }
+             indexCompare2++;
+             if (indexCompare2 == dimArrayCompare1) {
+                 indexCompare2 = 0;
+             }
+             t += it;
+         }
+         if (firstIteration) {
+             firstIteration = false;
+         }
+         return ret;
+     }
+
+    uint32 numberOfElementsIn;
+    uint32 numberOfSamplesIn;
+    uint32 numberOfElementsOut;
+    uint32 numberOfSamplesOut;
+    uint32 byteSizeIn;
+    uint32 byteSizeOut;
+    ConfigurationDatabase configSignals;
+    ConfigurationDatabase config;
+    TypeDescriptor type;
+    StreamString typeStr;
+    float64 *y1;
+    float64 *x1;
+    uint32 numberOfElementsY;
+    uint32 numberOfElementsX;
+    uint32 indexCompare1;
+    uint32 indexCompare2;
+    float64 *refValues1;
+private:
+    bool isInitialised;
+    float64 *startTrigger;
+    float64 *stopTrigger;
+    uint32 elementsStartTrigger;
+    uint32 elementsStopTrigger;
+    uint32 dimArrayCompare1;
+
+    bool ShouldBeSignalOutOn(float64 t) { //assuming a lot of thinks which are not checked i.e elementsStopTrigger cannot be greater than elementsStartTrigger
+        bool ret;
+        bool stop = false;
+        for (uint32 i = 0; (i < elementsStopTrigger) && !stop; i++) {
+            if (t < stopTrigger[i]) {
+                if (t >= startTrigger[i]) {
+                    ret = true;
+                }
+                else {
+                    ret = false;
+                }
+                stop = true;
+            }
+        }
+        if (!stop) {
+            if (elementsStartTrigger > elementsStopTrigger) {
+                if (t >= startTrigger[elementsStartTrigger - 1]) {
+                    ret = true;
+                }
+                else {
+                    ret = false;
+                }
+            }
+            else {
+                ret = false;
+            }
+        }
+        return ret;
+    }
+}
+;
+//CLASS_REGISTER(WaveformPointsDefGAMTestHelper, "1.0")
+}
+
+template<typename T1>
+bool WaveformPointsDefGAMTest::TestExecute(StreamString str) {
+    using namespace MARTe;
+    bool ok = true;
+    uint32 timeIterationIncrement = 1000000u;
+    uint32 *timeIteration = NULL;
+    uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
+    uint32 sizeOutput = 4u;
+    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+
+    T1 *output = NULL;
+
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdef1();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    output = static_cast<T1 *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<T1>(0.0);
+    }
+    for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
+        gam.Execute();
+        ok &= gam.ComparePointsdef1(output);
+        if (!ok) {
+            printf("iteration which fails %u\n", i);
+        }
+        *timeIteration += timeIterationIncrement;
+    }
+    return ok;
+}
+
+template<typename T4>
+bool WaveformPointsDefGAMTest::TestExecuteTrigger(StreamString str) {
+    using namespace MARTe;
+    bool ok = true;
+    uint32 timeIterationIncrement = 1000000u;
+    uint32 *timeIteration = NULL;
+    uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
+    uint32 sizeOutput = 4u;
+    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+
+    T4 *output = NULL;
+
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdef1Trigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    output = static_cast<T4 *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<T4>(0.0);
+    }
+    for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
+        gam.Execute();
+        ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        if (!ok) {
+            printf("iteration which fails %u\n", i);
+        }
+        *timeIteration += timeIterationIncrement;
+    }
+    return ok;
+}
+
+template<typename T4>
+bool WaveformPointsDefGAMTest::TestExecute2Signals(StreamString str) {
+    using namespace MARTe;
+    bool ok = true;
+    uint32 timeIterationIncrement = 1000000u;
+    uint32 *timeIteration = NULL;
+    uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
+    uint32 sizeOutput = 4u;
+    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+
+    T4 *output = NULL;
+    uint32 *output2 = NULL;
+
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdef1Trigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal2();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    output = static_cast<T4 *>(gam.GetOutputSignalsMemory());
+    output2 = static_cast<uint32 *>(gam.GetOutputSignalsMemory(1));
+
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<T4>(0.0);
+        output[i] = static_cast<uint32>(0.0);
+    }
+    for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
+        gam.Execute();
+        ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.ComparePointsdef1Trigger2(output2, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        if (!ok) {
+            printf("iteration which fails %u\n", i);
+        }
+        *timeIteration += timeIterationIncrement;
+    }
+    return ok;
+}
+#endif /*WAVEFORMPOINTSDEFGAMTEST_H_ */
+

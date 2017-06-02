@@ -24,7 +24,7 @@
 #
 #############################################################
 
-SPB=  IOGAM.x ConversionGAM.x FilterGAM.x WaveformSinGAM.x
+SPB=  IOGAM.x ConversionGAM.x FilterGAM.x WaveformGAM.x
 
 ifdef EFDA_MARTe_DIR
 SPB += BaseLib2GAM.x
@@ -39,7 +39,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC+=$(BUILD_DIR)/IOGAM/IOGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/FilterGAM/FilterGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/ConversionGAM/ConversionGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/WaveformSinGAM/WaveformSinGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/WaveformGAM/WaveformGAMTest$(LIBEXT)
 ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAMTest$(LIBEXT)
 endif

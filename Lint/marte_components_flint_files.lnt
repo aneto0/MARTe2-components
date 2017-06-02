@@ -17,6 +17,7 @@
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConversionGAM/
 -i./Source/Components/GAMs/FilterGAM/
+-i./Source/Components/GAMs/WaveformGAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 -i./Source/Components/Interfaces/EPICS/
@@ -37,6 +38,11 @@ EPICSCAClient.cpp
 EPICSCAInput.cpp
 EPICSCAOutput.cpp
 FilterGAM.cpp
+Waveform.cpp
+WaveformSin.cpp
+WaveformSin.h
+WaveformPointsDef.cpp
+WaveformPointsDef.h
 IOGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp

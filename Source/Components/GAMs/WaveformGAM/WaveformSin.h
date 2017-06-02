@@ -2,7 +2,7 @@
  * @file WaveformSin.h
  * @brief Header file for class WaveformSin
  * @date May 19, 2017
- * @author aneto
+ * @author Llorenc
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -45,6 +45,7 @@ namespace MARTe {
  *@details The configured coefficients (amplitude, frequency, phase, and offset) must be in flot64 and the implementation of the trigonometric functions is as follow
  * \f$
  * $output[i]= Amplitude * FastMath::Sin(2*FastMath::PI*frequency*time+phase)+offset
+ * \f$
  * where the phase must be in radiant and he frequency in Hz.
  *
  * The input is a single value indicating the current time. The output could be a single array of N elements or multiple equal outputs of N
@@ -63,9 +64,9 @@ namespace MARTe {
  * float32
  * float64
  *
- * Additionally a trigger mechanism is implemented allowing to specify time intervals (in us) in which the signal is switch off and on.
+ * Additionally a trigger mechanism is implemented allowing to specify time intervals (in s) in which the signal is switch off and on.
  * The trigger intervals are specified in two arrays: one with the StartTriggerTime and another with  StopTriggerTime. If the
- * two array are not consistent (i.e. start time is later than stop time) a warning is launched, the trigger mechanism is not activated
+ * two array are not consistent (i.e. start time is later than stop time) a warning is launched, the trigger mechanism is disabled,
  * but the GAM operates in normal conditions.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
@@ -75,8 +76,8 @@ namespace MARTe {
  *     Frequency = 1.0
  *     Phase = 0.0
  *     Offset = 1.1
- *     StartTriggerTime = {100 300 500 700}
- *     StopTriggerTime = {200 400 600} //the StopTriggerTime has one less time, it means that after the sequence of output on and off, the GAM will remain on forever
+ *     StartTriggerTime = {0.1 0.3 0.5 1.8}
+ *     StopTriggerTime = {0.2 0.4 0.6} //the StopTriggerTime has one less time, it means that after the sequence of output on and off, the GAM will remain on forever
  *
  *     InputSignals = {
  *         InputSignal1 = { //Filter will be applied to each signal. The number of input and output signals must be the same.
@@ -91,7 +92,7 @@ namespace MARTe {
  *         }
  *         OutputSignal2 = {
  *             DataSource = "LCD"
- *             Type = float32
+ *             Type = float64
  *         }
  *     }
  * }
@@ -123,7 +124,7 @@ public:
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief computes the Sin in uin8.
+     * @brief computes the Sin in uint8.
      * @brief this function calls the template implementation of the sin
      */
     virtual bool GetUInt8Value();
@@ -187,6 +188,8 @@ public:
      */
     template<typename T>
     bool GetValue();
+
+    virtual bool GetFloat64OutputValues();
 
 
 private:

@@ -1,8 +1,8 @@
 /**
  * @file WaveformSin.cpp
  * @brief Source file for class WaveformSin
- * @date May 19, 2017
- * @author aneto
+ * @date 19/05/2017
+ * @author Llorenc
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -57,7 +57,7 @@ WaveformSin::~WaveformSin() {
 
 bool WaveformSin::Initialise(StructuredDataI& data) {
     bool ok = Waveform::Initialise(data);
-    if (!ok) {
+    if (!ok) {//Waveform only fails if GAM::initialize fails (a wrong trigger configurations is a warning, not a InitialisationError)
         REPORT_ERROR(ErrorManagement::InitialisationError, "Error. Waveform returns an initialization error");
     }
     if (ok) {
@@ -102,50 +102,29 @@ bool WaveformSin::GetUInt8Value() {
     return WaveformSin::GetValue<uint8>();
 }
 
+bool WaveformSin::GetFloat64OutputValues() {
+    for (uint32 i = 0u; i < numberOfOutputElements; i++) {
+        TriggerMechanism();
+        if (signalOn && triggersOn) {
+            float64 aux = (2.0 * FastMath::PI * frequency * currentTime) + phase;
+            //lint -e{747} No float64 implementation of Sin
+            //lint -e{736} No float64 implementation of Sin
+            //lint -e{9120} No float64 implementation of Sin
+            float64 aux2 = static_cast<float64>(FastMath::Sin(aux));
+            outputFloat64[i] = ((amplitude * aux2)+ offset);
+        }
+        else {
+            outputFloat64[i] = 0.0;
+        }
+        currentTime += timeIncrement;
+    }
+    return true;
+}
+
 template<typename T>
-bool WaveformSin::GetValue() {
-    ucurrentTime = *inputTime;
-    if (timeState == 0) {
-        time0 = *inputTime;
-        timeState++;
-        for (uint32 i = 0; i < numberOfOutputElements; i++) {
-            static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(0);
-        }
-    }
-    else if (timeState == 1) {
-        time1 = *inputTime;
-        utimeIncrement = (time1 - time0) / numberOfOutputElements;
-        timeIncrement = double(time1 - time0) / numberOfOutputElements / 1e6;
-        timeState++;
-    }
-    if (timeState == 2) {
-        for (uint32 i = 0; i < numberOfOutputElements; i++) {
-            if (triggersOn) {
-                if (numberOfStartTriggers > indexStartTriggersArray) {
-                    if (startTriggerTime[indexStartTriggersArray] <= ucurrentTime) {
-                        signalOn = true;
-                        indexStartTriggersArray++;
-                    }
-                }
-                if (indexStopTriggersArray < numberOfStopTriggers) {
-                    if (stopTriggerTime[indexStopTriggersArray] <= ucurrentTime) {
-                        signalOn = false;
-                        indexStopTriggersArray++;
-                    }
-                }
-            }
-            else {
-                signalOn = true;
-            }
-            if (signalOn) {
-                static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(amplitude
-                        * FastMath::Sin(2.0 * FastMath::PI * frequency * (*inputTime / 1e6 + timeIncrement * i) + phase) + offset);
-            }
-            else {
-                static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(0);
-            }
-            ucurrentTime += utimeIncrement;
-        }
+bool WaveformSin::GetValue(){
+    for(uint32 i = 0u; i < numberOfOutputElements; i++){
+        static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
     }
     return true;
 }
