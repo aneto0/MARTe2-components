@@ -212,9 +212,9 @@ TEST(WaveformSinGAMTest, TestStopTriggerGreaterThanStartTrigger) {
     ASSERT_TRUE(test.TestStopTriggerGreaterThanStartTrigger());
 }
 
-TEST(WaveformSinGAMTest, TestStartTriggerGreaterThanStopTriggerPluse2) {
+TEST(WaveformSinGAMTest, TestStartTriggerGreaterThanStopTriggerPlus2) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestStartTriggerGreaterThanStopTriggerPluse2());
+    ASSERT_TRUE(test.TestStartTriggerGreaterThanStopTriggerPlus2());
 }
 
 TEST(WaveformSinGAMTest, TestStartTriggerTimeArrayInconsistent) {

@@ -109,7 +109,7 @@ public:
 
     bool TestStopTriggerGreaterThanStartTrigger();
 
-    bool TestStartTriggerGreaterThanStopTriggerPluse2();
+    bool TestStartTriggerGreaterThanStopTriggerPlus2();
 
     bool TestStartTriggerTimeArrayInconsistent();
 

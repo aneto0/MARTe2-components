@@ -28,7 +28,7 @@ TARGET=cov
 
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-OBJSX = WaveformSinGAMGTest.x WaveformPointsDefGAMGTest.x
+OBJSX = WaveformSinGAMGTest.x WaveformPointsDefGAMGTest.x WaveformChirpGAMGTest.x
 
 include Makefile.inc
 

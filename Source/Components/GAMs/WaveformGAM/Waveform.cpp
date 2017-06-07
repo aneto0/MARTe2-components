@@ -119,7 +119,7 @@ bool Waveform::Initialise(StructuredDataI& data) {
                                     triggersEnable = true;
                                 }
                                 else {
-                                    REPORT_ERROR(ErrorManagement::Warning, "Wrong trigger time. Trigger mechanism ignored.");
+                                    REPORT_ERROR(ErrorManagement::Warning, "Wrong trigger time sequence. Trigger mechanism ignored.");
                                 }
                             }
                         }
@@ -284,7 +284,7 @@ bool Waveform::Execute() {
             currentTime = static_cast<float64>(*inputTime) / 1e6;
         }
         ok = GetFloat64OutputValues();
-        for (indexOutputSignal = 0u; indexOutputSignal < numberOfOutputElements; indexOutputSignal++) {
+        for (indexOutputSignal = 0u; indexOutputSignal < numberOfOutputSignals; indexOutputSignal++) {
             if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
                ok = GetUInt8Value();
             }

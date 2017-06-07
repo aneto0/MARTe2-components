@@ -53,8 +53,6 @@ WaveformPointsDef    ();
      */
     virtual bool Initialise(StructuredDataI & data);
 
-    virtual bool Setup();
-
     /**
      * @brief computes the points signal implementation in uint8.
      * @brief this function calls the template implementation of the points implementation.

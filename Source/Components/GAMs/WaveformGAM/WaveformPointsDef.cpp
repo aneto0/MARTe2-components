@@ -153,17 +153,6 @@ bool WaveformPointsDef::Initialise(StructuredDataI &data) {
             }
         }
     }
-    return ok;
-}
-
-bool WaveformPointsDef::Setup() {
-    bool ok = Waveform::Setup();
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::InitialisationError, " Waveform::Setup() exits with an error");
-    }
-    if(ok){
-        ok = (points != NULL_PTR(float64 *));
-    }
     if (ok) {
         if ((points != NULL_PTR(float64 *)) && (times != NULL_PTR(float64 *))) {
             refVal = points[0];

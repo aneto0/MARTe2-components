@@ -1,8 +1,8 @@
 /**
- * @file WaveformPointsDefGAMTest.h
- * @brief Header file for class WaveformPointsDefGAMTest
- * @date 30/05/2017
- * @author Llorenc
+ * @file WaveformChirpGAMTest.h
+ * @brief Header file for class WaveformChirpGAMTest
+ * @date 02/06/2017
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -16,59 +16,59 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class WaveformPointsDefGAMTest
+ * @details This header file contains the declaration of the class WaveformChirpGAMTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef WAVEFORMPOINTSDEFGAMTEST_H_
-#define WAVEFORMPOINTSDEFGAMTEST_H_
+#ifndef WAVEFORMCHIRPGAMTEST_H_
+#define WAVEFORMCHIRPGAMTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-
+#include "math.h"
+#include "FastMath.h"
+#include "stdio.h"
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "WaveformChirp.h"
 #include "StreamString.h"
-#include "ConfigurationDatabase.h"
-#include "GAM.h"
-#include "WaveformPointsDef.h"
-#include "stdio.h"
-
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-using namespace MARTe;
+namespace MARTe {
 
-class WaveformPointsDefGAMTest {
-//TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API WaveformPointsDefGAMTest)
+class WaveformChirpGAMTest {
+//TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API WaveformChirpGAMTest)
 public:
-    WaveformPointsDefGAMTest();
-    virtual ~WaveformPointsDefGAMTest();
+    WaveformChirpGAMTest();
+    virtual ~WaveformChirpGAMTest();
 
-    bool TestMissingPoints();
+    bool TestMissingAmplitude();
 
-    bool TestFailingReadingPointsValues();
+    bool Test0Amplitude();
 
-    bool TestMissingTimes();
+    bool TestMissingPhase();
 
-    bool TestDifferentSizePointsTimes();
+    bool TestMissingOffset();
 
-    bool TestFailingReadingTimesValues();
+    bool TestMissingFreq1();
 
-    bool TestInvalidTimes();
+    bool TestMissingFreq2();
 
-    bool TestInvalidTimes2();
+    bool TestFreq1GreaterThanFreq2();
 
-    bool TestFailWaveformSetup();
+    bool TestMissingChirpDuration();
 
-    template<typename T2>
+    bool Test0ChirpDuration();
+
+    template<typename T>
     bool TestExecute(StreamString str);
 
-    template<typename T3>
+    template<typename T>
     bool TestExecuteTrigger(StreamString str);
 
     template<typename T>
@@ -76,19 +76,20 @@ public:
 
 };
 
+}
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-
-class WaveformPointsDefGAMTestHelper: public WaveformPointsDef {
+class WaveformChirpGAMTestHelper: public WaveformChirp {
 public:
 
-    WaveformPointsDefGAMTestHelper(uint32 elementsIn = 1,
-                                   uint32 samplesIn = 1,
-                                   uint32 elementsOut = 4,
-                                   uint32 samplesOut = 1,
-                                   StreamString str = "int8") {
+    WaveformChirpGAMTestHelper(uint32 elementsIn = 1,
+                               uint32 samplesIn = 1,
+                               uint32 elementsOut = 4,
+                               uint32 samplesOut = 1,
+                               StreamString str = "int8") {
         numberOfElementsIn = elementsIn;
         numberOfSamplesIn = samplesIn;
         byteSizeIn = numberOfElementsIn * sizeof(uint32);
@@ -107,19 +108,15 @@ public:
         isInitialised = false;
         numberOfElementsY = 4;
         numberOfElementsX = 4;
-        x1 = new float64[numberOfElementsX];
-        y1 = new float64[numberOfElementsY];
-        for (uint32 i = 0u; i < numberOfElementsX; i++) {
-            x1[i] = 0.0;
-            y1[i] = 0.0;
-        }
-        dimArrayCompare1 = 15;
-        refValues1 = new float64[dimArrayCompare1];
-        indexCompare1 = 0;
-        indexCompare2 = 0;
+        f1 = 0.0;
+        f2 = 10.0;
+        amplitude = 10.0;
+        phase = 0.0;
+        offset = 0.0;
+        chirpDuration = 0.0;
     }
 
-    WaveformPointsDefGAMTestHelper(StreamString str) {
+    WaveformChirpGAMTestHelper(StreamString str) {
         numberOfElementsIn = 1;
         numberOfSamplesIn = 1;
         byteSizeIn = numberOfElementsIn * sizeof(uint32);
@@ -137,28 +134,15 @@ public:
         isInitialised = false;
         numberOfElementsY = 4;
         numberOfElementsX = 4;
-        x1 = new float64[numberOfElementsX];
-        y1 = new float64[numberOfElementsY];
-        for (uint32 i = 0u; i < numberOfElementsX; i++) {
-            x1[i] = 0.0;
-            y1[i] = 0.0;
-        }
-        dimArrayCompare1 = 15;
-        refValues1 = new float64[dimArrayCompare1];
-        indexCompare1 = 0;
-        indexCompare2 = 0;
-        elementsStopTrigger = 4;
+        f1 = 0.0;
+        f2 = 10.0;
+        amplitude = 10.0;
+        phase = 0.0;
+        offset = 0.0;
+        chirpDuration = 0.0;
     }
 
-    ~WaveformPointsDefGAMTestHelper() {
-        if (y1 != NULL) {
-            delete[] y1;
-            y1 = NULL;
-        }
-        if (x1 != NULL) {
-            delete[] x1;
-            x1 = NULL;
-        }
+    ~WaveformChirpGAMTestHelper() {
         if (startTrigger != NULL) {
             delete[] startTrigger;
         }
@@ -179,37 +163,21 @@ public:
     void *GetOutputSignalsMemory(uint32 idx) {
         return GAM::GetOutputSignalMemory(idx);
     }
-    bool InitialisePointsdef1() {
+    bool InitialiseChirp1() {
         bool ret = true;
         if (isInitialised == false) {
-            x1[0] = 0;
-            x1[1] = 1.25;
-            x1[2] = 2;
-            x1[3] = 3.5;
-            y1[0] = 0;
-            y1[1] = 6;
-            y1[2] = 5.25;
-            y1[3] = 2.25;
-            refValues1[0] = 0;
-            refValues1[1] = 1.2;
-            refValues1[2] = 2.4;
-            refValues1[3] = 3.6;
-            refValues1[4] = 4.8;
-            refValues1[5] = 6;
-            refValues1[6] = 5.75;
-            refValues1[7] = 5.5;
-            refValues1[8] = 5.25;
-            refValues1[9] = 4.75;
-            refValues1[10] = 4.25;
-            refValues1[11] = 3.75;
-            refValues1[12] = 3.25;
-            refValues1[13] = 2.75;
-            refValues1[14] = 2.25;
-
-            Vector<float64> yVec(y1, numberOfElementsY);
-            ret &= config.Write("Points", yVec);
-            Vector<float64> xVec(x1, numberOfElementsX);
-            ret &= config.Write("Times", xVec);
+            f1 = 0;
+            f2 = 10;
+            amplitude = 10.0;
+            phase = 0.0;
+            offset = 0.0;
+            chirpDuration = 5.0;
+            ret &= config.Write("Frequency1", f1);
+            ret &= config.Write("Frequency2", f2);
+            ret &= config.Write("Amplitude", amplitude);
+            ret &= config.Write("Phase", phase);
+            ret &= config.Write("Offset", offset);
+            ret &= config.Write("ChirpDuration", chirpDuration);
             isInitialised = ret;
         }
         else {
@@ -217,43 +185,37 @@ public:
         }
         return ret;
     }
+
     bool IsEqualLargerMargins(float64 f1,
                               float64 f2) {
         float64 *min = reinterpret_cast<float64*>(const_cast<uint64*>(&EPSILON_FLOAT64));
         float64 minLarger = *min * 3;
         return ((f1 - f2) < (minLarger)) && ((f1 - f2) > -(minLarger));
     }
-    bool InitialisePointsdef1Trigger() {
-        bool ret = true;
 
+    bool IsEqualLargerMargins(float32 f1,
+                              float32 f2) {
+        float32 *min = reinterpret_cast<float32*>(const_cast<uint32*>(&EPSILON_FLOAT32));
+        float32 minLarger = *min * 3;
+        return ((f1 - f2) < (minLarger)) && ((f1 - f2) > -(minLarger));
+    }
+
+    bool InitialiseChirp1Trigger() {
+        bool ret = true;
         if (isInitialised == false) {
-            x1[0] = 0;
-            x1[1] = 1.25;
-            x1[2] = 2;
-            x1[3] = 3.5;
-            y1[0] = 0;
-            y1[1] = 6;
-            y1[2] = 5.25;
-            y1[3] = 2.25;
-            refValues1[0] = 0;
-            refValues1[1] = 1.2;
-            refValues1[2] = 2.4;
-            refValues1[3] = 3.6;
-            refValues1[4] = 4.8;
-            refValues1[5] = 6;
-            refValues1[6] = 5.75;
-            refValues1[7] = 5.5;
-            refValues1[8] = 5.25;
-            refValues1[9] = 4.75;
-            refValues1[10] = 4.25;
-            refValues1[11] = 3.75;
-            refValues1[12] = 3.25;
-            refValues1[13] = 2.75;
-            refValues1[14] = 2.25;
-            Vector<float64> yVec(y1, numberOfElementsY);
-            ret &= config.Write("Points", yVec);
-            Vector<float64> xVec(x1, numberOfElementsX);
-            ret &= config.Write("Times", xVec);
+            f1 = 0;
+            f2 = 10;
+            amplitude = 10.0;
+            phase = 0.0;
+            offset = 0.0;
+            chirpDuration = 5.0;
+            ret &= config.Write("Frequency1", f1);
+            ret &= config.Write("Frequency2", f2);
+            ret &= config.Write("Amplitude", amplitude);
+            ret &= config.Write("Phase", phase);
+            ret &= config.Write("Offset", offset);
+            ret &= config.Write("ChirpDuration", chirpDuration);
+            isInitialised = ret;
 
             startTrigger = new float64[elementsStartTrigger];
             stopTrigger = new float64[elementsStopTrigger];
@@ -283,6 +245,7 @@ public:
     bool IsInitialised() {
         return isInitialised;
     }
+
     bool InitialiseConfigDataBaseSignal1() {
         bool ok = true;
         uint32 totalByteSizeIn = byteSizeIn;
@@ -364,14 +327,14 @@ public:
         ok &= configSignals.CreateRelative("1");
         ok &= configSignals.Write("QualifiedName", "OutputSignal2");
         ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type","uint32");
+        ok &= configSignals.Write("Type", "uint32");
         ok &= configSignals.Write("NumberOfDimensions", 1);
         ok &= configSignals.Write("NumberOfElements", numberOfElementsOut);
         ok &= configSignals.Write("ByteSize", totalByteSizeOut2);
 
         ok &= configSignals.MoveToAncestor(1u);
 
-        uint32 totalByteSizeOut = totalByteSizeOut1+ totalByteSizeOut2;
+        uint32 totalByteSizeOut = totalByteSizeOut1 + totalByteSizeOut2;
         ok &= configSignals.Write("ByteSize", totalByteSizeOut);
 
         ok &= configSignals.MoveToRoot();
@@ -398,7 +361,9 @@ public:
     }
 
     template<typename T>
-    bool ComparePointsdef1(T *output) {
+    bool CompareChirp1(T *output,
+                       float64 t,
+                       float64 it) {
         bool ret = true;
         static bool firstIteration = true;
         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
@@ -406,21 +371,19 @@ public:
                 ret = (static_cast<T>(0.0) == output[i]);
             }
             else {
+                float64 refValue = amplitude * sin(2.0 * FastMath::PI * f1 * t + 2 * FastMath::PI * (f2 - f1) * t * t / 2.0 / chirpDuration + phase) + offset;
                 StreamString auxStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
                 if (auxStr == "float32") {
-                    ret = IsEqual(static_cast<float32>(refValues1[indexCompare1]), static_cast<float32>(output[i]));
+                    ret = IsEqualLargerMargins(static_cast<float32>(refValue), static_cast<float32>(output[i]));
                 }
                 else if (auxStr == "float64") {
-                    ret = IsEqualLargerMargins(static_cast<float64>(refValues1[indexCompare1]), static_cast<float64>(output[i]));
+                    ret = IsEqualLargerMargins(static_cast<float64>(refValue), static_cast<float64>(output[i]));
                 }
                 else {
-                    ret = (static_cast<T>(refValues1[indexCompare1]) == output[i]);
+                    ret = (static_cast<T>(refValue) == output[i]);
                 }
             }
-            indexCompare1++;
-            if (indexCompare1 == dimArrayCompare1) {
-                indexCompare1 = 0;
-            }
+            t += it;
         }
         if (firstIteration) {
             firstIteration = false;
@@ -429,82 +392,83 @@ public:
     }
 
     template<typename T>
-     bool ComparePointsdef1Trigger(T *output,
-                                   float64 t,
-                                   float64 it) {
-         bool ret = true;
-         static bool firstIteration = true;
-         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
-             if (firstIteration) {
-                 ret = (static_cast<T>(0.0) == output[i]);
-             }
-             else {
-                 if (ShouldBeSignalOutOn(t)) {
-                     StreamString auxStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
-                     if (auxStr == "float32") {
-                         ret = IsEqual(static_cast<float32>(refValues1[indexCompare1]), static_cast<float32>(output[i]));
-                     }
-                     else if (auxStr == "float64") {
-                         ret = IsEqualLargerMargins(static_cast<float64>(refValues1[indexCompare1]), static_cast<float64>(output[i]));
-                     }
-                     else {
-                         ret = (static_cast<T>(refValues1[indexCompare1]) == output[i]);
-                     }
-                 }
-                 else {
-                     ret = (static_cast<T>(0.0) == output[i]);
-                 }
-             }
-             indexCompare1++;
-             if (indexCompare1 == dimArrayCompare1) {
-                 indexCompare1 = 0;
-             }
-             t += it;
-         }
-         if (firstIteration) {
-             firstIteration = false;
-         }
-         return ret;
-     }
+    bool CompareChirp1Trigger(T *output,
+                              float64 t,
+                              float64 it) {
+        bool ret = true;
+
+        static bool firstIteration = true;
+        for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
+            if (firstIteration) {
+                ret = (static_cast<T>(0.0) == output[i]);
+            }
+            else {
+                float64 refValue = amplitude * sin(2.0 * FastMath::PI * f1 * t + 2 * FastMath::PI * (f2 - f1) * t * t / 2.0 / chirpDuration + phase) + offset;
+                if (ShouldBeSignalOutOn(t)) {
+                    StreamString auxStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
+                    if (auxStr == "float32") {
+                        ret = IsEqualLargerMargins(static_cast<float32>(refValue), static_cast<float32>(output[i]));
+                    }
+                    else if (auxStr == "float64") {
+                        ret = IsEqualLargerMargins(static_cast<float64>(refValue), static_cast<float64>(output[i]));
+                    }
+                    else {
+                        ret = (static_cast<T>(refValue) == output[i]);
+                    }
+                }
+                else {
+                    ret = (static_cast<T>(0.0) == output[i]);
+                }
+            }
+
+            if (firstIteration) {
+                firstIteration = false;
+            }
+            t += it;
+        }
+        if (firstIteration) {
+            firstIteration = false;
+        }
+        return ret;
+    }
 
     template<typename T>
-     bool ComparePointsdef1Trigger2(T *output,
-                                   float64 t,
-                                   float64 it) {
-         bool ret = true;
-         static bool firstIteration = true;
-         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
-             if (firstIteration) {
-                 ret = (static_cast<T>(0.0) == output[i]);
-             }
-             else {
-                 if (ShouldBeSignalOutOn(t)) {
-                     StreamString auxStr = "uint32";
-                     if (auxStr == "float32") {
-                         ret = IsEqual(static_cast<float32>(refValues1[indexCompare2]), static_cast<float32>(output[i]));
-                     }
-                     else if (auxStr == "float64") {
-                         ret = IsEqualLargerMargins(static_cast<float64>(refValues1[indexCompare2]), static_cast<float64>(output[i]));
-                     }
-                     else {
-                         ret = (static_cast<T>(refValues1[indexCompare2]) == output[i]);
-                     }
-                 }
-                 else {
-                     ret = (static_cast<T>(0.0) == output[i]);
-                 }
-             }
-             indexCompare2++;
-             if (indexCompare2 == dimArrayCompare1) {
-                 indexCompare2 = 0;
-             }
-             t += it;
-         }
-         if (firstIteration) {
-             firstIteration = false;
-         }
-         return ret;
-     }
+    bool CompareChirpTrigger2(T *output,
+                              float64 t,
+                              float64 it) {
+        bool ret = true;
+
+        static bool firstIteration = true;
+        for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
+            if (firstIteration) {
+                ret = (static_cast<T>(0.0) == output[i]);
+            }
+            else {
+                float64 refValue = amplitude * sin(2.0 * FastMath::PI * f1 * t + 2 * FastMath::PI * (f2 - f1) * t * t / 2.0 / chirpDuration + phase) + offset;
+                if (ShouldBeSignalOutOn(t)) {
+                    StreamString auxStr = "uint32";
+                    if (auxStr == "float32") {
+                        ret = IsEqualLargerMargins(static_cast<float32>(refValue), static_cast<float32>(output[i]));
+                    }
+                    else if (auxStr == "float64") {
+                        ret = IsEqualLargerMargins(static_cast<float64>(refValue), static_cast<float64>(output[i]));
+                    }
+                    else {
+                        ret = (static_cast<T>(refValue) == output[i]);
+                    }
+                }
+                else {
+                    ret = (static_cast<T>(0.0) == output[i]);
+                }
+            }
+            t += it;
+        }
+        if (firstIteration) {
+            firstIteration = false;
+        }
+
+        return ret;
+    }
 
     uint32 numberOfElementsIn;
     uint32 numberOfSamplesIn;
@@ -516,20 +480,20 @@ public:
     ConfigurationDatabase config;
     TypeDescriptor type;
     StreamString typeStr;
-    float64 *y1;
-    float64 *x1;
     uint32 numberOfElementsY;
     uint32 numberOfElementsX;
-    uint32 indexCompare1;
-    uint32 indexCompare2;
-    float64 *refValues1;
+    float64 f1;
+    float64 f2;
+    float64 amplitude;
+    float64 offset;
+    float64 phase;
+    float64 chirpDuration;
 private:
     bool isInitialised;
     float64 *startTrigger;
     float64 *stopTrigger;
     uint32 elementsStartTrigger;
     uint32 elementsStopTrigger;
-    uint32 dimArrayCompare1;
 
     bool ShouldBeSignalOutOn(float64 t) { //assuming a lot of thinks which are not checked i.e elementsStopTrigger cannot be greater than elementsStartTrigger
         bool ret;
@@ -563,41 +527,58 @@ private:
 }
 ;
 //CLASS_REGISTER(WaveformPointsDefGAMTestHelper, "1.0")
-}
 
-template<typename T1>
-bool WaveformPointsDefGAMTest::TestExecute(StreamString str) {
+#endif /* WAVEFORMCHIRPGAMTEST_H_ */
+
+template<typename T>
+bool WaveformChirpGAMTest::TestExecute(StreamString str) {
     using namespace MARTe;
     bool ok = true;
     uint32 timeIterationIncrement = 1000000u;
     uint32 *timeIteration = NULL;
     uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
     uint32 sizeOutput = 4u;
-    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+    WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1, str);
 
-    T1 *output = NULL;
+    T *output = NULL;
 
     gam.SetName("Test");
-    ok &= gam.InitialisePointsdef1();
+    ok &= gam.InitialiseChirp1();
     gam.config.MoveToRoot();
-    ok &= gam.Initialise(gam.config);
+    if (ok) {
+        ok &= gam.Initialise(gam.config);
+    }
+    if (ok) {
+        ok &= gam.InitialiseConfigDataBaseSignal1();
+    }
+    if (ok) {
+        ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    }
+    if (ok) {
+        ok &= gam.AllocateInputSignalsMemory();
+    }
+    if (ok) {
+        ok &= gam.AllocateOutputSignalsMemory();
+    }
+    if (ok) {
+        ok &= gam.Setup();
+    }
 
-    ok &= gam.InitialiseConfigDataBaseSignal1();
-    ok &= gam.SetConfiguredDatabase(gam.configSignals);
-    ok &= gam.AllocateInputSignalsMemory();
-    ok &= gam.AllocateOutputSignalsMemory();
+    if (ok) {
+        timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
 
-    ok &= gam.Setup();
-
-    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
-    *timeIteration = 0;
-    output = static_cast<T1 *>(gam.GetOutputSignalsMemory());
-    for (uint32 i = 0u; i < sizeOutput; i++) {
-        output[i] = static_cast<T1>(0.0);
+        *timeIteration = 0;
+    }
+    if (ok) {
+        output = static_cast<T *>(gam.GetOutputSignalsMemory());
+    }
+    for (uint32 i = 0u; (i < sizeOutput) && ok; i++) {
+        output[i] = static_cast<T>(0.0);
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
         gam.Execute();
-        ok &= gam.ComparePointsdef1(output);
+        ok &= gam.CompareChirp1(output, static_cast<float64>(*timeIteration) / 1e6,
+                                static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
             printf("iteration which fails %u\n", i);
         }
@@ -606,39 +587,55 @@ bool WaveformPointsDefGAMTest::TestExecute(StreamString str) {
     return ok;
 }
 
-template<typename T4>
-bool WaveformPointsDefGAMTest::TestExecuteTrigger(StreamString str) {
+template<typename T>
+bool WaveformChirpGAMTest::TestExecuteTrigger(StreamString str) {
     using namespace MARTe;
     bool ok = true;
     uint32 timeIterationIncrement = 1000000u;
     uint32 *timeIteration = NULL;
     uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
     uint32 sizeOutput = 4u;
-    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+    WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1, str);
 
-    T4 *output = NULL;
+    T *output = NULL;
 
     gam.SetName("Test");
-    ok &= gam.InitialisePointsdef1Trigger();
+    ok &= gam.InitialiseChirp1Trigger();
     gam.config.MoveToRoot();
-    ok &= gam.Initialise(gam.config);
+    if (ok) {
+        ok &= gam.Initialise(gam.config);
+    }
+    if (ok) {
+        ok &= gam.InitialiseConfigDataBaseSignal1();
+    }
+    if (ok) {
+        ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    }
+    if (ok) {
+        ok &= gam.AllocateInputSignalsMemory();
+    }
+    if (ok) {
+        ok &= gam.AllocateOutputSignalsMemory();
+    }
+    if (ok) {
+        ok &= gam.Setup();
+    }
 
-    ok &= gam.InitialiseConfigDataBaseSignal1();
-    ok &= gam.SetConfiguredDatabase(gam.configSignals);
-    ok &= gam.AllocateInputSignalsMemory();
-    ok &= gam.AllocateOutputSignalsMemory();
+    if (ok) {
+        timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
 
-    ok &= gam.Setup();
-
-    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
-    *timeIteration = 0;
-    output = static_cast<T4 *>(gam.GetOutputSignalsMemory());
-    for (uint32 i = 0u; i < sizeOutput; i++) {
-        output[i] = static_cast<T4>(0.0);
+        *timeIteration = 0;
+    }
+    if (ok) {
+        output = static_cast<T *>(gam.GetOutputSignalsMemory());
+    }
+    for (uint32 i = 0u; (i < sizeOutput) && ok; i++) {
+        output[i] = static_cast<T>(0.0);
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
         gam.Execute();
-        ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6,
+                                       static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
             printf("iteration which fails %u\n", i);
         }
@@ -647,44 +644,60 @@ bool WaveformPointsDefGAMTest::TestExecuteTrigger(StreamString str) {
     return ok;
 }
 
-template<typename T4>
-bool WaveformPointsDefGAMTest::TestExecute2Signals(StreamString str) {
+template<typename T>
+bool WaveformChirpGAMTest::TestExecute2Signals(StreamString str) {
     using namespace MARTe;
     bool ok = true;
     uint32 timeIterationIncrement = 1000000u;
     uint32 *timeIteration = NULL;
     uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
     uint32 sizeOutput = 4u;
-    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+    WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1, str);
 
-    T4 *output = NULL;
+    T *output = NULL;
     uint32 *output2 = NULL;
 
     gam.SetName("Test");
-    ok &= gam.InitialisePointsdef1Trigger();
+    ok &= gam.InitialiseChirp1Trigger();
     gam.config.MoveToRoot();
-    ok &= gam.Initialise(gam.config);
+    if (ok) {
+        ok &= gam.Initialise(gam.config);
+    }
+    if (ok) {
+        ok &= gam.InitialiseConfigDataBaseSignal2();
+    }
+    if (ok) {
+        ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    }
+    if (ok) {
+        ok &= gam.AllocateInputSignalsMemory();
+    }
+    if (ok) {
+        ok &= gam.AllocateOutputSignalsMemory();
+    }
+    if (ok) {
+        ok &= gam.Setup();
+    }
 
-    ok &= gam.InitialiseConfigDataBaseSignal2();
-    ok &= gam.SetConfiguredDatabase(gam.configSignals);
-    ok &= gam.AllocateInputSignalsMemory();
-    ok &= gam.AllocateOutputSignalsMemory();
+    if (ok) {
+        timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
 
-    ok &= gam.Setup();
-
-    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
-    *timeIteration = 0;
-    output = static_cast<T4 *>(gam.GetOutputSignalsMemory());
-    output2 = static_cast<uint32 *>(gam.GetOutputSignalsMemory(1));
-
-    for (uint32 i = 0u; i < sizeOutput; i++) {
-        output[i] = static_cast<T4>(0.0);
-        output[i] = static_cast<uint32>(0.0);
+        *timeIteration = 0;
+    }
+    if (ok) {
+        output = static_cast<T *>(gam.GetOutputSignalsMemory());
+        output2 = static_cast<uint32 *>(gam.GetOutputSignalsMemory(1));
+    }
+    for (uint32 i = 0u; (i < sizeOutput) && ok; i++) {
+        output[i] = static_cast<T>(0.0);
+        output2[i] = static_cast<uint32>(0.0);
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
         gam.Execute();
-        ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
-        ok &= gam.ComparePointsdef1Trigger2(output2, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6,
+                                static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirpTrigger2(output2, static_cast<float64>(*timeIteration) / 1e6,
+                                static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
             printf("iteration which fails %u\n", i);
         }
@@ -692,5 +705,4 @@ bool WaveformPointsDefGAMTest::TestExecute2Signals(StreamString str) {
     }
     return ok;
 }
-#endif /*WAVEFORMPOINTSDEFGAMTEST_H_ */
-
+}

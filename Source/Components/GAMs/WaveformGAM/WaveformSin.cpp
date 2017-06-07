@@ -25,6 +25,8 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 
+#include "math.h"
+
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -98,19 +100,13 @@ bool WaveformSin::Initialise(StructuredDataI& data) {
     return ok;
 }
 
-bool WaveformSin::GetUInt8Value() {
-    return WaveformSin::GetValue<uint8>();
-}
 
 bool WaveformSin::GetFloat64OutputValues() {
     for (uint32 i = 0u; i < numberOfOutputElements; i++) {
         TriggerMechanism();
         if (signalOn && triggersOn) {
             float64 aux = (2.0 * FastMath::PI * frequency * currentTime) + phase;
-            //lint -e{747} No float64 implementation of Sin
-            //lint -e{736} No float64 implementation of Sin
-            //lint -e{9120} No float64 implementation of Sin
-            float64 aux2 = static_cast<float64>(FastMath::Sin(aux));
+            float64 aux2 = sin(aux);
             outputFloat64[i] = ((amplitude * aux2)+ offset);
         }
         else {
@@ -119,6 +115,10 @@ bool WaveformSin::GetFloat64OutputValues() {
         currentTime += timeIncrement;
     }
     return true;
+}
+
+bool WaveformSin::GetUInt8Value() {
+    return WaveformSin::GetValue<uint8>();
 }
 
 template<typename T>
