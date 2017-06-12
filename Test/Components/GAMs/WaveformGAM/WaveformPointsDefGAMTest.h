@@ -46,34 +46,91 @@ using namespace MARTe;
 class WaveformPointsDefGAMTest {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API WaveformPointsDefGAMTest)
 public:
+
+    /**
+     * @brief default constructor
+     */
     WaveformPointsDefGAMTest();
+
+    /**
+     * @brief default destructor
+     */
     virtual ~WaveformPointsDefGAMTest();
 
+    /**
+     * @brief Test error message of WaveformPointsDef::Initialise()
+     */
     bool TestMissingPoints();
 
+    /**
+     * @brief Test error message of WaveformPointsDef::Initialise()
+     */
     bool TestFailingReadingPointsValues();
 
+    /**
+     * @brief Test error message of WaveformPointsDef::Initialise()
+     */
+    bool Test1Point();
+
+    /**
+     * @brief Test error message of WaveformPointsDef::Initialise()
+     */
     bool TestMissingTimes();
 
+    /**
+     * @brief Test error message of WaveformPointsDef::Initialise()
+     */
     bool TestDifferentSizePointsTimes();
 
+    /**
+     * @brief Test error message of WaveformPointsDef::Initialise()
+     */
     bool TestFailingReadingTimesValues();
 
+    /**
+     * @brief Test error message of WaveformPointsDef::Initialise()
+     */
     bool TestInvalidTimes();
 
+    /**
+     * @brief Test error message of WaveformPointsDef::Initialise()
+     */
     bool TestInvalidTimes2();
 
+    /**
+     * @brief Test error message of WaveformPointsDef::Initialise()
+     */
     bool TestFailWaveformSetup();
 
+    /**
+     * @brief Template test. Verifies the correctness of the data.
+     */
     template<typename T2>
     bool TestExecute(StreamString str);
 
+    /**
+     * @brief Template test. Verifies the correctness of the data with trigger mechanism Enable.
+     */
     template<typename T3>
     bool TestExecuteTrigger(StreamString str);
 
+    /**
+     * @brief Template test. Verifies the correctness of the data with two output signals.
+     */
     template<typename T>
     bool TestExecute2Signals(StreamString str);
 
+    /**
+     * @brief Template test. Verifies the correctness of the data with the minimum possible points array.
+     */
+    template<typename T>
+    bool TestExecuteTrigger2Point(StreamString str);
+
+    /**
+     * @brief Template test. Verifies the correctness of the data with Only on element per cycle.
+     */
+    template<typename T>
+    bool TestExecuteTrigger_1Element(StreamString str);
 };
 
 /*---------------------------------------------------------------------------*/
@@ -108,13 +165,16 @@ public:
         numberOfElementsY = 4;
         numberOfElementsX = 4;
         x1 = new float64[numberOfElementsX];
+        x11 = new float64[2];
         y1 = new float64[numberOfElementsY];
+        y11 = new float64[2];
         for (uint32 i = 0u; i < numberOfElementsX; i++) {
             x1[i] = 0.0;
             y1[i] = 0.0;
         }
         dimArrayCompare1 = 15;
         refValues1 = new float64[dimArrayCompare1];
+        ref1Values1 = new float64[2];
         indexCompare1 = 0;
         indexCompare2 = 0;
     }
@@ -138,13 +198,16 @@ public:
         numberOfElementsY = 4;
         numberOfElementsX = 4;
         x1 = new float64[numberOfElementsX];
+        x11 = new float64[2];
         y1 = new float64[numberOfElementsY];
+        y11 = new float64[2];
         for (uint32 i = 0u; i < numberOfElementsX; i++) {
             x1[i] = 0.0;
             y1[i] = 0.0;
         }
         dimArrayCompare1 = 15;
         refValues1 = new float64[dimArrayCompare1];
+        ref1Values1 = new float64[2];
         indexCompare1 = 0;
         indexCompare2 = 0;
         elementsStopTrigger = 4;
@@ -279,6 +342,46 @@ public:
         return ret;
 
     }
+
+    bool Initialise2Pointsdef1Trigger() {
+            bool ret = true;
+
+            if (isInitialised == false) {
+                x11[0] = 0.0;
+                x11[1] = 1.5;
+                y11[0] = -5.25;
+                y11[1] = -5.25;
+                ref1Values1[0] = -5.25;
+                ref1Values1[1] = -5.25;
+                Vector<float64> yVec(y11, 2);
+                ret &= config.Write("Points", yVec);
+                Vector<float64> xVec(x11, 2);
+                ret &= config.Write("Times", xVec);
+
+                startTrigger = new float64[elementsStartTrigger];
+                stopTrigger = new float64[elementsStopTrigger];
+                startTrigger[0] = 1.25;
+                stopTrigger[0] = 1.75;
+                startTrigger[1] = 2.;
+                stopTrigger[1] = 3.25;
+                startTrigger[2] = 3.5;
+                stopTrigger[2] = 3.75;
+                startTrigger[3] = 4.;
+                stopTrigger[3] = 4.25;
+                startTrigger[4] = 4.55;
+                Vector<float64> startTVect(startTrigger, elementsStartTrigger);
+                Vector<float64> stopTVect(stopTrigger, elementsStopTrigger);
+                ret &= config.Write("StartTriggerTime", startTVect);
+                ret &= config.Write("StopTriggerTime", stopTVect);
+                isInitialised = ret;
+            }
+            else {
+                ret = false;
+            }
+
+            return ret;
+
+        }
 
     bool IsInitialised() {
         return isInitialised;
@@ -468,6 +571,45 @@ public:
      }
 
     template<typename T>
+     bool Compare2Pointsdef1Trigger(T *output,
+                                   float64 t,
+                                   float64 it) {
+         bool ret = true;
+         static bool firstIteration = true;
+         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
+             if (firstIteration) {
+                 ret = (static_cast<T>(0.0) == output[i]);
+             }
+             else {
+                 if (ShouldBeSignalOutOn(t)) {
+                     StreamString auxStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
+                     if (auxStr == "float32") {
+                         ret = IsEqual(static_cast<float32>(ref1Values1[indexCompare1]), static_cast<float32>(output[i]));
+                     }
+                     else if (auxStr == "float64") {
+                         ret = IsEqualLargerMargins(static_cast<float64>(ref1Values1[indexCompare1]), static_cast<float64>(output[i]));
+                     }
+                     else {
+                         ret = (static_cast<T>(ref1Values1[indexCompare1]) == output[i]);
+                     }
+                 }
+                 else {
+                     ret = (static_cast<T>(0.0) == output[i]);
+                 }
+             }
+             indexCompare1++;
+             if (indexCompare1 == 2) {
+                 indexCompare1 = 0;
+             }
+             t += it;
+         }
+         if (firstIteration) {
+             firstIteration = false;
+         }
+         return ret;
+     }
+
+    template<typename T>
      bool ComparePointsdef1Trigger2(T *output,
                                    float64 t,
                                    float64 it) {
@@ -516,13 +658,16 @@ public:
     ConfigurationDatabase config;
     TypeDescriptor type;
     StreamString typeStr;
+    float64 *y11;
     float64 *y1;
     float64 *x1;
+    float64 *x11;
     uint32 numberOfElementsY;
     uint32 numberOfElementsX;
     uint32 indexCompare1;
     uint32 indexCompare2;
     float64 *refValues1;
+    float64 *ref1Values1;
 private:
     bool isInitialised;
     float64 *startTrigger;
@@ -692,5 +837,92 @@ bool WaveformPointsDefGAMTest::TestExecute2Signals(StreamString str) {
     }
     return ok;
 }
+
+
+
+template<typename T>
+bool WaveformPointsDefGAMTest::TestExecuteTrigger2Point(StreamString str) {
+    using namespace MARTe;
+    bool ok = true;
+    uint32 timeIterationIncrement = 1000000u;
+    uint32 *timeIteration = NULL;
+    uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
+    uint32 sizeOutput = 4u;
+    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+
+    T *output = NULL;
+
+    gam.SetName("Test");
+    ok &= gam.Initialise2Pointsdef1Trigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    output = static_cast<T *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<T>(0.0);
+    }
+    for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
+        gam.Execute();
+        ok &= gam.Compare2Pointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        if (!ok) {
+            printf("iteration which fails %u\n", i);
+        }
+        *timeIteration += timeIterationIncrement;
+    }
+    return ok;
+}
+
+template<typename T>
+bool WaveformPointsDefGAMTest::TestExecuteTrigger_1Element(StreamString str) {
+    using namespace MARTe;
+    bool ok = true;
+    uint32 timeIterationIncrement = 250000u;
+    uint32 *timeIteration = NULL;
+    uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
+    uint32 sizeOutput = 1u;
+    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+
+    T *output = NULL;
+
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdef1Trigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    output = static_cast<T *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<T>(0.0);
+    }
+    for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
+        gam.Execute();
+        ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        if (!ok) {
+            printf("iteration which fails %u\n", i);
+        }
+        *timeIteration += timeIterationIncrement;
+    }
+    return ok;
+}
+
+
+
 #endif /*WAVEFORMPOINTSDEFGAMTEST_H_ */
 

@@ -38,87 +38,172 @@
 
 namespace MARTe {
 
+/**
+ * @brief GAM which generates a signal linearly interpolating a loaded configured points
+ * @details Given an array of values and another with times, this GAM interpolates the values. At the end of the sequence the signal is repeated.
+ * When the sequence is finished, the next value is the first value of the sequence (no interpolation is done between the last and the fist value).
+ * The configuration syntax is (names and signal quantity are only given as an example):
+ *<pre>
+ * +waveformPointsDef1 = {
+ *     Class = WaveformPointsDefGAM
+ *     Points = {10.0 5.1 0.3 3}
+ *     Times = {0.0 2.1 3.2 4.5} //time in seconds (if the times are not multiple of the sampling time the interpolation will be done but the output
+ *     values may not match with the Points array. the first time must be 0
+ *     StartTriggerTime = {0.1 0.3 0.5 1.8}
+ *     StopTriggerTime = {0.2 0.4 0.6} //the StopTriggerTime has one less time, it means that after the sequence of output on and off, the GAM will remain on forever
+ *     InputSignals = {
+ *         InputSignal1 = {
+ *             DataSource = "DDB1"
+ *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative)
+ *         }
+ *     }
+ *     OutputSignals = {
+ *         OutputSignal1 = {
+ *             DataSource = "LCD"
+ *             Type = float32
+ *         }
+ *         OutputSignal2 = {
+ *             DataSource = "LCD"
+ *             Type = int8
+ *         }
+ *     }
+ * }
+ * </pre>
+ *
+ * It is possible to specify a time vector which does not correspond to any time step. As a consequence the generated
+ * output could be slightly different form the specified points.
+ *
+ * The minimum number of points must be two, otherwise it is impossible to interpolated and the GAM exits with an initialization error
+ */
 class WaveformPointsDef: public Waveform {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API WaveformPointsDef)
 public:
     CLASS_REGISTER_DECLARATION()
 
+    /**
+     * @brief Default constructor
+     * @post
+     * points = NULL_PTR(float64 *)\n
+     * times = NULL_PTR(float64 *)\n
+     * slopes = NULL_PTR(float64 *)\n
+     * numberOfPointsElements = 0u\n
+     * numberOfTimesElements = 0u\n
+     * numberOfSlopeElements = 0u\n
+     * lastOutputValue = 0.0\n
+     * refVal = 0.0\n
+     * timeRefVal = 0.0\n
+     * indexSlopes = 0u\n
+     * beginningSequence = true\n
+     * lastTimeValue = 0.0\n
+     */
 WaveformPointsDef    ();
+    /**
+     * @brief default destructor
+     * @details frees the memory allocated by this GAM and points the pointers to NULL
+     * @post
+     *  points = NULL_PTR(float64 *)\n
+     *  times = NULL_PTR(float64 *)\n
+     *  slopes = NULL_PTR(float64 *)\n
+     */
     virtual ~WaveformPointsDef();
 
     /**
      * @brief Initialise the GAM from a configuration file.
-     * @brief Load the parameters of for the points implementation and verify its correctness and consistency
+     * @details Load the parameters \a Points and \a Times and verify its correctness and consistency.
+     * Moreover, from Points and Times vector, the slope for each segment is calculated.
      * @return true if all parameters are valid
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief computes the points signal implementation in uint8.
-     * @brief this function calls the template implementation of the points implementation.
+     * @brief computes the waveform interpolating points in uint8.
+     * @details this function calls the template function GetValue() with the uint8 type
+     * @return true always
      */
     virtual bool GetUInt8Value();
 
     /**
-     * @brief computes the points signal implementation in int8.
-     * @brief this function calls the template implementation.
+     * @brief computes the waveform interpolating points in int8.
+     * @details this function calls the template function GetValue() with the int8 type
+     * @return true always
      */
     virtual bool GetInt8Value();
 
     /**
-     * @brief computes the points signal implementation in uint16.
-     * @brief this function calls the template implementation.
+     * @brief computes the waveform interpolating points in uint16.
+     * @details this function calls the template function GetValue() with the uint16 type
+     * @return true always
      */
     virtual bool GetUInt16Value();
 
     /**
-     * @brief computes the points signal implementation in in16.
-     * @brief this function calls the template implementation.
+     * @brief computes the waveform interpolating points in int16.
+     * @details this function calls the template function GetValue() with the int16 type
+     * @return true always
      */
     virtual bool GetInt16Value();
 
     /**
-     * @brief computes the points signal implementation in uin32.
-     * @brief this function calls the template implementation.
+     * @brief computes the waveform interpolating points in uint32.
+     * @details this function calls the template function GetValue() with the uint32 type
+     * @return true always
      */
     virtual bool GetUInt32Value();
 
     /**
-     * @brief computes the points signal implementation in int32.
-     * @brief this function calls the template implementation.
+     * @brief computes the waveform interpolating points in int32.
+     * @details this function calls the template function GetValue() with the int32 type
+     * @return true always
      */
     virtual bool GetInt32Value();
 
     /**
-     * @brief computes the points signal implementation in uin64.
-     * @brief this function calls the template implementation.
+     * @brief computes the waveform interpolating points in uint64.
+     * @details this function calls the template function GetValue() with the uint64 type
+     * @return true always
      */
     virtual bool GetUInt64Value();
 
     /**
-     * @brief computes the points signal implementation in int64.
-     * @brief this function calls the template implementation.
+     * @brief computes the waveform interpolating points in int64.
+     * @details this function calls the template function GetValue() with the int64 type
+     * @return true always
      */
     virtual bool GetInt64Value();
 
     /**
-     * @brief computes the points signal implementation in float32.
-     * @brief this function calls the template implementation.
+     * @brief computes the waveform interpolating points in float32.
+     * @details this function calls the template function GetValue() with the float32 type
+     * @return true always
      */
     virtual bool GetFloat32Value();
 
     /**
-     * @brief computes the points signal implementation in float64.
-     * @brief this function calls the template implementation.
+     * @brief computes the waveform interpolating points in float64.
+     * @details this function calls the template function GetValue() with the float64 type
+     * @return true always
      */
     virtual bool GetFloat64Value();
 
     /**
-     * @brief computes the points signal implementation in the specified type.
+     * @brief Cast the signal defined by points to the specified type.
+     * @details Template method which cast the signal defined by points computed with GetFloat64OutputValues()
+     * @return true always
      */
     template<typename T>
     bool GetValue();
 
+    /**
+     * @brief computes the signal defined by points in in float64
+     * @details computes the following operations:
+     *
+     * \f$
+     * outputFloat64[i] = refVal + ((currentTime - timeRefVal) * slopes[indexSlopes])
+     * \f$
+     *
+     * and save the data in #MARTe#Waveform::outputFloat64
+     * @return true always
+     */
     virtual bool GetFloat64OutputValues();
 
 private:
@@ -127,12 +212,40 @@ private:
      * times array to indicate at which time there is a new point. The first time must be 0
      */
     float64 *times;
+
+    /**
+     * holds the slopes of the linear interpolation
+     */
     float64 *slopes;
+
+    /**
+     * Indicates the current applied slope
+     */
     uint32 indexSlopes;
+
+    /**
+     * number of points elements. The minimum number must be 2
+     */
     uint32 numberOfPointsElements;
+
+    /**
+     * numberOfTImesElements. It must be equal than numberOfPointsElements
+     */
     uint32 numberOfTimesElements;
+
+    /**
+     * number of slope elements. It is numberOfPointsElements - 1. It is computed from points and times
+     */
     uint32 numberOfSlopeElements;
+
+    /**
+     * remember the last output value
+     */
     float64 lastOutputValue;
+
+    /**
+     * Indicates if it is the beginning of the points sequence
+     */
     bool beginningSequence;
 
     /**
@@ -145,8 +258,16 @@ private:
      */
     float64 refVal;
 
+    /**
+     * Remembers the time from which the interpolation is done.
+     */
     float64 timeRefVal;
 
+    /**
+     * @brief verify the times values configured
+     * @details It checks that the first element is equal than 0.0 and the time is increasing.
+     * @return true if the time is consistent with the previous listed conditions.
+     */
     bool VerifyTimes () const {
         bool ret = (IsEqual(times[0],0.0));
         for(uint32 i = 0u; (i < (numberOfTimesElements - 1u)) && ret; i ++) {

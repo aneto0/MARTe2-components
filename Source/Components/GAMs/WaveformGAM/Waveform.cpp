@@ -380,23 +380,58 @@ bool Waveform::Execute() {
 
 void Waveform::TriggerMechanism() {
     if (triggersEnable) {
-        if (numberOfStartTriggers > indexStartTriggersArray) {
-            if(startTriggerTime != NULL_PTR(float64 *)){
-                if (startTriggerTime[indexStartTriggersArray] <= currentTime) {
-                    triggersOn = true;
-                    indexStartTriggersArray++;
-                }
-            }
-        }
-        if (indexStopTriggersArray < numberOfStopTriggers) {
+        bool stop = false;
+        while((indexStopTriggersArray < numberOfStopTriggers) && (!stop)){
             if(stopTriggerTime != NULL_PTR(float64 *)){
-                //lint -e{661} indexStopTriggersArray never goes out of range because it is checked "indexStopTriggersArray < numberOfStopTriggers"
-                if (stopTriggerTime[indexStopTriggersArray] <= currentTime) {
-                    triggersOn = false;
+                //lint -e{661} the while prevents the index to be out of-of-bounds
+                if(stopTriggerTime[indexStopTriggersArray] > currentTime){
+                    stop = true;
+                }else{
                     indexStopTriggersArray++;
                 }
             }
         }
+        if(stop){
+            if(startTriggerTime != NULL_PTR(float64 *)){
+                //lint -e{662} the number of elements of startTriggerTime is equal or grater than elements of stopTriggerTime, then start startTriggerTime will not be out-of-bounds
+                //lint -e{661} the previous while ensures that the index is not out-of-bounds
+                if(currentTime >= startTriggerTime[indexStopTriggersArray]){
+                    triggersOn = true;
+                }else{
+                    triggersOn = false;
+                }
+            }
+        }else{
+            if(numberOfStopTriggers < numberOfStartTriggers){
+                if(startTriggerTime != NULL_PTR(float64 *)){
+                    if(currentTime >= startTriggerTime[numberOfStopTriggers]){
+                        triggersOn = true;
+                    }else{
+                        triggersOn = false;
+                    }
+                }
+            }else{
+                triggersOn = false;
+            }
+        }/*
+            if (numberOfStartTriggers > indexStartTriggersArray) {
+                if(startTriggerTime != NULL_PTR(float64 *)){
+                    if (startTriggerTime[indexStartTriggersArray] <= currentTime) {
+                        triggersOn = true;
+                        indexStartTriggersArray++;
+                    }
+                }
+            }
+            if (indexStopTriggersArray < numberOfStopTriggers) {
+                if(stopTriggerTime != NULL_PTR(float64 *)){
+                    //lint -e{661} indexStopTriggersArray never goes out of range because it is checked "indexStopTriggersArray < numberOfStopTriggers"
+                    if (stopTriggerTime[indexStopTriggersArray] <= currentTime) {
+                        triggersOn = false;
+                        indexStopTriggersArray++;
+                    }
+                }
+            }
+            */
     }
     else {
         triggersOn = true;

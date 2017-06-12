@@ -184,29 +184,6 @@ bool WaveformChirpGAMTest::TestMissingFreq2(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestFreq1GreaterThanFreq2(){
-    bool ok = true;
-    uint32 sizeOutput = 4u;
-    WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
-    gam.SetName("Test");
-    float64 f1 = 20.0;
-    float64 f2 = 10.0;
-    float64 amplitude = 10.0;
-    float64 phase = 0.0;
-    float64 offset = 0.0;
-    float64 chirpDuration = 5.0;
-    //chirp configuration
-    ok &= gam.config.Write("Frequency1", f1);
-    ok &= gam.config.Write("Frequency2", f2);
-    ok &= gam.config.Write("Amplitude", amplitude);
-    ok &= gam.config.Write("Phase", phase);
-    ok &= gam.config.Write("Offset", offset);
-    ok &= gam.config.Write("ChirpDuration", chirpDuration);
-    ok &= gam.Initialise(gam.config);
-
-    return !ok;
-}
-
 bool WaveformChirpGAMTest::TestMissingChirpDuration(){
     bool ok = true;
     uint32 sizeOutput = 4u;

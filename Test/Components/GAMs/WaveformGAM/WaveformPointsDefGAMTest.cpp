@@ -82,6 +82,21 @@ bool WaveformPointsDefGAMTest::TestFailingReadingPointsValues() {
     return !ok;
 }
 
+bool WaveformPointsDefGAMTest::Test1Point() {
+    bool ok = true;
+    WaveformPointsDefGAMTestHelper gam;
+    float64 *x = new float64[1];
+    *x = 0.0;
+    float64 *y =  new float64[1];
+    *y = 32.9;
+    Vector<float64> yVec(y, 1);
+    ok &= gam.config.Write("Points", yVec);
+    Vector<float64> xVec(x, 1);
+    ok &= gam.config.Write("Times", xVec);
+    ok &= gam.Initialise(gam.config);
+    return !ok;
+}
+
 bool WaveformPointsDefGAMTest::TestMissingTimes() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam;

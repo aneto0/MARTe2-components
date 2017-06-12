@@ -92,9 +92,9 @@ bool WaveformPointsDef::Initialise(StructuredDataI &data) {
     }
     if (ok) {
         numberOfPointsElements = functionArray.GetNumberOfElements(0u);
-        ok = (numberOfPointsElements != 0u);
-        if (!ok) { //If the name Points exist it is difficult to have 0 elements
-            REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfPointsElements must be positive");
+        ok = (numberOfPointsElements > 1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfPointsElements must be grater than 1 (at least two points must be defined)");
         }
     }
     if (ok) {

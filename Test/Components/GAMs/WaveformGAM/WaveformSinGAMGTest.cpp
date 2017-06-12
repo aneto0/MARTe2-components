@@ -277,6 +277,11 @@ TEST(WaveformSinGAMTest, TestExecuteTriggerDiffArrayLength) {
     ASSERT_TRUE(test.TestExecuteTriggerDiffArrayLength());
 }
 
+TEST(WaveformSinGAMTest, TestExecuteTigger1Element) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestExecuteTigger1Element());
+}
+
 
 
 

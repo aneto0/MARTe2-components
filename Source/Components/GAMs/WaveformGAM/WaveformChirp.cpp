@@ -111,12 +111,6 @@ bool WaveformChirp::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
-        ok = (frequency1 < frequency2);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "frequency2 must be grater than frequency 1");
-        }
-    }
-    if (ok) {
         w1 = 2.0 * FastMath::PI * frequency1;
         w2 = 2.0 * FastMath::PI * frequency2;
         w12 = w2-w1;

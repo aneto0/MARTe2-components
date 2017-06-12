@@ -40,7 +40,7 @@ namespace MARTe {
 
 /**
  * @brief Generic class to implement any kind of waveform
- * @details this class contains the generic common functions and variables to implement any output signal
+ * @details this class contains the generic common functions and variables to implement any waveform signal
  *
  * Three different GAMs are foreseen to use this generic Class:
  * WaveformSiGAM
@@ -85,7 +85,7 @@ public:
     Waveform();
 
     /**
-     * @brief Default constructor
+     * @brief Default destructor
      * @details Frees only the allocated memory by this class and set the pointers to 0
      * @post
      *  outputValue = NULL_PTR(void **);
@@ -94,88 +94,96 @@ public:
     virtual ~Waveform();
 
     /**
-     * @brief Initialize the common variable from a configuration file
+     * @brief Initialise the common variable from a configuration file
      * @details Initialise and verifies the trigger mechanism. This function checks the size of the startTriggerTime
-     * and stopTriggerTime and checks that startTriggerTime[i] < stopTriggerTime[i]
-     * @param[in] data. the GAM configuration
-     * @return true if the trigger times are valid
+     * and stopTriggerTime and checks that startTriggerTime[i] < stopTriggerTime[i]. An invalid trigger time sequence
+     * does not give an error only a warning is launched, however the trigger mechanism is disabled and the output always
+     * will be on with the expected defined waveform.
+     * @param[in] data It is the GAM configuration file
+     * @return true if MARTe#GAM#Initialise(StructuredDataI &data) exits without errors.
      */
     virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief Setup the input output variables
-     * @details Initialize the input output pointers and verify the number of inputs and output sizes
-     * @return true if the input and outputs are correctly initialize
+     * @details Initialises the input and output pointers and verifies the number of inputs and output sizes
+     * @return true if the input and outputs are correctly set.
      */
     virtual bool Setup();
 
     /**
-     * @brief Generic implementation of the output
-     * @details This function decides the type function to call and calls the specific implementation of the signal generator
-     * with the correct type defined in the configuration file
+     * @brief Generic implementation of the waveform.
+     * @details This function decides type of variable function must be called.
+     * The time difference between samples are computed from the time input given in two consecutive cycles and the number of samples
+     * per cycle. For this reason the first cycle of this GAM always is 0.
+     * @return true always.
      */
     virtual bool Execute();
 
     /**
      * @brief Generic call function for uint8
-     * @details Virtual function which call specific waveform with uint8 type
+     * @details Virtual function which casts the output to uint8 type
      */
     virtual bool GetUInt8Value() = 0;
 
     /**
      * @brief Generic call function for int8
-     * @details Virtual function which call specific waveform with int8 type
+     * @details Virtual function which casts the output to int8 type
      */
     virtual bool GetInt8Value() = 0;
 
     /**
      * @brief Generic call function for uint16
-     * @details Virtual function which call specific waveform with uint16 type
+     * @details Virtual function which casts the output to uint16 type
      */
     virtual bool GetUInt16Value() = 0;
 
     /**
      * @brief Generic call function for int16
-     * @details Virtual function which call specific waveform with int16 type
+     * @details Virtual function which casts the output to int16 type
      */
     virtual bool GetInt16Value() = 0;
 
     /**
      * @brief Generic call function for uint64
-     * @details Virtual function which call specific waveform with uint64 type
+     * @details Virtual function which casts the output to uint64 type
      */
     virtual bool GetUInt32Value() = 0;
 
     /**
      * @brief Generic call function for int64
-     * @details Virtual function which call specific waveform with int64 type
+     * @details Virtual function which casts the output to int64 type
      */
     virtual bool GetInt32Value() = 0;
 
     /**
      * @brief Generic call function for uint64
-     * @details Virtual function which call specific waveform with uint64 type
+     * @details Virtual function which casts the output to uint64 type
      */
     virtual bool GetUInt64Value() = 0;
 
     /**
      * @brief Generic call function for int64
-     * @details Virtual function which call specific waveform with int64 type
+     * @details Virtual function which casts the output to int64 type
      */
     virtual bool GetInt64Value() = 0;
 
     /**
      * @brief Generic call function for float32
-     * @details Virtual function which call specific waveform with float32 type
+     * @details Virtual function which casts the output to float32 type
      */
     virtual bool GetFloat32Value() = 0;
 
     /**
      * @brief Generic call function for float64
-     * @details Virtual function which call specific waveform with float64 type
+     * @details Virtual function which casts the output to float64 type
      */
     virtual bool GetFloat64Value() = 0;
 
+    /**
+     * @brief Generic call function to specific waveform type
+     * @details Virtual function which calls the specific waveform type with float64 type
+     */
     virtual bool GetFloat64OutputValues() = 0;
 
 protected:
@@ -185,7 +193,11 @@ protected:
      */
     void **outputValue;
 
+    /**
+     * Holds the waveform outputs before being cast to a specific type
+     */
     float64 *outputFloat64;
+
     /**
      * Size of the output arrays. All outputs must have the same numberOfOutputElements
      */
@@ -207,7 +219,8 @@ protected:
     float64 timeIncrement;
 
     /**
-     * Indicates if the trigger mechanism is enabled.
+     * Indicates if the trigger mechanism is enabled. If it is disabled the waveform generated will be connected to the
+     * output, otherwise the signal generated will be connected to the output depending on the trigger times.
      */
     bool triggersOn;
 
@@ -217,10 +230,14 @@ protected:
     bool signalOn;
 
     /**
-     * Indicates which output signal must be computed
+     * Indicates which output signal must be casted
      */
     uint32 indexOutputSignal;
 
+    /**
+     * @brief Decides if triggersOn is enabled
+     * @details This function decides if the triggersON is enabled allowing to output the waveform generated.
+     */
     void TriggerMechanism();
 private:
 
@@ -230,7 +247,7 @@ private:
     uint32 *inputTime;
 
     /**
-     * Pinter to the start trigger time array.
+     * Pointer to the start trigger time array.
      */
     float64 *startTriggerTime;
     /**
@@ -239,12 +256,12 @@ private:
     float64 *stopTriggerTime;
 
     /**
-     * Size of startTriggerTime array
+     * Number of elements of startTriggerTime array
      */
     uint32 numberOfStartTriggers;
 
     /**
-     * Size of stopTriggerTime array
+     * Number of elements of stopTriggerTime array
      */
     uint32 numberOfStopTriggers;
 
@@ -264,7 +281,7 @@ private:
     uint32 time0;
 
     /**
-     * first time received in us
+     * second time received in us
      */
     uint32 time1;
 
@@ -272,38 +289,77 @@ private:
      * it is used to determine when time0, time1 are saved. The first iteration of his GAM is used to calculate the timeIncrement and the output is 0
      */
     uint8 timeState;
+
+    /**
+     * Indicates the type of the input variable. The supported input types are uint32 and int32. However it will always be casted to uint32, since the time never is negative.
+     */
     TypeDescriptor typeVariableIn;
+
+    /**
+     * Pointer to the different output types.
+     */
     TypeDescriptor *typeVariableOut;
+
+    /**
+     * number of input signals. This number must always  be 1
+     */
     uint32 nOfInputSignals;
+
+    /**
+     * Number of input elements. It must always  be one
+     */
     uint32 numberOfInputElements;
+
+    /**
+     * number of input samples. It must always be one
+     */
     uint32 numberOfInputSamples;
+
+    /**
+     * number of output samples. It must be one.
+     */
     uint32 numberOfOutputSamples;
+
+    /**
+     * Indicates if the trigger mechanism is enable.
+     */
     bool triggersEnable;
 
+    /**
+     * @brief validate the trigger times
+     * @details checks stopTriggerTime[i] > startTriggerTime[i] && stopTriggerTime[i] < startTriggerTime[i + 1] are true
+     * @return true if the trigger times are consistent with the previous expressions.
+     */
     bool ValidateTimeTriggers() const {
         bool ret = true;
         if (numberOfStopTriggers > 0u) {
-            for (uint32 i = 0u; (i < (numberOfStopTriggers - 1u)) && ret; i++) {
-                //ret = ret && (stopTriggerTime[i] > startTriggerTime[i]);
+            for (uint32 i = 0u; (i < numberOfStopTriggers) && ret; i++) {
                 ret = (stopTriggerTime[i] > startTriggerTime[i]);
-                if (ret) {
+                if (ret && ((i + 1u) < numberOfStartTriggers)) {
                     //MISRA...Suspicious truncation..
                     uint32 aux = i + 1u;
                     ret = (stopTriggerTime[i] < startTriggerTime[aux]);
-                }
-            }
-            if (ret) {
-                ret = (stopTriggerTime[numberOfStopTriggers - 1u] > startTriggerTime[numberOfStopTriggers - 1u]);
-            }
-            if (ret) {
-                if (numberOfStartTriggers > numberOfStopTriggers) {
-                    ret = (stopTriggerTime[numberOfStopTriggers - 1u] < startTriggerTime[numberOfStartTriggers - 1u]);
                 }
             }
         }
         return ret;
     }
 
+    /**
+     * @brief Checks that the type is one of the supported types.
+     * @details the list of supported types are:\n
+     * int8 \n
+     * uin8 \n
+     * int16 \n
+     * uint16 \n
+     * int32 \n
+     * uin32 \n
+     * int64 \n
+     * uint64 \n
+     * float32 \n
+     * float64 \n
+     * @return true if the type is one of the supported types.
+     */
     bool IsValidType(TypeDescriptor const &typeRef) const {
         bool retVal;
         bool *auxBool = (new bool[10u]);

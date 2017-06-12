@@ -70,11 +70,6 @@ TEST(WaveformChirpGAMTest, TestMissingFreq2) {
     ASSERT_TRUE(test.TestMissingFreq2());
 }
 
-TEST(WaveformChirpGAMTest, TestFreq1GreaterThanFreq2) {
-    WaveformChirpGAMTest test;
-    ASSERT_TRUE(test.TestFreq1GreaterThanFreq2());
-}
-
 TEST(WaveformChirpGAMTest, TestMissingChirpDuration) {
     WaveformChirpGAMTest test;
     ASSERT_TRUE(test.TestMissingChirpDuration());
@@ -266,6 +261,68 @@ TEST(WaveformChirpGAMTest, TestExecute2SignalsFloat64) {
     StreamString auxStr = "float64";
     ASSERT_TRUE(test.TestExecute2Signals<float64>(auxStr));
 }
+
+TEST(WaveformChirpGAMTest, TestExecute1ElementPerCycleUInt8) {
+    WaveformChirpGAMTest test;
+    StreamString auxStr = "uint8";
+    ASSERT_TRUE(test.TestExecute1ElementPerCycle<uint8>(auxStr));
+}
+
+TEST(WaveformChirpGAMTest, TestExecute1ElementPerCycleInt8) {
+    WaveformChirpGAMTest test;
+    StreamString auxStr = "int8";
+    ASSERT_TRUE(test.TestExecute1ElementPerCycle<int8>(auxStr));
+}
+
+TEST(WaveformChirpGAMTest, TestExecute1ElementPerCycleUInt16) {
+    WaveformChirpGAMTest test;
+    StreamString auxStr = "uint16";
+    ASSERT_TRUE(test.TestExecute1ElementPerCycle<uint16>(auxStr));
+}
+
+TEST(WaveformChirpGAMTest, TestExecute1ElementPerCycleInt16) {
+    WaveformChirpGAMTest test;
+    StreamString auxStr = "int16";
+    ASSERT_TRUE(test.TestExecute1ElementPerCycle<int16>(auxStr));
+}
+
+TEST(WaveformChirpGAMTest, TestExecute1ElementPerCycleUInt32) {
+    WaveformChirpGAMTest test;
+    StreamString auxStr = "uint32";
+    ASSERT_TRUE(test.TestExecute1ElementPerCycle<uint32>(auxStr));
+}
+
+TEST(WaveformChirpGAMTest, TestExecute1ElementPerCycleInt32) {
+    WaveformChirpGAMTest test;
+    StreamString auxStr = "int32";
+    ASSERT_TRUE(test.TestExecute1ElementPerCycle<int32>(auxStr));
+}
+
+TEST(WaveformChirpGAMTest, TestExecute1ElementPerCycleUInt64) {
+    WaveformChirpGAMTest test;
+    StreamString auxStr = "uint64";
+    ASSERT_TRUE(test.TestExecute1ElementPerCycle<uint64>(auxStr));
+}
+
+TEST(WaveformChirpGAMTest, TestExecute1ElementPerCycleInt64) {
+    WaveformChirpGAMTest test;
+    StreamString auxStr = "int64";
+    ASSERT_TRUE(test.TestExecute1ElementPerCycle<int64>(auxStr));
+}
+
+TEST(WaveformChirpGAMTest, TestExecute1ElementPerCycleFloat32) {
+    WaveformChirpGAMTest test;
+    StreamString auxStr = "float32";
+    ASSERT_TRUE(test.TestExecute1ElementPerCycle<float32>(auxStr));
+}
+
+TEST(WaveformChirpGAMTest, TestExecute1ElementPerCycleFloat64) {
+    WaveformChirpGAMTest test;
+    StreamString auxStr = "float64";
+    ASSERT_TRUE(test.TestExecute1ElementPerCycle<float64>(auxStr));
+}
+
+
 
 
 /*---------------------------------------------------------------------------*/

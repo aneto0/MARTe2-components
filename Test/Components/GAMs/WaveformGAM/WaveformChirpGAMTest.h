@@ -44,35 +44,82 @@ namespace MARTe {
 class WaveformChirpGAMTest {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API WaveformChirpGAMTest)
 public:
+    /**
+     * @brief Default constructor
+     */
     WaveformChirpGAMTest();
+
+    /**
+     * Default destructor
+     */
     virtual ~WaveformChirpGAMTest();
 
+    /**
+     * @brief Test error message of WaveformChirp::Initialise()
+     */
     bool TestMissingAmplitude();
 
+    /**
+     * @brief Test error message of WaveformChirp::Initialise()
+     */
     bool Test0Amplitude();
 
+    /**
+     * @brief Test error message of WaveformChirp::Initialise()
+     */
     bool TestMissingPhase();
 
+    /**
+     * @brief Test error message of WaveformChirp::Initialise()
+     */
     bool TestMissingOffset();
 
+    /**
+     * @brief Test error message of WaveformChirp::Initialise()
+     */
     bool TestMissingFreq1();
 
+    /**
+     * @brief Test error message of WaveformChirp::Initialise()
+     */
     bool TestMissingFreq2();
 
-    bool TestFreq1GreaterThanFreq2();
-
+    /**
+     * @brief Test error message of WaveformChirp::Initialise()
+     */
     bool TestMissingChirpDuration();
 
+    /**
+     * @brief Test error message of WaveformChirp::Initialise()
+     */
     bool Test0ChirpDuration();
 
+    /**
+     * @brief Template test. Verifies the correctness of the data.
+     */
     template<typename T>
     bool TestExecute(StreamString str);
 
+    /**
+     * @brief Template test. Verifies the correctness of the data with trigger mechanism Enable.
+     */
     template<typename T>
     bool TestExecuteTrigger(StreamString str);
 
+    /**
+     * @brief Template test. Verifies the correctness of the data with trigger mechanism Enable
+     * and two output signals.
+     */
     template<typename T>
     bool TestExecute2Signals(StreamString str);
+
+    /**
+     * @brief Template test. Verifies the correctness of the data with trigger mechanism Enable
+     * and one element per cycle.
+     */
+    template<typename T>
+    bool TestExecute1ElementPerCycle(StreamString str);
+
 
 };
 
@@ -697,6 +744,64 @@ bool WaveformChirpGAMTest::TestExecute2Signals(StreamString str) {
         ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6,
                                 static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         ok &= gam.CompareChirpTrigger2(output2, static_cast<float64>(*timeIteration) / 1e6,
+                                static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        if (!ok) {
+            printf("iteration which fails %u\n", i);
+        }
+        *timeIteration += timeIterationIncrement;
+    }
+    return ok;
+}
+
+
+template<typename T>
+bool WaveformChirpGAMTest::TestExecute1ElementPerCycle(StreamString str) {
+    using namespace MARTe;
+    bool ok = true;
+    uint32 timeIterationIncrement = 2000000u;
+    uint32 *timeIteration = NULL;
+    uint32 numberOfIteration = 2000u; //if the number of iteration is too large the time will overflow
+    uint32 sizeOutput = 1u;
+    WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+
+    T *output = NULL;
+
+    gam.SetName("Test");
+    ok &= gam.InitialiseChirp1Trigger();
+    gam.config.MoveToRoot();
+    if (ok) {
+        ok &= gam.Initialise(gam.config);
+    }
+    if (ok) {
+        ok &= gam.InitialiseConfigDataBaseSignal1();
+    }
+    if (ok) {
+        ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    }
+    if (ok) {
+        ok &= gam.AllocateInputSignalsMemory();
+    }
+    if (ok) {
+        ok &= gam.AllocateOutputSignalsMemory();
+    }
+    if (ok) {
+        ok &= gam.Setup();
+    }
+
+    if (ok) {
+        timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+
+        *timeIteration = 0;
+    }
+    if (ok) {
+        output = static_cast<T *>(gam.GetOutputSignalsMemory());
+    }
+    for (uint32 i = 0u; (i < sizeOutput) && ok; i++) {
+        output[i] = static_cast<T>(0.0);
+    }
+    for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
+        gam.Execute();
+        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6,
                                 static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
             printf("iteration which fails %u\n", i);

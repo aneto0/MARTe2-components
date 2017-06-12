@@ -53,6 +53,11 @@ TEST(WaveformPointsDefGAMTest, TestFailingReadingPointsValues) {
     ASSERT_TRUE(test.TestFailingReadingPointsValues());
 }
 
+TEST(WaveformPointsDefGAMTest, Test1Point) {
+    WaveformPointsDefGAMTest test;
+    ASSERT_TRUE(test.Test1Point());
+}
+
 TEST(WaveformPointsDefGAMTest, TestMissingTimes) {
     WaveformPointsDefGAMTest test;
     ASSERT_TRUE(test.TestMissingTimes());
@@ -272,6 +277,126 @@ TEST(WaveformPointsDefGAMTest, TestExecute2SignalsFloat64) {
     WaveformPointsDefGAMTest test;
     StreamString str = "float64";
     ASSERT_TRUE(test.TestExecute2Signals<float64>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger2PointUInt8) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "uint8";
+    ASSERT_TRUE(test.TestExecuteTrigger2Point<uint8>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger2PointInt8) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "int8";
+    ASSERT_TRUE(test.TestExecuteTrigger2Point<int8>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger2PointUInt16) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "uint16";
+    ASSERT_TRUE(test.TestExecuteTrigger2Point<uint16>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger2PointInt16) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "uint16";
+    ASSERT_TRUE(test.TestExecuteTrigger2Point<uint16>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger2PointUInt32) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "uint32";
+    ASSERT_TRUE(test.TestExecuteTrigger2Point<uint32>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger2PointInt32) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "int32";
+    ASSERT_TRUE(test.TestExecuteTrigger2Point<int32>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger2PointUInt64) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "uint64";
+    ASSERT_TRUE(test.TestExecuteTrigger2Point<uint64>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger2PointInt64) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "int64";
+    ASSERT_TRUE(test.TestExecuteTrigger2Point<int64>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger2PointFloat32) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "float32";
+    ASSERT_TRUE(test.TestExecuteTrigger2Point<float32>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger2PointFloat64) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "float64";
+    ASSERT_TRUE(test.TestExecuteTrigger2Point<float64>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementUInt8) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "uint8";
+    ASSERT_TRUE(test.TestExecuteTrigger_1Element<uint8>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementInt8) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "int8";
+    ASSERT_TRUE(test.TestExecuteTrigger_1Element<int8>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementUInt16) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "uint16";
+    ASSERT_TRUE(test.TestExecuteTrigger_1Element<uint16>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementInt16) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "int16";
+    ASSERT_TRUE(test.TestExecuteTrigger_1Element<int16>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementUInt32) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "uint32";
+    ASSERT_TRUE(test.TestExecuteTrigger_1Element<uint32>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementInt32) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "int32";
+    ASSERT_TRUE(test.TestExecuteTrigger_1Element<int32>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementUInt64) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "uint64";
+    ASSERT_TRUE(test.TestExecuteTrigger_1Element<uint64>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementInt648) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "int64";
+    ASSERT_TRUE(test.TestExecuteTrigger_1Element<int64>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementFloat32) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "float32";
+    ASSERT_TRUE(test.TestExecuteTrigger_1Element<float32>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementFloat64) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "float64";
+    ASSERT_TRUE(test.TestExecuteTrigger_1Element<float64>(str));
 }
 
 

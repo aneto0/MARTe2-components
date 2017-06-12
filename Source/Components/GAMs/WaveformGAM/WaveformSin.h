@@ -39,30 +39,32 @@
 
 namespace MARTe {
 
-
 /**
- *@brief GAM which allows to implement a sinusoidal waveform.
- *@details The configured coefficients (amplitude, frequency, phase, and offset) must be in flot64 and the implementation of the trigonometric functions is as follow
+ * @brief GAM which allows to implement a sinusoidal waveform.
+ * @details The configured coefficients (amplitude, frequency, phase, and offset) must be in flot64 and the implementation of the trigonometric functions is as follow
+ *
  * \f$
- * $output[i]= Amplitude * FastMath::Sin(2*FastMath::PI*frequency*time+phase)+offset
+ * output[i]= Amplitude * sin(2.0*FastMath::PI*frequency*time+phase)+offset
  * \f$
- * where the phase must be in radiant and he frequency in Hz.
+ *
+ * where the phase must be in \b radiant and he frequency in \b Hz.
  *
  * The input is a single value indicating the current time. The output could be a single array of N elements or multiple equal outputs of N
- * elements with different types (i.e example output1 type is uint8 output2 type float64.
+ * elements with different types (i.e example type output1 = uint8 and type output2 = float64.
  * The first iteration the output is 0 due to the second time is needed to compute the time step (or time increment) for each output sample.
  *
- * The GAM supports the following types:
- * int8
- * uint8
- * int16
- * uint16
- * int32
- * uint32
- * int64
- * uint64
- * float32
+ * The GAM supports the following types:<b>\n
+ * int8\n
+ * uint8\n
+ * int16\n
+ * uint16\n
+ * int32\n
+ * uint32\n
+ * int64\n
+ * uint64\n
+ * float32\n
  * float64
+ * </b>
  *
  * Additionally a trigger mechanism is implemented allowing to specify time intervals (in s) in which the signal is switch off and on.
  * The trigger intervals are specified in two arrays: one with the StartTriggerTime and another with  StopTriggerTime. If the
@@ -70,6 +72,7 @@ namespace MARTe {
  * but the GAM operates in normal conditions.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
+ *<pre>
  * +waveformSin1 = {
  *     Class = WaveformSinGAM
  *     Amplitude = 10.0
@@ -78,11 +81,10 @@ namespace MARTe {
  *     Offset = 1.1
  *     StartTriggerTime = {0.1 0.3 0.5 1.8}
  *     StopTriggerTime = {0.2 0.4 0.6} //the StopTriggerTime has one less time, it means that after the sequence of output on and off, the GAM will remain on forever
- *
  *     InputSignals = {
- *         InputSignal1 = { //Filter will be applied to each signal. The number of input and output signals must be the same.
+ *         InputSignal1 = {
  *             DataSource = "DDB1"
- *             Type = uint32 //Supported type (int32 also valid since time cannot be negative)
+ *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative)
  *         }
  *     }
  *     OutputSignals = {
@@ -96,6 +98,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+ * </pre>
  */
 
 class WaveformSin: public Waveform {
@@ -103,102 +106,142 @@ public:
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief Default constructor
+     * @post
+     * amplitude = 0.0\n
+     * frequency = 0.0\n
+     * phase = 0.0\n
+     * offset = 0.0\n
      */
-    WaveformSin();
+WaveformSin    ();
 
     /**
      * @brief Default destructor
-     * @post
-     * amplitude = 0.0
-     * frequency = 0.0
-     * phase = 0.0
-     * offset = 0.0
      */
     virtual ~WaveformSin();
 
     /**
      * @brief Initialise the GAM from a configuration file.
-     * @brief Load the parameters of for the sin implementation and verify its correctness and consistency
-     * @return true if all parameters are valid
+     * @details Loads the parameters of for the sin implementation and verify its correctness and consistency
+     * @param[in] data is the configuration file.
+     * @return true if all parameters are valid.
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
      * @brief computes the Sin in uint8.
-     * @brief this function calls the template implementation of the sin
+     * @details this function calls the template function GetValue() with the uint8 type
+     * @return true always.
      */
     virtual bool GetUInt8Value();
 
     /**
      * @brief computes the Sin in int8.
-     * @brief this function calls the template implementation of the sin
+     * @details this function calls the template function GetValue() with the int8 type
+     * @return true always
      */
     virtual bool GetInt8Value();
 
     /**
      * @brief computes the Sin in uint16.
-     * @brief this function calls the template implementation of the sin
+     * @details this function calls the template function GetValue() with the uint16 type
+     * @return true always
      */
     virtual bool GetUInt16Value();
 
     /**
      * @brief computes the Sin in in16.
-     * @brief this function calls the template implementation of the sin
+     * @details this function calls the template function GetValue() with the int16 type
+     * @return true always
      */
     virtual bool GetInt16Value();
 
     /**
      * @brief computes the Sin in uin32.
-     * @brief this function calls the template implementation of the sin
+     * @details this function calls the template function GetValue() with the uint32 type
+     * @return true always
      */
     virtual bool GetUInt32Value();
 
     /**
      * @brief computes the Sin in int32.
-     * @brief this function calls the template implementation of the sin
+     * @details This function calls the template function GetValue() with the int32 type
+     * @return true always
      */
     virtual bool GetInt32Value();
 
     /**
      * @brief computes the Sin in uin64.
-     * @brief this function calls the template implementation of the sin
+     * @details This function calls the template function GetValue() with the uint64 type
+     * @return true always
      */
     virtual bool GetUInt64Value();
 
     /**
      * @brief computes the Sin in int64.
-     * @brief this function calls the template implementation of the sin
+     * @details This function calls the template function GetValue() with the int64 type
+     * @return true always
      */
     virtual bool GetInt64Value();
 
     /**
-     * @brief computes the Sin in float32.
-     * @brief this function calls the template implementation of the sin
+     * @brief cast the sin to float32.
+     * @details This function calls the template function GetValue() with the float32 type
+     * @return true always
      */
     virtual bool GetFloat32Value();
 
     /**
      * @brief computes the Sin in float64.
-     * @brief this function calls the template implementation of the sin
+     * @details This function calls the template function GetValue() with the float64 type
+     * @return true always
      */
     virtual bool GetFloat64Value();
 
     /**
-     * @brief computes the Sin in the specified type.
+     * @brief Cast the sin in the specified type.
+     * @details Template method which cast the sin wave computed with GetFloat64OutputValues()
+     * @return true always
      */
     template<typename T>
     bool GetValue();
 
+    /**
+     * @brief computes the sin wave in float64
+     * @details computes the following operations:
+     *
+     * \f$
+     * outputFloat64[i]= Amplitude * sin(2.0*FastMath::PI*frequency*time+phase)+offset
+     * \f$
+     *
+     * and save the data in #MARTe#Waveform::outputFloat64
+     */
     virtual bool GetFloat64OutputValues();
 
-
 private:
+    /**
+     * amplitude of a sin signal
+     */
     float64 amplitude;
+
+    /**
+     * frequency of the sin signal
+     */
     float64 frequency;
+
+    /**
+     * w=2*PI*frequency
+     */
+    float64 w;
+
+    /**
+     * phase of the sin signal in radiant
+     */
     float64 phase;
+
+    /**
+     * offset of the sin signal
+     */
     float64 offset;
-
-
 
 };
 

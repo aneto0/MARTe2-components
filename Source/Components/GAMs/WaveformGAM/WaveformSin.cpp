@@ -48,6 +48,7 @@ WaveformSin::WaveformSin() :
         Waveform() {
     amplitude = 0.0;
     frequency = 0.0;
+    w = 2.0*FastMath::PI * frequency;
     phase = 0.0;
     offset = 0.0;
 
@@ -85,6 +86,9 @@ bool WaveformSin::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading Frequency");
         }
     }
+    if(ok){
+        w = 2.0 * FastMath::PI* frequency;
+    }
     if (ok) {
         ok = data.Read("Phase", phase);
         if (!ok) {
@@ -105,7 +109,7 @@ bool WaveformSin::GetFloat64OutputValues() {
     for (uint32 i = 0u; i < numberOfOutputElements; i++) {
         TriggerMechanism();
         if (signalOn && triggersOn) {
-            float64 aux = (2.0 * FastMath::PI * frequency * currentTime) + phase;
+            float64 aux = (w * currentTime) + phase;
             float64 aux2 = sin(aux);
             outputFloat64[i] = ((amplitude * aux2)+ offset);
         }
