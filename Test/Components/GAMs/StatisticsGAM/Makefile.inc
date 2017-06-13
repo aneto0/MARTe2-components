@@ -20,35 +20,33 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-OBJSX= 
-
-SPB=IOGAM.x ConversionGAM.x FilterGAM.x StatisticsGAM.x
-ifdef EFDA_MARTe_DIR
-SPB+=BaseLib2GAM.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
+OBJSX += StatisticsGAMTest.x
+		
+PACKAGE=Components/GAMs
+ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 
-LIBRARIES_STATIC=$(BUILD_DIR)/IOGAM/IOGAM$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/ConversionGAM/ConversionGAM$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/FilterGAM/FilterGAM$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/StatisticsGAM/StatisticsGAM$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAM$(LIBEXT)
-endif
+INCLUDES += -I../../../../Source/Components/GAMs/StatisticsGAM
 
-all: $(OBJS)  $(SUBPROJ)  \
-    $(BUILD_DIR)/GAMs$(LIBEXT) \
-    $(BUILD_DIR)/GAMs$(DLLEXT)
+all: $(OBJS) \
+                $(BUILD_DIR)/StatisticsGAMTest$(LIBEXT)
 	echo  $(OBJS)
 
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+include depends.$(TARGET)
 
+include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 

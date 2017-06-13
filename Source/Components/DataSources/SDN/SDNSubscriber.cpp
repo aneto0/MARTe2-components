@@ -99,7 +99,7 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
         ok = false;
     }
     else {
-        log_info("SDNSubscriber::Initialise - Interface is '%s'", ifaceName.Buffer());
+        REPORT_ERROR(ErrorManagement::Information, "Interface is '%s'", ifaceName.Buffer());
     }
 
     if (!net_is_interface_valid(ifaceName.Buffer())) {
@@ -107,7 +107,7 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
         ok = false;
     }
     else {
-        log_info("SDNSubscriber::Initialise - Interface '%s' is valid", ifaceName.Buffer());
+        REPORT_ERROR(ErrorManagement::Information, "Interface '%s' is valid", ifaceName.Buffer());
     }
 
     // Retrieve and verify topic name
@@ -116,7 +116,7 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
         ok = false;
     }
     else {
-        log_info("SDNSubscriber::Initialise - Topic name is '%s'", topicName.Buffer());
+        REPORT_ERROR(ErrorManagement::Information, "Topic name is '%s'", topicName.Buffer());
     }
 
     // The topic name is used to generate UDP/IPv4 multicast mapping. Optionally, the mapping
@@ -128,7 +128,7 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
             ok = false;
         }
         else {
-            log_info("SDNSubscriber::Initialise - Valid destination address '%s'", destAddr.Buffer());
+            REPORT_ERROR(ErrorManagement::Information, "Valid destination address '%s'", destAddr.Buffer());
         }
 
     }
@@ -136,12 +136,12 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     // Timeout parameter
     uint32 timeout;
     if (data.Read("Timeout", timeout)) {
-        log_info("SDNSubscriber::Initialise - Explicit timeout '%u'", timeout);
+        REPORT_ERROR(ErrorManagement::Information, "Explicit subscriber timeout '%u'", timeout);
         TTTimeout = timeout;
     }
 
     if (data.Read("CPUs", cpuMask)) {
-        log_info("SDNSubscriber::Initialise - Explicit affinity '%u'", cpuMask);
+        REPORT_ERROR(ErrorManagement::Information, "Explicit thread affinity '%u'", cpuMask);
     }
 
     return ok;
@@ -161,7 +161,7 @@ bool SDNSubscriber::SetConfiguredDatabase(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "nOfSignals must be > 0u");
     }
     else {
-        log_info("SDNSubscriber::SetConfiguredDatabase - Number of signals '%u'", nOfSignals);
+        REPORT_ERROR(ErrorManagement::Information, "Number of signals '%u'", nOfSignals);
     }
 
     if (ok) {
@@ -469,7 +469,7 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(const ExecutionInfo& info) {
         ok = (subscriber->Receive(100000000ul) == STATUS_SUCCESS);
 
         if (!ok) {
-            log_debug("SDNSubscriber::Execute - Failed to receive topic '%s'", topicName.Buffer())
+	    //REPORT_ERROR(ErrorManagement::Timeout, "sdn::Subscriber failed to receive topic");
             err.SetError(ErrorManagement::Timeout);
         }
     }
