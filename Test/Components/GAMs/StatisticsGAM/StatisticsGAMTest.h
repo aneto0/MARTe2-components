@@ -130,6 +130,35 @@ public:
     bool TestExecute_Error();
 
     /**
+     * @Tests the execute method against anytype
+     */
+    template<typename Type> bool TestExecute_AnyType(Type value);
+
+    /**
+     * @brief Tests the Execute method.
+     * @return true if computed statistics are as expected.
+     */
+    bool TestExecute_uint8();
+
+    /**
+     * @brief Tests the Execute method.
+     * @return true if computed statistics are as expected.
+     */
+    bool TestExecute_int8();
+
+    /**
+     * @brief Tests the Execute method.
+     * @return true if computed statistics are as expected.
+     */
+    bool TestExecute_uint16();
+
+    /**
+     * @brief Tests the Execute method.
+     * @return true if computed statistics are as expected.
+     */
+    bool TestExecute_int16();
+
+    /**
      * @brief Tests the Execute method.
      * @return true if computed statistics are as expected.
      */
@@ -140,6 +169,18 @@ public:
      * @return true if computed statistics are as expected.
      */
     bool TestExecute_uint32();
+
+    /**
+     * @brief Tests the Execute method.
+     * @return true if computed statistics are as expected.
+     */
+    bool TestExecute_int64();
+
+    /**
+     * @brief Tests the Execute method.
+     * @return true if computed statistics are as expected.
+     */
+    bool TestExecute_uint64();
 
     /**
      * @brief Tests the Execute method.

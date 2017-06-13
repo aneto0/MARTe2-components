@@ -28,17 +28,15 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-
-#include <math.h>
+/*lint -efile(766,StatisticsHelperT.h) FastMath.h and <limits> are used in this file*/
 #include <limits>
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
 #include "AdvancedErrorManagement.h"
-#include "CircularBufferT.h"
-#include "SquareRootT.h"
+#include "CircularStaticList.h"
+#include "FastMath.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -117,7 +115,7 @@ public:
     /**
      * @brief Accessor. Retrieves the last inserted sample.
      * @return Last inserted sample. 0 if fails.
-     * @detail If CircularBufferT<Type>::GetLast returns false raises error and returns the 0 casted to the respective type.
+     * @detail If CircularStaticList<Type>::GetLast returns false raises error and returns the 0 casted to the respective type.
      */
     Type GetSample(void) const;
 
@@ -231,12 +229,12 @@ private:
     /**
      * Sample buffer
      */
-    CircularBufferT<Type> * Xwin;
+    CircularStaticList<Type> * Xwin;
 
     /**
      * Sample buffer (squared)
      */
-    CircularBufferT<Type> * Xsq;
+    CircularStaticList<Type> * Xsq;
 
     /**
      * @brief Average of squared samples over the moving window.
@@ -341,7 +339,9 @@ template<> inline bool StatisticsHelperT<float64>::Reset() { // Must be declared
 }
 
 /*lint -e{1566} initialisation of the attributes in the Reset() method*/
-/*lint -e{9117} [MISRA C++ Rule 5-0-4] signedness of 0 and 1 ignored in template method to avoid specializing for all integer types*/
+/*lint -e{9117} [MISRA C++ Rule 5-0-4] signedness of 0 and 1 ignored in template method to avoid specialising for all integer types*/
+/*lint -e{1732} no assignment ever used */
+/*lint -e{1733} no assignment ever used */
 template<typename Type> StatisticsHelperT<Type>::StatisticsHelperT(const uint32 windowSize) {
 
     size = 1u;
@@ -356,8 +356,8 @@ template<typename Type> StatisticsHelperT<Type>::StatisticsHelperT(const uint32 
     }
 
     /* Instantiate sample buffers */
-    Xwin = new CircularBufferT<Type>(size);
-    Xsq = new CircularBufferT<Type>(size);
+    Xwin = new CircularStaticList<Type>(size);
+    Xsq = new CircularStaticList<Type>(size);
 
     if (!Reset()) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Unable to Reset instance");
@@ -372,8 +372,8 @@ template<typename Type> StatisticsHelperT<Type>::StatisticsHelperT(const uint32 
  size = other.size;
  Xdiv = other.Xdiv;
 
- Xwin = new CircularBufferT<Type>(size);
- Xsq = new CircularBufferT<Type>(size);
+ Xwin = new CircularStaticList<Type>(size);
+ Xsq = new CircularStaticList<Type>(size);
 
  if (!Reset()) {
  REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Unable to Reset instance");
@@ -390,8 +390,8 @@ template<> inline StatisticsHelperT<float32>::StatisticsHelperT(const uint32 win
     Xdiv = 1.0F / static_cast<float32>(size);
 
     /* Instantiate sample buffers */
-    Xwin = new CircularBufferT<float32>(size);
-    Xsq = new CircularBufferT<float32>(size);
+    Xwin = new CircularStaticList<float32>(size);
+    Xsq = new CircularStaticList<float32>(size);
 
     if (!Reset()) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Unable to Reset instance");
@@ -408,8 +408,8 @@ template<> inline StatisticsHelperT<float64>::StatisticsHelperT(const uint32 win
     Xdiv = 1.0 / static_cast<float64>(size);
 
     /* Instantiate sample buffers */
-    Xwin = new CircularBufferT<float64>(size);
-    Xsq = new CircularBufferT<float64>(size);
+    Xwin = new CircularStaticList<float64>(size);
+    Xsq = new CircularStaticList<float64>(size);
 
     if (!Reset()) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Unable to Reset instance");
@@ -417,23 +417,23 @@ template<> inline StatisticsHelperT<float64>::StatisticsHelperT(const uint32 win
 
 }
 
-/*lint -e{1551} no exception thrown deleting the CircularBufferT<> instance*/
+/*lint -e{1551} no exception thrown deleting the CircularStaticList<> instance*/
 /*lint -e{665} [MISRA C++ Rule 16-0-6] templated type passed as argument to MACRO*/
 template<typename Type> StatisticsHelperT<Type>::~StatisticsHelperT() {
 
-    if (Xwin != NULL_PTR(CircularBufferT<Type> *)) {
+    if (Xwin != NULL_PTR(CircularStaticList<Type> *)) {
         delete Xwin;
-        Xwin = NULL_PTR(CircularBufferT<Type> *);
+        Xwin = NULL_PTR(CircularStaticList<Type> *);
     }
 
-    if (Xsq != NULL_PTR(CircularBufferT<Type> *)) {
+    if (Xsq != NULL_PTR(CircularStaticList<Type> *)) {
         delete Xsq;
-        Xsq = NULL_PTR(CircularBufferT<Type> *);
+        Xsq = NULL_PTR(CircularStaticList<Type> *);
     }
 
 }
 
-/*lint -e{534} ignore return value of GetData since intialisation error would have been caught earlier*/
+/*lint -e{534} ignore return value of GetData since initialisation error would have been caught earlier*/
 template<typename Type> Type StatisticsHelperT<Type>::FindMax() const {
 
     Type max = std::numeric_limits<Type>::min();
@@ -444,7 +444,7 @@ template<typename Type> Type StatisticsHelperT<Type>::FindMax() const {
 
         Type sample;
 
-        /*lint -e{534} ignore return value of GetData since an intialisation error would make that this method is not called*/
+        /*lint -e{534} ignore return value of GetData since an initialisation error would make that this method is not called*/
         Xwin->Peek(index, sample);
 
         if (sample > max) {
@@ -485,7 +485,7 @@ template<> inline float64 StatisticsHelperT<float64>::FindMax() const { // Must 
 
         float64 sample;
 
-        /*lint -e{534} ignore return value of GetData since an intialisation error would make that this method is not called*/
+        /*lint -e{534} ignore return value of GetData since an initialisation error would make that this method is not called*/
         Xwin->Peek(index, sample);
 
         if (sample > max) {
@@ -505,7 +505,7 @@ template<typename Type> Type StatisticsHelperT<Type>::FindMin() const {
     for (index = 0u; index < size; index++) {
 
         Type sample;
-        /*lint -e{534} ignore return value of GetData since an intialisation error would make that this method is not called*/
+        /*lint -e{534} ignore return value of GetData since an initialisation error would make that this method is not called*/
         Xwin->Peek(index, sample);
 
         if (sample < min) {

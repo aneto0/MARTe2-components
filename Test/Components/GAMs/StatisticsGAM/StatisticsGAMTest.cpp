@@ -32,15 +32,15 @@
 /*---------------------------------------------------------------------------*/
 
 #include "AdvancedErrorManagement.h"
-#include "ErrorManagement.h"
-#include "ErrorInformation.h"
-#include "ObjectRegistryDatabase.h"
-#include "GlobalObjectsDatabase.h"
 #include "ConfigurationDatabase.h"
+#include "ErrorInformation.h"
+#include "ErrorManagement.h"
+#include "FastMath.h"
+#include "GAM.h"
+#include "GlobalObjectsDatabase.h"
+#include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
-#include "SquareRootT.h"
-#include "GAM.h"
 #include "StatisticsGAM.h"
 #include "StatisticsGAMTest.h"
 
@@ -54,7 +54,7 @@ class ConstantGAM: public GAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
-    ConstantGAM();
+ConstantGAM    ();
     virtual ~ConstantGAM();
     virtual bool Setup();
     virtual bool Execute();
@@ -84,64 +84,65 @@ bool ConstantGAM::Setup() {
 
         StreamString signalName;
 
-	if (ret) {
-	    ret = GetSignalName(OutputSignals, signalIndex, signalName);
-	}
+        if (ret) {
+            ret = GetSignalName(OutputSignals, signalIndex, signalName);
+        }
 
         uint32 signalByteSize = 0u;
 
-	if (ret) {
-	    ret = GetSignalByteSize(OutputSignals, signalIndex, signalByteSize);
-	}
+        if (ret) {
+            ret = GetSignalByteSize(OutputSignals, signalIndex, signalByteSize);
+        }
 
         TypeDescriptor signalType = InvalidType;
 
-	if (ret) {
-	    signalType = GetSignalType(OutputSignals, signalIndex);
-	    ret = (signalType != InvalidType);
-	}
+        if (ret) {
+            signalType = GetSignalType(OutputSignals, signalIndex);
+            ret = (signalType != InvalidType);
+        }
 
-	/* This is the basic element type */
-	/* Handle the multi-dimensional case */
-	
-        AnyType signalDefValue (signalType, 0u, GetOutputSignalMemory(signalIndex));
+        /* This is the basic element type */
+        /* Handle the multi-dimensional case */
 
-	uint32 signalNumberOfDimensions = 0u;
+        AnyType signalDefValue(signalType, 0u, GetOutputSignalMemory(signalIndex));
 
-	if (ret) {
-	    ret = GetSignalNumberOfDimensions(OutputSignals, signalIndex, signalNumberOfDimensions);
-	}
+        uint32 signalNumberOfDimensions = 0u;
 
-	if (ret) {
-	    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signalDefValue.SetNumberOfDimensions(%u)", signalNumberOfDimensions);
-	    signalDefValue.SetNumberOfDimensions(signalNumberOfDimensions);
-	}
+        if (ret) {
+            ret = GetSignalNumberOfDimensions(OutputSignals, signalIndex, signalNumberOfDimensions);
+        }
 
-	uint32 signalNumberOfElements = 0u;
+        if (ret) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signalDefValue.SetNumberOfDimensions(%u)", signalNumberOfDimensions);
+            signalDefValue.SetNumberOfDimensions(signalNumberOfDimensions);
+        }
 
-	if (ret) {
-	    ret = GetSignalNumberOfElements(OutputSignals, signalIndex, signalNumberOfElements);
-	}
+        uint32 signalNumberOfElements = 0u;
 
-	if (ret) {
-	    uint32 dimensionIndex;
+        if (ret) {
+            ret = GetSignalNumberOfElements(OutputSignals, signalIndex, signalNumberOfElements);
+        }
 
-	    for (dimensionIndex = 0u; dimensionIndex < signalNumberOfDimensions; dimensionIndex++) {
-	        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signalDefValue.SetNumberOfElements(%u, %u)", dimensionIndex, signalNumberOfElements);
-	        signalDefValue.SetNumberOfElements(dimensionIndex, signalNumberOfElements);
-	    }
-	}
+        if (ret) {
+            uint32 dimensionIndex;
 
-	if (ret) {
-	    ret = GetSignalDefaultValue(OutputSignals, signalIndex, signalDefValue);
-	}
+            for (dimensionIndex = 0u; dimensionIndex < signalNumberOfDimensions; dimensionIndex++) {
+                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signalDefValue.SetNumberOfElements(%u, %u)", dimensionIndex, signalNumberOfElements);
+                signalDefValue.SetNumberOfElements(dimensionIndex, signalNumberOfElements);
+            }
+        }
 
-	if (ret) {
-	    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ConstantGAM::Setup - '%s' '%!'", signalName.Buffer(), signalDefValue);
-	} else {
-	    REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "ConstantGAM::Setup - GetSignalDefaultValue '%s'", signalName.Buffer());
-	} 
-	
+        if (ret) {
+            ret = GetSignalDefaultValue(OutputSignals, signalIndex, signalDefValue);
+        }
+
+        if (ret) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ConstantGAM::Setup - '%s' '%!'", signalName.Buffer(), signalDefValue);
+        }
+        else {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "ConstantGAM::Setup - GetSignalDefaultValue '%s'", signalName.Buffer());
+        }
+
     }
 
     return ret;
@@ -151,7 +152,7 @@ bool ConstantGAM::Execute() {
     return true;
 }
 
-template <typename Type> bool ConstantGAM::SetOutput (uint32 signalIndex, Type& value) {
+template<typename Type> bool ConstantGAM::SetOutput(uint32 signalIndex, Type& value) {
 
     bool ret = (GetNumberOfOutputSignals() > signalIndex);
 
@@ -169,7 +170,7 @@ template <typename Type> bool ConstantGAM::SetOutput (uint32 signalIndex, Type& 
 
     if (ret) {
         signalType = GetSignalType(OutputSignals, signalIndex);
-	ret = (signalType != InvalidType);
+        ret = (signalType != InvalidType);
     }
 
     /* Should test the signal type */
@@ -180,7 +181,7 @@ template <typename Type> bool ConstantGAM::SetOutput (uint32 signalIndex, Type& 
 
     if (ret) {
         REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ConstantGAM::SetOutput- '%s' '%!'", signalName.Buffer(), value);
-    } 
+    }
 
     return ret;
 }
@@ -191,7 +192,7 @@ class SinkGAM: public GAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
-    SinkGAM();
+SinkGAM    ();
     virtual ~SinkGAM();
     virtual bool Setup();
     virtual bool Execute();
@@ -222,7 +223,7 @@ bool SinkGAM::Execute() {
     return true;
 }
 
-template <typename Type> bool SinkGAM::GetInput (uint32 signalIndex, Type& value) {
+template<typename Type> bool SinkGAM::GetInput(uint32 signalIndex, Type& value) {
 
     bool ret = (GetNumberOfInputSignals() > signalIndex);
 
@@ -240,7 +241,7 @@ template <typename Type> bool SinkGAM::GetInput (uint32 signalIndex, Type& value
 
     if (ret) {
         signalType = GetSignalType(InputSignals, signalIndex);
-	ret = (signalType != InvalidType);
+        ret = (signalType != InvalidType);
     }
 
     /* Should test the signal type */
@@ -251,7 +252,7 @@ template <typename Type> bool SinkGAM::GetInput (uint32 signalIndex, Type& value
 
     if (ret) {
         REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "SinkGAM::GetInput- '%s' '%!'", signalName.Buffer(), value);
-    } 
+    }
 
     return ret;
 }
@@ -266,7 +267,7 @@ CLASS_REGISTER(SinkGAM, "1.0")
 
 namespace StatisticsGAMTestHelper {
 
-bool ConfigureApplication(const MARTe::char8 * const config) {
+bool ConfigureApplication(const MARTe::char8 * const config, MARTe::TypeDescriptor typeToPatch = MARTe::InvalidType) {
 
     using namespace MARTe;
 
@@ -279,12 +280,51 @@ bool ConfigureApplication(const MARTe::char8 * const config) {
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     bool ok = parser.Parse();
+    if (ok) {
+        if (typeToPatch != InvalidType) {
+            const char8 * const typeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(typeToPatch);
+            cdb.MoveAbsolute("$Test.+Functions.+Constants.OutputSignals.Constant_in");
+            cdb.Delete("Type");
+            cdb.Write("Type", typeName);
+            cdb.MoveAbsolute("$Test.+Functions.+Statistics.InputSignals.Constant_in");
+            cdb.Delete("Type");
+            cdb.Write("Type", typeName);
+            cdb.MoveAbsolute("$Test.+Functions.+Statistics.OutputSignals.Average_ExecTime");
+            cdb.Delete("Type");
+            cdb.Write("Type", typeName);
+            cdb.MoveAbsolute("$Test.+Functions.+Statistics.OutputSignals.Stdev_ExecTime");
+            cdb.Delete("Type");
+            cdb.Write("Type", typeName);
+            cdb.MoveAbsolute("$Test.+Functions.+Statistics.OutputSignals.Max_ExecTime");
+            cdb.Delete("Type");
+            cdb.Write("Type", typeName);
+            cdb.MoveAbsolute("$Test.+Functions.+Statistics.OutputSignals.Min_ExecTime");
+            cdb.Delete("Type");
+            cdb.Write("Type", typeName);
+            cdb.MoveAbsolute("$Test.+Functions.+Sink.InputSignals.Average_ExecTime");
+            cdb.Delete("Type");
+            cdb.Write("Type", typeName);
+            cdb.MoveAbsolute("$Test.+Functions.+Sink.InputSignals.Stdev_ExecTime");
+            cdb.Delete("Type");
+            cdb.Write("Type", typeName);
+            cdb.MoveAbsolute("$Test.+Functions.+Sink.InputSignals.Max_ExecTime");
+            cdb.Delete("Type");
+            cdb.Write("Type", typeName);
+            cdb.MoveAbsolute("$Test.+Functions.+Sink.InputSignals.Min_ExecTime");
+            cdb.Delete("Type");
+            cdb.Write("Type", typeName);
+            cdb.MoveToRoot();
+        }
+    }
 
-    if (!ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
-    } else {
+    if (ok) {
         god->Purge();
         ok = god->Initialise(cdb);
+    }
+    else {
+
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "StandardParser::Parse failed");
+
     }
 
     ReferenceT<RealTimeApplication> application;
@@ -295,13 +335,14 @@ bool ConfigureApplication(const MARTe::char8 * const config) {
     }
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
-    } else {
+    }
+    else {
         ok = application->ConfigureApplication();
     }
 
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::ConfigureApplication failed");
-    } 
+    }
 
     return ok;
 
@@ -312,23 +353,26 @@ static inline bool StartApplication(const MARTe::char8 * const state = "Running"
     using namespace MARTe;
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-    ReferenceT<RealTimeApplication> application = god->Find("Test");;
+    ReferenceT<RealTimeApplication> application = god->Find("Test");
+    ;
     bool ok = application.IsValid();
 
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
-    } else {
+    }
+    else {
         ok = application->PrepareNextState(state);
     }
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::PrepareNextState failed");
-    } else {
+    }
+    else {
         ok = application->StartNextStateExecution();
     }
 
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::StartNextStateExecution failed");
-    } 
+    }
 
     return ok;
 
@@ -339,40 +383,22 @@ static inline bool StopApplication() {
     using namespace MARTe;
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-    ReferenceT<RealTimeApplication> application = god->Find("Test");;
+    ReferenceT<RealTimeApplication> application = god->Find("Test");
+    ;
     bool ok = application.IsValid();
 
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::IsValid failed");
-    } else {
+    }
+    else {
         ok = application->StopCurrentStateExecution();
     }
 
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "RealTimeApplication::StopCurrentStateExecution failed");
-    } 
+    }
 
     god->Purge();
-
-    return ok;
-
-}
-
-static inline bool TestIntegratedInApplication(const MARTe::char8 * const config) {
-
-    using namespace MARTe;
-
-    bool ok = ConfigureApplication(config);
-
-    if (ok) {
-        ok = StartApplication();
-    }
-
-    Sleep::Sec(1.0);
-
-    if (ok) {
-        ok = StopApplication();
-    }
 
     return ok;
 
@@ -397,29 +423,29 @@ bool StatisticsGAMTest::TestSquareRoot() {
 
     if (ok) {
         int8 input = 9;
-	int8 result = FastMath::SquareRoot<int8> (input);
-	ok = (result == 3);
-	if (!ok) {
-	    REPORT_ERROR_STATIC(ErrorManagement::Information, "Result is '%!'", result);
-	}
+        int8 result = FastMath::SquareRoot<int8>(input);
+        ok = (result == 3);
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Result is '%!'", result);
+        }
     }
 
     if (ok) {
         int8 input = -7 * -15;
-	int8 result = FastMath::SquareRoot<int8> (input);
-	ok = (result == 10);
-	if (!ok) {
-	    REPORT_ERROR_STATIC(ErrorManagement::Information, "Result is '%!'", result);
-	}
+        int8 result = FastMath::SquareRoot<int8>(input);
+        ok = (result == 10);
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Result is '%!'", result);
+        }
     }
 
     if (ok) {
         int8 input = -9;
-	int8 result = FastMath::SquareRoot<int8> (input);
-	ok = (result == 3);
-	if (!ok) {
-	    REPORT_ERROR_STATIC(ErrorManagement::Information, "Result is '%!'", result);
-	}
+        int8 result = FastMath::SquareRoot<int8>(input);
+        ok = (result == 3);
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Result is '%!'", result);
+        }
     }
 
     return ok;
@@ -545,7 +571,7 @@ bool StatisticsGAMTest::TestSetup_float32() {
 
         ok = gam.IsValid();
     }
-    
+
     return ok;
 }
 
@@ -1006,7 +1032,8 @@ bool StatisticsGAMTest::TestExecute_Error() {
     return !ok; // Expect failure since StatisticsHelperT<> class has not yet been instantiated
 }
 
-bool StatisticsGAMTest::TestExecute_int32() {
+template<typename Type>
+bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
     const MARTe::char8 * const config = ""
             "$Test = {"
             "    Class = RealTimeApplication"
@@ -1015,25 +1042,10 @@ bool StatisticsGAMTest::TestExecute_int32() {
             "        +Constants = {"
             "            Class = ConstantGAM"
             "            OutputSignals = {"
-            "                Constant_int32 = {"
+            "                Constant_in = {"
             "                    DataSource = DDB"
-            "                    Type = int32"
-            "                    Default = -1024"
-            "                }"
-            "                Constant_uint32 = {"
-            "                    DataSource = DDB"
-            "                    Type = uint32"
-            "                    Default = 1024"
-            "                }"
-            "                Constant_float32 = {"
-            "                    DataSource = DDB"
-            "                    Type = float32"
-            "                    Default = 0.0"
-            "                }"
-            "                Constant_float64 = {"
-            "                    DataSource = DDB"
-            "                    Type = float64"
-            "                    Default = 0.0"
+            "                    Type = int8"
+            "                    Default = 127"
             "                }"
             "            }"
             "        }"
@@ -1041,27 +1053,27 @@ bool StatisticsGAMTest::TestExecute_int32() {
             "            Class = StatisticsGAM"
             "            WindowSize = 16"
             "            InputSignals = {"
-            "               Constant_int32 = {"
+            "               Constant_in = {"
             "                   DataSource = DDB"
-            "                   Type = int32"
+            "                   Type = int8"
             "               }"
             "            }"
             "            OutputSignals = {"
             "               Average_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int32"
+            "                   Type = int8"
             "               }"
             "               Stdev_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int32"
+            "                   Type = int8"
             "               }"
             "               Max_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int32"
+            "                   Type = int8"
             "               }"
             "               Min_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int32"
+            "                   Type = int8"
             "               }"
             "            }"
             "        }"
@@ -1070,19 +1082,19 @@ bool StatisticsGAMTest::TestExecute_int32() {
             "            InputSignals = {"
             "               Average_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int32"
+            "                   Type = int8"
             "               }"
             "               Stdev_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int32"
+            "                   Type = int8"
             "               }"
             "               Max_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int32"
+            "                   Type = int8"
             "               }"
             "               Min_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int32"
+            "                   Type = int8"
             "               }"
             "            }"
             "        }"
@@ -1115,11 +1127,11 @@ bool StatisticsGAMTest::TestExecute_int32() {
             "        TimingDataSource = Timings"
             "    }"
             "}";
-
-    bool ok = StatisticsGAMTestHelper::ConfigureApplication(config);
+    using namespace MARTe;
+    AnyType at(value);
+    bool ok = StatisticsGAMTestHelper::ConfigureApplication(config, at.GetTypeDescriptor());
 
     if (ok) {
-        using namespace MARTe;
 
         ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
         ReferenceT<RealTimeApplication> application = god->Find("Test");
@@ -1130,610 +1142,115 @@ bool StatisticsGAMTest::TestExecute_int32() {
         ok = (cst.IsValid() && gam.IsValid() && sink.IsValid());
 
         if (ok) {
-	    ok = StatisticsGAMTestHelper::StartApplication();
-	}
+            ok = StatisticsGAMTestHelper::StartApplication();
+        }
+
+        Type sample = value;
+        if (ok) {
+            ok = cst->SetOutput<Type>(0u, sample);
+        }
 
         if (ok) {
-	    int32 sample = -128;
-	    ok = cst->SetOutput<int32>(0u, sample);
-	}
+            Sleep::Sec(1.0);
+        }
 
-	if (ok) {
-	  Sleep::Sec(1.0);
-	}
+        Type avg = 0;
+        Type std = 0;
+        Type min = 0;
+        Type max = 0;
 
-	int32 avg = 0;
-	int32 std = 0;
-	int32 min = 0;
-	int32 max = 0;
+        if (ok) {
+            ok = sink->GetInput<Type>(0u, avg);
+        }
 
-	if (ok) {
-	    ok = sink->GetInput<int32>(0u, avg);
-	}
+        if (ok) {
+            ok = sink->GetInput<Type>(1u, std);
+        }
 
-	if (ok) {
-	    ok = sink->GetInput<int32>(1u, std);
-	}
+        if (ok) {
+            ok = sink->GetInput<Type>(2u, min);
+        }
 
-	if (ok) {
-	    ok = sink->GetInput<int32>(2u, min);
-	}
+        if (ok) {
+            ok = sink->GetInput<Type>(3u, max);
+        }
 
-	if (ok) {
-	    ok = sink->GetInput<int32>(3u, max);
-	}
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "SinkGAM::GetInput<> failed");
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Statistics - %! %! %! %!", avg, std, min, max);
+        }
 
-	if (!ok) {
-	    REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "SinkGAM::GetInput<> failed");
-	} else {
-	    REPORT_ERROR_STATIC(ErrorManagement::Information, "Statistics - %! %! %! %!", avg, std, min, max);
-	}
+        if (ok) {
+            ok = (avg == sample);
+        }
 
-	if (ok) {
-	    ok = (avg == -128);
-	}
+        if (ok) {
+            ok = (std == 0);
+        }
 
-	if (ok) {
-	    ok = (std == 0);
-	}
+        if (ok) {
+            ok = (min == sample);
+        }
 
-	if (ok) {
-	    ok = (min == -128);
-	}
-
-	if (ok) {
-	    ok = (max == -128);
-	}
+        if (ok) {
+            ok = (max == sample);
+        }
     }
 
     if (ok) {
         ok = StatisticsGAMTestHelper::StopApplication();
     }
-    
+
     return ok;
+}
+
+bool StatisticsGAMTest::TestExecute_uint8() {
+    return TestExecute_AnyType<MARTe::uint8>(2);
+}
+
+bool StatisticsGAMTest::TestExecute_int8() {
+    return TestExecute_AnyType<MARTe::int8>(2);
+}
+
+bool StatisticsGAMTest::TestExecute_uint16() {
+    return TestExecute_AnyType<MARTe::uint16>(2);
+}
+
+bool StatisticsGAMTest::TestExecute_int16() {
+    return TestExecute_AnyType<MARTe::int16>(2);
+}
+
+bool StatisticsGAMTest::TestExecute_int32() {
+    return TestExecute_AnyType<MARTe::int32>(-128);
 }
 
 bool StatisticsGAMTest::TestExecute_uint32() {
-    const MARTe::char8 * const config = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +Constants = {"
-            "            Class = ConstantGAM"
-            "            OutputSignals = {"
-            "                Constant_uint32 = {"
-            "                    DataSource = DDB"
-            "                    Type = uint32"
-            "                    Default = 1024"
-            "                }"
-            "                Constant_float32 = {"
-            "                    DataSource = DDB"
-            "                    Type = float32"
-            "                    Default = 0.0"
-            "                }"
-            "                Constant_float64 = {"
-            "                    DataSource = DDB"
-            "                    Type = float64"
-            "                    Default = 0.0"
-            "                }"
-            "            }"
-            "        }"
-            "        +Statistics = {"
-            "            Class = StatisticsGAM"
-            "            WindowSize = 16"
-            "            InputSignals = {"
-            "               Constant_uint32 = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "               }"
-            "            }"
-            "            OutputSignals = {"
-            "               Average_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "               }"
-            "               Stdev_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "               }"
-            "               Max_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "               }"
-            "               Min_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "               }"
-            "            }"
-            "        }"
-            "        +Sink = {"
-            "            Class = SinkGAM"
-            "            InputSignals = {"
-            "               Average_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "               }"
-            "               Stdev_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "               }"
-            "               Max_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "               }"
-            "               Min_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +Running = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Constants Statistics Sink}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    return TestExecute_AnyType<MARTe::uint32>(1024);
+}
 
-    bool ok = StatisticsGAMTestHelper::ConfigureApplication(config);
+bool StatisticsGAMTest::TestExecute_int64() {
+    return TestExecute_AnyType<MARTe::int64>(-128);
+}
 
-    if (ok) {
-        using namespace MARTe;
-
-        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-        ReferenceT<RealTimeApplication> application = god->Find("Test");
-        ReferenceT<ConstantGAM> cst = application->Find("Functions.Constants");
-        ReferenceT<StatisticsGAM> gam = application->Find("Functions.Statistics");
-        ReferenceT<SinkGAM> sink = application->Find("Functions.Sink");
-
-        ok = (cst.IsValid() && gam.IsValid() && sink.IsValid());
-
-        if (ok) {
-	    ok = StatisticsGAMTestHelper::StartApplication();
-	}
-
-        if (ok) {
-	    uint32 sample = 1024;
-	    ok = cst->SetOutput<uint32>(0u, sample);
-	}
-
-	if (ok) {
-	  Sleep::Sec(1.0);
-	}
-
-	uint32 avg = 0u;
-	uint32 std = 0u;
-	uint32 min = 0u;
-	uint32 max = 0u;
-
-	if (ok) {
-	    ok = sink->GetInput<uint32>(0u, avg);
-	}
-
-	if (ok) {
-	    ok = sink->GetInput<uint32>(1u, std);
-	}
-
-	if (ok) {
-	    ok = sink->GetInput<uint32>(2u, min);
-	}
-
-	if (ok) {
-	    ok = sink->GetInput<uint32>(3u, max);
-	}
-
-	if (!ok) {
-	    REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "SinkGAM::GetInput<> failed");
-	} else {
-	    REPORT_ERROR_STATIC(ErrorManagement::Information, "Statistics - %! %! %! %!", avg, std, min, max);
-	}
-
-	if (ok) {
-	    ok = (avg == 1024u);
-	}
-
-	if (ok) {
-	    ok = (std == 0u);
-	}
-
-	if (ok) {
-	    ok = (min == 1024u);
-	}
-
-	if (ok) {
-	    ok = (max == 1024u);
-	}
-    }
-
-    if (ok) {
-        ok = StatisticsGAMTestHelper::StopApplication();
-    }
-    
-    return ok;
+bool StatisticsGAMTest::TestExecute_uint64() {
+    return TestExecute_AnyType<MARTe::uint64>(1024);
 }
 
 bool StatisticsGAMTest::TestExecute_float32() {
-    const MARTe::char8 * const config = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +Constants = {"
-            "            Class = ConstantGAM"
-            "            OutputSignals = {"
-            "                Constant_float32 = {"
-            "                    DataSource = DDB"
-            "                    Type = float32"
-            "                    Default = 0.0"
-            "                }"
-            "                Constant_float64 = {"
-            "                    DataSource = DDB"
-            "                    Type = float64"
-            "                    Default = 0.0"
-            "                }"
-            "            }"
-            "        }"
-            "        +Statistics = {"
-            "            Class = StatisticsGAM"
-            "            WindowSize = 16"
-            "            InputSignals = {"
-            "               Constant_float32 = {"
-            "                   DataSource = DDB"
-            "                   Type = float32"
-            "               }"
-            "            }"
-            "            OutputSignals = {"
-            "               Average_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float32"
-            "               }"
-            "               Stdev_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float32"
-            "               }"
-            "               Max_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float32"
-            "               }"
-            "               Min_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float32"
-            "               }"
-            "            }"
-            "        }"
-            "        +Sink = {"
-            "            Class = SinkGAM"
-            "            InputSignals = {"
-            "               Average_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float32"
-            "               }"
-            "               Stdev_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float32"
-            "               }"
-            "               Max_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float32"
-            "               }"
-            "               Min_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float32"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +Running = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Constants Statistics Sink}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
-
-    bool ok = StatisticsGAMTestHelper::ConfigureApplication(config);
-
-    if (ok) {
-        using namespace MARTe;
-
-        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-        ReferenceT<RealTimeApplication> application = god->Find("Test");
-        ReferenceT<ConstantGAM> cst = application->Find("Functions.Constants");
-        ReferenceT<StatisticsGAM> gam = application->Find("Functions.Statistics");
-        ReferenceT<SinkGAM> sink = application->Find("Functions.Sink");
-
-        ok = (cst.IsValid() && gam.IsValid() && sink.IsValid());
-
-        if (ok) {
-	    ok = StatisticsGAMTestHelper::StartApplication();
-	}
-
-        if (ok) {
-	    float32 sample = 10.0;
-	    ok = cst->SetOutput<float32>(0u, sample);
-	}
-
-	if (ok) {
-	  Sleep::Sec(1.0);
-	}
-
-	float32 avg = 0.0;
-	float32 std = 0.0;
-	float32 min = 0.0;
-	float32 max = 0.0;
-
-	if (ok) {
-	    ok = sink->GetInput<float32>(0u, avg);
-	}
-
-	if (ok) {
-	    ok = sink->GetInput<float32>(1u, std);
-	}
-
-	if (ok) {
-	    ok = sink->GetInput<float32>(2u, min);
-	}
-
-	if (ok) {
-	    ok = sink->GetInput<float32>(3u, max);
-	}
-
-	if (!ok) {
-	    REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "SinkGAM::GetInput<> failed");
-	} else {
-	    REPORT_ERROR_STATIC(ErrorManagement::Information, "Statistics - %! %! %! %!", avg, std, min, max);
-	}
-
-	if (ok) {
-	    ok = (avg == 10.0);
-	}
-
-	if (ok) {
-	    ok = (std == 0.0);
-	}
-
-	if (ok) {
-	    ok = (min == 10.0);
-	}
-
-	if (ok) {
-	    ok = (max == 10.0);
-	}
-    }
-
-    if (ok) {
-        ok = StatisticsGAMTestHelper::StopApplication();
-    }
-    
-    return ok;
+    return TestExecute_AnyType<MARTe::float32>(5.0);
 }
 
 bool StatisticsGAMTest::TestExecute_float64() {
-    const MARTe::char8 * const config = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +Constants = {"
-            "            Class = ConstantGAM"
-            "            OutputSignals = {"
-            "                Constant_float32 = {"
-            "                    DataSource = DDB"
-            "                    Type = float32"
-            "                    Default = 0.0"
-            "                }"
-            "                Constant_float64 = {"
-            "                    DataSource = DDB"
-            "                    Type = float64"
-            "                    Default = 0.0"
-            "                }"
-            "            }"
-            "        }"
-            "        +Statistics = {"
-            "            Class = StatisticsGAM"
-            "            WindowSize = 16"
-            "            InputSignals = {"
-            "               Constant_float64 = {"
-            "                   DataSource = DDB"
-            "                   Type = float64"
-            "               }"
-            "            }"
-            "            OutputSignals = {"
-            "               Average_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float64"
-            "               }"
-            "               Stdev_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float64"
-            "               }"
-            "               Max_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float64"
-            "               }"
-            "               Min_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float64"
-            "               }"
-            "            }"
-            "        }"
-            "        +Sink = {"
-            "            Class = SinkGAM"
-            "            InputSignals = {"
-            "               Average_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float64"
-            "               }"
-            "               Stdev_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float64"
-            "               }"
-            "               Max_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float64"
-            "               }"
-            "               Min_ExecTime = {"
-            "                   DataSource = DDB"
-            "                   Type = float64"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +Running = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Constants Statistics Sink}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
-
-    bool ok = StatisticsGAMTestHelper::ConfigureApplication(config);
-
-    if (ok) {
-        using namespace MARTe;
-
-        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-        ReferenceT<RealTimeApplication> application = god->Find("Test");
-        ReferenceT<ConstantGAM> cst = application->Find("Functions.Constants");
-        ReferenceT<StatisticsGAM> gam = application->Find("Functions.Statistics");
-        ReferenceT<SinkGAM> sink = application->Find("Functions.Sink");
-
-        ok = (cst.IsValid() && gam.IsValid() && sink.IsValid());
-
-        if (ok) {
-	    ok = StatisticsGAMTestHelper::StartApplication();
-	}
-
-        if (ok) {
-	    float64 sample = 3.333;
-	    ok = cst->SetOutput<float64>(1u, sample);
-	}
-
-	if (ok) {
-	  Sleep::Sec(1.0);
-	}
-
-	float64 avg = 0.0;
-	float64 std = 0.0;
-	float64 min = 0.0;
-	float64 max = 0.0;
-
-	if (ok) {
-	    ok = sink->GetInput<float64>(0u, avg);
-	}
-
-	if (ok) {
-	    ok = sink->GetInput<float64>(1u, std);
-	}
-
-	if (ok) {
-	    ok = sink->GetInput<float64>(2u, min);
-	}
-
-	if (ok) {
-	    ok = sink->GetInput<float64>(3u, max);
-	}
-
-	if (!ok) {
-	    REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "SinkGAM::GetInput<> failed");
-	} else {
-	    REPORT_ERROR_STATIC(ErrorManagement::Information, "Statistics - %! %! %! %!", avg, std, min, max);
-	}
-
-	if (ok) {
-	    ok = ((avg > 3.332) && (avg < 3.334));
-	}
-
-	if (ok) {
-	    ok = (std < 0.001);
-	}
-
-	if (ok) {
-	    ok = (min == 3.333);
-	}
-
-	if (ok) {
-	    ok = (max == 3.333);
-	}
-    }
-
-    if (ok) {
-        ok = StatisticsGAMTestHelper::StopApplication();
-    }
-    
-    return ok;
+    return TestExecute_AnyType<MARTe::float64>(5.0);
 }
 
 bool StatisticsGAMTest::TestPrepareForNextState_Error() {
     using namespace MARTe;
     StatisticsGAM gam;
 
-    bool ok = gam.PrepareNextState("FromCurrent","ToNext"); // Test the instantiated class
+    bool ok = gam.PrepareNextState("FromCurrent", "ToNext"); // Test the instantiated class
     return !ok; // Expect failure since StatisticsHelperT<> class has not yet been instantiated
 }
 
@@ -1849,18 +1366,18 @@ bool StatisticsGAMTest::TestPrepareForNextState_Success() {
         ok = gam.IsValid();
 
         if (ok) {
-	    ok = StatisticsGAMTestHelper::StartApplication();
-	}
+            ok = StatisticsGAMTestHelper::StartApplication();
+        }
 
-	if (ok) {
-	  Sleep::Sec(1.0);
-	}
+        if (ok) {
+            Sleep::Sec(1.0);
+        }
     }
 
     if (ok) {
         ok = StatisticsGAMTestHelper::StopApplication();
     }
-    
+
     return ok;
 }
 

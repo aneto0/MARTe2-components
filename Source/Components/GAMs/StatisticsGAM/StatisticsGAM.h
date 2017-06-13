@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef StatisticsGAM_H_
-#define StatisticsGAM_H_
+#ifndef STATISTICSGAM_H_
+#define STATISTICSGAM_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -41,9 +41,9 @@
 namespace MARTe {
 
 /**
- * @brief GAM which provides average, standard devisation, minimum and maximum of
+ * @brief GAM which provides average, standard deviation, minimum and maximum of
  * its input signal over a moving time window.
- * @details This GAM provides the average, standard devisation, minimum and maximum
+ * @details This GAM provides the average, standard deviation, minimum and maximum
  * of its input signal over a moving time window. 
  * The GAM accepts any type of scalar
  * input signal, i.e. (u)int8, (u)int16, (uint32), (u)int64, float32 and float64, and
@@ -70,23 +70,23 @@ namespace MARTe {
  *             DataSource = "DDB" //            this second output signal, incl. square 
  *             Type = uint64      //            root computation.
  *         }
- *         ExecutionTime_min = {  // Optional
+ *         ExecutionTime_min = {  // Optional but constrained to having added the _std signal before
  *             DataSource = "DDB"
  *             Type = uint64
  *         }
- *         ExecutionTime_max = {  // Optional
+ *         ExecutionTime_max = {  // Optional but constrained to having added the _min signal before
  *             DataSource = "DDB"
  *             Type = uint64
  *         }
  *     }
  * }
  *
- * @todo Receive inputs signal depth in lieu of storing history internally.
+ * @TODO Receive inputs signal depth in lieu of storing history internally.
  *
- * @todo Since the RMS is the native computed value behing the STD, it can be promoted
+ * @TODO Since the RMS is the native computed value being the STD, it can be promoted
  * to be available on an output signal without additional penalty.
  *
- * @todo Deliver histogram as output array.
+ * @TODO Deliver histogram as output array.
  *
  */
 
@@ -175,5 +175,5 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* StatisticsGAM_H_ */
+#endif /* STATISTICSGAM_H_ */
 
