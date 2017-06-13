@@ -99,6 +99,26 @@ TEST(StatisticsGAMGTest,TestExecute_Error) {
     ASSERT_TRUE(test.TestExecute_Error());
 }
 
+TEST(StatisticsGAMGTest,TestExecute_uint8) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_uint8());
+}
+
+TEST(StatisticsGAMGTest,TestExecute_int8) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_int8());
+}
+
+TEST(StatisticsGAMGTest,TestExecute_uint16) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_uint16());
+}
+
+TEST(StatisticsGAMGTest,TestExecute_int16) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_int16());
+}
+
 TEST(StatisticsGAMGTest,TestExecute_int32) {
     StatisticsGAMTest test;
     ASSERT_TRUE(test.TestExecute_int32());
@@ -107,6 +127,16 @@ TEST(StatisticsGAMGTest,TestExecute_int32) {
 TEST(StatisticsGAMGTest,TestExecute_uint32) {
     StatisticsGAMTest test;
     ASSERT_TRUE(test.TestExecute_uint32());
+}
+
+TEST(StatisticsGAMGTest,TestExecute_int64) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_int64());
+}
+
+TEST(StatisticsGAMGTest,TestExecute_uint64) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_uint64());
 }
 
 TEST(StatisticsGAMGTest,TestExecute_float32) {

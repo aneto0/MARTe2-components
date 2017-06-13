@@ -24,6 +24,7 @@ ConversionHelper.cpp
 FilterGAM.cpp
 IOGAM.cpp
 StatisticsGAM.cpp
+StatisticsHelperT.h
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
