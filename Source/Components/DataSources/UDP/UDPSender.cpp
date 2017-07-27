@@ -187,7 +187,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
         }
         ok = (GetSignalType(0u).numberOfBits == 64u);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified", uint16(GetSignalType(0u).numberOfBits));
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 64 bits and %d were specified", uint16(GetSignalType(0u).numberOfBits));
         }
     }
     if (ok) {
@@ -202,7 +202,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = (GetSignalType(1u).numberOfBits == 64u);
         if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits or 64 bits and %d were specified", uint16(GetSignalType(1u).numberOfBits));
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 64 bits and %d were specified", uint16(GetSignalType(1u).numberOfBits));
         }
     }
     if (ok) {
