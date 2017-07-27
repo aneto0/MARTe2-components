@@ -352,12 +352,9 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
         if (ok){
             totalPacketSize = signalsMemoryOffset[lastSignalIdx] + signalByteSize;
         }
-        ok = (GetSignalType(0u).numberOfBits == 32u);
+        ok = (GetSignalType(0u).numberOfBits == 64u);
         if (!ok) {
-            ok = (GetSignalType(0u).numberOfBits == 64u);
-            }
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 32 bits or 64 bits and %d were specified",
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 64 bits and %d were specified",
                                     uint16(GetSignalType(0u).numberOfBits ));
         }
     }
@@ -371,12 +368,9 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (GetSignalType(1u).numberOfBits == 32u);
+        ok = (GetSignalType(1u).numberOfBits == 64u);
         if (!ok) {
-            ok = (GetSignalType(1u).numberOfBits == 64u);
-        }
-        if (!ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 32 bits or 64 bits and %d were specified",
+            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 64 bits and %d were specified",
                                             uint16(GetSignalType(1u).numberOfBits));
         }
     }
