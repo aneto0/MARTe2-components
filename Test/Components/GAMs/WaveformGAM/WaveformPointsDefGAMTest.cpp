@@ -2,7 +2,7 @@
  * @file WaveformPointsDefGAMTest.cpp
  * @brief Source file for class WaveformPointsDefGAMTest
  * @date 30/05/2017
- * @author Llorenc
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -31,7 +31,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "../WaveformGAM/WaveformPointsDefGAMTest.h"
+#include "WaveformPointsDefGAMTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -42,16 +42,14 @@
 /*---------------------------------------------------------------------------*/
 
 WaveformPointsDefGAMTest::WaveformPointsDefGAMTest() {
-//Auto-generated constructor stub for WaveformPointsDefGAMTest
 
-//TODO Verify if manual additions are needed here
 }
 
 WaveformPointsDefGAMTest::~WaveformPointsDefGAMTest() {
 
 }
 
-bool WaveformPointsDefGAMTest::TestMissingPoints() {
+bool WaveformPointsDefGAMTest::TestInitialise_MissingPoints() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam;
     Vector<float64> yVec(gam.y1, gam.numberOfElementsY);
@@ -62,7 +60,7 @@ bool WaveformPointsDefGAMTest::TestMissingPoints() {
     return !ok;
 }
 
-bool WaveformPointsDefGAMTest::TestFailingReadingPointsValues() {
+bool WaveformPointsDefGAMTest::TestInitialise_FailingReadingPointsValues() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam;
     //Vector<float64> yVec(gam.y1, gam.numberOfElementsY);
@@ -82,7 +80,7 @@ bool WaveformPointsDefGAMTest::TestFailingReadingPointsValues() {
     return !ok;
 }
 
-bool WaveformPointsDefGAMTest::Test1Point() {
+bool WaveformPointsDefGAMTest::TestInitialise_1Point() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam;
     float64 *x = new float64[1];
@@ -97,7 +95,7 @@ bool WaveformPointsDefGAMTest::Test1Point() {
     return !ok;
 }
 
-bool WaveformPointsDefGAMTest::TestMissingTimes() {
+bool WaveformPointsDefGAMTest::TestInitialise_MissingTimes() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam;
     Vector<float64> yVec(gam.y1, gam.numberOfElementsY);
@@ -108,7 +106,7 @@ bool WaveformPointsDefGAMTest::TestMissingTimes() {
     return !ok;
 }
 
-bool WaveformPointsDefGAMTest::TestDifferentSizePointsTimes() {
+bool WaveformPointsDefGAMTest::TestInitialise_DifferentSizePointsTimes() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam;
     Vector<float64> yVec(gam.y1, gam.numberOfElementsY);
@@ -120,7 +118,7 @@ bool WaveformPointsDefGAMTest::TestDifferentSizePointsTimes() {
     return !ok;
 }
 
-bool WaveformPointsDefGAMTest::TestFailingReadingTimesValues() {
+bool WaveformPointsDefGAMTest::TestInitialise_FailingReadingTimesValues() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam;
     float64 aux = 0.123;
@@ -134,7 +132,7 @@ bool WaveformPointsDefGAMTest::TestFailingReadingTimesValues() {
     return !ok;
 }
 
-bool WaveformPointsDefGAMTest::TestInvalidTimes() {
+bool WaveformPointsDefGAMTest::TestInitialise_InvalidTimes() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam;
     Vector<float64> yVec(gam.y1, gam.numberOfElementsY);
@@ -145,7 +143,7 @@ bool WaveformPointsDefGAMTest::TestInvalidTimes() {
     return !ok;
 }
 
-bool WaveformPointsDefGAMTest::TestInvalidTimes2() {
+bool WaveformPointsDefGAMTest::TestInitialise_InvalidTimes2() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam;
     Vector<float64> yVec(gam.y1, gam.numberOfElementsY);
@@ -159,7 +157,7 @@ bool WaveformPointsDefGAMTest::TestInvalidTimes2() {
     return !ok;
 }
 
-bool WaveformPointsDefGAMTest::TestFailWaveformSetup() {
+bool WaveformPointsDefGAMTest::TestInitialise_FailWaveformSetup() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam;
     gam.SetName("Test");

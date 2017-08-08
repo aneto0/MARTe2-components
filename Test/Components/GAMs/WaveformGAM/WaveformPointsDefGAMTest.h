@@ -2,7 +2,7 @@
  * @file WaveformPointsDefGAMTest.h
  * @brief Header file for class WaveformPointsDefGAMTest
  * @date 30/05/2017
- * @author Llorenc
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -31,11 +31,11 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "StreamString.h"
+#include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "GAM.h"
+#include "StreamString.h"
 #include "WaveformPointsDef.h"
-#include "stdio.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -44,7 +44,6 @@
 using namespace MARTe;
 
 class WaveformPointsDefGAMTest {
-//TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API WaveformPointsDefGAMTest)
 public:
 
     /**
@@ -60,47 +59,47 @@ public:
     /**
      * @brief Test error message of WaveformPointsDef::Initialise()
      */
-    bool TestMissingPoints();
+    bool TestInitialise_MissingPoints();
 
     /**
      * @brief Test error message of WaveformPointsDef::Initialise()
      */
-    bool TestFailingReadingPointsValues();
+    bool TestInitialise_FailingReadingPointsValues();
 
     /**
      * @brief Test error message of WaveformPointsDef::Initialise()
      */
-    bool Test1Point();
+    bool TestInitialise_1Point();
 
     /**
      * @brief Test error message of WaveformPointsDef::Initialise()
      */
-    bool TestMissingTimes();
+    bool TestInitialise_MissingTimes();
 
     /**
      * @brief Test error message of WaveformPointsDef::Initialise()
      */
-    bool TestDifferentSizePointsTimes();
+    bool TestInitialise_DifferentSizePointsTimes();
 
     /**
      * @brief Test error message of WaveformPointsDef::Initialise()
      */
-    bool TestFailingReadingTimesValues();
+    bool TestInitialise_FailingReadingTimesValues();
 
     /**
      * @brief Test error message of WaveformPointsDef::Initialise()
      */
-    bool TestInvalidTimes();
+    bool TestInitialise_InvalidTimes();
 
     /**
      * @brief Test error message of WaveformPointsDef::Initialise()
      */
-    bool TestInvalidTimes2();
+    bool TestInitialise_InvalidTimes2();
 
     /**
      * @brief Test error message of WaveformPointsDef::Initialise()
      */
-    bool TestFailWaveformSetup();
+    bool TestInitialise_FailWaveformSetup();
 
     /**
      * @brief Template test. Verifies the correctness of the data.
@@ -744,7 +743,7 @@ bool WaveformPointsDefGAMTest::TestExecute(StreamString str) {
         gam.Execute();
         ok &= gam.ComparePointsdef1(output);
         if (!ok) {
-            printf("iteration which fails %u\n", i);
+            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
         *timeIteration += timeIterationIncrement;
     }
@@ -785,7 +784,7 @@ bool WaveformPointsDefGAMTest::TestExecuteTrigger(StreamString str) {
         gam.Execute();
         ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
-            printf("iteration which fails %u\n", i);
+            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
         *timeIteration += timeIterationIncrement;
     }
@@ -831,7 +830,7 @@ bool WaveformPointsDefGAMTest::TestExecute2Signals(StreamString str) {
         ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         ok &= gam.ComparePointsdef1Trigger2(output2, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
-            printf("iteration which fails %u\n", i);
+            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
         *timeIteration += timeIterationIncrement;
     }
@@ -874,7 +873,7 @@ bool WaveformPointsDefGAMTest::TestExecuteTrigger2Point(StreamString str) {
         gam.Execute();
         ok &= gam.Compare2Pointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
-            printf("iteration which fails %u\n", i);
+            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
         *timeIteration += timeIterationIncrement;
     }
@@ -915,7 +914,7 @@ bool WaveformPointsDefGAMTest::TestExecuteTrigger_1Element(StreamString str) {
         gam.Execute();
         ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
-            printf("iteration which fails %u\n", i);
+            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
         *timeIteration += timeIterationIncrement;
     }

@@ -182,14 +182,7 @@ WaveformPointsDef    ();
      */
     virtual bool GetFloat64Value();
 
-    /**
-     * @brief Cast the signal defined by points to the specified type.
-     * @details Template method which cast the signal defined by points computed with GetFloat64OutputValues()
-     * @return true always
-     */
-    template<typename T>
-    bool GetValue();
-
+protected:
     /**
      * @brief computes the signal defined by points in in float64
      * @details computes the following operations:
@@ -201,9 +194,17 @@ WaveformPointsDef    ();
      * and save the data in #MARTe#Waveform::outputFloat64
      * @return true always
      */
-    bool GetFloat64OutputValues();
-
+    virtual bool PrecomputeValues();
 private:
+
+    /**
+     * @brief Cast the signal defined by points to the specified type.
+     * @details Template method which cast the signal defined by points computed with GetFloat64OutputValues()
+     * @return true always
+     */
+    template<typename T>
+    bool GetValue();
+
     float64 *points;
     /**
      * times array to indicate at which time there is a new point. The first time must be 0
@@ -278,11 +279,10 @@ namespace MARTe {
 
 template<typename T>
 bool WaveformPointsDef::GetValue() {
-bool ok = GetFloat64OutputValues();
-for (uint32 i = 0u; (i < numberOfOutputElements) && (ok); i++) {
-    static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
-}
-return ok;
+    for (uint32 i = 0u; (i < numberOfOutputElements); i++) {
+        static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
+    }
+    return true;
 }
 }
 

@@ -105,7 +105,7 @@ bool WaveformSin::Initialise(StructuredDataI& data) {
 }
 
 
-bool WaveformSin::GetFloat64OutputValues() {
+bool WaveformSin::PrecomputeValues() {
     for (uint32 i = 0u; i < numberOfOutputElements; i++) {
         TriggerMechanism();
         if (signalOn && triggersOn) {

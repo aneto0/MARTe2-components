@@ -162,7 +162,7 @@ bool WaveformPointsDef::Initialise(StructuredDataI &data) {
     return ok;
 }
 
-bool WaveformPointsDef::GetFloat64OutputValues() {
+bool WaveformPointsDef::PrecomputeValues() {
     for (uint32 i = 0u; i < numberOfOutputElements; i++) {
         TriggerMechanism();
         //decides which slope should be used

@@ -188,6 +188,13 @@ public:
 protected:
 
     /**
+     * @brief Accelerates (if needed) the calculation of the waveform so that when many output signals share the same waveform this only has to be performed once.
+     * This design should be revisited... This function is called by the Execute method before calling any of the Get*Value() functions.
+     * @return true if the waveform value was correctly computed.
+     */
+    virtual bool PrecomputeValues() = 0;
+
+    /**
      * Output pointer. It support several output signals
      */
     void **outputValue;

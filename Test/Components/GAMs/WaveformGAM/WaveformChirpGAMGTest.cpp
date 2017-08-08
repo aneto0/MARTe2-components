@@ -40,44 +40,44 @@
 using namespace MARTe;
 
 
-TEST(WaveformChirpGAMTest, TestMissingAmplitude) {
+TEST(WaveformChirpGAMTest, TestInitialiseMissingAmplitude) {
     WaveformChirpGAMTest test;
-    ASSERT_TRUE(test.TestMissingAmplitude());
+    ASSERT_TRUE(test.TestInitialiseMissingAmplitude());
 }
 
-TEST(WaveformChirpGAMTest, Test0Amplitude) {
+TEST(WaveformChirpGAMTest, TestInitialise0Amplitude) {
     WaveformChirpGAMTest test;
-    ASSERT_TRUE(test.Test0Amplitude());
+    ASSERT_TRUE(test.TestInitialise0Amplitude());
 }
 
-TEST(WaveformChirpGAMTest, TestMissingPhase) {
+TEST(WaveformChirpGAMTest, TestInitialiseMissingPhase) {
     WaveformChirpGAMTest test;
-    ASSERT_TRUE(test.TestMissingPhase());
+    ASSERT_TRUE(test.TestInitialiseMissingPhase());
 }
 
-TEST(WaveformChirpGAMTest, TestMissingOffset) {
+TEST(WaveformChirpGAMTest, TestInitialiseMissingOffset) {
     WaveformChirpGAMTest test;
-    ASSERT_TRUE(test.TestMissingOffset());
+    ASSERT_TRUE(test.TestInitialiseMissingOffset());
 }
 
-TEST(WaveformChirpGAMTest, TestMissingFreq1) {
+TEST(WaveformChirpGAMTest, TestInitialiseMissingFreq1) {
     WaveformChirpGAMTest test;
-    ASSERT_TRUE(test.TestMissingFreq1());
+    ASSERT_TRUE(test.TestInitialiseMissingFreq1());
 }
 
-TEST(WaveformChirpGAMTest, TestMissingFreq2) {
+TEST(WaveformChirpGAMTest, TestInitialiseMissingFreq2) {
     WaveformChirpGAMTest test;
-    ASSERT_TRUE(test.TestMissingFreq2());
+    ASSERT_TRUE(test.TestInitialiseMissingFreq2());
 }
 
-TEST(WaveformChirpGAMTest, TestMissingChirpDuration) {
+TEST(WaveformChirpGAMTest, TestInitialiseMissingChirpDuration) {
     WaveformChirpGAMTest test;
-    ASSERT_TRUE(test.TestMissingChirpDuration());
+    ASSERT_TRUE(test.TestInitialiseMissingChirpDuration());
 }
 
-TEST(WaveformChirpGAMTest, Test0ChirpDuration) {
+TEST(WaveformChirpGAMTest, TestInitialise0ChirpDuration) {
     WaveformChirpGAMTest test;
-    ASSERT_TRUE(test.Test0ChirpDuration());
+    ASSERT_TRUE(test.TestInitialise0ChirpDuration());
 }
 
 

@@ -2,7 +2,7 @@
  * @file WaveformPointsDefGAMGTest.cpp
  * @brief Source file for class WaveformPointsDefGAMGTest
  * @date 30/05/2017
- * @author Llorenc
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -35,7 +35,7 @@
 /*---------------------------------------------------------------------------*/
 
 
-#include "../WaveformGAM/WaveformPointsDefGAMTest.h"
+#include "WaveformPointsDefGAMTest.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -45,47 +45,47 @@ using namespace MARTe;
 
 TEST(WaveformPointsDefGAMTest, TestMissingPoints) {
     WaveformPointsDefGAMTest test;
-    ASSERT_TRUE(test.TestMissingPoints());
+    ASSERT_TRUE(test.TestInitialise_MissingPoints());
 }
 
 TEST(WaveformPointsDefGAMTest, TestFailingReadingPointsValues) {
     WaveformPointsDefGAMTest test;
-    ASSERT_TRUE(test.TestFailingReadingPointsValues());
+    ASSERT_TRUE(test.TestInitialise_FailingReadingPointsValues());
 }
 
 TEST(WaveformPointsDefGAMTest, Test1Point) {
     WaveformPointsDefGAMTest test;
-    ASSERT_TRUE(test.Test1Point());
+    ASSERT_TRUE(test.TestInitialise_1Point());
 }
 
 TEST(WaveformPointsDefGAMTest, TestMissingTimes) {
     WaveformPointsDefGAMTest test;
-    ASSERT_TRUE(test.TestMissingTimes());
+    ASSERT_TRUE(test.TestInitialise_MissingTimes());
 }
 
 TEST(WaveformPointsDefGAMTest, TestDifferentSizePointsTimes) {
     WaveformPointsDefGAMTest test;
-    ASSERT_TRUE(test.TestDifferentSizePointsTimes());
+    ASSERT_TRUE(test.TestInitialise_DifferentSizePointsTimes());
 }
 
 TEST(WaveformPointsDefGAMTest, TestFailingReadingTimesValues) {
     WaveformPointsDefGAMTest test;
-    ASSERT_TRUE(test.TestFailingReadingTimesValues());
+    ASSERT_TRUE(test.TestInitialise_FailingReadingTimesValues());
 }
 
 TEST(WaveformPointsDefGAMTest, TestInvalidTimes) {
     WaveformPointsDefGAMTest test;
-    ASSERT_TRUE(test.TestInvalidTimes());
+    ASSERT_TRUE(test.TestInitialise_InvalidTimes());
 }
 
 TEST(WaveformPointsDefGAMTest, TestInvalidTimes2) {
     WaveformPointsDefGAMTest test;
-    ASSERT_TRUE(test.TestInvalidTimes2());
+    ASSERT_TRUE(test.TestInitialise_InvalidTimes2());
 }
 
 TEST(WaveformPointsDefGAMTest, TestFailWaveformSetup) {
     WaveformPointsDefGAMTest test;
-    ASSERT_TRUE(test.TestFailWaveformSetup());
+    ASSERT_TRUE(test.TestInitialise_FailWaveformSetup());
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteInt8) {

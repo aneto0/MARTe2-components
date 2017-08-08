@@ -51,117 +51,117 @@ public:
     /**
      * @brief Test message errors of WaveformSin::Initialise().
      */
-    bool TestMissingAmplitude();
+    bool TestInitialise_MissingAmplitude();
 
     /**
      * @brief Test message errors of WaveformSin::Initialise().
      */
-    bool TestMissingFrequency();
+    bool TestInitialise_MissingFrequency();
 
     /**
      * @brief Test message errors of WaveformSin::Initialise().
      */
-    bool TestMissingPhase();
+    bool TestInitialise_MissingPhase();
 
     /**
      * @brief Test message errors of WaveformSin::Initialise().
      */
-    bool TestMissingOffset();
+    bool TestInitialise_MissingOffset();
 
     /**
      * @brief Test message errors of WaveformSin::Initialise().
      */
-    bool TestFrequency0();
+    bool TestInitialise_Frequency0();
 
     /**
      * @brief Test message errors of WaveformSin::Initialise().
      */
-    bool TestAmplitude0();
+    bool TestInitialise_Amplitude0();
 
     /**
      * @brief Test message errors of Waveform::Setup().
      */
-    bool TestMissingInputSignal();
+    bool TestInitialise_MissingInputSignal();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestMissingOutputSignal();
+    bool TestInitialise_MissingOutputSignal();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestMissingInputNumberOfElements();
+    bool TestInitialise_MissingInputNumberOfElements();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestWrongInputNumberOfElements();
+    bool TestInitialise_WrongInputNumberOfElements();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestMissingOutputNumberOfElements();
+    bool TestInitialise_MissingOutputNumberOfElements();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestWrongOutputNumberOfElements();
+    bool TestInitialise_WrongOutputNumberOfElements();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestMissingSecondOutputNumberOfElements();
+    bool TestInitialise_MissingSecondOutputNumberOfElements();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestWrongSecondOutputNumberOfElements();
+    bool TestInitialise_WrongSecondOutputNumberOfElements();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestMissingInputNumberOfSamples();
+    bool TestInitialise_MissingInputNumberOfSamples();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestWrongInputNumberOfSamples();
+    bool TestInitialise_WrongInputNumberOfSamples();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestMissingOutputNumberOfSamples();
+    bool TestInitialise_MissingOutputNumberOfSamples();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestWrongOutputNumberOfSamples();
+    bool TestInitialise_WrongOutputNumberOfSamples();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestMissingSeondOutputNumberOfSamples();
+    bool TestInitialise_MissingSeondOutputNumberOfSamples();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestWrongSecondOutputNumberOfSamples();
+    bool TestInitialise_WrongSecondOutputNumberOfSamples();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestMissingInputType();
+    bool TestInitialise_MissingInputType();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestMissingOutputType();
+    bool TestInitialise_MissingOutputType();
 
     /**
      * @brief Test message errors of Waveform::Initialise().
      */
-    bool TestMissingSecondOutputType();
+    bool TestInitialise_MissingSecondOutputType();
 
     /**
      * @brief Test the correctness of the output with uint8.
@@ -216,17 +216,17 @@ public:
     /**
      * @brief Test warning message of Waveform::Setup() when checking triggering parameters.
      */
-    bool TestStopTriggerGreaterThanStartTrigger();
+    bool TestSetup_StopTriggerGreaterThanStartTrigger();
 
     /**
      * @brief Test warning message of Waveform::Setup() when checking triggering parameters.
      */
-    bool TestStartTriggerGreaterThanStopTriggerPlus2();
+    bool TestSetup_StartTriggerGreaterThanStopTriggerPlus2();
 
     /**
      * @brief Test warning message of Waveform::Setup() when checking triggering parameters.
      */
-    bool TestStartTriggerTimeArrayInconsistent();
+    bool TestSetup_StartTriggerTimeArrayInconsistent();
 
     /**
      * @brief Test the correctness of the output with uint8 and trigger mechanism enabled.

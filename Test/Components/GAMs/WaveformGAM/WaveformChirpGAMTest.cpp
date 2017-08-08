@@ -37,9 +37,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-namespace {
-
-}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -48,18 +45,12 @@ namespace {
 namespace MARTe {
 
 WaveformChirpGAMTest::WaveformChirpGAMTest() {
-//Auto-generated constructor stub for WaveformChirpGAMTest
-
-//TODO Verify if manual additions are needed here
 }
 
 WaveformChirpGAMTest::~WaveformChirpGAMTest() {
-//Auto-generated destructor stub for WaveformChirpGAMTest
-
-//TODO Verify if manual additions are needed here
 }
 
-bool WaveformChirpGAMTest::TestMissingAmplitude(){
+bool WaveformChirpGAMTest::TestInitialiseMissingAmplitude(){
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -68,7 +59,7 @@ bool WaveformChirpGAMTest::TestMissingAmplitude(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::Test0Amplitude(){
+bool WaveformChirpGAMTest::TestInitialise0Amplitude(){
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -92,7 +83,7 @@ bool WaveformChirpGAMTest::Test0Amplitude(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestMissingPhase(){
+bool WaveformChirpGAMTest::TestInitialiseMissingPhase(){
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -115,7 +106,7 @@ bool WaveformChirpGAMTest::TestMissingPhase(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestMissingOffset(){
+bool WaveformChirpGAMTest::TestInitialiseMissingOffset(){
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -138,7 +129,7 @@ bool WaveformChirpGAMTest::TestMissingOffset(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestMissingFreq1(){
+bool WaveformChirpGAMTest::TestInitialiseMissingFreq1(){
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -161,7 +152,7 @@ bool WaveformChirpGAMTest::TestMissingFreq1(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestMissingFreq2(){
+bool WaveformChirpGAMTest::TestInitialiseMissingFreq2(){
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -184,7 +175,7 @@ bool WaveformChirpGAMTest::TestMissingFreq2(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestMissingChirpDuration(){
+bool WaveformChirpGAMTest::TestInitialiseMissingChirpDuration(){
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -208,7 +199,7 @@ bool WaveformChirpGAMTest::TestMissingChirpDuration(){
 }
 
 
-bool WaveformChirpGAMTest::Test0ChirpDuration(){
+bool WaveformChirpGAMTest::TestInitialise0ChirpDuration(){
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);

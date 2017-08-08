@@ -27,14 +27,15 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "math.h"
-#include "FastMath.h"
-#include "stdio.h"
+#include <math.h>
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "WaveformChirp.h"
+#include "AdvancedErrorManagement.h"
+#include "FastMath.h"
 #include "StreamString.h"
+#include "WaveformChirp.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -42,7 +43,6 @@
 namespace MARTe {
 
 class WaveformChirpGAMTest {
-//TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API WaveformChirpGAMTest)
 public:
     /**
      * @brief Default constructor
@@ -57,42 +57,42 @@ public:
     /**
      * @brief Test error message of WaveformChirp::Initialise()
      */
-    bool TestMissingAmplitude();
+    bool TestInitialiseMissingAmplitude();
 
     /**
      * @brief Test error message of WaveformChirp::Initialise()
      */
-    bool Test0Amplitude();
+    bool TestInitialise0Amplitude();
 
     /**
      * @brief Test error message of WaveformChirp::Initialise()
      */
-    bool TestMissingPhase();
+    bool TestInitialiseMissingPhase();
 
     /**
      * @brief Test error message of WaveformChirp::Initialise()
      */
-    bool TestMissingOffset();
+    bool TestInitialiseMissingOffset();
 
     /**
      * @brief Test error message of WaveformChirp::Initialise()
      */
-    bool TestMissingFreq1();
+    bool TestInitialiseMissingFreq1();
 
     /**
      * @brief Test error message of WaveformChirp::Initialise()
      */
-    bool TestMissingFreq2();
+    bool TestInitialiseMissingFreq2();
 
     /**
      * @brief Test error message of WaveformChirp::Initialise()
      */
-    bool TestMissingChirpDuration();
+    bool TestInitialiseMissingChirpDuration();
 
     /**
      * @brief Test error message of WaveformChirp::Initialise()
      */
-    bool Test0ChirpDuration();
+    bool TestInitialise0ChirpDuration();
 
     /**
      * @brief Template test. Verifies the correctness of the data.
@@ -120,7 +120,6 @@ public:
     template<typename T>
     bool TestExecute1ElementPerCycle(StreamString str);
 
-
 };
 
 }
@@ -132,11 +131,7 @@ namespace MARTe {
 class WaveformChirpGAMTestHelper: public WaveformChirp {
 public:
 
-    WaveformChirpGAMTestHelper(uint32 elementsIn = 1,
-                               uint32 samplesIn = 1,
-                               uint32 elementsOut = 4,
-                               uint32 samplesOut = 1,
-                               StreamString str = "int8") {
+    WaveformChirpGAMTestHelper(uint32 elementsIn = 1, uint32 samplesIn = 1, uint32 elementsOut = 4, uint32 samplesOut = 1, StreamString str = "int8") {
         numberOfElementsIn = elementsIn;
         numberOfSamplesIn = samplesIn;
         byteSizeIn = numberOfElementsIn * sizeof(uint32);
@@ -233,17 +228,15 @@ public:
         return ret;
     }
 
-    bool IsEqualLargerMargins(float64 f1,
-                              float64 f2) {
+    bool IsEqualLargerMargins(float64 f1, float64 f2) {
         float64 *min = reinterpret_cast<float64*>(const_cast<uint64*>(&EPSILON_FLOAT64));
-        float64 minLarger = *min * 3;
+        float64 minLarger = *min * 4;
         return ((f1 - f2) < (minLarger)) && ((f1 - f2) > -(minLarger));
     }
 
-    bool IsEqualLargerMargins(float32 f1,
-                              float32 f2) {
+    bool IsEqualLargerMargins(float32 f1, float32 f2) {
         float32 *min = reinterpret_cast<float32*>(const_cast<uint32*>(&EPSILON_FLOAT32));
-        float32 minLarger = *min * 3;
+        float32 minLarger = *min * 4;
         return ((f1 - f2) < (minLarger)) && ((f1 - f2) > -(minLarger));
     }
 
@@ -408,9 +401,7 @@ public:
     }
 
     template<typename T>
-    bool CompareChirp1(T *output,
-                       float64 t,
-                       float64 it) {
+    bool CompareChirp1(T *output, float64 t, float64 it) {
         bool ret = true;
         static bool firstIteration = true;
         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
@@ -439,9 +430,7 @@ public:
     }
 
     template<typename T>
-    bool CompareChirp1Trigger(T *output,
-                              float64 t,
-                              float64 it) {
+    bool CompareChirp1Trigger(T *output, float64 t, float64 it) {
         bool ret = true;
 
         static bool firstIteration = true;
@@ -480,9 +469,7 @@ public:
     }
 
     template<typename T>
-    bool CompareChirpTrigger2(T *output,
-                              float64 t,
-                              float64 it) {
+    bool CompareChirpTrigger2(T *output, float64 t, float64 it) {
         bool ret = true;
 
         static bool firstIteration = true;
@@ -493,16 +480,7 @@ public:
             else {
                 float64 refValue = amplitude * sin(2.0 * FastMath::PI * f1 * t + 2 * FastMath::PI * (f2 - f1) * t * t / 2.0 / chirpDuration + phase) + offset;
                 if (ShouldBeSignalOutOn(t)) {
-                    StreamString auxStr = "uint32";
-                    if (auxStr == "float32") {
-                        ret = IsEqualLargerMargins(static_cast<float32>(refValue), static_cast<float32>(output[i]));
-                    }
-                    else if (auxStr == "float64") {
-                        ret = IsEqualLargerMargins(static_cast<float64>(refValue), static_cast<float64>(output[i]));
-                    }
-                    else {
-                        ret = (static_cast<T>(refValue) == output[i]);
-                    }
+                    ret = (static_cast<T>(refValue) == output[i]);
                 }
                 else {
                     ret = (static_cast<T>(0.0) == output[i]);
@@ -573,9 +551,6 @@ private:
     }
 }
 ;
-//CLASS_REGISTER(WaveformPointsDefGAMTestHelper, "1.0")
-
-#endif /* WAVEFORMCHIRPGAMTEST_H_ */
 
 template<typename T>
 bool WaveformChirpGAMTest::TestExecute(StreamString str) {
@@ -624,10 +599,9 @@ bool WaveformChirpGAMTest::TestExecute(StreamString str) {
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
         gam.Execute();
-        ok &= gam.CompareChirp1(output, static_cast<float64>(*timeIteration) / 1e6,
-                                static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirp1(output, static_cast<float64>(*timeIteration) / 1e6, static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
-            printf("iteration which fails %u\n", i);
+            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
         *timeIteration += timeIterationIncrement;
     }
@@ -681,10 +655,9 @@ bool WaveformChirpGAMTest::TestExecuteTrigger(StreamString str) {
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
         gam.Execute();
-        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6,
-                                       static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6, static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
-            printf("iteration which fails %u\n", i);
+            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
         *timeIteration += timeIterationIncrement;
     }
@@ -741,18 +714,15 @@ bool WaveformChirpGAMTest::TestExecute2Signals(StreamString str) {
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
         gam.Execute();
-        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6,
-                                static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
-        ok &= gam.CompareChirpTrigger2(output2, static_cast<float64>(*timeIteration) / 1e6,
-                                static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6, static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirpTrigger2(output2, static_cast<float64>(*timeIteration) / 1e6, static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
-            printf("iteration which fails %u\n", i);
+            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
         *timeIteration += timeIterationIncrement;
     }
     return ok;
 }
-
 
 template<typename T>
 bool WaveformChirpGAMTest::TestExecute1ElementPerCycle(StreamString str) {
@@ -801,13 +771,13 @@ bool WaveformChirpGAMTest::TestExecute1ElementPerCycle(StreamString str) {
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
         gam.Execute();
-        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6,
-                                static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6, static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
-            printf("iteration which fails %u\n", i);
+            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
         *timeIteration += timeIterationIncrement;
     }
     return ok;
 }
 }
+#endif /* WAVEFORMCHIRPGAMTEST_H_ */

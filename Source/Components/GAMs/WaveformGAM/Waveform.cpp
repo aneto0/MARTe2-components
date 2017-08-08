@@ -282,6 +282,7 @@ bool Waveform::Execute() {
         if (inputTime != NULL_PTR(uint32 *)) {
             currentTime = static_cast<float64>(*inputTime) / 1e6;
         }
+        ok = PrecomputeValues();
         /*lint -e{613} typeVariableOut cannot be NULL as otherwise Execute will not be called*/
         for (indexOutputSignal = 0u; indexOutputSignal < numberOfOutputSignals; indexOutputSignal++) {
             if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
@@ -336,6 +337,7 @@ bool Waveform::Execute() {
             currentTime = static_cast<float64>(*inputTime) / 1e6;
         }
         //Check type and call correct function.
+        ok = PrecomputeValues();
         for (indexOutputSignal = 0u; indexOutputSignal < numberOfOutputSignals; indexOutputSignal++) {
             //If due to MISRA warning about null pointer
             if (typeVariableOut != NULL_PTR(TypeDescriptor *)) {

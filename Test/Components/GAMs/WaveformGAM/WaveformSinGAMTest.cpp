@@ -218,19 +218,15 @@ CLASS_REGISTER(WaveformSinGAMTestHelper, "1.0")
 /*---------------------------------------------------------------------------*/
 
 WaveformSinGAMTest::WaveformSinGAMTest() {
-//Auto-generated constructor stub for WaveFormSinGAMTest
 
-//TODO Verify if manual additions are needed here
 }
 
 WaveformSinGAMTest::~WaveformSinGAMTest() {
-//Auto-generated destructor stub for WaveFormSinGAMTest
 
-//TODO Verify if manual additions are needed here
 }
 
 
-bool WaveformSinGAMTest::TestMissingAmplitude() {
+bool WaveformSinGAMTest::TestInitialise_MissingAmplitude() {
     using namespace MARTe;using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
@@ -239,7 +235,7 @@ bool WaveformSinGAMTest::TestMissingAmplitude() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingFrequency() {
+bool WaveformSinGAMTest::TestInitialise_MissingFrequency() {
     using namespace MARTe;using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
@@ -248,7 +244,7 @@ bool WaveformSinGAMTest::TestMissingFrequency() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingPhase() {
+bool WaveformSinGAMTest::TestInitialise_MissingPhase() {
     using namespace MARTe;using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
@@ -258,7 +254,7 @@ bool WaveformSinGAMTest::TestMissingPhase() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingOffset() {
+bool WaveformSinGAMTest::TestInitialise_MissingOffset() {
     using namespace MARTe;using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
@@ -269,7 +265,7 @@ bool WaveformSinGAMTest::TestMissingOffset() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestFrequency0() {
+bool WaveformSinGAMTest::TestInitialise_Frequency0() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -283,7 +279,7 @@ bool WaveformSinGAMTest::TestFrequency0() {
     return ok;
 }
 
-bool WaveformSinGAMTest::TestAmplitude0() {
+bool WaveformSinGAMTest::TestInitialise_Amplitude0() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -297,7 +293,7 @@ bool WaveformSinGAMTest::TestAmplitude0() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingInputSignal() {
+bool WaveformSinGAMTest::TestInitialise_MissingInputSignal() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -310,7 +306,7 @@ bool WaveformSinGAMTest::TestMissingInputSignal() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingOutputSignal() {
+bool WaveformSinGAMTest::TestInitialise_MissingOutputSignal() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -337,7 +333,7 @@ bool WaveformSinGAMTest::TestMissingOutputSignal() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingInputNumberOfElements() {
+bool WaveformSinGAMTest::TestInitialise_MissingInputNumberOfElements() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -378,7 +374,7 @@ bool WaveformSinGAMTest::TestMissingInputNumberOfElements() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestWrongInputNumberOfElements() {
+bool WaveformSinGAMTest::TestInitialise_WrongInputNumberOfElements() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -419,7 +415,7 @@ bool WaveformSinGAMTest::TestWrongInputNumberOfElements() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingOutputNumberOfElements() {
+bool WaveformSinGAMTest::TestInitialise_MissingOutputNumberOfElements() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -460,7 +456,7 @@ bool WaveformSinGAMTest::TestMissingOutputNumberOfElements() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestWrongOutputNumberOfElements() {
+bool WaveformSinGAMTest::TestInitialise_WrongOutputNumberOfElements() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -501,7 +497,7 @@ bool WaveformSinGAMTest::TestWrongOutputNumberOfElements() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingSecondOutputNumberOfElements() {
+bool WaveformSinGAMTest::TestInitialise_MissingSecondOutputNumberOfElements() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -550,7 +546,7 @@ bool WaveformSinGAMTest::TestMissingSecondOutputNumberOfElements() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestWrongSecondOutputNumberOfElements() {
+bool WaveformSinGAMTest::TestInitialise_WrongSecondOutputNumberOfElements() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -599,7 +595,7 @@ bool WaveformSinGAMTest::TestWrongSecondOutputNumberOfElements() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingInputNumberOfSamples() {
+bool WaveformSinGAMTest::TestInitialise_MissingInputNumberOfSamples() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -655,7 +651,7 @@ bool WaveformSinGAMTest::TestMissingInputNumberOfSamples() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestWrongInputNumberOfSamples() {
+bool WaveformSinGAMTest::TestInitialise_WrongInputNumberOfSamples() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -711,7 +707,7 @@ bool WaveformSinGAMTest::TestWrongInputNumberOfSamples() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingOutputNumberOfSamples() {
+bool WaveformSinGAMTest::TestInitialise_MissingOutputNumberOfSamples() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -767,7 +763,7 @@ bool WaveformSinGAMTest::TestMissingOutputNumberOfSamples() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestWrongOutputNumberOfSamples() {
+bool WaveformSinGAMTest::TestInitialise_WrongOutputNumberOfSamples() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -823,7 +819,7 @@ bool WaveformSinGAMTest::TestWrongOutputNumberOfSamples() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingSeondOutputNumberOfSamples() {
+bool WaveformSinGAMTest::TestInitialise_MissingSeondOutputNumberOfSamples() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -891,7 +887,7 @@ bool WaveformSinGAMTest::TestMissingSeondOutputNumberOfSamples() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestWrongSecondOutputNumberOfSamples() {
+bool WaveformSinGAMTest::TestInitialise_WrongSecondOutputNumberOfSamples() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -959,7 +955,7 @@ bool WaveformSinGAMTest::TestWrongSecondOutputNumberOfSamples() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingInputType() {
+bool WaveformSinGAMTest::TestInitialise_MissingInputType() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -1027,7 +1023,7 @@ bool WaveformSinGAMTest::TestMissingInputType() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingOutputType() {
+bool WaveformSinGAMTest::TestInitialise_MissingOutputType() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -1095,7 +1091,7 @@ bool WaveformSinGAMTest::TestMissingOutputType() {
     return !ok;
 }
 
-bool WaveformSinGAMTest::TestMissingSecondOutputType() {
+bool WaveformSinGAMTest::TestInitialise_MissingSecondOutputType() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -1732,7 +1728,7 @@ bool WaveformSinGAMTest::TestFloat64Execute() {
     return ok;
 }
 
-bool WaveformSinGAMTest::TestStopTriggerGreaterThanStartTrigger() {
+bool WaveformSinGAMTest::TestSetup_StopTriggerGreaterThanStartTrigger() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -1771,7 +1767,7 @@ bool WaveformSinGAMTest::TestStopTriggerGreaterThanStartTrigger() {
     return ok;
 }
 
-bool WaveformSinGAMTest::TestStartTriggerGreaterThanStopTriggerPlus2() {
+bool WaveformSinGAMTest::TestSetup_StartTriggerGreaterThanStopTriggerPlus2() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;
@@ -1810,7 +1806,7 @@ bool WaveformSinGAMTest::TestStartTriggerGreaterThanStopTriggerPlus2() {
     return ok;
 }
 
-bool WaveformSinGAMTest::TestStartTriggerTimeArrayInconsistent() {
+bool WaveformSinGAMTest::TestSetup_StartTriggerTimeArrayInconsistent() {
     bool ok = true;
     using namespace MARTe;using namespace FastMath;
     WaveformSinGAMTestHelper gam;

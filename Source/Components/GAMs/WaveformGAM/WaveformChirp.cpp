@@ -31,9 +31,9 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "WaveformChirp.h"
 #include "AdvancedErrorManagement.h"
 #include "FastMath.h"
+#include "WaveformChirp.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -131,7 +131,7 @@ bool WaveformChirp::Initialise(StructuredDataI &data) {
     return ok;
 }
 
-bool WaveformChirp::GetFloat64OutputValues() {
+bool WaveformChirp::PrecomputeValues() {
     for (uint32 i = 0u; i < numberOfOutputElements; i++) {
         TriggerMechanism();
         if (signalOn && triggersOn) {

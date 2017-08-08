@@ -203,16 +203,7 @@ public:
     virtual bool GetFloat64Value();
 
     /**
-     * @brief Cast the chirp signal to the specified type.
-     * @details Template method which cast the chirp signal saved in #MARTe#Waveform::outputFloat64
-     * @return true always
-     */
-    template<typename T>
-    bool GetValue();
-
-
-    /**
-     * @brief computes the chirp signal in in float64
+     * @brief computes the chirp signal in float64
      * @details computes the following operations:
      *
      * \f$
@@ -222,9 +213,19 @@ public:
      * and save the data in #MARTe#Waveform::outputFloat64
      * @return true always
      */
-    bool GetFloat64OutputValues();
+    virtual bool PrecomputeValues();
 
 private:
+
+    /**
+     * @brief Cast the chirp signal to the specified type.
+     * @details Template method which cast the chirp signal saved in #MARTe#Waveform::outputFloat64
+     * @return true always
+     */
+    template<typename T>
+    bool GetValue();
+
+
     /**
      * Amplitude of the chirp signal
      */
@@ -285,11 +286,10 @@ namespace MARTe {
 
 template<typename T>
 bool WaveformChirp::GetValue() {
-    bool ok = GetFloat64OutputValues();
-    for (uint32 i = 0u; (i < numberOfOutputElements) && (ok); i++) {
+    for (uint32 i = 0u; (i < numberOfOutputElements); i++) {
         static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
     }
-    return ok;
+    return true;
 }
 }
 #endif /* WAVEFORMCHIRP_H_ */

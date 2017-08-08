@@ -197,14 +197,7 @@ WaveformSin    ();
      */
     virtual bool GetFloat64Value();
 
-    /**
-     * @brief Cast the sin in the specified type.
-     * @details Template method which cast the sin wave computed with GetFloat64OutputValues()
-     * @return true always
-     */
-    template<typename T>
-    bool GetValue();
-
+protected:
     /**
      * @brief computes the sin wave in float64
      * @details computes the following operations:
@@ -215,9 +208,18 @@ WaveformSin    ();
      *
      * and save the data in #MARTe#Waveform::outputFloat64
      */
-    bool GetFloat64OutputValues();
+    bool PrecomputeValues();
 
 private:
+
+    /**
+     * @brief Cast the sin in the specified type.
+     * @details Template method which cast the sin wave computed with GetFloat64OutputValues()
+     * @return true always
+     */
+    template<typename T>
+    bool GetValue();
+
     /**
      * amplitude of a sin signal
      */
@@ -253,11 +255,10 @@ private:
 namespace MARTe {
 template<typename T>
 bool WaveformSin::GetValue(){
-    bool ok = GetFloat64OutputValues();
-    for(uint32 i = 0u; (i < numberOfOutputElements) && (ok); i++){
+    for(uint32 i = 0u; (i < numberOfOutputElements); i++){
         static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
     }
-    return ok;
+    return true;
 }
 }
 

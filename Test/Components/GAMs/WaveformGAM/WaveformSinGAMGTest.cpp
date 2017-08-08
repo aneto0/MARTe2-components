@@ -38,119 +38,119 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-TEST(WaveformSinGAMTest, TestMissingAmplitude) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingAmplitude) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingAmplitude());
+    ASSERT_TRUE(test.TestInitialise_MissingAmplitude());
 }
 
-TEST(WaveformSinGAMTest, TestMissingFrequency) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingFrequency) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingFrequency());
+    ASSERT_TRUE(test.TestInitialise_MissingFrequency());
 }
 
-TEST(WaveformSinGAMTest, TestMissingPhase) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingPhase) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingPhase());
+    ASSERT_TRUE(test.TestInitialise_MissingPhase());
 }
 
-TEST(WaveformSinGAMTest, TestMissingOffset) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingOffset) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingOffset());
+    ASSERT_TRUE(test.TestInitialise_MissingOffset());
 }
 
-TEST(WaveformSinGAMTest, TestFrequency0) {
+TEST(WaveformSinGAMTest, TestInitialise_Frequency0) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestFrequency0());
+    ASSERT_TRUE(test.TestInitialise_Frequency0());
 }
 
-TEST(WaveformSinGAMTest, TestAmplitude0) {
+TEST(WaveformSinGAMTest, TestInitialise_Amplitude0) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestAmplitude0());
+    ASSERT_TRUE(test.TestInitialise_Amplitude0());
 }
 
-TEST(WaveformSinGAMTest, TestMissingInputSignal) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingInputSignal) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingInputSignal());
+    ASSERT_TRUE(test.TestInitialise_MissingInputSignal());
 }
 
-TEST(WaveformSinGAMTest, TestMissingOutputSignal) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingOutputSignal) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingOutputSignal());
+    ASSERT_TRUE(test.TestInitialise_MissingOutputSignal());
 }
 
-TEST(WaveformSinGAMTest, TestMissingInputNumberOfElements) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingInputNumberOfElements) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingInputNumberOfElements());
+    ASSERT_TRUE(test.TestInitialise_MissingInputNumberOfElements());
 }
 
-TEST(WaveformSinGAMTest, TestWrongInputNumberOfElements) {
+TEST(WaveformSinGAMTest, TestInitialise_WrongInputNumberOfElements) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestWrongInputNumberOfElements());
+    ASSERT_TRUE(test.TestInitialise_WrongInputNumberOfElements());
 }
 
-TEST(WaveformSinGAMTest, TestMissingOutputNumberOfElements) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingOutputNumberOfElements) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingOutputNumberOfElements());
+    ASSERT_TRUE(test.TestInitialise_MissingOutputNumberOfElements());
 }
 
-TEST(WaveformSinGAMTest, TestWrongOutputNumberOfElements) {
+TEST(WaveformSinGAMTest, TestInitialise_WrongOutputNumberOfElements) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestWrongOutputNumberOfElements());
+    ASSERT_TRUE(test.TestInitialise_WrongOutputNumberOfElements());
 }
 
-TEST(WaveformSinGAMTest, TestMissingSecondOutputNumberOfElements) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingSecondOutputNumberOfElements) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingSecondOutputNumberOfElements());
+    ASSERT_TRUE(test.TestInitialise_MissingSecondOutputNumberOfElements());
 }
 
-TEST(WaveformSinGAMTest, TestWrongSecondOutputNumberOfElements) {
+TEST(WaveformSinGAMTest, TestInitialise_WrongSecondOutputNumberOfElements) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestWrongSecondOutputNumberOfElements());
+    ASSERT_TRUE(test.TestInitialise_WrongSecondOutputNumberOfElements());
 }
 
-TEST(WaveformSinGAMTest, TestMissingInputNumberOfSamples) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingInputNumberOfSamples) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingInputNumberOfSamples());
+    ASSERT_TRUE(test.TestInitialise_MissingInputNumberOfSamples());
 }
 
-TEST(WaveformSinGAMTest, TestWrongInputNumberOfSamples) {
+TEST(WaveformSinGAMTest, TestInitialise_WrongInputNumberOfSamples) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestWrongInputNumberOfSamples());
+    ASSERT_TRUE(test.TestInitialise_WrongInputNumberOfSamples());
 }
 
-TEST(WaveformSinGAMTest, TestMissingOutputNumberOfSamples) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingOutputNumberOfSamples) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingOutputNumberOfSamples());
+    ASSERT_TRUE(test.TestInitialise_MissingOutputNumberOfSamples());
 }
 
-TEST(WaveformSinGAMTest, TestWrongOutputNumberOfSamples) {
+TEST(WaveformSinGAMTest, TestInitialise_WrongOutputNumberOfSamples) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestWrongOutputNumberOfSamples());
+    ASSERT_TRUE(test.TestInitialise_WrongOutputNumberOfSamples());
 }
 
-TEST(WaveformSinGAMTest, TestMissingSeondOutputNumberOfSamples) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingSeondOutputNumberOfSamples) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingSeondOutputNumberOfSamples());
+    ASSERT_TRUE(test.TestInitialise_MissingSeondOutputNumberOfSamples());
 }
 
-TEST(WaveformSinGAMTest, TestWrongSecondOutputNumberOfSamples) {
+TEST(WaveformSinGAMTest, TestInitialise_WrongSecondOutputNumberOfSamples) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestWrongSecondOutputNumberOfSamples());
+    ASSERT_TRUE(test.TestInitialise_WrongSecondOutputNumberOfSamples());
 }
 
-TEST(WaveformSinGAMTest, TestMissingInputType) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingInputType) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingInputType());
+    ASSERT_TRUE(test.TestInitialise_MissingInputType());
 }
 
-TEST(WaveformSinGAMTest, TestMissingOutputType) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingOutputType) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingOutputType());
+    ASSERT_TRUE(test.TestInitialise_MissingOutputType());
 }
 
-TEST(WaveformSinGAMTest, TestMissingSecondOutputType) {
+TEST(WaveformSinGAMTest, TestInitialise_MissingSecondOutputType) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestMissingSecondOutputType());
+    ASSERT_TRUE(test.TestInitialise_MissingSecondOutputType());
 }
 
 TEST(WaveformSinGAMTest, TestUInt8Execute) {
@@ -207,19 +207,19 @@ TEST(WaveformSinGAMTest, TestFloat64Execute) {
     ASSERT_TRUE(test.TestFloat64Execute());
 }
 
-TEST(WaveformSinGAMTest, TestStopTriggerGreaterThanStartTrigger) {
+TEST(WaveformSinGAMTest, TestSetup_StopTriggerGreaterThanStartTrigger) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestStopTriggerGreaterThanStartTrigger());
+    ASSERT_TRUE(test.TestSetup_StopTriggerGreaterThanStartTrigger());
 }
 
-TEST(WaveformSinGAMTest, TestStartTriggerGreaterThanStopTriggerPlus2) {
+TEST(WaveformSinGAMTest, TestSetup_StartTriggerGreaterThanStopTriggerPlus2) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestStartTriggerGreaterThanStopTriggerPlus2());
+    ASSERT_TRUE(test.TestSetup_StartTriggerGreaterThanStopTriggerPlus2());
 }
 
-TEST(WaveformSinGAMTest, TestStartTriggerTimeArrayInconsistent) {
+TEST(WaveformSinGAMTest, TestSetup_StartTriggerTimeArrayInconsistent) {
     WaveformSinGAMTest test;
-    ASSERT_TRUE(test.TestStartTriggerTimeArrayInconsistent());
+    ASSERT_TRUE(test.TestSetup_StartTriggerTimeArrayInconsistent());
 }
 
 TEST(WaveformSinGAMTest, TestUInt8ExecuteTrigger) {
