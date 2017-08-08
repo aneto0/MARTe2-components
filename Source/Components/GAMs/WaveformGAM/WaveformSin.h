@@ -208,7 +208,7 @@ protected:
      *
      * and save the data in #MARTe#Waveform::outputFloat64
      */
-    bool PrecomputeValues();
+    virtual bool PrecomputeValues();
 
 private:
 
