@@ -40,8 +40,6 @@ EPICSCAInput.cpp
 EPICSCAOutput.cpp
 FilterGAM.cpp
 IOGAM.cpp
-StatisticsGAM.cpp
-StatisticsHelperT.h
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
@@ -63,6 +61,8 @@ Signal.h
 SDNPublisher.cpp
 SDNSubscriber.cpp
 SharedDataArea.cpp
+StatisticsGAM.cpp
+StatisticsHelperT.h
 SysLogger.cpp
 Types.h
 Waveform.cpp
