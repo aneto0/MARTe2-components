@@ -38,11 +38,6 @@ EPICSCAClient.cpp
 EPICSCAInput.cpp
 EPICSCAOutput.cpp
 FilterGAM.cpp
-Waveform.cpp
-WaveformSin.cpp
-WaveformSin.h
-WaveformPointsDef.cpp
-WaveformPointsDef.h
 IOGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
@@ -67,3 +62,8 @@ SDNSubscriber.cpp
 SharedDataArea.cpp
 SysLogger.cpp
 Types.h
+Waveform.cpp
+WaveformSin.cpp
+WaveformSin.h
+WaveformPointsDef.cpp
+WaveformPointsDef.h

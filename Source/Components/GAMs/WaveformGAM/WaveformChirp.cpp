@@ -26,7 +26,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "math.h"
+#include <math.h>
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -64,20 +64,17 @@ WaveformChirp::WaveformChirp() :
 }
 
 WaveformChirp::~WaveformChirp() {
-//Auto-generated destructor stub for WaveformChirp
-
-//TODO Verify if manual additions are needed here
 }
 
 bool WaveformChirp::Initialise(StructuredDataI &data) {
     bool ok = Waveform::Initialise(data);
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::InitialisationError, "Waveform returns an initialization error");
+        REPORT_ERROR(ErrorManagement::InitialisationError, "Waveform class has returned an initialization error");
     }
     if (ok) {
         ok = data.Read("Amplitude", amplitude);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Fails to read <Amplitude>");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to read <Amplitude>");
         }
     }
     if (ok) {
@@ -89,42 +86,42 @@ bool WaveformChirp::Initialise(StructuredDataI &data) {
     if (ok) {
         ok = data.Read("Phase", phase);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Fails to read <Phase>");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to read <Phase>");
         }
     }
     if (ok) {
         ok = data.Read("Offset", offset);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Fails to read <Offset>");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to read <Offset>");
         }
     }
     if (ok) {
         ok = data.Read("Frequency1", frequency1);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Fails to read <Frequency1>");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to read <Frequency1>");
         }
     }
     if (ok) {
         ok = data.Read("Frequency2", frequency2);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Fails to read <Frequency2>");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to read <Frequency2>");
         }
     }
     if (ok) {
         w1 = 2.0 * FastMath::PI * frequency1;
         w2 = 2.0 * FastMath::PI * frequency2;
-        w12 = w2-w1;
+        w12 = w2 - w1;
     }
     if (ok) {
         ok = data.Read("ChirpDuration", chirpDuration);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Fails to read <ChirpDuration>");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to read <ChirpDuration>");
         }
     }
     if (ok) {
         ok = (chirpDuration > 0.0);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "chirpDuration must be positive");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "ChirpDuration must be positive");
         }
     }
     if (ok) {
@@ -152,14 +149,6 @@ bool WaveformChirp::GetFloat64OutputValues() {
 
 bool WaveformChirp::GetUInt8Value() {
     return WaveformChirp::GetValue<uint8>();
-}
-
-template<typename T>
-bool WaveformChirp::GetValue() {
-    for (uint32 i = 0u; i < numberOfOutputElements; i++) {
-        static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
-    }
-    return true;
 }
 
 bool WaveformChirp::GetInt8Value() {

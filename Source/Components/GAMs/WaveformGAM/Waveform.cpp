@@ -2,7 +2,7 @@
  * @file Waveform.cpp
  * @brief Source file for class Waveform
  * @date 19/05/2017
- * @author Llorenc
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -89,7 +89,7 @@ Waveform::~Waveform() {
         delete[] stopTriggerTime;
         stopTriggerTime = NULL_PTR(float64 *);
     }
-    if (outputFloat64 != NULL_PTR(float64 *)){
+    if (outputFloat64 != NULL_PTR(float64 *)) {
         delete[] outputFloat64;
         outputFloat64 = NULL_PTR(float64 *);
     }
@@ -178,12 +178,12 @@ bool Waveform::Setup() {
             }
         }
         for (uint32 i = 1u; (i < nOfOutputSignals) && ok; i++) {
-            uint32 auxNumberOfSamples;
-            ok = GetSignalNumberOfElements(OutputSignals, i, auxNumberOfSamples);
+            uint32 auxNumberOfOutputElements;
+            ok = GetSignalNumberOfElements(OutputSignals, i, auxNumberOfOutputElements);
             if (ok) {
-                ok = auxNumberOfSamples == numberOfOutputElements;
+                ok = (auxNumberOfOutputElements == numberOfOutputElements);
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples between channels is different");
+                    REPORT_ERROR(ErrorManagement::ParametersError, "The number of elements between channels is different");
                 }
             }
             else {
@@ -191,12 +191,11 @@ bool Waveform::Setup() {
                 const uint32 aux = i;
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output numberOfElements for signal %u", aux);
 
-
             }
         }
     }
-    if(ok){
-        outputFloat64 = new float64 [numberOfOutputElements];
+    if (ok) {
+        outputFloat64 = new float64[numberOfOutputElements];
     }
     if (ok) {
         ok = GetSignalNumberOfSamples(InputSignals, 0u, numberOfInputSamples);
@@ -275,18 +274,18 @@ bool Waveform::Execute() {
 
     bool ok = true;
     if (timeState == static_cast<uint8>(0u)) {
-        if(inputTime != NULL_PTR(uint32 *)){
+        if (inputTime != NULL_PTR(uint32 *)) {
             time0 = *inputTime;
         }
         timeState++;
         signalOn = false;
-        if(inputTime != NULL_PTR(uint32 *)){
+        if (inputTime != NULL_PTR(uint32 *)) {
             currentTime = static_cast<float64>(*inputTime) / 1e6;
         }
-        ok = GetFloat64OutputValues();
+        /*lint -e{613} typeVariableOut cannot be NULL as otherwise Execute will not be called*/
         for (indexOutputSignal = 0u; indexOutputSignal < numberOfOutputSignals; indexOutputSignal++) {
             if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
-               ok = GetUInt8Value();
+                ok = GetUInt8Value();
             }
             else if (typeVariableOut[indexOutputSignal] == SignedInteger8Bit) {
                 ok = GetInt8Value();
@@ -321,21 +320,21 @@ bool Waveform::Execute() {
         signalOn = true;
     }
     else if (timeState == static_cast<uint8>(1u)) {
-        if(inputTime != NULL_PTR(uint32 *)){
+        if (inputTime != NULL_PTR(uint32 *)) {
             time1 = *inputTime;
         }
-        if(numberOfOutputElements != 0u){
+        if (numberOfOutputElements != 0u) {
             timeIncrement = ((static_cast<float64>(time1) - static_cast<float64>(time0)) / static_cast<float64>(numberOfOutputElements)) / 1e6;
         }
         timeState++;
-    }else{
+    }
+    else {
 
     }
     if (timeState == static_cast<uint8>(2u)) {
-        if(inputTime != NULL_PTR(uint32 *)){
+        if (inputTime != NULL_PTR(uint32 *)) {
             currentTime = static_cast<float64>(*inputTime) / 1e6;
         }
-        ok = GetFloat64OutputValues();
         //Check type and call correct function.
         for (indexOutputSignal = 0u; indexOutputSignal < numberOfOutputSignals; indexOutputSignal++) {
             //If due to MISRA warning about null pointer
@@ -381,62 +380,84 @@ bool Waveform::Execute() {
 void Waveform::TriggerMechanism() {
     if (triggersEnable) {
         bool stop = false;
-        while((indexStopTriggersArray < numberOfStopTriggers) && (!stop)){
-            if(stopTriggerTime != NULL_PTR(float64 *)){
+        while ((indexStopTriggersArray < numberOfStopTriggers) && (!stop)) {
+            if (stopTriggerTime != NULL_PTR(float64 *)) {
                 //lint -e{661} the while prevents the index to be out of-of-bounds
-                if(stopTriggerTime[indexStopTriggersArray] > currentTime){
+                if (stopTriggerTime[indexStopTriggersArray] > currentTime) {
                     stop = true;
-                }else{
+                }
+                else {
                     indexStopTriggersArray++;
                 }
             }
         }
-        if(stop){
-            if(startTriggerTime != NULL_PTR(float64 *)){
+        if (stop) {
+            if (startTriggerTime != NULL_PTR(float64 *)) {
                 //lint -e{662} the number of elements of startTriggerTime is equal or grater than elements of stopTriggerTime, then start startTriggerTime will not be out-of-bounds
                 //lint -e{661} the previous while ensures that the index is not out-of-bounds
-                if(currentTime >= startTriggerTime[indexStopTriggersArray]){
+                if (currentTime >= startTriggerTime[indexStopTriggersArray]) {
                     triggersOn = true;
-                }else{
+                }
+                else {
                     triggersOn = false;
                 }
             }
-        }else{
-            if(numberOfStopTriggers < numberOfStartTriggers){
-                if(startTriggerTime != NULL_PTR(float64 *)){
-                    if(currentTime >= startTriggerTime[numberOfStopTriggers]){
+        }
+        else {
+            if (numberOfStopTriggers < numberOfStartTriggers) {
+                if (startTriggerTime != NULL_PTR(float64 *)) {
+                    if (currentTime >= startTriggerTime[numberOfStopTriggers]) {
                         triggersOn = true;
-                    }else{
+                    }
+                    else {
                         triggersOn = false;
                     }
                 }
-            }else{
+            }
+            else {
                 triggersOn = false;
             }
-        }/*
-            if (numberOfStartTriggers > indexStartTriggersArray) {
-                if(startTriggerTime != NULL_PTR(float64 *)){
-                    if (startTriggerTime[indexStartTriggersArray] <= currentTime) {
-                        triggersOn = true;
-                        indexStartTriggersArray++;
-                    }
-                }
-            }
-            if (indexStopTriggersArray < numberOfStopTriggers) {
-                if(stopTriggerTime != NULL_PTR(float64 *)){
-                    //lint -e{661} indexStopTriggersArray never goes out of range because it is checked "indexStopTriggersArray < numberOfStopTriggers"
-                    if (stopTriggerTime[indexStopTriggersArray] <= currentTime) {
-                        triggersOn = false;
-                        indexStopTriggersArray++;
-                    }
-                }
-            }
-            */
+        }
     }
     else {
         triggersOn = true;
     }
     return;
+}
+
+bool Waveform::ValidateTimeTriggers() const {
+    bool ret = true;
+    if (numberOfStopTriggers > 0u) {
+        /*lint -e{613} -e{661} typeVariableOut cannot be NULL as otherwise ValidateTimeTriggers will not be called.
+         * (i + 1u) < numberOfStartTriggers and as such cannot go out of bounds*/
+        for (uint32 i = 0u; (i < numberOfStopTriggers) && ret; i++) {
+            ret = (stopTriggerTime[i] > startTriggerTime[i]);
+            if (ret && ((i + 1u) < numberOfStartTriggers)) {
+                //MISRA...Suspicious truncation..
+                uint32 aux = i + 1u;
+                ret = (stopTriggerTime[i] < startTriggerTime[aux]);
+            }
+        }
+    }
+    return ret;
+}
+
+bool Waveform::IsValidType(TypeDescriptor const &typeRef) const {
+    bool retVal;
+    bool *auxBool = (new bool[10u]);
+    auxBool[0] = typeRef == Float32Bit;
+    auxBool[1] = typeRef == Float64Bit;
+    auxBool[2] = typeRef == SignedInteger8Bit;
+    auxBool[3] = typeRef == UnsignedInteger8Bit;
+    auxBool[4] = typeRef == SignedInteger16Bit;
+    auxBool[5] = typeRef == UnsignedInteger16Bit;
+    auxBool[6] = typeRef == SignedInteger32Bit;
+    auxBool[7] = typeRef == UnsignedInteger32Bit;
+    auxBool[8] = typeRef == SignedInteger64Bit;
+    auxBool[9] = typeRef == UnsignedInteger64Bit;
+    retVal = ((auxBool[0]) || (auxBool[1]) || (auxBool[2]) || (auxBool[3]) || (auxBool[4]) || (auxBool[5]) || (auxBool[6]) || (auxBool[7]) || (auxBool[8]) || (auxBool[9]));
+    delete[] auxBool;
+    return retVal;
 }
 
 }

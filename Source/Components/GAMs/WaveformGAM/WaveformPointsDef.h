@@ -2,7 +2,7 @@
  * @file WaveformPointsDef.h
  * @brief Header file for class WaveformPointsDef
  * @date 29/05/2017
- * @author Llorenc
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -39,20 +39,21 @@
 namespace MARTe {
 
 /**
- * @brief GAM which generates a signal linearly interpolating a loaded configured points
- * @details Given an array of values and another with times, this GAM interpolates the values. At the end of the sequence the signal is repeated.
- * When the sequence is finished, the next value is the first value of the sequence (no interpolation is done between the last and the fist value).
+ * @brief GAM which generates a signal linearly interpolating a configurable list of points.
+ * @details Given an array of values and another with times, this GAM interpolates the values.
+ * When the sequence is finished, the next value is the first value of the sequence (no interpolation is done between the last and the first value),
+ * i.e. the sequence is repeated from the beginning.
  * The configuration syntax is (names and signal quantity are only given as an example):
  *<pre>
  * +waveformPointsDef1 = {
  *     Class = WaveformPointsDefGAM
  *     Points = {10.0 5.1 0.3 3}
  *     Times = {0.0 2.1 3.2 4.5} //time in seconds (if the times are not multiple of the sampling time the interpolation will be done but the output
- *     values may not match with the Points array. the first time must be 0
+ *     values may not match with the Points array).
  *     StartTriggerTime = {0.1 0.3 0.5 1.8}
- *     StopTriggerTime = {0.2 0.4 0.6} //the StopTriggerTime has one less time, it means that after the sequence of output on and off, the GAM will remain on forever
+ *     StopTriggerTime = {0.2 0.4 0.6} //the StopTriggerTime has one time less, it means that after the sequence of output on and off, the GAM will remain on forever
  *     InputSignals = {
- *         InputSignal1 = {
+ *         Time = {
  *             DataSource = "DDB1"
  *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative)
  *         }
@@ -70,13 +71,9 @@ namespace MARTe {
  * }
  * </pre>
  *
- * It is possible to specify a time vector which does not correspond to any time step. As a consequence the generated
- * output could be slightly different form the specified points.
- *
- * The minimum number of points must be two, otherwise it is impossible to interpolated and the GAM exits with an initialization error
+ * The minimum number of points must be two, otherwise it is impossible to interpolated and the GAM exits with an initialisation error
  */
 class WaveformPointsDef: public Waveform {
-//TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API WaveformPointsDef)
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -109,7 +106,7 @@ WaveformPointsDef    ();
 
     /**
      * @brief Initialise the GAM from a configuration file.
-     * @details Load the parameters \a Points and \a Times and verify its correctness and consistency.
+     * @details Loads the parameters \a Points and \a Times and verify its correctness and consistency.
      * Moreover, from Points and Times vector, the slope for each segment is calculated.
      * @return true if all parameters are valid
      */
@@ -204,7 +201,7 @@ WaveformPointsDef    ();
      * and save the data in #MARTe#Waveform::outputFloat64
      * @return true always
      */
-    virtual bool GetFloat64OutputValues();
+    bool GetFloat64OutputValues();
 
 private:
     float64 *points;
@@ -264,19 +261,11 @@ private:
     float64 timeRefVal;
 
     /**
-     * @brief verify the times values configured
+     * @brief Verifies if the times values are correctly configured.
      * @details It checks that the first element is equal than 0.0 and the time is increasing.
      * @return true if the time is consistent with the previous listed conditions.
      */
-    bool VerifyTimes () const {
-        bool ret = (IsEqual(times[0],0.0));
-        for(uint32 i = 0u; (i < (numberOfTimesElements - 1u)) && ret; i ++) {
-            //Added due to MISRA:Suspicious Truncation in arithmetic expression combining with pointer
-            uint32 aux = i+1u;
-            ret = (times[i] < times[aux]);
-        }
-        return ret;
-    }
+    bool VerifyTimes () const;
 
 };
 
@@ -285,6 +274,17 @@ private:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
+
+template<typename T>
+bool WaveformPointsDef::GetValue() {
+bool ok = GetFloat64OutputValues();
+for (uint32 i = 0u; (i < numberOfOutputElements) && (ok); i++) {
+    static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
+}
+return ok;
+}
+}
 
 #endif /* WAVEFORMPOINTSDEFGAM_H_ */
 

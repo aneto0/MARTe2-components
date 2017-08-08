@@ -2,7 +2,7 @@
  * @file Waveform.h
  * @brief Header file for class Waveform
  * @date 19/05/2017
- * @author Llorenc
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -40,17 +40,17 @@ namespace MARTe {
 
 /**
  * @brief Generic class to implement any kind of waveform
- * @details this class contains the generic common functions and variables to implement any waveform signal
+ * @details This class contains the generic common functions and variables to implement any waveform signal.
  *
  * Three different GAMs are foreseen to use this generic Class:
- * WaveformSiGAM
+ * WaveformSinGAM
  * WaveformPointsDefGAM
  * WaveformChirpGAM
  *
- * This class implements the generic function used by the children classes, which basically are the setup of the
+ * This class implements the common functionality that is common to all the derived classes, which are basically the setup of the
  * trigger mechanism and the selection of the output type.
  *
- * The trigger time must be specified in seconds and the type should be float64.
+ * The trigger time must be specified in seconds and the type shall be float64.
  */
 
 class Waveform: public GAM {
@@ -90,23 +90,28 @@ public:
      * @post
      *  outputValue = NULL_PTR(void **);
      *  startTriggerTime = NULL_PTR(uint32 *);
+     *  outputValue = NULL_PTR(void **);
+     *  stopTriggerTime = NULL_PTR(uint32 *);
+     *  outputFloat64 = NULL_PTR(float64 *);
      */
     virtual ~Waveform();
 
     /**
-     * @brief Initialise the common variable from a configuration file
+     * @brief Initialise the common variables from a configuration file
      * @details Initialise and verifies the trigger mechanism. This function checks the size of the startTriggerTime
      * and stopTriggerTime and checks that startTriggerTime[i] < stopTriggerTime[i]. An invalid trigger time sequence
      * does not give an error only a warning is launched, however the trigger mechanism is disabled and the output always
      * will be on with the expected defined waveform.
-     * @param[in] data It is the GAM configuration file
+     * @param[in] data is the GAM configuration file
      * @return true if MARTe#GAM#Initialise(StructuredDataI &data) exits without errors.
      */
     virtual bool Initialise(StructuredDataI &data);
 
     /**
-     * @brief Setup the input output variables
-     * @details Initialises the input and output pointers and verifies the number of inputs and output sizes
+     * @brief Setup the input/output variables.
+     * @details Initialises the input and output pointers and verifies the number of inputs and output sizes.
+     * In particular it verifies that a TimeSignal was set with one and only one element and that the
+     * type is uint32 or int32.
      * @return true if the input and outputs are correctly set.
      */
     virtual bool Setup();
@@ -179,12 +184,6 @@ public:
      * @details Virtual function which casts the output to float64 type
      */
     virtual bool GetFloat64Value() = 0;
-
-    /**
-     * @brief Generic call function to specific waveform type
-     * @details Virtual function which calls the specific waveform type with float64 type
-     */
-    virtual bool GetFloat64OutputValues() = 0;
 
 protected:
 
@@ -330,20 +329,7 @@ private:
      * @details checks stopTriggerTime[i] > startTriggerTime[i] && stopTriggerTime[i] < startTriggerTime[i + 1] are true
      * @return true if the trigger times are consistent with the previous expressions.
      */
-    bool ValidateTimeTriggers() const {
-        bool ret = true;
-        if (numberOfStopTriggers > 0u) {
-            for (uint32 i = 0u; (i < numberOfStopTriggers) && ret; i++) {
-                ret = (stopTriggerTime[i] > startTriggerTime[i]);
-                if (ret && ((i + 1u) < numberOfStartTriggers)) {
-                    //MISRA...Suspicious truncation..
-                    uint32 aux = i + 1u;
-                    ret = (stopTriggerTime[i] < startTriggerTime[aux]);
-                }
-            }
-        }
-        return ret;
-    }
+    bool ValidateTimeTriggers() const;
 
     /**
      * @brief Checks that the type is one of the supported types.
@@ -360,26 +346,7 @@ private:
      * float64 \n
      * @return true if the type is one of the supported types.
      */
-    bool IsValidType(TypeDescriptor const &typeRef) const {
-        bool retVal;
-        bool *auxBool = (new bool[10u]);
-        auxBool[0] = typeRef == Float32Bit;
-        auxBool[1] = typeRef == Float64Bit;
-        auxBool[2] = typeRef == SignedInteger8Bit;
-        auxBool[3] = typeRef == UnsignedInteger8Bit;
-        auxBool[4] = typeRef == SignedInteger16Bit;
-        auxBool[5] = typeRef == UnsignedInteger16Bit;
-        auxBool[6] = typeRef == SignedInteger32Bit;
-        auxBool[7] = typeRef == UnsignedInteger32Bit;
-        auxBool[8] = typeRef == SignedInteger64Bit;
-        auxBool[9] = typeRef == UnsignedInteger64Bit;
-        retVal = ((auxBool[0]) || (auxBool[1]) || (auxBool[2]) || (auxBool[3]) || (auxBool[4]) || (auxBool[5]) || (auxBool[6]) || (auxBool[7]) || (auxBool[8])
-                || (auxBool[9]));
-        delete[] auxBool;
-        return retVal;
-    }
-
-
+    bool IsValidType(TypeDescriptor const &typeRef) const;
 
 };
 

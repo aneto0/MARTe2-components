@@ -2,7 +2,7 @@
  * @file WaveformPointsDef.cpp
  * @brief Source file for class WaveformPointsDef
  * @date 29/05/2017
- * @author Llorenc
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -211,14 +211,6 @@ bool WaveformPointsDef::GetFloat64OutputValues() {
     return true;
 }
 
-template<typename T>
-bool WaveformPointsDef::GetValue() {
-    for (uint32 i = 0u; i < numberOfOutputElements; i++) {
-        static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
-    }
-    return true;
-}
-
 bool WaveformPointsDef::GetInt8Value() {
     return WaveformPointsDef::GetValue<int8>();
 }
@@ -257,6 +249,18 @@ bool WaveformPointsDef::GetFloat32Value() {
 bool WaveformPointsDef::GetFloat64Value() {
     return WaveformPointsDef::GetValue<float64>();
 }
+
+/*lint -e{613} times cannot be NULL as otherwise VerifyTimes will not be called.*/
+bool WaveformPointsDef::VerifyTimes () const {
+    bool ret = (IsEqual(times[0],0.0));
+    for(uint32 i = 0u; (i < (numberOfTimesElements - 1u)) && ret; i ++) {
+        //Added due to MISRA:Suspicious Truncation in arithmetic expression combining with pointer
+        uint32 aux = i+1u;
+        ret = (times[i] < times[aux]);
+    }
+    return ret;
+}
+
 CLASS_REGISTER(WaveformPointsDef, "1.0")
 
 }

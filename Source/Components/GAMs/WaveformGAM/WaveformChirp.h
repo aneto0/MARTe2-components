@@ -32,7 +32,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
-#include "../WaveformGAM/Waveform.h"
+#include "Waveform.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -50,7 +50,7 @@ namespace MARTe {
  * w1 = 2 *pi * frequency1\n
  * w12 = 2*pi* (frequency2-frequency1)\n
  * cD2 = 2 * timeChirp\n
- * phase in radiant\n
+ * phase in radians\n
  * frequency1 initial frequency\n
  * frequency2 final frequency \n
  *
@@ -64,8 +64,8 @@ namespace MARTe {
  *     Phase = 0.0
  *     Offset = 1.1
  *     StartTriggerTime = {0.1 0.3 0.5 1.8}
- *     StopTriggerTime = {0.2 0.4 0.6} //the StopTriggerTime has one less time, it means that after the sequence of output on and off, the GAM will remain on forever
- *     InputSignals = {
+ *     StopTriggerTime = {0.2 0.4 0.6} //the StopTriggerTime has one time less, it means that after the sequence of output on and off, the GAM will remain on forever
+ *     Time = {
  *         InputSignal1 = {
  *             DataSource = "DDB1"
  *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative)
@@ -87,7 +87,6 @@ namespace MARTe {
  * Note that when Frequency1 = Frequency2 the resultant chirp is a sinusoidal waveform with a constant frequency.
  */
 class WaveformChirp: public Waveform {
-//TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API WaveformChirp)
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -223,7 +222,7 @@ public:
      * and save the data in #MARTe#Waveform::outputFloat64
      * @return true always
      */
-    virtual bool GetFloat64OutputValues();
+    bool GetFloat64OutputValues();
 
 private:
     /**
@@ -282,6 +281,16 @@ private:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
 
+template<typename T>
+bool WaveformChirp::GetValue() {
+    bool ok = GetFloat64OutputValues();
+    for (uint32 i = 0u; (i < numberOfOutputElements) && (ok); i++) {
+        static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
+    }
+    return ok;
+}
+}
 #endif /* WAVEFORMCHIRP_H_ */
 

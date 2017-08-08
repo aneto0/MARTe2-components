@@ -2,7 +2,7 @@
  * @file WaveformSin.h
  * @brief Header file for class WaveformSin
  * @date May 19, 2017
- * @author Llorenc
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -31,7 +31,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "../WaveformGAM/Waveform.h"
+#include "Waveform.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -41,17 +41,17 @@ namespace MARTe {
 
 /**
  * @brief GAM which allows to implement a sinusoidal waveform.
- * @details The configured coefficients (amplitude, frequency, phase, and offset) must be in flot64 and the implementation of the trigonometric functions is as follow
+ * @details The configured coefficients (amplitude, frequency, phase, and offset) must be specified as float64 and the implementation of the trigonometric functions is as follow
  *
  * \f$
  * output[i]= Amplitude * sin(2.0*FastMath::PI*frequency*time+phase)+offset
  * \f$
  *
- * where the phase must be in \b radiant and he frequency in \b Hz.
+ * where the phase must be in \b radian and the frequency in \b Hz.
  *
- * The input is a single value indicating the current time. The output could be a single array of N elements or multiple equal outputs of N
+ * The input is a single value indicating the current time. The output can be a single array of N elements or multiple equal outputs of N
  * elements with different types (i.e example type output1 = uint8 and type output2 = float64.
- * The first iteration the output is 0 due to the second time is needed to compute the time step (or time increment) for each output sample.
+ * Note that in the first iteration the output is always 0 due to the fact that a second time is needed to compute the time step (or time increment) for each output sample.
  *
  * The GAM supports the following types:<b>\n
  * int8\n
@@ -66,12 +66,12 @@ namespace MARTe {
  * float64
  * </b>
  *
- * Additionally a trigger mechanism is implemented allowing to specify time intervals (in s) in which the signal is switch off and on.
- * The trigger intervals are specified in two arrays: one with the StartTriggerTime and another with  StopTriggerTime. If the
- * two array are not consistent (i.e. start time is later than stop time) a warning is launched, the trigger mechanism is disabled,
- * but the GAM operates in normal conditions.
+ * Additionally a trigger mechanism is implemented allowing to specify time intervals (in seconds) in which the output signal is switched off and on.
+ * The trigger intervals are specified in two arrays: one with the StartTriggerTime and another with the StopTriggerTime. If the
+ * two arrays are not consistent (i.e. start time is later than stop time) a warning is launched, the trigger mechanism is disabled,
+ * but the GAM still operates in normal conditions (i.e. always on).
  *
- * The configuration syntax is (names and signal quantity are only given as an example):
+ * The configuration syntax is (names and signal quantities are only given as an example):
  *<pre>
  * +waveformSin1 = {
  *     Class = WaveformSinGAM
@@ -80,9 +80,9 @@ namespace MARTe {
  *     Phase = 0.0
  *     Offset = 1.1
  *     StartTriggerTime = {0.1 0.3 0.5 1.8}
- *     StopTriggerTime = {0.2 0.4 0.6} //the StopTriggerTime has one less time, it means that after the sequence of output on and off, the GAM will remain on forever
+ *     StopTriggerTime = {0.2 0.4 0.6} //the StopTriggerTime has one time value less. It means that after the sequence of output on and off, the GAM will remain on forever
  *     InputSignals = {
- *         InputSignal1 = {
+ *         Time = {
  *             DataSource = "DDB1"
  *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative)
  *         }
@@ -215,7 +215,7 @@ WaveformSin    ();
      *
      * and save the data in #MARTe#Waveform::outputFloat64
      */
-    virtual bool GetFloat64OutputValues();
+    bool GetFloat64OutputValues();
 
 private:
     /**
@@ -234,7 +234,7 @@ private:
     float64 w;
 
     /**
-     * phase of the sin signal in radiant
+     * phase of the sin signal in radians
      */
     float64 phase;
 
@@ -250,6 +250,16 @@ private:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
+template<typename T>
+bool WaveformSin::GetValue(){
+    bool ok = GetFloat64OutputValues();
+    for(uint32 i = 0u; (i < numberOfOutputElements) && (ok); i++){
+        static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
+    }
+    return ok;
+}
+}
 
 #endif /* WAVEFORMSIN_H_ */
 

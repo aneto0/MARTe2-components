@@ -2,7 +2,7 @@
  * @file WaveformSin.cpp
  * @brief Source file for class WaveformSin
  * @date 19/05/2017
- * @author Llorenc
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -25,14 +25,14 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 
-#include "math.h"
+#include <math.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "FastMath.h"
-#include "../WaveformGAM/WaveformSin.h"
+#include "WaveformSin.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -123,14 +123,6 @@ bool WaveformSin::GetFloat64OutputValues() {
 
 bool WaveformSin::GetUInt8Value() {
     return WaveformSin::GetValue<uint8>();
-}
-
-template<typename T>
-bool WaveformSin::GetValue(){
-    for(uint32 i = 0u; i < numberOfOutputElements; i++){
-        static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
-    }
-    return true;
 }
 
 bool WaveformSin::GetInt8Value() {
