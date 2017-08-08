@@ -22,34 +22,7 @@
 #
 #############################################################
 
-OBJSX= 
+TARGET=cov
 
-SPB=IOGAM.x ConversionGAM.x FilterGAM.x StatisticsGAM.x WaveformGAM.x
-ifdef EFDA_MARTe_DIR
-SPB+=BaseLib2GAM.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-
-LIBRARIES_STATIC=$(BUILD_DIR)/IOGAM/IOGAM$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/ConversionGAM/ConversionGAM$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/FilterGAM/FilterGAM$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/StatisticsGAM/StatisticsGAM$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/WaveformGAM/WaveformGAM$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAM$(LIBEXT)
-endif
-
-all: $(OBJS)  $(SUBPROJ)  \
-    $(BUILD_DIR)/GAMs$(LIBEXT) \
-    $(BUILD_DIR)/GAMs$(DLLEXT)
-	echo  $(OBJS)
-
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
+include Makefile.inc
 

@@ -19,6 +19,7 @@
 -i./Source/Components/GAMs/FilterGAM/
 -i./Source/Components/GAMs/WaveformGAM/
 -i./Source/Components/GAMs/IOGAM/
+-i./Source/Components/GAMs/StatisticsGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 -i./Source/Components/Interfaces/EPICS/
 -i./Source/Components/Interfaces/SysLogger/
@@ -39,6 +40,8 @@ EPICSCAInput.cpp
 EPICSCAOutput.cpp
 FilterGAM.cpp
 IOGAM.cpp
+StatisticsGAM.cpp
+StatisticsHelperT.h
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
