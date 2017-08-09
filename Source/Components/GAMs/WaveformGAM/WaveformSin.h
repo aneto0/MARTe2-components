@@ -74,7 +74,7 @@ namespace MARTe {
  * The configuration syntax is (names and signal quantities are only given as an example):
  *<pre>
  * +waveformSin1 = {
- *     Class = WaveformSinGAM
+ *     Class = WaveformSin
  *     Amplitude = 10.0
  *     Frequency = 1.0
  *     Phase = 0.0

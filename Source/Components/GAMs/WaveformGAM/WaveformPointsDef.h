@@ -46,7 +46,7 @@ namespace MARTe {
  * The configuration syntax is (names and signal quantity are only given as an example):
  *<pre>
  * +waveformPointsDef1 = {
- *     Class = WaveformPointsDefGAM
+ *     Class = WaveformPointsDef
  *     Points = {10.0 5.1 0.3 3}
  *     Times = {0.0 2.1 3.2 4.5} //time in seconds (if the times are not multiple of the sampling time the interpolation will be done but the output
  *     values may not match with the Points array).
