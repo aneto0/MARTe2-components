@@ -228,28 +228,9 @@ bool FileWriter::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = data.Read("TreeName", treeName);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "TreeName shall be specified");
+        if (data.Read("Filename", filename)) {
+            REPORT_ERROR(ErrorManagement::Warning, "Filename was not specified. It will have to be specified through the RPC");
         }
-    }
-    if (ok) {
-        ok = data.Read("EventName", eventName);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "EventName shall be specified");
-        }
-    }
-    uint32 timeRefresh = 0u;
-    if (ok) {
-        ok = data.Read("TimeRefresh", timeRefresh);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "TimeRefresh shall be specified");
-        }
-    }
-
-    if (ok) {
-        //Optional parameter
-        (void) (data.Read("PulseNumber", pulseNumber));
     }
     if (ok) {
         ok = data.MoveRelative("Signals");
@@ -268,10 +249,6 @@ bool FileWriter::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = data.MoveToAncestor(1u);
-        refreshEveryCounts = timeRefresh * HighResolutionTimer::Frequency();
-    }
-    if (ok) {
         //Check if there are any Message elements set
         if (Size() > 0u) {
             ReferenceT<ReferenceContainer> msgContainer = Get(0u);
@@ -283,17 +260,17 @@ bool FileWriter::Initialise(StructuredDataI& data) {
                     ok = msg.IsValid();
                     if (ok) {
                         StreamString msgName = msg->GetName();
-                        if (msgName == "TreeOpenedOK") {
-                            treeOpenedOKMsg = msg;
+                        if (msgName == "FileOpenedOK") {
+                            fileOpenedOKMsg = msg;
                         }
-                        else if (msgName == "TreeOpenedFail") {
-                            treeOpenedFailMsg = msg;
+                        else if (msgName == "FileOpenedFail") {
+                            fileOpenedFailMsg = msg;
                         }
-                        else if (msgName == "TreeFlushed") {
-                            treeFlushedMsg = msg;
+                        else if (msgName == "FileFlushed") {
+                            fileFlushedMsg = msg;
                         }
-                        else if (msgName == "TreeRuntimeError") {
-                            treeRuntimeErrorMsg = msg;
+                        else if (msgName == "FileRuntimeError") {
+                            fileRuntimeErrorMsg = msg;
                         }
                         else {
                             REPORT_ERROR(ErrorManagement::ParametersError, "Message %s is not supported.", msgName.Buffer());
