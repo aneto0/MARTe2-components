@@ -1,0 +1,360 @@
+/**
+ * @file FileWriter.h
+ * @brief Header file for class FileWriter
+ * @date 11/08/2017
+ * @author Andre' Neto
+ *
+ * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
+ * the Development of Fusion Energy ('Fusion for Energy').
+ * Licensed under the EUPL, Version 1.1 or - as soon they will be approved
+ * by the European Commission - subsequent versions of the EUPL (the "Licence")
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+ *
+ * @warning Unless required by applicable law or agreed to in writing, 
+ * software distributed under the Licence is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the Licence permissions and limitations under the Licence.
+
+ * @details This header file contains the declaration of the class FileWriter
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
+ */
+
+#ifndef FILEDATASOURCE_FILEWRITER_H_
+#define FILEDATASOURCE_FILEWRITER_H_
+
+/*---------------------------------------------------------------------------*/
+/*                        Standard header includes                           */
+/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+/*                        Project header includes                            */
+/*---------------------------------------------------------------------------*/
+#include "DataSourceI.h"
+#include "ProcessorType.h"
+#include "File.h"
+#include "MemoryMapAsyncTriggerOutputBroker.h"
+#include "MessageI.h"
+#include "RegisteredMethodsMessageFilter.h"
+
+/*---------------------------------------------------------------------------*/
+/*                           Class declaration                               */
+/*---------------------------------------------------------------------------*/
+namespace MARTe {
+/**
+ * @brief A DataSourceI interface which allows to store signals in a file.
+ *
+ * @details Data written into this data source is temporarily stored in a circular buffer and
+ * asynchronously flushed to a file either as text (csv) or binary. This circular buffer can either be
+ * continuously stored or stored only when a given event occurs (see StoreOnTrigger below).
+ *
+ * All the signals are stored in a single file.
+ * If the format is csv the first line will be a comment with the signal names. A new line will be added every time all the signal samples are written.
+ *
+ * TODO confirm: If the format is binary an header with the following information is created: the first 4 bytes
+ * contain the number of signals. Then, for each signal, the signal type will be encoded in one byte, followed
+ *  by 32 bytes to encode the signal name. Following the header the signal samples are consecutively stored in binary format.
+ *
+ * TODO confirm: for both formats, arrays can be stored but all the signals shall have the same number of elements.
+ *
+ * This DataSourceI has the functions FlushFile and OpenFile registered as an RPC.
+ *
+ * The configuration syntax is (names are only given as an example):
+ * +FileWriter_0 = {
+ *     Class = FileWriter
+ *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
+ *     CPUMask = 15 //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data into the file.
+ *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
+ *     Filename = "test" //Optional. If not set the filename shall be set using the OpenFile RPC.
+ *     Overwrite = "yes" //Compulsory. If "yes" the file will be overwritten, otherwise new data will be added to the end of the existent file.
+ *     Format = "binary" //Compulsory. Possible values are: binary and csv.
+ *     Separator = "," //Compulsory if Format=csv. Sets the file separator type.
+ *     StoreOnTrigger = 1 //Compulsory. If 0 all the data in the circular buffer is continuously stored. If 1 data is stored when the Trigger signal is 1 (see below).
+ *     NumberOfPreTriggers = 2 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store before the trigger.
+ *     NumberOfPostTriggers = 1 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store after the trigger.
+ *
+ *     Signals = {
+ *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be set in index 0 of the Signals node. When the value of this signal is 1 data will be stored.
+ *             Type = 'uint8" //Type must be uint8
+ *         }
+ *         SignalUInt16F = { //As many as required.
+ *             Type = "uint16"
+ *         }
+ *         ...
+ *     }
+ *     +Messages = { //Optional. If set a message will be fired every time one of the events below occur
+ *         Class = ReferenceContainer
+ *         +FileOpenedOK = { //Optional, but if set, the name of the Object shall be FileOpenedOK. If set a message will be sent to the Destination, every time the File is successfully opened
+ *             Class = Message
+ *             Destination = SomeObject
+ *             Function = SomeFunction
+ *             Mode = ExpectsReply
+ *         }
+ *         +FileOpenedFail = { //Optional, but if set, the name of the Object shall be FileOpenedFail. If set a message will be sent to the Destination, every time the File cannot be successfully opened
+ *             Class = Message
+ *             Destination = SomeObject
+ *             Function = SomeFunction
+ *             Mode = ExpectsReply
+ *         }*
+ *         +FileFlushed = { //Optional, but if set, the name of the Object shall be FileFlushed. If set a message will be sent to the Destination, every time the File is flushed.
+ *             Class = Message
+ *             Destination = SomeObject
+ *             Function = SomeFunction
+ *             Mode = ExpectsReply
+ *         }
+ *     }
+ * }
+ */
+class FileWriter: public DataSourceI, public MessageI {
+public:
+    CLASS_REGISTER_DECLARATION()
+
+    /**
+     * @brief Default constructor.
+     * @details Initialises all the optional parameters as described in the class description.
+     * Registers the RPC FlushFile and OpenFile callback functions.
+     */
+    FileWriter();
+
+    /**
+     * @brief Destructor.
+     * @details Flushes the file and frees the circular buffer.
+     */
+    virtual ~FileWriter();
+
+    /**
+     * @brief See DataSourceI::AllocateMemory. NOOP.
+     * @return true.
+     */
+    virtual bool AllocateMemory();
+
+    /**
+     * @brief See DataSourceI::GetNumberOfMemoryBuffers.
+     * @return 1.
+     */
+    virtual uint32 GetNumberOfMemoryBuffers();
+
+    /**
+     * @brief See DataSourceI::GetSignalMemoryBuffer.
+     * @pre
+     *   SetConfiguredDatabase
+     */
+    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
+            const uint32 bufferIdx,
+            void *&signalAddress);
+
+    /**
+     * @brief See DataSourceI::GetNumberOfMemoryBuffers.
+     * @details Only OutputSignals are supported.
+     * @return MemoryMapAsyncOutputBroker if storeOnTrigger == 0, MemoryMapAsyncTriggerOutputBroker otherwise.
+     */
+    virtual const char8 *GetBrokerName(StructuredDataI &data,
+            const SignalDirection direction);
+
+    /**
+     * @brief See DataSourceI::GetInputBrokers.
+     * @return false.
+     */
+    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
+            const char8* const functionName,
+            void * const gamMemPtr);
+
+    /**
+     * @brief See DataSourceI::GetOutputBrokers.
+     * @details If storeOnTrigger == 0 it adds a MemoryMapAsyncOutputBroker instance to
+     *  the inputBrokers, otherwise it adds a MemoryMapAsyncTriggerOutputBroker instance to the outputBrokers.
+     * @pre
+     *   GetNumberOfFunctions() == 1u
+     */
+    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
+            const char8* const functionName,
+            void * const gamMemPtr);
+
+    /**
+     * @brief Writes the buffer data into the specified file in the specified format.
+     * @return true if the data can be successfully written into the file.
+     */
+    virtual bool Synchronise();
+
+    /**
+     * @brief See DataSourceI::PrepareNextState. NOOP.
+     * @return true.
+     */
+    virtual bool PrepareNextState(const char8 * const currentStateName,
+            const char8 * const nextStateName);
+
+    /**
+     * @brief Loads and verifies the configuration parameters detailed in the class description.
+     * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
+     */
+    virtual bool Initialise(StructuredDataI & data);
+
+    /**
+     * @brief Final verification of all the parameters and opening of the file.
+     * @details This method verifies that all the parameters (e.g. number of samples) requested by the GAMs interacting with this DataSource
+     *  are valid and consistent with the parameters set during the initialisation phase.
+     * In particular the following conditions shall be met:
+     * - If relevant, the Trigger signal shall have type uint8
+     * - The number of samples of all the signals is one.
+     * - At least one signal (apart from the eventual Trigger signal) is set.
+     * @return true if all the parameters are valid and if the file can be successfully opened.
+     */
+    virtual bool SetConfiguredDatabase(StructuredDataI & data);
+
+    /**
+     * @brief Closes and flushes the file.
+     * @return true if the file can be successfully flushed.
+     */
+    ErrorManagement::ErrorType FlushFile();
+
+    /**
+     * @brief Opens a new File.
+     * @param[in] filename the name of the file to be opened.
+     * @return ErrorManagement::NoError if the file can be successfully opened.
+     */
+    ErrorManagement::ErrorType OpenFile(StreamString filename);
+
+    /**
+     * @brief Gets the affinity of the thread which is going to be used to asynchronously store the data in the file.
+     * @return the affinity of the thread which is going to be used to asynchronously store the data in the file.
+     */
+    const ProcessorType& GetCPUMask() const;
+
+    /**
+     * @brief Gets the number of buffers in the circular buffer.
+     * @return the number of buffers in the circular buffer.
+     */
+    uint32 GetNumberOfBuffers() const;
+
+    /**
+     * @brief Gets the number of post configured buffers in the circular buffer.
+     * @return the number of post configured buffers in the circular buffer.
+     */
+    uint32 GetNumberOfPostTriggers() const;
+
+    /**
+     * @brief Gets the number of pre configured buffers in the circular buffer.
+     * @return the number of pre configured buffers in the circular buffer.
+     */
+    uint32 GetNumberOfPreTriggers() const;
+
+    /**
+     * @brief Gets the configured filename.
+     * @return the configured filename.
+     */
+    const StreamString& GetFilename() const;
+
+    /**
+     * @brief Gets the stack size of the thread which is going to be used to asynchronously store the data in the MDS plus database.
+     * @return the stack size of the thread which is going to be used to asynchronously store the data in the MDS plus database.
+     */
+    uint32 GetStackSize() const;
+
+    /**
+     * @brief Returns true if the data is going to be stored in MDS plus based on the occurrence of an external trigger.
+     * @return true if the data is going to be stored in MDS plus based on a trigger event.
+     */
+    bool IsStoreOnTrigger() const;
+
+private:
+
+    /**
+     * The filename.
+     */
+    StreamString filename;
+
+    /**
+     * True if the data is only to be stored in MDS plus following a trigger.
+     */
+    bool storeOnTrigger;
+
+    /**
+     * Number of pre buffers when StoreOnTrigger == 1.
+     */
+    uint32 numberOfPreTriggers;
+
+    /**
+     * Number of post buffers when StoreOnTrigger == 1.
+     */
+    uint32 numberOfPostTriggers;
+
+    /**
+     * Number of buffers in the circular buffer.
+     */
+    uint32 numberOfBuffers;
+
+    /**
+     * Offset of each signal in the dataSourceMemory
+     */
+    uint32 *offsets;
+
+    /**
+     * Memory holding all the signals that are to be stored, for each cycle, in MDSplus
+     */
+    char8 *dataSourceMemory;
+
+    /**
+     * The affinity of the thread that asynchronously flushes data into MDSplus.
+     */
+    ProcessorType cpuMask;
+
+    /**
+     * The size of the stack of the thread that asynchronously flushes data into MDSplus.
+     */
+    uint32 stackSize;
+
+    /**
+     * If a fatal file error occurred do not try to flush segments nor do further writes.
+     */
+    bool fatalFileError;
+
+    /**
+     * The output file.
+     */
+    File outputFile;
+
+    /**
+     * Stores the configuration information received at Initialise.
+     */
+    ConfigurationDatabase originalSignalInformation;
+
+    /**
+     * Filter to receive the RPC which allows to change the pulse number.
+     */
+    ReferenceT<RegisteredMethodsMessageFilter> filter;
+
+    /**
+     * The asynchronous triggered broker that provides the interface between the GAMs and the MDS+ memory
+     */
+    MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
+
+    /**
+     * The message to send if the Tree is successfully opened.
+     */
+    ReferenceT<Message> fileOpenedOKMsg;
+
+    /**
+     * The message to send if the Tree cannot be successfully opened.
+     */
+    ReferenceT<Message> fileOpenedFailMsg;
+
+    /**
+     * The message to send if the Tree is be successfully flushed.
+     */
+    ReferenceT<Message> fileFlushedMsg;
+
+    /**
+     * The message to send if there is a runtime error.
+     */
+    ReferenceT<Message> fileRuntimeErrorMsg;
+};
+}
+
+
+/*---------------------------------------------------------------------------*/
+/*                        Inline method definitions                          */
+/*---------------------------------------------------------------------------*/
+
+#endif /* FILEDATASOURCE_FILEWRITER_H_ */
+	
