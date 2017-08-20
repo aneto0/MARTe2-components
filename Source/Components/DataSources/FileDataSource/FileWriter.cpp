@@ -36,6 +36,8 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+static const MARTe::int32 FILE_FORMAT_BINARY = 1;
+static const MARTe::int32 FILE_FORMAT_CSV = 2;
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -52,8 +54,11 @@ FileWriter::FileWriter() :
     offsets = NULL_PTR(uint32 *);
     cpuMask = 0xfu;
     stackSize = 0u;
+    numberOfBinaryBytes = 0u;
+    fileFormat = FILE_FORMAT_BINARY;
     filename = "";
     fatalFileError = false;
+    signalsAnyType = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -73,6 +78,9 @@ FileWriter::~FileWriter() {
     }
     if (offsets != NULL_PTR(uint32 *)) {
         delete[] offsets;
+    }
+    if (signalsAnyType != NULL_PTR(AnyType *)) {
+        delete [] signalsAnyType;
     }
     if (outputFile.IsOpen()) {
         outputFile.Close();
@@ -138,28 +146,24 @@ bool FileWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8
 }
 
 bool FileWriter::Synchronise() {
-    uint32 n;
-    if (nodes != NULL_PTR(MDSWriterNode **)) {
-        for (n = 0u; (n < numberOfMDSSignals) && (!fatalTreeNodeError); n++) {
-            fatalTreeNodeError = !nodes[n]->Execute();
-            if (fatalTreeNodeError) {
-                if (treeRuntimeErrorMsg.IsValid()) {
-                    //Reset any previous replies
-                    treeRuntimeErrorMsg->SetAsReply(false);
-                    if (!MessageI::SendMessage(treeRuntimeErrorMsg, this)) {
-                        StreamString destination = treeRuntimeErrorMsg->GetDestination();
-                        StreamString function = treeRuntimeErrorMsg->GetFunction();
-                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(), function.Buffer());
-                    }
-                }
+    bool ok = !fatalFileError;
+    if (ok) {
+        if (fileFormat == FILE_FORMAT_BINARY) {
+            uint32 writeSize = numberOfBinaryBytes;
+            ok = outputFile.Write(dataSourceMemory, writeSize);
+            if (ok) {
+                ok = (writeSize == numberOfBinaryBytes);
+            }
+            if (!ok) {
+                REPORT_ERROR_0(ErrorManagement::FatalError, "Failed to write into file. No more attempts will be performed.");
+                fatalFileError = false;
             }
         }
+        else {
+            outputFile.PrintFormatted(csvPrintfFormat.Buffer(), signalsAnyType);
+        }
     }
-    if ((HighResolutionTimer::Counter() - lastTimeRefreshCount) > refreshEveryCounts) {
-        lastTimeRefreshCount = HighResolutionTimer::Counter();
-        MDSplus::Event::setEvent(eventName.Buffer());
-    }
-    return !fatalTreeNodeError;
+    return ok;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
@@ -203,6 +207,9 @@ bool FileWriter::Initialise(StructuredDataI& data) {
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
     }
+    READ FORMAT
+    READ SEPARATOR IN CASE CSV
+
     uint32 storeOnTriggerU = 0u;
     if (ok) {
         ok = data.Read("StoreOnTrigger", storeOnTriggerU);
@@ -295,7 +302,7 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
         ok = data.MoveRelative("Signals");
     }
     //Check signal properties and compute memory
-    uint32 totalSignalMemory = 0u;
+    numberOfBinaryBytes = 0u;
     if (ok) {
         //Do not allow samples
         uint32 functionNumberOfSignals = 0u;
@@ -317,22 +324,39 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
         uint32 nOfSignals = GetNumberOfSignals();
         //Count the number of bytes
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
-            offsets[n] = totalSignalMemory;
+            offsets[n] = numberOfBinaryBytes;
             uint32 nBytes = 0u;
             ok = GetSignalByteSize(n, nBytes);
-            totalSignalMemory += nBytes;
+            numberOfBinaryBytes += nBytes;
         }
     }
     //Allocate memory
     if (ok) {
-        dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalSignalMemory));
+        dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBinaryBytes));
+    }
+
+    //If the type is text prepare the Printf properties in advanced
+    if (fileFormat == FILE_FORMAT_CSV) {
+        uint32 nOfSignals = GetNumberOfSignals();
+        uint32 n;
+        if (ok) {
+            signalsAnyType = new AnyType[nOfSignals];
+        }
+
+        for (n = 0u; (n < nOfSignals) && (ok); n++) {
+            if (n != 0u) {
+                //Add the separator
+                csvPrintfFormat.Printf("%s", csvPrintfFormat.);
+            }
+            TypeDescriptor signalType = GetSignalType(n);
+            if (signalType == Un)
+        }
     }
 
     //Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
     if (ok) {
         //Count the number of MDS+ signals
-        uint32 n;
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
             ok = data.MoveRelative(data.GetChildName(n));
             if (ok) {
@@ -674,6 +698,3 @@ CLASS_METHOD_REGISTER(FileWriter, OpenFile)
 
 }
 
-
-
-	

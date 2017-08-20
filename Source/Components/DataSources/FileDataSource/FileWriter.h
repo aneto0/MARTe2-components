@@ -305,6 +305,31 @@ private:
     uint32 stackSize;
 
     /**
+     * The file format.
+     */
+    int32 fileFormat;
+
+    /**
+     * Number of bytes to write in case of binary format.
+     */
+    uint32 numberOfBinaryBytes;
+
+    /**
+     * The printf format in case of writing as csv.
+     */
+    StreamString csvPrintfFormat;
+
+    /**
+     * The CSV separator.
+     */
+    StreamString separator;
+
+    /**
+     * The signal memory as an AnyType array optimised for the PrintFormatted
+     */
+    AnyType *signalsAnyType;
+
+    /**
      * If a fatal file error occurred do not try to flush segments nor do further writes.
      */
     bool fatalFileError;
