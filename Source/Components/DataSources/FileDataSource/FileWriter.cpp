@@ -30,8 +30,9 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
-#include "MemoryMapAsyncOutputBroker.h"
+#include "Directory.h"
 #include "FileWriter.h"
+#include "MemoryMapAsyncOutputBroker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -58,7 +59,8 @@ FileWriter::FileWriter() :
     fileFormat = FILE_FORMAT_BINARY;
     filename = "";
     fatalFileError = false;
-    signalsAnyType = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
+    overwrite = false;
+    signalsAnyType = NULL_PTR(AnyType *);
     brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -68,7 +70,7 @@ FileWriter::FileWriter() :
     }
 }
 
-/*lint -e{1551} -e{1579} the destructor must guarantee that the MDSplus are deleted and the shared memory freed. The brokerAsyncTrigger is freed by the ReferenceT */
+/*lint -e{1551} -e{1579} the destructor must guarantee that the memory is freed and the file is flushed and closed.. The brokerAsyncTrigger is freed by the ReferenceT */
 FileWriter::~FileWriter() {
     if (FlushFile() != ErrorManagement::NoError) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the FlushFile");
@@ -80,11 +82,9 @@ FileWriter::~FileWriter() {
         delete[] offsets;
     }
     if (signalsAnyType != NULL_PTR(AnyType *)) {
-        delete [] signalsAnyType;
+        delete[] signalsAnyType;
     }
-    if (outputFile.IsOpen()) {
-        outputFile.Close();
-    }
+    (void) CloseFile();
 }
 
 bool FileWriter::AllocateMemory() {
@@ -130,7 +130,8 @@ bool FileWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8
     if (storeOnTrigger) {
         ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
         brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
+        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+                                                              numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTriggerNew);
         }
@@ -154,13 +155,13 @@ bool FileWriter::Synchronise() {
             if (ok) {
                 ok = (writeSize == numberOfBinaryBytes);
             }
-            if (!ok) {
-                REPORT_ERROR_0(ErrorManagement::FatalError, "Failed to write into file. No more attempts will be performed.");
-                fatalFileError = false;
-            }
         }
         else {
-            outputFile.PrintFormatted(csvPrintfFormat.Buffer(), signalsAnyType);
+            ok = outputFile.PrintFormatted(csvPrintfFormat.Buffer(), signalsAnyType);
+        }
+        fatalFileError = !ok;
+        if (fatalFileError) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Failed to write into file. No more attempts will be performed.");
         }
     }
     return ok;
@@ -175,15 +176,15 @@ bool FileWriter::Initialise(StructuredDataI& data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("NumberOfBuffers", numberOfBuffers);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be specified");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be specified");
+        }
     }
     if (ok) {
         ok = (numberOfBuffers > 0u);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be > 0u");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be > 0u");
+        }
     }
     if (ok) {
         uint32 cpuMaskIn;
@@ -197,18 +198,51 @@ bool FileWriter::Initialise(StructuredDataI& data) {
     }
     if (ok) {
         ok = data.Read("StackSize", stackSize);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be specified");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be specified");
+        }
     }
     if (ok) {
         ok = (stackSize > 0u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
+        }
     }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
+    StreamString fileFormatStr;
+    if (ok) {
+        ok = data.Read("FileFormat", fileFormatStr);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "FileFormat shall be specified");
+        }
     }
-    READ FORMAT
-    READ SEPARATOR IN CASE CSV
+    if (ok) {
+        if (fileFormatStr == "csv") {
+            fileFormat = FILE_FORMAT_CSV;
+        }
+        else if (fileFormatStr == "binary") {
+            fileFormat = FILE_FORMAT_BINARY;
+        }
+        else {
+            ok = false;
+            REPORT_ERROR(ErrorManagement::ParametersError, "Invalid FileFormat specified");
+        }
+    }
+    if (ok) {
+        if (fileFormat == FILE_FORMAT_CSV) {
+            ok = data.Read("CSVSeparator", csvSeparator);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "FileFormat=csv and CSVSeparator was not specified");
+            }
+        }
+    }
+    if (ok) {
+        if (!data.Read("Filename", filename)) {
+            REPORT_ERROR(ErrorManagement::Warning, "The Filename was not specified. It will have to be later set using the RPC mechanism.");
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::Information, "Filename was set to %s", filename.Buffer());
+        }
+    }
 
     uint32 storeOnTriggerU = 0u;
     if (ok) {
@@ -228,15 +262,27 @@ bool FileWriter::Initialise(StructuredDataI& data) {
         }
         if (ok) {
             ok = data.Read("NumberOfPostTriggers", numberOfPostTriggers);
-
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPostTriggers shall be specified");
             }
         }
     }
     if (ok) {
-        if (data.Read("Filename", filename)) {
-            REPORT_ERROR(ErrorManagement::Warning, "Filename was not specified. It will have to be specified through the RPC");
+        StreamString overwriteStr;
+        ok = data.Read("Overwrite", overwriteStr);
+        if (ok) {
+            if (overwriteStr == "yes") {
+                overwrite = true;
+            }
+            else if (overwriteStr == "no") {
+                overwrite = false;
+            }
+            else {
+                ok = false;
+            }
+        }
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Overwrite shall be specified as either yes or no");
         }
     }
     if (ok) {
@@ -249,10 +295,7 @@ bool FileWriter::Initialise(StructuredDataI& data) {
             ok = data.Write("Locked", 1);
         }
         if (ok) {
-            ok = data.Copy(originalSignalInformation);
-        }
-        if (ok) {
-            ok = originalSignalInformation.MoveToRoot();
+            ok = data.MoveToAncestor(1u);
         }
     }
     if (ok) {
@@ -346,296 +389,155 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
             if (n != 0u) {
                 //Add the separator
-                csvPrintfFormat.Printf("%s", csvPrintfFormat.);
+                ok = csvPrintfFormat.Printf("%s", csvSeparator.Buffer());
             }
-            TypeDescriptor signalType = GetSignalType(n);
-            if (signalType == Un)
-        }
-    }
-
-    //Check the signal index of the timing signal.
-    uint32 nOfSignals = GetNumberOfSignals();
-    if (ok) {
-        //Count the number of MDS+ signals
-        for (n = 0u; (n < nOfSignals) && (ok); n++) {
-            ok = data.MoveRelative(data.GetChildName(n));
+            uint8 nDimensions = 0u;
+            uint32 nElements = 0u;
             if (ok) {
-                //Have to mix and match between the original setting of the DataSource signal (i.e. the one MDS+ related)
-                //and the ones which are later added by the RealTimeApplicationConfigurationBuilder
-                ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(n));
-            }
-            StreamString nodeName;
-            StreamString nodeType;
-            if (ok) {
-                ok = data.Read("Type", nodeType);
+                ok = GetSignalNumberOfDimensions(n, nDimensions);
             }
             if (ok) {
-                ok = originalSignalInformation.Write("Type", nodeType.Buffer());
-            }
-            if (ok) {
-                uint32 nElements;
                 ok = GetSignalNumberOfElements(n, nElements);
-                if (ok) {
-                    ok = originalSignalInformation.Write("NumberOfElements", nElements);
-                }
             }
-            if (originalSignalInformation.Read("NodeName", nodeName)) {
+            if (ok) {
+                char8 *memPtr = &dataSourceMemory[offsets[n]];
+                void *signalAddress = reinterpret_cast<void *&>(memPtr);
+                signalsAnyType[n] = AnyType(GetSignalType(n), 0, signalAddress);
+                signalsAnyType[n].SetNumberOfDimensions(nDimensions);
+                signalsAnyType[n].SetNumberOfElements(0u, nElements);
+            }
 
-                //Dynamically add MDSWriteNodes to the list
-                uint32 numberOfNodes = (numberOfMDSSignals + 1u);
-                MDSWriterNode **tempNodes = new MDSWriterNode*[numberOfNodes];
-                uint32 t;
-                for (t = 0u; t < numberOfMDSSignals; t++) {
-                    if (nodes != NULL_PTR(MDSWriterNode **)) {
-                        tempNodes[t] = nodes[t];
-                    }
+            TypeDescriptor signalType = GetSignalType(n);
+            bool isUnsignedInteger = (signalType.type == UnsignedInteger);
+            bool isSignedInteger = (signalType.type == SignedInteger);
+            bool isFloat = (signalType.type == Float);
+            if (ok) {
+                if (isUnsignedInteger) {
+                    ok = csvPrintfFormat.Printf("%s", "%u");
                 }
-                tempNodes[numberOfMDSSignals] = new MDSWriterNode();
-                ok = tempNodes[numberOfMDSSignals]->Initialise(originalSignalInformation);
-                if (ok) {
-                    if ((tempNodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *)) && (offsets != NULL_PTR(uint32 *))) {
-                        tempNodes[numberOfMDSSignals]->SetSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[n]]));
-                    }
+                else if (isSignedInteger) {
+                    ok = csvPrintfFormat.Printf("%s", "%d");
                 }
-                delete[] nodes;
-                nodes = tempNodes;
-                numberOfMDSSignals++;
-            }
-            //Check if the signal is defined as a TimeSignal
-            uint32 timeSignal;
-            if (originalSignalInformation.Read("TimeSignal", timeSignal)) {
-                if (timeSignalIdx != -1) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Only one TimeSignal shall be defined");
+                else if (isFloat) {
+                    ok = csvPrintfFormat.Printf("%s", "%f");
+                }
+                else {
                     ok = false;
-                }
-                if (timeSignal > 0u) {
-                    timeSignalIdx = static_cast<int32>(n);
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported signal type.");
                 }
             }
-            if (ok) {
-                ok = originalSignalInformation.MoveToAncestor(1u);
-            }
-            if (ok) {
-                ok = data.MoveToAncestor(1u);
-            }
+        }
+        if (ok) {
+            ok = csvPrintfFormat.Printf("%s", "\n");
+            REPORT_ERROR(ErrorManagement::Information, "CSV format is %s", csvPrintfFormat.Buffer());
         }
     }
 
-    if (ok) {
-        ok = data.MoveToAncestor(1u);
-    }
-    if (ok) {
-        ok = (numberOfMDSSignals > 0u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The numberOfMDSSignals shall be > 0");
-        }
-    }
-    //Only one and one GAM allowed to interact with this DataSourceI
-    if (ok) {
-        ok = (GetNumberOfFunctions() == 1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one Function allowed to interact with this DataSourceI");
-        }
-    }
-
-    //Check if a time signal was set
-    bool useTimeSignal = (timeSignalIdx > -1);
-    if (storeOnTrigger) {
-        if (ok) {
-            ok = (useTimeSignal);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger was specified but no TimeSignal was found");
-            }
-        }
-    }
-    if (useTimeSignal) {
-        if (ok) {
-            ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == UnsignedInteger32Bit);
-            if (!ok) {
-                ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == SignedInteger32Bit);
-            }
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall have type uint32 or int32");
-            }
-        }
-        if (ok) {
-            uint32 n;
-            for (n = 0u; n < numberOfMDSSignals; n++) {
-                if ((nodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *)) && (offsets != NULL_PTR(uint32 *))) {
-                    nodes[n]->SetTimeSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[timeSignalIdx]]));
-                }
-            }
-        }
-    }
-    if (pulseNumber != MDS_UNDEFINED_PULSE_NUMBER) {
-        ok = (OpenTree(pulseNumber) == ErrorManagement::NoError);
+    if (filename.Size() > 0u) {
+        ok = OpenFile(filename.Buffer());
     }
 
     return ok;
 }
 
-ErrorManagement::ErrorType FileWriter::OpenTree(const int32 pulseNumberIn) {
-    bool ok = true;
-    pulseNumber = pulseNumberIn;
-    if (tree != NULL_PTR(MDSplus::Tree *)) {
-        try {
-            //Check if the tree is still valid before flushing any segments. It might have been closed due to a fault in the meanwhile...
-            MDSplus::Tree *treeTemp = new MDSplus::Tree(treeName.Buffer(), -1);
-            delete treeTemp;
-        }
-        catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::Warning, "Tree %s is no longer valid. Error: %s", treeName.Buffer(), exc.what());
-            fatalTreeNodeError = true;
-        }
-        if (!fatalTreeNodeError) {
-            if (FlushSegments() != ErrorManagement::NoError) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
-            }
-        }
-        try {
-            delete tree;
-        }
-        catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::Warning, "Failed deleting tree %s. Error: %s", treeName.Buffer(), exc.what());
-        }
-        tree = NULL_PTR(MDSplus::Tree *);
-    }
-    //Check for the latest pulse number
-    if (pulseNumber == -1) {
-        try {
-            tree = new MDSplus::Tree(treeName.Buffer(), -1);
-            pulseNumber = MDSplus::Tree::getCurrent(treeName.Buffer());
-            pulseNumber++;
-            MDSplus::Tree::setCurrent(treeName.Buffer(), pulseNumber);
-            tree->createPulse(pulseNumber);
-            delete tree;
-            tree = NULL_PTR(MDSplus::Tree *);
-        }
-        catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s to get last pulse number. Error: %s", treeName.Buffer(), exc.what());
-            if (tree != NULL_PTR(MDSplus::Tree *)) {
-                delete tree;
-            }
-            tree = NULL_PTR(MDSplus::Tree *);
-            ok = false;
-        }
+ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filename) {
+    REPORT_ERROR(ErrorManagement::Information, "Going to open file with name %s", filename.Buffer());
+    if (overwrite) {
+        Directory fileToDelete(filename.Buffer());
+        (void) fileToDelete.Delete();
 
+        fatalFileError = !outputFile.Open(filename.Buffer(), (BasicFile::ACCESS_MODE_W | BasicFile::FLAG_CREAT));
     }
-    if (ok) {
-        //Create a pulse. It assumes that the tree template is already created!!
-        try {
-            tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        }
-        catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::Warning, "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
-            if (tree != NULL_PTR(MDSplus::Tree *)) {
-                delete tree;
-            }
-            tree = NULL_PTR(MDSplus::Tree *);
-        }
-        if (tree == NULL_PTR(MDSplus::Tree *)) {
-            try {
-                tree = new MDSplus::Tree(treeName.Buffer(), -1);
-                MDSplus::Tree::setCurrent(treeName.Buffer(), pulseNumber);
-                tree->createPulse(pulseNumber);
-            }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
-                ok = false;
-            }
-        }
-        if (tree != NULL_PTR(MDSplus::Tree *)) {
-            delete tree;
-        }
-        tree = NULL_PTR(MDSplus::Tree *);
-    }
-    if (ok) {
-        //Open a pulse.
-        try {
-            tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        }
-        catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
-            ok = false;
-            if (tree != NULL_PTR(MDSplus::Tree *)) {
-                delete tree;
-            }
-            tree = NULL_PTR(MDSplus::Tree *);
-        }
+    else {
+        fatalFileError = !outputFile.Open(filename.Buffer(), (BasicFile::ACCESS_MODE_W | BasicFile::FLAG_APPEND));
     }
 
-    if (ok) {
-        uint32 n;
-        if (nodes != NULL_PTR(MDSWriterNode **)) {
-            for (n = 0u; (n < numberOfMDSSignals) && (ok); n++) {
-                ok = nodes[n]->AllocateTreeNode(tree);
-            }
-        }
-    }
-    if (ok) {
-        if (brokerAsyncTrigger != NULL_PTR(MemoryMapAsyncTriggerOutputBroker *)) {
-            brokerAsyncTrigger->ResetPreTriggerBuffers();
-        }
-    }
-    if (ok) {
-        if (treeOpenedOKMsg.IsValid()) {
-            //Remove old pulse number from message.
-            if (treeOpenedOKMsg->Size() > 0u) {
-                ReferenceT<ConfigurationDatabase> cdbe = treeOpenedOKMsg->Get(0u);
-                if (cdbe.IsValid()) {
-                    (void) treeOpenedOKMsg->Delete(cdbe);
+    if (!fatalFileError) {
+        //Write the header
+        if (fileFormat == FILE_FORMAT_CSV) {
+            uint32 n;
+            uint32 nOfSignals = GetNumberOfSignals();
+            for (n = 0u; (n < nOfSignals) && (!fatalFileError); n++) {
+                if (n == 0u) {
+                    fatalFileError = !outputFile.Printf("%s", "#");
+                }
+                else {
+                    fatalFileError = !outputFile.Printf("%s", csvSeparator.Buffer());
+                }
+                StreamString signalName;
+                TypeDescriptor signalType = GetSignalType(n);
+                uint32 nOfElements;
+                if (!fatalFileError) {
+                    fatalFileError = !GetSignalName(n, signalName);
+                }
+                if (!fatalFileError) {
+                    fatalFileError = !GetSignalNumberOfElements(n, nOfElements);
+                }
+                if (!fatalFileError) {
+                    fatalFileError = !outputFile.Printf("%s (%s)[%u]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
                 }
             }
+            if (!fatalFileError) {
+                fatalFileError = !outputFile.Printf("%s", "\n");
+            }
+        }
+        else {
+            //TODO
+        }
+
+        if (fileOpenedOKMsg.IsValid()) {
             //Reset any previous replies
-            treeOpenedOKMsg->SetAsReply(false);
-            ReferenceT<ConfigurationDatabase> cdbn(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-            (void) cdbn->Write("param1", pulseNumber);
-            (void) treeOpenedOKMsg->Insert(cdbn);
-            if (!MessageI::SendMessage(treeOpenedOKMsg, this)) {
-                StreamString destination = treeOpenedOKMsg->GetDestination();
-                StreamString function = treeOpenedOKMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedOK message to %s [%s]", destination.Buffer(), function.Buffer());
+            fileOpenedOKMsg->SetAsReply(false);
+            if (!MessageI::SendMessage(fileOpenedOKMsg, this)) {
+                StreamString destination = fileOpenedOKMsg->GetDestination();
+                StreamString function = fileOpenedOKMsg->GetFunction();
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send FileOpenedOK message to %s [%s]", destination.Buffer(), function.Buffer());
             }
         }
     }
     else {
-        if (treeOpenedFailMsg.IsValid()) {
+        if (fileOpenedFailMsg.IsValid()) {
             //Reset any previous replies
-            treeOpenedFailMsg->SetAsReply(false);
-            if (!MessageI::SendMessage(treeOpenedFailMsg, this)) {
-                StreamString destination = treeOpenedFailMsg->GetDestination();
-                StreamString function = treeOpenedFailMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedFail message to %s [%s]", destination.Buffer(), function.Buffer());
+            fileOpenedFailMsg->SetAsReply(false);
+            if (!MessageI::SendMessage(fileOpenedFailMsg, this)) {
+                StreamString destination = fileOpenedFailMsg->GetDestination();
+                StreamString function = fileOpenedFailMsg->GetFunction();
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send FileOpenedFail message to %s [%s]", destination.Buffer(), function.Buffer());
             }
         }
     }
-    fatalTreeNodeError = !ok;
-    ErrorManagement::ErrorType ret(ok);
+    ErrorManagement::ErrorType ret(!fatalFileError);
     return ret;
 }
 
-ErrorManagement::ErrorType FileWriter::FlushSegments() {
-    uint32 n;
+ErrorManagement::ErrorType FileWriter::CloseFile() {
+    ErrorManagement::ErrorType err = FlushFile();
+    if (err.ErrorsCleared()) {
+        if (outputFile.IsOpen()) {
+            err = !outputFile.Close();
+        }
+    }
+    return err;
+}
+
+ErrorManagement::ErrorType FileWriter::FlushFile() {
     bool ok = true;
     if (brokerAsyncTrigger != NULL_PTR(MemoryMapAsyncTriggerOutputBroker *)) {
         ok = brokerAsyncTrigger->FlushAllTriggers();
     }
-    if (nodes != NULL_PTR(MDSWriterNode **)) {
-        for (n = 0u; ((n < numberOfMDSSignals) && (ok)); n++) {
-            ok = nodes[n]->Flush();
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Failed to flush MDSWriterNode");
-            }
+    if (ok) {
+        if (outputFile.IsOpen()) {
+            ok = outputFile.Flush();
         }
     }
-    if (ok) {
-        if (treeFlushedMsg.IsValid()) {
+    if (!ok) {
+        if (fileFlushedMsg.IsValid()) {
             //Reset any previous replies
-            treeFlushedMsg->SetAsReply(false);
-            if (!MessageI::SendMessage(treeFlushedMsg, this)) {
-                StreamString destination = treeFlushedMsg->GetDestination();
-                StreamString function = treeFlushedMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeFlushed message to %s [%s]", destination.Buffer(), function.Buffer());
+            fileFlushedMsg->SetAsReply(false);
+            if (!MessageI::SendMessage(fileFlushedMsg, this)) {
+                StreamString destination = fileFlushedMsg->GetDestination();
+                StreamString function = fileFlushedMsg->GetFunction();
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send FileFlushed message to %s [%s]", destination.Buffer(), function.Buffer());
             }
         }
     }
@@ -648,16 +550,8 @@ const ProcessorType& FileWriter::GetCPUMask() const {
     return cpuMask;
 }
 
-const StreamString& FileWriter::GetEventName() const {
-    return eventName;
-}
-
 uint32 FileWriter::GetNumberOfBuffers() const {
     return numberOfBuffers;
-}
-
-uint32 FileWriter::GetNumberOfMdsSignals() const {
-    return numberOfMDSSignals;
 }
 
 uint32 FileWriter::GetNumberOfPostTriggers() const {
@@ -668,12 +562,8 @@ uint32 FileWriter::GetNumberOfPreTriggers() const {
     return numberOfPreTriggers;
 }
 
-int32 FileWriter::GetPulseNumber() const {
-    return pulseNumber;
-}
-
-uint64 FileWriter::GetRefreshEveryCounts() const {
-    return refreshEveryCounts;
+const StreamString& FileWriter::GetFilename() const {
+    return filename;
 }
 
 uint32 FileWriter::GetStackSize() const {
@@ -684,17 +574,10 @@ bool FileWriter::IsStoreOnTrigger() const {
     return storeOnTrigger;
 }
 
-int32 FileWriter::GetTimeSignalIdx() const {
-    return timeSignalIdx;
-}
-
-const StreamString& FileWriter::GetTreeName() const {
-    return treeName;
-}
-
 CLASS_REGISTER(FileWriter, "1.0")
 CLASS_METHOD_REGISTER(FileWriter, FlushFile)
 CLASS_METHOD_REGISTER(FileWriter, OpenFile)
+CLASS_METHOD_REGISTER(FileWriter, CloseFile)
 
 }
 

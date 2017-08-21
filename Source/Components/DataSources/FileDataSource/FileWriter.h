@@ -50,7 +50,7 @@ namespace MARTe {
  * continuously stored or stored only when a given event occurs (see StoreOnTrigger below).
  *
  * All the signals are stored in a single file.
- * If the format is csv the first line will be a comment with the signal names. A new line will be added every time all the signal samples are written.
+ * If the format is csv the first line will be a comment with each signal name, type and number of elements. A new line will be added every time all the signal samples are written.
  *
  * TODO confirm: If the format is binary an header with the following information is created: the first 4 bytes
  * contain the number of signals. Then, for each signal, the signal type will be encoded in one byte, followed
@@ -66,10 +66,10 @@ namespace MARTe {
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
  *     CPUMask = 15 //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data into the file.
  *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
- *     Filename = "test" //Optional. If not set the filename shall be set using the OpenFile RPC.
+ *     Filename = "test.bin" //Optional. If not set the filename shall be set using the OpenFile RPC.
  *     Overwrite = "yes" //Compulsory. If "yes" the file will be overwritten, otherwise new data will be added to the end of the existent file.
- *     Format = "binary" //Compulsory. Possible values are: binary and csv.
- *     Separator = "," //Compulsory if Format=csv. Sets the file separator type.
+ *     FileFormat = "binary" //Compulsory. Possible values are: binary and csv.
+ *     CSVSeparator = "," //Compulsory if Format=csv. Sets the file separator type.
  *     StoreOnTrigger = 1 //Compulsory. If 0 all the data in the circular buffer is continuously stored. If 1 data is stored when the Trigger signal is 1 (see below).
  *     NumberOfPreTriggers = 2 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store before the trigger.
  *     NumberOfPostTriggers = 1 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store after the trigger.
@@ -98,6 +98,12 @@ namespace MARTe {
  *             Mode = ExpectsReply
  *         }*
  *         +FileFlushed = { //Optional, but if set, the name of the Object shall be FileFlushed. If set a message will be sent to the Destination, every time the File is flushed.
+ *             Class = Message
+ *             Destination = SomeObject
+ *             Function = SomeFunction
+ *             Mode = ExpectsReply
+ *         }
+ *         +FileRuntimeError = { //Optional, but if set, the name of the Object shall be FileRuntimeError. If set a message will be sent to the Destination, the first time there is a runtime error writing to the file.
  *             Class = Message
  *             Destination = SomeObject
  *             Function = SomeFunction
@@ -216,6 +222,12 @@ public:
     ErrorManagement::ErrorType OpenFile(StreamString filename);
 
     /**
+     * @brief Close the file. Function is registered as an RPC.
+     * @return ErrorManagement::NoError if the file can be successfully closed.
+     */
+    ErrorManagement::ErrorType CloseFile();
+
+    /**
      * @brief Gets the affinity of the thread which is going to be used to asynchronously store the data in the file.
      * @return the affinity of the thread which is going to be used to asynchronously store the data in the file.
      */
@@ -246,26 +258,21 @@ public:
     const StreamString& GetFilename() const;
 
     /**
-     * @brief Gets the stack size of the thread which is going to be used to asynchronously store the data in the MDS plus database.
-     * @return the stack size of the thread which is going to be used to asynchronously store the data in the MDS plus database.
+     * @brief Gets the stack size of the thread which is going to be used to asynchronously store the data in the output file.
+     * @return the stack size of the thread which is going to be used to asynchronously store the data in the output file.
      */
     uint32 GetStackSize() const;
 
     /**
-     * @brief Returns true if the data is going to be stored in MDS plus based on the occurrence of an external trigger.
-     * @return true if the data is going to be stored in MDS plus based on a trigger event.
+     * @brief Returns true if the data is going to be stored in the output file based on the occurrence of an external trigger.
+     * @return true if the data is going to be stored in the output file based on a trigger event.
      */
     bool IsStoreOnTrigger() const;
 
 private:
 
     /**
-     * The filename.
-     */
-    StreamString filename;
-
-    /**
-     * True if the data is only to be stored in MDS plus following a trigger.
+     * True if the data is only to be stored in the output file following a trigger.
      */
     bool storeOnTrigger;
 
@@ -290,19 +297,29 @@ private:
     uint32 *offsets;
 
     /**
-     * Memory holding all the signals that are to be stored, for each cycle, in MDSplus
+     * Memory holding all the signals that are to be stored, for each cycle, in the output file.
      */
     char8 *dataSourceMemory;
 
     /**
-     * The affinity of the thread that asynchronously flushes data into MDSplus.
+     * The affinity of the thread that asynchronously flushes data into the output file.
      */
     ProcessorType cpuMask;
 
     /**
-     * The size of the stack of the thread that asynchronously flushes data into MDSplus.
+     * The size of the stack of the thread that asynchronously flushes data into the output file.
      */
     uint32 stackSize;
+
+    /**
+     * The name of the file where data will be stored.
+     */
+    StreamString filename;
+
+    /**
+     * True if the file is to be overwritten.
+     */
+    bool overwrite;
 
     /**
      * The file format.
@@ -322,7 +339,7 @@ private:
     /**
      * The CSV separator.
      */
-    StreamString separator;
+    StreamString csvSeparator;
 
     /**
      * The signal memory as an AnyType array optimised for the PrintFormatted
@@ -340,17 +357,12 @@ private:
     File outputFile;
 
     /**
-     * Stores the configuration information received at Initialise.
-     */
-    ConfigurationDatabase originalSignalInformation;
-
-    /**
      * Filter to receive the RPC which allows to change the pulse number.
      */
     ReferenceT<RegisteredMethodsMessageFilter> filter;
 
     /**
-     * The asynchronous triggered broker that provides the interface between the GAMs and the MDS+ memory
+     * The asynchronous triggered broker that provides the interface between the GAMs and the output file.
      */
     MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
 
