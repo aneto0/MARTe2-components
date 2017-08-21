@@ -54,7 +54,8 @@ namespace MARTe {
  *
  * TODO confirm: If the format is binary an header with the following information is created: the first 4 bytes
  * contain the number of signals. Then, for each signal, the signal type will be encoded in one byte, followed
- *  by 32 bytes to encode the signal name. Following the header the signal samples are consecutively stored in binary format.
+ *  by 32 bytes to encode the signal name, followed by 4 bytes which store the number of elements of a given signal.
+ *  Following the header the signal samples are consecutively stored in binary format.
  *
  * TODO confirm: for both formats, arrays can be stored but all the signals shall have the same number of elements.
  *
