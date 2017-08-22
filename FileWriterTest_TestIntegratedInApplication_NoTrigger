@@ -1,6 +1,0 @@
-#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64 (float64)[1]
-0;0;1;1;1;1;1;1;1;1;1.000000;1.000000
-0;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000
-0;4000000;3;3;3;3;3;3;3;3;3.000000;3.000000
-0;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000
-0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000
