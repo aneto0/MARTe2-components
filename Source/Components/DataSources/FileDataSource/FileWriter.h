@@ -53,7 +53,7 @@ namespace MARTe {
  * If the format is csv the first line will be a comment with each signal name, type and number of elements. A new line will be added every time all the signal samples are written.
  *
  * TODO confirm: If the format is binary an header with the following information is created: the first 4 bytes
- * contain the number of signals. Then, for each signal, the signal type will be encoded in one byte, followed
+ * contain the number of signals. Then, for each signal, the signal type will be encoded in two bytes, followed
  *  by 32 bytes to encode the signal name, followed by 4 bytes which store the number of elements of a given signal.
  *  Following the header the signal samples are consecutively stored in binary format.
  *

@@ -453,10 +453,10 @@ ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filename) {
     }
 
     if (!fatalFileError) {
+        uint32 n;
+        uint32 nOfSignals = GetNumberOfSignals();
         //Write the header
         if (fileFormat == FILE_FORMAT_CSV) {
-            uint32 n;
-            uint32 nOfSignals = GetNumberOfSignals();
             for (n = 0u; (n < nOfSignals) && (!fatalFileError); n++) {
                 if (n == 0u) {
                     fatalFileError = !outputFile.Printf("%s", "#");
@@ -474,7 +474,8 @@ ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filename) {
                     fatalFileError = !GetSignalNumberOfElements(n, nOfElements);
                 }
                 if (!fatalFileError) {
-                    fatalFileError = !outputFile.Printf("%s (%s)[%u]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
+                    fatalFileError = !outputFile.Printf("%s (%s)[%u]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType),
+                                                        nOfElements);
                 }
             }
             if (!fatalFileError) {
@@ -482,7 +483,50 @@ ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filename) {
             }
         }
         else {
+            uint32 writeSize = sizeof(uint32);
+            if (!fatalFileError) {
+                //Write the number of signals
+                fatalFileError = !outputFile.Write(reinterpret_cast<const char8 *>(&nOfSignals), writeSize);
+            }
             //TODO
+            for (n = 0u; (n < nOfSignals) && (!fatalFileError); n++) {
+                //Write the signal type
+                writeSize = sizeof(uint16);
+                uint16 signalType = GetSignalType(n).all;
+                if (!fatalFileError) {
+                    fatalFileError = !outputFile.Write(reinterpret_cast<const char8 *>(&signalType), writeSize);
+                }
+                StreamString signalName;
+                uint32 nOfElements;
+                if (!fatalFileError) {
+                    fatalFileError = !GetSignalName(n, signalName);
+                }
+                if (!fatalFileError) {
+                    fatalFileError = !GetSignalNumberOfElements(n, nOfElements);
+                }
+                if (!fatalFileError) {
+                    //Write the signal name
+                    const uint32 SIGNAL_NAME_MAX_SIZE = 32u;
+                    char8 signalNameMemory[SIGNAL_NAME_MAX_SIZE];
+                    fatalFileError = !MemoryOperationsHelper::Set(&signalNameMemory[0], '\0', SIGNAL_NAME_MAX_SIZE);
+                    if (!fatalFileError) {
+                        uint32 copySize = signalName.Size();
+                        if (copySize > SIGNAL_NAME_MAX_SIZE) {
+                            copySize = SIGNAL_NAME_MAX_SIZE;
+                        }
+                        fatalFileError = !MemoryOperationsHelper::Copy(&signalNameMemory[0], signalName.Buffer(), copySize);
+                    }
+                    if (!fatalFileError) {
+                        writeSize = SIGNAL_NAME_MAX_SIZE;
+                        fatalFileError = !outputFile.Write(&signalNameMemory[0], writeSize);
+                    }
+                }
+                if (!fatalFileError) {
+                    //Write the signal number of elements
+                    writeSize = sizeof(uint32);
+                    fatalFileError = !outputFile.Write(reinterpret_cast<const char8 *>(&nOfElements), writeSize);
+                }
+            }
         }
 
         if (fileOpenedOKMsg.IsValid()) {

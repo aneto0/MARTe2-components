@@ -527,7 +527,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     }
 
     Directory toDelete(filename);
-    toDelete.Delete();
+    //toDelete.Delete();
 
     return ok;
 }
@@ -562,6 +562,7 @@ static const MARTe::char8 * const config1 = ""
         "                SignalUInt32 = {"
         "                    Type = uint32"
         "                    DataSource = Drv1"
+        "                    NumberOfElements = 10"
         "                }"
         "                SignalUInt64 = {"
         "                    Type = uint64"
@@ -3254,7 +3255,11 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger(bool csv) {
     using namespace MARTe;
     uint32 signalToGenerate[] = { 1, 2, 3, 4, 5 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+    const uint32 N_OF_SIGNALS = 12;
     const char8 * const filename = "FileWriterTest_TestIntegratedInApplication_NoTrigger";
+    const char8 *signalNames[N_OF_SIGNALS] = {"Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16", "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64"};
+    const uint16 signalTypes[N_OF_SIGNALS] = {UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all, UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,Float32Bit.all, Float64Bit.all};
+    const uint32 signalElements[N_OF_SIGNALS] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     const uint32 numberOfBuffers = 16;
     const float32 period = 2;
     const char8 * expectedFileContent = NULL;
@@ -3281,12 +3286,28 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger(bool csv) {
         cycleWriteSize += sizeof(float32); //signalFloat32
         cycleWriteSize += sizeof(float64); //signalFloat64
 
-        uint32 memorySize = numberOfElements * cycleWriteSize; //5 writes
+        const uint32 SIGNAL_NAME_SIZE = 32;
+        uint32 headerSize = sizeof(uint32) + N_OF_SIGNALS * (sizeof(uint16) + SIGNAL_NAME_SIZE + sizeof(uint32));
+        uint32 memorySize = headerSize + (numberOfElements * cycleWriteSize); //5 writes
         expectedFileContent = static_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
 
         uint32 n;
+        //Header
+        char8 *header = const_cast<char8 *>(&expectedFileContent[0]);
+        MemoryOperationsHelper::Copy(header, reinterpret_cast<const char8 *>(&N_OF_SIGNALS), sizeof(uint32));
+        header += sizeof(uint32);
+        for (n = 0u; n < N_OF_SIGNALS; n++) {
+            MemoryOperationsHelper::Copy(header, &signalTypes[n], sizeof(uint16));
+            header += sizeof(uint16);
+            MemoryOperationsHelper::Set(header, '\0', SIGNAL_NAME_SIZE);
+            MemoryOperationsHelper::Copy(header, signalNames[n], StringHelper::Length(signalNames[n]));
+            header += SIGNAL_NAME_SIZE;
+            MemoryOperationsHelper::Copy(header, &signalElements[n], sizeof(uint32));
+            header += sizeof(uint32);
+        }
+
         for (n = 0u; n < numberOfElements; n++) {
-            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[n * cycleWriteSize]));
+            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (n * cycleWriteSize)]));
             uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
             uint8 *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
             uint16 *signalUInt16Pointer = reinterpret_cast<uint16 *>(signalUInt8Pointer + 1);
