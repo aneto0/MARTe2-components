@@ -126,6 +126,10 @@ public:
     virtual bool Initialise(MARTe::StructuredDataI & data) {
         using namespace MARTe;
         bool ok = GAM::Initialise(data);
+        counter = 0;
+        numberOfExecutes = 0;
+        period = 2;
+
         AnyType signalAT = data.GetType("Signal");
         numberOfExecutes = signalAT.GetNumberOfElements(0);
         signalToGenerate = new uint32[numberOfExecutes];
@@ -335,63 +339,12 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     return ok;
 }
 #endif
-#if 0
-template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberOfSegments, Fileplus::TreeNode *node, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify) {
-    using namespace MARTe;
-    int32 i = 0u;
-    int32 s;
-    bool ok = true;
-    typeToCheck typeDiscoverTmp;
-    AnyType typeDiscover(typeDiscoverTmp);
-    for (s = 0u; (s < numberOfSegments) && (ok); s++) {
-        int32 numberOfElements;
-        Fileplus::Array *segment = node->getSegment(s);
-        typeToCheck *data;
-        Fileplus::Data *segTimeD = node->getSegmentDim(s);
-        uint32 *segTime;
-        segTime = segTimeD->getIntUnsignedArray(&numberOfElements);
-
-        if (typeDiscover.GetTypeDescriptor() == UnsignedInteger16Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getShortUnsignedArray(&numberOfElements));
-        }
-        else if (typeDiscover.GetTypeDescriptor() == UnsignedInteger32Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getIntUnsignedArray(&numberOfElements));
-        }
-        else if (typeDiscover.GetTypeDescriptor() == UnsignedInteger64Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getLongUnsignedArray(&numberOfElements));
-        }
-        else if (typeDiscover.GetTypeDescriptor() == SignedInteger16Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getShortArray(&numberOfElements));
-        }
-        else if (typeDiscover.GetTypeDescriptor() == SignedInteger32Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getIntArray(&numberOfElements));
-        }
-        else if (typeDiscover.GetTypeDescriptor() == SignedInteger64Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getLongArray(&numberOfElements));
-        }
-        else if (typeDiscover.GetTypeDescriptor() == Float32Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getFloatArray(&numberOfElements));
-        }
-        else if (typeDiscover.GetTypeDescriptor() == Float64Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getDoubleArray(&numberOfElements));
-        }
-        int32 e;
-        for (e = 0; (e < numberOfElements) && (ok); e++) {
-            ok = (static_cast<typeToCheck>(signalToVerify[i]) == static_cast<typeToCheck>(data[e]));
-            ok &= (timeToVerify[i] == segTime[e]);
-            i++;
-        }
-        deleteData(segment);
-        deleteData(segTimeD);
-    }
-    return ok;
-}
-#endif
 
 static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements,
-                                    MARTe::uint8 *triggerToGenerate, MARTe::uint32 numberOfBuffers, MARTe::uint32 numberOfPreTriggers,
-                                    MARTe::uint32 numberOfPostTriggers, MARTe::float32 period, const MARTe::char8 * const filename,
-                                    const MARTe::char8 * const expectedFileContent, bool csv, const MARTe::uint32 sleepMSec = 100) {
+                                    MARTe::uint8 *triggerToGenerate, MARTe::uint32 numberOfElements, MARTe::uint32 numberOfBuffers,
+                                    MARTe::uint32 numberOfPreTriggers, MARTe::uint32 numberOfPostTriggers, MARTe::float32 period,
+                                    const MARTe::char8 * const filename, const MARTe::char8 * const expectedFileContent, bool csv,
+                                    const MARTe::uint32 sleepMSec = 100) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config;
@@ -406,11 +359,20 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     cdb.Write("Signal", signalV);
     cdb.Delete("Period");
     cdb.Write("Period", period);
-    if (triggerToGenerate != NULL) {
-        cdb.Delete("Trigger");
-        Vector<uint8> triggerV(triggerToGenerate, toGenerateNumberOfElements);
-        cdb.Write("Trigger", triggerV);
+    cdb.Delete("Trigger");
+
+    bool triggerToGenerateWasNULL = false;
+    if (triggerToGenerate == NULL) {
+        triggerToGenerate = new uint8[toGenerateNumberOfElements];
+        uint32 t;
+        for (t = 0; t < toGenerateNumberOfElements; t++) {
+            triggerToGenerate[t] = 0;
+        }
+        triggerToGenerateWasNULL = true;
     }
+
+    Vector<uint8> triggerV(triggerToGenerate, toGenerateNumberOfElements);
+    cdb.Write("Trigger", triggerV);
 
     cdb.MoveAbsolute("$Test.+Data.+Drv1");
     cdb.Delete("NumberOfBuffers");
@@ -422,7 +384,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     cdb.Delete("Filename");
     cdb.Write("Filename", filename);
     cdb.Delete("StoreOnTrigger");
-    uint32 storeOnTrigger = (triggerToGenerate != NULL) ? 1 : 0;
+    uint32 storeOnTrigger = (triggerToGenerateWasNULL ? 0 : 1);
     cdb.Write("StoreOnTrigger", storeOnTrigger);
 
     cdb.Delete("FileFormat");
@@ -434,6 +396,18 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     else {
         cdb.Write("FileFormat", "binary");
     }
+    cdb.MoveRelative("Signals");
+
+    uint32 i;
+    uint32 numberOfChildren = cdb.GetNumberOfChildren();
+    //Skip trigger and time signal
+    for (i = 2u; i < numberOfChildren; i++) {
+        cdb.MoveToChild(i);
+        cdb.Delete("NumberOfElements");
+        cdb.Write("NumberOfElements", numberOfElements);
+        cdb.MoveToAncestor(1u);
+    }
+
     cdb.MoveToRoot();
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
@@ -474,7 +448,6 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
         ok = application->StartNextStateExecution();
     }
 
-    uint32 i;
     if (ok) {
         for (i = 0; (i < gam->numberOfExecutes); i++) {
             scheduler->ExecuteThreadCycle(0);
@@ -517,6 +490,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
             uint32 r;
             for (r = 0u; (r < readSize) && (ok); r++) {
                 ok = (buffer[r] == expectedFileContent[z]);
+                printf("[%x] vs [%x]\n", (uint8) buffer[r], (uint8) expectedFileContent[z]);
                 z++;
             }
             readSize = BUFFER_SIZE;
@@ -525,9 +499,13 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
             ok = readOnce;
         }
     }
-
+    generatedFile.Close();
     Directory toDelete(filename);
     //toDelete.Delete();
+
+    if (triggerToGenerateWasNULL) {
+        delete[] triggerToGenerate;
+    }
 
     return ok;
 }
@@ -562,7 +540,6 @@ static const MARTe::char8 * const config1 = ""
         "                SignalUInt32 = {"
         "                    Type = uint32"
         "                    DataSource = Drv1"
-        "                    NumberOfElements = 10"
         "                }"
         "                SignalUInt64 = {"
         "                    Type = uint64"
@@ -2919,12 +2896,11 @@ bool FileWriterTest::TestGetSignalMemoryBuffer() {
     void *ptr = NULL;
     bool ok = !test.GetSignalMemoryBuffer(0, 0, ptr);
     if (ok) {
-        ok = TestIntegratedInApplication_NoTrigger(true);
+        ok = TestIntegratedInApplication_NoTrigger("FileWriterTest_TestGetSignalMemoryBuffer_CSV", true);
     }
     return ok;
 }
 
-#if 0
 bool FileWriterTest::TestGetBrokerName_InputSignals() {
     using namespace MARTe;
     FileWriter test;
@@ -2941,10 +2917,9 @@ bool FileWriterTest::TestGetBrokerName_MemoryMapAsyncOutputBroker() {
     cdb.Write("NumberOfBuffers", 10);
     cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("Filename", "TestGetBrokerName_MemoryMapAsyncOutputBroker");
+    cdb.Write("FileFormat", "binary");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 0);
     cdb.Write("NumberOfPreTriggers", 2);
     cdb.Write("NumberOfPostTriggers", 1);
@@ -2965,10 +2940,9 @@ bool FileWriterTest::TestGetBrokerName_MemoryMapAsyncTriggerOutputBroker() {
     cdb.Write("NumberOfBuffers", 10);
     cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("Filename", "TestGetBrokerName_MemoryMapAsyncOutputBroker");
+    cdb.Write("FileFormat", "binary");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
     cdb.Write("NumberOfPostTriggers", 1);
@@ -2990,18 +2964,31 @@ bool FileWriterTest::TestGetInputBrokers() {
 }
 
 bool FileWriterTest::TestGetOutputBrokers() {
-    bool ok = TestIntegratedInApplication_NoTrigger();
-    if (ok) {
-        ok = TestIntegratedInApplication_Trigger();
-    }
+    bool ok = TestIntegratedInApplication_NoTrigger("FileWriterTest_TestGetOutputBrokers", true);
     return ok;
 }
 
 bool FileWriterTest::TestSynchronise() {
-    bool ok = TestIntegratedInApplication_NoTrigger();
+    bool ok = true;
     if (ok) {
-        ok = TestIntegratedInApplication_Trigger();
+        ok = TestIntegratedInApplication_NoTrigger("FileWriterTest_TestSynchronise_NoT_CSV", true);
     }
+    if (ok) {
+        ok = TestIntegratedInApplication_NoTrigger("FileWriterTest_TestSynchronise_NoT_BIN", false);
+    }
+    if (ok) {
+        ok = TestIntegratedInApplication_NoTrigger_Array("FileWriterTest_TestSynchronise_NoT_Arr_CSV", true);
+    }
+    if (ok) {
+        ok = TestIntegratedInApplication_NoTrigger_Array("FileWriterTest_TestSynchronise_NoT_Arr_BIN", false);
+    }
+    if (ok) {
+        ok = TestIntegratedInApplication_Trigger("FileWriterTest_TestSynchronise_T_CSV", true);
+    }
+    if (ok) {
+        ok = TestIntegratedInApplication_Trigger("FileWriterTest_TestSynchronise_T_BIN", false);
+    }
+
     return ok;
 }
 
@@ -3018,10 +3005,10 @@ bool FileWriterTest::TestInitialise() {
     cdb.Write("NumberOfBuffers", 10);
     cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 10);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("CSVSeparator", ",");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
     cdb.Write("NumberOfPostTriggers", 3);
@@ -3031,10 +3018,10 @@ bool FileWriterTest::TestInitialise() {
     ok &= (test.GetNumberOfBuffers() == 10);
     ok &= (test.GetCPUMask() == 15);
     ok &= (test.GetStackSize() == 10000000);
-    ok &= (test.GetTreeName() == "mds_m2test");
-    ok &= (test.GetPulseNumber() == 10);
-    ok &= (test.GetEventName() == "updatejScope");
-    ok &= (test.GetRefreshEveryCounts() == (5 * HighResolutionTimer::Frequency()));
+    ok &= (test.GetFilename() == "FileWriterTest_TestInitialise");
+    ok &= (test.GetFileFormat() == "csv");
+    ok &= (test.GetCSVSeparator() == ",");
+    ok &= (test.IsOverwrite());
     ok &= (test.IsStoreOnTrigger());
     ok &= (test.GetNumberOfPreTriggers() == 2);
     ok &= (test.GetNumberOfPostTriggers() == 3);
@@ -3047,13 +3034,13 @@ bool FileWriterTest::TestInitialise_False_NumberOfBuffers() {
     ConfigurationDatabase cdb;
     cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("CSVSeparator", ",");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.Write("NumberOfPostTriggers", 3);
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     return !test.Initialise(cdb);
@@ -3063,15 +3050,15 @@ bool FileWriterTest::TestInitialise_False_CPUMask() {
     using namespace MARTe;
     FileWriter test;
     ConfigurationDatabase cdb;
-    cdb.Write("StackSize", 10000000);
     cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("CSVSeparator", ",");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.Write("NumberOfPostTriggers", 3);
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     return !test.Initialise(cdb);
@@ -3081,38 +3068,39 @@ bool FileWriterTest::TestInitialise_False_StackSize() {
     using namespace MARTe;
     FileWriter test;
     ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
     cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("CPUMask", 15);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("CSVSeparator", ",");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.Write("NumberOfPostTriggers", 3);
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     return !test.Initialise(cdb);
 }
 
-bool FileWriterTest::TestInitialise_False_TreeName() {
+bool FileWriterTest::TestInitialise_Warning_Filename() {
     using namespace MARTe;
     FileWriter test;
     ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
     cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("CSVSeparator", ",");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.Write("NumberOfPostTriggers", 3);
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
-    return !test.Initialise(cdb);
+    return test.Initialise(cdb);
 }
 
+#if 0
 bool FileWriterTest::TestInitialise_False_EventName() {
     using namespace MARTe;
     FileWriter test;
@@ -3251,26 +3239,29 @@ bool FileWriterTest::TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunct
 }
 #endif
 
-bool FileWriterTest::TestIntegratedInApplication_NoTrigger(bool csv) {
+bool FileWriterTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *filename, bool csv) {
     using namespace MARTe;
     uint32 signalToGenerate[] = { 1, 2, 3, 4, 5 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     const uint32 N_OF_SIGNALS = 12;
-    const char8 * const filename = "FileWriterTest_TestIntegratedInApplication_NoTrigger";
-    const char8 *signalNames[N_OF_SIGNALS] = {"Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16", "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64"};
-    const uint16 signalTypes[N_OF_SIGNALS] = {UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all, UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,Float32Bit.all, Float64Bit.all};
-    const uint32 signalElements[N_OF_SIGNALS] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    const char8 *signalNames[N_OF_SIGNALS] = { "Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16",
+            "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64" };
+    const uint16 signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all,
+            UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,
+            Float32Bit.all, Float64Bit.all };
+    const uint32 signalElements[N_OF_SIGNALS] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
     const uint32 numberOfBuffers = 16;
     const float32 period = 2;
     const char8 * expectedFileContent = NULL;
     if (csv) {
-        expectedFileContent = ""
-                "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64 (float64)[1]\n"
-                "0;0;1;1;1;1;1;1;1;1;1.000000;1.000000\n"
-                "0;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
-                "0;4000000;3;3;3;3;3;3;3;3;3.000000;3.000000\n"
-                "0;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
-                "0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
+        expectedFileContent =
+                ""
+                        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64 (float64)[1]\n"
+                        "0;0;1;1;1;1;1;1;1;1;1.000000;1.000000\n"
+                        "0;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
+                        "0;4000000;3;3;3;3;3;3;3;3;3.000000;3.000000\n"
+                        "0;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
+                        "0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
     }
     else {
         uint32 cycleWriteSize = sizeof(uint8); //trigger
@@ -3339,7 +3330,222 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger(bool csv) {
         }
     }
 
-    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, numberOfBuffers, 0, 0, period, filename, expectedFileContent, csv);
+    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, 1u, numberOfBuffers, 0, 0, period, filename, expectedFileContent, csv);
+    if (!csv) {
+        if (expectedFileContent != NULL) {
+            char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
+            GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(mem));
+        }
+    }
+    return ok;
+}
+
+bool FileWriterTest::TestIntegratedInApplication_NoTrigger_Array(const MARTe::char8 *filename, bool csv) {
+    using namespace MARTe;
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5 };
+    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+    const uint32 N_OF_SIGNALS = 12;
+    const char8 *signalNames[N_OF_SIGNALS] = { "Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16",
+            "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64" };
+    const uint16 signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all,
+            UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,
+            Float32Bit.all, Float64Bit.all };
+    const uint32 signalElements[N_OF_SIGNALS] = { 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
+    const uint32 numberOfBuffers = 16;
+    const float32 period = 2;
+    const char8 * expectedFileContent = NULL;
+    const uint32 ARRAY_SIZE = 2u;
+
+    if (csv) {
+        expectedFileContent =
+                ""
+                        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[2];SignalUInt16 (uint16)[2];SignalUInt32 (uint32)[2];SignalUInt64 (uint64)[2];SignalInt8 (int8)[2];SignalInt16 (int16)[2];SignalInt32 (int32)[2];SignalInt64 (int64)[2];SignalFloat32 (float32)[2];SignalFloat64 (float64)[2]\n"
+                        "0;0;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1.000000 1.000000 } ;{ 1.000000 1.000000 } \n"
+                        "0;4000000;{ 2 2 } ;{ 2 2 } ;{ 2 2 } ;{ 2 2 } ;{ -2 -2 } ;{ -2 -2 } ;{ -2 -2 } ;{ -2 -2 } ;{ -2.000000 -2.000000 } ;{ -2.000000 -2.000000 } \n"
+                        "0;8000000;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3.000000 3.000000 } ;{ 3.000000 3.000000 } \n"
+                        "0;12000000;{ 4 4 } ;{ 4 4 } ;{ 4 4 } ;{ 4 4 } ;{ -4 -4 } ;{ -4 -4 } ;{ -4 -4 } ;{ -4 -4 } ;{ -4.000000 -4.000000 } ;{ -4.000000 -4.000000 } \n"
+                        "0;16000000;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5.000000 5.000000 } ;{ 5.000000 5.000000 } \n";
+    }
+    else {
+        uint32 cycleWriteSize = sizeof(uint8); //trigger
+        cycleWriteSize += sizeof(uint32); //time
+        cycleWriteSize += sizeof(uint8) * ARRAY_SIZE; //signalUInt8
+        cycleWriteSize += sizeof(uint16) * ARRAY_SIZE; //signalUInt16
+        cycleWriteSize += sizeof(uint32) * ARRAY_SIZE; //signalUInt32
+        cycleWriteSize += sizeof(uint64) * ARRAY_SIZE; //signalUInt64
+        cycleWriteSize += sizeof(int8) * ARRAY_SIZE; //signalInt8
+        cycleWriteSize += sizeof(int16) * ARRAY_SIZE; //signalInt16
+        cycleWriteSize += sizeof(int32) * ARRAY_SIZE; //signalInt32
+        cycleWriteSize += sizeof(int64) * ARRAY_SIZE; //signalInt64
+        cycleWriteSize += sizeof(float32) * ARRAY_SIZE; //signalFloat32
+        cycleWriteSize += sizeof(float64) * ARRAY_SIZE; //signalFloat64
+
+        const uint32 SIGNAL_NAME_SIZE = 32;
+        uint32 headerSize = sizeof(uint32) + N_OF_SIGNALS * (sizeof(uint16) + SIGNAL_NAME_SIZE + sizeof(uint32));
+        uint32 memorySize = headerSize + (numberOfElements * cycleWriteSize); //5 writes
+        expectedFileContent = static_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
+
+        uint32 n;
+        //Header
+        char8 *header = const_cast<char8 *>(&expectedFileContent[0]);
+        MemoryOperationsHelper::Copy(header, reinterpret_cast<const char8 *>(&N_OF_SIGNALS), sizeof(uint32));
+        header += sizeof(uint32);
+        for (n = 0u; n < N_OF_SIGNALS; n++) {
+            MemoryOperationsHelper::Copy(header, &signalTypes[n], sizeof(uint16));
+            header += sizeof(uint16);
+            MemoryOperationsHelper::Set(header, '\0', SIGNAL_NAME_SIZE);
+            MemoryOperationsHelper::Copy(header, signalNames[n], StringHelper::Length(signalNames[n]));
+            header += SIGNAL_NAME_SIZE;
+            MemoryOperationsHelper::Copy(header, &signalElements[n], sizeof(uint32));
+            header += sizeof(uint32);
+        }
+
+        for (n = 0u; n < numberOfElements; n++) {
+            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (n * cycleWriteSize)]));
+            uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
+            uint8  *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
+            uint16 *signalUInt16Pointer = reinterpret_cast<uint16 *>(signalUInt8Pointer + ARRAY_SIZE);
+            uint32 *signalUInt32Pointer = reinterpret_cast<uint32 *>(signalUInt16Pointer + ARRAY_SIZE);
+            uint64 *signalUInt64Pointer = reinterpret_cast<uint64 *>(signalUInt32Pointer + ARRAY_SIZE);
+            int8 *signalInt8Pointer = reinterpret_cast<int8 *>(signalUInt64Pointer + ARRAY_SIZE);
+            int16 *signalInt16Pointer = reinterpret_cast<int16 *>(signalInt8Pointer + ARRAY_SIZE);
+            int32 *signalInt32Pointer = reinterpret_cast<int32 *>(signalInt16Pointer + ARRAY_SIZE);
+            int64 *signalInt64Pointer = reinterpret_cast<int64 *>(signalInt32Pointer + ARRAY_SIZE);
+            float32 *signalFloat32Pointer = reinterpret_cast<float32 *>(signalInt64Pointer + ARRAY_SIZE);
+            float64 *signalFloat64Pointer = reinterpret_cast<float64 *>(signalFloat32Pointer + ARRAY_SIZE);
+
+            *triggerPointer = 0u;
+            *timerPointer = static_cast<uint32>(period * 1e6) * n * ARRAY_SIZE;
+
+            int32 multiplier = -1;
+            if ((n % 2) == 0) {
+                multiplier = 1;
+            }
+
+            uint32 i;
+            for (i = 0; i < ARRAY_SIZE; i++) {
+                *(signalUInt8Pointer + i) = signalToGenerate[n];
+                *(signalUInt16Pointer + i) = signalToGenerate[n];
+                *(signalUInt32Pointer + i) = signalToGenerate[n];
+                *(signalUInt64Pointer + i) = signalToGenerate[n];
+                *(signalInt8Pointer + i) = static_cast<int8>(multiplier) * signalToGenerate[n];
+                *(signalInt16Pointer + i) = static_cast<int16>(multiplier) * signalToGenerate[n];
+                *(signalInt32Pointer + i) = static_cast<int32>(multiplier) * signalToGenerate[n];
+                *(signalInt64Pointer + i) = static_cast<int64>(multiplier) * signalToGenerate[n];
+                *(signalFloat32Pointer + i) = static_cast<float32>(multiplier) * signalToGenerate[n];
+                *(signalFloat64Pointer + i) = static_cast<float64>(multiplier) * signalToGenerate[n];
+            }
+        }
+    }
+
+    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, ARRAY_SIZE, numberOfBuffers, 0, 0, period, filename, expectedFileContent, csv);
+    if (!csv) {
+        if (expectedFileContent != NULL) {
+            char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
+            GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(mem));
+        }
+    }
+    return ok;
+}
+
+bool FileWriterTest::TestIntegratedInApplication_Trigger(const MARTe::char8 *filename, bool csv) {
+    using namespace MARTe;
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5 };
+    uint8 triggerToGenerate[] = { 0, 1, 0, 1, 1 };
+    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+    const uint32 N_OF_SIGNALS = 12;
+    const char8 *signalNames[N_OF_SIGNALS] = { "Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16",
+            "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64" };
+    const uint16 signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all,
+            UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,
+            Float32Bit.all, Float64Bit.all };
+    const uint32 signalElements[N_OF_SIGNALS] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    const uint32 numberOfBuffers = 16;
+    const float32 period = 2;
+    const char8 * expectedFileContent = NULL;
+    if (csv) {
+        expectedFileContent =
+                ""
+                        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64 (float64)[1]\n"
+                        "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
+                        "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
+                        "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
+    }
+    else {
+        uint32 cycleWriteSize = sizeof(uint8); //trigger
+        cycleWriteSize += sizeof(uint32); //time
+        cycleWriteSize += sizeof(uint8); //signalUInt8
+        cycleWriteSize += sizeof(uint16); //signalUInt16
+        cycleWriteSize += sizeof(uint32); //signalUInt32
+        cycleWriteSize += sizeof(uint64); //signalUInt64
+        cycleWriteSize += sizeof(int8); //signalInt8
+        cycleWriteSize += sizeof(int16); //signalInt16
+        cycleWriteSize += sizeof(int32); //signalInt32
+        cycleWriteSize += sizeof(int64); //signalInt64
+        cycleWriteSize += sizeof(float32); //signalFloat32
+        cycleWriteSize += sizeof(float64); //signalFloat64
+
+        const uint32 SIGNAL_NAME_SIZE = 32;
+        uint32 headerSize = sizeof(uint32) + N_OF_SIGNALS * (sizeof(uint16) + SIGNAL_NAME_SIZE + sizeof(uint32));
+        uint32 memorySize = headerSize + (numberOfElements * cycleWriteSize); //3 writes (as per trigger)
+        expectedFileContent = static_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
+
+        uint32 n;
+        //Header
+        char8 *header = const_cast<char8 *>(&expectedFileContent[0]);
+        MemoryOperationsHelper::Copy(header, reinterpret_cast<const char8 *>(&N_OF_SIGNALS), sizeof(uint32));
+        header += sizeof(uint32);
+        for (n = 0u; n < N_OF_SIGNALS; n++) {
+            MemoryOperationsHelper::Copy(header, &signalTypes[n], sizeof(uint16));
+            header += sizeof(uint16);
+            MemoryOperationsHelper::Set(header, '\0', SIGNAL_NAME_SIZE);
+            MemoryOperationsHelper::Copy(header, signalNames[n], StringHelper::Length(signalNames[n]));
+            header += SIGNAL_NAME_SIZE;
+            MemoryOperationsHelper::Copy(header, &signalElements[n], sizeof(uint32));
+            header += sizeof(uint32);
+        }
+
+        uint32 z = 0u;
+        for (n = 0u; n < numberOfElements; n++) {
+            if (triggerToGenerate[n] != 1) {
+                continue;
+            }
+            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (z * cycleWriteSize)]));
+            z++;
+
+            uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
+            uint8 *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
+            uint16 *signalUInt16Pointer = reinterpret_cast<uint16 *>(signalUInt8Pointer + 1);
+            uint32 *signalUInt32Pointer = reinterpret_cast<uint32 *>(signalUInt16Pointer + 1);
+            uint64 *signalUInt64Pointer = reinterpret_cast<uint64 *>(signalUInt32Pointer + 1);
+            int8 *signalInt8Pointer = reinterpret_cast<int8 *>(signalUInt64Pointer + 1);
+            int16 *signalInt16Pointer = reinterpret_cast<int16 *>(signalInt8Pointer + 1);
+            int32 *signalInt32Pointer = reinterpret_cast<int32 *>(signalInt16Pointer + 1);
+            int64 *signalInt64Pointer = reinterpret_cast<int64 *>(signalInt32Pointer + 1);
+            float32 *signalFloat32Pointer = reinterpret_cast<float32 *>(signalInt64Pointer + 1);
+            float64 *signalFloat64Pointer = reinterpret_cast<float64 *>(signalFloat32Pointer + 1);
+
+            *triggerPointer = 1u;
+            *timerPointer = static_cast<uint32>(period * 1e6) * n;
+            *signalUInt8Pointer = signalToGenerate[n];
+            *signalUInt16Pointer = signalToGenerate[n];
+            *signalUInt32Pointer = signalToGenerate[n];
+            *signalUInt64Pointer = signalToGenerate[n];
+            int32 multiplier = -1;
+            if ((n % 2) == 0) {
+                multiplier = 1;
+            }
+            *signalInt8Pointer = multiplier * signalToGenerate[n];
+            *signalInt16Pointer = multiplier * signalToGenerate[n];
+            *signalInt32Pointer = multiplier * signalToGenerate[n];
+            *signalInt64Pointer = static_cast<int64>(multiplier) * signalToGenerate[n];
+            *signalFloat32Pointer = static_cast<float32>(multiplier) * signalToGenerate[n];
+            *signalFloat64Pointer = static_cast<float64>(multiplier) * signalToGenerate[n];
+        }
+    }
+
+    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, triggerToGenerate, 1u, numberOfBuffers, 0, 0, period, filename,
+                                      expectedFileContent, csv);
     if (!csv) {
         if (expectedFileContent != NULL) {
             char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
@@ -3350,20 +3556,6 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger(bool csv) {
 }
 
 #if 0
-bool FileWriterTest::TestIntegratedInApplication_NoTrigger_Flush() {
-    using namespace MARTe;
-    uint32 signalToGenerate[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-    uint32 timeToVerify[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24};
-    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
-    const char8 * const treeName = "mds_m2test";
-    const uint32 numberOfBuffers = 16;
-    const uint32 pulseNumber = 2;
-    const uint32 writeAfterNSegments = 4;
-    const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
-    const float32 period = 2;
-    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
-            numberOfSegments, true);
-}
 
 bool FileWriterTest::TestIntegratedInApplication_Trigger() {
     using namespace MARTe;

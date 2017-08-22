@@ -259,6 +259,18 @@ public:
     const StreamString& GetFilename() const;
 
     /**
+     * @brief Gets the configured FileFormat.
+     * @return the configured FileFormat.
+     */
+    const StreamString& GetFileFormat() const;
+
+    /**
+     * @brief Gets the configured CSVSeparator.
+     * @return the configured CSVSeparator.
+     */
+    const StreamString& GetCSVSeparator() const;
+
+    /**
      * @brief Gets the stack size of the thread which is going to be used to asynchronously store the data in the output file.
      * @return the stack size of the thread which is going to be used to asynchronously store the data in the output file.
      */
@@ -269,6 +281,12 @@ public:
      * @return true if the data is going to be stored in the output file based on a trigger event.
      */
     bool IsStoreOnTrigger() const;
+
+    /**
+     * @brief Returns true if the file is to be overwritten.
+     * @return true if the file is to be overwritten.
+     */
+    bool IsOverwrite() const;
 
 private:
 
@@ -321,6 +339,11 @@ private:
      * True if the file is to be overwritten.
      */
     bool overwrite;
+
+    /**
+     * The file format as text.
+     */
+    StreamString fileFormatStr;
 
     /**
      * The file format.

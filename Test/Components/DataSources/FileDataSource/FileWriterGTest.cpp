@@ -60,7 +60,6 @@ TEST(FileWriterGTest,TestGetSignalMemoryBuffer) {
     ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
 }
 
-#if 0
 TEST(FileWriterGTest,TestInitialise) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestInitialise());
@@ -81,10 +80,12 @@ TEST(FileWriterGTest,TestInitialise_False_StackSize) {
     ASSERT_TRUE(test.TestInitialise_False_StackSize());
 }
 
-TEST(FileWriterGTest,TestInitialise_False_TreeName) {
+TEST(FileWriterGTest,TestInitialise_Warning_Filename) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestInitialise_False_TreeName());
+    ASSERT_TRUE(test.TestInitialise_Warning_Filename());
 }
+
+#if 0
 
 TEST(FileWriterGTest,TestInitialise_False_EventName) {
     FileWriterTest test;
@@ -184,7 +185,7 @@ TEST(FileWriterGTest,TestOpenTree) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestOpenTree());
 }
-
+#endif
 
 TEST(FileWriterGTest,TestGetBrokerName_InputSignals) {
     FileWriterTest test;
@@ -221,6 +222,7 @@ TEST(FileWriterGTest,TestPrepareNextState) {
     ASSERT_TRUE(test.TestPrepareNextState());
 }
 
+#if 0
 TEST(FileWriterGTest,TestGetCPUMask) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestGetCPUMask());

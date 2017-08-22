@@ -31,6 +31,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "CompilerTypes.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -59,7 +60,6 @@ public:
      * @brief Tests the GetSignalMemoryBuffer method.
      */
     bool TestGetSignalMemoryBuffer();
-#if 0
 
     /**
      * @brief Tests that the GetBrokerName method correctly returns an empty string for InputSignals.
@@ -117,10 +117,11 @@ public:
     bool TestInitialise_False_StackSize();
 
     /**
-     * @brief Tests the Initialise method without specifying the tree name.
+     * @brief Tests the Initialise method without specifying the file name.
      */
-    bool TestInitialise_False_TreeName();
+    bool TestInitialise_Warning_Filename();
 
+#if 0
     /**
      * @brief Tests the Initialise method without specifying the event name.
      */
@@ -195,19 +196,19 @@ public:
     /**
      * @brief Tests the FileWriter integrated in an application which continuously stores data.
      */
-    bool TestIntegratedInApplication_NoTrigger(bool csv = true);
+    bool TestIntegratedInApplication_NoTrigger(const MARTe::char8 *filename, bool csv = true);
 
-#if 0
     /**
-     * @brief Tests the FileWriter integrated in an application which continuously stores data
-     * and that requires a flush at the end in order to demonstrate that all the data is stored in the Fileplus database.
+     * @brief Tests the FileWriter integrated in an application which continuously stores data.
      */
-    bool TestIntegratedInApplication_NoTrigger_Flush();
+    bool TestIntegratedInApplication_NoTrigger_Array(const MARTe::char8 *filename, bool csv = true);
 
     /**
      * @brief Tests the FileWriter integrated in an application which asynchronously stores data based on a trigger event.
      */
-    bool TestIntegratedInApplication_Trigger();
+    bool TestIntegratedInApplication_Trigger(const MARTe::char8 *filename, bool csv = true);
+
+#if 0
 
     /**
      * @brief Tests the FileWriter integrated in an application which asynchronously stores data based on a trigger event forcing discontinuities.

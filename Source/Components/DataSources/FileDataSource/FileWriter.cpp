@@ -208,7 +208,6 @@ bool FileWriter::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
         }
     }
-    StreamString fileFormatStr;
     if (ok) {
         ok = data.Read("FileFormat", fileFormatStr);
         if (!ok) {
@@ -610,12 +609,24 @@ const StreamString& FileWriter::GetFilename() const {
     return filename;
 }
 
+const StreamString& FileWriter::GetFileFormat() const {
+    return fileFormatStr;
+}
+
+const StreamString& FileWriter::GetCSVSeparator() const {
+    return csvSeparator;
+}
+
 uint32 FileWriter::GetStackSize() const {
     return stackSize;
 }
 
 bool FileWriter::IsStoreOnTrigger() const {
     return storeOnTrigger;
+}
+
+bool FileWriter::IsOverwrite() const {
+    return overwrite;
 }
 
 CLASS_REGISTER(FileWriter, "1.0")
