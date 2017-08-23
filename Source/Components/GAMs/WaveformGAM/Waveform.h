@@ -75,7 +75,6 @@ public:
      * indexStartTriggersArray = 0u;
      * indexStopTriggersArray = 0u;
      * signalOn = false;
-     * utimeIncrement = 0u;
      * ucurrentTime = 0u;
      * time0 = 0u;
      * time1 = 0u;
