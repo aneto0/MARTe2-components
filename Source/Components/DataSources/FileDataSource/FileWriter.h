@@ -56,10 +56,8 @@ namespace MARTe {
  * contain the number of signals. Then, for each signal, the signal type will be encoded in two bytes, followed
  *  by 32 bytes to encode the signal name, followed by 4 bytes which store the number of elements of a given signal.
  *  Following the header the signal samples are consecutively stored in binary format.
- *
- * For both formats, arrays can be stored but all the signals shall have the same number of elements.
- *
- * This DataSourceI has the functions FlushFile and OpenFile registered as an RPC.
+ * *
+ * This DataSourceI has the functions FlushFile, OpenFilea and CloseFile registered as RPCs.
  *
  * The configuration syntax is (names are only given as an example):
  * +FileWriter_0 = {
