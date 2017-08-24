@@ -49,10 +49,8 @@ class FileWriterTestHelper: public MARTe::Object, public MARTe::MessageI {
 public:
     CLASS_REGISTER_DECLARATION()FileWriterTestHelper() : Object(), MessageI() {
         using namespace MARTe;
-        pulseNumber = 0u;
         openFailFunctionCalled = false;
         openOKFunctionCalled = false;
-        flushSegmentsFunctionCalled = false;
         closeFunctionCalled = false;
         ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
         filter->SetDestination(this);
@@ -67,14 +65,8 @@ public:
         return MARTe::ErrorManagement::NoError;
     }
 
-    MARTe::ErrorManagement::ErrorType HandleOpenOK(const MARTe::int32 newValue) {
-        pulseNumber = newValue;
+    MARTe::ErrorManagement::ErrorType HandleOpenOK() {
         openOKFunctionCalled = true;
-        return MARTe::ErrorManagement::NoError;
-    }
-
-    MARTe::ErrorManagement::ErrorType HandleFlushSegments() {
-        flushSegmentsFunctionCalled = true;
         return MARTe::ErrorManagement::NoError;
     }
 
@@ -83,17 +75,21 @@ public:
         return MARTe::ErrorManagement::NoError;
     }
 
-    MARTe::int32 pulseNumber;
+    MARTe::ErrorManagement::ErrorType HandleRuntimeError() {
+        runtimeErrorFunctionCalled = true;
+        return MARTe::ErrorManagement::NoError;
+    }
+
     bool openOKFunctionCalled;
     bool openFailFunctionCalled;
     bool closeFunctionCalled;
-    bool flushSegmentsFunctionCalled;
+    bool runtimeErrorFunctionCalled;
 };
 CLASS_REGISTER(FileWriterTestHelper, "1.0")
 CLASS_METHOD_REGISTER(FileWriterTestHelper, HandleOpenOK)
 CLASS_METHOD_REGISTER(FileWriterTestHelper, HandleOpenFail)
-CLASS_METHOD_REGISTER(FileWriterTestHelper, HandleFlushSegments)
 CLASS_METHOD_REGISTER(FileWriterTestHelper, HandleClose)
+CLASS_METHOD_REGISTER(FileWriterTestHelper, HandleRuntimeError)
 
 /**
  * @brief GAM which generates a given signal trigger, time and signal pattern which is then sinked to the FileWriter
@@ -303,7 +299,6 @@ private:
 
 CLASS_REGISTER(FileWriterSchedulerTestHelper, "1.0")
 
-#if 0
 static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool destroy) {
     using namespace MARTe;
 
@@ -338,7 +333,6 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     }
     return ok;
 }
-#endif
 
 static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements,
                                     MARTe::uint8 *triggerToGenerate, MARTe::uint32 numberOfElements, MARTe::uint32 numberOfBuffers,
@@ -490,7 +484,6 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
             uint32 r;
             for (r = 0u; (r < readSize) && (ok); r++) {
                 ok = (buffer[r] == expectedFileContent[z]);
-                printf("[%x] vs [%x]\n", (uint8) buffer[r], (uint8) expectedFileContent[z]);
                 z++;
             }
             readSize = BUFFER_SIZE;
@@ -501,7 +494,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     }
     generatedFile.Close();
     Directory toDelete(filename);
-    //toDelete.Delete();
+    toDelete.Delete();
 
     if (triggerToGenerateWasNULL) {
         delete[] triggerToGenerate;
@@ -510,7 +503,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     return ok;
 }
 
-//Standard configuration with no trigger source
+//Standard configuration to be patched
 static const MARTe::char8 * const config1 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
@@ -532,6 +525,152 @@ static const MARTe::char8 * const config1 = ""
         "                SignalUInt8 = {"
         "                    Type = uint8"
         "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = \"filewriter_test.bin\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "}";
+
+//Wrong configuration with samples
+static const MARTe::char8 * const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                    Samples = 2"
         "                }"
         "                SignalUInt16 = {"
         "                    Type = uint16"
@@ -655,2220 +794,1835 @@ static const MARTe::char8 * const config1 = ""
         "    }"
         "}";
 
-#if 0
-//Standard configuration with trigger source
-static const MARTe::char8 * const config2 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            Trigger =  {0 1 0 1 0 1 0 1 1 1 1 1 1 1}"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt32F = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt64F = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt16F = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt32F = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt64F = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat32F = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat64F = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16 = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt32 = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt64 = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt16 = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt32 = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt64 = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat32 = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat64 = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            PulseNumber = 1"
-"            StoreOnTrigger = 1"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            NumberOfPreTriggers = 2"
-"            NumberOfPostTriggers = 1"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = int32"
-"                    TimeSignal = 1"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt32F = {"
-"                    NodeName = \"SIGUINT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt64F = {"
-"                    NodeName = \"SIGUINT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt16F = {"
-"                    NodeName = \"SIGINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt32F = {"
-"                    NodeName = \"SIGINT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt64F = {"
-"                    NodeName = \"SIGINT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalFloat32F = {"
-"                    NodeName = \"SIGFLT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGFLT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalFloat64F = {"
-"                    NodeName = \"SIGFLT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGFLT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt16 = {"
-"                    NodeName = \"SIGUINT16\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalUInt32 = {"
-"                    NodeName = \"SIGUINT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalUInt64 = {"
-"                    NodeName = \"SIGUINT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalInt16 = {"
-"                    NodeName = \"SIGINT16\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalInt32 = {"
-"                    NodeName = \"SIGINT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalInt64 = {"
-"                    NodeName = \"SIGINT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalFloat32 = {"
-"                    NodeName = \"SIGFLT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalFloat64 = {"
-"                    NodeName = \"SIGFLT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+TestMessages = {"
-"    Class = ReferenceContainer"
-"    +MessageFlush = {"
-"        Class = Message"
-"        Destination = \"Test.Data.Drv1\""
-"        Function = FlushSegments"
-"    }"
-"}";
-
-//Standard configuration with number of elements > 0
+//Wrong configuration with no signals
 static const MARTe::char8 * const config3 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalUInt32F = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalUInt64F = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt16F = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt32F = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt64F = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalFloat32F = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalFloat64F = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalUInt16 = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalUInt32 = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalUInt64 = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt16 = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt32 = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt64 = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalFloat32 = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalFloat64 = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            PulseNumber = 1"
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt32F = {"
-"                    NodeName = \"SIGUINT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt64F = {"
-"                    NodeName = \"SIGUINT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt16F = {"
-"                    NodeName = \"SIGINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt32F = {"
-"                    NodeName = \"SIGINT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt64F = {"
-"                    NodeName = \"SIGINT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalFloat32F = {"
-"                    NodeName = \"SIGFLT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGFLT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalFloat64F = {"
-"                    NodeName = \"SIGFLT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGFLT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt16 = {"
-"                    NodeName = \"SIGUINT16\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalUInt32 = {"
-"                    NodeName = \"SIGUINT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalUInt64 = {"
-"                    NodeName = \"SIGUINT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalInt16 = {"
-"                    NodeName = \"SIGINT16\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalInt32 = {"
-"                    NodeName = \"SIGINT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalInt64 = {"
-"                    NodeName = \"SIGINT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalFloat32 = {"
-"                    NodeName = \"SIGFLT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalFloat64 = {"
-"                    NodeName = \"SIGFLT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+TestMessages = {"
-"    Class = ReferenceContainer"
-"    +MessageFlush = {"
-"        Class = Message"
-"        Destination = \"Test.Data.Drv1\""
-"        Function = FlushSegments"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DrvE = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = \"filewriter_test_empty.bin\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = \"filewriter_test.bin\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "}";
 
-//Standard configuration with trigger source and elements > 0
+//Wrong configuration with more than one signal interacting with the DataSource
+static const MARTe::char8 * const config4 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM2 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = \"filewriter_test.bin\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1 GAM2}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "}";
+
+//Standard configuration without specifying the filename (to be set with a message)
 static const MARTe::char8 * const config5 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            Trigger =  {0 1 0 1 0 1 0 1 1 1 1 1 1 1}"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalUInt32F = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalUInt64F = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt16F = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt32F = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt64F = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalFloat32F = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalFloat64F = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalUInt16 = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalUInt32 = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalUInt64 = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt16 = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt32 = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalInt64 = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalFloat32 = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"                SignalFloat64 = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                    NumberOfElements = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            PulseNumber = 1"
-"            StoreOnTrigger = 1"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            NumberOfPreTriggers = 2"
-"            NumberOfPostTriggers = 1"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    TimeSignal = 1"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt32F = {"
-"                    NodeName = \"SIGUINT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt64F = {"
-"                    NodeName = \"SIGUINT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt16F = {"
-"                    NodeName = \"SIGINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt32F = {"
-"                    NodeName = \"SIGINT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt64F = {"
-"                    NodeName = \"SIGINT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalFloat32F = {"
-"                    NodeName = \"SIGFLT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGFLT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalFloat64F = {"
-"                    NodeName = \"SIGFLT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGFLT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt16 = {"
-"                    NodeName = \"SIGUINT16\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalUInt32 = {"
-"                    NodeName = \"SIGUINT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalUInt64 = {"
-"                    NodeName = \"SIGUINT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalInt16 = {"
-"                    NodeName = \"SIGINT16\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalInt32 = {"
-"                    NodeName = \"SIGINT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalInt64 = {"
-"                    NodeName = \"SIGINT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalFloat32 = {"
-"                    NodeName = \"SIGFLT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"                SignalFloat64 = {"
-"                    NodeName = \"SIGFLT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+TestMessages = {"
-"    Class = ReferenceContainer"
-"    +MessageFlush = {"
-"        Class = Message"
-"        Destination = \"Test.Data.Drv1\""
-"        Function = FlushSegments"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +FileOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileClosed = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleClose"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleRuntimeError"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "    +MessageOpenFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = OpenFile"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = Test_MessageOpenTree.bin"
+        "        }"
+        "    }"
+        "    +MessageCloseFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = CloseFile"
+        "    }"
+        "}"
+        "+FileWriterTestHelper = {"
+        "    Class = FileWriterTestHelper"
+        "}";
 
-//Configuration to test the OpenTree message interface
+//Standard configuration with filename to test sending of messages
 static const MARTe::char8 * const config6 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {8 1 2 3 4 5 6 7 }"
-"            Trigger =  {0 1 0 1 0 1 0 1 }"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+TestMessages = {"
-"    Class = ReferenceContainer"
-"    +MessageFlush = {"
-"        Class = Message"
-"        Destination = \"Test.Data.Drv1\""
-"        Function = FlushSegments"
-//"        Mode = ExpectsReply"
-"    }"
-"    +MessageOpenTree = {"
-"        Class = Message"
-"        Destination = \"Test.Data.Drv1\""
-//"        Mode = ExpectsReply"
-"        Function = OpenTree"
-"        +Parameters = {"
-"            Class = ConfigurationDatabase"
-"            param1 = -1"
-"        }"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = Test_MessageOpenTree_2.bin"
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +FileOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileClosed = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleClose"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleRuntimeError"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "    +MessageOpenFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = OpenFile"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = Test_MessageOpenTree.bin"
+        "        }"
+        "    }"
+        "}"
+        "+FileWriterTestHelper = {"
+        "    Class = FileWriterTestHelper"
+        "}";
 
-//Configuration with Samples > 1
+//Standard configuration with a wrong filename to test the sending of the invalid message
 static const MARTe::char8 * const config7 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {8 1 2 3 4 5 6 7 }"
-"            Trigger =  {0 1 0 1 0 1 0 1 }"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                    Samples = 10"
-"                }"
-"                SignalInt16F = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    TimeSignal = 1"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = /tmpzzadsads/asdas/adsa/ss"
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +FileOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileClosed = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleClose"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleRuntimeError"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "    +MessageOpenFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = OpenFile"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = Test_MessageOpenTree.bin"
+        "        }"
+        "    }"
+        "}"
+        "+FileWriterTestHelper = {"
+        "    Class = FileWriterTestHelper"
+        "}";
 
-//Configuration with more than one time signal
+//Standard configuration with filename to test sending of messages
 static const MARTe::char8 * const config8 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {8 1 2 3 4 5 6 7 }"
-"            Trigger =  {0 1 0 1 0 1 0 1 }"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                Time2 = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt16F = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            StoreOnTrigger = 1"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            NumberOfPreTriggers = 1"
-"            NumberOfPostTriggers = 1"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    TimeSignal = 1"
-"                }"
-"                Time2 = {"
-"                    Type = uint32"
-"                    TimeSignal = 1"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt16F = {"
-"                    NodeName = \"SIGINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = Test_MessageOpenTree_2.bin"
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +FileOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelperWrong"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileClosed = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleClose"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleRuntimeError"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "    +MessageOpenFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = OpenFile"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = Test_MessageOpenTree.bin"
+        "        }"
+        "    }"
+        "}"
+        "+FileWriterTestHelper = {"
+        "    Class = FileWriterTestHelper"
+        "}";
 
-//Configuration with no mds plus signals
+//Standard configuration with filename to test sending of messages with a wrong destination
 static const MARTe::char8 * const config9 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {8 1 2 3 4 5 6 7 }"
-"            Trigger =  {0 1 0 1 0 1 0 1 }"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    TimeSignal = 1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        //"            Filename = Test_MessageOpenTree_2.bin"
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +FileOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileClosed = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelperWrong"
+        "                    Function = HandleClose"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelperWrong"
+        "                    Function = HandleRuntimeError"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "    +MessageOpenFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = OpenFile"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = Test_MessageOpenTree.bin"
+        "        }"
+        "    }"
+        "}"
+        "+FileWriterTestHelper = {"
+        "    Class = FileWriterTestHelper"
+        "}";
 
-//Configuration with no time signal
+//Standard configuration with filename to test sending of messages with a wrong destination
 static const MARTe::char8 * const config10 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {8 1 2 3 4 5 6 7 }"
-"            Trigger =  {0 1 0 1 0 1 0 1 }"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt16F = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            StoreOnTrigger = 1"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            NumberOfPreTriggers = 1"
-"            NumberOfPostTriggers = 1"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt16F = {"
-"                    NodeName = \"SIGINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = /does/not/exist"
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +FileOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelperWrong"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileClosed = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleClose"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleRuntimeError"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "    +MessageOpenFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = OpenFile"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = Test_MessageOpenTree.bin"
+        "        }"
+        "    }"
+        "}"
+        "+FileWriterTestHelper = {"
+        "    Class = FileWriterTestHelper"
+        "}";
 
-//Configuration with time signal not uint32
+//Standard configuration with filename to test sending of messages with an invalid message name
 static const MARTe::char8 * const config11 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {8 1 2 3 4 5 6 7 }"
-"            Trigger =  {0 1 0 1 0 1 0 1 }"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt16F = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            StoreOnTrigger = 1"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            NumberOfPreTriggers = 1"
-"            NumberOfPostTriggers = 1"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint64"
-"                    TimeSignal = 1"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt16F = {"
-"                    NodeName = \"SIGINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = Test_MessageOpenTree_2.bin"
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +FileOpened = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileClosed = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleClose"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleRuntimeError"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "    +MessageOpenFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = OpenFile"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = Test_MessageOpenTree.bin"
+        "        }"
+        "    }"
+        "}"
+        "+FileWriterTestHelper = {"
+        "    Class = FileWriterTestHelper"
+        "}";
 
-//Configuration with more than one GAM writing data into the FileWriter
+//Standard configuration with filename to test sending of messages with an invalid message type
 static const MARTe::char8 * const config12 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {8 1 2 3 4 5 6 7 }"
-"            Trigger =  {0 1 0 1 0 1 0 1 }"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"        +GAM2 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {8 1 2 3 4 5 6 7 }"
-"            Trigger =  {0 1 0 1 0 1 0 1 }"
-"            OutputSignals = {"
-"                SignalInt16F = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    TimeSignal = 1"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt16F = {"
-"                    NodeName = \"SIGINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1 GAM2}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = Test_MessageOpenTree_2.bin"
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +FileOpenedOK = {"
+        "                    Class = ReferenceContainer"
+        "                }"
+        "                +FileOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileClosed = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleClose"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleRuntimeError"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "    +MessageOpenFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = OpenFile"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = Test_MessageOpenTree.bin"
+        "        }"
+        "    }"
+        "}"
+        "+FileWriterTestHelper = {"
+        "    Class = FileWriterTestHelper"
+        "}";
 
-//Standard configuration with trigger source but large MakeSegmentAfterNWrites in order to trigger discontinuities that
-//force the creation of a segment
+//Standard configuration without specifying the filename (to be set with a message)
 static const MARTe::char8 * const config13 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =   {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            Trigger =  {0 1 0 1 0 1 0 1 1 1 1 1 1 1}"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt32F = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt64F = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt16F = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt32F = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt64F = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat32F = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat64F = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16 = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt32 = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt64 = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt16 = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt32 = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt64 = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat32 = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat64 = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            PulseNumber = 1"
-"            StoreOnTrigger = 1"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            NumberOfPreTriggers = 2"
-"            NumberOfPostTriggers = 1"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = int32"
-"                    TimeSignal = 1"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt32F = {"
-"                    NodeName = \"SIGUINT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                    DecimatedNodeName = \"SIGUINT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt64F = {"
-"                    NodeName = \"SIGUINT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                    DecimatedNodeName = \"SIGUINT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt16F = {"
-"                    NodeName = \"SIGINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                    DecimatedNodeName = \"SIGINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt32F = {"
-"                    NodeName = \"SIGINT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                    DecimatedNodeName = \"SIGINT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalInt64F = {"
-"                    NodeName = \"SIGINT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                    DecimatedNodeName = \"SIGINT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalFloat32F = {"
-"                    NodeName = \"SIGFLT32F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                    DecimatedNodeName = \"SIGFLT32D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalFloat64F = {"
-"                    NodeName = \"SIGFLT64F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                    DecimatedNodeName = \"SIGFLT64D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"                SignalUInt16 = {"
-"                    NodeName = \"SIGUINT16\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                }"
-"                SignalUInt32 = {"
-"                    NodeName = \"SIGUINT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                }"
-"                SignalUInt64 = {"
-"                    NodeName = \"SIGUINT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                }"
-"                SignalInt16 = {"
-"                    NodeName = \"SIGINT16\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                }"
-"                SignalInt32 = {"
-"                    NodeName = \"SIGINT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                }"
-"                SignalInt64 = {"
-"                    NodeName = \"SIGINT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                }"
-"                SignalFloat32 = {"
-"                    NodeName = \"SIGFLT32\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                }"
-"                SignalFloat64 = {"
-"                    NodeName = \"SIGFLT64\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 8"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+TestMessages = {"
-"    Class = ReferenceContainer"
-"    +MessageFlush = {"
-"        Class = Message"
-"        Destination = \"Test.Data.Drv1\""
-"        Function = FlushSegments"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = no"
+        "            StoreOnTrigger = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +FileOpenedOK = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenOK"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileOpenedFail = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleOpenFail"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileClosed = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleClose"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "                +FileRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = FileWriterTestHelper"
+        "                    Function = HandleRuntimeError"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "    +MessageOpenFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = OpenFile"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = Test_MessageOpenTree.bin"
+        "        }"
+        "    }"
+        "    +MessageCloseFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = CloseFile"
+        "    }"
+        "}"
+        "+FileWriterTestHelper = {"
+        "    Class = FileWriterTestHelper"
+        "}";
 
-//Configuration with messages
-static const MARTe::char8 * const config14 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            PulseNumber = -1"
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"            +Messages = {"
-"                Class = ReferenceContainer"
-"                +TreeOpenedOK = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleOpenOK"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeOpenedFail = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleOpenFail"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeFlushed = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleFlushSegments"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeRuntimeError = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleFlushSegments"
-"                    Mode = ExpectsReply"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+FileWriterTestHelper = {"
-"    Class = FileWriterTestHelper"
-"}";
-
-//Configuration with messages that will fail to open the tree
-static const MARTe::char8 * const config15 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2testbad\""
-"            PulseNumber = -1"
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"            +Messages = {"
-"                Class = ReferenceContainer"
-"                +TreeOpenedOK = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleOpenOK"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeOpenedFail = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleOpenFail"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeFlushed = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleFlushSegments"
-"                    Mode = ExpectsReply"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+FileWriterTestHelper = {"
-"    Class = FileWriterTestHelper"
-"}";
-
-//Configuration with messages that cannot be sent
-static const MARTe::char8 * const config16 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            PulseNumber = -1"
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"            +Messages = {"
-"                Class = ReferenceContainer"
-"                +TreeOpenedOK = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelperDoesNotExist"
-"                    Function = HandleOpenOK"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeOpenedFail = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelperDoesNotExist"
-"                    Function = HandleOpenFail"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeFlushed = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelperDoesNotExist"
-"                    Function = HandleFlushSegments"
-"                    Mode = ExpectsReply"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+FileWriterTestHelper = {"
-"    Class = FileWriterTestHelper"
-"}";
-
-//Configuration with messages that will fail to open the tree and that is sent to an object that does not exists
-static const MARTe::char8 * const config17 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2testbad\""
-"            PulseNumber = -1"
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"            +Messages = {"
-"                Class = ReferenceContainer"
-"                +TreeOpenedOK = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelperDoesNotExist"
-"                    Function = HandleOpenOK"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeOpenedFail = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelperDoesNotExist"
-"                    Function = HandleOpenFail"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeFlushed = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelperDoesNotExist"
-"                    Function = HandleFlushSegments"
-"                    Mode = ExpectsReply"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+FileWriterTestHelper = {"
-"    Class = FileWriterTestHelper"
-"}";
-
-//Configuration with with an invalid message name
-static const MARTe::char8 * const config18 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            PulseNumber = -1"
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"            +Messages = {"
-"                Class = ReferenceContainer"
-"                +TreeOpened = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleOpenOK"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeOpenedFail = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleOpenFail"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeFlushed = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleFlushSegments"
-"                    Mode = ExpectsReply"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+FileWriterTestHelper = {"
-"    Class = FileWriterTestHelper"
-"}";
-
-//Configuration with with an invalid message type
-static const MARTe::char8 * const config19 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileWriterGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16F = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileWriter"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            TreeName = \"mds_m2test\""
-"            PulseNumber = -1"
-"            StoreOnTrigger = 0"
-"            EventName = \"updatejScope\""
-"            TimeRefresh = 5"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt16F = {"
-"                    NodeName = \"SIGUINT16F\""
-"                    Period = 2"
-"                    MakeSegmentAfterNWrites = 4"
-"                    DecimatedNodeName = \"SIGUINT16D\""
-"                    MinMaxResampleFactor = 4"
-"                }"
-"            }"
-"            +Messages = {"
-"                Class = ReferenceContainer"
-"                +TreeOpenedOK = {"
-"                    Class = ReferenceContainer"
-"                }"
-"                +TreeOpenedFail = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleOpenFail"
-"                    Mode = ExpectsReply"
-"                }"
-"                +TreeFlushed = {"
-"                    Class = Message"
-"                    Destination = FileWriterTestHelper"
-"                    Function = HandleFlushSegments"
-"                    Mode = ExpectsReply"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileWriterSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+FileWriterTestHelper = {"
-"    Class = FileWriterTestHelper"
-"}";
-
-#endif
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -3028,6 +2782,71 @@ bool FileWriterTest::TestInitialise() {
     return ok;
 }
 
+bool FileWriterTest::TestInitialise_False_Overwrite() {
+    using namespace MARTe;
+    FileWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("CSVSeparator", ",");
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 3);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool FileWriterTest::TestInitialise_False_Overwrite_Invalid() {
+    using namespace MARTe;
+    FileWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("CSVSeparator", ",");
+    cdb.Write("Overwrite", "true");
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 3);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool FileWriterTest::TestInitialise_Binary() {
+    using namespace MARTe;
+    FileWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise_Binary");
+    cdb.Write("FileFormat", "binary");
+    cdb.Write("Overwrite", "yes");
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 3);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    ok &= (test.GetNumberOfBuffers() == 10);
+    ok &= (test.GetCPUMask() == 15);
+    ok &= (test.GetStackSize() == 10000000);
+    ok &= (test.GetFilename() == "FileWriterTest_TestInitialise_Binary");
+    ok &= (test.GetFileFormat() == "binary");
+    ok &= (test.IsOverwrite());
+    ok &= (test.IsStoreOnTrigger());
+    ok &= (test.GetNumberOfPreTriggers() == 2);
+    ok &= (test.GetNumberOfPostTriggers() == 3);
+    return ok;
+}
+
 bool FileWriterTest::TestInitialise_False_NumberOfBuffers() {
     using namespace MARTe;
     FileWriter test;
@@ -3043,7 +2862,27 @@ bool FileWriterTest::TestInitialise_False_NumberOfBuffers() {
     cdb.Write("NumberOfPostTriggers", 3);
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
+
     return !test.Initialise(cdb);
+}
+
+bool FileWriterTest::TestInitialise_False_NumberOfBuffers_GT_0() {
+    using namespace MARTe;
+    FileWriter test2;
+    ConfigurationDatabase cdb2;
+    cdb2.Write("NumberOfBuffers", 0);
+    cdb2.Write("CPUMask", 15);
+    cdb2.Write("StackSize", 10000000);
+    cdb2.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb2.Write("FileFormat", "csv");
+    cdb2.Write("CSVSeparator", ",");
+    cdb2.Write("Overwrite", "yes");
+    cdb2.Write("StoreOnTrigger", 1);
+    cdb2.Write("NumberOfPreTriggers", 2);
+    cdb2.Write("NumberOfPostTriggers", 3);
+    cdb2.CreateRelative("Signals");
+    cdb2.MoveToRoot();
+    return !test2.Initialise(cdb2);
 }
 
 bool FileWriterTest::TestInitialise_False_CPUMask() {
@@ -3082,6 +2921,25 @@ bool FileWriterTest::TestInitialise_False_StackSize() {
     return !test.Initialise(cdb);
 }
 
+bool FileWriterTest::TestInitialise_False_StackSize_GT_0() {
+    using namespace MARTe;
+    FileWriter test2;
+    ConfigurationDatabase cdb2;
+    cdb2.Write("NumberOfBuffers", 10);
+    cdb2.Write("CPUMask", 15);
+    cdb2.Write("StackSize", 0);
+    cdb2.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb2.Write("FileFormat", "csv");
+    cdb2.Write("CSVSeparator", ",");
+    cdb2.Write("Overwrite", "yes");
+    cdb2.Write("StoreOnTrigger", 1);
+    cdb2.Write("NumberOfPreTriggers", 2);
+    cdb2.Write("NumberOfPostTriggers", 3);
+    cdb2.CreateRelative("Signals");
+    cdb2.MoveToRoot();
+    return !test2.Initialise(cdb2);
+}
+
 bool FileWriterTest::TestInitialise_Warning_Filename() {
     using namespace MARTe;
     FileWriter test;
@@ -3100,38 +2958,56 @@ bool FileWriterTest::TestInitialise_Warning_Filename() {
     return test.Initialise(cdb);
 }
 
-#if 0
-bool FileWriterTest::TestInitialise_False_EventName() {
+bool FileWriterTest::TestInitialise_False_FileFormat() {
     using namespace MARTe;
     FileWriter test;
     ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
     cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("CSVSeparator", ",");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.Write("NumberOfPostTriggers", 3);
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     return !test.Initialise(cdb);
 }
 
-bool FileWriterTest::TestInitialise_False_TimeRefresh() {
+bool FileWriterTest::TestInitialise_False_FileFormat_Invalid() {
     using namespace MARTe;
     FileWriter test;
     ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
     cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "xls");
+    cdb.Write("CSVSeparator", ",");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.Write("NumberOfPostTriggers", 3);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool FileWriterTest::TestInitialise_False_CSVSeparator() {
+    using namespace MARTe;
+    FileWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("Overwrite", "yes");
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 3);
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     return !test.Initialise(cdb);
@@ -3141,15 +3017,14 @@ bool FileWriterTest::TestInitialise_False_StoreOnTrigger() {
     using namespace MARTe;
     FileWriter test;
     ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
     cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "binary");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.Write("NumberOfPostTriggers", 3);
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     return !test.Initialise(cdb);
@@ -3159,15 +3034,14 @@ bool FileWriterTest::TestInitialise_False_NumberOfPreTriggers() {
     using namespace MARTe;
     FileWriter test;
     ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
     cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "binary");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.Write("NumberOfPostTriggers", 3);
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     return !test.Initialise(cdb);
@@ -3177,13 +3051,12 @@ bool FileWriterTest::TestInitialise_False_NumberOfPostTriggers() {
     using namespace MARTe;
     FileWriter test;
     ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
     cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "binary");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
     cdb.CreateRelative("Signals");
@@ -3195,49 +3068,34 @@ bool FileWriterTest::TestInitialise_False_Signals() {
     using namespace MARTe;
     FileWriter test;
     ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
     cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
     cdb.Write("StackSize", 10000000);
-    cdb.Write("TreeName", "mds_m2test");
-    cdb.Write("PulseNumber", 1);
-    cdb.Write("EventName", "updatejScope");
-    cdb.Write("TimeRefresh", 5);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "binary");
+    cdb.Write("Overwrite", "yes");
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 1);
+    cdb.Write("NumberOfPostTriggers", 3);
     cdb.MoveToRoot();
     return !test.Initialise(cdb);
 }
 
 bool FileWriterTest::TestSetConfiguredDatabase() {
-    bool ok = TestIntegratedInApplication_NoTrigger();
-    return ok;
+    return TestIntegratedInApplication_NoTrigger("FileWriterTest_TestSetConfiguredDatabase", true);
 }
 
 bool FileWriterTest::TestSetConfiguredDatabase_False_NumberOfSamples() {
-    return !TestIntegratedInApplication(config7, true);
-}
-
-bool FileWriterTest::TestSetConfiguredDatabase_False_MoreThanOneTimeSignal() {
-    return !TestIntegratedInApplication(config8, true);
+    return !TestIntegratedInApplication(config2, true);
 }
 
 bool FileWriterTest::TestSetConfiguredDatabase_False_NoFileSignals() {
-    return !TestIntegratedInApplication(config9, true);
-}
-
-bool FileWriterTest::TestSetConfiguredDatabase_False_NoTimeSignal() {
-    return !TestIntegratedInApplication(config10, true);
-}
-
-bool FileWriterTest::TestSetConfiguredDatabase_False_TimeSignal_NotUInt32() {
-    return !TestIntegratedInApplication(config11, true);
+    return !TestIntegratedInApplication(config3, true);
 }
 
 bool FileWriterTest::TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction() {
-    return !TestIntegratedInApplication(config12, true);
+    return !TestIntegratedInApplication(config4, true);
 }
-#endif
 
 bool FileWriterTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *filename, bool csv) {
     using namespace MARTe;
@@ -3245,7 +3103,7 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *f
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     const uint32 N_OF_SIGNALS = 12;
     const char8 *signalNames[N_OF_SIGNALS] = { "Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16",
-            "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64" };
+            "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64WhichIsAlsoAVeryLon" };
     const uint16 signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all,
             UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,
             Float32Bit.all, Float64Bit.all };
@@ -3256,7 +3114,7 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *f
     if (csv) {
         expectedFileContent =
                 ""
-                        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64 (float64)[1]\n"
+                        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
                         "0;0;1;1;1;1;1;1;1;1;1.000000;1.000000\n"
                         "0;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
                         "0;4000000;3;3;3;3;3;3;3;3;3.000000;3.000000\n"
@@ -3346,7 +3204,7 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger_Array(const MARTe::ch
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     const uint32 N_OF_SIGNALS = 12;
     const char8 *signalNames[N_OF_SIGNALS] = { "Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16",
-            "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64" };
+            "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64WhichIsAlsoAVeryLon" };
     const uint16 signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all,
             UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,
             Float32Bit.all, Float64Bit.all };
@@ -3359,7 +3217,7 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger_Array(const MARTe::ch
     if (csv) {
         expectedFileContent =
                 ""
-                        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[2];SignalUInt16 (uint16)[2];SignalUInt32 (uint32)[2];SignalUInt64 (uint64)[2];SignalInt8 (int8)[2];SignalInt16 (int16)[2];SignalInt32 (int32)[2];SignalInt64 (int64)[2];SignalFloat32 (float32)[2];SignalFloat64 (float64)[2]\n"
+                        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[2];SignalUInt16 (uint16)[2];SignalUInt32 (uint32)[2];SignalUInt64 (uint64)[2];SignalInt8 (int8)[2];SignalInt16 (int16)[2];SignalInt32 (int32)[2];SignalInt64 (int64)[2];SignalFloat32 (float32)[2];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[2]\n"
                         "0;0;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1.000000 1.000000 } ;{ 1.000000 1.000000 } \n"
                         "0;4000000;{ 2 2 } ;{ 2 2 } ;{ 2 2 } ;{ 2 2 } ;{ -2 -2 } ;{ -2 -2 } ;{ -2 -2 } ;{ -2 -2 } ;{ -2.000000 -2.000000 } ;{ -2.000000 -2.000000 } \n"
                         "0;8000000;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3.000000 3.000000 } ;{ 3.000000 3.000000 } \n"
@@ -3403,7 +3261,7 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger_Array(const MARTe::ch
         for (n = 0u; n < numberOfElements; n++) {
             uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (n * cycleWriteSize)]));
             uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
-            uint8  *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
+            uint8 *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
             uint16 *signalUInt16Pointer = reinterpret_cast<uint16 *>(signalUInt8Pointer + ARRAY_SIZE);
             uint32 *signalUInt32Pointer = reinterpret_cast<uint32 *>(signalUInt16Pointer + ARRAY_SIZE);
             uint64 *signalUInt64Pointer = reinterpret_cast<uint64 *>(signalUInt32Pointer + ARRAY_SIZE);
@@ -3438,7 +3296,8 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger_Array(const MARTe::ch
         }
     }
 
-    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, ARRAY_SIZE, numberOfBuffers, 0, 0, period, filename, expectedFileContent, csv);
+    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, ARRAY_SIZE, numberOfBuffers, 0, 0, period, filename,
+                                      expectedFileContent, csv);
     if (!csv) {
         if (expectedFileContent != NULL) {
             char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
@@ -3455,7 +3314,7 @@ bool FileWriterTest::TestIntegratedInApplication_Trigger(const MARTe::char8 *fil
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     const uint32 N_OF_SIGNALS = 12;
     const char8 *signalNames[N_OF_SIGNALS] = { "Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16",
-            "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64" };
+            "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64WhichIsAlsoAVeryLon" };
     const uint16 signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all,
             UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,
             Float32Bit.all, Float64Bit.all };
@@ -3466,7 +3325,7 @@ bool FileWriterTest::TestIntegratedInApplication_Trigger(const MARTe::char8 *fil
     if (csv) {
         expectedFileContent =
                 ""
-                        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64 (float64)[1]\n"
+                        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
                         "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
                         "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
                         "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
@@ -3555,279 +3414,116 @@ bool FileWriterTest::TestIntegratedInApplication_Trigger(const MARTe::char8 *fil
     return ok;
 }
 
-#if 0
-
-bool FileWriterTest::TestIntegratedInApplication_Trigger() {
+bool FileWriterTest::TestOpenFile() {
     using namespace MARTe;
-    uint32 signalToGenerate[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-    uint32 signalToVerify[] = {1, 2, 3, 4, 6, 7, 8, 9};
-    uint32 timeToVerify[] = {0, 2, 4, 6, 10, 12, 14, 16};
-    uint8 triggerToGenerate[] = {0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0};
-    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
-    uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
-    const char8 * const treeName = "mds_m2test";
-    const uint32 numberOfBuffers = 16;
-    const uint32 numberOfPreTriggers = 2;
-    const uint32 numberOfPostTriggers = 1;
-    const uint32 pulseNumber = 3;
-    const uint32 numberOfSegments = 2;
-    const float32 period = 2;
-    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
-            numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
-}
-
-bool FileWriterTest::TestIntegratedInApplication_Trigger_Discontinuity() {
-    using namespace MARTe;
-    uint32 signalToGenerate[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-    uint32 signalToVerify[] = {1, 2, 3, 4, 6, 7, 8, 9};
-    uint32 timeToVerify[] = {0, 2, 4, 6, 10, 12, 14, 16};
-    uint8 triggerToGenerate[] = {0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0};
-    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
-    uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
-    const char8 * const treeName = "mds_m2test";
-    const uint32 numberOfBuffers = 16;
-    const uint32 numberOfPreTriggers = 2;
-    const uint32 numberOfPostTriggers = 1;
-    const uint32 pulseNumber = 6;
-    const uint32 numberOfSegments = 1;
-    const float32 period = 2;
-    return TestIntegratedExecution(config13, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
-            numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
-}
-
-bool FileWriterTest::TestIntegratedInApplication_NoTrigger_Elements() {
-    using namespace MARTe;
-    uint32 signalToGenerate[] = {1, 2, 3, 4, 5, 6, 7, 8};
-    uint32 signalToVerify[] = {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8};
-    uint32 timeToVerify[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62};
-    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
-    uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
-    const char8 * const treeName = "mds_m2test";
-    const uint32 numberOfBuffers = 16;
-    const uint32 writeAfterNSegments = 4;
-    const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
-    const float32 period = 2;
-    const uint32 pulseNumber = 4;
-    return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, NULL, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
-            numberOfSegments, false);
-}
-
-bool FileWriterTest::TestIntegratedInApplication_Trigger_Elements() {
-    using namespace MARTe;
-    uint32 signalToGenerate[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-    uint32 signalToVerify[] = {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9};
-    uint32 timeToVerify[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70};
-    uint8 triggerToGenerate[] = {0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0};
-    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
-    uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
-    const char8 * const treeName = "mds_m2test";
-    const uint32 numberOfBuffers = 16;
-    const uint32 numberOfPreTriggers = 2;
-    const uint32 numberOfPostTriggers = 1;
-    const uint32 pulseNumber = 5;
-    const uint32 numberOfSegments = 2;
-    const float32 period = 2;
-    return TestIntegratedExecution(config5, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
-            numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
-}
-
-bool FileWriterTest::TestOpenTree() {
-    using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config6, false);
+    bool ok = TestIntegratedInApplication(config5, false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
     //Get the current pulse number
-    Fileplus::Tree *tree = NULL;
-    int32 lastPulseNumber = -1;
-    StreamString treeName = "mds_m2test";
-    try {
-        tree = new Fileplus::Tree(treeName.Buffer(), lastPulseNumber);
-        lastPulseNumber = tree->getCurrent(treeName.Buffer());
-        delete tree;
-    }
-    catch (Fileplus::MdsException &exc) {
-        delete tree;
-        tree = NULL_PTR(Fileplus::Tree *);
-        ok = false;
-    }
-
-    ReferenceT<FileWriter> msdWriter;
+    ReferenceT<FileWriter> fileWriter;
     if (ok) {
-        msdWriter = godb->Find("Test.Data.Drv1");
-        ok = msdWriter.IsValid();
+        fileWriter = godb->Find("Test.Data.Drv1");
+        ok = fileWriter.IsValid();
     }
-    ReferenceT<Message> messageOpenTree = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageOpenTree");
+    ReferenceT<Message> messageOpenFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageOpenFile");
     if (ok) {
-        ok = messageOpenTree.IsValid();
+        ok = messageOpenFile.IsValid();
     }
     if (ok) {
-        MessageI::SendMessage(messageOpenTree, NULL);
+        MessageI::SendMessage(messageOpenFile, NULL);
     }
-
-    int32 currentPulseNumber = -1;
-    try {
-        tree = new Fileplus::Tree(treeName.Buffer(), currentPulseNumber);
-        currentPulseNumber = tree->getCurrent(treeName.Buffer());
-        delete tree;
-    }
-    catch (Fileplus::MdsException &exc) {
-        delete tree;
-        tree = NULL_PTR(Fileplus::Tree *);
-        ok = false;
+    ReferenceT<Message> messageFlushFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageFlushFile");
+    if (ok) {
+        ok = messageOpenFile.IsValid();
     }
     if (ok) {
-        ok = ((currentPulseNumber - lastPulseNumber) == 1);
+        MessageI::SendMessage(messageFlushFile, NULL);
     }
-
-    //Check that data can be successfully stored in the new pulse number
-    ReferenceT<RealTimeApplication> application;
-    ReferenceT<FileWriterSchedulerTestHelper> scheduler;
-    ReferenceT<FileWriterGAMTriggerTestHelper> gam;
-
+    ReferenceT<Message> messageCloseFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageCloseFile");
     if (ok) {
-        application = godb->Find("Test");
-        ok = application.IsValid();
+        ok = messageCloseFile.IsValid();
     }
     if (ok) {
-        scheduler = application->Find("Scheduler");
-        ok = scheduler.IsValid();
+        MessageI::SendMessage(messageCloseFile, NULL);
+    }
+    StreamString testFilename = "Test_MessageOpenTree.bin";
+    if (ok) {
+        ok = (fileWriter->GetFilename() == testFilename);
     }
     if (ok) {
-        gam = application->Find("Functions.GAM1");
-        ok = gam.IsValid();
-    }
-    //Open the tree and check if the data was correctly stored.
-    //Create a pulse. It assumes that the tree template is already created!!
-    if (ok) {
-        try {
-            tree = new Fileplus::Tree(treeName.Buffer(), currentPulseNumber);
-        }
-        catch (Fileplus::MdsException &exc) {
-            delete tree;
-            tree = NULL;
-            ok = false;
-        }
-    }
-    Fileplus::TreeNode *sigUInt16F;
-    if (ok) {
-        try {
-            sigUInt16F = tree->getNode("SIGUINT16F");
-            sigUInt16F->deleteData();
-        }
-        catch (Fileplus::MdsException &exc) {
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
-            ok = false;
-        }
-    }
-    if (ok) {
-        ok = application->PrepareNextState("State1");
-    }
-    if (ok) {
-        ok = application->StartNextStateExecution();
-    }
-
-    uint32 i;
-    if (ok) {
-        for (i = 0; (i < gam->numberOfExecutes); i++) {
-            scheduler->ExecuteThreadCycle(0);
-            Sleep::MSec(10);
-        }
-    }
-    if (ok) {
-        ok = application->StopCurrentStateExecution();
-    }
-    const int32 numberOfSegments = 2;
-    if (ok) {
-        const uint64 maxTimeoutSeconds = 2;
-        uint64 maxTimeout = HighResolutionTimer::Counter() + maxTimeoutSeconds * HighResolutionTimer::Frequency();
-        while ((sigUInt16F->getNumSegments() != numberOfSegments) && (ok)) {
-            Sleep::MSec(10);
-            ok = (HighResolutionTimer::Counter() < maxTimeout);
-        }
-    }
-    if (ok) {
-        uint32 signalToVerify[] = {8, 1, 2, 3, 4, 5, 6, 7};
-        uint32 timeToVerify[] = {0, 2, 4, 6, 8, 10, 12, 14};
-        ok &= CheckSegmentData<uint16>(numberOfSegments, sigUInt16F, signalToVerify, timeToVerify);
-    }
-    if (tree != NULL) {
-        delete tree;
-    }
-
-    //Reopen the tree
-    if (ok) {
-        ok = messageOpenTree.IsValid();
-    }
-    if (ok) {
-        MessageI::SendMessage(messageOpenTree, NULL);
-    }
-    currentPulseNumber++;
-    if (ok) {
-        try {
-            tree = new Fileplus::Tree(treeName.Buffer(), currentPulseNumber);
-        }
-        catch (Fileplus::MdsException &exc) {
-            delete tree;
-            tree = NULL;
-            ok = false;
-        }
-    }
-    if (ok) {
-        try {
-            sigUInt16F = tree->getNode("SIGUINT16F");
-            sigUInt16F->deleteData();
-        }
-        catch (Fileplus::MdsException &exc) {
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node");
-            ok = false;
-        }
-    }
-    if (ok) {
-        gam->numberOfExecutes = 8;
-        gam->counter = 0;
-    }
-    if (ok) {
-        ok = application->PrepareNextState("State1");
-    }
-    if (ok) {
-        ok = application->StartNextStateExecution();
-    }
-
-    if (ok) {
-        for (i = 0; (i < gam->numberOfExecutes); i++) {
-            scheduler->ExecuteThreadCycle(0);
-            Sleep::MSec(10);
-        }
-    }
-    if (ok) {
-        ok = application->StopCurrentStateExecution();
-    }
-    if (ok) {
-        const uint64 maxTimeoutSeconds = 2;
-        uint64 maxTimeout = HighResolutionTimer::Counter() + maxTimeoutSeconds * HighResolutionTimer::Frequency();
-        while ((sigUInt16F->getNumSegments() != numberOfSegments) && (ok)) {
-            Sleep::MSec(10);
-            ok = (HighResolutionTimer::Counter() < maxTimeout);
-        }
-    }
-    if (ok) {
-        uint32 signalToVerify[] = {8, 1, 2, 3, 4, 5, 6, 7};
-        uint32 timeToVerify[] = {0, 2, 4, 6, 8, 10, 12, 14};
-        ok &= CheckSegmentData<uint16>(numberOfSegments, sigUInt16F, signalToVerify, timeToVerify);
-    }
-
-    if (tree != NULL) {
-        delete tree;
+        Directory toDelete(testFilename.Buffer());
+        toDelete.Delete();
     }
     godb->Purge();
     return ok;
+}
+
+bool FileWriterTest::TestOpenFile_Overwrite() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config13, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    //Get the current pulse number
+    ReferenceT<FileWriter> fileWriter;
+    if (ok) {
+        fileWriter = godb->Find("Test.Data.Drv1");
+        ok = fileWriter.IsValid();
+    }
+    ReferenceT<Message> messageOpenFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageOpenFile");
+    if (ok) {
+        ok = messageOpenFile.IsValid();
+    }
+    if (ok) {
+        MessageI::SendMessage(messageOpenFile, NULL);
+    }
+    ReferenceT<Message> messageFlushFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageFlushFile");
+    if (ok) {
+        ok = messageOpenFile.IsValid();
+    }
+    if (ok) {
+        MessageI::SendMessage(messageFlushFile, NULL);
+    }
+    ReferenceT<Message> messageCloseFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageCloseFile");
+    if (ok) {
+        ok = messageCloseFile.IsValid();
+    }
+    if (ok) {
+        MessageI::SendMessage(messageCloseFile, NULL);
+    }
+
+    StreamString testFilename = "Test_MessageOpenTree.bin";
+    if (ok) {
+        ok = !(fileWriter->OpenFile(testFilename));
+    }
+    if (ok) {
+        Directory toDelete(testFilename.Buffer());
+        toDelete.Delete();
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool FileWriterTest::TestCloseFile() {
+    return TestOpenFile();
+}
+
+bool FileWriterTest::TestFlushFile() {
+    return TestOpenFile();
 }
 
 bool FileWriterTest::TestGetCPUMask() {
     return TestInitialise();
 }
 
-bool FileWriterTest::TestGetEventName() {
+bool FileWriterTest::TestGetFilename() {
+    return TestInitialise();
+}
+
+bool FileWriterTest::TestGetFileFormat() {
+    return TestInitialise();
+}
+
+bool FileWriterTest::TestGetCSVSeparator() {
     return TestInitialise();
 }
 
@@ -3835,40 +3531,11 @@ bool FileWriterTest::TestGetNumberOfBuffers() {
     return TestInitialise();
 }
 
-bool FileWriterTest::TestGetNumberOfMdsSignals() {
-    using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config2, false);
-    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
-
-    ReferenceT<FileWriter> mdsWriter;
-    if (ok) {
-        mdsWriter = godb->Find("Test.Data.Drv1");
-        ok = mdsWriter.IsValid();
-    }
-    if (ok) {
-        ok = (mdsWriter->GetNumberOfMdsSignals() == 16);
-    }
-    godb->Purge();
-    return ok;
-}
-
 bool FileWriterTest::TestGetNumberOfPostTriggers() {
     return TestInitialise();
 }
 
 bool FileWriterTest::TestGetNumberOfPreTriggers() {
-    return TestInitialise();
-}
-
-bool FileWriterTest::TestGetPulseNumber() {
-    return TestInitialise();
-}
-
-bool FileWriterTest::TestGetTreeName() {
-    return TestInitialise();
-}
-
-bool FileWriterTest::TestGetRefreshEveryCounts() {
     return TestInitialise();
 }
 
@@ -3880,88 +3547,109 @@ bool FileWriterTest::TestIsStoreOnTrigger() {
     return TestInitialise();
 }
 
-bool FileWriterTest::TestGetTimeSignalIdx() {
+bool FileWriterTest::TestOpenFileOKMessage() {
     using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config2, false);
+    bool ok = TestIntegratedInApplication(config6, false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
-    ReferenceT<FileWriter> mdsWriter;
-    if (ok) {
-        mdsWriter = godb->Find("Test.Data.Drv1");
-        ok = mdsWriter.IsValid();
-    }
-    if (ok) {
-        ok = (mdsWriter->GetTimeSignalIdx() == 1);
-    }
-    godb->Purge();
-    return ok;
-}
-
-bool FileWriterTest::TestOpenTreeOKMessage() {
-    using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config14, false);
-    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
-
-    ReferenceT<FileWriter> mdsWriter;
+    ReferenceT<FileWriter> fileWriter;
     ReferenceT<FileWriterTestHelper> helper;
     if (ok) {
-        mdsWriter = godb->Find("Test.Data.Drv1");
-        ok = mdsWriter.IsValid();
+        fileWriter = godb->Find("Test.Data.Drv1");
+        ok = fileWriter.IsValid();
     }
     if (ok) {
         helper = godb->Find("FileWriterTestHelper");
         ok = helper.IsValid();
     }
     if (ok) {
-        ok = (helper->pulseNumber == mdsWriter->GetPulseNumber());
-        REPORT_ERROR_STATIC(ErrorManagement::Information, "helper->pulseNumber = %d", helper->pulseNumber);
-    }
-    //Force the sending of a second message
-    if (ok) {
-        ok = mdsWriter->OpenTree(-1);
+        ok = (helper->openOKFunctionCalled);
     }
     if (ok) {
-        ok = (helper->pulseNumber == mdsWriter->GetPulseNumber());
-        REPORT_ERROR_STATIC(ErrorManagement::Information, "helper->pulseNumber = %d", helper->pulseNumber);
+        StreamString testFilename = "Test_MessageOpenTree_2.bin";
+        if (ok) {
+            Directory toDelete(testFilename.Buffer());
+            toDelete.Delete();
+        }
     }
+
     godb->Purge();
     return ok;
 }
 
-bool FileWriterTest::TestFlushSegmentsMessage() {
+bool FileWriterTest::TestCloseFileMessage() {
     using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config14, false);
+    bool ok = TestIntegratedInApplication(config6, false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
-    ReferenceT<FileWriter> mdsWriter;
+    ReferenceT<FileWriter> fileWriter;
     ReferenceT<FileWriterTestHelper> helper;
     if (ok) {
-        mdsWriter = godb->Find("Test.Data.Drv1");
-        ok = mdsWriter.IsValid();
+        fileWriter = godb->Find("Test.Data.Drv1");
+        ok = fileWriter.IsValid();
     }
     if (ok) {
         helper = godb->Find("FileWriterTestHelper");
         ok = helper.IsValid();
     }
     if (ok) {
-        mdsWriter->FlushSegments();
+        fileWriter->CloseFile();
     }
     if (ok) {
-        ok = (helper->flushSegmentsFunctionCalled);
+        ok = (helper->closeFunctionCalled);
+    }
+    if (ok) {
+        StreamString testFilename = "Test_MessageOpenTree_2.bin";
+        if (ok) {
+            Directory toDelete(testFilename.Buffer());
+            toDelete.Delete();
+        }
     }
     godb->Purge();
     return ok;
 }
 
-bool FileWriterTest::TestOpenTreeFailMessage() {
+bool FileWriterTest::TestRuntimeErrorMessage() {
     using namespace MARTe;
-    TestIntegratedInApplication(config15, false);
+    bool ok = TestIntegratedInApplication(config5, false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
-    ReferenceT<FileWriter> mdsWriter;
+    ReferenceT<FileWriter> fileWriter;
     ReferenceT<FileWriterTestHelper> helper;
-    mdsWriter = godb->Find("Test.Data.Drv1");
-    bool ok = mdsWriter.IsValid();
+    if (ok) {
+        fileWriter = godb->Find("Test.Data.Drv1");
+        ok = fileWriter.IsValid();
+    }
+    if (ok) {
+        helper = godb->Find("FileWriterTestHelper");
+        ok = helper.IsValid();
+    }
+    if (ok) {
+        fileWriter->Synchronise();
+    }
+    if (ok) {
+        ok = (helper->runtimeErrorFunctionCalled);
+    }
+    if (ok) {
+        StreamString testFilename = "Test_MessageOpenTree_2.bin";
+        if (ok) {
+            Directory toDelete(testFilename.Buffer());
+            toDelete.Delete();
+        }
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool FileWriterTest::TestOpenFileFailMessage() {
+    using namespace MARTe;
+    TestIntegratedInApplication(config7, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<FileWriter> fileWriter;
+    ReferenceT<FileWriterTestHelper> helper;
+    fileWriter = godb->Find("Test.Data.Drv1");
+    bool ok = fileWriter.IsValid();
 
     if (ok) {
         helper = godb->Find("FileWriterTestHelper");
@@ -3974,16 +3662,16 @@ bool FileWriterTest::TestOpenTreeFailMessage() {
     return ok;
 }
 
-bool FileWriterTest::TestOpenTreeOKMessage_Fail() {
+bool FileWriterTest::TestOpenFileOKMessage_Fail() {
     using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config16, false);
+    bool ok = TestIntegratedInApplication(config8, false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
-    ReferenceT<FileWriter> mdsWriter;
+    ReferenceT<FileWriter> fileWriter;
     ReferenceT<FileWriterTestHelper> helper;
     if (ok) {
-        mdsWriter = godb->Find("Test.Data.Drv1");
-        ok = mdsWriter.IsValid();
+        fileWriter = godb->Find("Test.Data.Drv1");
+        ok = fileWriter.IsValid();
     }
     if (ok) {
         helper = godb->Find("FileWriterTestHelper");
@@ -3994,56 +3682,89 @@ bool FileWriterTest::TestOpenTreeOKMessage_Fail() {
     return ok;
 }
 
-bool FileWriterTest::TestFlushSegmentsMessage_Fail() {
+bool FileWriterTest::TestCloseFileMessage_Fail() {
     using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config16, false);
+    bool ok = TestIntegratedInApplication(config9, false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
-    ReferenceT<FileWriter> mdsWriter;
+    ReferenceT<FileWriter> fileWriter;
     ReferenceT<FileWriterTestHelper> helper;
     if (ok) {
-        mdsWriter = godb->Find("Test.Data.Drv1");
-        ok = mdsWriter.IsValid();
+        fileWriter = godb->Find("Test.Data.Drv1");
+        ok = fileWriter.IsValid();
     }
     if (ok) {
         helper = godb->Find("FileWriterTestHelper");
         ok = helper.IsValid();
     }
     if (ok) {
-        mdsWriter->FlushSegments();
+        fileWriter->CloseFile();
     }
 
     godb->Purge();
     return ok;
 }
 
-bool FileWriterTest::TestOpenTreeFailMessage_Fail() {
+bool FileWriterTest::TestRuntimeErrorMessage_Fail() {
     using namespace MARTe;
-    TestIntegratedInApplication(config17, false);
+    bool ok = TestIntegratedInApplication(config9, false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
-    ReferenceT<FileWriter> mdsWriter;
+    ReferenceT<FileWriter> fileWriter;
     ReferenceT<FileWriterTestHelper> helper;
-    mdsWriter = godb->Find("Test.Data.Drv1");
-    bool ok = mdsWriter.IsValid();
+    if (ok) {
+        fileWriter = godb->Find("Test.Data.Drv1");
+        ok = fileWriter.IsValid();
+    }
+    if (ok) {
+        helper = godb->Find("FileWriterTestHelper");
+        ok = helper.IsValid();
+    }
+    if (ok) {
+        fileWriter->Synchronise();
+        fileWriter->CloseFile();
+    }
+    if (ok) {
+        StreamString testFilename = "Test_MessageOpenTree_2.bin";
+        if (ok) {
+            Directory toDelete(testFilename.Buffer());
+            toDelete.Delete();
+        }
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool FileWriterTest::TestOpenFileFailMessage_Fail() {
+    using namespace MARTe;
+    TestIntegratedInApplication(config10, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<FileWriter> fileWriter;
+    ReferenceT<FileWriterTestHelper> helper;
+    fileWriter = godb->Find("Test.Data.Drv1");
+    bool ok = fileWriter.IsValid();
 
     if (ok) {
         helper = godb->Find("FileWriterTestHelper");
         ok = helper.IsValid();
     }
+    if (ok) {
+        fileWriter->CloseFile();
+    }
+
     godb->Purge();
     return ok;
 }
 
 bool FileWriterTest::TestInvalidMessageName() {
     using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config18, true);
+    bool ok = TestIntegratedInApplication(config11, true);
     return !ok;
 }
 
 bool FileWriterTest::TestInvalidMessageType() {
     using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config19, true);
+    bool ok = TestIntegratedInApplication(config12, true);
     return !ok;
 }
-#endif

@@ -54,7 +54,7 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC+=$(BUILD_DIR)/EpicsDataSource/EpicsDataSourceTest$(LIBEXT)
+LIBRARIES_STATIC=$(BUILD_DIR)/EpicsDataSource/EpicsDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/FileDataSource/FileDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)

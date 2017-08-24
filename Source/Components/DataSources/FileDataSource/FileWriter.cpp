@@ -37,13 +37,13 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-static const MARTe::int32 FILE_FORMAT_BINARY = 1;
-static const MARTe::int32 FILE_FORMAT_CSV = 2;
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+static const int32 FILE_FORMAT_BINARY = 1;
+static const int32 FILE_FORMAT_CSV = 2;
 
 FileWriter::FileWriter() :
         DataSourceI(), MessageI() {
@@ -73,7 +73,7 @@ FileWriter::FileWriter() :
 /*lint -e{1551} -e{1579} the destructor must guarantee that the memory is freed and the file is flushed and closed.. The brokerAsyncTrigger is freed by the ReferenceT */
 FileWriter::~FileWriter() {
     if (FlushFile() != ErrorManagement::NoError) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the FlushFile");
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the File");
     }
     if (dataSourceMemory != NULL_PTR(char8 *)) {
         GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(dataSourceMemory));
@@ -162,6 +162,15 @@ bool FileWriter::Synchronise() {
         fatalFileError = !ok;
         if (fatalFileError) {
             REPORT_ERROR(ErrorManagement::FatalError, "Failed to write into file. No more attempts will be performed.");
+            if (fileRuntimeErrorMsg.IsValid()) {
+                //Reset any previous replies
+                fileRuntimeErrorMsg->SetAsReply(false);
+                if (!MessageI::SendMessage(fileRuntimeErrorMsg, this)) {
+                    StreamString destination = fileRuntimeErrorMsg->GetDestination();
+                    StreamString function = fileRuntimeErrorMsg->GetFunction();
+                    REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(), function.Buffer());
+                }
+            }
         }
     }
     return ok;
@@ -315,8 +324,8 @@ bool FileWriter::Initialise(StructuredDataI& data) {
                         else if (msgName == "FileOpenedFail") {
                             fileOpenedFailMsg = msg;
                         }
-                        else if (msgName == "FileFlushed") {
-                            fileFlushedMsg = msg;
+                        else if (msgName == "FileClosed") {
+                            fileClosedMsg = msg;
                         }
                         else if (msgName == "FileRuntimeError") {
                             fileRuntimeErrorMsg = msg;
@@ -362,10 +371,15 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
 
-        offsets = new uint32[GetNumberOfSignals()];
         uint32 nOfSignals = GetNumberOfSignals();
+        ok = (nOfSignals > 0u);
+        if (ok) {
+            offsets = new uint32[nOfSignals];
+        }
+
         //Count the number of bytes
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
+            /*lint -e{613} offsets cannot be null as otherwise ok would be false*/
             offsets[n] = numberOfBinaryBytes;
             uint32 nBytes = 0u;
             ok = GetSignalByteSize(n, nBytes);
@@ -398,10 +412,11 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
             if (ok) {
                 ok = GetSignalNumberOfElements(n, nElements);
             }
+            /*lint -e{613} signalsAnyType, dataSourceMemory and offsets cannot be null as otherwise ok would be false*/
             if (ok) {
                 char8 *memPtr = &dataSourceMemory[offsets[n]];
                 void *signalAddress = reinterpret_cast<void *&>(memPtr);
-                signalsAnyType[n] = AnyType(GetSignalType(n), 0, signalAddress);
+                signalsAnyType[n] = AnyType(GetSignalType(n), 0u, signalAddress);
                 signalsAnyType[n].SetNumberOfDimensions(nDimensions);
                 signalsAnyType[n].SetNumberOfElements(0u, nElements);
             }
@@ -439,16 +454,21 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
     return ok;
 }
 
-ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filename) {
+ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filenameIn) {
+    filename = filenameIn;
     REPORT_ERROR(ErrorManagement::Information, "Going to open file with name %s", filename.Buffer());
-    if (overwrite) {
+    if (!overwrite) {
+        //File already exists!
+        fatalFileError = outputFile.Open(filename.Buffer(), (BasicFile::ACCESS_MODE_R));
+        if (fatalFileError) {
+            (void) outputFile.Close();
+            REPORT_ERROR(ErrorManagement::FatalError, "File %s already exists and Overwrite=no", filenameIn.Buffer());
+        }
+    }
+    if (!fatalFileError) {
         Directory fileToDelete(filename.Buffer());
         (void) fileToDelete.Delete();
-
         fatalFileError = !outputFile.Open(filename.Buffer(), (BasicFile::ACCESS_MODE_W | BasicFile::FLAG_CREAT));
-    }
-    else {
-        fatalFileError = !outputFile.Open(filename.Buffer(), (BasicFile::ACCESS_MODE_W | BasicFile::FLAG_APPEND));
     }
 
     if (!fatalFileError) {
@@ -482,21 +502,22 @@ ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filename) {
             }
         }
         else {
-            uint32 writeSize = sizeof(uint32);
+            uint32 writeSize = static_cast<uint32>(sizeof(uint32));
             if (!fatalFileError) {
                 //Write the number of signals
+                /*lint -e{928}  [MISRA C++ Rule 5-2-7]. Justification: Need to cast to the type expected by the Write function.*/
                 fatalFileError = !outputFile.Write(reinterpret_cast<const char8 *>(&nOfSignals), writeSize);
             }
-            //TODO
             for (n = 0u; (n < nOfSignals) && (!fatalFileError); n++) {
                 //Write the signal type
-                writeSize = sizeof(uint16);
+                writeSize = static_cast<uint32>(sizeof(uint16));
                 uint16 signalType = GetSignalType(n).all;
                 if (!fatalFileError) {
+                    /*lint -e{928}  [MISRA C++ Rule 5-2-7]. Justification: Need to cast to the type expected by the Write function.*/
                     fatalFileError = !outputFile.Write(reinterpret_cast<const char8 *>(&signalType), writeSize);
                 }
                 StreamString signalName;
-                uint32 nOfElements;
+                uint32 nOfElements = 0u;
                 if (!fatalFileError) {
                     fatalFileError = !GetSignalName(n, signalName);
                 }
@@ -509,7 +530,7 @@ ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filename) {
                     char8 signalNameMemory[SIGNAL_NAME_MAX_SIZE];
                     fatalFileError = !MemoryOperationsHelper::Set(&signalNameMemory[0], '\0', SIGNAL_NAME_MAX_SIZE);
                     if (!fatalFileError) {
-                        uint32 copySize = signalName.Size();
+                        uint32 copySize = static_cast<uint32>(signalName.Size());
                         if (copySize > SIGNAL_NAME_MAX_SIZE) {
                             copySize = SIGNAL_NAME_MAX_SIZE;
                         }
@@ -522,7 +543,8 @@ ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filename) {
                 }
                 if (!fatalFileError) {
                     //Write the signal number of elements
-                    writeSize = sizeof(uint32);
+                    writeSize = static_cast<uint32>(sizeof(uint32));
+                    /*lint -e{928}  [MISRA C++ Rule 5-2-7]. Justification: Need to cast to the type expected by the Write function.*/
                     fatalFileError = !outputFile.Write(reinterpret_cast<const char8 *>(&nOfElements), writeSize);
                 }
             }
@@ -559,6 +581,17 @@ ErrorManagement::ErrorType FileWriter::CloseFile() {
         if (outputFile.IsOpen()) {
             err = !outputFile.Close();
         }
+        if (err.ErrorsCleared()) {
+            if (fileClosedMsg.IsValid()) {
+                //Reset any previous replies
+                fileClosedMsg->SetAsReply(false);
+                if (!MessageI::SendMessage(fileClosedMsg, this)) {
+                    StreamString destination = fileClosedMsg->GetDestination();
+                    StreamString function = fileClosedMsg->GetFunction();
+                    REPORT_ERROR(ErrorManagement::FatalError, "Could not send FileClosed message to %s [%s]", destination.Buffer(), function.Buffer());
+                }
+            }
+        }
     }
     return err;
 }
@@ -573,17 +606,7 @@ ErrorManagement::ErrorType FileWriter::FlushFile() {
             ok = outputFile.Flush();
         }
     }
-    if (!ok) {
-        if (fileFlushedMsg.IsValid()) {
-            //Reset any previous replies
-            fileFlushedMsg->SetAsReply(false);
-            if (!MessageI::SendMessage(fileFlushedMsg, this)) {
-                StreamString destination = fileFlushedMsg->GetDestination();
-                StreamString function = fileFlushedMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send FileFlushed message to %s [%s]", destination.Buffer(), function.Buffer());
-            }
-        }
-    }
+
     ErrorManagement::ErrorType err(ok);
     return err;
     /*lint -e{1762} function cannot be constant as it is registered as an RPC for CLASS_METHOD_REGISTER*/

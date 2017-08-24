@@ -7,6 +7,7 @@
 -i./Source/Components/DataSources/DAN/
 -i./Source/Components/DataSources/EPICSCA/
 -i./Source/Components/DataSources/EpicsDataSource/
+-i./Source/Components/DataSources/FileDataSource/
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
 -i./Source/Components/DataSources/MDSWriter/
@@ -39,6 +40,7 @@ EPICSCAClient.cpp
 EPICSCAInput.cpp
 EPICSCAOutput.cpp
 FilterGAM.cpp
+FileWriter.cpp
 IOGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp

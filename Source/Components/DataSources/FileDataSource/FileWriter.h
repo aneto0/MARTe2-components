@@ -52,12 +52,12 @@ namespace MARTe {
  * All the signals are stored in a single file.
  * If the format is csv the first line will be a comment with each signal name, type and number of elements. A new line will be added every time all the signal samples are written.
  *
- * TODO confirm: If the format is binary an header with the following information is created: the first 4 bytes
+ * If the format is binary an header with the following information is created: the first 4 bytes
  * contain the number of signals. Then, for each signal, the signal type will be encoded in two bytes, followed
  *  by 32 bytes to encode the signal name, followed by 4 bytes which store the number of elements of a given signal.
  *  Following the header the signal samples are consecutively stored in binary format.
  *
- * TODO confirm: for both formats, arrays can be stored but all the signals shall have the same number of elements.
+ * For both formats, arrays can be stored but all the signals shall have the same number of elements.
  *
  * This DataSourceI has the functions FlushFile and OpenFile registered as an RPC.
  *
@@ -98,7 +98,7 @@ namespace MARTe {
  *             Function = SomeFunction
  *             Mode = ExpectsReply
  *         }*
- *         +FileFlushed = { //Optional, but if set, the name of the Object shall be FileFlushed. If set a message will be sent to the Destination, every time the File is flushed.
+ *         +FileClosed = { //Optional, but if set, the name of the Object shall be FileClosed. If set a message will be sent to the Destination, every time the File is flushed.
  *             Class = Message
  *             Destination = SomeObject
  *             Function = SomeFunction
@@ -210,17 +210,17 @@ public:
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @brief Closes and flushes the file.
+     * @brief Flushes the file.
      * @return true if the file can be successfully flushed.
      */
     ErrorManagement::ErrorType FlushFile();
 
     /**
      * @brief Opens a new File.
-     * @param[in] filename the name of the file to be opened.
+     * @param[in] filenameIn the name of the file to be opened.
      * @return ErrorManagement::NoError if the file can be successfully opened.
      */
-    ErrorManagement::ErrorType OpenFile(StreamString filename);
+    ErrorManagement::ErrorType OpenFile(StreamString filenameIn);
 
     /**
      * @brief Close the file. Function is registered as an RPC.
@@ -391,19 +391,19 @@ private:
     MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
 
     /**
-     * The message to send if the Tree is successfully opened.
+     * The message to send if the file is successfully opened.
      */
     ReferenceT<Message> fileOpenedOKMsg;
 
     /**
-     * The message to send if the Tree cannot be successfully opened.
+     * The message to send if the file cannot be successfully opened.
      */
     ReferenceT<Message> fileOpenedFailMsg;
 
     /**
-     * The message to send if the Tree is be successfully flushed.
+     * The message to send if the File is be successfully closed.
      */
-    ReferenceT<Message> fileFlushedMsg;
+    ReferenceT<Message> fileClosedMsg;
 
     /**
      * The message to send if there is a runtime error.

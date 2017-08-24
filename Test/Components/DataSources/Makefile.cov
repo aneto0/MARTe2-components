@@ -29,6 +29,7 @@ TARGET=cov
 include Makefile.inc
 
 LIBRARIES_STATIC=EpicsDataSource/cov/EpicsDataSourceTest$(LIBEXT)
+LIBRARIES_STATIC+=FileDataSource/cov/FileDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=LinuxTimer/cov/LinuxTimerTest$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=RealTimeThreadSynchronisation/cov/RealTimeThreadSynchronisationTest$(LIBEXT)

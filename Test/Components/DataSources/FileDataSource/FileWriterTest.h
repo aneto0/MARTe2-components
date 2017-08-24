@@ -102,9 +102,29 @@ public:
     bool TestInitialise();
 
     /**
+     * @brief Tests the Initialise method with a binary file format.
+     */
+    bool TestInitialise_Binary();
+
+    /**
+     * @brief Tests the Initialise method without specifying the overwrite parameter.
+     */
+    bool TestInitialise_False_Overwrite();
+
+    /**
+     * @brief Tests the Initialise method specifying an invalid overwrite parameter.
+     */
+    bool TestInitialise_False_Overwrite_Invalid();
+
+    /**
      * @brief Tests the Initialise method without specifying the number of buffers.
      */
     bool TestInitialise_False_NumberOfBuffers();
+
+    /**
+     * @brief Tests the Initialise method with a number of buffers that is not > 0.
+     */
+    bool TestInitialise_False_NumberOfBuffers_GT_0();
 
     /**
      * @brief Tests the Initialise method without specifying the CPU mask.
@@ -117,20 +137,29 @@ public:
     bool TestInitialise_False_StackSize();
 
     /**
+     * @brief Tests the Initialise method with a the stack size that is not > 0.
+     */
+    bool TestInitialise_False_StackSize_GT_0();
+
+    /**
      * @brief Tests the Initialise method without specifying the file name.
      */
     bool TestInitialise_Warning_Filename();
 
-#if 0
     /**
-     * @brief Tests the Initialise method without specifying the event name.
+     * @brief Tests the Initialise method without specifying the FileFormat.
      */
-    bool TestInitialise_False_EventName();
+    bool TestInitialise_False_FileFormat();
 
     /**
-     * @brief Tests the Initialise method without specifying the time refresh parameter.
+     * @brief Tests the Initialise method with an invalid FileFormat.
      */
-    bool TestInitialise_False_TimeRefresh();
+    bool TestInitialise_False_FileFormat_Invalid();
+
+    /**
+     * @brief Tests the Initialise method without specifying the CSVSeparator.
+     */
+    bool TestInitialise_False_CSVSeparator();
 
     /**
      * @brief Tests the Initialise method without specifying the StoreOnTrigger.
@@ -158,29 +187,14 @@ public:
     bool TestSetConfiguredDatabase();
 
     /**
-     * @brief Tests the SetConfiguredDatabase with more than one samples.
+     * @brief Tests the SetConfiguredDatabase with more than one sample.
      */
     bool TestSetConfiguredDatabase_False_NumberOfSamples();
 
     /**
-     * @brief Tests the SetConfiguredDatabase with more than one time signal.
-     */
-    bool TestSetConfiguredDatabase_False_MoreThanOneTimeSignal();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase with no FilePlus signals defined.
+     * @brief Tests the SetConfiguredDatabase with no File signals defined.
      */
     bool TestSetConfiguredDatabase_False_NoFileSignals();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase with no TimeSignal defined.
-     */
-    bool TestSetConfiguredDatabase_False_NoTimeSignal();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase with TimeSignal defined as not uint32.
-     */
-    bool TestSetConfiguredDatabase_False_TimeSignal_NotUInt32();
 
     /**
      * @brief Tests the SetConfiguredDatabase with more than one function interacting with the FileWriter.
@@ -188,11 +202,25 @@ public:
     bool TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction();
 
     /**
-     * @brief Tests the OpenTree method.
+     * @brief Tests the OpenFile method.
      */
-    bool TestOpenTree();
+    bool TestOpenFile();
 
-#endif
+    /**
+     * @brief Tests that the OpenFile does not overwrite.
+     */
+    bool TestOpenFile_Overwrite();
+
+    /**
+     * @brief Tests the CloseFile method.
+     */
+    bool TestCloseFile();
+
+    /**
+     * @brief Tests the FlushFile method.
+     */
+    bool TestFlushFile();
+
     /**
      * @brief Tests the FileWriter integrated in an application which continuously stores data.
      */
@@ -208,42 +236,30 @@ public:
      */
     bool TestIntegratedInApplication_Trigger(const MARTe::char8 *filename, bool csv = true);
 
-#if 0
-
-    /**
-     * @brief Tests the FileWriter integrated in an application which asynchronously stores data based on a trigger event forcing discontinuities.
-     */
-    bool TestIntegratedInApplication_Trigger_Discontinuity();
-
-    /**
-     * @brief Tests the FileWriter integrated in an application which continuously stores data with NumberOfElements > 1.
-     */
-    bool TestIntegratedInApplication_NoTrigger_Elements();
-
-    /**
-     * @brief Tests the FileWriter integrated in an application which asynchronously stores data, with NumberOfElements > 1, based on a trigger event.
-     */
-    bool TestIntegratedInApplication_Trigger_Elements();
-
     /**
      * @brief Tests the GetCPUMask method.
      */
     bool TestGetCPUMask();
 
     /**
-     * @brief Tests the GetEventName method.
+     * @brief Tests the GetFilename method.
      */
-    bool TestGetEventName();
+    bool TestGetFilename();
+
+    /**
+     * @brief Tests the GetFileFormat method.
+     */
+    bool TestGetFileFormat();
+
+    /**
+     * @brief Tests the GetCSVSeparator method.
+     */
+    bool TestGetCSVSeparator();
 
     /**
      * @brief Tests the GetNumberOfBuffers method.
      */
     bool TestGetNumberOfBuffers();
-
-    /**
-     * @brief Tests the GetNumberOfMdsSignals method.
-     */
-    bool TestGetNumberOfMdsSignals();
 
     /**
      * @brief Tests the GetNumberOfPostTriggers method.
@@ -256,21 +272,6 @@ public:
     bool TestGetNumberOfPreTriggers();
 
     /**
-     * @brief Tests the GetPulseNumber method.
-     */
-    bool TestGetPulseNumber();
-
-    /**
-     * @brief Tests the GetTreeName method.
-     */
-    bool TestGetTreeName();
-
-    /**
-     * @brief Tests the GetRefreshEveryCounts method.
-     */
-    bool TestGetRefreshEveryCounts();
-
-    /**
      * @brief Tests the GetStackSize method.
      */
     bool TestGetStackSize();
@@ -281,39 +282,44 @@ public:
     bool TestIsStoreOnTrigger();
 
     /**
-     * @brief Tests the GetTimeSignalIdx method.
+     * @brief Tests that the open file message successfully opens the file
      */
-    bool TestGetTimeSignalIdx();
+    bool TestOpenFileOKMessage();
 
     /**
-     * @brief Tests that the open tree message successfully sends the value of the new pulse number
+     * @brief Tests that the open file message successfully sends a message when it fails to open the file
      */
-    bool TestOpenTreeOKMessage();
+    bool TestOpenFileFailMessage();
 
     /**
-     * @brief Tests that the open tree message successfully sends a message when it fails to open the tree
+     * @brief Tests that the close file successfully sends a message when the file is flushed
      */
-    bool TestOpenTreeFailMessage();
+    bool TestCloseFileMessage();
 
     /**
-     * @brief Tests that the flush segments successfully sends a message with the flushed segments information
+     * @brief Tests that the runtime error successfully sends a message when there is an error writing to the file
      */
-    bool TestFlushSegmentsMessage();
+    bool TestRuntimeErrorMessage();
 
     /**
-     * @brief Tests that the open tree message successfully warns that the message could not be sent
+     * @brief Tests that the open file message successfully warns that the message could not be sent
      */
-    bool TestOpenTreeOKMessage_Fail();
+    bool TestOpenFileOKMessage_Fail();
 
     /**
-     * @brief Tests that the open tree message successfully warns that the fail message could not be sent
+     * @brief Tests that the open file message successfully warns that the fail message could not be sent
      */
-    bool TestOpenTreeFailMessage_Fail();
+    bool TestOpenFileFailMessage_Fail();
 
     /**
-     * @brief Tests that the flush segments successfully warns that the flush segments message could not be sent
+     * @brief Tests that the close file successfully warns that the close file message could not be sent
      */
-    bool TestFlushSegmentsMessage_Fail();
+    bool TestCloseFileMessage_Fail();
+
+    /**
+     * @brief Tests that the runtime error successfully warns that the runtime error message could not be sent
+     */
+    bool TestRuntimeErrorMessage_Fail();
 
     /**
      * @brief Tests that an Invalid message name is correctly captured.
@@ -324,7 +330,7 @@ public:
      * @brief Tests that an Invalid message type is correctly captured.
      */
     bool TestInvalidMessageType();
-#endif
+
 };
 
 /*---------------------------------------------------------------------------*/

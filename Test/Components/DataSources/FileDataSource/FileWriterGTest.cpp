@@ -65,9 +65,29 @@ TEST(FileWriterGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
+TEST(FileWriterGTest,TestInitialise_Binary) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_Binary());
+}
+
 TEST(FileWriterGTest,TestInitialise_False_NumberOfBuffers) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers());
+}
+
+TEST(FileWriterGTest,TestInitialise_False_Overwrite) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Overwrite());
+}
+
+TEST(FileWriterGTest,TestInitialise_False_Overwrite_Invalid) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Overwrite_Invalid());
+}
+
+TEST(FileWriterGTest,TestInitialise_False_NumberOfBuffers_GT_0) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers_GT_0());
 }
 
 TEST(FileWriterGTest,TestInitialise_False_CPUMask) {
@@ -80,21 +100,29 @@ TEST(FileWriterGTest,TestInitialise_False_StackSize) {
     ASSERT_TRUE(test.TestInitialise_False_StackSize());
 }
 
+TEST(FileWriterGTest,TestInitialise_False_StackSize_GT_0) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_StackSize_GT_0());
+}
+
 TEST(FileWriterGTest,TestInitialise_Warning_Filename) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestInitialise_Warning_Filename());
 }
 
-#if 0
-
-TEST(FileWriterGTest,TestInitialise_False_EventName) {
+TEST(FileWriterGTest,TestInitialise_False_FileFormat) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestInitialise_False_EventName());
+    ASSERT_TRUE(test.TestInitialise_False_FileFormat());
 }
 
-TEST(FileWriterGTest,TestInitialise_False_TimeRefresh) {
+TEST(FileWriterGTest,TestInitialise_False_FileFormat_Invalid) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestInitialise_False_TimeRefresh());
+    ASSERT_TRUE(test.TestInitialise_False_FileFormat_Invalid());
+}
+
+TEST(FileWriterGTest,TestInitialise_False_CSVSeparator) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_CSVSeparator());
 }
 
 TEST(FileWriterGTest,TestInitialise_False_StoreOnTrigger) {
@@ -117,43 +145,9 @@ TEST(FileWriterGTest,TestInitialise_False_Signals) {
     ASSERT_TRUE(test.TestInitialise_False_Signals());
 }
 
-TEST(FileWriterGTest,TestIntegratedInApplication_NoTrigger) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger());
-}
-
-TEST(FileWriterGTest,TestIntegratedInApplication_NoTrigger_Flush) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger_Flush());
-}
-
-TEST(FileWriterGTest,TestIntegratedInApplication_Trigger) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger());
-}
-
-TEST(FileWriterGTest,TestIntegratedInApplication_Trigger_Discontinuity) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Discontinuity());
-}
-TEST(FileWriterGTest,TestIntegratedInApplication_NoTrigger_Elements) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger_Elements());
-}
-
-TEST(FileWriterGTest,TestIntegratedInApplication_Trigger_Elements) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Elements());
-}
-
 TEST(FileWriterGTest,TestSetConfiguredDatabase) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
-}
-
-TEST(FileWriterGTest,TestSetConfiguredDatabase_False_MoreThanOneTimeSignal) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneTimeSignal());
 }
 
 TEST(FileWriterGTest,TestSetConfiguredDatabase_False_NoFileSignals) {
@@ -161,19 +155,9 @@ TEST(FileWriterGTest,TestSetConfiguredDatabase_False_NoFileSignals) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoFileSignals());
 }
 
-TEST(FileWriterGTest,TestSetConfiguredDatabase_False_NoTimeSignal) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoTimeSignal());
-}
-
 TEST(FileWriterGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NumberOfSamples());
-}
-
-TEST(FileWriterGTest,TestSetConfiguredDatabase_False_TimeSignal_NotUInt32) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimeSignal_NotUInt32());
 }
 
 TEST(FileWriterGTest,TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction) {
@@ -181,11 +165,25 @@ TEST(FileWriterGTest,TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunct
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction());
 }
 
-TEST(FileWriterGTest,TestOpenTree) {
+TEST(FileWriterGTest,TestOpenFile) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestOpenTree());
+    ASSERT_TRUE(test.TestOpenFile());
 }
-#endif
+
+TEST(FileWriterGTest,TestOpenFile_Overwrite) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestOpenFile_Overwrite());
+}
+
+TEST(FileWriterGTest,TestCloseFile) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestCloseFile());
+}
+
+TEST(FileWriterGTest,TestFlushFile) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestFlushFile());
+}
 
 TEST(FileWriterGTest,TestGetBrokerName_InputSignals) {
     FileWriterTest test;
@@ -222,25 +220,29 @@ TEST(FileWriterGTest,TestPrepareNextState) {
     ASSERT_TRUE(test.TestPrepareNextState());
 }
 
-#if 0
 TEST(FileWriterGTest,TestGetCPUMask) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestGetCPUMask());
 }
 
-TEST(FileWriterGTest,TestGetEventName) {
+TEST(FileWriterGTest,TestGetFilename) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestGetEventName());
+    ASSERT_TRUE(test.TestGetFilename());
+}
+
+TEST(FileWriterGTest,TestGetFileFormat) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestGetFileFormat());
+}
+
+TEST(FileWriterGTest,TestGetCSVSeparator) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestGetCSVSeparator());
 }
 
 TEST(FileWriterGTest,TestGetNumberOfBuffers) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestGetNumberOfBuffers());
-}
-
-TEST(FileWriterGTest,TestGetNumberOfMdsSignals) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestGetNumberOfMdsSignals());
 }
 
 TEST(FileWriterGTest,TestGetNumberOfPostTriggers) {
@@ -253,21 +255,6 @@ TEST(FileWriterGTest,TestGetNumberOfPreTriggers) {
     ASSERT_TRUE(test.TestGetNumberOfPreTriggers());
 }
 
-TEST(FileWriterGTest,TestGetPulseNumber) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestGetPulseNumber());
-}
-
-TEST(FileWriterGTest,TestGetTreeName) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestGetTreeName());
-}
-
-TEST(FileWriterGTest,TestGetRefreshEveryCounts) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestGetRefreshEveryCounts());
-}
-
 TEST(FileWriterGTest,TestGetStackSize) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestGetStackSize());
@@ -278,39 +265,44 @@ TEST(FileWriterGTest,TestIsStoreOnTrigger) {
     ASSERT_TRUE(test.TestIsStoreOnTrigger());
 }
 
-TEST(FileWriterGTest,TestGetTimeSignalIdx) {
+TEST(FileWriterGTest,TestOpenFileOKMessage) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestGetTimeSignalIdx());
+    ASSERT_TRUE(test.TestOpenFileOKMessage());
 }
 
-TEST(FileWriterGTest,TestOpenTreeOKMessage) {
+TEST(FileWriterGTest,TestOpenFileFailMessage) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestOpenTreeOKMessage());
+    ASSERT_TRUE(test.TestOpenFileFailMessage());
 }
 
-TEST(FileWriterGTest,TestOpenTreeFailMessage) {
+TEST(FileWriterGTest,TestCloseFileMessage) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestOpenTreeFailMessage());
+    ASSERT_TRUE(test.TestCloseFileMessage());
 }
 
-TEST(FileWriterGTest,TestFlushSegmentsMessage) {
+TEST(FileWriterGTest,TestRuntimeErrorMessage) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestFlushSegmentsMessage());
+    ASSERT_TRUE(test.TestRuntimeErrorMessage());
 }
 
-TEST(FileWriterGTest,TestOpenTreeOKMessage_Fail) {
+TEST(FileWriterGTest,TestOpenFileOKMessage_Fail) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestOpenTreeOKMessage_Fail());
+    ASSERT_TRUE(test.TestOpenFileOKMessage_Fail());
 }
 
-TEST(FileWriterGTest,TestOpenTreeFailMessage_Fail) {
+TEST(FileWriterGTest,TestOpenFileFailMessage_Fail) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestOpenTreeFailMessage_Fail());
+    ASSERT_TRUE(test.TestOpenFileFailMessage_Fail());
 }
 
-TEST(FileWriterGTest,TestFlushSegmentsMessage_Fail) {
+TEST(FileWriterGTest,TestCloseFileMessage_Fail) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestFlushSegmentsMessage_Fail());
+    ASSERT_TRUE(test.TestCloseFileMessage_Fail());
+}
+
+TEST(FileWriterGTest,TestRuntimeErrorMessage_Fail) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestRuntimeErrorMessage_Fail());
 }
 
 TEST(FileWriterGTest,TestInvalidMessageName) {
@@ -322,4 +314,3 @@ TEST(FileWriterGTest,TestInvalidMessageType) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestInvalidMessageType());
 }
-#endif
