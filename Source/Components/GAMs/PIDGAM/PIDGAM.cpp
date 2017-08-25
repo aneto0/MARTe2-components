@@ -50,14 +50,19 @@ namespace MARTe {
 
 PIDGAM::PIDGAM() {
     kp = 0.0;
+    proportional = 0.0;
     ki = 0.0;
+    kid = 0.0;
+    integral = 0.0;
     kd = 0.0;
+    kdd = 0.0;
+    derivative = 0.0;
     sampleTime = 0.0;
     maxOutput = MAX_FLOAT64;
     minOutput = -MAX_FLOAT64;
-    enableIntegral = 1u;
+    enableIntegral = true;
     lastInput = 0.0;
-    lastOutput = 0.0;
+    lastIntegral = 0.0;
     enableSubstraction = 0u;
     reference = NULL_PTR(double *);
     sizeInputOutput = 0u;
@@ -71,6 +76,9 @@ PIDGAM::PIDGAM() {
     numberOfInputSamplesReference = 0u;
     numberOfInputSamplesMeasurement = 0u;
     numberOfOuputSamples = 0u;
+    inputReferenceDimension = 0;
+    inputMeasurementDimension = 0;
+    outputDimension = 0;
 
 }
 
@@ -100,6 +108,10 @@ bool PIDGAM::Initialise(StructuredDataI &data) {
             ok = false;
         }
     }
+    if(ok){
+        kid = ki * sampleTime;
+        kdd = kd/sampleTime;
+    }
     if (ok) {
         data.Read("MaxOutput", maxOutput);
         data.Read("MinOutput", minOutput);
@@ -118,7 +130,7 @@ bool PIDGAM::Setup() {
     bool ok = true;
     nOfInputSignals = GetNumberOfInputSignals();
     if (nOfInputSignals == 0u) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "nOfInputSignals must be positive");
+        REPORT_ERROR(ErrorManagement::ParametersError, "nOfInputSignals must be positive. The current value is %u", nOfInputSignals);
         ok = false;
     }
     else if (nOfInputSignals == 1u) {
@@ -135,25 +147,28 @@ bool PIDGAM::Setup() {
     if (ok) {
         nOfOutputSignals = GetNumberOfOutputSignals();
         if (nOfOutputSignals != 1) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "nOfOutputSignals must be one");
+            REPORT_ERROR(ErrorManagement::ParametersError, "nOfOutputSignals must be one. The current values is %u", nOfOutputSignals)
+            ;
             ok = false;
         }
     }
     if (ok) {
         ok = GetSignalNumberOfElements(InputSignals, 0u, numberOfInputElementsReference);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error GetSignalNumberOfElements for numberOfInputElementsReference");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfElements returned an error for numberOfInputElementsReference");
         }
-        if (numberOfInputElementsReference == 0) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "The numberOfInputElementsReference value must be positive");
-            ok = false;
+        if (ok) {
+            if (numberOfInputElementsReference != 1) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "The numberOfInputElementsReference value must be one. The crrent value is %u", numberOfInputElementsReference);
+                ok = false;
+            }
         }
         if (ok) {
             if (enableSubstraction) {
                 //The order of the input is very very important.
                 ok = GetSignalNumberOfElements(InputSignals, 1u, numberOfInputElementsMeasurement);
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error GetSignalNumberOfElements for numberOfInputElementsMeasurement");
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfElements returned an error for numberOfInputElementsMeasurement");
                 }
                 if (ok) {
                     if (numberOfInputElementsMeasurement != numberOfInputElementsReference) {
@@ -168,11 +183,13 @@ bool PIDGAM::Setup() {
     if (ok) {
         ok = GetSignalNumberOfElements(OutputSignals, 0u, numberOfOutputElements);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error GetSignalNumberOfElements() for numberOfOutputElements");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfElements() returned an error for numberOfOutputElements");
         }
-        if (numberOfOutputElements != numberOfInputElementsReference) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "The number of output elements must be the same than input elements");
-            ok = false;
+        if (ok) {
+            if (numberOfOutputElements != numberOfInputElementsReference) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "The number of output elements must be the same than the number of input elements");
+                ok = false;
+            }
         }
     }
 
@@ -184,7 +201,7 @@ bool PIDGAM::Setup() {
         if (ok) {
             ok = (numberOfInputSamplesReference == 1u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfInputSamplesReference value must be 1");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfInputSamplesReference value must be 1. It is %u", numberOfInputSamplesReference);
             }
         }
         if (ok) {
@@ -196,7 +213,7 @@ bool PIDGAM::Setup() {
                 if (ok) {
                     ok = (numberOfInputSamplesMeasurement == 1u);
                     if (!ok) {
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfInputSamplesMeasurement value must be 1");
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfInputSamplesMeasurement value must be 1. It is %u", numberOfInputSamplesMeasurement);
                     }
                 }
             }
@@ -208,24 +225,126 @@ bool PIDGAM::Setup() {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading numberOfOuputSamples");
         }
         if (ok) {
-            ok = (numberOfInputSamplesReference == 1u);
+            ok = (numberOfOuputSamples == 1u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOuputSamples value must be 1");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOuputSamples value must be 1. numberOfOuputSamples = %u", numberOfOuputSamples);
             }
         }
     }
+    if(ok){
+        ok = GetSignalNumberOfDimensions(InputSignals, 0u, inputReferenceDimension);
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading inputReferenceDimension");
+        }
+        if(ok){
+            ok = (inputReferenceDimension == 1u);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "inputReferenceDimension value must be 1. inputReferenceDimension = %u", inputReferenceDimension);
+            }
+        }
+        if(ok){
+            if (enableSubstraction) {
+                ok = GetSignalNumberOfDimensions(InputSignals, 1u, inputMeasurementDimension);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading inputMeasurementDimension");
+                }
+                if (ok) {
+                    ok = (inputMeasurementDimension == 1u);
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "inputMeasurementDimension value must be 1. It is %u", inputMeasurementDimension);
+                    }
+                }
+            }
+        }
+    }
+    if(ok){
+        ok = GetSignalNumberOfDimensions(OutputSignals, 0u, outputDimension);
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading outputDimension");
+        }
+        if(ok){
+            ok = (outputDimension == 1u);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "outputDimension value must be 1. It is %u", outputDimension);
+            }
+        }
+    }
+    if(ok){
+        ok = (GetSignalType(InputSignals, 0) == Float64Bit);
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "The reference data type must be float64. ");
+        }
+        if(ok){
+            if(enableSubstraction){
+                ok = (GetSignalType(InputSignals, 1) == Float64Bit);
+            }
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "The measurement data type must be float64.");
+            }
+        }
+    }
+    if(ok){
+        ok = (GetSignalType(OutputSignals, 0) == Float64Bit);
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "The data type must be float64.");
+        }
+    }
+
     if (ok) {
         reference = static_cast<float64 *>(GetInputSignalMemory(0));
-        if(enableSubstraction){
-            measurement = static_cast<float64 *>(GetInputSignalMemory(0));
+        if (enableSubstraction) {
+            measurement = static_cast<float64 *>(GetInputSignalMemory(1));
         }
-        output = static_cast<float64 *>(GetInputSignalMemory(0));
+        output = static_cast<float64 *>(GetOutputSignalMemory(0));
     }
 
     return ok;
 }
 bool PIDGAM::Execute() {
+    GetValue();
+    Saturation();
     return true;
 }
+
+inline void PIDGAM::GetValue(){
+    if(enableSubstraction){
+        float64 error;
+        error = *reference - *measurement;
+        proportional = kp * error;
+        if(enableIntegral){
+            integral = error * kid+lastIntegral;
+        }else{
+            integral = error * kid;
+        }
+        derivative = (error - lastInput)*kdd;
+        lastInput = error;
+    }else{
+        proportional = kp * *reference;
+        if(enableIntegral){
+            integral = (*reference * kid+lastIntegral);
+        }else{
+            integral = *reference * kid;
+        }
+        derivative = (*reference - lastInput) * kdd;
+        lastInput = *reference;
+    }
+    output[0] = proportional+integral+derivative;
+    lastIntegral = integral;
+    return;
+}
+
+inline void PIDGAM::Saturation(){
+    if(output[0]>maxOutput){
+        output[0] = maxOutput;
+        enableIntegral = false;
+    }else if(output[0]< minOutput){
+        output[0] = minOutput;
+        enableIntegral = false;
+    }else{
+        enableIntegral = true;
+    }
+    return;
+}
+
 }
 

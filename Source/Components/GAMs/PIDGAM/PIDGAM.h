@@ -50,49 +50,74 @@ public:
 private:
 
     /**
-     * proportional term in the time domain
+     * proportional coefficient in the time domain in the time domain
      */
-    double kp;
+    float64 kp;
 
     /**
-     * integral term in the time domain
+     * contribution of the proportional term
      */
-    double ki;
+    float64 proportional;
 
     /**
-     * derivative term in the time domain
+     * integral coefficient in the time domain
      */
-    double kd;
+    float64 ki;
+
+    /**
+     * Integral coefficient in the discrete domain. kid = kid * sampleTime. It is used to speed up the operations
+     */
+    float32 kid;
+
+    /**
+     * contribution of the integral term
+     */
+    float64 integral;
+
+    /**
+     * Derivative coefficient in the time domain
+     */
+    float64 kd;
+
+    /**
+     * Derivative coefficient in the discrete domain. kdd= kd/sampleTime. It is used to speed up the operations
+     */
+    float64 kdd;
+
+    /**
+     * Contribution of the derivative term.
+     */
+    float64 derivative;
 
     /**
      * Indicates the time between samples.
      */
-    double sampleTime;
+    float64 sampleTime;
 
     /**
      * upper limit saturation
      */
-    double maxOutput;
+    float64 maxOutput;
 
     /**
      * lower limit saturation
      */
-    double minOutput;
+    float64 minOutput;
 
     /**
      * Enables/disable the integral term when saturation is acting (anti-windup function)
      */
-    uint16 enableIntegral;
+    bool enableIntegral;
 
     /**
      * Save the last input value
      */
-    double lastInput;
+    float64 lastInput;
 
     /**
-     * Save the last output value
+     * Save the last integrated term
      */
-    double lastOutput;
+    float64 lastIntegral;
 
     /**
      * When enableSubstraction is 1 the GAM expects two inputs: reference value and the feedback value (the actual measurement).
@@ -103,7 +128,7 @@ private:
     /**
      * Points to the input reference array of the GAM
      */
-    double *reference;
+    float64 *reference;
 
     /**
      * Size of the input or output of the GAM. The arrays of reference, measurement and output must have the same size.
@@ -113,12 +138,12 @@ private:
     /**
      * Points to the input measurement array of the GAM
      */
-    double *measurement;
+    float64 *measurement;
 
     /**
      * Points to the output array of the GAM (which is the output of the PID controller)
      */
-    double *output;
+    float64 *output;
 
     /**
      * Number of input signal.
@@ -159,6 +184,25 @@ private:
      * Number of output samples.
      */
     uint32 numberOfOuputSamples;
+
+    /**
+     * Input reference dimension. It must be one
+     */
+    uint32 inputReferenceDimension;
+
+    /**
+     * Input measurement dimension. It must be one
+     */
+    uint32 inputMeasurementDimension;
+
+    /**
+     * Output dimension. It must be one
+     */
+    uint32 outputDimension;
+
+    inline void GetValue();
+
+    inline void Saturation();
 
 };
 

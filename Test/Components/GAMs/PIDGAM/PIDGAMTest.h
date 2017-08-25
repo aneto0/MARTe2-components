@@ -50,8 +50,51 @@ public:
     bool TestInitialiseWrongSaturationLimits();
     bool TestInitialiseWrongSaturationLimits2();
     bool TestInitialise();
-    bool TestInitialiseWrongNumberOfInputs();
-    bool TestInitialiseWrongNumberOfInputs2();
+    bool TestSetupWrongNumberOfInputs();
+    bool TestSetupWrongNumberOfInputs2();
+    bool TestSetupWrongNumberOfOutputs();
+    bool TestSetupWrongNumberOfOutputs2();
+    bool TestSetupNoInputElementsReference();
+    bool TestSetupWrongInputElementsReference();
+    bool TestSetupNoInputElementsMeasurement();
+    bool TestSetupWrongInputElementsMeasurement();
+    bool TestSetupNoOutputElements();
+    bool TestSetupWrongOutputElements();
+    bool TestSetupNoInputSamplesReference();
+    bool TestSetupWrongInputSamplesReference();
+    bool TestSetupNoInputSamplesMeasurement();
+    bool TestSetupWrongInputSamplesMeasurement();
+    bool TestSetupNoOutputSamples();
+    bool TestSetupWrongOutputSamples();
+    bool TestSetupNoInputDimensionReference();
+    bool TestSetupWrongInputDimensionReference();
+    bool TestSetupNoInputDimensionMeasurement();
+    bool TestSetupWrongInputDimensionMeasurement();
+    bool TestSetupNoOutputDimension();
+    bool TestSetupWrongOutputDimension();
+    bool TestSetupNoReferenceInputType();
+    bool TestSetupWrongReferenceInputType();
+    bool TestSetupNoMeasurementInputType();
+    bool TestSetupWrongMeasurementInputType();
+    bool TestSetupNoOutputType();
+    bool TestSetupWrongOutputType();
+    bool TestSetup1InputSignal();
+    bool TestSetup2InputSignals();
+    bool TestExecutekpSubtract();
+    bool TestExecutekp();
+    bool TestExecutekiSubtract();
+    bool TestExecuteki();
+    bool TestExecutekiSubtract2();
+    bool TestExecuteki2();
+    bool TestExecutekdSubtract();
+    bool TestExecutekd();
+    bool TestExecutekpkikdSubtract();
+    bool TestExecutekpkikdCompareBoth();
+    bool TestExecuteSaturationkp();
+    bool TestExecuteSaturationki();
+    bool TestExecuteSaturationki2();
+
+
 };
 
 }
