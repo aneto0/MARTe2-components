@@ -46,7 +46,8 @@ static const int32 FILE_FORMAT_BINARY = 1;
 static const int32 FILE_FORMAT_CSV = 2;
 
 FileWriter::FileWriter() :
-        DataSourceI(), MessageI() {
+        DataSourceI(),
+        MessageI() {
     storeOnTrigger = false;
     numberOfPreTriggers = 0u;
     numberOfPostTriggers = 0u;
@@ -130,8 +131,7 @@ bool FileWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8
     if (storeOnTrigger) {
         ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
         brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
-                                                              numberOfPostTriggers, cpuMask, stackSize);
+        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTriggerNew);
         }
@@ -386,6 +386,13 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
             numberOfBinaryBytes += nBytes;
         }
     }
+    //Only one and one GAM allowed to interact with this DataSourceI
+    if (ok) {
+        ok = (GetNumberOfFunctions() == 1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one Function allowed to interact with this DataSourceI");
+        }
+    }
     //Allocate memory
     if (ok) {
         dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBinaryBytes));
@@ -493,8 +500,7 @@ ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filenameIn) {
                     fatalFileError = !GetSignalNumberOfElements(n, nOfElements);
                 }
                 if (!fatalFileError) {
-                    fatalFileError = !outputFile.Printf("%s (%s)[%u]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType),
-                                                        nOfElements);
+                    fatalFileError = !outputFile.Printf("%s (%s)[%u]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
                 }
             }
             if (!fatalFileError) {

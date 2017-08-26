@@ -56,8 +56,10 @@ namespace MARTe {
  * contain the number of signals. Then, for each signal, the signal type will be encoded in two bytes, followed
  *  by 32 bytes to encode the signal name, followed by 4 bytes which store the number of elements of a given signal.
  *  Following the header the signal samples are consecutively stored in binary format.
- * *
- * This DataSourceI has the functions FlushFile, OpenFilea and CloseFile registered as RPCs.
+ *
+ * This DataSourceI has the functions FlushFile, OpenFile and CloseFile registered as RPCs.
+ *
+ * Only one and one GAM is allowed to write into this DataSourceI.
  *
  * The configuration syntax is (names are only given as an example):
  * +FileWriter_0 = {
@@ -150,7 +152,7 @@ public:
             void *&signalAddress);
 
     /**
-     * @brief See DataSourceI::GetNumberOfMemoryBuffers.
+     * @brief See DataSourceI::GetBrokerName.
      * @details Only OutputSignals are supported.
      * @return MemoryMapAsyncOutputBroker if storeOnTrigger == 0, MemoryMapAsyncTriggerOutputBroker otherwise.
      */
