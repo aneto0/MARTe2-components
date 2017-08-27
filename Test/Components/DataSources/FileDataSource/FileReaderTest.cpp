@@ -135,10 +135,10 @@ public:
             else if (GetSignalType(InputSignals, n) == SignedInteger8Bit) {
                 int8Signal = reinterpret_cast<int8 *>(GetInputSignalMemory(n));
             }
-            else if (GetSignalType(InputSignals, n) == UnsignedInteger32Bit) {
+            else if (GetSignalType(InputSignals, n) == UnsignedInteger16Bit) {
                 uint16Signal = reinterpret_cast<uint16 *>(GetInputSignalMemory(n));
             }
-            else if (GetSignalType(InputSignals, n) == SignedInteger32Bit) {
+            else if (GetSignalType(InputSignals, n) == SignedInteger16Bit) {
                 int16Signal = reinterpret_cast<int16 *>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == UnsignedInteger32Bit) {
@@ -275,7 +275,8 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
         }\
         else {\
             type ## Signal = NULL;\
-        }
+        }\
+        signalPtrs[idx] = type ## Signal;
 
 #define FRT_FREE_SIGNAL(idx,type)\
         if (type ## Signal != NULL) {\
@@ -286,6 +287,7 @@ class FRTSignalToVerify {
 public:
     FRTSignalToVerify(MARTe::uint32 *nElements, MARTe::uint32 value) {
         using namespace MARTe;
+        signalPtrs = new void*[10];
         FRT_ADD_SIGNAL_TO_VERIFY(0, uint8, nElements, value)
         FRT_ADD_SIGNAL_TO_VERIFY(1, int8, nElements, value)
         FRT_ADD_SIGNAL_TO_VERIFY(2, uint16, nElements, value)
@@ -301,6 +303,7 @@ public:
 
     ~FRTSignalToVerify() {
         using namespace MARTe;
+        delete[] signalPtrs;
         FRT_FREE_SIGNAL(0, uint8)
         FRT_FREE_SIGNAL(1, int8)
         FRT_FREE_SIGNAL(2, uint16)
@@ -323,12 +326,30 @@ public:
     MARTe::int64 *int64Signal;
     MARTe::float32 *float32Signal;
     MARTe::float64 *float64Signal;
+    void **signalPtrs;
 };
 
-#define FRT_VERIFY_SIGNAL(idx,type)\
+#define FRT_VERIFY_SIGNAL(type)\
         for(z=0; (z<signalToVerifyNumberOfElements[s]) && (ok); z++) {\
-            ok = (signalToVerify[s]->type ## Signal[z] == gam->type ## Signal[z]);\
+            if (signalToVerify[s]->type ## Signal != NULL) {\
+                ok = (signalToVerify[s]->type ## Signal[z] == gam->type ## Signal[z]);\
+            }\
         }
+
+static void GenerateCSVFile(const MARTe::char8 * const filename, const MARTe::char8 * const fileContent) {
+    using namespace MARTe;
+    File f;
+    f.Open(filename, BasicFile::ACCESS_MODE_W | BasicFile::FLAG_CREAT);
+    f.Printf("%s", fileContent);
+    f.Flush();
+    f.Close();
+}
+
+static void DeleteTestFile(const MARTe::char8 * const filename) {
+    using namespace MARTe;
+    Directory toDelete(filename);
+    toDelete.Delete();
+}
 
 static bool TestIntegratedExecution(const MARTe::char8 * const config, const MARTe::char8 * const filename, FRTSignalToVerify **signalToVerify, MARTe::uint32 *signalToVerifyNumberOfElements, MARTe::uint32 signalToVerifyNumberOfSamples, bool csv, bool interpolated) {
     using namespace MARTe;
@@ -400,15 +421,113 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, const MAR
     if (ok) {
         uint32 z;
         uint32 s;
-        for (s = 0; (s < signalToVerifyNumberOfSamples); s++) {
+        for (s = 0; (s < signalToVerifyNumberOfSamples) && (ok); s++) {
             scheduler->ExecuteThreadCycle(0);
-            FRT_VERIFY_SIGNAL(0, uint8);
+            FRT_VERIFY_SIGNAL(uint8);
+            FRT_VERIFY_SIGNAL(int8);
+            FRT_VERIFY_SIGNAL(uint16);
+            FRT_VERIFY_SIGNAL(int16);
+            FRT_VERIFY_SIGNAL(uint32);
+            FRT_VERIFY_SIGNAL(int32);
+            FRT_VERIFY_SIGNAL(uint64);
+            FRT_VERIFY_SIGNAL(int64);
+            FRT_VERIFY_SIGNAL(float32);
+            FRT_VERIFY_SIGNAL(float64);
 
         }
     }
     if (ok) {
         ok = application->StopCurrentStateExecution();
     }
+    god->Purge();
+    return ok;
+}
+
+static void GenerateBinaryFile(const MARTe::char8 * const filename, FRTSignalToVerify **signalToVerify, MARTe::uint32 *signalToVerifyNumberOfElements, MARTe::uint32 signalToVerifyNumberOfSamples) {
+    using namespace MARTe;
+    const uint32 N_OF_SIGNALS = 10;
+    const char8 *signalNames[N_OF_SIGNALS] = { "SignalUInt8", "SignalInt8", "SignalUInt16", "SignalInt16", "SignalUInt32", "SignalInt32", "SignalUInt64", "SignalInt64", "SignalFloat32",
+            "SignalFloat64WhichIsAlsoAVeryLon" };
+    const TypeDescriptor signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit, SignedInteger8Bit, UnsignedInteger16Bit, SignedInteger16Bit, UnsignedInteger32Bit, SignedInteger32Bit, UnsignedInteger64Bit,
+            SignedInteger64Bit, Float32Bit, Float64Bit };
+
+    uint32 signalBinarySize = 0u;
+    uint32 i;
+    for (i = 0u; i < N_OF_SIGNALS; i++) {
+        signalBinarySize += signalTypes[i].numberOfBits * signalToVerifyNumberOfElements[i] / 8u;
+    }
+    const uint32 SIGNAL_NAME_SIZE = 32;
+    File f;
+    bool ok = f.Open(filename, BasicFile::ACCESS_MODE_W | BasicFile::FLAG_CREAT);
+
+    if (ok) {
+        uint32 writeSize = sizeof(uint32);
+        f.Write(reinterpret_cast<const char8 *>(&N_OF_SIGNALS), writeSize);
+        uint32 n;
+        //Write the header
+        for (n = 0u; n < N_OF_SIGNALS; n++) {
+            writeSize = sizeof(uint16);
+            f.Write(reinterpret_cast<const char8 *>(&signalTypes[n].all), writeSize);
+            char8 signalName32[SIGNAL_NAME_SIZE];
+            MemoryOperationsHelper::Set(&signalName32[0], '\0', SIGNAL_NAME_SIZE);
+            MemoryOperationsHelper::Copy(&signalName32[0], signalNames[n], StringHelper::Length(signalNames[n]));
+            writeSize = SIGNAL_NAME_SIZE;
+            f.Write(reinterpret_cast<const char8 *>(&signalName32[0]), writeSize);
+
+            writeSize = sizeof(uint32);
+            f.Write(reinterpret_cast<const char8 *>(&signalToVerifyNumberOfElements[n]), writeSize);
+        }
+        uint32 s;
+        for (s = 0; s < signalToVerifyNumberOfSamples; s++) {
+            for (n = 0u; n < N_OF_SIGNALS; n++) {
+                writeSize = signalToVerifyNumberOfElements[n] * signalTypes[n].numberOfBits / 8;
+                f.Write(reinterpret_cast<const char8 *>(&signalToVerify[s]->signalPtrs[n]), writeSize);
+            }
+        }
+    }
+    f.Close();
+}
+
+static bool TestIntegratedExecution(const MARTe::char8 * const config, bool csv) {
+    using namespace MARTe;
+    const char8 * filename = "";
+    const char8 * fileContent;
+    bool ok = true;
+    uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    FRTSignalToVerify **signals = new FRTSignalToVerify*[3];
+    uint32 i;
+    const uint32 signalToVerifyNumberOfSamples = 3u;
+    for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
+        signals[i] = new FRTSignalToVerify(numberOfElements, i + 1);
+    }
+
+    if (csv) {
+        filename = "TestIntegratedExecution.csv";
+        fileContent =
+                ""
+                        "#SignalUInt8 (uint8)[1];SignalInt8 (int8)[1];SignalUInt16 (uint16)[1];SignalInt16 (int16)[1];SignalUInt32 (uint32)[1];SignalInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLon (float64)[1]\n"
+                        "1;1;1;1;1;1;1;1;1;1\n"
+                        "2;2;2;2;2;2;2;2;2;2\n"
+                        "3;3;3;3;3;3;3;3;3;3\n";
+        GenerateCSVFile(filename, fileContent);
+        if (ok) {
+            ok = TestIntegratedExecution(config, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, true, false);
+        }
+    }
+    else {
+        filename = "TestIntegratedExecution.bin";
+        GenerateBinaryFile(filename, signals, numberOfElements, signalToVerifyNumberOfSamples);
+        if (ok) {
+            ok = TestIntegratedExecution(config, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, false, false);
+        }
+    }
+
+    for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
+        delete signals[i];
+    }
+    delete signals;
+
+    DeleteTestFile(filename);
 
     return ok;
 }
@@ -427,7 +546,7 @@ static const MARTe::char8 * const config1 = ""
         "                    DataSource = Drv1"
         "                }"
         "                SignalInt8 = {"
-        "                    Type = uint8"
+        "                    Type = int8"
         "                    DataSource = Drv1"
         "                }"
         "                SignalUInt16 = {"
@@ -2482,21 +2601,6 @@ static const MARTe::char8 * const config13 = ""
 "}";
 #endif
 
-static void CreateTestFile(const MARTe::char8 * const filename, const MARTe::char8 * const fileContent) {
-    using namespace MARTe;
-    File f;
-    f.Open(filename, BasicFile::ACCESS_MODE_W | BasicFile::FLAG_CREAT);
-    f.Printf("%s", fileContent);
-    f.Flush();
-    f.Close();
-}
-
-static void DeleteTestFile(const MARTe::char8 * const filename) {
-    using namespace MARTe;
-    Directory toDelete(filename);
-    toDelete.Delete();
-}
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -2520,35 +2624,12 @@ bool FileReaderTest::TestGetNumberOfMemoryBuffers() {
 
 bool FileReaderTest::TestGetSignalMemoryBuffer() {
     using namespace MARTe;
+    void *ptr;
     FileReader test;
-    void *ptr = NULL;
-    const char8 * const filename = "FileReaderTest_TestGetSignalMemoryBuffer.csv";
-    const char8 * fileContent =
-            ""
-                    "#SignalUInt8 (uint8)[1];SignalInt8 (int8)[1];SignalUInt16 (uint16)[1];SignalInt16 (int16)[1];SignalUInt32 (uint32)[1];SignalInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLon (float64)[1]\n"
-                    "1;1;1;1;1;1;1;1;1;1\n"
-                    "2;2;2;2;2;2;2;2;2;2\n"
-                    "3;3;3;3;3;3;3;3;3;3\n";
-    CreateTestFile(filename, fileContent);
     bool ok = !test.GetSignalMemoryBuffer(0, 0, ptr);
     if (ok) {
-        uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        FRTSignalToVerify **signals = new FRTSignalToVerify*[3];
-        uint32 i;
-        const uint32 signalToVerifyNumberOfSamples = 3u;
-        for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
-            signals[i] = new FRTSignalToVerify(numberOfElements, i+1);
-        }
-
-        ok = TestIntegratedExecution(config1, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, true, false);
-        for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
-            delete signals[i];
-        }
-        delete signals;
+        ok = TestIntegratedExecution(config1, false);
     }
-
-    DeleteTestFile(filename);
-
     return ok;
 }
 
@@ -2572,7 +2653,7 @@ bool FileReaderTest::TestGetBrokerName_MemoryMapInterpolatedInputBroker() {
                     "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
                     "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
                     "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
-    CreateTestFile(filename, fileContent);
+    GenerateCSVFile(filename, fileContent);
     cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
     cdb.Write("CSVSeparator", ";");
@@ -2601,7 +2682,7 @@ bool FileReaderTest::TestGetBrokerName_MemoryMapInputBroker() {
                     "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
                     "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
                     "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
-    CreateTestFile(filename, fileContent);
+    GenerateCSVFile(filename, fileContent);
     cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
     cdb.Write("CSVSeparator", ";");
@@ -3031,22 +3112,22 @@ bool FileReaderTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *f
         "0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
     }
     else {
-        uint32 cycleWriteSize = sizeof(uint8); //trigger
-        cycleWriteSize += sizeof(uint32);//time
-        cycleWriteSize += sizeof(uint8);//signalUInt8
-        cycleWriteSize += sizeof(uint16);//signalUInt16
-        cycleWriteSize += sizeof(uint32);//signalUInt32
-        cycleWriteSize += sizeof(uint64);//signalUInt64
-        cycleWriteSize += sizeof(int8);//signalInt8
-        cycleWriteSize += sizeof(int16);//signalInt16
-        cycleWriteSize += sizeof(int32);//signalInt32
-        cycleWriteSize += sizeof(int64);//signalInt64
-        cycleWriteSize += sizeof(float32);//signalFloat32
-        cycleWriteSize += sizeof(float64);//signalFloat64
+        uint32 writeSize = sizeof(uint8); //trigger
+        writeSize += sizeof(uint32);//time
+        writeSize += sizeof(uint8);//signalUInt8
+        writeSize += sizeof(uint16);//signalUInt16
+        writeSize += sizeof(uint32);//signalUInt32
+        writeSize += sizeof(uint64);//signalUInt64
+        writeSize += sizeof(int8);//signalInt8
+        writeSize += sizeof(int16);//signalInt16
+        writeSize += sizeof(int32);//signalInt32
+        writeSize += sizeof(int64);//signalInt64
+        writeSize += sizeof(float32);//signalFloat32
+        writeSize += sizeof(float64);//signalFloat64
 
         const uint32 SIGNAL_NAME_SIZE = 32;
         uint32 headerSize = sizeof(uint32) + N_OF_SIGNALS * (sizeof(uint16) + SIGNAL_NAME_SIZE + sizeof(uint32));
-        uint32 memorySize = headerSize + (numberOfElements * cycleWriteSize);//5 writes
+        uint32 memorySize = headerSize + (numberOfElements * writeSize);//5 writes
         expectedFileContent = static_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
 
         uint32 n;
@@ -3065,7 +3146,7 @@ bool FileReaderTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *f
         }
 
         for (n = 0u; n < numberOfElements; n++) {
-            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (n * cycleWriteSize)]));
+            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (n * writeSize)]));
             uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
             uint8 *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
             uint16 *signalUInt16Pointer = reinterpret_cast<uint16 *>(signalUInt8Pointer + 1);
@@ -3134,22 +3215,22 @@ bool FileReaderTest::TestIntegratedInApplication_NoTrigger_Array(const MARTe::ch
         "0;16000000;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5.000000 5.000000 } ;{ 5.000000 5.000000 } \n";
     }
     else {
-        uint32 cycleWriteSize = sizeof(uint8); //trigger
-        cycleWriteSize += sizeof(uint32);//time
-        cycleWriteSize += sizeof(uint8) * ARRAY_SIZE;//signalUInt8
-        cycleWriteSize += sizeof(uint16) * ARRAY_SIZE;//signalUInt16
-        cycleWriteSize += sizeof(uint32) * ARRAY_SIZE;//signalUInt32
-        cycleWriteSize += sizeof(uint64) * ARRAY_SIZE;//signalUInt64
-        cycleWriteSize += sizeof(int8) * ARRAY_SIZE;//signalInt8
-        cycleWriteSize += sizeof(int16) * ARRAY_SIZE;//signalInt16
-        cycleWriteSize += sizeof(int32) * ARRAY_SIZE;//signalInt32
-        cycleWriteSize += sizeof(int64) * ARRAY_SIZE;//signalInt64
-        cycleWriteSize += sizeof(float32) * ARRAY_SIZE;//signalFloat32
-        cycleWriteSize += sizeof(float64) * ARRAY_SIZE;//signalFloat64
+        uint32 writeSize = sizeof(uint8); //trigger
+        writeSize += sizeof(uint32);//time
+        writeSize += sizeof(uint8) * ARRAY_SIZE;//signalUInt8
+        writeSize += sizeof(uint16) * ARRAY_SIZE;//signalUInt16
+        writeSize += sizeof(uint32) * ARRAY_SIZE;//signalUInt32
+        writeSize += sizeof(uint64) * ARRAY_SIZE;//signalUInt64
+        writeSize += sizeof(int8) * ARRAY_SIZE;//signalInt8
+        writeSize += sizeof(int16) * ARRAY_SIZE;//signalInt16
+        writeSize += sizeof(int32) * ARRAY_SIZE;//signalInt32
+        writeSize += sizeof(int64) * ARRAY_SIZE;//signalInt64
+        writeSize += sizeof(float32) * ARRAY_SIZE;//signalFloat32
+        writeSize += sizeof(float64) * ARRAY_SIZE;//signalFloat64
 
         const uint32 SIGNAL_NAME_SIZE = 32;
         uint32 headerSize = sizeof(uint32) + N_OF_SIGNALS * (sizeof(uint16) + SIGNAL_NAME_SIZE + sizeof(uint32));
-        uint32 memorySize = headerSize + (numberOfElements * cycleWriteSize);//5 writes
+        uint32 memorySize = headerSize + (numberOfElements * writeSize);//5 writes
         expectedFileContent = static_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
 
         uint32 n;
@@ -3168,7 +3249,7 @@ bool FileReaderTest::TestIntegratedInApplication_NoTrigger_Array(const MARTe::ch
         }
 
         for (n = 0u; n < numberOfElements; n++) {
-            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (n * cycleWriteSize)]));
+            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (n * writeSize)]));
             uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
             uint8 *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
             uint16 *signalUInt16Pointer = reinterpret_cast<uint16 *>(signalUInt8Pointer + ARRAY_SIZE);
@@ -3240,22 +3321,22 @@ bool FileReaderTest::TestIntegratedInApplication_Trigger(const MARTe::char8 *fil
         "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
     }
     else {
-        uint32 cycleWriteSize = sizeof(uint8); //trigger
-        cycleWriteSize += sizeof(uint32);//time
-        cycleWriteSize += sizeof(uint8);//signalUInt8
-        cycleWriteSize += sizeof(uint16);//signalUInt16
-        cycleWriteSize += sizeof(uint32);//signalUInt32
-        cycleWriteSize += sizeof(uint64);//signalUInt64
-        cycleWriteSize += sizeof(int8);//signalInt8
-        cycleWriteSize += sizeof(int16);//signalInt16
-        cycleWriteSize += sizeof(int32);//signalInt32
-        cycleWriteSize += sizeof(int64);//signalInt64
-        cycleWriteSize += sizeof(float32);//signalFloat32
-        cycleWriteSize += sizeof(float64);//signalFloat64
+        uint32 writeSize = sizeof(uint8); //trigger
+        writeSize += sizeof(uint32);//time
+        writeSize += sizeof(uint8);//signalUInt8
+        writeSize += sizeof(uint16);//signalUInt16
+        writeSize += sizeof(uint32);//signalUInt32
+        writeSize += sizeof(uint64);//signalUInt64
+        writeSize += sizeof(int8);//signalInt8
+        writeSize += sizeof(int16);//signalInt16
+        writeSize += sizeof(int32);//signalInt32
+        writeSize += sizeof(int64);//signalInt64
+        writeSize += sizeof(float32);//signalFloat32
+        writeSize += sizeof(float64);//signalFloat64
 
         const uint32 SIGNAL_NAME_SIZE = 32;
         uint32 headerSize = sizeof(uint32) + N_OF_SIGNALS * (sizeof(uint16) + SIGNAL_NAME_SIZE + sizeof(uint32));
-        uint32 memorySize = headerSize + (numberOfElements * cycleWriteSize);//3 writes (as per trigger)
+        uint32 memorySize = headerSize + (numberOfElements * writeSize);//3 writes (as per trigger)
         expectedFileContent = static_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
 
         uint32 n;
@@ -3278,7 +3359,7 @@ bool FileReaderTest::TestIntegratedInApplication_Trigger(const MARTe::char8 *fil
             if (triggerToGenerate[n] != 1) {
                 continue;
             }
-            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (z * cycleWriteSize)]));
+            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (z * writeSize)]));
             z++;
 
             uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
@@ -3328,7 +3409,7 @@ bool FileReaderTest::TestOpenFile() {
     bool ok = TestIntegratedInApplication(config5, false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
-    //Get the current pulse number
+//Get the current pulse number
     ReferenceT<FileReader> fileReader;
     if (ok) {
         fileReader = godb->Find("Test.Data.Drv1");
@@ -3372,7 +3453,7 @@ bool FileReaderTest::TestOpenFile_Overwrite() {
     bool ok = TestIntegratedInApplication(config13, false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
-    //Get the current pulse number
+//Get the current pulse number
     ReferenceT<FileReader> fileReader;
     if (ok) {
         fileReader = godb->Find("Test.Data.Drv1");
