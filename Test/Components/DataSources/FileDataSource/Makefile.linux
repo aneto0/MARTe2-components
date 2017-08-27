@@ -28,6 +28,6 @@ TARGET=linux
 
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-OBJSX = FileWriterGTest.x 
+OBJSX = FileReaderGTest.x FileWriterGTest.x 
 
 include Makefile.inc

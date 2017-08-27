@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  FileWriterTest.x
+OBJSX +=  FileReaderTest.x FileWriterTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..

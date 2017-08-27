@@ -102,12 +102,12 @@ bool FileReader::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buff
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction and on the storeOnTrigger property (which is load before).*/
 const char8* FileReader::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
     const char8* brokerName = "";
-    if (direction == OutputSignals) {
+    if (direction == InputSignals) {
         if (interpolate) {
             brokerName = "MemoryMapInterpolatedInputBroker";
         }
         else {
-            brokerName = "MemoryMapInputBroker";
+            brokerName = "MemoryMapSynchronisedInputBroker";
         }
     }
     return brokerName;
@@ -125,7 +125,7 @@ bool FileReader::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* 
     }
     else {
         ReferenceT<MemoryMapSynchronisedInputBroker> broker("MemoryMapSynchronisedInputBroker");
-        ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
+        ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
         if (ok) {
             ok = inputBrokers.Insert(broker);
         }
@@ -273,7 +273,7 @@ bool FileReader::Initialise(StructuredDataI& data) {
     if (ok) {
         ok = data.MoveRelative("Signals");
         if (!ok) {
-            if (!interpolate) {
+            if (interpolate) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "With Interpolate=yes the InterpolatedTimeSignal shall be specified");
             }
             else {
@@ -294,6 +294,15 @@ bool FileReader::Initialise(StructuredDataI& data) {
             }
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "With Interpolate=yes the InterpolatedTimeSignal shall have type uint64");
+            }
+            if (ok) {
+                uint32 nElements;
+                if (data.Read("NumberOfElements", nElements)) {
+                    ok = (nElements == 1u);
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "With Interpolate=yes the InterpolatedTimeSignal shall have one and only one element");
+                    }
+                }
             }
         }
         if (ok) {
@@ -429,10 +438,10 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
 ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
     REPORT_ERROR(ErrorManagement::Information, "Going to open file with name %s", filename.Buffer());
     //File already exists!
-    fatalFileError = inputFile.Open(filename.Buffer(), (BasicFile::ACCESS_MODE_R));
+    fatalFileError = !inputFile.Open(filename.Buffer(), (BasicFile::ACCESS_MODE_R));
     if (fatalFileError) {
         (void) inputFile.Close();
-        REPORT_ERROR(ErrorManagement::FatalError, "File %s already exists and Overwrite=no", filename.Buffer());
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to open File %s", filename.Buffer());
     }
 
     if (!fatalFileError) {
@@ -444,22 +453,15 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
             StreamString line;
             fatalFileError = !inputFile.GetLine(line);
             //Skip the #
-            char8 saveTerminator;
-            StreamString token;
             if (!fatalFileError) {
-                fatalFileError = !line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
-            }
-            if (!fatalFileError) {
-                AnyType src(CharString, 0u, token.Buffer());
-                AnyType dst(UnsignedInteger32Bit, 0u, &nOfSignals);
-                fatalFileError = !TypeConvert(dst, src);
+                fatalFileError = !line.Seek(1LLU);
             }
 
-            uint32 signalIdx = 0u;
-            while ((signalIdx < nOfSignals) && (!fatalFileError)) {
-                token = "";
-                fatalFileError = !line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
+            char8 saveTerminator;
+            StreamString token;
+            while (line.GetToken(token, csvSeparator.Buffer(), saveTerminator) && (!fatalFileError)) {
                 StreamString signalName;
+                (void) token.Seek(0LLU);
                 if (!fatalFileError) {
                     fatalFileError = !token.GetToken(signalName, " ", saveTerminator);
                 }
@@ -500,14 +502,11 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                 if (!fatalFileError) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
                 }
-                signalIdx++;
-            }
-            if (!fatalFileError) {
-                fatalFileError = (signalIdx != nOfSignals);
-                if (fatalFileError) {
-                    REPORT_ERROR(ErrorManagement::FatalError, "The number of signals found is not consistent with the number of signals that were declared in the header of the files (%d) vs (%d)",
-                                 signalIdx, nOfSignals);
+                if (!fatalFileError) {
+                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(), signalTypeStr.Buffer(), nElements);
                 }
+                token = "";
+
             }
         }
         else {
@@ -553,6 +552,9 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                 }
                 if (!fatalFileError) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
+                }
+                if (!fatalFileError) {
+                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
                 }
             }
         }
