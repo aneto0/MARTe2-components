@@ -57,14 +57,14 @@ namespace MARTe {
  *  by 32 bytes to encode the signal name, followed by 4 bytes which store the number of elements of a given signal.
  *  Following the header the signal samples are consecutively stored in binary format.
  * *
- * This DataSourceI has the functions OpenFile and CloseFile registered as RPCs.
+ * This DataSourceI has the function CloseFile registered as RPCs.
  *
  * Only one and one GAM is allowed to read from this DataSourceI.
  *
  * The configuration syntax is (names are only given as an example):
  * +FileReader_0 = {
  *     Class = FileReader
- *     Filename = "test.bin" //Optional. If not set the filename shall be set using the OpenFile RPC.
+ *     Filename = "test.bin" //Compulsory.
  *     Interpolate = "yes" //Compulsory. If "yes" the data will be interpolated and a Time signal shall be provided. If "no" the data will be provided as is.
  *     FileFormat = "binary" //Compulsory. Possible values are: binary and csv.
  *     CSVSeparator = "," //Compulsory if Format=csv. Sets the file separator type.
@@ -140,7 +140,7 @@ FileReader    ();
     /**
      * @brief See DataSourceI::GetBrokerName.
      * @details Only Input are supported.
-     * @return MemoryMapAsyncInputBroker if interpolate = false, MemoryMapInterpolatedInputBroker otherwise.
+     * @return MemoryMapSynchronisedInputBroker if interpolate = false, MemoryMapInterpolatedInputBroker otherwise.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
@@ -148,7 +148,7 @@ FileReader    ();
     /**
      * @brief See DataSourceI::GetInputBrokers.
      * @details If interpolate == yes it adds a MemoryMapInterpolatedInputBroker instance to
-     *  the inputBrokers, otherwise it adds a MemoryMapAsyncInputBroker instance to the outputBrokers.
+     *  the inputBrokers, otherwise it adds a MemoryMapSynchronisedInputBroker instance to the intputBrokers.
      * @pre
      *   GetNumberOfFunctions() == 1u
      */
@@ -195,12 +195,6 @@ FileReader    ();
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
-    /**
-     * @brief Opens a new File.
-     * @param[in] filenameIn the name of the file to be opened.
-     * @return ErrorManagement::NoError if the file can be successfully opened.
-     */
-    ErrorManagement::ErrorType OpenFile(StreamString filenameIn);
 
     /**
      * @brief Close the file. Function is registered as an RPC.
@@ -233,6 +227,13 @@ FileReader    ();
     bool IsInterpolate() const;
 
 private:
+
+    /**
+     * @brief Opens a new File, parses the header and registers the signals in the cdb.
+     * @param[out] cdb the ConfigurationDatabase where signals will be written into.
+     * @return ErrorManagement::NoError if the file can be successfully opened.
+     */
+    ErrorManagement::ErrorType OpenFile(StructuredDataI &cdb);
 
     /**
      * Offset of each signal in the dataSourceMemory
@@ -270,11 +271,6 @@ private:
     uint32 numberOfBinaryBytes;
 
     /**
-     * The printf format in case of reading as csv.
-     */
-    StreamString csvPrintfFormat;
-
-    /**
      * The CSV separator.
      */
     StreamString csvSeparator;
@@ -288,6 +284,11 @@ private:
      * The output file.
      */
     File inputFile;
+
+    /**
+     * The signal memory as an AnyType array optimised for reading the data.
+     */
+    AnyType *signalsAnyType;
 
     /**
      * Filter to receive the RPC which allows to change the pulse number.

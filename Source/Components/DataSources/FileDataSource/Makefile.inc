@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX=FileWriter.x
+OBJSX=FileReader.x FileWriter.x
 
 PACKAGE=Components/DataSources
 
