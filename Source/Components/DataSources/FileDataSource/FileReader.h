@@ -68,14 +68,9 @@ namespace MARTe {
  *     Interpolate = "yes" //Compulsory. If "yes" the data will be interpolated and a Time signal shall be provided. If "no" the data will be provided as is.
  *     FileFormat = "binary" //Compulsory. Possible values are: binary and csv.
  *     CSVSeparator = "," //Compulsory if Format=csv. Sets the file separator type.
- *     TimeSignalName = "Time" //Compulsory if Interpolate = "yes". Name of the signal containing the time vector to be interpolated.
- *
- *     Signals = {
- *         InterpolatedTimeSignal = { //Compulsory when Interpolate = "yes". Must be set in index 0 of the Signals node.
- *             Type = 'uint64" //Type must be uint64
- *         }
- *         //All the other signals are automatically added against the information stored in the csv file.
- *     }
+ *     XAxisSignal = "Time" //Compulsory if Interpolate = "yes". Name of the signal containing the independent variable to generate the interpolation samples.
+ *     InterpolationPeriod = 1000 //Compulsory if Interpolate = "yes". InterpolatedTimeSignal += InterpolationPeriod. It will be read as an uint64
+ *     //All the signals are automatically added against the information stored in the csv file.
  *     +Messages = { //Optional. If set a message will be fired every time one of the events below occur
  *         Class = ReferenceContainer
  *         +FileOpenedOK = { //Optional, but if set, the name of the Object shall be FileOpenedOK. If set a message will be sent to the Destination, every time the File is successfully opened
@@ -188,7 +183,8 @@ FileReader    ();
      * @details This method verifies that all the parameters (e.g. number of samples) requested by the GAMs interacting with this DataSource
      *  are valid and consistent with the parameters set during the initialisation phase.
      * In particular the following conditions shall be met:
-     * - If relevant, the InterpolatedTimeSignal shall have type uint64
+     * - If relevant, the InterpolatedXAxisSignal shall have type uint64
+     * - If relevant, the XAxisSignal shall exist and shall have at most one element.
      * - The number of samples of all the signals is one.
      * - At least one signal (apart from the eventual InterpolatedTimeSignal signal) is set.
      * @return true if all the parameters are valid and if the file can be successfully opened.
@@ -227,6 +223,12 @@ FileReader    ();
     bool IsInterpolate() const;
 
 private:
+
+    /**
+     * @brief Copies the xAxis signal from the data source memory into the broker shared variable (xAxisSignal).
+     */
+    void ConvertTimeSignal();
+
 
     /**
      * @brief Opens a new File, parses the header and registers the signals in the cdb.
@@ -274,6 +276,36 @@ private:
      * The CSV separator.
      */
     StreamString csvSeparator;
+
+    /**
+     * The name of the time signal
+     */
+    StreamString xAxisSignalName;
+
+    /**
+     * The time signal
+     */
+    uint64 xAxisSignal;
+
+    /**
+     * The time signal index
+     */
+    uint32 xAxisSignalIdx;
+
+    /**
+     * The time signal data source pointer
+     */
+    void *xAxisSignalPtr;
+
+    /**
+     * The type of the time signal
+     */
+    TypeDescriptor xAxisSignalType;
+
+    /**
+     * The interpolation period
+     */
+    uint64 interpolationPeriod;
 
     /**
      * If a fatal file error occurred do not try to flush segments nor do further writes.

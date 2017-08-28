@@ -76,7 +76,6 @@ public:
      */
     bool TestGetBrokerName_MemoryMapInputBroker();
 
-#if 0
     /**
      * @brief Tests the GetInputBrokers method.
      */
@@ -97,6 +96,7 @@ public:
      */
     bool TestPrepareNextState();
 
+#if 0
     /**
      * @brief Tests the Initialise method.
      */

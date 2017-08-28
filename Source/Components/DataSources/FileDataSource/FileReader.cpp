@@ -47,11 +47,15 @@ static const int32 FILE_FORMAT_BINARY = 1;
 static const int32 FILE_FORMAT_CSV = 2;
 
 FileReader::FileReader() :
-        DataSourceI(),
-        MessageI() {
+        DataSourceI(), MessageI() {
     dataSourceMemory = NULL_PTR(char8 *);
     offsets = NULL_PTR(uint32 *);
     numberOfBinaryBytes = 0u;
+    xAxisSignal = 0u;
+    xAxisSignalIdx = 0u;
+    xAxisSignalPtr = NULL_PTR(uint64 *);
+    interpolationPeriod = 0u;
+    xAxisSignalType = InvalidType;
     fileFormat = FILE_FORMAT_BINARY;
     filename = "";
     fatalFileError = false;
@@ -120,7 +124,20 @@ bool FileReader::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* 
         interpolatedInputBroker = brokerNew.operator ->();
         ok = interpolatedInputBroker->Init(InputSignals, *this, functionName, gamMemPtr);
         if (ok) {
+            ok = GetSignalMemoryBuffer(xAxisSignalIdx, 0u, xAxisSignalPtr);
+            if (ok) {
+                interpolatedInputBroker->SetIndependentVariable(&xAxisSignal, interpolationPeriod);
+            }
+        }
+        if (ok) {
             ok = inputBrokers.Insert(brokerNew);
+        }
+        if (ok) {
+            //Read the first line so that the Broker can be correctly initialised.
+            ok = Synchronise();
+        }
+        if (ok) {
+            interpolatedInputBroker->Reset();
         }
     }
     else {
@@ -136,6 +153,39 @@ bool FileReader::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: OutputBrokers are not supported. Function returns false irrespectively of the parameters.*/
 bool FileReader::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
     return false;
+}
+
+void FileReader::ConvertTimeSignal() {
+    if (xAxisSignalType == UnsignedInteger8Bit) {
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint8 *>(xAxisSignalPtr));
+    }
+    else if (xAxisSignalType == SignedInteger8Bit) {
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int8 *>(xAxisSignalPtr));
+    }
+    else if (xAxisSignalType == UnsignedInteger16Bit) {
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint16 *>(xAxisSignalPtr));
+    }
+    else if (xAxisSignalType == SignedInteger16Bit) {
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int16 *>(xAxisSignalPtr));
+    }
+    else if (xAxisSignalType == UnsignedInteger32Bit) {
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint32 *>(xAxisSignalPtr));
+    }
+    else if (xAxisSignalType == SignedInteger32Bit) {
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int32 *>(xAxisSignalPtr));
+    }
+    else if (xAxisSignalType == UnsignedInteger64Bit) {
+        xAxisSignal = *reinterpret_cast<uint64 *>(xAxisSignalPtr);
+    }
+    else if (xAxisSignalType == SignedInteger64Bit) {
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int64 *>(xAxisSignalPtr));
+    }
+    else if (xAxisSignalType == Float32Bit) {
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<float32 *>(xAxisSignalPtr));
+    }
+    else if (xAxisSignalType == Float64Bit) {
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<float64 *>(xAxisSignalPtr));
+    }
 }
 
 bool FileReader::Synchronise() {
@@ -162,11 +212,12 @@ bool FileReader::Synchronise() {
             (void) line.Seek(0LLU);
             while ((ok) && (signalIdx < nSignals) && (line.GetToken(token, csvSeparator.Buffer(), saveTerminator))) {
                 if (signalsAnyType[signalIdx].GetNumberOfDimensions() == 1u) {
-                    uint32 nElements = signalsAnyType[signalIdx].GetNumberOfElements(1u);
+                    uint32 nElements = signalsAnyType[signalIdx].GetNumberOfElements(0u);
                     StreamString tokenArray;
                     uint32 arrayIdx = 0u;
                     void *signalAddress = signalsAnyType[signalIdx].GetDataPointer();
                     char8 *signalAddressChr = reinterpret_cast<char8 *>(signalAddress);
+                    (void) token.Seek(0LLU);
                     while ((ok) && (arrayIdx < nElements) && (token.GetToken(tokenArray, "{},", saveTerminator))) {
                         AnyType sourceStr(CharString, 0u, tokenArray.Buffer());
                         uint32 byteSize = signalsAnyType[signalIdx].GetByteSize();
@@ -179,7 +230,8 @@ bool FileReader::Synchronise() {
                     if (!ok) {
                         StreamString signalName;
                         (void) GetSignalName(signalIdx, signalName);
-                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(), line.Buffer());
+                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(),
+                                     line.Buffer());
                     }
                 }
                 else {
@@ -208,6 +260,11 @@ bool FileReader::Synchronise() {
                     REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(), function.Buffer());
                 }
             }
+        }
+    }
+    if (ok) {
+        if (interpolate) {
+            ConvertTimeSignal();
         }
     }
     return ok;
@@ -271,45 +328,32 @@ bool FileReader::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = data.MoveRelative("Signals");
-        if (!ok) {
-            if (interpolate) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "With Interpolate=yes the InterpolatedTimeSignal shall be specified");
-            }
-            else {
-                ok = data.CreateRelative("Signals");
-            }
-        }
         if (interpolate) {
-            //Check that the InterpolatedTimeSignal signal exists with the right type!
-            if (ok) {
-                ok = data.MoveToChild(0u);
-            }
-            StreamString signalTypeStr;
-            if (ok) {
-                ok = data.Read("Type", signalTypeStr);
-            }
-            if (ok) {
-                ok = (signalTypeStr == "uint64");
-            }
+            ok = data.Read("XAxisSignal", xAxisSignalName);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "With Interpolate=yes the InterpolatedTimeSignal shall have type uint64");
+                REPORT_ERROR(ErrorManagement::ParametersError, "With Interpolate=yes the XAxisSignal shall be specified");
             }
             if (ok) {
-                uint32 nElements;
-                if (data.Read("NumberOfElements", nElements)) {
-                    ok = (nElements == 1u);
-                    if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "With Interpolate=yes the InterpolatedTimeSignal shall have one and only one element");
-                    }
+                ok = data.Read("InterpolationPeriod", interpolationPeriod);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "With Interpolate=yes the InterpolationPeriod shall be specified");
                 }
             }
         }
-        if (ok) {
-            ok = (OpenFile(data) == ErrorManagement::NoError);
+    }
+    if (ok) {
+        ok = signalsDatabase.MoveRelative("Signals");
+        if (!ok) {
+            ok = signalsDatabase.CreateRelative("Signals");
         }
         if (ok) {
-            ok = data.MoveToAncestor(1u);
+            ok = (OpenFile(signalsDatabase) == ErrorManagement::NoError);
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
         }
     }
     if (ok) {
@@ -358,6 +402,7 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = data.MoveRelative("Signals");
     }
+
     //Check signal properties and compute memory
     numberOfBinaryBytes = 0u;
     if (ok) {
@@ -399,6 +444,27 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one Function allowed to interact with this DataSourceI");
         }
     }
+    //Look for the XAxisSignal
+    if (interpolate) {
+        ok = GetSignalIndex(xAxisSignalIdx, xAxisSignalName.Buffer());
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "XAxisSignal: %s was not found", xAxisSignalName.Buffer());
+        }
+        if (ok) {
+            xAxisSignalType = GetSignalType(xAxisSignalIdx);
+        }
+        if (ok) {
+            uint32 nElements;
+            ok = GetSignalNumberOfElements(xAxisSignalIdx, nElements);
+            if (ok) {
+                ok = (nElements == 1u);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "The XAxisSignal: %s cannot be a vector", xAxisSignalName.Buffer());
+                }
+            }
+        }
+    }
+
     //Allocate memory
     if (ok) {
         dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBinaryBytes));
@@ -499,6 +565,9 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                 if (!fatalFileError) {
                     fatalFileError = !cdb.Write("NumberOfElements", nElements);
                 }
+                if (nElements > 1u) {
+                    fatalFileError = !cdb.Write("NumberOfDimensions", 1u);
+                }
                 if (!fatalFileError) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
                 }
@@ -554,7 +623,8 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
                 }
                 if (!fatalFileError) {
-                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
+                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(),
+                                 TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
                 }
             }
         }

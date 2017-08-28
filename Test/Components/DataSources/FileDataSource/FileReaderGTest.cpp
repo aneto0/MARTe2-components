@@ -204,7 +204,6 @@ TEST(FileReaderGTest,TestGetBrokerName_MemoryMapInputBroker) {
     ASSERT_TRUE(test.TestGetBrokerName_MemoryMapInputBroker());
 }
 
-#if 0
 TEST(FileReaderGTest,TestGetInputBrokers) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestGetInputBrokers());
@@ -214,8 +213,6 @@ TEST(FileReaderGTest,TestGetOutputBrokers) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestGetOutputBrokers());
 }
-#endif
-#if 0
 TEST(FileReaderGTest,TestSynchronise) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSynchronise());
@@ -225,7 +222,7 @@ TEST(FileReaderGTest,TestPrepareNextState) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestPrepareNextState());
 }
-
+#if 0
 TEST(FileReaderGTest,TestGetCPUMask) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestGetCPUMask());

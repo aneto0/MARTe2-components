@@ -270,7 +270,7 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
             type ## Signal = new type[nElements[idx]];\
             uint32 zz;\
             for(zz=0;zz<nElements[idx];zz++){\
-                type ## Signal[zz]=value;\
+                type ## Signal[zz]=static_cast<type>(value);\
             }\
         }\
         else {\
@@ -281,6 +281,14 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
 #define FRT_FREE_SIGNAL(idx,type)\
         if (type ## Signal != NULL) {\
             delete [] type ## Signal;\
+        }
+
+#define FRT_VERIFY_SIGNAL(idx,type)\
+        if (signalToVerify[s]->type ## Signal != NULL) {\
+            for(z=0; (z<signalToVerifyNumberOfElements[idx]) && (ok); z++) {\
+                ok = (signalToVerify[s]->type ## Signal[z] == gam->type ## Signal[z]);\
+                printf("%d %d: %x vs %x\n", s, z, (uint32)signalToVerify[s]->type ## Signal[z], (uint32)gam->type ## Signal[z]);\
+            }\
         }
 
 class FRTSignalToVerify {
@@ -316,6 +324,40 @@ public:
         FRT_FREE_SIGNAL(9, float64)
     }
 
+    void Printf(MARTe::File &f, MARTe::TypeDescriptor t, MARTe::uint32 e) {
+        using namespace MARTe;
+        if (t == UnsignedInteger8Bit) {
+            f.Printf("%u", uint8Signal[e]);
+        }
+        else if (t == SignedInteger8Bit) {
+            f.Printf("%d", int8Signal[e]);
+        }
+        else if (t == UnsignedInteger16Bit) {
+            f.Printf("%u", uint16Signal[e]);
+        }
+        else if (t == SignedInteger16Bit) {
+            f.Printf("%d", int16Signal[e]);
+        }
+        else if (t == UnsignedInteger32Bit) {
+            f.Printf("%u", uint32Signal[e]);
+        }
+        else if (t == SignedInteger32Bit) {
+            f.Printf("%d", int32Signal[e]);
+        }
+        else if (t == UnsignedInteger64Bit) {
+            f.Printf("%u", uint64Signal[e]);
+        }
+        else if (t == SignedInteger64Bit) {
+            f.Printf("%d", int64Signal[e]);
+        }
+        else if (t == Float32Bit) {
+            f.Printf("%f", float32Signal[e]);
+        }
+        else if (t == Float64Bit) {
+            f.Printf("%f", float64Signal[e]);
+        }
+    }
+
     MARTe::uint8 *uint8Signal;
     MARTe::int8 *int8Signal;
     MARTe::uint16 *uint16Signal;
@@ -329,14 +371,7 @@ public:
     void **signalPtrs;
 };
 
-#define FRT_VERIFY_SIGNAL(type)\
-        for(z=0; (z<signalToVerifyNumberOfElements[s]) && (ok); z++) {\
-            if (signalToVerify[s]->type ## Signal != NULL) {\
-                ok = (signalToVerify[s]->type ## Signal[z] == gam->type ## Signal[z]);\
-            }\
-        }
-
-static void GenerateCSVFile(const MARTe::char8 * const filename, const MARTe::char8 * const fileContent) {
+static void GenerateFile(const MARTe::char8 * const filename, const MARTe::char8 * const fileContent) {
     using namespace MARTe;
     File f;
     f.Open(filename, BasicFile::ACCESS_MODE_W | BasicFile::FLAG_CREAT);
@@ -351,7 +386,8 @@ static void DeleteTestFile(const MARTe::char8 * const filename) {
     toDelete.Delete();
 }
 
-static bool TestIntegratedExecution(const MARTe::char8 * const config, const MARTe::char8 * const filename, FRTSignalToVerify **signalToVerify, MARTe::uint32 *signalToVerifyNumberOfElements, MARTe::uint32 signalToVerifyNumberOfSamples, bool csv, bool interpolated) {
+static bool TestIntegratedExecution(const MARTe::char8 * const config, const MARTe::char8 * const filename, FRTSignalToVerify **signalToVerify,
+                                    MARTe::uint32 *signalToVerifyNumberOfElements, MARTe::uint32 signalToVerifyNumberOfSamples, bool csv, MARTe::uint32 interpolationPeriod) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config;
@@ -364,8 +400,9 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, const MAR
     cdb.Delete("Filename");
     cdb.Write("Filename", filename);
     cdb.Delete("Interpolate");
-    if (interpolated) {
+    if (interpolationPeriod > 0) {
         cdb.Write("Interpolate", "yes");
+        cdb.Write("InterpolationPeriod", interpolationPeriod);
     }
     else {
         cdb.Write("Interpolate", "no");
@@ -423,16 +460,16 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, const MAR
         uint32 s;
         for (s = 0; (s < signalToVerifyNumberOfSamples) && (ok); s++) {
             scheduler->ExecuteThreadCycle(0);
-            FRT_VERIFY_SIGNAL(uint8);
-            FRT_VERIFY_SIGNAL(int8);
-            FRT_VERIFY_SIGNAL(uint16);
-            FRT_VERIFY_SIGNAL(int16);
-            FRT_VERIFY_SIGNAL(uint32);
-            FRT_VERIFY_SIGNAL(int32);
-            FRT_VERIFY_SIGNAL(uint64);
-            FRT_VERIFY_SIGNAL(int64);
-            FRT_VERIFY_SIGNAL(float32);
-            FRT_VERIFY_SIGNAL(float64);
+            FRT_VERIFY_SIGNAL(0, uint8);
+            FRT_VERIFY_SIGNAL(1, int8);
+            FRT_VERIFY_SIGNAL(2, uint16);
+            FRT_VERIFY_SIGNAL(3, int16);
+            FRT_VERIFY_SIGNAL(4, uint32);
+            FRT_VERIFY_SIGNAL(5, int32);
+            FRT_VERIFY_SIGNAL(6, uint64);
+            FRT_VERIFY_SIGNAL(7, int64);
+            FRT_VERIFY_SIGNAL(8, float32);
+            FRT_VERIFY_SIGNAL(9, float64);
 
         }
     }
@@ -443,13 +480,64 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, const MAR
     return ok;
 }
 
-static void GenerateBinaryFile(const MARTe::char8 * const filename, FRTSignalToVerify **signalToVerify, MARTe::uint32 *signalToVerifyNumberOfElements, MARTe::uint32 signalToVerifyNumberOfSamples) {
+static void GenerateCSVFile(const MARTe::char8 * const filename, const MARTe::char8 * const csvSeparator, FRTSignalToVerify **signalToVerify,
+                            MARTe::uint32 *signalToVerifyNumberOfElements, MARTe::uint32 signalToVerifyNumberOfSamples) {
     using namespace MARTe;
     const uint32 N_OF_SIGNALS = 10;
-    const char8 *signalNames[N_OF_SIGNALS] = { "SignalUInt8", "SignalInt8", "SignalUInt16", "SignalInt16", "SignalUInt32", "SignalInt32", "SignalUInt64", "SignalInt64", "SignalFloat32",
-            "SignalFloat64WhichIsAlsoAVeryLon" };
-    const TypeDescriptor signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit, SignedInteger8Bit, UnsignedInteger16Bit, SignedInteger16Bit, UnsignedInteger32Bit, SignedInteger32Bit, UnsignedInteger64Bit,
-            SignedInteger64Bit, Float32Bit, Float64Bit };
+    const char8 *signalNames[N_OF_SIGNALS] = { "SignalUInt8", "SignalInt8", "SignalUInt16", "SignalInt16", "SignalUInt32", "SignalInt32", "SignalUInt64",
+            "SignalInt64", "SignalFloat32", "SignalFloat64WhichIsAlsoAVeryLon" };
+    const TypeDescriptor signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit, SignedInteger8Bit, UnsignedInteger16Bit, SignedInteger16Bit, UnsignedInteger32Bit,
+            SignedInteger32Bit, UnsignedInteger64Bit, SignedInteger64Bit, Float32Bit, Float64Bit };
+    File f;
+    bool ok = f.Open(filename, BasicFile::ACCESS_MODE_W | BasicFile::FLAG_CREAT);
+
+    if (ok) {
+        uint32 n;
+        f.Printf("%s", "#");
+        //Write the header
+        for (n = 0u; n < N_OF_SIGNALS; n++) {
+            if (n != 0u) {
+                f.Printf("%s", csvSeparator);
+            }
+            f.Printf("%s (%s)[%d]", signalNames[n], TypeDescriptor::GetTypeNameFromTypeDescriptor(signalTypes[n]), signalToVerifyNumberOfElements[n]);
+        }
+        f.Printf("%s", "\n");
+        uint32 s;
+        for (s = 0; s < signalToVerifyNumberOfSamples; s++) {
+            for (n = 0u; n < N_OF_SIGNALS; n++) {
+                if (n != 0u) {
+                    f.Printf("%s", csvSeparator);
+                }
+                if (signalToVerifyNumberOfElements[n] > 1) {
+                    uint32 i;
+                    f.Printf("%s", "{");
+                    for (i = 0u; i < signalToVerifyNumberOfElements[n]; i++) {
+                        if (i != 0u) {
+                            f.Printf("%s", ",");
+                        }
+                        signalToVerify[s]->Printf(f, signalTypes[n], i);
+                    }
+                    f.Printf("%s", "}");
+                }
+                else {
+                    signalToVerify[s]->Printf(f, signalTypes[n], 0);
+                }
+            }
+            f.Printf("%s", "\n");
+        }
+    }
+    f.Flush();
+    f.Close();
+}
+
+static void GenerateBinaryFile(const MARTe::char8 * const filename, FRTSignalToVerify **signalToVerify, MARTe::uint32 *signalToVerifyNumberOfElements,
+                               MARTe::uint32 signalToVerifyNumberOfSamples) {
+    using namespace MARTe;
+    const uint32 N_OF_SIGNALS = 10;
+    const char8 *signalNames[N_OF_SIGNALS] = { "SignalUInt8", "SignalInt8", "SignalUInt16", "SignalInt16", "SignalUInt32", "SignalInt32", "SignalUInt64",
+            "SignalInt64", "SignalFloat32", "SignalFloat64WhichIsAlsoAVeryLon" };
+    const TypeDescriptor signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit, SignedInteger8Bit, UnsignedInteger16Bit, SignedInteger16Bit, UnsignedInteger32Bit,
+            SignedInteger32Bit, UnsignedInteger64Bit, SignedInteger64Bit, Float32Bit, Float64Bit };
 
     uint32 signalBinarySize = 0u;
     uint32 i;
@@ -481,44 +569,37 @@ static void GenerateBinaryFile(const MARTe::char8 * const filename, FRTSignalToV
         for (s = 0; s < signalToVerifyNumberOfSamples; s++) {
             for (n = 0u; n < N_OF_SIGNALS; n++) {
                 writeSize = signalToVerifyNumberOfElements[n] * signalTypes[n].numberOfBits / 8;
-                f.Write(reinterpret_cast<const char8 *>(&signalToVerify[s]->signalPtrs[n]), writeSize);
+                f.Write(reinterpret_cast<const char8 *>(signalToVerify[s]->signalPtrs[n]), writeSize);
             }
         }
     }
+    f.Flush();
     f.Close();
 }
 
-static bool TestIntegratedExecution(const MARTe::char8 * const config, bool csv) {
+static bool TestIntegratedExecution(const MARTe::char8 * const config, bool csv, MARTe::uint32 *numberOfElements) {
     using namespace MARTe;
     const char8 * filename = "";
-    const char8 * fileContent;
     bool ok = true;
-    uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    FRTSignalToVerify **signals = new FRTSignalToVerify*[3];
-    uint32 i;
     const uint32 signalToVerifyNumberOfSamples = 3u;
+    FRTSignalToVerify **signals = new FRTSignalToVerify*[signalToVerifyNumberOfSamples];
+    uint32 i;
     for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
         signals[i] = new FRTSignalToVerify(numberOfElements, i + 1);
     }
 
     if (csv) {
         filename = "TestIntegratedExecution.csv";
-        fileContent =
-                ""
-                        "#SignalUInt8 (uint8)[1];SignalInt8 (int8)[1];SignalUInt16 (uint16)[1];SignalInt16 (int16)[1];SignalUInt32 (uint32)[1];SignalInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLon (float64)[1]\n"
-                        "1;1;1;1;1;1;1;1;1;1\n"
-                        "2;2;2;2;2;2;2;2;2;2\n"
-                        "3;3;3;3;3;3;3;3;3;3\n";
-        GenerateCSVFile(filename, fileContent);
+        GenerateCSVFile(filename, ";", signals, numberOfElements, signalToVerifyNumberOfSamples);
         if (ok) {
-            ok = TestIntegratedExecution(config, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, true, false);
+            ok = TestIntegratedExecution(config, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, true, 0);
         }
     }
     else {
         filename = "TestIntegratedExecution.bin";
         GenerateBinaryFile(filename, signals, numberOfElements, signalToVerifyNumberOfSamples);
         if (ok) {
-            ok = TestIntegratedExecution(config, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, false, false);
+            ok = TestIntegratedExecution(config, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, false, 0);
         }
     }
 
@@ -526,7 +607,52 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, bool csv)
         delete signals[i];
     }
     delete signals;
+    DeleteTestFile(filename);
 
+    return ok;
+}
+
+static bool TestIntegratedExecutionInterpolation(const MARTe::char8 * const config, bool csv, MARTe::uint32 *numberOfElements) {
+    using namespace MARTe;
+    const char8 * filename = "";
+    bool ok = true;
+    const uint32 initialValue = 4;
+    const uint32 signalToGenerateNumberOfSamples = 6;
+    const uint32 signalToVerifyNumberOfSamples = signalToGenerateNumberOfSamples * 2 - 1;
+
+    FRTSignalToVerify **signalsFile = new FRTSignalToVerify*[signalToGenerateNumberOfSamples];
+    FRTSignalToVerify **signalsToVerify = new FRTSignalToVerify*[signalToVerifyNumberOfSamples];
+    const uint32 interpolationPeriod = 2;
+    uint32 i;
+    for (i = 0; i < signalToGenerateNumberOfSamples; i++) {
+        signalsFile[i] = new FRTSignalToVerify(numberOfElements, 2 * interpolationPeriod * i + initialValue);
+    }
+    for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
+        signalsToVerify[i] = new FRTSignalToVerify(numberOfElements, i * interpolationPeriod + initialValue);
+    }
+
+    if (csv) {
+        filename = "TestIntegratedExecutionInterpolation.csv";
+        GenerateCSVFile(filename, ";", signalsFile, numberOfElements, signalToGenerateNumberOfSamples);
+        if (ok) {
+            ok = TestIntegratedExecution(config, filename, signalsToVerify, numberOfElements, signalToVerifyNumberOfSamples, true, interpolationPeriod);
+        }
+    }
+    else {
+        filename = "TestIntegratedExecutionInterpolation.bin";
+        GenerateBinaryFile(filename, signalsFile, numberOfElements, signalToGenerateNumberOfSamples);
+        if (ok) {
+            ok = TestIntegratedExecution(config, filename, signalsToVerify, numberOfElements, signalToVerifyNumberOfSamples, false, interpolationPeriod);
+        }
+    }
+    for (i = 0; i < signalToGenerateNumberOfSamples; i++) {
+        delete signalsFile[i];
+    }
+    for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
+        delete signalsToVerify[i];
+    }
+    delete signalsFile;
+    delete signalsToVerify;
     DeleteTestFile(filename);
 
     return ok;
@@ -595,6 +721,7 @@ static const MARTe::char8 * const config1 = ""
         "            Filename = \"filewriter_test.bin\""
         "            FileFormat = csv"
         "            CSVSeparator = \";\""
+        "            XAxisSignal = SignalUInt32"
         "        }"
         "    }"
         "    +States = {"
@@ -2628,7 +2755,8 @@ bool FileReaderTest::TestGetSignalMemoryBuffer() {
     FileReader test;
     bool ok = !test.GetSignalMemoryBuffer(0, 0, ptr);
     if (ok) {
-        ok = TestIntegratedExecution(config1, false);
+        uint32 numberOfElements[] = { 1, 1, 1, 3, 1, 1, 1, 1, 10, 1 };
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
     }
     return ok;
 }
@@ -2653,7 +2781,7 @@ bool FileReaderTest::TestGetBrokerName_MemoryMapInterpolatedInputBroker() {
                     "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
                     "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
                     "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
-    GenerateCSVFile(filename, fileContent);
+    GenerateFile(filename, fileContent);
     cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
     cdb.Write("CSVSeparator", ";");
@@ -2682,7 +2810,7 @@ bool FileReaderTest::TestGetBrokerName_MemoryMapInputBroker() {
                     "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
                     "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
                     "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
-    GenerateCSVFile(filename, fileContent);
+    GenerateFile(filename, fileContent);
     cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
     cdb.Write("CSVSeparator", ";");
@@ -2697,40 +2825,64 @@ bool FileReaderTest::TestGetBrokerName_MemoryMapInputBroker() {
     return ok;
 }
 
-#if 0
 bool FileReaderTest::TestGetInputBrokers() {
+    using namespace MARTe;
+    void *ptr;
+    FileReader test;
+    bool ok = !test.GetSignalMemoryBuffer(0, 0, ptr);
+    if (ok) {
+        uint32 numberOfElements[] = { 1, 1, 1, 3, 1, 1, 1, 1, 1, 1 };
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
+    }
+    return ok;
+}
+
+bool FileReaderTest::TestGetOutputBrokers() {
     using namespace MARTe;
     FileReader test;
     ReferenceContainer rc;
     return !test.GetInputBrokers(rc, "", NULL);
 }
 
-bool FileReaderTest::TestGetOutputBrokers() {
-    bool ok = TestIntegratedInApplication_NoTrigger("FileReaderTest_TestGetOutputBrokers", true);
-    return ok;
-}
-
 bool FileReaderTest::TestSynchronise() {
+    using namespace MARTe;
     bool ok = true;
     if (ok) {
-        ok = TestIntegratedInApplication_NoTrigger("FileReaderTest_TestSynchronise_NoT_CSV", true);
+        uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
     }
     if (ok) {
-        ok = TestIntegratedInApplication_NoTrigger("FileReaderTest_TestSynchronise_NoT_BIN", false);
+        uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        ok = TestIntegratedExecution(config1, true, &numberOfElements[0]);
     }
     if (ok) {
-        ok = TestIntegratedInApplication_NoTrigger_Array("FileReaderTest_TestSynchronise_NoT_Arr_CSV", true);
+        uint32 numberOfElements[] = { 2, 4, 5, 2, 3, 4, 3, 2, 4, 2 };
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
     }
     if (ok) {
-        ok = TestIntegratedInApplication_NoTrigger_Array("FileReaderTest_TestSynchronise_NoT_Arr_BIN", false);
+        uint32 numberOfElements[] = { 2, 4, 5, 2, 3, 4, 3, 2, 4, 2 };
+        ok = TestIntegratedExecution(config1, true, &numberOfElements[0]);
     }
     if (ok) {
-        ok = TestIntegratedInApplication_Trigger("FileReaderTest_TestSynchronise_T_CSV", true);
+        uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        ok = TestIntegratedExecutionInterpolation(config1, false, &numberOfElements[0]);
     }
     if (ok) {
-        ok = TestIntegratedInApplication_Trigger("FileReaderTest_TestSynchronise_T_BIN", false);
+        uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        ok = TestIntegratedExecutionInterpolation(config1, true, &numberOfElements[0]);
     }
-
+    if (ok) {
+        uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        ok = TestIntegratedExecutionInterpolation(config1, false, &numberOfElements[0]);
+    }
+    if (ok) {
+        uint32 numberOfElements[] = { 2, 4, 5, 2, 1, 4, 3, 2, 4, 2 };
+        ok = TestIntegratedExecutionInterpolation(config1, false, &numberOfElements[0]);
+    }
+    if (ok) {
+        uint32 numberOfElements[] = { 2, 4, 5, 2, 1, 4, 3, 2, 4, 2 };
+        ok = TestIntegratedExecutionInterpolation(config1, true, &numberOfElements[0]);
+    }
     return ok;
 }
 
@@ -2739,6 +2891,7 @@ bool FileReaderTest::TestPrepareNextState() {
     FileReader test;
     return test.PrepareNextState(NULL, NULL);
 }
+#if 0
 
 bool FileReaderTest::TestInitialise() {
     using namespace MARTe;
