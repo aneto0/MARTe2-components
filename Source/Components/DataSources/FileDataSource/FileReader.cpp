@@ -241,11 +241,13 @@ bool FileReader::Synchronise() {
                 signalIdx++;
                 token = "";
             }
-            ok = (signalIdx == nSignals);
-            if (!ok) {
-                StreamString signalName;
-                (void) GetSignalName(signalIdx, signalName);
-                REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of signals found [%s]", line.Buffer());
+            if (ok) {
+                ok = (signalIdx == nSignals);
+                if (!ok) {
+                    StreamString signalName;
+                    (void) GetSignalName(signalIdx, signalName);
+                    REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of signals found [%s]", line.Buffer());
+                }
             }
         }
         fatalFileError = !ok;
@@ -342,21 +344,6 @@ bool FileReader::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = signalsDatabase.MoveRelative("Signals");
-        if (!ok) {
-            ok = signalsDatabase.CreateRelative("Signals");
-        }
-        if (ok) {
-            ok = (OpenFile(signalsDatabase) == ErrorManagement::NoError);
-        }
-        if (ok) {
-            ok = signalsDatabase.Write("Locked", 1u);
-        }
-        if (ok) {
-            ok = signalsDatabase.MoveToAncestor(1u);
-        }
-    }
-    if (ok) {
         //Check if there are any Message elements set
         if (Size() > 0u) {
             ReferenceT<ReferenceContainer> msgContainer = Get(0u);
@@ -368,16 +355,7 @@ bool FileReader::Initialise(StructuredDataI& data) {
                     ok = msg.IsValid();
                     if (ok) {
                         StreamString msgName = msg->GetName();
-                        if (msgName == "FileOpenedOK") {
-                            fileOpenedOKMsg = msg;
-                        }
-                        else if (msgName == "FileOpenedFail") {
-                            fileOpenedFailMsg = msg;
-                        }
-                        else if (msgName == "FileClosed") {
-                            fileClosedMsg = msg;
-                        }
-                        else if (msgName == "FileRuntimeError") {
+                        if (msgName == "FileRuntimeError") {
                             fileRuntimeErrorMsg = msg;
                         }
                         else {
@@ -394,6 +372,22 @@ bool FileReader::Initialise(StructuredDataI& data) {
             }
         }
     }
+    if (ok) {
+        ok = signalsDatabase.MoveRelative("Signals");
+        if (!ok) {
+            ok = signalsDatabase.CreateRelative("Signals");
+        }
+        if (ok) {
+            ok = (OpenFile(signalsDatabase) == ErrorManagement::NoError);
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
+        }
+    }
+
     return ok;
 }
 
@@ -629,26 +623,6 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
             }
         }
 
-        if (fileOpenedOKMsg.IsValid()) {
-            //Reset any previous replies
-            fileOpenedOKMsg->SetAsReply(false);
-            if (!MessageI::SendMessage(fileOpenedOKMsg, this)) {
-                StreamString destination = fileOpenedOKMsg->GetDestination();
-                StreamString function = fileOpenedOKMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send FileOpenedOK message to %s [%s]", destination.Buffer(), function.Buffer());
-            }
-        }
-    }
-    else {
-        if (fileOpenedFailMsg.IsValid()) {
-            //Reset any previous replies
-            fileOpenedFailMsg->SetAsReply(false);
-            if (!MessageI::SendMessage(fileOpenedFailMsg, this)) {
-                StreamString destination = fileOpenedFailMsg->GetDestination();
-                StreamString function = fileOpenedFailMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send FileOpenedFail message to %s [%s]", destination.Buffer(), function.Buffer());
-            }
-        }
     }
     ErrorManagement::ErrorType ret(!fatalFileError);
     return ret;
@@ -658,18 +632,6 @@ ErrorManagement::ErrorType FileReader::CloseFile() {
     ErrorManagement::ErrorType err;
     if (inputFile.IsOpen()) {
         err = !inputFile.Close();
-    }
-    if (err.ErrorsCleared()) {
-        if (fileClosedMsg.IsValid()) {
-            //Reset any previous replies
-            fileClosedMsg->SetAsReply(false);
-            if (!MessageI::SendMessage(fileClosedMsg, this)) {
-                StreamString destination = fileClosedMsg->GetDestination();
-                StreamString function = fileClosedMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send FileClosed message to %s [%s]", destination.Buffer(), function.Buffer());
-            }
-        }
-
     }
     return err;
 }

@@ -216,41 +216,15 @@ public:
      */
     bool TestGetInterpolationPeriod();
 
-#if 0
     /**
-     * @brief Tests that the open file message successfully opens the file
-     */
-    bool TestOpenFileOKMessage();
-
-    /**
-     * @brief Tests that the open file message successfully sends a message when it fails to open the file
-     */
-    bool TestOpenFileFailMessage();
-
-    /**
-     * @brief Tests that the close file successfully sends a message when the file is flushed
-     */
-    bool TestCloseFileMessage();
-
-    /**
-     * @brief Tests that the runtime error successfully sends a message when there is an error writing to the file
+     * @brief Tests that the runtime error successfully sends a message when there is an error reading from the file
      */
     bool TestRuntimeErrorMessage();
 
     /**
-     * @brief Tests that the open file message successfully warns that the message could not be sent
+     * @brief Tests that the runtime error successfully sends a message when there is an error reading from the file (but driven by an inconsistent number of elements in array)
      */
-    bool TestOpenFileOKMessage_Fail();
-
-    /**
-     * @brief Tests that the open file message successfully warns that the fail message could not be sent
-     */
-    bool TestOpenFileFailMessage_Fail();
-
-    /**
-     * @brief Tests that the close file successfully warns that the close file message could not be sent
-     */
-    bool TestCloseFileMessage_Fail();
+    bool TestRuntimeErrorMessage_2();
 
     /**
      * @brief Tests that the runtime error successfully warns that the runtime error message could not be sent
@@ -266,7 +240,6 @@ public:
      * @brief Tests that an Invalid message type is correctly captured.
      */
     bool TestInvalidMessageType();
-#endif
 };
 
 /*---------------------------------------------------------------------------*/

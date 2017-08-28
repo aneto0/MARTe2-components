@@ -73,18 +73,7 @@ namespace MARTe {
  *     //All the signals are automatically added against the information stored in the csv file.
  *     +Messages = { //Optional. If set a message will be fired every time one of the events below occur
  *         Class = ReferenceContainer
- *         +FileOpenedOK = { //Optional, but if set, the name of the Object shall be FileOpenedOK. If set a message will be sent to the Destination, every time the File is successfully opened
- *             Class = Message
- *             Destination = SomeObject
- *             Function = SomeFunction
- *             Mode = ExpectsReply
- *         }
- *         +FileClosed = { //Optional, but if set, the name of the Object shall be FileClosed. If set a message will be sent to the Destination, every time the File is flushed.
- *             Class = Message
- *             Destination = SomeObject
- *             Function = SomeFunction
- *             Mode = ExpectsReply
- *         }
+ *         //FileOpenedOK does not exist since the file is opened in the Initialise and the message targeted object does not necessarily exist.
  *         +FileRuntimeError = { //Optional, but if set, the name of the Object shall be FileRuntimeError. If set a message will be sent to the Destination, the first time there is a runtime error reading from the file.
  *             Class = Message
  *             Destination = SomeObject
@@ -343,21 +332,6 @@ private:
      * The asynchronous triggered broker that provides the interface between the GAMs and the output file.
      */
     MemoryMapInterpolatedInputBroker *interpolatedInputBroker;
-
-    /**
-     * The message to send if the file is successfully opened.
-     */
-    ReferenceT<Message> fileOpenedOKMsg;
-
-    /**
-     * The message to send if the file cannot be successfully opened.
-     */
-    ReferenceT<Message> fileOpenedFailMsg;
-
-    /**
-     * The message to send if the File is be successfully closed.
-     */
-    ReferenceT<Message> fileClosedMsg;
 
     /**
      * The message to send if there is a runtime error.

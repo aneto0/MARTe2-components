@@ -215,41 +215,14 @@ TEST(FileReaderGTest,TestIsInterpolate) {
     ASSERT_TRUE(test.TestIsInterpolate());
 }
 
-#if 0
-
-TEST(FileReaderGTest,TestOpenFileOKMessage) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestOpenFileOKMessage());
-}
-
-TEST(FileReaderGTest,TestOpenFileFailMessage) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestOpenFileFailMessage());
-}
-
-TEST(FileReaderGTest,TestCloseFileMessage) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestCloseFileMessage());
-}
-
 TEST(FileReaderGTest,TestRuntimeErrorMessage) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestRuntimeErrorMessage());
 }
 
-TEST(FileReaderGTest,TestOpenFileOKMessage_Fail) {
+TEST(FileReaderGTest,TestRuntimeErrorMessage_2) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestOpenFileOKMessage_Fail());
-}
-
-TEST(FileReaderGTest,TestOpenFileFailMessage_Fail) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestOpenFileFailMessage_Fail());
-}
-
-TEST(FileReaderGTest,TestCloseFileMessage_Fail) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestCloseFileMessage_Fail());
+    ASSERT_TRUE(test.TestRuntimeErrorMessage_2());
 }
 
 TEST(FileReaderGTest,TestRuntimeErrorMessage_Fail) {
@@ -266,4 +239,3 @@ TEST(FileReaderGTest,TestInvalidMessageType) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestInvalidMessageType());
 }
-#endif
