@@ -68,12 +68,12 @@ public:
     bool TestInitialiseWrongSampleTime();
 
     /**
-     * @brief Test error message of PIDGAM::Initialise()
+     * @brief Test PIDGAM::Initialise() without upper saturation limit.
      */
     bool TestInitialiseMissingUpperSaturationLimit();
 
     /**
-     * @brief Test error message of PIDGAM::Initialise()
+     * @brief Test PIDGAM::Initialise() without lower saturation limit.
      */
     bool TestInitialiseMissingLowerSaturationLimit();
 
