@@ -228,7 +228,6 @@ private:
 
 CLASS_REGISTER(FileReaderSchedulerTestHelper, "1.0")
 
-#if 0
 static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool destroy) {
     using namespace MARTe;
 
@@ -263,7 +262,6 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     }
     return ok;
 }
-#endif
 
 #define FRT_ADD_SIGNAL_TO_VERIFY(idx,type,nElements,value)\
         if (nElements[idx] > 0) {\
@@ -380,6 +378,17 @@ static void GenerateFile(const MARTe::char8 * const filename, const MARTe::char8
     f.Close();
 }
 
+static void GenerateFile(const MARTe::char8 * const filename) {
+    using namespace MARTe;
+    const char8 * fileContent =
+            ""
+                    "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
+                    "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
+                    "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
+                    "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
+    GenerateFile(filename, fileContent);
+}
+
 static void DeleteTestFile(const MARTe::char8 * const filename) {
     using namespace MARTe;
     Directory toDelete(filename);
@@ -387,7 +396,8 @@ static void DeleteTestFile(const MARTe::char8 * const filename) {
 }
 
 static bool TestIntegratedExecution(const MARTe::char8 * const config, const MARTe::char8 * const filename, FRTSignalToVerify **signalToVerify,
-                                    MARTe::uint32 *signalToVerifyNumberOfElements, MARTe::uint32 signalToVerifyNumberOfSamples, bool csv, MARTe::uint32 interpolationPeriod) {
+                                    MARTe::uint32 *signalToVerifyNumberOfElements, MARTe::uint32 signalToVerifyNumberOfSamples, bool csv,
+                                    MARTe::uint32 interpolationPeriod) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config;
@@ -751,461 +761,199 @@ static const MARTe::char8 * const config1 = ""
         "    }"
         "}";
 
-#if 0
 //Wrong configuration with samples
 static const MARTe::char8 * const config2 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileReaderGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            InvertSigned = 1"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt8 = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                    Samples = 2"
-"                }"
-"                SignalUInt16 = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt32 = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt64 = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt8 = {"
-"                    Type = int8"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt16 = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt32 = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt64 = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat32 = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat64 = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileReader"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            Filename = \"filewriter_test.bin\""
-"            FileFormat = csv"
-"            CSVSeparator = \";\""
-"            Overwrite = yes"
-"            StoreOnTrigger = 0"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt8 = {"
-"                    Type = uint8"
-"                }"
-"                SignalUInt16 = {"
-"                    Type = uint16"
-"                }"
-"                SignalUInt32 = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt64 = {"
-"                    Type = uint64"
-"                }"
-"                SignalInt8 = {"
-"                    Type = int8"
-"                }"
-"                SignalInt16 = {"
-"                    Type = int16"
-"                }"
-"                SignalInt32 = {"
-"                    Type = int32"
-"                }"
-"                SignalInt64 = {"
-"                    Type = int64"
-"                }"
-"                SignalFloat32 = {"
-"                    Type = float32"
-"                }"
-"                SignalFloat64 = {"
-"                    Type = float64"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileReaderSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+TestMessages = {"
-"    Class = ReferenceContainer"
-"    +MessageFlush = {"
-"        Class = Message"
-"        Destination = \"Test.Data.Drv1\""
-"        Function = FlushFile"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileReaderGAMTriggerTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                    Samples = 2"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64WhichIsAlsoAVeryLon = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileReader"
+        "            Filename = \"config2.csv\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            XAxisSignal = SignalUInt32"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileReaderSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "}";
 
-//Wrong configuration with no signals
+//Wrong configuration with more than one GAM interacting with the DataSource
 static const MARTe::char8 * const config3 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileReaderGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            InvertSigned = 1"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt8 = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16 = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt32 = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt64 = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt8 = {"
-"                    Type = int8"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt16 = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt32 = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt64 = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat32 = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat64 = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +DrvE = {"
-"            Class = FileReader"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            Filename = \"filewriter_test_empty.bin\""
-"            FileFormat = csv"
-"            CSVSeparator = \";\""
-"            Overwrite = yes"
-"            StoreOnTrigger = 0"
-"        }"
-"        +Drv1 = {"
-"            Class = FileReader"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            Filename = \"filewriter_test.bin\""
-"            FileFormat = csv"
-"            CSVSeparator = \";\""
-"            Overwrite = yes"
-"            StoreOnTrigger = 0"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt8 = {"
-"                    Type = uint8"
-"                }"
-"                SignalUInt16 = {"
-"                    Type = uint16"
-"                }"
-"                SignalUInt32 = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt64 = {"
-"                    Type = uint64"
-"                }"
-"                SignalInt8 = {"
-"                    Type = int8"
-"                }"
-"                SignalInt16 = {"
-"                    Type = int16"
-"                }"
-"                SignalInt32 = {"
-"                    Type = int32"
-"                }"
-"                SignalInt64 = {"
-"                    Type = int64"
-"                }"
-"                SignalFloat32 = {"
-"                    Type = float32"
-"                }"
-"                SignalFloat64 = {"
-"                    Type = float64"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileReaderSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+TestMessages = {"
-"    Class = ReferenceContainer"
-"    +MessageFlush = {"
-"        Class = Message"
-"        Destination = \"Test.Data.Drv1\""
-"        Function = FlushFile"
-"    }"
-"}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileReaderGAMTriggerTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM2 = {"
+        "            Class = FileReaderGAMTriggerTestHelper"
+        "            InputSignals = {"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64WhichIsAlsoAVeryLon = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileReader"
+        "            Filename = \"config3.csv\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            XAxisSignal = SignalUInt32"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1 GAM2}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileReaderSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "}";
 
-//Wrong configuration with more than one signal interacting with the DataSource
-static const MARTe::char8 * const config4 = ""
-"$Test = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAM1 = {"
-"            Class = FileReaderGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            InvertSigned = 1"
-"            OutputSignals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt8 = {"
-"                    Type = uint8"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt16 = {"
-"                    Type = uint16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt32 = {"
-"                    Type = uint32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalUInt64 = {"
-"                    Type = uint64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt8 = {"
-"                    Type = int8"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt16 = {"
-"                    Type = int16"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt32 = {"
-"                    Type = int32"
-"                    DataSource = Drv1"
-"                }"
-"                SignalInt64 = {"
-"                    Type = int64"
-"                    DataSource = Drv1"
-"                }"
-"                SignalFloat32 = {"
-"                    Type = float32"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"        +GAM2 = {"
-"            Class = FileReaderGAMTriggerTestHelper"
-"            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
-"            InvertSigned = 1"
-"            OutputSignals = {"
-"                SignalFloat64 = {"
-"                    Type = float64"
-"                    DataSource = Drv1"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        DefaultDataSource = DDB1"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"        +Drv1 = {"
-"            Class = FileReader"
-"            NumberOfBuffers = 10"
-"            CPUMask = 15"
-"            StackSize = 10000000"
-"            Filename = \"filewriter_test.bin\""
-"            FileFormat = csv"
-"            CSVSeparator = \";\""
-"            Overwrite = yes"
-"            StoreOnTrigger = 0"
-"            Signals = {"
-"                Trigger = {"
-"                    Type = uint8"
-"                }"
-"                Time = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt8 = {"
-"                    Type = uint8"
-"                }"
-"                SignalUInt16 = {"
-"                    Type = uint16"
-"                }"
-"                SignalUInt32 = {"
-"                    Type = uint32"
-"                }"
-"                SignalUInt64 = {"
-"                    Type = uint64"
-"                }"
-"                SignalInt8 = {"
-"                    Type = int8"
-"                }"
-"                SignalInt16 = {"
-"                    Type = int16"
-"                }"
-"                SignalInt32 = {"
-"                    Type = int32"
-"                }"
-"                SignalInt64 = {"
-"                    Type = int64"
-"                }"
-"                SignalFloat32 = {"
-"                    Type = float32"
-"                }"
-"                SignalFloat64 = {"
-"                    Type = float64"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAM1 GAM2}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = FileReaderSchedulerTestHelper"
-"        TimingDataSource = Timings"
-"    }"
-"}"
-"+TestMessages = {"
-"    Class = ReferenceContainer"
-"    +MessageFlush = {"
-"        Class = Message"
-"        Destination = \"Test.Data.Drv1\""
-"        Function = FlushFile"
-"    }"
-"}";
-
+#if 0
 //Standard configuration without specifying the filename (to be set with a message)
 static const MARTe::char8 * const config5 = ""
 "$Test = {"
@@ -2765,7 +2513,7 @@ bool FileReaderTest::TestGetBrokerName_OutputSignals() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    bool ok = (StringHelper::Compare(test.GetBrokerName(cdb, InputSignals), "") == 0);
+    bool ok = (StringHelper::Compare(test.GetBrokerName(cdb, OutputSignals), "") == 0);
 
     return ok;
 }
@@ -2775,21 +2523,13 @@ bool FileReaderTest::TestGetBrokerName_MemoryMapInterpolatedInputBroker() {
     FileReader test;
     ConfigurationDatabase cdb;
     const char8 * const filename = "FileReaderTest_Test.csv";
-    const char8 * fileContent =
-            ""
-                    "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
-                    "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
-                    "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
-                    "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
-    GenerateFile(filename, fileContent);
+    GenerateFile(filename);
     cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
     cdb.Write("CSVSeparator", ";");
     cdb.Write("Interpolate", "yes");
-    cdb.CreateRelative("Signals");
-    cdb.CreateRelative("InterpolatedTime");
-    cdb.Write("Type", "uint64");
-    cdb.Write("NumberOfElements", "1");
+    cdb.Write("XAxisSignal", "SignalUint32");
+    cdb.Write("InterpolationPeriod", 2);
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
     if (ok) {
@@ -2804,13 +2544,7 @@ bool FileReaderTest::TestGetBrokerName_MemoryMapInputBroker() {
     FileReader test;
     ConfigurationDatabase cdb;
     const char8 * const filename = "FileReaderTest_Test.csv";
-    const char8 * fileContent =
-            ""
-                    "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
-                    "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
-                    "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
-                    "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
-    GenerateFile(filename, fileContent);
+    GenerateFile(filename);
     cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
     cdb.Write("CSVSeparator", ";");
@@ -2819,7 +2553,7 @@ bool FileReaderTest::TestGetBrokerName_MemoryMapInputBroker() {
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
     if (ok) {
-        ok = (StringHelper::Compare(test.GetBrokerName(cdb, InputSignals), "MemoryMapInputBroker") == 0);
+        ok = (StringHelper::Compare(test.GetBrokerName(cdb, InputSignals), "MemoryMapSynchronisedInputBroker") == 0);
     }
     DeleteTestFile(filename);
     return ok;
@@ -2891,771 +2625,291 @@ bool FileReaderTest::TestPrepareNextState() {
     FileReader test;
     return test.PrepareNextState(NULL, NULL);
 }
-#if 0
 
 bool FileReaderTest::TestInitialise() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
+    const char8 * const filename = "FileReaderTest_TestInitialise.csv";
+    GenerateFile(filename);
+    cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
-    cdb.Write("CSVSeparator", ",");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("Interpolate", "yes");
+    cdb.Write("XAxisSignal", "SignalUint8");
+    cdb.Write("InterpolationPeriod", 100);
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
-    ok &= (test.GetNumberOfBuffers() == 10);
-    ok &= (test.GetCPUMask() == 15);
-    ok &= (test.GetStackSize() == 10000000);
-    ok &= (test.GetFilename() == "FileReaderTest_TestInitialise");
+    ok &= (test.GetFilename() == filename);
     ok &= (test.GetFileFormat() == "csv");
-    ok &= (test.GetCSVSeparator() == ",");
-    ok &= (test.IsOverwrite());
-    ok &= (test.IsStoreOnTrigger());
-    ok &= (test.GetNumberOfPreTriggers() == 2);
-    ok &= (test.GetNumberOfPostTriggers() == 3);
+    ok &= (test.GetCSVSeparator() == ";");
+    ok &= (test.GetXAxisSignal() == "SignalUint8");
+    ok &= (test.GetInterpolationPeriod() == 100);
+    ok &= (test.IsInterpolate());
+    DeleteTestFile(filename);
     return ok;
 }
-#endif
 
-#if 0
-bool FileReaderTest::TestInitialise_False_Overwrite() {
+bool FileReaderTest::TestInitialise_1() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
+    const char8 * const filename = "FileReaderTest_TestInitialise.csv";
+    GenerateFile(filename);
+    cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
-    cdb.Write("CSVSeparator", ",");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("Interpolate", "no");
     cdb.MoveToRoot();
-    return !test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    ok &= (test.GetFilename() == filename);
+    ok &= (test.GetFileFormat() == "csv");
+    ok &= (test.GetCSVSeparator() == ";");
+    ok &= (!test.IsInterpolate());
+    DeleteTestFile(filename);
+    return ok;
 }
 
-bool FileReaderTest::TestInitialise_False_Overwrite_Invalid() {
+bool FileReaderTest::TestInitialise_False_Interpolate() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
+    const char8 * const filename = "FileReaderTest_TestInitialise.csv";
+    GenerateFile(filename);
+    cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
-    cdb.Write("CSVSeparator", ",");
-    cdb.Write("Overwrite", "true");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("XAxisSignal", "SignalUint8");
+    cdb.Write("InterpolationPeriod", 100);
     cdb.MoveToRoot();
-    return !test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    DeleteTestFile(filename);
+    return !ok;
+}
+
+bool FileReaderTest::TestInitialise_False_Interpolate_Invalid() {
+    using namespace MARTe;
+    FileReader test;
+    ConfigurationDatabase cdb;
+    const char8 * const filename = "FileReaderTest_TestInitialise.csv";
+    GenerateFile(filename);
+    cdb.Write("Filename", filename);
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("Interpolate", "true");
+    cdb.Write("XAxisSignal", "SignalUint8");
+    cdb.Write("InterpolationPeriod", 100);
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    DeleteTestFile(filename);
+    return !ok;
 }
 
 bool FileReaderTest::TestInitialise_Binary() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise_Binary");
+    const char8 * const filename = "FileReaderTest_TestInitialise.bin";
+    uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    const uint32 signalToVerifyNumberOfSamples = 3u;
+    FRTSignalToVerify **signals = new FRTSignalToVerify*[signalToVerifyNumberOfSamples];
+    uint32 i;
+    for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
+        signals[i] = new FRTSignalToVerify(numberOfElements, i + 1);
+    }
+    GenerateBinaryFile(filename, signals, numberOfElements, signalToVerifyNumberOfSamples);
+    for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
+        delete signals[i];
+    }
+    delete signals;
+    cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "binary");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    cdb.Write("Interpolate", "yes");
+    cdb.Write("XAxisSignal", "SignalUint8");
+    cdb.Write("InterpolationPeriod", 100);
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
-    ok &= (test.GetNumberOfBuffers() == 10);
-    ok &= (test.GetCPUMask() == 15);
-    ok &= (test.GetStackSize() == 10000000);
-    ok &= (test.GetFilename() == "FileReaderTest_TestInitialise_Binary");
+    ok &= (test.GetFilename() == filename);
     ok &= (test.GetFileFormat() == "binary");
-    ok &= (test.IsOverwrite());
-    ok &= (test.IsStoreOnTrigger());
-    ok &= (test.GetNumberOfPreTriggers() == 2);
-    ok &= (test.GetNumberOfPostTriggers() == 3);
+    ok &= (test.GetXAxisSignal() == "SignalUint8");
+    ok &= (test.GetInterpolationPeriod() == 100);
+    ok &= (test.IsInterpolate());
+    DeleteTestFile(filename);
     return ok;
 }
 
-bool FileReaderTest::TestInitialise_False_NumberOfBuffers() {
+bool FileReaderTest::TestInitialise_False_Filename() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
     cdb.Write("FileFormat", "csv");
-    cdb.Write("CSVSeparator", ",");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("Interpolate", "yes");
+    cdb.Write("XAxisSignal", "SignalUint8");
+    cdb.Write("InterpolationPeriod", 100);
     cdb.MoveToRoot();
-
-    return !test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    return !ok;
 }
 
-bool FileReaderTest::TestInitialise_False_NumberOfBuffers_GT_0() {
-    using namespace MARTe;
-    FileReader test2;
-    ConfigurationDatabase cdb2;
-    cdb2.Write("NumberOfBuffers", 0);
-    cdb2.Write("CPUMask", 15);
-    cdb2.Write("StackSize", 10000000);
-    cdb2.Write("Filename", "FileReaderTest_TestInitialise");
-    cdb2.Write("FileFormat", "csv");
-    cdb2.Write("CSVSeparator", ",");
-    cdb2.Write("Overwrite", "yes");
-    cdb2.Write("StoreOnTrigger", 1);
-    cdb2.Write("NumberOfPreTriggers", 2);
-    cdb2.Write("NumberOfPostTriggers", 3);
-    cdb2.CreateRelative("Signals");
-    cdb2.MoveToRoot();
-    return !test2.Initialise(cdb2);
-}
-
-bool FileReaderTest::TestInitialise_False_CPUMask() {
+bool FileReaderTest::TestInitialise_False_Filename_1() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
+    const char8 * const filename = "doesnotexist.csv";
+    cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
-    cdb.Write("CSVSeparator", ",");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("Interpolate", "yes");
+    cdb.Write("XAxisSignal", "SignalUint8");
+    cdb.Write("InterpolationPeriod", 100);
     cdb.MoveToRoot();
-    return !test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    return !ok;
 }
 
-bool FileReaderTest::TestInitialise_False_StackSize() {
+bool FileReaderTest::TestInitialise_False_CorruptedFile() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
+    const char8 * const filename = "corrupted.csv";
+    const char8 * fileContent =
+            ""
+                    "#Trigger (uint822)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
+                    "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
+                    "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
+                    "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
+    GenerateFile(filename, fileContent);
+    cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "csv");
-    cdb.Write("CSVSeparator", ",");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("Interpolate", "yes");
+    cdb.Write("XAxisSignal", "SignalUint8");
+    cdb.Write("InterpolationPeriod", 100);
     cdb.MoveToRoot();
-    return !test.Initialise(cdb);
-}
-
-bool FileReaderTest::TestInitialise_False_StackSize_GT_0() {
-    using namespace MARTe;
-    FileReader test2;
-    ConfigurationDatabase cdb2;
-    cdb2.Write("NumberOfBuffers", 10);
-    cdb2.Write("CPUMask", 15);
-    cdb2.Write("StackSize", 0);
-    cdb2.Write("Filename", "FileReaderTest_TestInitialise");
-    cdb2.Write("FileFormat", "csv");
-    cdb2.Write("CSVSeparator", ",");
-    cdb2.Write("Overwrite", "yes");
-    cdb2.Write("StoreOnTrigger", 1);
-    cdb2.Write("NumberOfPreTriggers", 2);
-    cdb2.Write("NumberOfPostTriggers", 3);
-    cdb2.CreateRelative("Signals");
-    cdb2.MoveToRoot();
-    return !test2.Initialise(cdb2);
-}
-
-bool FileReaderTest::TestInitialise_Warning_Filename() {
-    using namespace MARTe;
-    FileReader test;
-    ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("FileFormat", "csv");
-    cdb.Write("CSVSeparator", ",");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
-    cdb.MoveToRoot();
-    return test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    DeleteTestFile(filename);
+    return !ok;
 }
 
 bool FileReaderTest::TestInitialise_False_FileFormat() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
-    cdb.Write("CSVSeparator", ",");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    const char8 * const filename = "FileReaderTest_TestInitialise.csv";
+    GenerateFile(filename);
+    cdb.Write("Filename", filename);
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("Interpolate", "yes");
+    cdb.Write("XAxisSignal", "SignalUint8");
+    cdb.Write("InterpolationPeriod", 100);
     cdb.MoveToRoot();
-    return !test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    DeleteTestFile(filename);
+    return !ok;
 }
 
 bool FileReaderTest::TestInitialise_False_FileFormat_Invalid() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
+    const char8 * const filename = "FileReaderTest_TestInitialise.csv";
+    GenerateFile(filename);
+    cdb.Write("Filename", filename);
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("Interpolate", "yes");
     cdb.Write("FileFormat", "xls");
-    cdb.Write("CSVSeparator", ",");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    cdb.Write("XAxisSignal", "SignalUint8");
+    cdb.Write("InterpolationPeriod", 100);
     cdb.MoveToRoot();
-    return !test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    DeleteTestFile(filename);
+    return !ok;
 }
 
 bool FileReaderTest::TestInitialise_False_CSVSeparator() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
+    const char8 * const filename = "FileReaderTest_TestInitialise.csv";
+    GenerateFile(filename);
+    cdb.Write("Filename", filename);
+    cdb.Write("Interpolate", "yes");
     cdb.Write("FileFormat", "csv");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    cdb.Write("XAxisSignal", "SignalUint8");
+    cdb.Write("InterpolationPeriod", 100);
     cdb.MoveToRoot();
-    return !test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    DeleteTestFile(filename);
+    return !ok;
 }
 
-bool FileReaderTest::TestInitialise_False_StoreOnTrigger() {
+bool FileReaderTest::TestInitialise_False_XAxisSignal() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
-    cdb.Write("FileFormat", "binary");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    const char8 * const filename = "FileReaderTest_TestInitialise.csv";
+    GenerateFile(filename);
+    cdb.Write("Filename", filename);
+    cdb.Write("Interpolate", "yes");
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("InterpolationPeriod", 100);
     cdb.MoveToRoot();
-    return !test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    DeleteTestFile(filename);
+    return !ok;
 }
 
-bool FileReaderTest::TestInitialise_False_NumberOfPreTriggers() {
+bool FileReaderTest::TestInitialise_False_InterpolationPeriod() {
     using namespace MARTe;
     FileReader test;
     ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
-    cdb.Write("FileFormat", "binary");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.CreateRelative("Signals");
+    const char8 * const filename = "FileReaderTest_TestInitialise.csv";
+    GenerateFile(filename);
+    cdb.Write("Filename", filename);
+    cdb.Write("Interpolate", "yes");
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("FileFormat", "csv");
+    cdb.Write("XAxisSignal", "SignalUint8");
     cdb.MoveToRoot();
-    return !test.Initialise(cdb);
-}
-
-bool FileReaderTest::TestInitialise_False_NumberOfPostTriggers() {
-    using namespace MARTe;
-    FileReader test;
-    ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
-    cdb.Write("FileFormat", "binary");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.CreateRelative("Signals");
-    cdb.MoveToRoot();
-    return !test.Initialise(cdb);
-}
-
-bool FileReaderTest::TestInitialise_False_Signals() {
-    using namespace MARTe;
-    FileReader test;
-    ConfigurationDatabase cdb;
-    cdb.Write("NumberOfBuffers", 10);
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 10000000);
-    cdb.Write("Filename", "FileReaderTest_TestInitialise");
-    cdb.Write("FileFormat", "binary");
-    cdb.Write("Overwrite", "yes");
-    cdb.Write("StoreOnTrigger", 1);
-    cdb.Write("NumberOfPreTriggers", 2);
-    cdb.Write("NumberOfPostTriggers", 3);
-    cdb.MoveToRoot();
-    return !test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    DeleteTestFile(filename);
+    return !ok;
 }
 
 bool FileReaderTest::TestSetConfiguredDatabase() {
-    return TestIntegratedInApplication_NoTrigger("FileReaderTest_TestSetConfiguredDatabase", true);
+    using namespace MARTe;
+    uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    return TestIntegratedExecution(config1, false, &numberOfElements[0]);
 }
 
 bool FileReaderTest::TestSetConfiguredDatabase_False_NumberOfSamples() {
-    return !TestIntegratedInApplication(config2, true);
-}
-
-bool FileReaderTest::TestSetConfiguredDatabase_False_NoFileSignals() {
-    return !TestIntegratedInApplication(config3, true);
-}
-
-bool FileReaderTest::TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction() {
-    return !TestIntegratedInApplication(config4, true);
-}
-
-bool FileReaderTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *filename, bool csv) {
     using namespace MARTe;
-    uint32 signalToGenerate[] = {1, 2, 3, 4, 5};
-    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
-    const uint32 N_OF_SIGNALS = 12;
-    const char8 *signalNames[N_OF_SIGNALS] = {"Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16",
-        "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64WhichIsAlsoAVeryLon"};
-    const uint16 signalTypes[N_OF_SIGNALS] = {UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all,
-        UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,
-        Float32Bit.all, Float64Bit.all};
-    const uint32 signalElements[N_OF_SIGNALS] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    const uint32 numberOfBuffers = 16;
-    const float32 period = 2;
-    const char8 * expectedFileContent = NULL;
-    if (csv) {
-        expectedFileContent =
-        ""
-        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
-        "0;0;1;1;1;1;1;1;1;1;1.000000;1.000000\n"
-        "0;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
-        "0;4000000;3;3;3;3;3;3;3;3;3.000000;3.000000\n"
-        "0;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
-        "0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
-    }
-    else {
-        uint32 writeSize = sizeof(uint8); //trigger
-        writeSize += sizeof(uint32);//time
-        writeSize += sizeof(uint8);//signalUInt8
-        writeSize += sizeof(uint16);//signalUInt16
-        writeSize += sizeof(uint32);//signalUInt32
-        writeSize += sizeof(uint64);//signalUInt64
-        writeSize += sizeof(int8);//signalInt8
-        writeSize += sizeof(int16);//signalInt16
-        writeSize += sizeof(int32);//signalInt32
-        writeSize += sizeof(int64);//signalInt64
-        writeSize += sizeof(float32);//signalFloat32
-        writeSize += sizeof(float64);//signalFloat64
-
-        const uint32 SIGNAL_NAME_SIZE = 32;
-        uint32 headerSize = sizeof(uint32) + N_OF_SIGNALS * (sizeof(uint16) + SIGNAL_NAME_SIZE + sizeof(uint32));
-        uint32 memorySize = headerSize + (numberOfElements * writeSize);//5 writes
-        expectedFileContent = static_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
-
-        uint32 n;
-        //Header
-        char8 *header = const_cast<char8 *>(&expectedFileContent[0]);
-        MemoryOperationsHelper::Copy(header, reinterpret_cast<const char8 *>(&N_OF_SIGNALS), sizeof(uint32));
-        header += sizeof(uint32);
-        for (n = 0u; n < N_OF_SIGNALS; n++) {
-            MemoryOperationsHelper::Copy(header, &signalTypes[n], sizeof(uint16));
-            header += sizeof(uint16);
-            MemoryOperationsHelper::Set(header, '\0', SIGNAL_NAME_SIZE);
-            MemoryOperationsHelper::Copy(header, signalNames[n], StringHelper::Length(signalNames[n]));
-            header += SIGNAL_NAME_SIZE;
-            MemoryOperationsHelper::Copy(header, &signalElements[n], sizeof(uint32));
-            header += sizeof(uint32);
-        }
-
-        for (n = 0u; n < numberOfElements; n++) {
-            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (n * writeSize)]));
-            uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
-            uint8 *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
-            uint16 *signalUInt16Pointer = reinterpret_cast<uint16 *>(signalUInt8Pointer + 1);
-            uint32 *signalUInt32Pointer = reinterpret_cast<uint32 *>(signalUInt16Pointer + 1);
-            uint64 *signalUInt64Pointer = reinterpret_cast<uint64 *>(signalUInt32Pointer + 1);
-            int8 *signalInt8Pointer = reinterpret_cast<int8 *>(signalUInt64Pointer + 1);
-            int16 *signalInt16Pointer = reinterpret_cast<int16 *>(signalInt8Pointer + 1);
-            int32 *signalInt32Pointer = reinterpret_cast<int32 *>(signalInt16Pointer + 1);
-            int64 *signalInt64Pointer = reinterpret_cast<int64 *>(signalInt32Pointer + 1);
-            float32 *signalFloat32Pointer = reinterpret_cast<float32 *>(signalInt64Pointer + 1);
-            float64 *signalFloat64Pointer = reinterpret_cast<float64 *>(signalFloat32Pointer + 1);
-
-            *triggerPointer = 0u;
-            *timerPointer = static_cast<uint32>(period * 1e6) * n;
-            *signalUInt8Pointer = signalToGenerate[n];
-            *signalUInt16Pointer = signalToGenerate[n];
-            *signalUInt32Pointer = signalToGenerate[n];
-            *signalUInt64Pointer = signalToGenerate[n];
-            int32 multiplier = -1;
-            if ((n % 2) == 0) {
-                multiplier = 1;
-            }
-            *signalInt8Pointer = multiplier * signalToGenerate[n];
-            *signalInt16Pointer = multiplier * signalToGenerate[n];
-            *signalInt32Pointer = multiplier * signalToGenerate[n];
-            *signalInt64Pointer = static_cast<int64>(multiplier) * signalToGenerate[n];
-            *signalFloat32Pointer = static_cast<float32>(multiplier) * signalToGenerate[n];
-            *signalFloat64Pointer = static_cast<float64>(multiplier) * signalToGenerate[n];
-        }
-    }
-
-    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, 1u, numberOfBuffers, 0, 0, period, filename, expectedFileContent, csv);
-    if (!csv) {
-        if (expectedFileContent != NULL) {
-            char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
-            GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(mem));
-        }
-    }
+    const char8 * const filename = "config2.csv";
+    GenerateFile(filename);
+    bool ok = !TestIntegratedInApplication(config2, true);
+    DeleteTestFile(filename);
     return ok;
 }
 
-bool FileReaderTest::TestIntegratedInApplication_NoTrigger_Array(const MARTe::char8 *filename, bool csv) {
+bool FileReaderTest::TestSetConfiguredDatabase_False_MoreThanOneFunction() {
     using namespace MARTe;
-    uint32 signalToGenerate[] = {1, 2, 3, 4, 5};
-    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
-    const uint32 N_OF_SIGNALS = 12;
-    const char8 *signalNames[N_OF_SIGNALS] = {"Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16",
-        "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64WhichIsAlsoAVeryLon"};
-    const uint16 signalTypes[N_OF_SIGNALS] = {UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all,
-        UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,
-        Float32Bit.all, Float64Bit.all};
-    const uint32 signalElements[N_OF_SIGNALS] = {1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
-    const uint32 numberOfBuffers = 16;
-    const float32 period = 2;
-    const char8 * expectedFileContent = NULL;
-    const uint32 ARRAY_SIZE = 2u;
-
-    if (csv) {
-        expectedFileContent =
-        ""
-        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[2];SignalUInt16 (uint16)[2];SignalUInt32 (uint32)[2];SignalUInt64 (uint64)[2];SignalInt8 (int8)[2];SignalInt16 (int16)[2];SignalInt32 (int32)[2];SignalInt64 (int64)[2];SignalFloat32 (float32)[2];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[2]\n"
-        "0;0;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1 1 } ;{ 1.000000 1.000000 } ;{ 1.000000 1.000000 } \n"
-        "0;4000000;{ 2 2 } ;{ 2 2 } ;{ 2 2 } ;{ 2 2 } ;{ -2 -2 } ;{ -2 -2 } ;{ -2 -2 } ;{ -2 -2 } ;{ -2.000000 -2.000000 } ;{ -2.000000 -2.000000 } \n"
-        "0;8000000;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3 3 } ;{ 3.000000 3.000000 } ;{ 3.000000 3.000000 } \n"
-        "0;12000000;{ 4 4 } ;{ 4 4 } ;{ 4 4 } ;{ 4 4 } ;{ -4 -4 } ;{ -4 -4 } ;{ -4 -4 } ;{ -4 -4 } ;{ -4.000000 -4.000000 } ;{ -4.000000 -4.000000 } \n"
-        "0;16000000;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5 5 } ;{ 5.000000 5.000000 } ;{ 5.000000 5.000000 } \n";
-    }
-    else {
-        uint32 writeSize = sizeof(uint8); //trigger
-        writeSize += sizeof(uint32);//time
-        writeSize += sizeof(uint8) * ARRAY_SIZE;//signalUInt8
-        writeSize += sizeof(uint16) * ARRAY_SIZE;//signalUInt16
-        writeSize += sizeof(uint32) * ARRAY_SIZE;//signalUInt32
-        writeSize += sizeof(uint64) * ARRAY_SIZE;//signalUInt64
-        writeSize += sizeof(int8) * ARRAY_SIZE;//signalInt8
-        writeSize += sizeof(int16) * ARRAY_SIZE;//signalInt16
-        writeSize += sizeof(int32) * ARRAY_SIZE;//signalInt32
-        writeSize += sizeof(int64) * ARRAY_SIZE;//signalInt64
-        writeSize += sizeof(float32) * ARRAY_SIZE;//signalFloat32
-        writeSize += sizeof(float64) * ARRAY_SIZE;//signalFloat64
-
-        const uint32 SIGNAL_NAME_SIZE = 32;
-        uint32 headerSize = sizeof(uint32) + N_OF_SIGNALS * (sizeof(uint16) + SIGNAL_NAME_SIZE + sizeof(uint32));
-        uint32 memorySize = headerSize + (numberOfElements * writeSize);//5 writes
-        expectedFileContent = static_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
-
-        uint32 n;
-        //Header
-        char8 *header = const_cast<char8 *>(&expectedFileContent[0]);
-        MemoryOperationsHelper::Copy(header, reinterpret_cast<const char8 *>(&N_OF_SIGNALS), sizeof(uint32));
-        header += sizeof(uint32);
-        for (n = 0u; n < N_OF_SIGNALS; n++) {
-            MemoryOperationsHelper::Copy(header, &signalTypes[n], sizeof(uint16));
-            header += sizeof(uint16);
-            MemoryOperationsHelper::Set(header, '\0', SIGNAL_NAME_SIZE);
-            MemoryOperationsHelper::Copy(header, signalNames[n], StringHelper::Length(signalNames[n]));
-            header += SIGNAL_NAME_SIZE;
-            MemoryOperationsHelper::Copy(header, &signalElements[n], sizeof(uint32));
-            header += sizeof(uint32);
-        }
-
-        for (n = 0u; n < numberOfElements; n++) {
-            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (n * writeSize)]));
-            uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
-            uint8 *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
-            uint16 *signalUInt16Pointer = reinterpret_cast<uint16 *>(signalUInt8Pointer + ARRAY_SIZE);
-            uint32 *signalUInt32Pointer = reinterpret_cast<uint32 *>(signalUInt16Pointer + ARRAY_SIZE);
-            uint64 *signalUInt64Pointer = reinterpret_cast<uint64 *>(signalUInt32Pointer + ARRAY_SIZE);
-            int8 *signalInt8Pointer = reinterpret_cast<int8 *>(signalUInt64Pointer + ARRAY_SIZE);
-            int16 *signalInt16Pointer = reinterpret_cast<int16 *>(signalInt8Pointer + ARRAY_SIZE);
-            int32 *signalInt32Pointer = reinterpret_cast<int32 *>(signalInt16Pointer + ARRAY_SIZE);
-            int64 *signalInt64Pointer = reinterpret_cast<int64 *>(signalInt32Pointer + ARRAY_SIZE);
-            float32 *signalFloat32Pointer = reinterpret_cast<float32 *>(signalInt64Pointer + ARRAY_SIZE);
-            float64 *signalFloat64Pointer = reinterpret_cast<float64 *>(signalFloat32Pointer + ARRAY_SIZE);
-
-            *triggerPointer = 0u;
-            *timerPointer = static_cast<uint32>(period * 1e6) * n * ARRAY_SIZE;
-
-            int32 multiplier = -1;
-            if ((n % 2) == 0) {
-                multiplier = 1;
-            }
-
-            uint32 i;
-            for (i = 0; i < ARRAY_SIZE; i++) {
-                *(signalUInt8Pointer + i) = signalToGenerate[n];
-                *(signalUInt16Pointer + i) = signalToGenerate[n];
-                *(signalUInt32Pointer + i) = signalToGenerate[n];
-                *(signalUInt64Pointer + i) = signalToGenerate[n];
-                *(signalInt8Pointer + i) = static_cast<int8>(multiplier) * signalToGenerate[n];
-                *(signalInt16Pointer + i) = static_cast<int16>(multiplier) * signalToGenerate[n];
-                *(signalInt32Pointer + i) = static_cast<int32>(multiplier) * signalToGenerate[n];
-                *(signalInt64Pointer + i) = static_cast<int64>(multiplier) * signalToGenerate[n];
-                *(signalFloat32Pointer + i) = static_cast<float32>(multiplier) * signalToGenerate[n];
-                *(signalFloat64Pointer + i) = static_cast<float64>(multiplier) * signalToGenerate[n];
-            }
-        }
-    }
-
-    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, ARRAY_SIZE, numberOfBuffers, 0, 0, period, filename,
-            expectedFileContent, csv);
-    if (!csv) {
-        if (expectedFileContent != NULL) {
-            char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
-            GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(mem));
-        }
-    }
-    return ok;
-}
-
-bool FileReaderTest::TestIntegratedInApplication_Trigger(const MARTe::char8 *filename, bool csv) {
-    using namespace MARTe;
-    uint32 signalToGenerate[] = {1, 2, 3, 4, 5};
-    uint8 triggerToGenerate[] = {0, 1, 0, 1, 1};
-    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
-    const uint32 N_OF_SIGNALS = 12;
-    const char8 *signalNames[N_OF_SIGNALS] = {"Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16",
-        "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64WhichIsAlsoAVeryLon"};
-    const uint16 signalTypes[N_OF_SIGNALS] = {UnsignedInteger8Bit.all, UnsignedInteger32Bit.all, UnsignedInteger8Bit.all, UnsignedInteger16Bit.all,
-        UnsignedInteger32Bit.all, UnsignedInteger64Bit.all, SignedInteger8Bit.all, SignedInteger16Bit.all, SignedInteger32Bit.all, SignedInteger64Bit.all,
-        Float32Bit.all, Float64Bit.all};
-    const uint32 signalElements[N_OF_SIGNALS] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    const uint32 numberOfBuffers = 16;
-    const float32 period = 2;
-    const char8 * expectedFileContent = NULL;
-    if (csv) {
-        expectedFileContent =
-        ""
-        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
-        "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
-        "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
-        "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
-    }
-    else {
-        uint32 writeSize = sizeof(uint8); //trigger
-        writeSize += sizeof(uint32);//time
-        writeSize += sizeof(uint8);//signalUInt8
-        writeSize += sizeof(uint16);//signalUInt16
-        writeSize += sizeof(uint32);//signalUInt32
-        writeSize += sizeof(uint64);//signalUInt64
-        writeSize += sizeof(int8);//signalInt8
-        writeSize += sizeof(int16);//signalInt16
-        writeSize += sizeof(int32);//signalInt32
-        writeSize += sizeof(int64);//signalInt64
-        writeSize += sizeof(float32);//signalFloat32
-        writeSize += sizeof(float64);//signalFloat64
-
-        const uint32 SIGNAL_NAME_SIZE = 32;
-        uint32 headerSize = sizeof(uint32) + N_OF_SIGNALS * (sizeof(uint16) + SIGNAL_NAME_SIZE + sizeof(uint32));
-        uint32 memorySize = headerSize + (numberOfElements * writeSize);//3 writes (as per trigger)
-        expectedFileContent = static_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
-
-        uint32 n;
-        //Header
-        char8 *header = const_cast<char8 *>(&expectedFileContent[0]);
-        MemoryOperationsHelper::Copy(header, reinterpret_cast<const char8 *>(&N_OF_SIGNALS), sizeof(uint32));
-        header += sizeof(uint32);
-        for (n = 0u; n < N_OF_SIGNALS; n++) {
-            MemoryOperationsHelper::Copy(header, &signalTypes[n], sizeof(uint16));
-            header += sizeof(uint16);
-            MemoryOperationsHelper::Set(header, '\0', SIGNAL_NAME_SIZE);
-            MemoryOperationsHelper::Copy(header, signalNames[n], StringHelper::Length(signalNames[n]));
-            header += SIGNAL_NAME_SIZE;
-            MemoryOperationsHelper::Copy(header, &signalElements[n], sizeof(uint32));
-            header += sizeof(uint32);
-        }
-
-        uint32 z = 0u;
-        for (n = 0u; n < numberOfElements; n++) {
-            if (triggerToGenerate[n] != 1) {
-                continue;
-            }
-            uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (z * writeSize)]));
-            z++;
-
-            uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
-            uint8 *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
-            uint16 *signalUInt16Pointer = reinterpret_cast<uint16 *>(signalUInt8Pointer + 1);
-            uint32 *signalUInt32Pointer = reinterpret_cast<uint32 *>(signalUInt16Pointer + 1);
-            uint64 *signalUInt64Pointer = reinterpret_cast<uint64 *>(signalUInt32Pointer + 1);
-            int8 *signalInt8Pointer = reinterpret_cast<int8 *>(signalUInt64Pointer + 1);
-            int16 *signalInt16Pointer = reinterpret_cast<int16 *>(signalInt8Pointer + 1);
-            int32 *signalInt32Pointer = reinterpret_cast<int32 *>(signalInt16Pointer + 1);
-            int64 *signalInt64Pointer = reinterpret_cast<int64 *>(signalInt32Pointer + 1);
-            float32 *signalFloat32Pointer = reinterpret_cast<float32 *>(signalInt64Pointer + 1);
-            float64 *signalFloat64Pointer = reinterpret_cast<float64 *>(signalFloat32Pointer + 1);
-
-            *triggerPointer = 1u;
-            *timerPointer = static_cast<uint32>(period * 1e6) * n;
-            *signalUInt8Pointer = signalToGenerate[n];
-            *signalUInt16Pointer = signalToGenerate[n];
-            *signalUInt32Pointer = signalToGenerate[n];
-            *signalUInt64Pointer = signalToGenerate[n];
-            int32 multiplier = -1;
-            if ((n % 2) == 0) {
-                multiplier = 1;
-            }
-            *signalInt8Pointer = multiplier * signalToGenerate[n];
-            *signalInt16Pointer = multiplier * signalToGenerate[n];
-            *signalInt32Pointer = multiplier * signalToGenerate[n];
-            *signalInt64Pointer = static_cast<int64>(multiplier) * signalToGenerate[n];
-            *signalFloat32Pointer = static_cast<float32>(multiplier) * signalToGenerate[n];
-            *signalFloat64Pointer = static_cast<float64>(multiplier) * signalToGenerate[n];
-        }
-    }
-
-    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, triggerToGenerate, 1u, numberOfBuffers, 0, 0, period, filename,
-            expectedFileContent, csv);
-    if (!csv) {
-        if (expectedFileContent != NULL) {
-            char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
-            GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(mem));
-        }
-    }
+    const char8 * const filename = "config3.csv";
+    GenerateFile(filename);
+    bool ok = !TestIntegratedInApplication(config3, true);
+    DeleteTestFile(filename);
     return ok;
 }
 
 bool FileReaderTest::TestOpenFile() {
     using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config5, false);
-    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
-
-//Get the current pulse number
-    ReferenceT<FileReader> fileReader;
-    if (ok) {
-        fileReader = godb->Find("Test.Data.Drv1");
-        ok = fileReader.IsValid();
-    }
-    ReferenceT<Message> messageOpenFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageOpenFile");
-    if (ok) {
-        ok = messageOpenFile.IsValid();
-    }
-    if (ok) {
-        MessageI::SendMessage(messageOpenFile, NULL);
-    }
-    ReferenceT<Message> messageFlushFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageFlushFile");
-    if (ok) {
-        ok = messageOpenFile.IsValid();
-    }
-    if (ok) {
-        MessageI::SendMessage(messageFlushFile, NULL);
-    }
-    ReferenceT<Message> messageCloseFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageCloseFile");
-    if (ok) {
-        ok = messageCloseFile.IsValid();
-    }
-    if (ok) {
-        MessageI::SendMessage(messageCloseFile, NULL);
-    }
-    StreamString testFilename = "Test_MessageOpenTree.bin";
-    if (ok) {
-        ok = (fileReader->GetFilename() == testFilename);
-    }
-    if (ok) {
-        Directory toDelete(testFilename.Buffer());
-        toDelete.Delete();
-    }
-    godb->Purge();
-    return ok;
-}
-
-bool FileReaderTest::TestOpenFile_Overwrite() {
-    using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config13, false);
-    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
-
-//Get the current pulse number
-    ReferenceT<FileReader> fileReader;
-    if (ok) {
-        fileReader = godb->Find("Test.Data.Drv1");
-        ok = fileReader.IsValid();
-    }
-    ReferenceT<Message> messageOpenFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageOpenFile");
-    if (ok) {
-        ok = messageOpenFile.IsValid();
-    }
-    if (ok) {
-        MessageI::SendMessage(messageOpenFile, NULL);
-    }
-    ReferenceT<Message> messageFlushFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageFlushFile");
-    if (ok) {
-        ok = messageOpenFile.IsValid();
-    }
-    if (ok) {
-        MessageI::SendMessage(messageFlushFile, NULL);
-    }
-    ReferenceT<Message> messageCloseFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageCloseFile");
-    if (ok) {
-        ok = messageCloseFile.IsValid();
-    }
-    if (ok) {
-        MessageI::SendMessage(messageCloseFile, NULL);
-    }
-
-    StreamString testFilename = "Test_MessageOpenTree.bin";
-    if (ok) {
-        ok = !(fileReader->OpenFile(testFilename));
-    }
-    if (ok) {
-        Directory toDelete(testFilename.Buffer());
-        toDelete.Delete();
-    }
-    godb->Purge();
-    return ok;
+    uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    return TestIntegratedExecution(config1, false, &numberOfElements[0]);
 }
 
 bool FileReaderTest::TestCloseFile() {
     return TestOpenFile();
-}
-
-bool FileReaderTest::TestFlushFile() {
-    return TestOpenFile();
-}
-
-bool FileReaderTest::TestGetCPUMask() {
-    return TestInitialise();
 }
 
 bool FileReaderTest::TestGetFilename() {
@@ -3670,26 +2924,19 @@ bool FileReaderTest::TestGetCSVSeparator() {
     return TestInitialise();
 }
 
-bool FileReaderTest::TestGetNumberOfBuffers() {
+bool FileReaderTest::TestIsInterpolate() {
     return TestInitialise();
 }
 
-bool FileReaderTest::TestGetNumberOfPostTriggers() {
+bool FileReaderTest::TestGetXAxisSignal() {
     return TestInitialise();
 }
 
-bool FileReaderTest::TestGetNumberOfPreTriggers() {
+bool FileReaderTest::TestGetInterpolationPeriod() {
     return TestInitialise();
 }
 
-bool FileReaderTest::TestGetStackSize() {
-    return TestInitialise();
-}
-
-bool FileReaderTest::TestIsStoreOnTrigger() {
-    return TestInitialise();
-}
-
+#if 0
 bool FileReaderTest::TestOpenFileOKMessage() {
     using namespace MARTe;
     bool ok = TestIntegratedInApplication(config6, false);

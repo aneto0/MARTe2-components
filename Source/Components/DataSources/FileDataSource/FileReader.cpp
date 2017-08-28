@@ -690,6 +690,14 @@ bool FileReader::IsInterpolate() const {
     return interpolate;
 }
 
+const StreamString& FileReader::GetXAxisSignal() const {
+    return xAxisSignalName;
+}
+
+uint64 FileReader::GetInterpolationPeriod() const {
+    return interpolationPeriod;
+}
+
 CLASS_REGISTER(FileReader, "1.0")
 CLASS_METHOD_REGISTER(FileReader, CloseFile)
 

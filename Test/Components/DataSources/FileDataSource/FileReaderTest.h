@@ -96,57 +96,45 @@ public:
      */
     bool TestPrepareNextState();
 
-#if 0
     /**
      * @brief Tests the Initialise method.
      */
     bool TestInitialise();
-#endif
-#if 0
+
+    /**
+     * @brief Tests the Initialise method with no Interpolation.
+     */
+    bool TestInitialise_1();
+
     /**
      * @brief Tests the Initialise method with a binary file format.
      */
     bool TestInitialise_Binary();
 
     /**
-     * @brief Tests the Initialise method without specifying the overwrite parameter.
+     * @brief Tests the Initialise method without specifying the Interpolate parameter.
      */
-    bool TestInitialise_False_Overwrite();
+    bool TestInitialise_False_Interpolate();
 
     /**
-     * @brief Tests the Initialise method specifying an invalid overwrite parameter.
+     * @brief Tests the Initialise method specifying an invalid Interpolate parameter.
      */
-    bool TestInitialise_False_Overwrite_Invalid();
-
-    /**
-     * @brief Tests the Initialise method without specifying the number of buffers.
-     */
-    bool TestInitialise_False_NumberOfBuffers();
-
-    /**
-     * @brief Tests the Initialise method with a number of buffers that is not > 0.
-     */
-    bool TestInitialise_False_NumberOfBuffers_GT_0();
-
-    /**
-     * @brief Tests the Initialise method without specifying the CPU mask.
-     */
-    bool TestInitialise_False_CPUMask();
-
-    /**
-     * @brief Tests the Initialise method without specifying the stack size.
-     */
-    bool TestInitialise_False_StackSize();
-
-    /**
-     * @brief Tests the Initialise method with a the stack size that is not > 0.
-     */
-    bool TestInitialise_False_StackSize_GT_0();
+    bool TestInitialise_False_Interpolate_Invalid();
 
     /**
      * @brief Tests the Initialise method without specifying the file name.
      */
-    bool TestInitialise_Warning_Filename();
+    bool TestInitialise_False_Filename();
+
+    /**
+     * @brief Tests the Initialise method specifying an invalid file name.
+     */
+    bool TestInitialise_False_Filename_1();
+
+    /**
+     * @brief Tests the Initialise method specifying an invalid file.
+     */
+    bool TestInitialise_False_CorruptedFile();
 
     /**
      * @brief Tests the Initialise method without specifying the FileFormat.
@@ -164,24 +152,14 @@ public:
     bool TestInitialise_False_CSVSeparator();
 
     /**
-     * @brief Tests the Initialise method without specifying the StoreOnTrigger.
+     * @brief Tests the Initialise method without specifying the XAxisSignal.
      */
-    bool TestInitialise_False_StoreOnTrigger();
+    bool TestInitialise_False_XAxisSignal();
 
     /**
-     * @brief Tests the Initialise method without specifying the NumberOfPreTriggers.
+     * @brief Tests the Initialise method without specifying the InterpolationPeriod.
      */
-    bool TestInitialise_False_NumberOfPreTriggers();
-
-    /**
-     * @brief Tests the Initialise method without specifying the NumberOfPostTriggers.
-     */
-    bool TestInitialise_False_NumberOfPostTriggers();
-
-    /**
-     * @brief Tests the Initialise method without specifying the Signals.
-     */
-    bool TestInitialise_False_Signals();
+    bool TestInitialise_False_InterpolationPeriod();
 
     /**
      * @brief Tests the SetConfiguredDatabase.
@@ -194,14 +172,9 @@ public:
     bool TestSetConfiguredDatabase_False_NumberOfSamples();
 
     /**
-     * @brief Tests the SetConfiguredDatabase with no File signals defined.
-     */
-    bool TestSetConfiguredDatabase_False_NoFileSignals();
-
-    /**
      * @brief Tests the SetConfiguredDatabase with more than one function interacting with the FileReader.
      */
-    bool TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction();
+    bool TestSetConfiguredDatabase_False_MoreThanOneFunction();
 
     /**
      * @brief Tests the OpenFile method.
@@ -209,39 +182,9 @@ public:
     bool TestOpenFile();
 
     /**
-     * @brief Tests that the OpenFile does not overwrite.
-     */
-    bool TestOpenFile_Overwrite();
-
-    /**
      * @brief Tests the CloseFile method.
      */
     bool TestCloseFile();
-
-    /**
-     * @brief Tests the FlushFile method.
-     */
-    bool TestFlushFile();
-
-    /**
-     * @brief Tests the FileReader integrated in an application which continuously stores data.
-     */
-    bool TestIntegratedInApplication_NoTrigger(const MARTe::char8 *filename, bool csv = true);
-
-    /**
-     * @brief Tests the FileReader integrated in an application which continuously stores data.
-     */
-    bool TestIntegratedInApplication_NoTrigger_Array(const MARTe::char8 *filename, bool csv = true);
-
-    /**
-     * @brief Tests the FileReader integrated in an application which asynchronously stores data based on a trigger event.
-     */
-    bool TestIntegratedInApplication_Trigger(const MARTe::char8 *filename, bool csv = true);
-
-    /**
-     * @brief Tests the GetCPUMask method.
-     */
-    bool TestGetCPUMask();
 
     /**
      * @brief Tests the GetFilename method.
@@ -259,30 +202,21 @@ public:
     bool TestGetCSVSeparator();
 
     /**
-     * @brief Tests the GetNumberOfBuffers method.
-     */
-    bool TestGetNumberOfBuffers();
-
-    /**
-     * @brief Tests the GetNumberOfPostTriggers method.
-     */
-    bool TestGetNumberOfPostTriggers();
-
-    /**
-     * @brief Tests the GetNumberOfPreTriggers method.
-     */
-    bool TestGetNumberOfPreTriggers();
-
-    /**
-     * @brief Tests the GetStackSize method.
-     */
-    bool TestGetStackSize();
-
-    /**
      * @brief Tests the IsStoreOnTrigger method.
      */
-    bool TestIsStoreOnTrigger();
+    bool TestIsInterpolate();
 
+    /**
+     * @brief Tests the GetXAxisSignal method.
+     */
+    bool TestGetXAxisSignal();
+
+    /**
+     * @brief Tests the GetInterpolationPeriod method.
+     */
+    bool TestGetInterpolationPeriod();
+
+#if 0
     /**
      * @brief Tests that the open file message successfully opens the file
      */

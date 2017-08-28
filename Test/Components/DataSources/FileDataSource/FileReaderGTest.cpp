@@ -60,10 +60,14 @@ TEST(FileReaderGTest,TestGetSignalMemoryBuffer) {
     ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
 }
 
-#if 0
 TEST(FileReaderGTest,TestInitialise) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(FileReaderGTest,TestInitialise_1) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestInitialise_1());
 }
 
 TEST(FileReaderGTest,TestInitialise_Binary) {
@@ -71,44 +75,24 @@ TEST(FileReaderGTest,TestInitialise_Binary) {
     ASSERT_TRUE(test.TestInitialise_Binary());
 }
 
-TEST(FileReaderGTest,TestInitialise_False_NumberOfBuffers) {
+TEST(FileReaderGTest,TestInitialise_False_Filename) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers());
+    ASSERT_TRUE(test.TestInitialise_False_Filename());
 }
 
-TEST(FileReaderGTest,TestInitialise_False_Overwrite) {
+TEST(FileReaderGTest,TestInitialise_False_Filename_1) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_Overwrite());
+    ASSERT_TRUE(test.TestInitialise_False_Filename_1());
 }
 
-TEST(FileReaderGTest,TestInitialise_False_Overwrite_Invalid) {
+TEST(FileReaderGTest,TestInitialise_False_Interpolate) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_Overwrite_Invalid());
+    ASSERT_TRUE(test.TestInitialise_False_Interpolate());
 }
 
-TEST(FileReaderGTest,TestInitialise_False_NumberOfBuffers_GT_0) {
+TEST(FileReaderGTest,TestInitialise_False_Interpolate_Invalid) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers_GT_0());
-}
-
-TEST(FileReaderGTest,TestInitialise_False_CPUMask) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_CPUMask());
-}
-
-TEST(FileReaderGTest,TestInitialise_False_StackSize) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_StackSize());
-}
-
-TEST(FileReaderGTest,TestInitialise_False_StackSize_GT_0) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_StackSize_GT_0());
-}
-
-TEST(FileReaderGTest,TestInitialise_Warning_Filename) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_Warning_Filename());
+    ASSERT_TRUE(test.TestInitialise_False_Interpolate_Invalid());
 }
 
 TEST(FileReaderGTest,TestInitialise_False_FileFormat) {
@@ -126,24 +110,19 @@ TEST(FileReaderGTest,TestInitialise_False_CSVSeparator) {
     ASSERT_TRUE(test.TestInitialise_False_CSVSeparator());
 }
 
-TEST(FileReaderGTest,TestInitialise_False_StoreOnTrigger) {
+TEST(FileReaderGTest,TestInitialise_False_CorruptedFile) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_StoreOnTrigger());
+    ASSERT_TRUE(test.TestInitialise_False_CorruptedFile());
 }
 
-TEST(FileReaderGTest,TestInitialise_False_NumberOfPreTriggers) {
+TEST(FileReaderGTest,TestInitialise_False_XAxisSignal) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NumberOfPreTriggers());
+    ASSERT_TRUE(test.TestInitialise_False_XAxisSignal());
 }
 
-TEST(FileReaderGTest,TestInitialise_False_NumberOfPostTriggers) {
+TEST(FileReaderGTest,TestInitialise_False_InterpolationPeriod) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NumberOfPostTriggers());
-}
-
-TEST(FileReaderGTest,TestInitialise_False_Signals) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_Signals());
+    ASSERT_TRUE(test.TestInitialise_False_InterpolationPeriod());
 }
 
 TEST(FileReaderGTest,TestSetConfiguredDatabase) {
@@ -151,19 +130,15 @@ TEST(FileReaderGTest,TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
-TEST(FileReaderGTest,TestSetConfiguredDatabase_False_NoFileSignals) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoFileSignals());
-}
 
 TEST(FileReaderGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NumberOfSamples());
 }
 
-TEST(FileReaderGTest,TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction) {
+TEST(FileReaderGTest,TestSetConfiguredDatabase_False_MoreThanOneFunction) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneFunction());
 }
 
 TEST(FileReaderGTest,TestOpenFile) {
@@ -171,23 +146,10 @@ TEST(FileReaderGTest,TestOpenFile) {
     ASSERT_TRUE(test.TestOpenFile());
 }
 
-TEST(FileReaderGTest,TestOpenFile_Overwrite) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestOpenFile_Overwrite());
-}
-
 TEST(FileReaderGTest,TestCloseFile) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestCloseFile());
 }
-
-TEST(FileReaderGTest,TestFlushFile) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestFlushFile());
-}
-
-#endif
-
 
 TEST(FileReaderGTest,TestGetBrokerName_OutputSignals) {
     FileReaderTest test;
@@ -222,11 +184,6 @@ TEST(FileReaderGTest,TestPrepareNextState) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestPrepareNextState());
 }
-#if 0
-TEST(FileReaderGTest,TestGetCPUMask) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestGetCPUMask());
-}
 
 TEST(FileReaderGTest,TestGetFilename) {
     FileReaderTest test;
@@ -243,30 +200,22 @@ TEST(FileReaderGTest,TestGetCSVSeparator) {
     ASSERT_TRUE(test.TestGetCSVSeparator());
 }
 
-TEST(FileReaderGTest,TestGetNumberOfBuffers) {
+TEST(FileReaderGTest,TestGetXAxisSignal) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestGetNumberOfBuffers());
+    ASSERT_TRUE(test.TestGetXAxisSignal());
 }
 
-TEST(FileReaderGTest,TestGetNumberOfPostTriggers) {
+TEST(FileReaderGTest,TestGetInterpolationPeriod) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestGetNumberOfPostTriggers());
+    ASSERT_TRUE(test.TestGetInterpolationPeriod());
 }
 
-TEST(FileReaderGTest,TestGetNumberOfPreTriggers) {
+TEST(FileReaderGTest,TestIsInterpolate) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestGetNumberOfPreTriggers());
+    ASSERT_TRUE(test.TestIsInterpolate());
 }
 
-TEST(FileReaderGTest,TestGetStackSize) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestGetStackSize());
-}
-
-TEST(FileReaderGTest,TestIsStoreOnTrigger) {
-    FileReaderTest test;
-    ASSERT_TRUE(test.TestIsStoreOnTrigger());
-}
+#if 0
 
 TEST(FileReaderGTest,TestOpenFileOKMessage) {
     FileReaderTest test;

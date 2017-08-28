@@ -222,6 +222,18 @@ FileReader    ();
      */
     bool IsInterpolate() const;
 
+    /**
+     * @brief Returns the XAxisSignal name.
+     * @return the XAxisSignal name.
+     */
+    const StreamString& GetXAxisSignal() const;
+
+    /**
+     * @brief Returns the InterpolationPeriod value.
+     * @return the InterpolationPeriod value
+     */
+    uint64 GetInterpolationPeriod() const;
+
 private:
 
     /**
