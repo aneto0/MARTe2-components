@@ -260,6 +260,32 @@ bool PIDGAMTest::TestInitialiseWrongSampleTime() {
     return ret;
 }
 
+bool PIDGAMTest::TestInitialiseMissingUpperSaturationLimit() {
+    PIDGAM gam;
+    bool ret;
+    ConfigurationDatabase config;
+    float64 kp = 1.1;
+    config.Write("Kp", kp);
+    float64 sampleTime = 0.001;
+    config.Write("SampleTime", sampleTime);
+    ret = !gam.Initialise(config);
+    return ret;
+}
+
+bool PIDGAMTest::TestInitialiseMissingLowerSaturationLimit() {
+    PIDGAM gam;
+    bool ret;
+    ConfigurationDatabase config;
+    float64 kp = 1.1;
+    config.Write("Kp", kp);
+    float64 sampleTime = 0.001;
+    config.Write("SampleTime", sampleTime);
+    float64 maxOutput = 1.5;
+    config.Write("MaxOutput", maxOutput);
+    ret = !gam.Initialise(config);
+    return ret;
+}
+
 bool PIDGAMTest::TestInitialiseWrongSaturationLimits() {
     PIDGAM gam;
     bool ret;
@@ -1958,6 +1984,53 @@ bool PIDGAMTest::TestExecutekd() {
     return ret;
 }
 
+
+bool PIDGAMTest::TestExecutekpkiSubtract() {
+    bool ret;
+    PIDGAMTestHelper gam(0.5, 500, 0.0, 0.001);
+    ret = gam.HelperInitialise();
+    ret &= gam.Initialise(gam.config);
+
+    ret &= gam.HelperSetup2();
+    ret &= gam.SetConfiguredDatabase(gam.configSignals);
+    ret &= gam.AllocateInputSignalsMemory();
+    ret &= gam.AllocateOutputSignalsMemory();
+    ret &= gam.Setup();
+
+    float64 *gamMemoryInR = static_cast<float64 *>(gam.GetInputSignalsMemory());
+    float64 *gamMemoryInM = static_cast<float64 *>(gam.GetInputSignalsMemory(1));
+    float64 *gamMemoryOut = static_cast<float64 *>(gam.GetOutputSignalsMemory());
+    uint32 maxRep = 11;
+    float64 *expectedVale = new float64[maxRep];
+    //generate output
+    expectedVale[0] = 1.0;
+    expectedVale[1] = 0.5;
+    expectedVale[2] = 1.0;
+    expectedVale[3] = 0.75;
+    expectedVale[4] = 1.0;
+    expectedVale[5] = 0.875;
+    expectedVale[6] = 1.0;
+    expectedVale[7] = 0.9375;
+
+    expectedVale[8] = 1;
+    expectedVale[9] = 0.96875;
+    expectedVale[10] = 1.0;
+
+    *gamMemoryInM = 0;
+    *gamMemoryInR = 1;
+    for (uint32 i = 0u; i < maxRep && ret; i++) {
+        //set inputs
+        gam.Execute();
+        //Check output
+        ret &= gam.IsEqualLargerMargins(*gamMemoryOut, expectedVale[i]);
+        if (!ret) {
+            printf("output value  = %.16lf.\nexpectedValue = %.16lf. index = %u \n", *gamMemoryOut, expectedVale[i], i);
+        }
+        *gamMemoryInM = *gamMemoryOut;
+    }
+    return ret;
+}
+
 bool PIDGAMTest::TestExecutekpkikdSubtract() {
     bool ret;
     PIDGAMTestHelper gam(0.5, 500, 0.00001, 0.001);
@@ -1993,7 +2066,7 @@ bool PIDGAMTest::TestExecutekpkikdSubtract() {
         //Check output
         ret &= gam.IsEqualLargerMargins(*gamMemoryOut, expectedVale[i]);
         if (!ret) {
-            printf("output value = %.17lf. expectedValue = %.17lf. index = %u \n", *gamMemoryOut, expectedVale[i], i);
+            printf("output value  = %.16lf.\nexpectedValue = %.16lf. index = %u \n", *gamMemoryOut, expectedVale[i], i);
         }
         *gamMemoryInM = *gamMemoryOut;
     }
@@ -2138,7 +2211,7 @@ bool PIDGAMTest::TestExecuteSaturationki() {
     return ret;
 }
 
-bool PIDGAMTest::TestExecuteSaturationki2() {
+bool PIDGAMTest::TestExecuteSaturationki2Subtract() {
     bool ret;
     PIDGAMTestHelper gam(0, 500, 0, 0.001, 0.2, -0.2);
     ret = gam.HelperInitialise();
@@ -2186,6 +2259,158 @@ bool PIDGAMTest::TestExecuteSaturationki2() {
             printf("output value = %.17lf. expectedValue = %.17lf. index = %u \n", *gamMemoryOut, expectedVale[i], i);
         }
         *gamMemoryInM = *gamMemoryOut;
+    }
+    return ret;
+}
+
+bool PIDGAMTest::TestExecuteSaturationki3Subtract() {
+    bool ret;
+    PIDGAMTestHelper gam(0, 500, 0, 0.001, 0.2, -0.2);
+    ret = gam.HelperInitialise();
+    ret &= gam.Initialise(gam.config);
+
+    ret &= gam.HelperSetup2();
+    ret &= gam.SetConfiguredDatabase(gam.configSignals);
+    ret &= gam.AllocateInputSignalsMemory();
+    ret &= gam.AllocateOutputSignalsMemory();
+    ret &= gam.Setup();
+
+    float64 *gamMemoryInR = static_cast<float64 *>(gam.GetInputSignalsMemory());
+    float64 *gamMemoryInM = static_cast<float64 *>(gam.GetInputSignalsMemory(1));
+    float64 *gamMemoryOut = static_cast<float64 *>(gam.GetOutputSignalsMemory());
+    uint32 maxRep = 7;
+    float64 *expectedVale = new float64[maxRep];
+    //generate output
+    expectedVale[0] = -0.2;
+    expectedVale[1] = -0.2;
+    expectedVale[2] = -0.2;
+    expectedVale[3] = 0.1;
+    expectedVale[4] = 0.05;
+    expectedVale[5] = 0.025;
+    expectedVale[6] = 0.0125;
+
+    *gamMemoryInM = 0;
+    *gamMemoryInR = -1;
+    for (uint32 i = 0u; i < 3 && ret; i++) {
+        //set inputs
+        gam.Execute();
+        //Check output
+        ret &= gam.IsEqualLargerMargins(*gamMemoryOut, expectedVale[i]);
+        if (!ret) {
+            printf("output value = %.17lf. expectedValue = %.17lf. index = %u \n", *gamMemoryOut, expectedVale[i], i);
+        }
+        *gamMemoryInM = *gamMemoryOut;
+    }
+    *gamMemoryInR = 0;
+    for (uint32 i = 3u; i < maxRep && ret; i++) {
+        //set inputs
+        gam.Execute();
+        //Check output
+        ret &= gam.IsEqualLargerMargins(*gamMemoryOut, expectedVale[i]);
+        if (!ret) {
+            printf("output value = %.17lf. expectedValue = %.17lf. index = %u \n", *gamMemoryOut, expectedVale[i], i);
+        }
+        *gamMemoryInM = *gamMemoryOut;
+    }
+    return ret;
+}
+
+bool PIDGAMTest::TestExecuteSaturationki2() {
+    bool ret;
+    PIDGAMTestHelper gam(0, 500, 0, 0.001, 0.2, -0.2);
+    ret = gam.HelperInitialise();
+    ret &= gam.Initialise(gam.config);
+
+    ret &= gam.HelperSetup1();
+    ret &= gam.SetConfiguredDatabase(gam.configSignals);
+    ret &= gam.AllocateInputSignalsMemory();
+    ret &= gam.AllocateOutputSignalsMemory();
+    ret &= gam.Setup();
+
+    float64 *gamMemoryInR = static_cast<float64 *>(gam.GetInputSignalsMemory());
+    float64 *gamMemoryOut = static_cast<float64 *>(gam.GetOutputSignalsMemory());
+    uint32 maxRep = 7;
+    float64 *expectedVale = new float64[maxRep];
+    //generate output
+    expectedVale[0] = 0.2;
+    expectedVale[1] = 0.2;
+    expectedVale[2] = 0.2;
+    expectedVale[3] = -0.1;
+    expectedVale[4] = -0.05;
+    expectedVale[5] = -0.025;
+    expectedVale[6] = -0.0125;
+
+    *gamMemoryOut = 0.0;
+    for (uint32 i = 0u; i < 3 && ret; i++) {
+        //set inputs
+        *gamMemoryInR = 1.0 - *gamMemoryOut;
+        gam.Execute();
+        //Check output
+        ret &= gam.IsEqualLargerMargins(*gamMemoryOut, expectedVale[i]);
+        if (!ret) {
+            printf("output value = %.17lf. expectedValue = %.17lf. index = %u \n", *gamMemoryOut, expectedVale[i], i);
+        }
+    }
+
+    for (uint32 i = 3u; i < maxRep && ret; i++) {
+        //set inputs
+        *gamMemoryInR = 0 - *gamMemoryOut;
+        gam.Execute();
+        //Check output
+        ret &= gam.IsEqualLargerMargins(*gamMemoryOut, expectedVale[i]);
+        if (!ret) {
+            printf("output value = %.17lf. expectedValue = %.17lf. index = %u \n", *gamMemoryOut, expectedVale[i], i);
+        }
+    }
+    return ret;
+}
+
+bool PIDGAMTest::TestExecuteSaturationki3() {
+    bool ret;
+    PIDGAMTestHelper gam(0, 500, 0, 0.001, 0.2, -0.2);
+    ret = gam.HelperInitialise();
+    ret &= gam.Initialise(gam.config);
+
+    ret &= gam.HelperSetup1();
+    ret &= gam.SetConfiguredDatabase(gam.configSignals);
+    ret &= gam.AllocateInputSignalsMemory();
+    ret &= gam.AllocateOutputSignalsMemory();
+    ret &= gam.Setup();
+
+    float64 *gamMemoryInR = static_cast<float64 *>(gam.GetInputSignalsMemory());
+    float64 *gamMemoryOut = static_cast<float64 *>(gam.GetOutputSignalsMemory());
+    uint32 maxRep = 7;
+    float64 *expectedVale = new float64[maxRep];
+    //generate output
+    expectedVale[0] = -0.2;
+    expectedVale[1] = -0.2;
+    expectedVale[2] = -0.2;
+    expectedVale[3] = 0.1;
+    expectedVale[4] = 0.05;
+    expectedVale[5] = 0.025;
+    expectedVale[6] = 0.0125;
+
+    *gamMemoryOut = 0.0;
+    for (uint32 i = 0u; i < 3 && ret; i++) {
+        //set inputs
+        *gamMemoryInR = -1.0 - *gamMemoryOut;
+        gam.Execute();
+        //Check output
+        ret &= gam.IsEqualLargerMargins(*gamMemoryOut, expectedVale[i]);
+        if (!ret) {
+            printf("output value = %.17lf. expectedValue = %.17lf. index = %u \n", *gamMemoryOut, expectedVale[i], i);
+        }
+    }
+
+    for (uint32 i = 3u; i < maxRep && ret; i++) {
+        //set inputs
+        *gamMemoryInR = 0 - *gamMemoryOut;
+        gam.Execute();
+        //Check output
+        ret &= gam.IsEqualLargerMargins(*gamMemoryOut, expectedVale[i]);
+        if (!ret) {
+            printf("output value = %.17lf. expectedValue = %.17lf. index = %u \n", *gamMemoryOut, expectedVale[i], i);
+        }
     }
     return ret;
 }

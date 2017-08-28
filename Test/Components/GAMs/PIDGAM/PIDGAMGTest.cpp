@@ -54,6 +54,16 @@ TEST(PIDGAMGTest,TestInitialiseWrongSampleTime) {
     ASSERT_TRUE(test.TestInitialiseWrongSampleTime());
 }
 
+TEST(PIDGAMGTest,TestInitialiseMissingUpperSaturationLimit) {
+    PIDGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseMissingUpperSaturationLimit());
+}
+
+TEST(PIDGAMGTest,TestInitialiseMissingLowerSaturationLimit) {
+    PIDGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseMissingLowerSaturationLimit());
+}
+
 TEST(PIDGAMGTest,TestInitialiseWrongSaturationLimits) {
     PIDGAMTest test;
     ASSERT_TRUE(test.TestInitialiseWrongSaturationLimits());
@@ -259,6 +269,12 @@ TEST(PIDGAMGTest, TestExecutekd) {
     ASSERT_TRUE(test.TestExecutekd());
 }
 
+TEST(PIDGAMGTest, TestExecutekpkiSubtract) {
+    PIDGAMTest test;
+    ASSERT_TRUE(test.TestExecutekpkiSubtract());
+}
+
+
 TEST(PIDGAMGTest, TestExecutekpkikdSubtract) {
     PIDGAMTest test;
     ASSERT_TRUE(test.TestExecutekpkikdSubtract());
@@ -279,9 +295,25 @@ TEST(PIDGAMGTest, TestExecuteSaturationki) {
     ASSERT_TRUE(test.TestExecuteSaturationki());
 }
 
+TEST(PIDGAMGTest, TestExecuteSaturationki2Subtract) {
+    PIDGAMTest test;
+    ASSERT_TRUE(test.TestExecuteSaturationki2Subtract());
+}
+
+TEST(PIDGAMGTest, TestExecuteSaturationki3Subtract) {
+    PIDGAMTest test;
+    ASSERT_TRUE(test.TestExecuteSaturationki3Subtract());
+}
+
 TEST(PIDGAMGTest, TestExecuteSaturationki2) {
     PIDGAMTest test;
     ASSERT_TRUE(test.TestExecuteSaturationki2());
 }
+
+TEST(PIDGAMGTest, TestExecuteSaturationki3) {
+    PIDGAMTest test;
+    ASSERT_TRUE(test.TestExecuteSaturationki3());
+}
+
 
 

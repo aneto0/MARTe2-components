@@ -42,57 +42,308 @@ namespace MARTe {
 class PIDGAMTest: MARTe::PIDGAM{
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API PIDGAMTest)
 public:
+    /**
+     * @brief Default constructor. NOOP
+     */
     PIDGAMTest();
+
+    /**
+     * @brief Default destructor. NOOP
+     */
     virtual ~PIDGAMTest();
+
+    /**
+     * @brief Test error message of PIDGAM::Initialise()
+     */
     bool TestInitialiseMissingKpKiKd();
+
+    /**
+     * @brief Test error message of PIDGAM::Initialise()
+     */
     bool TestInitialiseMissingSampleTime();
+
+    /**
+     * @brief Test error message of PIDGAM::Initialise()
+     */
     bool TestInitialiseWrongSampleTime();
+
+    /**
+     * @brief Test error message of PIDGAM::Initialise()
+     */
+    bool TestInitialiseMissingUpperSaturationLimit();
+
+    /**
+     * @brief Test error message of PIDGAM::Initialise()
+     */
+    bool TestInitialiseMissingLowerSaturationLimit();
+
+    /**
+     * @brief Test error message of PIDGAM::Initialise()
+     * @details lower limit is larger than upper limit.
+     */
     bool TestInitialiseWrongSaturationLimits();
+
+    /**
+     * @brief Test error message of PIDGAM::Initialise()
+     * @ details lower and upper limit are equal.
+     */
     bool TestInitialiseWrongSaturationLimits2();
+
+    /**
+     * @brief Test PIDGAM::Initialise() with a valid configuration
+     */
     bool TestInitialise();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     * @details number of input equal to 0
+     */
     bool TestSetupWrongNumberOfInputs();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     * @details number of input equal to 3
+     */
     bool TestSetupWrongNumberOfInputs2();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     * @details number of output equal to 0
+     */
     bool TestSetupWrongNumberOfOutputs();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     * @details number of output equal to 2
+     */
     bool TestSetupWrongNumberOfOutputs2();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoInputElementsReference();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongInputElementsReference();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoInputElementsMeasurement();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongInputElementsMeasurement();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoOutputElements();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongOutputElements();
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoInputSamplesReference();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongInputSamplesReference();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoInputSamplesMeasurement();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongInputSamplesMeasurement();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoOutputSamples();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongOutputSamples();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoInputDimensionReference();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongInputDimensionReference();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoInputDimensionMeasurement();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongInputDimensionMeasurement();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoOutputDimension();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongOutputDimension();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoReferenceInputType();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongReferenceInputType();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoMeasurementInputType();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongMeasurementInputType();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupNoOutputType();
+
+    /**
+     * @brief Test error message of PIDGAM::Setup()
+     */
     bool TestSetupWrongOutputType();
+
+    /**
+     * @brief Test the PIDGAM::Setup() with a single input and a valid configuration.
+     */
     bool TestSetup1InputSignal();
+
+    /**
+     * @brief Test the PIDGAM::Setup() with a two inputs and a valid configuration.
+     */
     bool TestSetup2InputSignals();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with two inputs and only the proportional term.
+     */
     bool TestExecutekpSubtract();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with a single input and only the proportional term.
+     */
     bool TestExecutekp();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with two inputs and only the integral term.
+     * @details the input reference goes from 1 to 0.
+     */
     bool TestExecutekiSubtract();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with a single input and only the integral term.
+     * @details the input reference goes from 1 to 0.
+     */
     bool TestExecuteki();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with two inputs and only the integral term.
+     * @details the input reference always is 1.
+     */
     bool TestExecutekiSubtract2();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with a single input and only the integral term.
+     * @details the input reference always is 1.
+     */
     bool TestExecuteki2();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with two inputs and only the derivative term.
+     */
     bool TestExecutekdSubtract();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with a single input and only the derivative term.
+     */
     bool TestExecutekd();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with two inputs and proportional and integral term.
+     * @details the expected values are extracted from a Simulink simulation.
+     */
+    bool TestExecutekpkiSubtract();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with all terms.
+     * @details the expected values are extracted from a Simulink simulation.
+     */
     bool TestExecutekpkikdSubtract();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with all terms.
+     * @details compares two PIDGAM with the same kp, ki and kd but one with a single input and the other with two inputs.
+     */
     bool TestExecutekpkikdCompareBoth();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with saturation.
+     */
     bool TestExecuteSaturationkp();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with saturation.
+     */
     bool TestExecuteSaturationki();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with upper saturation acting.
+     * @details First the output is saturated and then the reference is change in order not
+     * exceed the output limits.
+     */
+    bool TestExecuteSaturationki2Subtract();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with lower saturation acting.
+     * @details First the output is saturated and then the reference is change in order not
+     * exceed the output limits.
+     */
+    bool TestExecuteSaturationki3Subtract();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with saturation and single input.
+     * @details the behaviour should be the same as TestExecuteSaturationki2Subtract.
+     */
     bool TestExecuteSaturationki2();
+
+    /**
+     * @brief Test the PIDGAM::Execute() with saturation and single input.
+     * @details the behaviour should be the same as TestExecuteSaturationki3Subtract.
+     */
+    bool TestExecuteSaturationki3();
 
 
 };
