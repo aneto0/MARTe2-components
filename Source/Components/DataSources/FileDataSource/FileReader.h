@@ -61,7 +61,8 @@ namespace MARTe {
  *
  * Only one and one GAM is allowed to read from this DataSourceI.
  *
- * If any of the signals asks for a Frequency > 0, the InterpolationPeriod defined below will be ignored and replaced by Frequency * 1e9
+ * If any of the signals asks for a Frequency > 0, the InterpolationPeriod defined below will be ignored and replaced by Frequency * 1e9 and the
+ *  XAxisSignal will be replaced by this signal name.
  *
  * The configuration syntax is (names are only given as an example):
  * +FileReader_0 = {
@@ -70,8 +71,8 @@ namespace MARTe {
  *     Interpolate = "yes" //Compulsory. If "yes" the data will be interpolated and an XAxisSignal  signal shall be provided. If set to "no" the data will be provided as is.
  *     FileFormat = "binary" //Compulsory. Possible values are: binary and csv.
  *     CSVSeparator = "," //Compulsory if Format=csv. Sets the file separator type.
- *     XAxisSignal = "Time" //Compulsory if Interpolate = "yes". Name of the signal containing the independent variable to generate the interpolation samples.
- *     InterpolationPeriod = 1000 //Compulsory if Interpolate = "yes". InterpolatedXAxisSignal += InterpolationPeriod. It will be read as an uint64
+ *     XAxisSignal = "Time" //Compulsory if Interpolate = "yes" and none of the signals interacting with this FileReader have Frequency > 0. Name of the signal containing the independent variable to generate the interpolation samples.
+ *     InterpolationPeriod = 1000 //Compulsory if Interpolate = "yes" and none of the signals interacting with this FileReader have Frequency > 0. InterpolatedXAxisSignal += InterpolationPeriod. It will be read as an uint64
  *     //All the signals are automatically added against the information stored in the header of the input file (format described above).
  *     +Messages = { //Optional. If set a message will be fired every time one of the events below occur
  *         Class = ReferenceContainer
@@ -229,7 +230,7 @@ private:
     /**
      * @brief Copies the xAxis signal from the data source memory into the broker shared variable (xAxisSignal).
      */
-    void ConvertTimeSignal();
+    void ConvertXAxisSignal();
 
 
     /**

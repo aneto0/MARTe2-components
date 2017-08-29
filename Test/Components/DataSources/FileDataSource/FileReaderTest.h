@@ -87,9 +87,34 @@ public:
     bool TestGetOutputBrokers();
 
     /**
-     * @brief Tests the Synchronise method.
+     * @brief Tests the Synchronise method with csv files.
      */
-    bool TestSynchronise();
+    bool TestSynchronise_CSV();
+
+    /**
+     * @brief Tests the Synchronise method with csv files and interpolation.
+     */
+    bool TestSynchronise_CSV_Interpolation();
+
+    /**
+     * @brief Tests the Synchronise method with binary files.
+     */
+    bool TestSynchronise_Binary();
+
+    /**
+     * @brief Tests the Synchronise method with binary files and interpolation.
+     */
+    bool TestSynchronise_Binary_Interpolation();
+
+    /**
+     * @brief Tests the Synchronise method using the Frequency parameter.
+     */
+    bool TestSynchronise_Frequency();
+
+    /**
+     * @brief Tests the Synchronise method using different xAxisSignal types.
+     */
+    bool TestSynchronise_XAxisSignals();
 
     /**
      * @brief Tests the PrepareNextState method.
@@ -154,12 +179,12 @@ public:
     /**
      * @brief Tests the Initialise method without specifying the XAxisSignal.
      */
-    bool TestInitialise_False_XAxisSignal();
+    bool TestInitialise_Warning_XAxisSignal();
 
     /**
      * @brief Tests the Initialise method without specifying the InterpolationPeriod.
      */
-    bool TestInitialise_False_InterpolationPeriod();
+    bool TestInitialise_Warning_InterpolationPeriod();
 
     /**
      * @brief Tests the SetConfiguredDatabase.
@@ -175,6 +200,16 @@ public:
      * @brief Tests the SetConfiguredDatabase with more than one function interacting with the FileReader.
      */
     bool TestSetConfiguredDatabase_False_MoreThanOneFunction();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with an invalid XAxisSignal name.
+     */
+    bool TestSetConfiguredDatabase_False_XAxisSignal();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with an invalid XAxisSignal number of dimensions.
+     */
+    bool TestSetConfiguredDatabase_False_XAxisSignal_Dimensions();
 
     /**
      * @brief Tests the OpenFile method.

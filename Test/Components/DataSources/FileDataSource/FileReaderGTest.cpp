@@ -115,21 +115,20 @@ TEST(FileReaderGTest,TestInitialise_False_CorruptedFile) {
     ASSERT_TRUE(test.TestInitialise_False_CorruptedFile());
 }
 
-TEST(FileReaderGTest,TestInitialise_False_XAxisSignal) {
+TEST(FileReaderGTest,TestInitialise_Warning_XAxisSignal) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_XAxisSignal());
+    ASSERT_TRUE(test.TestInitialise_Warning_XAxisSignal());
 }
 
-TEST(FileReaderGTest,TestInitialise_False_InterpolationPeriod) {
+TEST(FileReaderGTest,TestInitialise_Warning_InterpolationPeriod) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_InterpolationPeriod());
+    ASSERT_TRUE(test.TestInitialise_Warning_InterpolationPeriod());
 }
 
 TEST(FileReaderGTest,TestSetConfiguredDatabase) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
-
 
 TEST(FileReaderGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
     FileReaderTest test;
@@ -139,6 +138,16 @@ TEST(FileReaderGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
 TEST(FileReaderGTest,TestSetConfiguredDatabase_False_MoreThanOneFunction) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneFunction());
+}
+
+TEST(FileReaderGTest,TestSetConfiguredDatabase_False_XAxisSignal) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_XAxisSignal());
+}
+
+TEST(FileReaderGTest,TestSetConfiguredDatabase_False_XAxisSignal_Dimensions) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_XAxisSignal_Dimensions());
 }
 
 TEST(FileReaderGTest,TestOpenFile) {
@@ -175,9 +184,35 @@ TEST(FileReaderGTest,TestGetOutputBrokers) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestGetOutputBrokers());
 }
-TEST(FileReaderGTest,TestSynchronise) {
+
+TEST(FileReaderGTest,TestSynchronise_Binary) {
     FileReaderTest test;
-    ASSERT_TRUE(test.TestSynchronise());
+    ASSERT_TRUE(test.TestSynchronise_Binary());
+}
+
+TEST(FileReaderGTest,TestSynchronise_Binary_Interpolation) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise_Binary_Interpolation());
+}
+
+TEST(FileReaderGTest,TestSynchronise_CSV) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise_CSV());
+}
+
+TEST(FileReaderGTest,TestSynchronise_CSV_Interpolation) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise_CSV_Interpolation());
+}
+
+TEST(FileReaderGTest,TestSynchronise_Frequency) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise_Frequency());
+}
+
+TEST(FileReaderGTest,TestSynchronise_XAxisSignals) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise_XAxisSignals());
 }
 
 TEST(FileReaderGTest,TestPrepareNextState) {

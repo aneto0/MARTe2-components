@@ -47,8 +47,7 @@ static const int32 FILE_FORMAT_BINARY = 1;
 static const int32 FILE_FORMAT_CSV = 2;
 
 FileReader::FileReader() :
-        DataSourceI(),
-        MessageI() {
+        DataSourceI(), MessageI() {
     dataSourceMemory = NULL_PTR(char8 *);
     offsets = NULL_PTR(uint32 *);
     numberOfBinaryBytes = 0u;
@@ -156,7 +155,7 @@ bool FileReader::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8
     return false;
 }
 
-void FileReader::ConvertTimeSignal() {
+void FileReader::ConvertXAxisSignal() {
     if (xAxisSignalType == UnsignedInteger8Bit) {
         xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint8 *>(xAxisSignalPtr));
     }
@@ -231,7 +230,8 @@ bool FileReader::Synchronise() {
                     if (!ok) {
                         StreamString signalName;
                         (void) GetSignalName(signalIdx, signalName);
-                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(), line.Buffer());
+                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(),
+                                     line.Buffer());
                     }
                 }
                 else {
@@ -266,7 +266,7 @@ bool FileReader::Synchronise() {
     }
     if (ok) {
         if (interpolate) {
-            ConvertTimeSignal();
+            ConvertXAxisSignal();
         }
     }
     return ok;
@@ -331,15 +331,11 @@ bool FileReader::Initialise(StructuredDataI& data) {
     }
     if (ok) {
         if (interpolate) {
-            ok = data.Read("XAxisSignal", xAxisSignalName);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "With Interpolate=yes the XAxisSignal shall be specified");
+            if (!data.Read("XAxisSignal", xAxisSignalName)) {
+                REPORT_ERROR(ErrorManagement::Warning, "Interpolate=yes and the XAxisSignal was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
             }
-            if (ok) {
-                ok = data.Read("InterpolationPeriod", interpolationPeriod);
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "With Interpolate=yes the InterpolationPeriod shall be specified");
-                }
+            if (!data.Read("InterpolationPeriod", interpolationPeriod)) {
+                REPORT_ERROR(ErrorManagement::Warning, "Interpolate=yes and the InterpolationPeriod was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
             }
         }
     }
@@ -417,8 +413,8 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
         }
 
         uint32 nOfSignals = GetNumberOfSignals();
-        ok = (nOfSignals > 0u);
         if (ok) {
+            ok = (nOfSignals > 0u);
             offsets = new uint32[nOfSignals];
         }
 
@@ -451,9 +447,11 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
                 if (ok) {
                     found = (frequency > 0.F);
                 }
-            }
-            if (found) {
-                interpolationPeriod = static_cast<uint64>(1e9 / frequency);
+                if (found) {
+                    interpolationPeriod = static_cast<uint64>(1e9 / frequency);
+                    xAxisSignalName = "";
+                    ok = GetFunctionSignalAlias(InputSignals, 0u, i, xAxisSignalName);
+                }
             }
         }
 
@@ -637,7 +635,8 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
                 }
                 if (!fatalFileError) {
-                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
+                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(),
+                                 TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
                 }
             }
         }
