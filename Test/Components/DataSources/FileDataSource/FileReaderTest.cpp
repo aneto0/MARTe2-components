@@ -24,7 +24,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -285,7 +284,6 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
         if (signalToVerify[s]->type ## Signal != NULL) {\
             for(z=0; (z<signalToVerifyNumberOfElements[idx]) && (ok); z++) {\
                 ok = (signalToVerify[s]->type ## Signal[z] == gam->type ## Signal[z]);\
-                printf("%d %d: %x vs %x\n", s, z, (uint32)signalToVerify[s]->type ## Signal[z], (uint32)gam->type ## Signal[z]);\
             }\
         }
 

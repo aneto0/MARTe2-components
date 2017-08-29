@@ -49,20 +49,22 @@ namespace MARTe {
  *  vector or retrieved as is.
  *
  * If the format is csv the first line shall be be a comment starting with a # symbol followed by
- * each signal name, type and number of elements in the format: SIGNAL_NAME (SIGNAL_TYPE)[NUMBER_OF_ELEMENTS]
- * A new line is expected for each signal sample. Arrays are encoded inside brackets as per BufferedStreamI::PrintFormatted
+ * each signal name, type and number of elements in the format: SIGNAL_NAME (SIGNAL_TYPE)[NUMBER_OF_ELEMENTS]. Each of these signal
+ *  definitions is further separated by the CSVSeparator. e.g."#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[4]"
+ * A new line is expected after all signal samples have been written for any time instant.
+ * Arrays are encoded inside brackets as per BufferedStreamI::PrintFormatted. e.g.""1;2000000;{2,2,2,2}"
  *
  * If the format is binary an header with the following information is expected: the first 4 bytes
  * contain the number of signals. Then, for each signal, the signal type will be encoded in two bytes, followed
- *  by 32 bytes to encode the signal name, followed by 4 bytes which store the number of elements of a given signal.
+ *  by exactly 32 bytes to encode the signal name, followed by 4 bytes which store the number of elements of a given signal.
  *  Following the header, the signal samples are consecutively stored in binary format.
  *
  * This DataSourceI has the function CloseFile registered as an RPCs.
  *
  * Only one and one GAM is allowed to read from this DataSourceI.
  *
- * If any of the signals asks for a Frequency > 0, the InterpolationPeriod defined below will be ignored and replaced by Frequency * 1e9 and the
- *  XAxisSignal will be replaced by this signal name.
+ * If any of the signals reading from this DataSourceI asks for a Frequency > 0, the InterpolationPeriod
+ * defined below will be ignored and replaced by Frequency * 1e9 and the XAxisSignal will be replaced by this signal name.
  *
  * The configuration syntax is (names are only given as an example):
  * +FileReader_0 = {
@@ -71,12 +73,12 @@ namespace MARTe {
  *     Interpolate = "yes" //Compulsory. If "yes" the data will be interpolated and an XAxisSignal  signal shall be provided. If set to "no" the data will be provided as is.
  *     FileFormat = "binary" //Compulsory. Possible values are: binary and csv.
  *     CSVSeparator = "," //Compulsory if Format=csv. Sets the file separator type.
- *     XAxisSignal = "Time" //Compulsory if Interpolate = "yes" and none of the signals interacting with this FileReader have Frequency > 0. Name of the signal containing the independent variable to generate the interpolation samples.
- *     InterpolationPeriod = 1000 //Compulsory if Interpolate = "yes" and none of the signals interacting with this FileReader have Frequency > 0. InterpolatedXAxisSignal += InterpolationPeriod. It will be read as an uint64
+ *     XAxisSignal = "Time" //Compulsory if Interpolate = "yes" and none of the signals interacting with this FileReader has Frequency > 0. Name of the signal containing the independent variable to generate the interpolation samples.
+ *     InterpolationPeriod = 1000 //Compulsory if Interpolate = "yes" and none of the signals interacting with this FileReader has Frequency > 0. InterpolatedXAxisSignal += InterpolationPeriod. It will be read as an uint64.
  *     //All the signals are automatically added against the information stored in the header of the input file (format described above).
  *     +Messages = { //Optional. If set a message will be fired every time one of the events below occur
  *         Class = ReferenceContainer
- *         //FileOpenedOK does not exist since the file is opened in the Initialise and the targeted object would not necessarily exist.
+ *         //FileOpenedOK does not exist since the file is opened in the Initialise method and, as a consequence, the targeted object would not necessarily exist.
  *         +FileRuntimeError = { //Optional, but if set, the name of the Object shall be FileRuntimeError. If set a message will be sent to the Destination, the first time there is a runtime error reading from the file.
  *             Class = Message
  *             Destination = SomeObject
@@ -326,7 +328,7 @@ private:
     AnyType *signalsAnyType;
 
     /**
-     * Filter to receive the RPC which allows to change the pulse number.
+     * Filter to receive the RPC which allows to the handle the file with messages.
      */
     ReferenceT<RegisteredMethodsMessageFilter> filter;
 

@@ -50,7 +50,9 @@ namespace MARTe {
  * continuously stored or stored only when a given event occurs (see StoreOnTrigger below).
  *
  * All the signals are stored in a single file.
- * If the format is csv the first line will be a comment with each signal name, type and number of elements. A new line will be added every time all the signal samples are written.
+ * If the format is csv the first line will be a comment with each signal name, type and number of elements.
+ * e.g."#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[4]", where ; is the CSVSeparator.
+ * A new line will be added every time all the signal samples are written.
  *
  * If the format is binary an header with the following information is created: the first 4 bytes
  * contain the number of signals. Then, for each signal, the signal type will be encoded in two bytes, followed
@@ -381,7 +383,7 @@ private:
     File outputFile;
 
     /**
-     * Filter to receive the RPC which allows to change the pulse number.
+     * Filter to receive the RPC which allows to the handle the file with messages.
      */
     ReferenceT<RegisteredMethodsMessageFilter> filter;
 
