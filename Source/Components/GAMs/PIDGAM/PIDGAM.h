@@ -40,7 +40,7 @@
 namespace MARTe {
 /**
  * @brief GAM which implement a generic PID with saturation and anti-windup
- * @details This GAM has two variants: single input or two input.\n
+ * @details This GAM has two variants: single input or two inputs.\n
  * When a single input is defined, the input of the GAM should be the error signal, computed subtracting
  * the feedback (also called measurement) from the reference signal. The PID transfer function in the Z domain
  * and using the backward Euler discretization method is: \n
@@ -64,7 +64,7 @@ namespace MARTe {
  *
  *\n
  * The GAM also provides a saturation output and anti-windup function.
- * When the output is saturated a flag is set to one preventing the integral term accumulating the error.
+ * When the output is saturated a flag is set to prevent the integral term from accumulating the error.
  * In saturation mode the output is computed as follow:\n
  * \f$
  * output = kp * error + ki * sampleTime * error + kd/sampleTime * (error - lastError)
@@ -112,8 +112,8 @@ namespace MARTe {
  *
  */
 class PIDGAM: public GAM {
-//TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API PID)
 public:
+    CLASS_REGISTER_DECLARATION()
     /**
      * @brief Default constructor
      * @post
@@ -148,7 +148,7 @@ public:
      * inputMeasurementDimension = 0u\n
      * outputDimension = 0u
      */
-    PIDGAM();
+PIDGAM    ();
 
     /**
      * @brief Default constructor.
@@ -199,7 +199,6 @@ public:
      * @return true if all postconditions are met.
      */
     virtual bool Setup();
-
 
     /**
      * @brief Implements the PID.

@@ -48,7 +48,8 @@ namespace {
 
 namespace MARTe {
 
-PIDGAM::PIDGAM():GAM() {
+PIDGAM::PIDGAM() :
+        GAM() {
     kp = 0.0;
     proportional = 0.0;
     ki = 0.0;
@@ -94,10 +95,10 @@ bool PIDGAM::Initialise(StructuredDataI &data) {
         ok = data.Read("Kp", kp);
         bool aux;
         aux = data.Read("Ki", ki);
-        ok = ok || aux;
+        ok = (ok || aux);
         aux = data.Read("Kd", kd);
-        ok = ok ||  aux;
-        if(!ok){
+        ok = (ok || aux);
+        if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "kp, ki and kd missing. At least one parameter must be initialised");
         }
         //lint -e{9007} No side effect on the function IsEqual.
@@ -118,17 +119,17 @@ bool PIDGAM::Initialise(StructuredDataI &data) {
             ok = false;
         }
     }
-    if(ok){
+    if (ok) {
         kid = ki * sampleTime;
-        kdd = kd/sampleTime;
+        kdd = kd / sampleTime;
     }
     if (ok) {
         ok = data.Read("MaxOutput", maxOutput);
-        if(!ok){
+        if (!ok) {
             maxOutput = MAX_FLOAT64;
         }
         ok = data.Read("MinOutput", minOutput);
-        if(!ok){
+        if (!ok) {
             minOutput = -MAX_FLOAT64;
         }
         if (maxOutput < minOutput) {
@@ -156,15 +157,13 @@ bool PIDGAM::Setup() {
         enableSubstraction = true;
     }
     else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Maximum value nOfInputSignals = 2. nOfInputSignals = %u", nOfInputSignals)
-        ;
+        REPORT_ERROR(ErrorManagement::ParametersError, "Maximum value nOfInputSignals = 2. nOfInputSignals = %u", nOfInputSignals);
         ok = false;
     }
     if (ok) {
         nOfOutputSignals = GetNumberOfOutputSignals();
         if (nOfOutputSignals != 1u) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "nOfOutputSignals must be one. The current values is %u", nOfOutputSignals)
-            ;
+            REPORT_ERROR(ErrorManagement::ParametersError, "nOfOutputSignals must be one. The current values is %u", nOfOutputSignals);
             ok = false;
         }
     }
@@ -175,7 +174,8 @@ bool PIDGAM::Setup() {
         }
         if (ok) {
             if (numberOfInputElementsReference != 1u) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "The numberOfInputElementsReference value must be one. The crrent value is %u", numberOfInputElementsReference);
+                REPORT_ERROR(ErrorManagement::InitialisationError, "The numberOfInputElementsReference value must be one. The crrent value is %u",
+                             numberOfInputElementsReference);
                 ok = false;
             }
         }
@@ -229,7 +229,8 @@ bool PIDGAM::Setup() {
                 if (ok) {
                     ok = (numberOfInputSamplesMeasurement == 1u);
                     if (!ok) {
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfInputSamplesMeasurement value must be 1. It is %u", numberOfInputSamplesMeasurement);
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfInputSamplesMeasurement value must be 1. It is %u",
+                                     numberOfInputSamplesMeasurement);
                     }
                 }
             }
@@ -247,18 +248,19 @@ bool PIDGAM::Setup() {
             }
         }
     }
-    if(ok){
+    if (ok) {
         ok = GetSignalNumberOfDimensions(InputSignals, 0u, inputReferenceDimension);
-        if(!ok){
+        if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading inputReferenceDimension");
         }
-        if(ok){
+        if (ok) {
             ok = (inputReferenceDimension == 1u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "inputReferenceDimension value must be 1. inputReferenceDimension = %u", inputReferenceDimension);
+                REPORT_ERROR(ErrorManagement::InitialisationError, "inputReferenceDimension value must be 1. inputReferenceDimension = %u",
+                             inputReferenceDimension);
             }
         }
-        if(ok){
+        if (ok) {
             if (enableSubstraction) {
                 ok = GetSignalNumberOfDimensions(InputSignals, 1u, inputMeasurementDimension);
                 if (!ok) {
@@ -273,25 +275,25 @@ bool PIDGAM::Setup() {
             }
         }
     }
-    if(ok){
+    if (ok) {
         ok = GetSignalNumberOfDimensions(OutputSignals, 0u, outputDimension);
-        if(!ok){
+        if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading outputDimension");
         }
-        if(ok){
+        if (ok) {
             ok = (outputDimension == 1u);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "outputDimension value must be 1. It is %u", outputDimension);
             }
         }
     }
-    if(ok){
+    if (ok) {
         ok = (GetSignalType(InputSignals, 0u) == Float64Bit);
-        if(!ok){
+        if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "The reference data type must be float64.");
         }
-        if(ok){
-            if(enableSubstraction){
+        if (ok) {
+            if (enableSubstraction) {
                 ok = (GetSignalType(InputSignals, 1u) == Float64Bit);
             }
             if (!ok) {
@@ -299,9 +301,9 @@ bool PIDGAM::Setup() {
             }
         }
     }
-    if(ok){
+    if (ok) {
         ok = (GetSignalType(OutputSignals, 0u) == Float64Bit);
-        if(!ok){
+        if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "The data type must be float64.");
         }
     }
@@ -323,23 +325,26 @@ bool PIDGAM::Execute() {
 }
 
 //lint -e{613} The Setup() function guarantee that the pointers are not NULL.
-inline void PIDGAM::GetValue(){
-    if(enableSubstraction){
+void PIDGAM::GetValue() {
+    if (enableSubstraction) {
         float64 error;
         error = *reference - *measurement;
         proportional = kp * error;
-        if(enableIntegral){
+        if (enableIntegral) {
             integral = (error * kid) + lastIntegral;
-        }else{
+        }
+        else {
             integral = error * kid;
         }
-        derivative = (error - lastInput)*kdd;
+        derivative = (error - lastInput) * kdd;
         lastInput = error;
-    }else{
+    }
+    else {
         proportional = kp * *reference;
-        if(enableIntegral){
+        if (enableIntegral) {
             integral = ((*reference * kid) + lastIntegral);
-        }else{
+        }
+        else {
             integral = *reference * kid;
         }
         derivative = (*reference - lastInput) * kdd;
@@ -347,22 +352,22 @@ inline void PIDGAM::GetValue(){
     }
     output[0] = proportional + integral + derivative;
     lastIntegral = integral;
-    return;
 }
 
 //lint -e{613} The Setup() function guarantee that the pointers are not NULL.
-inline void PIDGAM::Saturation(){
-    if(output[0]>maxOutput){
+void PIDGAM::Saturation() {
+    if (output[0] > maxOutput) {
         output[0] = maxOutput;
         enableIntegral = false;
-    }else if(output[0]< minOutput){
+    }
+    else if (output[0] < minOutput) {
         output[0] = minOutput;
         enableIntegral = false;
-    }else{
+    }
+    else {
         enableIntegral = true;
     }
-    return;
 }
-
+CLASS_REGISTER(PIDGAM, "1.0")
 }
 
