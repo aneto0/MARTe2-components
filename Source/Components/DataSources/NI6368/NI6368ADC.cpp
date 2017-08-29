@@ -224,7 +224,8 @@ bool NI6368ADC::Synchronise() {
     if (timeValue != NULL_PTR(uint32 *)) {
         if (lastTimeValue == timeValue[lastBufferIdx]) {
             if (lastTimeValue != 0u) {
-                REPORT_ERROR(ErrorManagement::Warning, "Repeated time values. Last = %d Current = %d. lastBufferIdx = %d currentBufferIdx = %d", lastTimeValue, timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
+                REPORT_ERROR(ErrorManagement::Warning, "Repeated time values. Last = %d Current = %d. lastBufferIdx = %d currentBufferIdx = %d", lastTimeValue,
+                             timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
             }
         }
         lastTimeValue = timeValue[lastBufferIdx];
@@ -815,9 +816,15 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
+        //Do not allow to add signals in run-time
         if (ok) {
-            //Do not allow to add signals in run-time
-            ok = data.Write("Locked", 1);
+            ok = signalsDatabase.MoveRelative("Signals");
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
         }
         uint32 maxChannelId = 0u;
         while ((i < (NI6368ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE)) && (ok)) {
@@ -980,7 +987,9 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
                 float32 totalNumberOfSamplesPerSecond = (static_cast<float32>(numberOfSamples) * cycleFrequency);
                 ok = (NI6368ADC_SAMPLING_FREQUENCY == static_cast<uint32>(totalNumberOfSamplesPerSecond));
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "The numberOfSamples * cycleFrequency (%u) shall be equal to the ADCs acquisition frequency (%u)", totalNumberOfSamplesPerSecond, NI6368ADC_SAMPLING_FREQUENCY);
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "The numberOfSamples * cycleFrequency (%u) shall be equal to the ADCs acquisition frequency (%u)",
+                                 totalNumberOfSamplesPerSecond, NI6368ADC_SAMPLING_FREQUENCY);
                 }
             }
         }
@@ -1034,7 +1043,8 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (xseries_set_ai_scan_interval_counter(&adcConfiguration, scanIntervalCounterSource, scanIntervalCounterPolarity, scanIntervalCounterPeriod, scanIntervalCounterDelay) == 0);
+        ok = (xseries_set_ai_scan_interval_counter(&adcConfiguration, scanIntervalCounterSource, scanIntervalCounterPolarity, scanIntervalCounterPeriod,
+                                                   scanIntervalCounterDelay) == 0);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName);
         }

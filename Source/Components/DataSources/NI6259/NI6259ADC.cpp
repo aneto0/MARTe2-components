@@ -551,9 +551,15 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
+        //Do not allow to add signals in run-time
         if (ok) {
-            //Do not allow to add signals in run-time
-            ok = data.Write("Locked", 1);
+            ok = signalsDatabase.MoveRelative("Signals");
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
         }
         while ((i < (NI6259ADC_MAX_CHANNELS + NI6259ADC_HEADER_SIZE)) && (ok)) {
             if (data.MoveRelative(data.GetChildName(i))) {
@@ -744,8 +750,8 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
                 float32 totalNumberOfSamplesPerSecond = (static_cast<float32>(numberOfSamples) * cycleFrequency);
                 ok = (singleADCFrequency == static_cast<uint32>(totalNumberOfSamplesPerSecond));
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "singleADCFrequency (%u) shall be equal to numberOfSamples * cycleFrequency (%u)", singleADCFrequency,
-                                 totalNumberOfSamplesPerSecond);
+                    REPORT_ERROR(ErrorManagement::ParametersError, "singleADCFrequency (%u) shall be equal to numberOfSamples * cycleFrequency (%u)",
+                                 singleADCFrequency, totalNumberOfSamplesPerSecond);
                 }
             }
         }

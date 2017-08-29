@@ -977,9 +977,15 @@ bool NI6368DIO::Initialise(StructuredDataI& data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
+        //Do not allow to add signals in run-time
         if (ok) {
-            //Do not allow to add signals in run-time
-            ok = data.Write("Locked", 1);
+            ok = signalsDatabase.MoveRelative("Signals");
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
         }
     }
     if (ok) {

@@ -88,14 +88,20 @@ bool EPICSCAOutput::Initialise(StructuredDataI & data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
         if (ok) {
-            //Do not allow to add signals in run-time
-            ok = data.Write("Locked", 1);
-        }
-        if (ok) {
             ok = data.Copy(originalSignalInformation);
         }
         if (ok) {
             ok = originalSignalInformation.MoveToRoot();
+        }
+        //Do not allow to add signals in run-time
+        if (ok) {
+            ok = signalsDatabase.MoveRelative("Signals");
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
         }
     }
     if (ok) {
