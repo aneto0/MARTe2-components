@@ -139,7 +139,8 @@ bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     if (storeOnTrigger) {
         ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
         brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
+        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+                                                              numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTriggerNew);
         }
@@ -166,7 +167,8 @@ bool MDSWriter::Synchronise() {
                     if (!MessageI::SendMessage(treeRuntimeErrorMsg, this)) {
                         StreamString destination = treeRuntimeErrorMsg->GetDestination();
                         StreamString function = treeRuntimeErrorMsg->GetFunction();
-                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(), function.Buffer());
+                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(),
+                                     function.Buffer());
                     }
                 }
             }
@@ -274,14 +276,20 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
         if (ok) {
-            //Do not allow to add signals in run-time
-            ok = data.Write("Locked", 1);
-        }
-        if (ok) {
             ok = data.Copy(originalSignalInformation);
         }
         if (ok) {
             ok = originalSignalInformation.MoveToRoot();
+        }
+        //Do not allow to add signals in run-time
+        if (ok) {
+            ok = signalsDatabase.MoveRelative("Signals");
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
         }
     }
     if (ok) {
@@ -543,7 +551,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::Warning, "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
+            REPORT_ERROR(ErrorManagement::Warning, "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s",
+                         treeName.Buffer(), pulseNumber, exc.what());
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;
             }
@@ -556,7 +565,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
                 tree->createPulse(pulseNumber);
             }
             catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
+                REPORT_ERROR(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber,
+                             exc.what());
                 ok = false;
             }
         }
@@ -571,7 +581,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s",
+                         treeName.Buffer(), pulseNumber, exc.what());
             ok = false;
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;

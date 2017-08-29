@@ -41,7 +41,7 @@
 namespace MARTe {
 /**
  * @brief A DataSource which allows to synchronise multiple real-time threads.
- * @details A GAM will write into this DataSource on a given thread. One more GAMs (each on its thread) will read and
+ * @details A GAM will write into this DataSource on a given thread. One or more GAMs (each on its thread) will read and
  *  synchronise against this DataSource. If the number of samples read from the GAM is great than one the DataSource will
  *  block until the specified number of samples is available. This feature allows to run and synchronise threads at a lower frequency.
  *

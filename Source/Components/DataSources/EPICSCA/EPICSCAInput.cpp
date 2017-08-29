@@ -57,9 +57,7 @@ void EPICSCAInputEventCallback(struct event_handler_args const args) {
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 EPICSCAInput::EPICSCAInput() :
-        DataSourceI(),
-        EmbeddedServiceMethodBinderI(),
-        executor(*this) {
+        DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
     pvs = NULL_PTR(PVWrapper *);
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
@@ -105,14 +103,20 @@ bool EPICSCAInput::Initialise(StructuredDataI & data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
         if (ok) {
-            //Do not allow to add signals in run-time
-            ok = data.Write("Locked", 1);
-        }
-        if (ok) {
             ok = data.Copy(originalSignalInformation);
         }
         if (ok) {
             ok = originalSignalInformation.MoveToRoot();
+        }
+        //Do not allow to add signals in run-time
+        if (ok) {
+            ok = signalsDatabase.MoveRelative("Signals");
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
         }
     }
     if (ok) {
@@ -291,7 +295,8 @@ ErrorManagement::ErrorType EPICSCAInput::Execute(const ExecutionInfo& info) {
                 }
                 if (err.ErrorsCleared()) {
                     /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                    if (ca_create_subscription(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, DBE_VALUE, &EPICSCAInputEventCallback, &pvs[n], &pvs[n].pvEvid) != ECA_NORMAL) {
+                    if (ca_create_subscription(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, DBE_VALUE, &EPICSCAInputEventCallback, &pvs[n],
+                                               &pvs[n].pvEvid) != ECA_NORMAL) {
                         err = ErrorManagement::FatalError;
                         REPORT_ERROR(err, "ca_create_subscription failed for PV %s", pvs[n].pvName);
                     }

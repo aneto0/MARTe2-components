@@ -146,7 +146,8 @@ bool DANSource::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     if (storeOnTrigger) {
         ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
         brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
+        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+                                                              numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTriggerNew);
         }
@@ -281,14 +282,20 @@ bool DANSource::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
         if (ok) {
-            //Do not allow to add signals in run-time
-            ok = data.Write("Locked", 1);
-        }
-        if (ok) {
             ok = data.Copy(originalSignalInformation);
         }
         if (ok) {
             ok = originalSignalInformation.MoveToRoot();
+        }
+        //Do not allow to add signals in run-time
+        if (ok) {
+            ok = signalsDatabase.MoveRelative("Signals");
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
         }
     }
     if (ok) {
@@ -554,9 +561,9 @@ uint32 DANSource::GetDANBufferMultiplier() const {
     return danBufferMultiplier;
 }
 /*
-dan_DataCore DANSource::GetDANDataCore() {
-    return danDataCore;
-}**/
+ dan_DataCore DANSource::GetDANDataCore() {
+ return danDataCore;
+ }**/
 
 CLASS_REGISTER(DANSource, "1.0")
 CLASS_METHOD_REGISTER(DANSource, OpenStream)

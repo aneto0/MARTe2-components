@@ -25,6 +25,7 @@
 OBJSX= 
 
 SPB    = EpicsDataSource.x \
+    FileDataSource.x \
     LinuxTimer.x \
     LoggerDataSource.x \
     RealTimeThreadSynchronisation.x
@@ -55,9 +56,10 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/EpicsDataSource/EpicsDataSource$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/FileDataSource/FileDataSource$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadSynchronisation/RealTimeThreadSynchronisation$(LIBEXT)
 
 ifdef CODAC_ROOT
