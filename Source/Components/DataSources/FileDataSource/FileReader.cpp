@@ -155,6 +155,7 @@ bool FileReader::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8
     return false;
 }
 
+/*lint -e{613} xAxisSignalPtr cannot be NULL as otherwise SetConfiguredDatabase would have failed.*/
 void FileReader::ConvertXAxisSignal() {
     if (xAxisSignalType == UnsignedInteger8Bit) {
         xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint8 *>(xAxisSignalPtr));
@@ -186,6 +187,9 @@ void FileReader::ConvertXAxisSignal() {
     else if (xAxisSignalType == Float64Bit) {
         xAxisSignal = static_cast<uint64>(*reinterpret_cast<float64 *>(xAxisSignalPtr));
     }
+    else {
+        //Unreachable...
+    }
 }
 
 bool FileReader::Synchronise() {
@@ -210,7 +214,11 @@ bool FileReader::Synchronise() {
             }
 
             (void) line.Seek(0LLU);
-            while ((ok) && (signalIdx < nSignals) && (line.GetToken(token, csvSeparator.Buffer(), saveTerminator))) {
+            if (ok) {
+                ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
+            }
+            while ((ok) && (signalIdx < nSignals)) {
+                /*lint -e{613} signalsAnyType cannot be NULL as otherwise SetConfiguredDatabase would have failed.*/
                 if (signalsAnyType[signalIdx].GetNumberOfDimensions() == 1u) {
                     uint32 nElements = signalsAnyType[signalIdx].GetNumberOfElements(0u);
                     StreamString tokenArray;
@@ -218,13 +226,18 @@ bool FileReader::Synchronise() {
                     void *signalAddress = signalsAnyType[signalIdx].GetDataPointer();
                     char8 *signalAddressChr = reinterpret_cast<char8 *>(signalAddress);
                     (void) token.Seek(0LLU);
-                    while ((ok) && (arrayIdx < nElements) && (token.GetToken(tokenArray, "{},", saveTerminator))) {
+                    ok = token.GetToken(tokenArray, "{},", saveTerminator);
+                    while ((ok) && (arrayIdx < nElements)) {
                         AnyType sourceStr(CharString, 0u, tokenArray.Buffer());
                         uint32 byteSize = signalsAnyType[signalIdx].GetByteSize();
-                        AnyType destination(signalsAnyType[signalIdx].GetTypeDescriptor(), 0u, &signalAddressChr[arrayIdx * byteSize]);
+                        uint32 arrayIdxByteSize = (arrayIdx * byteSize);
+                        AnyType destination(signalsAnyType[signalIdx].GetTypeDescriptor(), 0u, &signalAddressChr[arrayIdxByteSize]);
                         ok = TypeConvert(destination, sourceStr);
                         tokenArray = "";
                         arrayIdx++;
+                        if (ok) {
+                            ok = token.GetToken(tokenArray, "{},", saveTerminator);
+                        }
                     }
                     ok = (arrayIdx == nElements);
                     if (!ok) {
@@ -240,6 +253,9 @@ bool FileReader::Synchronise() {
                 }
                 signalIdx++;
                 token = "";
+                if (ok) {
+                    ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
+                }
             }
             if (ok) {
                 ok = (signalIdx == nSignals);
@@ -332,10 +348,14 @@ bool FileReader::Initialise(StructuredDataI& data) {
     if (ok) {
         if (interpolate) {
             if (!data.Read("XAxisSignal", xAxisSignalName)) {
-                REPORT_ERROR(ErrorManagement::Warning, "Interpolate=yes and the XAxisSignal was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
+                REPORT_ERROR(
+                        ErrorManagement::Warning,
+                        "Interpolate=yes and the XAxisSignal was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
             }
             if (!data.Read("InterpolationPeriod", interpolationPeriod)) {
-                REPORT_ERROR(ErrorManagement::Warning, "Interpolate=yes and the InterpolationPeriod was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
+                REPORT_ERROR(
+                        ErrorManagement::Warning,
+                        "Interpolate=yes and the InterpolationPeriod was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
             }
         }
     }
@@ -445,9 +465,10 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
             for (i = 0u; (i < nOfFunctionSignals) && (ok) && (!found); i++) {
                 ok = GetFunctionSignalReadFrequency(InputSignals, 0u, i, frequency);
                 if (ok) {
-                    found = (frequency > 0.F);
+                    found = ((frequency > 0.F) && (frequency <= 1e9));
                 }
                 if (found) {
+                    /*lint -e{9122}  frequencies > 1e9 protected above.*/
                     interpolationPeriod = static_cast<uint64>(1e9 / frequency);
                     xAxisSignalName = "";
                     ok = GetFunctionSignalAlias(InputSignals, 0u, i, xAxisSignalName);
@@ -493,9 +514,7 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
             uint8 nDimensions = 0u;
             uint32 nElements = 0u;
-            if (ok) {
-                ok = GetSignalNumberOfDimensions(n, nDimensions);
-            }
+            ok = GetSignalNumberOfDimensions(n, nDimensions);
             if (ok) {
                 ok = GetSignalNumberOfElements(n, nElements);
             }
@@ -540,9 +559,7 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
             while (line.GetToken(token, csvSeparator.Buffer(), saveTerminator) && (!fatalFileError)) {
                 StreamString signalName;
                 (void) token.Seek(0LLU);
-                if (!fatalFileError) {
-                    fatalFileError = !token.GetToken(signalName, " ", saveTerminator);
-                }
+                fatalFileError = !token.GetToken(signalName, " ", saveTerminator);
 
                 StreamString signalTypeStr;
                 if (!fatalFileError) {
@@ -592,13 +609,13 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
         }
         else {
             uint32 readSize = static_cast<uint32>(sizeof(uint32));
-            if (!fatalFileError) {
-                fatalFileError = !inputFile.Read(reinterpret_cast<char8 *>(&nOfSignals), readSize);
-            }
+            /*lint -e{928}  [MISRA C++ Rule 5-2-7]. Justification: Need to cast to the type expected by the Read function.*/
+            fatalFileError = !inputFile.Read(reinterpret_cast<char8 *>(&nOfSignals), readSize);
             for (n = 0u; (n < nOfSignals) && (!fatalFileError); n++) {
                 //Write the signal type
                 readSize = static_cast<uint32>(sizeof(uint16));
                 TypeDescriptor signalType;
+                /*lint -e{928}  [MISRA C++ Rule 5-2-7]. Justification: Need to cast to the type expected by the Read function.*/
                 fatalFileError = !inputFile.Read(reinterpret_cast<char8 *>(&signalType.all), readSize);
 
                 const uint32 SIGNAL_NAME_MAX_SIZE = 32u;
@@ -615,11 +632,13 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                 }
                 StreamString signalName;
                 if (!fatalFileError) {
-                    signalName = signalNameMemory;
+                    //lint -e{645} signalNameMemory is always initialised if !fatalFileError
+                    signalName = reinterpret_cast<const char8 * const>(&signalNameMemory[0]);
                 }
                 uint32 nOfElements = 0u;
                 if (!fatalFileError) {
                     readSize = static_cast<uint32>(sizeof(uint32));
+                    /*lint -e{928}  [MISRA C++ Rule 5-2-7]. Justification: Need to cast to the type expected by the Read function.*/
                     fatalFileError = !inputFile.Read(reinterpret_cast<char8 *>(&nOfElements), readSize);
                 }
                 if (!fatalFileError) {
