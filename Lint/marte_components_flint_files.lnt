@@ -55,7 +55,6 @@ NI6368DAC.cpp
 NI6368DIO.cpp
 Platform.cpp
 PIDGAM.cpp
-PIDGAM.h
 RealTimeThreadSynchBroker.cpp
 RealTimeThreadSynchronisation.cpp
 Sigblock.cpp
