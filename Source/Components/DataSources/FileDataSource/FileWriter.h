@@ -120,7 +120,7 @@ public:
     /**
      * @brief Default constructor.
      * @details Initialises all the optional parameters as described in the class description.
-     * Registers the RPC FlushFile and OpenFile callback functions.
+     * Registers the RPC FlushFile, CloseFile and OpenFile callback functions.
      */
     FileWriter();
 

@@ -47,7 +47,8 @@ static const int32 FILE_FORMAT_BINARY = 1;
 static const int32 FILE_FORMAT_CSV = 2;
 
 FileReader::FileReader() :
-        DataSourceI(), MessageI() {
+        DataSourceI(),
+        MessageI() {
     dataSourceMemory = NULL_PTR(char8 *);
     offsets = NULL_PTR(uint32 *);
     numberOfBinaryBytes = 0u;
@@ -230,8 +231,7 @@ bool FileReader::Synchronise() {
                     if (!ok) {
                         StreamString signalName;
                         (void) GetSignalName(signalIdx, signalName);
-                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(),
-                                     line.Buffer());
+                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(), line.Buffer());
                     }
                 }
                 else {
@@ -438,6 +438,26 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one Function allowed to interact with this DataSourceI");
         }
     }
+    float32 frequency = -1.0F;
+    if (ok) {
+        uint32 nOfFunctionSignals = 0u;
+        ok = GetFunctionNumberOfSignals(InputSignals, 0u, nOfFunctionSignals);
+
+        if (ok) {
+            uint32 i;
+            bool found = false;
+            for (i = 0u; (i < nOfFunctionSignals) && (ok) && (!found); i++) {
+                ok = GetFunctionSignalReadFrequency(InputSignals, 0u, i, frequency);
+                if (ok) {
+                    found = (frequency > 0.F);
+                }
+            }
+            if (found) {
+                interpolationPeriod = static_cast<uint64>(1e9 / frequency);
+            }
+        }
+
+    }
     //Look for the XAxisSignal
     if (interpolate) {
         ok = GetSignalIndex(xAxisSignalIdx, xAxisSignalName.Buffer());
@@ -617,8 +637,7 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
                 }
                 if (!fatalFileError) {
-                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(),
-                                 TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
+                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
                 }
             }
         }

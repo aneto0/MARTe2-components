@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef FILEWRITER_FILEWRITERTEST_H_
-#define FILEWRITER_FILEWRITERTEST_H_
+#ifndef FILEREADER_FILEREADERTEST_H_
+#define FILEREADER_FILEREADERTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -246,5 +246,5 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* FILEWRITER_FILEWRITERTEST_H_ */
+#endif /* FILEREADER_FILEREADERTEST_H_ */
 
