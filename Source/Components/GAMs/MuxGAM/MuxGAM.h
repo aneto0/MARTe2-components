@@ -38,6 +38,10 @@
 
 namespace MARTe {
 
+/**
+ * @details
+ * if (numberOfOutputs > 1) => numberOfInputs >= 2*numberOfOutputs if (numberOfOutputs = 1) =>  numberOfInputs > 2 * numberOfOutputs
+ */
 class MuxGAM: public GAM {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API MuxGAM)
 public:
@@ -48,7 +52,73 @@ public:
     virtual bool Setup();
     virtual bool Execute();
 private:
-    void *inputs;
+
+    /**
+     * Selectors pointer. There one selector for each output
+     */
+    uint32 **selectors;
+
+    TypeDescriptor typeSelector;
+
+    uint32 selectorIndex;
+
+    /**
+     * Input signal pointer. The first inputs are selectors whose type is uint32
+     */
+    void **inputSignals;
+
+    /**
+     * Number of inputs including selectors
+     */
+    uint32 numberOfInputs;
+
+    /**
+     * Type of signals. All inputs/outputs must have the same type
+     */
+    TypeDescriptor typeSignals;
+
+    /**
+     * Size array. All inputs/outputs and selectors must have the same number of elements.
+     */
+    uint32 numberOfElements;
+
+    /**
+     * index to go through the elements array
+     */
+    uint32 elementIndex;
+
+    /**
+     * All inputs/outputs and selectors (which are inputs) must have the same dimension. numberOfDimensions= 1.
+     */
+    uint32 numberOfDimensions;
+
+    /**
+     * All inputs/outputs and selectors must have the same number of samples. numberOfSamples = 1
+     */
+    uint32 numberOfSamples;
+
+    /**
+     * Output signal pointer.
+     */
+    void **outputSignals;
+
+    /**
+     * Number of outputs
+     */
+    uint32 numberOfOutputs;
+
+    /**
+     * The selection value must be smaller than maxSelectorValue (not equal).
+     */
+    uint32 maxSelectorValue;
+
+
+    bool IsValidType(TypeDescriptor const &typeRef) const;
+
+    inline bool Copy()const;
+
+    inline bool IsValidSelector(const uint32 value) const;
+
 };
 
 }
