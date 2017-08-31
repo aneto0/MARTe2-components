@@ -60,7 +60,16 @@ private:
 
     TypeDescriptor typeSelector;
 
+    /**
+     * Used to go through the selector array.
+     */
     uint32 selectorIndex;
+
+    /**
+     * number of selector elements. It cold be one or numberOfElements
+     */
+
+    uint32 numberOfSelectorElements;
 
     /**
      * Input signal pointer. The first inputs are selectors whose type is uint32
@@ -68,9 +77,14 @@ private:
     void **inputSignals;
 
     /**
-     * Number of inputs including selectors
+     * Number of inputs including selectors. numberOfInputs = numberOfInputSignalsG + numberOfInputSelectors
      */
     uint32 numberOfInputs;
+
+    /**
+     * Number of input signals of the GAM excluding selectors. numberOfInputSignalsG = numberOfInputs - numberOfOutputs.
+     */
+    uint32 numberOfInputSignalsG;
 
     /**
      * Type of signals. All inputs/outputs must have the same type
@@ -78,7 +92,7 @@ private:
     TypeDescriptor typeSignals;
 
     /**
-     * Size array. All inputs/outputs and selectors must have the same number of elements.
+     * Size array. All inputs/outputs must have the same number of elements.
      */
     uint32 numberOfElements;
 
@@ -112,6 +126,10 @@ private:
      */
     uint32 maxSelectorValue;
 
+    /**
+     * Size memory to copy in bytes. It is used when numberOFSelectorElements = 1 to copy a region of memory.
+     */
+    uint32 sizeToCopy;
 
     bool IsValidType(TypeDescriptor const &typeRef) const;
 

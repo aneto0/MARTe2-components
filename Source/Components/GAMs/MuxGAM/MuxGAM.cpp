@@ -52,7 +52,9 @@ MuxGAM::MuxGAM() :
     selectors = NULL_PTR(uint32 **);
     inputSignals = NULL_PTR(void **);
     selectorIndex = 0u;
+    numberOfSelectorElements = 0u;
     numberOfInputs = 0u;
+    numberOfInputSignalsG = 0u;
     //typeSignals = NULL_PTR(TypeDescriptor *);
     numberOfElements = 0u;
     elementIndex = 0u;
@@ -62,6 +64,7 @@ MuxGAM::MuxGAM() :
     numberOfOutputs = 0u;
     maxSelectorValue = 0u;
     numberOfElements = 0u;
+    sizeToCopy = 0u;
 }
 
 MuxGAM::~MuxGAM() {
@@ -72,7 +75,7 @@ MuxGAM::~MuxGAM() {
         delete[] selectors;
     }
     if (inputSignals != NULL_PTR(void **)) {
-        for (uint32 i = 0u; i < numberOfInputs; i++) {
+        for (uint32 i = 0u; i < numberOfInputSignalsG; i++) {
             inputSignals[i] = NULL_PTR(void *);
         }
         delete[] inputSignals;
@@ -99,13 +102,20 @@ bool MuxGAM::Setup() {
         numberOfInputs = GetNumberOfInputSignals();
         if (numberOfOutputs == 1u) {
             ok = (numberOfInputs > (2u * numberOfOutputs));
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "numberOfInputs must be larger than twice numberOfOutputs. numberOfInputs = %d", numberOfInputs);
+            }
         }
         else {
             ok = (numberOfInputs >= (2u * numberOfOutputs));
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "numberOfInputs must be larger or equal than twice numberOfOutputs. numberOfInputs = %d", numberOfInputs);
+            }
         }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "numberOfInputs must be larger than twice numberOfOutputs. numberOfInputs = %d", numberOfInputs);
-        }
+
+    }
+    if(ok){
+        numberOfInputSignalsG = numberOfInputs - numberOfOutputs;
     }
     if (ok) { //Input types
         TypeDescriptor auxType;
@@ -115,7 +125,7 @@ bool MuxGAM::Setup() {
                 ok = (auxType == UnsignedInteger32Bit);
                 if (!ok) {
                     uint32 aux = i;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "The input %d is a selector signals. The selector signals must be uint32", aux);
+                    REPORT_ERROR(ErrorManagement::ParametersError, "The input %d is a selector signal. The selector signals must be uint32", aux);
                 }
                 else {
                     typeSelector = auxType;
@@ -125,7 +135,7 @@ bool MuxGAM::Setup() {
                 ok = IsValidType(auxType);
                 if (!ok) {
                     uint32 aux = i;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Type of index signal %d is not a valid", aux);
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Type of index signal %d is not valid", aux);
                 }
                 if (ok) {
                     ok = (auxType == GetSignalType(InputSignals, numberOfOutputs));
@@ -145,43 +155,26 @@ bool MuxGAM::Setup() {
             ok = (auxType == typeSignals);
             if (!ok) {
                 uint32 aux = i;
-                REPORT_ERROR(ErrorManagement::ParametersError, "All output types must be equal tn inputs types. Output %d is different", aux);
+                REPORT_ERROR(ErrorManagement::ParametersError, "All output signals types must be equal than inputs signal types (except selectors). Output %d is different", aux);
             }
         }
     }
-    if (ok) { //input elements
-        uint32 auxElements = 0u;
-        for (uint32 i = 0u; i < numberOfInputs; i++) {
-            ok = GetSignalNumberOfElements(InputSignals, i, auxElements);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading input number of elements");
-            }
-            if (ok) {
-                ok = (auxElements > 0u);
-                if (!ok) {
-                    uint32 aux = i;
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "nOfInputElements[%u] must be positive. nOfInputElements[%u] = %u", aux, aux, auxElements);
-                }
-            }
-            if (ok) {
-                uint32 auxElements2;
-                ok = GetSignalNumberOfElements(InputSignals, 0u, auxElements2);
-                if (ok) {
-                    ok = (auxElements == auxElements2);
-                    if (!ok) {
-                        uint32 aux = i;
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "All inputs (including selectors) must have the same number of elements. nOfInputElements[%u] = %u", aux, auxElements);
-                    }
-                }
-            }
-        }
-        numberOfElements = auxElements;
-    }
-
     if (ok) { //output elements
         uint32 auxElements = 0u;
-        for (uint32 i = 0u; i < numberOfOutputs; i++) {
-            ok = GetSignalNumberOfElements(InputSignals, i, auxElements);
+        ok = GetSignalNumberOfElements(OutputSignals, 0u, auxElements);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output number of elements");
+        }
+        if(ok){
+            ok = (auxElements > 0u);
+            if(!ok){
+                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfElements must be positive");
+            }else{
+                numberOfElements = auxElements;
+            }
+        }
+        for (uint32 i = 1u; (i < numberOfOutputs) && ok; i++) {
+            ok = GetSignalNumberOfElements(OutputSignals, i, auxElements);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output number of elements");
             }
@@ -189,14 +182,57 @@ bool MuxGAM::Setup() {
                 ok = (auxElements == numberOfElements);
                 if (!ok) {
                     uint32 aux = i;
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "All inputs and outputs (including selectors) must have the same number of elements. nOfOutputElements[%u] = %u", aux, numberOfElements);
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "All inputs and outputs must have the same number of elements. nOfOutputElements[%u] = %u != %u", aux, auxElements, numberOfElements);
                 }
             }
         }
     }
+    if(ok){//compute sizeToCopy
+        sizeToCopy = (typeSignals.numberOfBits*numberOfElements)/8u;
+    }
+    if (ok) { //input elements
+        uint32 auxElements = 0u;
+        ok = GetSignalNumberOfElements(InputSignals, 0u, auxElements);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading input number of elements");
+        }
+        if(ok){
+            if(auxElements == numberOfElements){
+                numberOfSelectorElements = auxElements;
+            }else if (auxElements == 1u){
+                numberOfSelectorElements = 1u;
+            }else{
+                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfSelectorElements is not 1 neither numberOfElements");
+                ok = false;
+            }
+        }
+        for (uint32 i = 1u; (i < numberOfInputs) && ok; i++) {
+            ok = GetSignalNumberOfElements(InputSignals, i, auxElements);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading input number of elements");
+            }
+            if (ok) {
+                if(i < numberOfOutputs){//Selectors case
+                    ok = (auxElements == numberOfSelectorElements);
+                    if(!ok){
+                        uint32 aux = i;
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "All input selector elements must be equal. Number of elements for index %u is different", aux);
+                    }
+                }else{//Input signal case
+                    ok = (auxElements == numberOfElements);
+                    if(!ok){
+                        uint32 aux = i;
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "All input and output signal elements (except selectors) must be equal. Number of input elements for index %u is diffrent", aux);
+                    }
+                }
+            }
+        }
+        numberOfElements = auxElements;
+    }
+
     if (ok) { //input dimension
         uint32 auxDimensions = 0u;
-        for (uint32 i = 0u; i < numberOfInputs; i++) {
+        for (uint32 i = 0u; (i < numberOfInputs) && ok; i++) {
             ok = GetSignalNumberOfDimensions(InputSignals, i, auxDimensions);
             if (!ok) {
                 uint32 aux = i;
@@ -214,7 +250,7 @@ bool MuxGAM::Setup() {
     }
     if (ok) { //output dimension
         uint32 auxDimensions = 0u;
-        for (uint32 i = 0u; i < numberOfOutputs; i++) {
+        for (uint32 i = 0u; (i < numberOfOutputs) && ok; i++) {
             ok = GetSignalNumberOfDimensions(OutputSignals, i, auxDimensions);
             if (!ok) {
                 uint32 aux = i;
@@ -224,7 +260,7 @@ bool MuxGAM::Setup() {
                 ok = (auxDimensions == 1u);
                 if (!ok) {
                     uint32 aux = i;
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Number of output dimensions must be 1. nOfInputDimension[%u] = %u", aux, numberOfDimensions);
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Number of output dimensions must be 1. nOfInputDimension[%u] = %u", aux, auxDimensions);
                 }
             }
         }
@@ -232,7 +268,7 @@ bool MuxGAM::Setup() {
 
     if (ok) { //input samples
         uint32 auxSamples = 0u;
-        for (uint32 i = 0u; i < numberOfInputs; i++) {
+        for (uint32 i = 0u; (i < numberOfInputs) && ok; i++) {
             ok = GetSignalNumberOfSamples(InputSignals, i, auxSamples);
             if (!ok) {
                 uint32 aux = i;
@@ -250,8 +286,8 @@ bool MuxGAM::Setup() {
     }
     if (ok) { //output samples
         uint32 auxSamples = 0u;
-        for (uint32 i = 0u; i < numberOfOutputs; i++) {
-            ok = GetSignalNumberOfDimensions(OutputSignals, i, auxSamples);
+        for (uint32 i = 0u; (i < numberOfOutputs) && ok; i++) {
+            ok = GetSignalNumberOfSamples(OutputSignals, i, auxSamples);
             if (!ok) {
                 uint32 aux = i;
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output number of samples for signal %u", aux);
@@ -260,7 +296,7 @@ bool MuxGAM::Setup() {
                 ok = (auxSamples == 1u);
                 if (!ok) {
                     uint32 aux = i;
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Number of output samples must be 1. nOfOutputSamples[%u] = %u", aux, numberOfSamples);
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Number of output samples must be 1. nOfOutputSamples[%u] = %u", aux, auxSamples);
                 }
             }
         }
@@ -276,10 +312,10 @@ bool MuxGAM::Setup() {
         }
     }
     if (ok) { //assign input
-        uint32 aux = numberOfInputs - numberOfOutputs;
-        inputSignals = new void *[aux];
-        for (uint32 i = (numberOfInputs - numberOfOutputs); i < numberOfInputs; i++) {
-            inputSignals[i] = GetInputSignalMemory(i);
+        inputSignals = new void *[numberOfInputSignalsG];
+        for (uint32 i = numberOfOutputs; i < numberOfInputs; i++) {
+            uint32 auxIndx = i - numberOfOutputs;
+            inputSignals[auxIndx] = GetInputSignalMemory(i);
         }
     }
     if (ok) { //assign outputs
@@ -291,11 +327,27 @@ bool MuxGAM::Setup() {
     return ok;
 }
 
+//lint -e{613} Possible use of null pointer 'MARTe::MuxGAM::selectors' in left argument to operator '[.
+//MuxGAM::Execute() only is called if the Setup() succeeds and the pointers are initialized.
 bool MuxGAM::Execute() {
     bool ok = true;
-    for (selectorIndex = 0u; (selectorIndex < numberOfOutputs) && ok; selectorIndex++) { //goes throughout each selector signal
-        for (elementIndex = 0u; (elementIndex < numberOfElements) && ok; elementIndex++) {
-            ok = Copy();
+    if(numberOfSelectorElements == 1u){
+        for (selectorIndex = 0u; (selectorIndex < numberOfOutputs) && ok; selectorIndex++) { //goes throughout each selector signal
+            if(IsValidSelector(selectors[selectorIndex][0])){
+                ok = MemoryOperationsHelper::Copy(outputSignals[selectorIndex],inputSignals[selectors[selectorIndex][0]], sizeToCopy);
+                if(!ok){
+                    REPORT_ERROR(ErrorManagement::FatalError, "MemoryOperationsHelper::Copy failed");
+                }
+            }else{
+                REPORT_ERROR(ErrorManagement::FatalError,"Invalid selector value. selector value must be lower than %u", maxSelectorValue);
+                ok = false;
+            }
+        }
+    }else{
+        for (selectorIndex = 0u; (selectorIndex < numberOfOutputs) && ok; selectorIndex++) { //goes throughout each selector signal
+            for (elementIndex = 0u; (elementIndex < numberOfElements) && ok; elementIndex++) {
+                ok = Copy();
+            }
         }
     }
     return ok;
@@ -326,7 +378,7 @@ inline bool MuxGAM::Copy() const {
     uint32 selectorValue = selectors[selectorIndex][elementIndex];
     ret = IsValidSelector(selectorValue);
     if (!ret) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Invalid selector value");
+        REPORT_ERROR(ErrorManagement::FatalError, "Invalid selector value. selector value ( = %u) must be lower than %u", selectorValue, maxSelectorValue);
     }
     if (ret) {
         if (typeSignals == Float32Bit) {
