@@ -55,7 +55,6 @@ MuxGAM::MuxGAM() :
     numberOfSelectorElements = 0u;
     numberOfInputs = 0u;
     numberOfInputSignalsG = 0u;
-    //typeSignals = NULL_PTR(TypeDescriptor *);
     numberOfElements = 0u;
     elementIndex = 0u;
     numberOfDimensions = 0u;
@@ -114,7 +113,7 @@ bool MuxGAM::Setup() {
         }
 
     }
-    if(ok){
+    if (ok) {
         numberOfInputSignalsG = numberOfInputs - numberOfOutputs;
     }
     if (ok) { //Input types
@@ -165,11 +164,12 @@ bool MuxGAM::Setup() {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output number of elements");
         }
-        if(ok){
+        if (ok) {
             ok = (auxElements > 0u);
-            if(!ok){
+            if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfElements must be positive");
-            }else{
+            }
+            else {
                 numberOfElements = auxElements;
             }
         }
@@ -187,8 +187,8 @@ bool MuxGAM::Setup() {
             }
         }
     }
-    if(ok){//compute sizeToCopy
-        sizeToCopy = (typeSignals.numberOfBits*numberOfElements)/8u;
+    if (ok) { //compute sizeToCopy
+        sizeToCopy = (typeSignals.numberOfBits * numberOfElements) / 8u;
     }
     if (ok) { //input elements
         uint32 auxElements = 0u;
@@ -196,12 +196,14 @@ bool MuxGAM::Setup() {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading input number of elements");
         }
-        if(ok){
-            if(auxElements == numberOfElements){
+        if (ok) {
+            if (auxElements == numberOfElements) {
                 numberOfSelectorElements = auxElements;
-            }else if (auxElements == 1u){
+            }
+            else if (auxElements == 1u) {
                 numberOfSelectorElements = 1u;
-            }else{
+            }
+            else {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfSelectorElements is not 1 neither numberOfElements");
                 ok = false;
             }
@@ -212,15 +214,16 @@ bool MuxGAM::Setup() {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading input number of elements");
             }
             if (ok) {
-                if(i < numberOfOutputs){//Selectors case
+                if (i < numberOfOutputs) { //Selectors case
                     ok = (auxElements == numberOfSelectorElements);
-                    if(!ok){
+                    if (!ok) {
                         uint32 aux = i;
                         REPORT_ERROR(ErrorManagement::InitialisationError, "All input selector elements must be equal. Number of elements for index %u is different", aux);
                     }
-                }else{//Input signal case
+                }
+                else { //Input signal case
                     ok = (auxElements == numberOfElements);
-                    if(!ok){
+                    if (!ok) {
                         uint32 aux = i;
                         REPORT_ERROR(ErrorManagement::InitialisationError, "All input and output signal elements (except selectors) must be equal. Number of input elements for index %u is diffrent", aux);
                     }
@@ -331,19 +334,21 @@ bool MuxGAM::Setup() {
 //MuxGAM::Execute() only is called if the Setup() succeeds and the pointers are initialized.
 bool MuxGAM::Execute() {
     bool ok = true;
-    if(numberOfSelectorElements == 1u){
+    if (numberOfSelectorElements == 1u) {
         for (selectorIndex = 0u; (selectorIndex < numberOfOutputs) && ok; selectorIndex++) { //goes throughout each selector signal
-            if(IsValidSelector(selectors[selectorIndex][0])){
-                ok = MemoryOperationsHelper::Copy(outputSignals[selectorIndex],inputSignals[selectors[selectorIndex][0]], sizeToCopy);
-                if(!ok){
+            if (IsValidSelector(selectors[selectorIndex][0])) {
+                ok = MemoryOperationsHelper::Copy(outputSignals[selectorIndex], inputSignals[selectors[selectorIndex][0]], sizeToCopy);
+                if (!ok) {
                     REPORT_ERROR(ErrorManagement::FatalError, "MemoryOperationsHelper::Copy failed");
                 }
-            }else{
+            }
+            else {
                 REPORT_ERROR(ErrorManagement::FatalError,"Invalid selector value. selector value must be lower than %u", maxSelectorValue);
                 ok = false;
             }
         }
-    }else{
+    }
+    else {
         for (selectorIndex = 0u; (selectorIndex < numberOfOutputs) && ok; selectorIndex++) { //goes throughout each selector signal
             for (elementIndex = 0u; (elementIndex < numberOfElements) && ok; elementIndex++) {
                 ok = Copy();

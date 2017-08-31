@@ -54,7 +54,7 @@ public:
 
     /**
      * @brief Test messages errors MuxGAM::Setup().
-     * @details no outputs no inputs
+     * @details no outputs, no inputs
      */
     bool TestSetupNoOutputs();
 
@@ -280,6 +280,9 @@ public:
     /**
      * @brief Test MuxGAM::Setup().
      * @details 4 inputs, 2 output.
+     * @param[in] strType indicates the type of the input and output signals of the MuxGAM.
+     * @param[in] nOfElements indicates the elements of the input and output signals of the MuxGAM.
+     * @param[in] nOfSelectorElements indicates the elements of the selector signals of the MuxGAM.
      */
     bool TestSetup4I2O(StreamString strType,
                        uint32 nOfElements,
@@ -288,6 +291,9 @@ public:
     /**
      * @brief Test MuxGAM::Execute() configured with 4 inputs two outputs.
      * @details Test all valid types, all selector combinations (without changing  selectors in the middle) and with a selector array.
+     * @param[in] strType indicates the type of the input and output signals of the MuxGAM.
+     * @param[in] nOfElements indicates the elements of the input and output signals of the MuxGAM.
+     * @param[in] nOfSelectorElements indicates the elements of the selector signals of the MuxGAM.
      */
     template<typename T>
     bool TestExecute4I2OSelectorArray(StreamString strType,
@@ -297,6 +303,9 @@ public:
     /**
      * @brief Test MuxGAM::Execute() configured with 4 inputs two outputs.
      * @details Test all valid types, all selector combinations and with a selector array.
+     * @param[in] strType indicates the type of the input and output signals of the MuxGAM.
+     * @param[in] nOfElements indicates the elements of the input and output signals of the MuxGAM.
+     * @param[in] nOfSelectorElements indicates the elements of the selector signals of the MuxGAM.
      */
     template<typename T>
     bool TestExecute4I2OSelectorArray_2(StreamString strType,
@@ -306,6 +315,9 @@ public:
     /**
      * @brief Test MuxGAM::Execute() configured with 4 inputs two outputs.
      * @details Test all valid types, all selector combinations and with a single selector element.
+     * @param[in] strType indicates the type of the input and output signals of the MuxGAM.
+     * @param[in] nOfElements indicates the elements of the input and output signals of the MuxGAM.
+     * @param[in] nOfSelectorElements indicates the elements of the selector signals of the MuxGAM.
      */
     template<typename T>
     bool TestExecute4I2OSelector(StreamString strType,
@@ -315,6 +327,9 @@ public:
     /**
      * @brief Test MuxGAM::Execute() with an invalid selector.
      * @details Test single element selector and selector array.
+     * @param[in] strType indicates the type of the input and output signals of the MuxGAM.
+     * @param[in] nOfElements indicates the elements of the input and output signals of the MuxGAM.
+     * @param[in] nOfSelectorElements indicates the elements of the selector signals of the MuxGAM.
      */
     template<typename T>
     bool TestExecute4I2OInvalidSelector(StreamString strType,

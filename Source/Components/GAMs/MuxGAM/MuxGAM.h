@@ -44,7 +44,7 @@ namespace MARTe {
  *
  * @details This GAM has two conceptual inputs: \b input \b signals which are the signals routed to
  * the outputs and \b selectors which are the control signals. Notice the difference between
- * inputs and input signals (inputs = input signals + selectors.\n
+ * inputs and input signals (inputs = input signals + selectors).\n
  *
  * The GAM copies the input signals (indicated by the selectors) to the outputs. Several types of data and single/array elements
  * are supported, however all the input and output signals must have the same type and the same number of elements.
@@ -107,30 +107,105 @@ namespace MARTe {
  *     InputSignals = {
  *         Selector0 = {
  *             DataSource = "DDB1"
- *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative)
+ *             Type = uint32
+ *             NumberOfElements = 1
+ *             NumberOfDimensions = 1
+ *             samples = 1
+ *         }
+ *         Selector1 = {
+ *             DataSource = "DDB1"
+ *             Type = uint32
+ *             NumberOfElements = 1
+ *             NumberOfDimensions = 1
+ *             samples = 1
+ *         }
+ *         InputSignal0 = {
+ *             DataSource = "DDB2"
+ *             Type = float64
+ *             NumberOfElements = 2000
+ *             NumberOfDimensions = 1
+ *             samples = 1
+ *         }
+ *         InputSignal1 = {
+ *             DataSource = "DDB2"
+ *             Type = float64
+ *             NumberOfElements = 2000
+ *             NumberOfDimensions = 1
+ *             samples = 1
  *         }
  *     }
  *     OutputSignals = {
  *         OutputSignal1 = {
  *             DataSource = "LCD"
- *             Type = float32
+ *             Type = float64
+ *             NumberOfElements = 2000
+ *             NumberOfDimensions = 1
+ *             samples = 1
  *         }
  *         OutputSignal2 = {
  *             DataSource = "LCD"
  *             Type = float64
+ *             NumberOfElements = 2000
+ *             NumberOfDimensions = 1
+ *             samples = 1
  *         }
  *     }
  * }
  * </pre>
+ * Notice that the selectors are defined first.
  */
 class MuxGAM: public GAM {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API MuxGAM)
 public:
     CLASS_REGISTER_DECLARATION()
+
+    /**
+     * @brief Default constructor
+     * @post
+     * selectors = NULL_PTR(uint32 **)\n
+     * inputSignals = NULL_PTR(void **)\n
+     * selectorIndex = 0u\n
+     * numberOfSelectorElements = 0u\n
+     * numberOfInputs = 0u\n
+     * numberOfInputSignalsG = 0u\n
+     * numberOfElements = 0u\n
+     * elementIndex = 0u\n
+     * numberOfDimensions = 0u\n
+     * numberOfSamples = 0u\n
+     * outputSignals = NULL_PTR(void **)\n
+     * numberOfOutputs = 0u\n
+     * maxSelectorValue = 0u\n
+     * numberOfElements = 0u\n
+     * sizeToCopy = 0u\n
+     */
     MuxGAM();
+
+    /**
+     * @brief Default constructor
+     * @details Frees, if necessary, the memory previously allocated inside the MuxGAM
+     *
+     */
     virtual ~MuxGAM();
+
+    /**
+     * @brief Calls GAM:Initialise(StructuredDataI &data)
+     * @param[in] data configuration of the GAM
+     */
     virtual bool Initialise(StructuredDataI &data);
+
+    /**
+     * @brief Initialises the inputs and the outputs
+     * @details Allocates memory, initialises internal variables and checks consistencies
+     * @return true if the verifications are correct
+     */
     virtual bool Setup();
+
+    /**
+     * @brief Copies the selected input signals to the output signals.
+     * @details if selector is an array the input signals are copied element by element.
+     * If the selector has one element the input signals are copied as a block.
+     * @return true if the copy is successfully done
+     */
     virtual bool Execute();
 private:
 
@@ -212,10 +287,37 @@ private:
      */
     uint32 sizeToCopy;
 
+    /**
+     * @brief Checks that a give type is a supported type.
+     * @details valid types:
+     * uint8\n
+     * int8\n
+     * uint16\n
+     * int16\n
+     * uint32\n
+     * int32\n
+     * uint64\n
+     * int64\n
+     * float32\n
+     * float64\n
+     * @param[in] typeRef type to be checked
+     * @return true if the type is valid.
+     */
     bool IsValidType(TypeDescriptor const &typeRef) const;
 
+    /**
+     * @brief Copies a preselected input to the output
+     * @details The copy is performed element by element as a function of the selector value
+     * @return true if the copy succeed
+     */
     inline bool Copy()const;
 
+    /**
+     * @brief Checks that a given selector is valid.
+     * @details a valid selector must be a number smaller than the number of inputs signals
+     * @param[in] value is the value to be checked.
+     * @return true if value is valid.
+     */
     inline bool IsValidSelector(const uint32 value) const;
 
 };
