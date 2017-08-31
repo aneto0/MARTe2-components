@@ -110,28 +110,28 @@ namespace MARTe {
  *             Type = uint32
  *             NumberOfElements = 1
  *             NumberOfDimensions = 1
- *             samples = 1
+ *             Samples = 1
  *         }
  *         Selector1 = {
  *             DataSource = "DDB1"
  *             Type = uint32
  *             NumberOfElements = 1
  *             NumberOfDimensions = 1
- *             samples = 1
+ *             Samples = 1
  *         }
  *         InputSignal0 = {
  *             DataSource = "DDB2"
  *             Type = float64
  *             NumberOfElements = 2000
  *             NumberOfDimensions = 1
- *             samples = 1
+ *             Samples = 1
  *         }
  *         InputSignal1 = {
  *             DataSource = "DDB2"
  *             Type = float64
  *             NumberOfElements = 2000
  *             NumberOfDimensions = 1
- *             samples = 1
+ *             Samples = 1
  *         }
  *     }
  *     OutputSignals = {
@@ -140,14 +140,14 @@ namespace MARTe {
  *             Type = float64
  *             NumberOfElements = 2000
  *             NumberOfDimensions = 1
- *             samples = 1
+ *             Samples = 1
  *         }
  *         OutputSignal2 = {
  *             DataSource = "LCD"
  *             Type = float64
  *             NumberOfElements = 2000
  *             NumberOfDimensions = 1
- *             samples = 1
+ *             Samples = 1
  *         }
  *     }
  * }
