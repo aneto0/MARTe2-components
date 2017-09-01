@@ -1,2 +1,3 @@
-/depends*
+depends.linux
+dependsRaw.linux
 /cov/
