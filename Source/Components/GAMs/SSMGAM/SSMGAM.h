@@ -47,6 +47,133 @@ public:
     virtual bool Initialise(StructuredDataI & data);
     virtual bool Setup();
     virtual bool Execute();
+
+private:
+    /**
+     * state matrix pointer. In standard naming convention, it corresponds to A matrix.
+     */
+    float64 **stateMatrix;
+
+    /**
+     * number of raws of the state matrix.
+     */
+    uint32 stateMatrixNumberOfRaws;
+
+    /**
+     * number of columns of the state matrix.
+     */
+    uint32 stateMatrixNumberOfColumns;
+
+    /**
+     * Number of elements of the state vector.
+     */
+    uint32 sizeStateVector;
+
+    /**
+     * Number of elements of the derivative state vector. sizeStateVector = sizeDerivativeStateVector
+     */
+    uint32 sizeDerivativeStateVector;
+
+    /**
+     * input matrix pointer. In standard naming convention, it corresponds to B matrix.
+     */
+    float64 **inputMatrix;
+
+    /**
+     * number of raws of the input matrix.
+     */
+    uint32 inputMatrixNumberOfRaws;
+
+    /**
+     * number of columns of the  input matrix.
+     */
+    uint32 inputMatrixNumberOfColumns;
+
+    /**
+    * output matrix pointer. In standard naming convention, it corresponds to C matrix.
+    */
+    float64 **outputMatrix;
+
+    /**
+     * number of raws of the output matrix
+     */
+    uint32 outputMatrixNumberOfRaws;
+
+    /**
+     * number of columns of the output matrix.
+     */
+    uint32 outputMatrixNumberOfColumns;
+
+    /**
+    * feedthrough matrix pointer. In standard naming convention, it corresponds to D matrix.
+    */
+    float64 **feedthroughMatrix;
+
+    /**
+     * number of raws of the feedthrough matrix
+     */
+    uint32 feedthroughMatrixNumberOfRaws;
+
+    /**
+     * number of columns of the feedthrough matrix.
+     */
+    uint32 feedthroughMatrixNumberOfColumns;
+
+    /**
+     * number of input signals
+     */
+    uint32 numberOfInputSignals;
+
+    /**
+     * number of output signals
+     */
+    uint32 numberOfOutputSignals;
+
+    /**
+     * number of elements of the output vector. numberOfOutputSignals = sizeOutputVector + sizeStateVector + sizeDerivativeStateVector
+     */
+    uint32 sizeOutputVector;
+
+    /**
+     * number of input elements
+     */
+    uint32 numberOfInputElements;
+
+    /**
+     * number of output elements
+     */
+    uint32 numberOfOutputElements;
+
+    /**
+     * number of input dimensions
+     */
+    uint32 numberOfInputDimensions;
+
+    /**
+     * number of output dimensions
+     */
+    uint32 numberOfOutputDimensions;
+
+    /**
+     * number of input samples
+     */
+    uint32 numberOfInputSamples;
+
+    /**
+     * number of output samples
+     */
+    uint32 numberOfOutputSamples;
+
+    /**
+     *
+     */
+    float64 **inputVector;
+
+    float64 **ouputVector;
+
+    float64 **stateVector;
+
+    float64 **derivativeStateVector;
 };
 
 }

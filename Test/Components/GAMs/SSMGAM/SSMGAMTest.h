@@ -43,6 +43,7 @@ class SSMGAMTest: public SSMGAM {
 public:
     SSMGAMTest();
     virtual ~SSMGAMTest();
+    bool TestInitialise();
 };
 
 }

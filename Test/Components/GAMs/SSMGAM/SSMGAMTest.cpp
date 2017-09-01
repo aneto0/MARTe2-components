@@ -26,7 +26,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-
+#include "stdio.h"
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -57,6 +57,30 @@ SSMGAMTest::~SSMGAMTest() {
 //Auto-generated destructor stub for SSMGAMTest
 
 //TODO Verify if manual additions are needed here
+}
+
+bool SSMGAMTest::TestInitialise() {
+    bool ok;
+    SSMGAM gam;
+    ConfigurationDatabase config;
+    float64 stateMatrix[2][3];
+    stateMatrix[0][0] = 11;
+    stateMatrix[0][1] = 12;
+    stateMatrix[0][2] = 13;
+    stateMatrix[1][0] = 21;
+    stateMatrix[1][1] = 22;
+    stateMatrix[1][2] = 23;
+    Matrix<float64> matrix(&stateMatrix[0][0], 2u, 3u);
+    ok = config.Write("StateMatrix", matrix);
+    StreamString a;
+    printf("%d\n", a.Printf("%!", config));
+    printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+    printf("%s\n", a.Buffer());
+    printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+    if (ok) {
+        ok &= gam.Initialise(config);
+    }
+    return ok;
 }
 
 }

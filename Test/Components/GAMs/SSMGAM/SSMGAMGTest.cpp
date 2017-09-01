@@ -37,13 +37,13 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-namespace {
-/*
-TEST(FilterGAMGTest,TestConstructor) {
-    FilterGAMTest test;
-    ASSERT_TRUE(test.TestConstructor());
+namespace MARTe{
+
+TEST(SSMGAMGTest,TestInitialise) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialise());
 }
-*/
+
 }
 
 /*---------------------------------------------------------------------------*/
