@@ -38,6 +38,18 @@
 
 namespace MARTe {
 
+/**
+ * @biref
+ * @details
+ * state matrix dimension must be at least 1x1 no 0 dimension is allowed since a system without
+ * state,s the output only depends on the input and the system has no dynamics
+ *
+ * input matrix dimension must be at least 1x1, 0 dimension is not allowed since a system with no input matrix the number of inputs is 0.
+ *
+ * output matrix dimension must be at least 1x1, 0 dimension is not allowed since a system with no output matrix the number of outputs is 0.
+ *
+ * feedthrough matrix could be not defined, but if it is defined the matrix must be have dimension qxn
+ */
 class SSMGAM: public GAM {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API SSMGAM)
 public:
@@ -52,12 +64,12 @@ private:
     /**
      * state matrix pointer. In standard naming convention, it corresponds to A matrix.
      */
-    float64 **stateMatrix;
+    float64 **stateMatrixPointer;
 
     /**
-     * number of raws of the state matrix.
+     * number of rows of the state matrix.
      */
-    uint32 stateMatrixNumberOfRaws;
+    uint32 stateMatrixNumberOfRows;
 
     /**
      * number of columns of the state matrix.
@@ -77,12 +89,12 @@ private:
     /**
      * input matrix pointer. In standard naming convention, it corresponds to B matrix.
      */
-    float64 **inputMatrix;
+    float64 **inputMatrixPointer;
 
     /**
-     * number of raws of the input matrix.
+     * number of rows of the input matrix.
      */
-    uint32 inputMatrixNumberOfRaws;
+    uint32 inputMatrixNumberOfRows;
 
     /**
      * number of columns of the  input matrix.
@@ -92,12 +104,14 @@ private:
     /**
     * output matrix pointer. In standard naming convention, it corresponds to C matrix.
     */
-    float64 **outputMatrix;
+    float64 **outputMatrixPointer;
+
+    Matrix<float64> outputMatrix;
 
     /**
-     * number of raws of the output matrix
+     * number of rows of the output matrix
      */
-    uint32 outputMatrixNumberOfRaws;
+    uint32 outputMatrixNumberOfRows;
 
     /**
      * number of columns of the output matrix.
@@ -107,12 +121,14 @@ private:
     /**
     * feedthrough matrix pointer. In standard naming convention, it corresponds to D matrix.
     */
-    float64 **feedthroughMatrix;
+    float64 **feedthroughMatrixPointer;
+
+    Matrix<float64> feedthroughMatrix;
 
     /**
-     * number of raws of the feedthrough matrix
+     * number of rws of the feedthrough matrix
      */
-    uint32 feedthroughMatrixNumberOfRaws;
+    uint32 feedthroughMatrixNumberOfRows;
 
     /**
      * number of columns of the feedthrough matrix.
@@ -165,15 +181,38 @@ private:
     uint32 numberOfOutputSamples;
 
     /**
-     *
+     * This is the input signal of the system (usually called U). It is the excitation of the system.
      */
-    float64 **inputVector;
+    float64 **inputVectorPointer;
 
-    float64 **ouputVector;
+    Matrix<float64> inputVector;
 
-    float64 **stateVector;
+    /**
+     * Output of the system (usually this vector is represented by a Y).
+     */
+    float64 **outputVectorPointer;
 
-    float64 **derivativeStateVector;
+    Matrix<float64> outputVector;
+
+    Matrix<float64> intermediateOutput1;
+    Matrix<float64> intermediateOutput2;
+
+    /**
+     * State vector (usually it is represented by a X). This vector is an output of the GAM.
+     */
+    float64 **stateVectorPointer;
+
+    Matrix<float64> stateVector;
+
+    /**
+     * It is the derivative of the state vector. This vector is also an ouput of the GAM.
+     */
+    float64 **derivativeStateVectorPointer;
+
+    /**
+     * sample frequency in which the matrix parameters are given. It will be used for verification
+     */
+    float64 sampleFrequency;
 };
 
 }

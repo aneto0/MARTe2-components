@@ -43,7 +43,188 @@ class SSMGAMTest: public SSMGAM {
 public:
     SSMGAMTest();
     virtual ~SSMGAMTest();
+
+    /**
+     * @brief Test error messages of SSM::Initialise().
+     * @details Call Initialise() without state matrix
+     */
+    bool TestInitialiseNoStateMatrix();
+
+    /**
+     * @brief Test error messages of SSM::Initialise().
+     * @details define state matrix with dimension 1x2.
+     */
+    bool TestInitialiseStateMatrix1x2();
+
+    /**
+     * @brief Test error messages of SSM::Initialise().
+     * @details Call Initialise() without input matrix
+     */
+    bool TestInitialiseNoInputMatrix();
+
+    /**
+     * @brief Test error messages of SSM::Initialise().
+     * @details define state matrix with dimension 2x2 and
+     * an input matrix with dimension 1x2.
+     */
+    bool TestInitialiseWrongInputMatrixDimension();
+
+    /**
+     * @brief Test error messages of SSM::Initialise().
+     * @details Call Initialise() without output matrix
+     */
+    bool TestInitialiseNoOutputMatrix();
+
+    /**
+     * @brief Test error messages of SSM::Initialise().
+     * @details define state matrix with dimension 2x2,
+     * an input matrix with dimension 2x1 and output matrix dimension 2x1.
+     */
+    bool TestInitialiseWrongOutputMatrixDimension();
+
+    /**
+     * @brief Test error messages of SSM::Initialise().
+     * @details Call Initialise() without feedthough matrix
+     */
+    bool TestInitialiseNoFeedthoughMatrix();
+
+    /**
+     * @brief Test error messages of SSM::Initialise().
+     * @details define state matrix with dimension 2x2,
+     * an input matrix with dimension 2x1, output matrix dimension 1x2
+     * and feedthough matrix 2x1.
+     */
+    bool TestInitialiseWrongFeedthroughMatrixDimension();
+
+    /**
+     * @brief Test error messages of SSM::Initialise().
+     * @details define state matrix with dimension 2x2,
+     * an input matrix with dimension 2x1, output matrix dimension 1x2
+     * and feedthough matrix 1x2.
+     */
+    bool TestInitialiseWrongFeedthroughMatrixDimension_2();
+
+    /**
+     * @brief Test SSM::Initialise().
+     * @details define state matrix with dimension 2x2,
+     * input matrix with dimension 2x1, output matrix dimension 1x2
+     * and feedthough matrix 1x1.
+     */
     bool TestInitialise();
+
+    /**
+     * @brief Test SSM::Initialise().
+     * @details define state matrix with dimension 4x4,
+     *  input matrix with dimension 4x2, output matrix dimension 1x4
+     * and feedthough matrix 4x2.
+     */
+    bool TestInitialise_2();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     * @details number of input signals = 2
+     */
+    bool TestSetupWrongInputSignals();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     * @details number of output signals = 2
+     */
+    bool TestSetupWrongOutputsSignals();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupWrongInputType();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupWrongOutputType();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupNoInputElements();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupWrongInputElements();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupNoOutputElements();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupWrongOutputElements();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupNoInputDimensions();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupWrongInputDimensions();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupNoOutputDimensions();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupWrongOutputDimensions();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupNoInputSamples();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupWrongInputSamples();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupNoOutputSamples();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupWrongOutputSamples();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupWrongOutputSamples_2();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetupWrongOutputSamples_3();
+
+    /**
+     * @brief Test SSM::Setup() error messages.
+     */
+    bool TestSetup();
+
+    /**
+     * @brief Test SSM::Execute().
+     */
+    bool TestExecute();
+
+    /*
+    bool TestInitialiseoColumnsStateMatrix();//cannot be tested
+    */
 };
 
 }

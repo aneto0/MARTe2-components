@@ -38,11 +38,163 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe{
+/*
+TEST(SSMGAMGTest,TestInitialiseNoStateMatrix) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseNoStateMatrix());
+}
+
+TEST(SSMGAMGTest,TestInitialiseStateMatrix1x2) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseStateMatrix1x2());
+}
+
+TEST(SSMGAMGTest,TestInitialiseNoInputMatrix) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseNoInputMatrix());
+}
+
+TEST(SSMGAMGTest,TestInitialiseWrongInputMatrixDimension) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseWrongInputMatrixDimension());
+}
+
+TEST(SSMGAMGTest,TestInitialiseNoOutputMatrix) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseNoOutputMatrix());
+}
+
+TEST(SSMGAMGTest,TestInitialiseWrongOutputMatrixDimension) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseWrongOutputMatrixDimension());
+}
+
+TEST(SSMGAMGTest,TestInitialiseNoFeedthoughMatrix) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseNoFeedthoughMatrix());
+}
+
+TEST(SSMGAMGTest,TestInitialiseWrongFeedthroughMatrixDimension) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseWrongFeedthroughMatrixDimension());
+}
+
+TEST(SSMGAMGTest,TestInitialiseWrongFeedthroughMatrixDimension_2) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseWrongFeedthroughMatrixDimension_2());
+}
 
 TEST(SSMGAMGTest,TestInitialise) {
     SSMGAMTest test;
     ASSERT_TRUE(test.TestInitialise());
 }
+
+TEST(SSMGAMGTest,TestInitialise_2) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongInputSignals) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongInputSignals());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongOutputsSignals) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongOutputsSignals());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongInputType) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongInputType());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongOutputType) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongOutputType());
+}
+
+TEST(SSMGAMGTest,TestSetupNoInputElements) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoInputElements());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongInputElements) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongInputElements());
+}
+
+TEST(SSMGAMGTest,TestSetupNoOutputElements) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoOutputElements());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongOutputElements) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongOutputElements());
+}
+
+TEST(SSMGAMGTest,TestSetupNoInputDimensions) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoInputDimensions());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongInputDimensions) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongInputDimensions());
+}
+
+TEST(SSMGAMGTest,TestSetupNoOutputDimensions) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoOutputDimensions());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongOutputDimensions) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongOutputDimensions());
+}
+
+TEST(SSMGAMGTest,TestSetupNoInputSamples) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoInputSamples());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongInputSamples) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongInputSamples());
+}
+
+TEST(SSMGAMGTest,TestSetupNoOutputSamples) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoOutputSamples());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongOutputSamples) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongOutputSamples());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongOutputSamples_2) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongOutputSamples_2());
+}
+
+TEST(SSMGAMGTest,TestSetupWrongOutputSamples_3) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupWrongOutputSamples_3());
+}
+
+TEST(SSMGAMGTest,TestSetup) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetup());
+}
+
+*/
+TEST(SSMGAMGTest,TestExecute) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestExecute());
+}
+
 
 }
 
