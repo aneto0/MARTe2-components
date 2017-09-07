@@ -40,16 +40,89 @@
 namespace MARTe {
 
 /**
- * @biref
- * @details
- * state matrix dimension must be at least 1x1 no 0 dimension is allowed since a system without
- * state,s the output only depends on the input and the system has no dynamics
+ * @brief GAM which implements a generic State Space model with constant matrices and float64.
+ * @details The GAM implements the following equations:\n
+ * \f$
+ * x[k+1] = Ax[k]+Bu[k]
+ * \f$
+ * \n
+ * \f$
+ * y[k] = Cx[k]+Du[k]
+ * \f$
+ * \n
+ * Where:\n
+ * \b u[k] is the input vector. Its dimension [p x 1]\n
+ * \b y[k] is the output vector. Its dimension is [q x 1]\n
+ * \b x[k] is the state vector. Its dimension is [n x q]\n
+ * \b x[k+1] is the next state vector. Its dimension is [n x q]\n
+ * \b A[k] is the state matrix. Its dimension is [n x n]\n
+ * \b B[k] is the input matrix. Its dimension is [n x p]\n
+ * \b C[k] is the output matrix. Its dimension is [q x n]\n
+ * \b D[k] is the feedtrough matrix. Its dimension is [q x p]\n
+ * \b k denotes the iteration k = 0, 1, 2, ..
  *
- * input matrix dimension must be at least 1x1, 0 dimension is not allowed since a system with no input matrix the number of inputs is 0.
+ * The inputs of the GAM are the input vector. However the outputs of the GAM are the output vector, the
+ * state vector and the next state vector. Consequently the number of outputs of the GAM are the sum
+ * of the sizes of theses vectors.\n
  *
- * output matrix dimension must be at least 1x1, 0 dimension is not allowed since a system with no output matrix the number of outputs is 0.
+ * The number of elements and the number of samples must be one. The dimensions could be 0 or 1.
  *
- * feedthrough matrix could be not defined, but if it is defined the matrix must be have dimension qxn
+ * The state matrix the input matrix and the output matrix must be specified, however the feedthrough matrix
+ * may or may not be specified. While configuring, the following considerations must be applied:
+ * <ul>
+ * <li><b> The state matrix dimension must be at least 1x1</b>. No 0 dimension is allowed since a system without states
+ * the output depends only on the input and the system has no dynamics.
+ * </li>
+ * <li><b>The input dimension must be 1x1</b>. O dimension is not allowed since a system without output
+ * matrix the number of output is 0.
+ * </li>
+ * <li> The order of the outputs are important. First must be defined the output vector, then the state vector and finally the
+ * next state.
+ * </li>
+ * <li>
+ * The coefficients of the matrix must be already converted in the discrete domain.
+ * </li>
+ * <li>
+ * The sampling frequency used to convert the coefficients to the discrete time should be specified. It could be used to cross check
+ * the cycle time of the GAM with time sampling used to transform the system in the discrete time domain.
+ * </li>
+ * </ul>
+ *
+ *
+ * *
+ * The configuration syntax is (names and signal quantity are only given as an example):
+ * +SSMGAM1 = {
+ *     Class = SSMGAM
+ *     StateMatrix = {{0.5 0.5}{1.0 2.0}} //Compulsory
+ *     InputMatrix = {{1}{0}} //Compulsory
+ *     OutputMatrix = {{1 0}} //Compulsory
+ *     FeedthroughMatrix = {{0 1}} //Optional
+ *     ResetInEachState = 0//Compulsory. 1--> reset in each state, 0--> reset if the previous state is different from the next state
+ *     sampleFrequency = 0.0001 // Currently optional.
+ *     InputSignals = {
+ *         InputSignal1 = { //input of the SS
+ *             DataSource = "DDB1"
+ *             Type = float64 //Only supported type.
+ *             NumberOfElements = 1
+ *             NumberOfDimensions = 1 // or 0
+ *             Samples = 1
+ *         }
+ *         InputSignal2 = {
+ *             DataSource = "DDB1"
+ *             Type = float32
+ *         }
+ *     }
+ *     OutputSignals = {
+ *         OutputSignal1 = {
+ *             DataSource = "LCD"
+ *             Type = float32
+ *         }
+ *         OutputSignal2 = {
+ *             DataSource = "LCD"
+ *             Type = float32
+ *         }
+ *     }
+ * }
  */
 class SSMGAM: public GAM {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API SSMGAM)
