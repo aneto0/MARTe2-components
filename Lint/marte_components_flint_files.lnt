@@ -20,6 +20,7 @@
 -i./Source/Components/GAMs/FilterGAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/GAMs/PIDGAM/
+-i./Source/Components/GAMs/SSMGAM/
 -i./Source/Components/GAMs/WaveformGAM/
 -i./Source/Components/GAMs/StatisticsGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
@@ -66,6 +67,8 @@ Signal.h
 SDNPublisher.cpp
 SDNSubscriber.cpp
 SharedDataArea.cpp
+SSMGAM.cpp
+SSMGAM.h
 StatisticsGAM.cpp
 StatisticsHelperT.h
 SysLogger.cpp

@@ -45,51 +45,51 @@ public:
     virtual ~SSMGAMTest();
 
     /**
-     * @brief Test error messages of SSM::Initialise().
+     * @brief Test error messages of SSMGAM::Initialise().
      * @details Call Initialise() without state matrix
      */
     bool TestInitialiseNoStateMatrix();
 
     /**
-     * @brief Test error messages of SSM::Initialise().
+     * @brief Test error messages of SSMGAM::Initialise().
      * @details define state matrix with dimension 1x2.
      */
     bool TestInitialiseStateMatrix1x2();
 
     /**
-     * @brief Test error messages of SSM::Initialise().
+     * @brief Test error messages of SSMGAM::Initialise().
      * @details Call Initialise() without input matrix
      */
     bool TestInitialiseNoInputMatrix();
 
     /**
-     * @brief Test error messages of SSM::Initialise().
+     * @brief Test error messages of SSMGAM::Initialise().
      * @details define state matrix with dimension 2x2 and
      * an input matrix with dimension 1x2.
      */
     bool TestInitialiseWrongInputMatrixDimension();
 
     /**
-     * @brief Test error messages of SSM::Initialise().
+     * @brief Test error messages of SSMGAM::Initialise().
      * @details Call Initialise() without output matrix
      */
     bool TestInitialiseNoOutputMatrix();
 
     /**
-     * @brief Test error messages of SSM::Initialise().
+     * @brief Test error messages of SSMGAM::Initialise().
      * @details define state matrix with dimension 2x2,
      * an input matrix with dimension 2x1 and output matrix dimension 2x1.
      */
     bool TestInitialiseWrongOutputMatrixDimension();
 
     /**
-     * @brief Test error messages of SSM::Initialise().
+     * @brief Test error messages of SSMGAM::Initialise().
      * @details Call Initialise() without feedthough matrix
      */
     bool TestInitialiseNoFeedthoughMatrix();
 
     /**
-     * @brief Test error messages of SSM::Initialise().
+     * @brief Test error messages of SSMGAM::Initialise().
      * @details define state matrix with dimension 2x2,
      * an input matrix with dimension 2x1, output matrix dimension 1x2
      * and feedthough matrix 2x1.
@@ -97,7 +97,7 @@ public:
     bool TestInitialiseWrongFeedthroughMatrixDimension();
 
     /**
-     * @brief Test error messages of SSM::Initialise().
+     * @brief Test error messages of SSMGAM::Initialise().
      * @details define state matrix with dimension 2x2,
      * an input matrix with dimension 2x1, output matrix dimension 1x2
      * and feedthough matrix 1x2.
@@ -105,7 +105,17 @@ public:
     bool TestInitialiseWrongFeedthroughMatrixDimension_2();
 
     /**
-     * @brief Test SSM::Initialise().
+     * @brief Test SSMGAM::Initialise() error messages.
+     */
+    bool TestInitialiseNoResetInEachState();
+
+    /**
+     * @brief Test SSMGAM::Initialise() error messages.
+     */
+    bool TestInitialiseWrongResetInEachState();
+
+    /**
+     * @brief Test SSMGAM::Initialise().
      * @details define state matrix with dimension 2x2,
      * input matrix with dimension 2x1, output matrix dimension 1x2
      * and feedthough matrix 1x1.
@@ -215,16 +225,45 @@ public:
     /**
      * @brief Test SSM::Setup() error messages.
      */
+    bool TestSetupNoMemoryInitialised();
+
+    /**
+     * @brief Test SSM::Setup().
+     */
     bool TestSetup();
 
     /**
      * @brief Test SSM::Execute().
+     * @details check the output of execute with an arbitrary system with 1 input and one output.
+     * A[2x2], B[2x1], C[1x2], D[1x1].
+     * @return true if the output is as expected.
      */
     bool TestExecute();
 
-    /*
-    bool TestInitialiseoColumnsStateMatrix();//cannot be tested
-    */
+    /**
+     * @brief Test SSM::Execute().
+     * @details The system is a mass with spring taking into account the friction. A[2x2], B[2x1], C[1x2], D[1x1].
+     * Input is an impulse force, output is the position of the mass.
+     * Sampling time 1 second. The output of the GAM is compared against the output of Matlab SS output.
+     * @return true if the output is as expected.
+     */
+    bool TestExecuteSpring();
+
+    /**
+     * @brief Test SSM::Execute().
+     * @details The system is a mass with spring taking into account the friction. A[2x2], B[2x1], C[1x2] and no D.
+     * Input is an impulse force, output is the position of the mass.
+     * Sampling time 1 second. The output of the GAM is compared against the output of Matlab SS output.
+     * @return true if the output is as expected.
+     */
+    bool TestExecuteSpringNoFeedthroughMatrix();
+
+    bool TestPrepareNextStateReset(uint32 resetEachState);
+
+    bool TestPrepareNextStateNoReset(uint32 resetEachState);
+
+    bool TestPrepareNextStateNoMemoryAllocated(uint32 resetEachState);
+
 };
 
 }

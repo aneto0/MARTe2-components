@@ -32,6 +32,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "GAM.h"
+#include "Matrix.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -59,12 +60,22 @@ public:
     virtual bool Initialise(StructuredDataI & data);
     virtual bool Setup();
     virtual bool Execute();
+    virtual bool PrepareNextState(const char8 * const currentStateName,
+                                  const char8 * const nextStateName);
 
 private:
     /**
      * state matrix pointer. In standard naming convention, it corresponds to A matrix.
      */
     float64 **stateMatrixPointer;
+
+    Matrix<float64> stateMatrix;
+
+    float64 **intermediateState1Pointer;
+    Matrix<float64> intermediateState1;
+
+    float64 **intermediateState2Pointer;
+    Matrix<float64> intermediateState2;
 
     /**
      * number of rows of the state matrix.
@@ -91,6 +102,8 @@ private:
      */
     float64 **inputMatrixPointer;
 
+    Matrix<float64> inputMatrix;
+
     /**
      * number of rows of the input matrix.
      */
@@ -102,8 +115,8 @@ private:
     uint32 inputMatrixNumberOfColumns;
 
     /**
-    * output matrix pointer. In standard naming convention, it corresponds to C matrix.
-    */
+     * output matrix pointer. In standard naming convention, it corresponds to C matrix.
+     */
     float64 **outputMatrixPointer;
 
     Matrix<float64> outputMatrix;
@@ -119,8 +132,8 @@ private:
     uint32 outputMatrixNumberOfColumns;
 
     /**
-    * feedthrough matrix pointer. In standard naming convention, it corresponds to D matrix.
-    */
+     * feedthrough matrix pointer. In standard naming convention, it corresponds to D matrix.
+     */
     float64 **feedthroughMatrixPointer;
 
     Matrix<float64> feedthroughMatrix;
@@ -138,12 +151,12 @@ private:
     /**
      * number of input signals
      */
-    uint32 numberOfInputSignals;
+    uint32 numberOfInputSignalsGAM;
 
     /**
      * number of output signals
      */
-    uint32 numberOfOutputSignals;
+    uint32 numberOfOutputSignalsGAM;
 
     /**
      * number of elements of the output vector. numberOfOutputSignals = sizeOutputVector + sizeStateVector + sizeDerivativeStateVector
@@ -194,7 +207,10 @@ private:
 
     Matrix<float64> outputVector;
 
+    float64 **intermediateOutput1Pointer;
     Matrix<float64> intermediateOutput1;
+
+    float64 **intermediateOutput2Pointer;
     Matrix<float64> intermediateOutput2;
 
     /**
@@ -209,10 +225,18 @@ private:
      */
     float64 **derivativeStateVectorPointer;
 
+    Matrix<float64> derivativeStateVector;
+
     /**
      * sample frequency in which the matrix parameters are given. It will be used for verification
      */
     float64 sampleFrequency;
+
+    bool enableFeedthroughMatrix;
+
+    bool resetInEachState;
+
+    StreamString lastStateExecuted;
 };
 
 }

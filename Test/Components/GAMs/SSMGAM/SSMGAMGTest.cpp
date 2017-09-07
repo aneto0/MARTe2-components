@@ -38,7 +38,7 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe{
-/*
+
 TEST(SSMGAMGTest,TestInitialiseNoStateMatrix) {
     SSMGAMTest test;
     ASSERT_TRUE(test.TestInitialiseNoStateMatrix());
@@ -82,6 +82,16 @@ TEST(SSMGAMGTest,TestInitialiseWrongFeedthroughMatrixDimension) {
 TEST(SSMGAMGTest,TestInitialiseWrongFeedthroughMatrixDimension_2) {
     SSMGAMTest test;
     ASSERT_TRUE(test.TestInitialiseWrongFeedthroughMatrixDimension_2());
+}
+
+TEST(SSMGAMGTest, TestInitialiseNoResetInEachState) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseNoResetInEachState());
+}
+
+TEST(SSMGAMGTest, TestInitialiseWrongResetInEachState) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestInitialiseWrongResetInEachState());
 }
 
 TEST(SSMGAMGTest,TestInitialise) {
@@ -184,15 +194,54 @@ TEST(SSMGAMGTest,TestSetupWrongOutputSamples_3) {
     ASSERT_TRUE(test.TestSetupWrongOutputSamples_3());
 }
 
+TEST(SSMGAMGTest,TestSetupNoMemoryInitialised) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestSetupNoMemoryInitialised());
+}
+
 TEST(SSMGAMGTest,TestSetup) {
     SSMGAMTest test;
     ASSERT_TRUE(test.TestSetup());
 }
 
-*/
 TEST(SSMGAMGTest,TestExecute) {
     SSMGAMTest test;
     ASSERT_TRUE(test.TestExecute());
+}
+
+TEST(SSMGAMGTest,TestExecuteSpring) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestExecuteSpring());
+}
+
+TEST(SSMGAMGTest, TestExecuteSpringNoFeedthroughMatrix) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestExecuteSpringNoFeedthroughMatrix());
+}
+
+TEST(SSMGAMGTest, TestPrepareNextStateReset) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestPrepareNextStateReset(1));
+}
+
+TEST(SSMGAMGTest, TestPrepareNextStateReset1) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestPrepareNextStateReset(0));
+}
+
+TEST(SSMGAMGTest, TestPrepareNextStateNoReset) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestPrepareNextStateNoReset(0));
+}
+
+TEST(SSMGAMGTest, TestPrepareNextStateNoMemoryAllocated) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestPrepareNextStateNoMemoryAllocated(0));
+}
+
+TEST(SSMGAMGTest, TestPrepareNextStateNoMemoryAllocated2) {
+    SSMGAMTest test;
+    ASSERT_TRUE(test.TestPrepareNextStateNoMemoryAllocated(1));
 }
 
 

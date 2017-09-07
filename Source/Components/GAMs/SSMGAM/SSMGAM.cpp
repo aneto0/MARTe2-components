@@ -48,8 +48,10 @@ namespace {
 
 namespace MARTe {
 
-SSMGAM::SSMGAM() {
+SSMGAM::SSMGAM(): GAM() {
     stateMatrixPointer = NULL_PTR(float64 **);
+    intermediateState1Pointer = NULL_PTR(float64 **);
+    intermediateState2Pointer = NULL_PTR(float64 **);
     stateMatrixNumberOfRows = 0u;
     stateMatrixNumberOfColumns = 0u;
 
@@ -70,8 +72,8 @@ SSMGAM::SSMGAM() {
     feedthroughMatrixNumberOfRows = 0u;
     feedthroughMatrixNumberOfColumns = 0u;
 
-    numberOfInputSignals = 0u;
-    numberOfOutputSignals = 0u;
+    numberOfInputSignalsGAM = 0u;
+    numberOfOutputSignalsGAM = 0u;
     sizeOutputVector = 0u;
 
     numberOfInputElements = 0u;
@@ -83,73 +85,134 @@ SSMGAM::SSMGAM() {
 
     inputVectorPointer = NULL_PTR(float64 **);
     outputVectorPointer = NULL_PTR(float64 **);
+    intermediateOutput1Pointer = NULL_PTR(float64 **);
+    intermediateOutput2Pointer = NULL_PTR(float64 **);
     stateVectorPointer = NULL_PTR(float64 **);
     derivativeStateVectorPointer = NULL_PTR(float64 **);
-//TODO Verify if manual additions are needed here
+    sampleFrequency = 0.0;
+
+    enableFeedthroughMatrix = false;
+    resetInEachState = false;
 }
 
+//lint -e{1551} Function may throw exception --> The exceptions are not managed
 SSMGAM::~SSMGAM() {
     if (stateMatrixPointer != NULL_PTR(float64 **)) {
         for (uint32 row = 0u; row < stateMatrixNumberOfRows; row++) {
-            delete stateMatrixPointer[row];
-            stateMatrixPointer[row] = NULL_PTR(float64 *);
+            if(stateMatrixPointer[row] != NULL_PTR(float64 *)){
+                delete stateMatrixPointer[row];
+                stateMatrixPointer[row] = NULL_PTR(float64 *);
+            }
         }
         delete[] stateMatrixPointer;
         stateMatrixPointer = NULL_PTR(float64 **);
     }
     if (inputMatrixPointer != NULL_PTR(float64 **)) {
         for (uint32 row = 0u; row < inputMatrixNumberOfRows; row++) {
-            delete inputMatrixPointer[row];
-            inputMatrixPointer[row] = NULL_PTR(float64 *);
+            if(inputMatrixPointer[row] != NULL_PTR(float64 *)){
+                delete inputMatrixPointer[row];
+                inputMatrixPointer[row] = NULL_PTR(float64 *);
+            }
         }
         delete[] inputMatrixPointer;
         inputMatrixPointer = NULL_PTR(float64 **);
     }
     if (outputMatrixPointer != NULL_PTR(float64 **)) {
         for (uint32 row = 0u; row < outputMatrixNumberOfRows; row++) {
-            delete outputMatrixPointer[row];
-            outputMatrixPointer[row] = NULL_PTR(float64 *);
+            if(outputMatrixPointer[row] != NULL_PTR(float64 *)){
+                delete outputMatrixPointer[row];
+                outputMatrixPointer[row] = NULL_PTR(float64 *);
+            }
         }
         delete[] outputMatrixPointer;
         outputMatrixPointer = NULL_PTR(float64 **);
     }
     if (feedthroughMatrixPointer != NULL_PTR(float64 **)) {
         for (uint32 row = 0u; row < feedthroughMatrixNumberOfRows; row++) {
-            delete feedthroughMatrixPointer[row];
-            feedthroughMatrixPointer[row] = NULL_PTR(float64 *);
+            if(feedthroughMatrixPointer[row] != NULL_PTR(float64 *)){
+                delete feedthroughMatrixPointer[row];
+                feedthroughMatrixPointer[row] = NULL_PTR(float64 *);
+            }
         }
         delete[] feedthroughMatrixPointer;
         feedthroughMatrixPointer = NULL_PTR(float64 **);
     }
     if (inputVectorPointer != NULL_PTR(float64 **)) {
-        for (uint32 row = 0u; row < numberOfInputSignals; row++) {
-            inputVectorPointer[row] = NULL_PTR(float64 *);
+        for (uint32 row = 0u; row < numberOfInputSignalsGAM; row++) {
+            if(inputVectorPointer[row] != NULL_PTR(float64 *)){
+                inputVectorPointer[row] = NULL_PTR(float64 *);
+            }
         }
         delete[] inputVectorPointer;
         inputVectorPointer = NULL_PTR(float64 **);
     }
     if (outputVectorPointer != NULL_PTR(float64 **)) {
         for (uint32 row = 0u; row < sizeOutputVector; row++) {
-            outputVectorPointer[row] = NULL_PTR(float64 *);
+            if(outputVectorPointer[row] != NULL_PTR(float64 *)){
+                outputVectorPointer[row] = NULL_PTR(float64 *);
+            }
         }
         delete[] outputVectorPointer;
         outputVectorPointer = NULL_PTR(float64 **);
     }
     if (stateVectorPointer != NULL_PTR(float64 **)) {
         for (uint32 row = 0u; row < sizeStateVector; row++) {
-            stateVectorPointer[row] = NULL_PTR(float64 *);
+            if(stateVectorPointer[row] != NULL_PTR(float64 *)){
+                stateVectorPointer[row] = NULL_PTR(float64 *);
+            }
         }
         delete[] stateVectorPointer;
         stateVectorPointer = NULL_PTR(float64 **);
     }
     if (derivativeStateVectorPointer != NULL_PTR(float64 **)) {
         for (uint32 row = 0u; row < sizeDerivativeStateVector; row++) {
-            derivativeStateVectorPointer[row] = NULL_PTR(float64 *);
+            if(derivativeStateVectorPointer[row] != NULL_PTR(float64 *)){
+                derivativeStateVectorPointer[row] = NULL_PTR(float64 *);
+            }
         }
         delete[] derivativeStateVectorPointer;
         derivativeStateVectorPointer = NULL_PTR(float64 **);
     }
-
+    if (intermediateOutput1Pointer != NULL_PTR(float64 **)) {
+        for (uint32 row = 0u; row < sizeOutputVector; row++) {
+            if(intermediateOutput1Pointer[row] != NULL_PTR(float64 *)){
+                delete[] intermediateOutput1Pointer[row];
+                intermediateOutput1Pointer[row] = NULL_PTR(float64 *);
+            }
+        }
+        delete[] intermediateOutput1Pointer;
+        intermediateOutput1Pointer = NULL_PTR(float64 **);
+    }
+    if (intermediateOutput2Pointer != NULL_PTR(float64 **)) {
+        for (uint32 row = 0u; row < sizeOutputVector; row++) {
+            if(intermediateOutput2Pointer[row] != NULL_PTR(float64 *)){
+                delete[] intermediateOutput2Pointer[row];
+                intermediateOutput2Pointer[row] = NULL_PTR(float64 *);
+            }
+        }
+        delete[] intermediateOutput2Pointer;
+        intermediateOutput2Pointer = NULL_PTR(float64 **);
+    }
+    if (intermediateState1Pointer != NULL_PTR(float64 **)) {
+        for (uint32 row = 0u; row < stateMatrixNumberOfRows; row++) {
+            if(intermediateState1Pointer[row] != NULL_PTR(float64 *)){
+                delete[] intermediateState1Pointer[row];
+                intermediateState1Pointer[row] = NULL_PTR(float64 *);
+            }
+        }
+        delete[] intermediateState1Pointer;
+        intermediateState1Pointer = NULL_PTR(float64 **);
+    }
+    if (intermediateState2Pointer != NULL_PTR(float64 **)) {
+        for (uint32 row = 0u; row < stateMatrixNumberOfRows; row++) {
+            if(intermediateState2Pointer[row] != NULL_PTR(float64 *)){
+                delete[] intermediateState2Pointer[row];
+                intermediateState2Pointer[row] = NULL_PTR(float64 *);
+            }
+        }
+        delete[] intermediateState2Pointer;
+        intermediateState2Pointer = NULL_PTR(float64 **);
+    }
 }
 
 bool SSMGAM::Initialise(StructuredDataI &data) {
@@ -181,17 +244,26 @@ bool SSMGAM::Initialise(StructuredDataI &data) {
 
         if (ok) { // allocate state matrix memory and read matrix coefficients
             stateMatrixPointer = new float64 *[stateMatrixNumberOfRows];
-            for (uint32 i = 0u; i < stateMatrixNumberOfRows; i++) {
+            intermediateState1Pointer = new float64 *[stateMatrixNumberOfRows];
+            intermediateState2Pointer = new float64 *[stateMatrixNumberOfRows];
+            //lint -e{613} Possible use of null pointer--> If new fails the program crashes.
+            for (uint32 i = 0u; (i < stateMatrixNumberOfRows) && ok; i++) {
                 stateMatrixPointer[i] = new float64[stateMatrixNumberOfColumns];
+                intermediateState1Pointer[i] = new float64 [1u];
+                intermediateState2Pointer[i] = new float64 [1u];
             }
-            Matrix<float64> matrix(stateMatrixPointer, stateMatrixNumberOfRows, stateMatrixNumberOfColumns);
-            ok = (data.Read("StateMatrix", matrix));
-            if (!ok) { //since data.GetType("StateMatrix") does not fail data.Read("StateMatrix", matrix) cannot fail.
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading StateMatrix");
+            if(ok){
+                Matrix<float64> matrix(stateMatrixPointer, stateMatrixNumberOfRows, stateMatrixNumberOfColumns);
+                ok = (data.Read("StateMatrix", matrix));
+                if (!ok) { //since data.GetType("StateMatrix") does not fail data.Read("StateMatrix", matrix) cannot fail.
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading StateMatrix");
+                }
             }
         }
-        sizeStateVector = stateMatrixNumberOfRows;
-        sizeDerivativeStateVector = stateMatrixNumberOfRows;
+        if(ok){
+            sizeStateVector = stateMatrixNumberOfRows;
+            sizeDerivativeStateVector = stateMatrixNumberOfRows;
+        }
     }
     if (ok) { //load input matrix
         AnyType functionsMatrix;
@@ -203,7 +275,7 @@ bool SSMGAM::Initialise(StructuredDataI &data) {
         if (ok) {
             //0u are columns
             inputMatrixNumberOfColumns = functionsMatrix.GetNumberOfElements(0u);
-            ok = (inputMatrixNumberOfColumns > 0);
+            ok = (inputMatrixNumberOfColumns > 0u);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "The number of input matrix columns must be positive");
             }
@@ -220,13 +292,16 @@ bool SSMGAM::Initialise(StructuredDataI &data) {
 
         if (ok) { // allocate input matrix memory and read matrix coefficients
             inputMatrixPointer = new float64 *[inputMatrixNumberOfRows];
-            for (uint32 i = 0u; i < inputMatrixNumberOfRows; i++) {
+            //lint -e{613} Possible use of null pointer--> If new fails the program crashes.
+            for (uint32 i = 0u; (i < inputMatrixNumberOfRows) && ok; i++) {
                 inputMatrixPointer[i] = new float64[inputMatrixNumberOfColumns];
             }
-            Matrix<float64> matrix(inputMatrixPointer, inputMatrixNumberOfRows, inputMatrixNumberOfColumns);
-            ok = (data.Read("InputMatrix", matrix));
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading InputMatrix");
+            if(ok){
+                Matrix<float64> matrix(inputMatrixPointer, inputMatrixNumberOfRows, inputMatrixNumberOfColumns);
+                ok = (data.Read("InputMatrix", matrix));
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading InputMatrix");
+                }
             }
         }
 
@@ -258,13 +333,17 @@ bool SSMGAM::Initialise(StructuredDataI &data) {
 
         if (ok) { // allocate output matrix memory and read matrix coefficients
             outputMatrixPointer = new float64 *[outputMatrixNumberOfRows];
-            for (uint32 i = 0u; i < outputMatrixNumberOfRows; i++) {
+            //lint -e{613} Possible use of null pointer--> If new fails the computer crashes
+            for (uint32 i = 0u; (i < outputMatrixNumberOfRows) && ok; i++) {
                 outputMatrixPointer[i] = new float64[outputMatrixNumberOfColumns];
             }
-            Matrix<float64> outputMatrix1(&outputMatrixPointer[0][0], outputMatrixNumberOfRows, outputMatrixNumberOfColumns);
-            ok = (data.Read("OutputMatrix", outputMatrix1));
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading outputMatrix");
+            //lint -e{613} Possible use of null pointer--> Pointers previously checked.
+            if(ok){
+                Matrix<float64> outputMatrix1(&outputMatrixPointer[0][0], outputMatrixNumberOfRows, outputMatrixNumberOfColumns);
+                ok = (data.Read("OutputMatrix", outputMatrix1));
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading outputMatrix");
+                }
             }
         }
     }
@@ -277,13 +356,11 @@ bool SSMGAM::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::Warning, "Error getting type for FeedthroughMatrix. Matrix not defined");
         }
         else {
-            if (ok) {
-                //0u are columns
-                feedthroughMatrixNumberOfColumns = functionsMatrix.GetNumberOfElements(0u);
-                ok = (feedthroughMatrixNumberOfColumns == inputMatrixNumberOfColumns);
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "The number of feedthrough matrix columns must be equal than the number of input matrix columns");
-                }
+            //0u are columns
+            feedthroughMatrixNumberOfColumns = functionsMatrix.GetNumberOfElements(0u);
+            ok = (feedthroughMatrixNumberOfColumns == inputMatrixNumberOfColumns);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "The number of feedthrough matrix columns must be equal than the number of input matrix columns");
             }
             if (ok) {
                 //1u are rows...
@@ -296,43 +373,61 @@ bool SSMGAM::Initialise(StructuredDataI &data) {
 
             if (ok) { // allocate feedthrough matrix memory and read matrix coefficients
                 feedthroughMatrixPointer = new float64 *[feedthroughMatrixNumberOfRows];
-                for (uint32 i = 0u; i < feedthroughMatrixNumberOfRows; i++) {
+                //lint -e{613} Possible use of null pointer--> If new fails the program crashes.
+                for (uint32 i = 0u; (i < feedthroughMatrixNumberOfRows) && ok; i++) {
                     feedthroughMatrixPointer[i] = new float64[feedthroughMatrixNumberOfColumns];
                 }
-                Matrix<float64> matrix(feedthroughMatrixPointer, feedthroughMatrixNumberOfRows, feedthroughMatrixNumberOfColumns);
-                ok = (data.Read("FeedthroughMatrix", matrix));
+                if(ok){
+                    Matrix<float64> matrix(feedthroughMatrixPointer, feedthroughMatrixNumberOfRows, feedthroughMatrixNumberOfColumns);
+                    ok = (data.Read("FeedthroughMatrix", matrix));
+                }
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading feedthroughMatrix");
                 }
             }
         }
 
+    }if(ok){
+        uint32 auxResetInEachState = 0u;
+        ok = data.Read("ResetInEachState", auxResetInEachState);
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading ResetInEachState");
+        }else{
+            if(auxResetInEachState == 1u){
+                resetInEachState = true;
+            }else if(auxResetInEachState == 0u){
+                resetInEachState = false;
+            }else{
+                ok = false;
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Wrong value for ResetInEachState. Possible values 0 (false) or 1 (true)");
+            }
+        }
     }
     return ok;
 }
 
 bool SSMGAM::Setup() {
     bool ok;
-    numberOfInputSignals = GetNumberOfInputSignals();
-    ok = (numberOfInputSignals == inputMatrixNumberOfColumns);
+    numberOfInputSignalsGAM = GetNumberOfInputSignals();
+    ok = (numberOfInputSignalsGAM == inputMatrixNumberOfColumns);
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "numberOfInputSignals must be equal than inputMatrixNumberOfColumns");
+        REPORT_ERROR(ErrorManagement::ParametersError, "numberOfInputSignalsGAM must be equal than inputMatrixNumberOfColumns");
     }
     if (ok) {
-        numberOfOutputSignals = GetNumberOfOutputSignals();
+        numberOfOutputSignalsGAM = GetNumberOfOutputSignals();
         //There are three types of outputs: output vector, state vector, and derivative state vector.
         //The number of output signals must be larger than sizeOfStateVector+sizeOfDerivativeStateVector
-        ok = (numberOfOutputSignals == (2u * sizeStateVector) + outputMatrixNumberOfRows);
+        ok = (numberOfOutputSignalsGAM == ((2u * sizeStateVector) + outputMatrixNumberOfRows));
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "numberOfOutputSignals must be equal than outputMatrixNumberOfRows + 2u * sizeStateVector. numberOfOutputSignals = %u, outputMatrixNumberOfRows = %u, sizeStateVector = %u", numberOfOutputSignals, outputMatrixNumberOfRows, sizeStateVector);
+            REPORT_ERROR(ErrorManagement::ParametersError, "numberOfOutputSignalsGAM must be equal than outputMatrixNumberOfRows + 2u * sizeStateVector. numberOfOutputSignalsGAM = %u, outputMatrixNumberOfRows = %u, sizeStateVector = %u", numberOfOutputSignalsGAM, outputMatrixNumberOfRows, sizeStateVector);
         }
         else {
-            sizeOutputVector = (numberOfOutputSignals - sizeStateVector) - sizeDerivativeStateVector;
+            sizeOutputVector = (numberOfOutputSignalsGAM - sizeStateVector) - sizeDerivativeStateVector;
         }
     }
     if(ok){//input type
         TypeDescriptor auxType;
-        for (uint32 i = 0u; (i < numberOfInputSignals) && ok; i++) {
+        for (uint32 i = 0u; (i < numberOfInputSignalsGAM) && ok; i++) {
             auxType = GetSignalType(InputSignals, i);
             ok = (auxType == Float64Bit);
             if(!ok){
@@ -344,7 +439,7 @@ bool SSMGAM::Setup() {
 
     if(ok){//input type
         TypeDescriptor auxType;
-        for (uint32 i = 0u; (i < numberOfOutputSignals) && ok; i++) {
+        for (uint32 i = 0u; (i < numberOfOutputSignalsGAM) && ok; i++) {
             auxType = GetSignalType(OutputSignals, i);
             ok = (auxType == Float64Bit);
             if(!ok){
@@ -354,8 +449,8 @@ bool SSMGAM::Setup() {
         }
     }
     if (ok) { //input elements
-        uint32 auxElements;
-        for (uint32 i = 0u; (i < numberOfInputSignals) && ok; i++) {
+        uint32 auxElements = 0u;
+        for (uint32 i = 0u; (i < numberOfInputSignalsGAM) && ok; i++) {
             ok = GetSignalNumberOfElements(InputSignals, i, auxElements);
             if (!ok) {
                 uint32 auxIdx = i;
@@ -375,8 +470,8 @@ bool SSMGAM::Setup() {
     }
 
     if (ok) { //output elements
-        uint32 auxElements;
-        for (uint32 i = 0u; (i < numberOfOutputSignals) && ok; i++) {
+        uint32 auxElements = 0u;
+        for (uint32 i = 0u; (i < numberOfOutputSignalsGAM) && ok; i++) {
             ok = GetSignalNumberOfElements(OutputSignals, i, auxElements);
             if (!ok) {
                 uint32 auxIdx = i;
@@ -395,8 +490,8 @@ bool SSMGAM::Setup() {
         }
     }
     if (ok) { //input dimension
-        uint32 auxDimension;
-        for (uint32 i = 0u; (i < numberOfInputSignals) && ok; i++) {
+        uint32 auxDimension = 0u;
+        for (uint32 i = 0u; (i < numberOfInputSignalsGAM) && ok; i++) {
             ok = GetSignalNumberOfDimensions(InputSignals, i, auxDimension);
             if (!ok) {
                 uint32 auxIdx = i;
@@ -415,8 +510,8 @@ bool SSMGAM::Setup() {
         }
     }
     if (ok) { //output dimension
-        uint32 auxDimension;
-        for (uint32 i = 0u; (i < numberOfOutputSignals) && ok; i++) {
+        uint32 auxDimension = 0u;
+        for (uint32 i = 0u; (i < numberOfOutputSignalsGAM) && ok; i++) {
             ok = GetSignalNumberOfDimensions(OutputSignals, i, auxDimension);
             if (!ok) {
                 uint32 auxIdx = i;
@@ -435,8 +530,8 @@ bool SSMGAM::Setup() {
         }
     }
     if (ok) { //input samples
-        uint32 auxSamples;
-        for (uint32 i = 0u; (i < numberOfInputSignals) && ok; i++) {
+        uint32 auxSamples = 0u;
+        for (uint32 i = 0u; (i < numberOfInputSignalsGAM) && ok; i++) {
             ok = GetSignalNumberOfSamples(InputSignals, i, auxSamples);
             if (!ok) {
                 uint32 auxIdx = i;
@@ -456,8 +551,8 @@ bool SSMGAM::Setup() {
     }
 
     if (ok) { //output samples
-        uint32 auxSamples;
-        for (uint32 i = 0u; (i < numberOfOutputSignals) && ok; i++) {
+        uint32 auxSamples = 0u;
+        for (uint32 i = 0u; (i < numberOfOutputSignalsGAM) && ok; i++) {
             ok = GetSignalNumberOfSamples(OutputSignals, i, auxSamples);
             if (!ok) {
                 uint32 auxIdx = i;
@@ -476,45 +571,139 @@ bool SSMGAM::Setup() {
         }
     }
     if (ok) {
-        inputVectorPointer = new float64 *[numberOfInputSignals];
-        for (uint32 i = 0u; i < numberOfInputSignals; i++) {
+        inputVectorPointer = new float64 *[numberOfInputSignalsGAM];
+        for (uint32 i = 0u; i < numberOfInputSignalsGAM; i++) {
             inputVectorPointer[i] = static_cast<float64 *>(GetInputSignalMemory(i));
+            ok = (inputVectorPointer[i] != NULL_PTR(float64 *));
+            if(!ok){
+                uint32 auxIdx = i;
+                REPORT_ERROR(ErrorManagement::ParametersError, "GetInputSignalMemory(%u) returned a null pointer", auxIdx);
+            }
+
         }
         outputVectorPointer = new float64 *[sizeOutputVector];
-        for (uint32 i = 0u; i < sizeOutputVector; i++) {
+        intermediateOutput1Pointer = new float64 *[sizeOutputVector];
+        intermediateOutput2Pointer = new float64 *[sizeOutputVector];
+        //lint -e{613} Possible use of null pointer--> If new fails the program crashes.
+        for (uint32 i = 0u; (i < sizeOutputVector); i++) {
             outputVectorPointer[i] = static_cast<float64 *>(GetOutputSignalMemory(i));
+            ok = (outputVectorPointer[i] != NULL_PTR(float64 *));
+            if(!ok){
+                uint32 auxIdx = i;
+                REPORT_ERROR(ErrorManagement::ParametersError, "GetOutputSignalMemory(%u) returned a null pointer", auxIdx);
+            }
+            intermediateOutput1Pointer[i] = new float64 [1u];
+            intermediateOutput2Pointer[i] = new float64 [1u];
         }
         stateVectorPointer = new float64 *[sizeStateVector];
-        uint32 auxIdx = 0;
-        for (uint32 i = sizeOutputVector; i < (sizeOutputVector + sizeStateVector); i++) {
+        uint32 auxIdx = 0u;
+        for (uint32 i = sizeOutputVector; (i < (sizeOutputVector + sizeStateVector)); i++) {
             stateVectorPointer[auxIdx] = static_cast<float64 *>(GetOutputSignalMemory(i));
+            ok = (stateVectorPointer[auxIdx] != NULL_PTR(float64 *));
+            if(!ok){
+                uint32 auxIdx2 = i;
+                REPORT_ERROR(ErrorManagement::ParametersError, "GetOutputSignalMemory(%u) returned a null pointer", auxIdx2);
+            }
             auxIdx++;
         }
         derivativeStateVectorPointer = new float64 *[sizeDerivativeStateVector];
-        auxIdx = 0;
-        for (uint32 i = (sizeOutputVector + sizeStateVector); i < numberOfOutputSignals; i++) {
+        auxIdx = 0u;
+        for (uint32 i = (sizeOutputVector + sizeStateVector); (i < numberOfOutputSignalsGAM); i++) {
             derivativeStateVectorPointer[auxIdx] = static_cast<float64 *>(GetOutputSignalMemory(i));
+            ok = (derivativeStateVectorPointer[auxIdx] != NULL_PTR(float64 *));
+            if(!ok){
+                uint32 auxIdx2 = i;
+                REPORT_ERROR(ErrorManagement::ParametersError, "GetOutputSignalMemory(%u) returned a null pointer", auxIdx2);
+            }
             auxIdx++;
         }
-        outputMatrix = Matrix<float64>(outputMatrixPointer, outputMatrixNumberOfRows,outputMatrixNumberOfColumns);
-        feedthroughMatrix = Matrix<float64>(feedthroughMatrixPointer, feedthroughMatrixNumberOfRows,feedthroughMatrixNumberOfColumns);
-        stateVector = Matrix<float64>(stateVectorPointer, stateMatrixNumberOfRows,1);
-        outputVector = Matrix<float64>(outputVectorPointer, outputMatrixNumberOfRows,1);
-        inputVector = Matrix<float64>(inputVectorPointer, inputMatrixNumberOfRows,1);
-        intermediateOutput1 = Matrix<float64>(outputMatrixNumberOfRows, 1);
-        intermediateOutput2 = Matrix<float64>(outputMatrixNumberOfRows, 1);
+        if(ok){
+            stateMatrix = Matrix<float64>(stateMatrixPointer, stateMatrixNumberOfRows,stateMatrixNumberOfColumns);
+            intermediateState1 = Matrix<float64>(intermediateState1Pointer, stateMatrixNumberOfRows, 1u);
+            intermediateState2 = Matrix<float64>(intermediateState2Pointer, stateMatrixNumberOfRows, 1u);
+            outputMatrix = Matrix<float64>(outputMatrixPointer, outputMatrixNumberOfRows, outputMatrixNumberOfColumns);
+            if(feedthroughMatrixPointer != NULL_PTR(float64 **)){
+                feedthroughMatrix = Matrix<float64>(feedthroughMatrixPointer, feedthroughMatrixNumberOfRows, feedthroughMatrixNumberOfColumns);
+                enableFeedthroughMatrix = true;
+            }else{
+                enableFeedthroughMatrix = false;
+            }
+
+            stateVector = Matrix<float64>(stateVectorPointer, stateMatrixNumberOfColumns,1u);
+            outputVector = Matrix<float64>(outputVectorPointer, outputMatrixNumberOfRows,1u);
+            inputMatrix = Matrix<float64>(inputMatrixPointer, inputMatrixNumberOfRows, inputMatrixNumberOfColumns);
+            inputVector = Matrix<float64>(inputVectorPointer, inputMatrixNumberOfColumns,1u);
+            intermediateOutput1 = Matrix<float64>(intermediateOutput1Pointer, outputMatrixNumberOfRows, 1u);
+            intermediateOutput2 = Matrix<float64>(intermediateOutput2Pointer, outputMatrixNumberOfRows, 1u);
+            derivativeStateVector = Matrix<float64>(derivativeStateVectorPointer, stateMatrixNumberOfRows, 1u);
+        }
     }
     return ok;
 }
 
 bool SSMGAM::Execute() {
-    bool ok = outputMatrix.Product(stateVector, intermediateOutput1);
+    bool ok = stateVector.Copy(derivativeStateVector);
     if(ok){
+        ok = outputMatrix.Product(stateVector, intermediateOutput1);
+    }
+    if(ok && enableFeedthroughMatrix){
         ok = feedthroughMatrix.Product(inputVector, intermediateOutput2);
     }if(ok){
-        outputVector = intermediateOutput1+intermediateOutput2;
+        if(enableFeedthroughMatrix){
+            ok = intermediateOutput1.Sum(intermediateOutput2, outputVector);
+        }else{
+            ok = outputVector.Copy(intermediateOutput1);
+        }
+    }
+    if(ok){
+        ok = stateMatrix.Product(stateVector, intermediateState1);
+    }
+    if(ok){
+        ok = inputMatrix.Product(inputVector, intermediateState2);
+    }
+    if(ok){
+        ok = intermediateState1.Sum(intermediateState2, derivativeStateVector);
     }
     return ok;
+}
+
+bool SSMGAM::PrepareNextState(const char8 * const currentStateName,
+                              const char8 * const nextStateName){
+    bool ret = true;
+
+    if (resetInEachState) {
+        bool cond1 = (stateVector.GetDataPointer() != NULL_PTR(float64 **));
+        bool cond2 = (derivativeStateVector.GetDataPointer() != NULL_PTR(float64 **));
+        if (cond1 && cond2) {
+            for (uint32 i = 0u; i < sizeStateVector; i++) {
+                stateVector(i, 0u) = 0.0;
+                derivativeStateVector(i,0u) = 0.0;
+            }
+        }else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "stateVector or derivativeStateVector = NULL ");
+            ret = false;
+        }
+
+    }
+    else {
+        //If the currentStateName and lastStateExecuted are different-> rest values
+        if (lastStateExecuted != currentStateName) {
+            bool cond1 = (stateVector.GetDataPointer() != NULL_PTR(float64 **));
+            bool cond2 = (derivativeStateVector.GetDataPointer() != NULL_PTR(float64 **));
+            if (cond1 && cond2) {
+                for (uint32 i = 0u; i < sizeStateVector; i++) {
+                    stateVector(i,0u) = 0.0;
+                    derivativeStateVector(i, 0u) = 0.0;
+                }
+            }else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "stateVector or derivativeStateVector = NULL ");
+                ret = false;
+            }
+        }
+        lastStateExecuted = nextStateName;
+    }
+
+    return ret;
 }
 CLASS_REGISTER(SSMGAM, "1.0")
 }
