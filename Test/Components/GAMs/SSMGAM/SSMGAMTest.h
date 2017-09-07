@@ -258,10 +258,22 @@ public:
      */
     bool TestExecuteSpringNoFeedthroughMatrix();
 
+    /**
+     * @brief Test the reset function
+     */
     bool TestPrepareNextStateReset(uint32 resetEachState);
 
+    /**
+     * @brief Test SSMGAM::PrepareNextState()
+     * @details Test both modes: reset each state and reset when the GAM was no executed in the previous state
+     */
     bool TestPrepareNextStateNoReset(uint32 resetEachState);
 
+    /**
+     * @brief Test SSGGAM:PrepareNextState() error messages.
+     * @details Test both modes: reset each state and reset when the GAM
+     * was no executed in the previous state
+     */
     bool TestPrepareNextStateNoMemoryAllocated(uint32 resetEachState);
 
 };

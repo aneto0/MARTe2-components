@@ -89,12 +89,12 @@ namespace MARTe {
  * </ul>
  *
  *
- * *
+ * <pre>
  * The configuration syntax is (names and signal quantity are only given as an example):
  * +SSMGAM1 = {
  *     Class = SSMGAM
  *     StateMatrix = {{0.5 0.5}{1.0 2.0}} //Compulsory
- *     InputMatrix = {{1}{0}} //Compulsory
+ *     InputMatrix = {{1 1}{0 1}} //Compulsory
  *     OutputMatrix = {{1 0}} //Compulsory
  *     FeedthroughMatrix = {{0 1}} //Optional
  *     ResetInEachState = 0//Compulsory. 1--> reset in each state, 0--> reset if the previous state is different from the next state
@@ -109,30 +109,159 @@ namespace MARTe {
  *         }
  *         InputSignal2 = {
  *             DataSource = "DDB1"
- *             Type = float32
+ *             Type = float64 //Only supported type.
+ *             NumberOfElements = 1
+ *             NumberOfDimensions = 1
+ *             Samples = 1
  *         }
  *     }
  *     OutputSignals = {
  *         OutputSignal1 = {
- *             DataSource = "LCD"
+ *             DataSource = "OutputVector"
  *             Type = float32
  *         }
  *         OutputSignal2 = {
- *             DataSource = "LCD"
- *             Type = float32
+ *             DataSource = "StateVector1"
+ *             Type = float64 //Only supported type.
+ *             NumberOfElements = 1
+ *             NumberOfDimensions = 1
+ *             Samples = 1
+ *         }
+ *         OutputSignal3 = {
+ *             DataSource = "StateVector2"
+ *             Type = float64 //Only supported type.
+ *             NumberOfElements = 1
+ *             NumberOfDimensions = 1
+ *             Samples = 1
+ *         }
+ *          OutputSignal4 = {
+ *             DataSource = "NextStateVector1"
+ *             Type = float64 //Only supported type.
+ *             NumberOfElements = 1
+ *             NumberOfDimensions = 1
+ *             Samples = 1
+ *         }
+ *         OutputSignal5 = {
+ *             DataSource = "NextStateVector2"
+ *             Type = float64 //Only supported type.
+ *             NumberOfElements = 1
+ *             NumberOfDimensions = 1
+ *             Samples = 1
  *         }
  *     }
  * }
+ * </pre>
  */
 class SSMGAM: public GAM {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API SSMGAM)
 public:
     CLASS_REGISTER_DECLARATION()
+    /** @brief Default constructor
+     * @post
+     * stateMatrixPointer = NULL_PTR(float64 **)\n
+     * intermediateState1Pointer = NULL_PTR(float64 **)\n
+     * intermediateState2Pointer = NULL_PTR(float64 **)\n
+     * stateMatrixNumberOfRows = 0u\n
+     * stateMatrixNumberOfColumns = 0u\n
+     * stateMatrixNumberOfRows = 0u\n
+     * stateMatrixNumberOfColumns = 0u\n
+     * sizeStateVector = 0u\n
+     * sizeDerivativeStateVector = 0u\n
+     * inputMatrixPointer = NULL_PTR(float64 **)\n
+     * inputMatrixNumberOfRows = 0u\n
+     * inputMatrixNumberOfColumns = 0u\n
+     * outputMatrixPointer = NULL_PTR(float64 **)\n
+     * outputMatrixNumberOfRows = 0u\n
+     * outputMatrixNumberOfColumns = 0u\n
+     * feedthroughMatrixPointer = NULL_PTR(float64 **)\n
+     * feedthroughMatrixNumberOfRows = 0u\n
+     * feedthroughMatrixNumberOfColumns = 0u\n
+     * numberOfInputSignalsGAM = 0u\n
+     * numberOfOutputSignalsGAM = 0u\n
+     * sizeOutputVector = 0u\n
+     * numberOfInputElements = 0u\n
+     * numberOfOutputElements = 0u\n
+     * numberOfInputDimensions = 0u\n
+     * numberOfOutputDimensions = 0u\n
+     * numberOfInputSamples = 0u\n
+     * numberOfOutputSamples = 0u\n
+     * inputVectorPointer = NULL_PTR(float64 **)\n
+     * outputVectorPointer = NULL_PTR(float64 **)\n
+     * intermediateOutput1Pointer = NULL_PTR(float64 **)\n
+     * intermediateOutput2Pointer = NULL_PTR(float64 **)\n
+     * stateVectorPointer = NULL_PTR(float64 **)\n
+     * derivativeStateVectorPointer = NULL_PTR(float64 **)\n
+     * sampleFrequency = 0.0\n
+     * enableFeedthroughMatrix = false\n
+     * resetInEachState = false\n
+     */
     SSMGAM();
+
+    /**
+     * @brief Destructor
+     * @details Frees the memory allocated by the GAM if necessary
+     * @post
+     * stateMatrixPointer = NULL_PTR(float64 **)\n
+     * intermediateState1Pointer = NULL_PTR(float64 **)\n
+     * intermediateState2Pointer = NULL_PTR(float64 **)\n
+     * inputMatrixPointer = NULL_PTR(float64 **)\n
+     * outputMatrixPointer = NULL_PTR(float64 **)\n
+     * feedthroughMatrixPointer = NULL_PTR(float64 **)\n
+     * inputVectorPointer = NULL_PTR(float64 **)\n
+     * outputVectorPointer = NULL_PTR(float64 **)\n
+     * intermediateOutput1Pointer = NULL_PTR(float64 **)\n
+     * intermediateOutput2Pointer = NULL_PTR(float64 **)\n
+     * stateVectorPointer = NULL_PTR(float64 **)\n
+     * derivativeStateVectorPointer = NULL_PTR(float64 **)\n
+     */
     virtual ~SSMGAM();
+
+    /**
+     * @brief Initialise the parameters from a configuration file.
+     * @details Initialise the SS matrixes, the resetInEachState and cross-check consistencies.
+     * @param[in] data is the configuration file previously defined.
+     * @return true if the initialisation succeeds.
+     */
     virtual bool Initialise(StructuredDataI & data);
+
+    /**
+     * @brief Initialise the inputs and the output of the GAM.
+     * @details Allocate memory for the inputs and outputs, get the input and output pointers
+     * and initialise the class Matrix for use its operations.
+     * @return true if the dimension matrixes are consistent.
+     */
     virtual bool Setup();
+
+    /**
+     * @brief Performs the SS operations.
+     * @details Implements the following equations:\n
+     * \f$
+     * x[k+1] = Ax[k]+Bu[k]
+     * \f$
+     * \n
+     * \f$
+     * y[k] = Cx[k]+Du[k]
+     * \f$\n
+     *
+     * @return true if the operation can be performed.
+     */
     virtual bool Execute();
+
+    /**
+     * @brief Reset the states if required.
+     * @details This functions has two operations modes:
+     * <ul>
+     * <li> Reset the GAM states every time the state changes.
+     * </li>
+     * <li> Reset the GAM if it was not executed in the previous state. e.i. if the GAM goes from
+     * "A" to "B" and then from "B" to "C" it will not be reset. In the other hand if the GAM goes
+     * from "A" to "B" and then from "C" to "D" the GAM will be reset the states.
+     * </li>
+     * </ul>
+     * @param[in] currentStateName indicates the current state.
+     * @param[in] nextStateName indicates the next state.
+     * @return true if the state vectors are not NULL.
+     */
     virtual bool PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName);
 
@@ -142,12 +271,29 @@ private:
      */
     float64 **stateMatrixPointer;
 
+    /**
+     * State matrix initialised using stateMatrixPointer.
+     */
     Matrix<float64> stateMatrix;
 
+    /**
+     * Holds an intermediate result.
+     */
     float64 **intermediateState1Pointer;
+
+    /**
+     * Holds an intermediate result. It is initialised with the intermediateState1Pointer
+     */
     Matrix<float64> intermediateState1;
 
+    /**
+     * Holds an intermediate result.
+     */
     float64 **intermediateState2Pointer;
+
+    /**
+     * Holds an intermediate result. It is initialised with the intermediateState2Pointer
+     */
     Matrix<float64> intermediateState2;
 
     /**
@@ -175,6 +321,9 @@ private:
      */
     float64 **inputMatrixPointer;
 
+    /**
+     * Input matrix. It is initialised with inputMatrixPointer
+     */
     Matrix<float64> inputMatrix;
 
     /**
@@ -188,81 +337,87 @@ private:
     uint32 inputMatrixNumberOfColumns;
 
     /**
-     * output matrix pointer. In standard naming convention, it corresponds to C matrix.
+     * Output matrix pointer. In standard naming convention, it corresponds to C matrix.
      */
     float64 **outputMatrixPointer;
 
+    /**
+     * Output matrix. It is initialised with outputMatrixPointer
+     */
     Matrix<float64> outputMatrix;
 
     /**
-     * number of rows of the output matrix
+     * Number of rows of the output matrix
      */
     uint32 outputMatrixNumberOfRows;
 
     /**
-     * number of columns of the output matrix.
+     * Number of columns of the output matrix.
      */
     uint32 outputMatrixNumberOfColumns;
 
     /**
-     * feedthrough matrix pointer. In standard naming convention, it corresponds to D matrix.
+     * Feedthrough matrix pointer. In standard naming convention, it corresponds to D matrix.
      */
     float64 **feedthroughMatrixPointer;
 
+    /**
+     * Feedthrough matrix. It is initialised with feedthroughMatrixPointer
+     */
     Matrix<float64> feedthroughMatrix;
 
     /**
-     * number of rws of the feedthrough matrix
+     * Number of rows of the feedthrough matrix
      */
     uint32 feedthroughMatrixNumberOfRows;
 
     /**
-     * number of columns of the feedthrough matrix.
+     * Number of columns of the feedthrough matrix.
      */
     uint32 feedthroughMatrixNumberOfColumns;
 
     /**
-     * number of input signals
+     * Number of input signals
      */
     uint32 numberOfInputSignalsGAM;
 
     /**
-     * number of output signals
+     * Number of output signals
      */
     uint32 numberOfOutputSignalsGAM;
 
     /**
-     * number of elements of the output vector. numberOfOutputSignals = sizeOutputVector + sizeStateVector + sizeDerivativeStateVector
+     * Number of elements of the output vector. numberOfOutputSignals = sizeOutputVector + sizeStateVector + sizeDerivativeStateVector
      */
     uint32 sizeOutputVector;
 
     /**
-     * number of input elements
+     * Number of input elements
      */
     uint32 numberOfInputElements;
 
     /**
-     * number of output elements
+     * Number of output elements
      */
     uint32 numberOfOutputElements;
 
     /**
-     * number of input dimensions
+     * Number of input dimensions
      */
     uint32 numberOfInputDimensions;
 
     /**
-     * number of output dimensions
+     * Number of output dimensions
      */
     uint32 numberOfOutputDimensions;
 
     /**
-     * number of input samples
+     * Number of input samples
      */
     uint32 numberOfInputSamples;
 
     /**
-     * number of output samples
+     * Number of output samples
      */
     uint32 numberOfOutputSamples;
 
@@ -271,6 +426,9 @@ private:
      */
     float64 **inputVectorPointer;
 
+    /**
+     * Input vector. It is initialised with inputVectorPointer
+     */
     Matrix<float64> inputVector;
 
     /**
@@ -278,19 +436,39 @@ private:
      */
     float64 **outputVectorPointer;
 
+    /**
+     * Output vector. It is initialised with outputVectorPointer
+     */
     Matrix<float64> outputVector;
 
+    /**
+     * Holds an intermediate value.
+     */
     float64 **intermediateOutput1Pointer;
+
+    /**
+     * Holds an intermediate value. It is initialised with intermediateOutput1Pointer
+     */
     Matrix<float64> intermediateOutput1;
 
+    /**
+     * Holds an intermediate value.
+     */
     float64 **intermediateOutput2Pointer;
+
+    /**
+     * Holds an intermediate value. It is initialised with intermediateOutput2Pointer
+     */
     Matrix<float64> intermediateOutput2;
 
     /**
-     * State vector (usually it is represented by a X). This vector is an output of the GAM.
+     * State vector pointer(usually it is represented by a X). This vector is an output of the GAM.
      */
     float64 **stateVectorPointer;
 
+    /**
+     * State vector. It is initialised with stateVectorPointer
+     */
     Matrix<float64> stateVector;
 
     /**
@@ -298,6 +476,9 @@ private:
      */
     float64 **derivativeStateVectorPointer;
 
+    /**
+     * It is the derivative of the state vector. It is initialised with stateVectorPointer
+     */
     Matrix<float64> derivativeStateVector;
 
     /**
@@ -305,10 +486,19 @@ private:
      */
     float64 sampleFrequency;
 
+    /**
+     * Indicates if the D matrix was defined. If it was not defined Du(k) is not calculated.
+     */
     bool enableFeedthroughMatrix;
 
+    /**
+     * Indicates the behaviour of the reset when MARTe changes the state
+     */
     bool resetInEachState;
 
+    /**
+     * Remember the last executed state.
+     */
     StreamString lastStateExecuted;
 };
 
