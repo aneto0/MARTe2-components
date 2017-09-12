@@ -117,7 +117,7 @@ namespace MARTe {
  *     OutputSignals = {
  *         OutputSignal1 = {
  *             DataSource = "OutputVector"
- *             Type = float32
+ *             Type = float64
  *         }
  *         OutputSignal2 = {
  *             DataSource = "StateVector1"
