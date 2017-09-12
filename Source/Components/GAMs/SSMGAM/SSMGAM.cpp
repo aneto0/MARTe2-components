@@ -612,8 +612,8 @@ bool SSMGAM::Setup() {
             auxIdx++;
         }
         derivativeStateVectorPointer = new float64 *[sizeDerivativeStateVector];
-        for (uint32 i = 0; (i < sizeDerivativeStateVector); i++) {
-            derivativeStateVectorPointer[i] = new float64 [1];
+        for (uint32 i = 0u; (i < sizeDerivativeStateVector); i++) {
+            derivativeStateVectorPointer[i] = new float64 [1u];
         }
         if (ok) {
             stateMatrix = Matrix<float64>(stateMatrixPointer, stateMatrixNumberOfRows, stateMatrixNumberOfColumns);
