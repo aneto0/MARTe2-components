@@ -168,7 +168,7 @@ SSMGAM::~SSMGAM() {
     if (derivativeStateVectorPointer != NULL_PTR(float64 **)) {
         for (uint32 row = 0u; row < sizeDerivativeStateVector; row++) {
             if (derivativeStateVectorPointer[row] != NULL_PTR(float64 *)) {
-                derivativeStateVectorPointer[row] = NULL_PTR(float64 *);
+                delete[] derivativeStateVectorPointer[row];
             }
         }
         delete[] derivativeStateVectorPointer;
@@ -422,12 +422,12 @@ bool SSMGAM::Setup() {
         numberOfOutputSignalsGAM = GetNumberOfOutputSignals();
         //There are three types of outputs: output vector, state vector, and derivative state vector.
         //The number of output signals must be larger than sizeOfStateVector+sizeOfDerivativeStateVector
-        ok = (numberOfOutputSignalsGAM == ((2u * sizeStateVector) + outputMatrixNumberOfRows));
+        ok = (numberOfOutputSignalsGAM == (sizeStateVector + outputMatrixNumberOfRows));
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "numberOfOutputSignalsGAM must be equal than outputMatrixNumberOfRows + 2u * sizeStateVector. numberOfOutputSignalsGAM = %u, outputMatrixNumberOfRows = %u, sizeStateVector = %u", numberOfOutputSignalsGAM, outputMatrixNumberOfRows, sizeStateVector);
+            REPORT_ERROR(ErrorManagement::ParametersError, "numberOfOutputSignalsGAM must be equal than outputMatrixNumberOfRows + sizeStateVector. numberOfOutputSignalsGAM = %u, outputMatrixNumberOfRows = %u, sizeStateVector = %u", numberOfOutputSignalsGAM, outputMatrixNumberOfRows, sizeStateVector);
         }
         else {
-            sizeOutputVector = (numberOfOutputSignalsGAM - sizeStateVector) - sizeDerivativeStateVector;
+            sizeOutputVector = numberOfOutputSignalsGAM - sizeStateVector;
         }
     }
     if (ok) {        //input type
@@ -612,15 +612,8 @@ bool SSMGAM::Setup() {
             auxIdx++;
         }
         derivativeStateVectorPointer = new float64 *[sizeDerivativeStateVector];
-        auxIdx = 0u;
-        for (uint32 i = (sizeOutputVector + sizeStateVector); (i < numberOfOutputSignalsGAM); i++) {
-            derivativeStateVectorPointer[auxIdx] = static_cast<float64 *>(GetOutputSignalMemory(i));
-            ok = (derivativeStateVectorPointer[auxIdx] != NULL_PTR(float64 *));
-            if (!ok) {
-                uint32 auxIdx2 = i;
-                REPORT_ERROR(ErrorManagement::ParametersError, "GetOutputSignalMemory(%u) returned a null pointer", auxIdx2);
-            }
-            auxIdx++;
+        for (uint32 i = 0; (i < sizeDerivativeStateVector); i++) {
+            derivativeStateVectorPointer[i] = new float64 [1];
         }
         if (ok) {
             stateMatrix = Matrix<float64>(stateMatrixPointer, stateMatrixNumberOfRows, stateMatrixNumberOfColumns);
@@ -635,13 +628,13 @@ bool SSMGAM::Setup() {
                 enableFeedthroughMatrix = false;
             }
 
-            stateVector = Matrix<float64>(stateVectorPointer, stateMatrixNumberOfColumns, 1u);
+            stateVector = Matrix<float64>(stateVectorPointer, sizeStateVector, 1u);
             outputVector = Matrix<float64>(outputVectorPointer, outputMatrixNumberOfRows, 1u);
             inputMatrix = Matrix<float64>(inputMatrixPointer, inputMatrixNumberOfRows, inputMatrixNumberOfColumns);
             inputVector = Matrix<float64>(inputVectorPointer, inputMatrixNumberOfColumns, 1u);
             intermediateOutput1 = Matrix<float64>(intermediateOutput1Pointer, outputMatrixNumberOfRows, 1u);
             intermediateOutput2 = Matrix<float64>(intermediateOutput2Pointer, outputMatrixNumberOfRows, 1u);
-            derivativeStateVector = Matrix<float64>(derivativeStateVectorPointer, stateMatrixNumberOfRows, 1u);
+            derivativeStateVector = Matrix<float64>(derivativeStateVectorPointer, sizeDerivativeStateVector, 1u);
         }
     }
     return ok;

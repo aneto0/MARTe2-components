@@ -53,21 +53,21 @@ namespace MARTe {
  * Where:\n
  * \b u[k] is the input vector. Its dimension [p x 1]\n
  * \b y[k] is the output vector. Its dimension is [q x 1]\n
- * \b x[k] is the state vector. Its dimension is [n x q]\n
- * \b x[k+1] is the next state vector. Its dimension is [n x q]\n
+ * \b x[k] is the state vector. Its dimension is [n x 1]\n
+ * \b x[k+1] is the next state vector. Its dimension is [n x 1]\n
  * \b A[k] is the state matrix. Its dimension is [n x n]\n
  * \b B[k] is the input matrix. Its dimension is [n x p]\n
  * \b C[k] is the output matrix. Its dimension is [q x n]\n
  * \b D[k] is the feedtrough matrix. Its dimension is [q x p]\n
  * \b k denotes the iteration k = 0, 1, 2, ..
  *
- * The inputs of the GAM are the input vector. However the outputs of the GAM are the output vector, the
- * state vector and the next state vector. Consequently the number of outputs of the GAM are the sum
- * of the sizes of theses vectors.\n
+ * The inputs of the GAM are the input vector. However the outputs of the GAM are the output vector and the
+ * state vector. Consequently the number of outputs of the GAM are the sum
+ * of the sizes of theses two vectors.\n
  *
  * The number of elements and the number of samples must be one. The dimensions could be 0 or 1.
  *
- * The state matrix the input matrix and the output matrix must be specified, however the feedthrough matrix
+ * The state matrix, the input matrix and the output matrix must be specified, however the feedthrough matrix
  * may or may not be specified. While configuring, the following considerations must be applied:
  * <ul>
  * <li><b> The state matrix dimension must be at least 1x1</b>. No 0 dimension is allowed since a system without states
@@ -76,8 +76,7 @@ namespace MARTe {
  * <li><b>The input dimension must be 1x1</b>. O dimension is not allowed since a system without output
  * matrix the number of output is 0.
  * </li>
- * <li> The order of the outputs are important. First must be defined the output vector, then the state vector and finally the
- * next state.
+ * <li> The order of the outputs are important. First must be defined the output vector and then the state vector.
  * </li>
  * <li>
  * The coefficients of the matrix must be already converted in the discrete domain.
@@ -129,20 +128,6 @@ namespace MARTe {
  *         }
  *         OutputSignal3 = {
  *             DataSource = "StateVector2"
- *             Type = float64 //Only supported type.
- *             NumberOfElements = 1
- *             NumberOfDimensions = 1
- *             Samples = 1
- *         }
- *          OutputSignal4 = {
- *             DataSource = "NextStateVector1"
- *             Type = float64 //Only supported type.
- *             NumberOfElements = 1
- *             NumberOfDimensions = 1
- *             Samples = 1
- *         }
- *         OutputSignal5 = {
- *             DataSource = "NextStateVector2"
  *             Type = float64 //Only supported type.
  *             NumberOfElements = 1
  *             NumberOfDimensions = 1
@@ -218,7 +203,7 @@ public:
 
     /**
      * @brief Initialise the parameters from a configuration file.
-     * @details Initialise the SS matrixes, the resetInEachState and cross-check consistencies.
+     * @details Initialise the SS matrices, the resetInEachState and cross-check consistencies.
      * @param[in] data is the configuration file previously defined.
      * @return true if the initialisation succeeds.
      */
@@ -227,8 +212,8 @@ public:
     /**
      * @brief Initialise the inputs and the output of the GAM.
      * @details Allocate memory for the inputs and outputs, get the input and output pointers
-     * and initialise the class Matrix for use its operations.
-     * @return true if the dimension matrixes are consistent.
+     * and initialise the class Matrix for use their operations.
+     * @return true if the dimension matrices are consistent.
      */
     virtual bool Setup();
 

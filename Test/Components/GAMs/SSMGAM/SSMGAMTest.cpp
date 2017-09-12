@@ -244,8 +244,8 @@ SSMGAMTestHelper    () {
         ok &= configSignals.Write("DataSource", "DataSourceStateVector");
         ok &= configSignals.Write("ByteSize", 8);
         ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.CreateRelative("2");
 
+        ok &= configSignals.CreateRelative("2");
         ok &= configSignals.Write("QualifiedName", "stateVector2");
         ok &= configSignals.Write("Type", "float64");
         ok &= configSignals.Write("NumberOfElements", 1);
@@ -254,24 +254,7 @@ SSMGAMTestHelper    () {
         ok &= configSignals.Write("ByteSize", 8);
         ok &= configSignals.MoveToAncestor(1u);
 
-        ok &= configSignals.CreateRelative("3");
-        ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-        ok &= configSignals.Write("Type", "float64");
-        ok &= configSignals.Write("NumberOfElements", 1);
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector1");
-        ok &= configSignals.Write("ByteSize", 8);
-        ok &= configSignals.MoveToAncestor(1u);
-
-        ok &= configSignals.CreateRelative("4");
-        ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-        ok &= configSignals.Write("Type", "float64");
-        ok &= configSignals.Write("NumberOfElements", 1);
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector2");
-        ok &= configSignals.Write("ByteSize", 8);
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.Write("ByteSize", 40);
+        ok &= configSignals.Write("ByteSize", 24);
 
         ok &= configSignals.CreateAbsolute("Memory.InputSignals");
         ok &= configSignals.CreateRelative("0");
@@ -286,6 +269,7 @@ SSMGAMTestHelper    () {
         ok &= configSignals.CreateRelative("Signals");
         ok &= configSignals.CreateRelative("0");
         ok &= configSignals.Write("Samples", 1);
+
         ok &= configSignals.MoveToAncestor(3u);
         ok &= configSignals.CreateRelative("1");
         ok &= configSignals.Write("DataSource", "DataSourceStateVector");
@@ -294,19 +278,6 @@ SSMGAMTestHelper    () {
         ok &= configSignals.Write("Samples", 1);
         ok &= configSignals.MoveToAncestor(1u);
         ok &= configSignals.CreateRelative("2");
-        ok &= configSignals.Write("Samples", 1);
-        ok &= configSignals.MoveToAncestor(3u);
-        ok &= configSignals.CreateRelative("2");
-        ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector1");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("3");
-        ok &= configSignals.Write("Samples", 1);
-
-        ok &= configSignals.MoveToAncestor(3u);
-        ok &= configSignals.CreateRelative("3");
-        ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector2");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("4");
         ok &= configSignals.Write("Samples", 1);
 
         ok &= configSignals.MoveToRoot();
@@ -352,25 +323,7 @@ SSMGAMTestHelper    () {
         ok &= configSignals.Write("ByteSize", 8);
 
         ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.CreateRelative("3");
-        ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-        ok &= configSignals.Write("Type", "float64");
-        ok &= configSignals.Write("NumberOfElements", 1);
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector1");
-        ok &= configSignals.Write("ByteSize", 8);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.CreateRelative("4");
-        ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-        ok &= configSignals.Write("Type", "float64");
-        ok &= configSignals.Write("NumberOfElements", 1);
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector2");
-        ok &= configSignals.Write("ByteSize", 8);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.Write("ByteSize", 40);
+        ok &= configSignals.Write("ByteSize", 24);
 
         ok &= configSignals.CreateAbsolute("Memory.InputSignals");
         ok &= configSignals.CreateRelative("0");
@@ -394,20 +347,6 @@ SSMGAMTestHelper    () {
         ok &= configSignals.Write("Samples", 1);
         ok &= configSignals.MoveToAncestor(1u);
         ok &= configSignals.CreateRelative("2");
-        ok &= configSignals.Write("Samples", 1);
-
-        ok &= configSignals.MoveToAncestor(3u);
-        ok &= configSignals.CreateRelative("2");
-        ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector1");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("3");
-        ok &= configSignals.Write("Samples", 1);
-
-        ok &= configSignals.MoveToAncestor(3u);
-        ok &= configSignals.CreateRelative("3");
-        ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector2");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("4");
         ok &= configSignals.Write("Samples", 1);
 
         ok &= configSignals.MoveToRoot();
@@ -829,12 +768,6 @@ bool SSMGAMTest::TestSetupWrongInputType() {
     ok &= configSignals.CreateRelative("2");
     ok &= configSignals.Write("QualifiedName", "stateVector2");
     ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-    ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
     ok &= configSignals.MoveToRoot();
     ok &= gam.SetConfiguredDatabase(configSignals);
@@ -870,12 +803,6 @@ bool SSMGAMTest::TestSetupWrongOutputType() {
     ok &= configSignals.CreateRelative("2");
     ok &= configSignals.Write("QualifiedName", "stateVector2");
     ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-    ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
     ok &= configSignals.MoveToRoot();
     ok &= gam.SetConfiguredDatabase(configSignals);
@@ -910,14 +837,6 @@ bool SSMGAMTest::TestSetupNoInputElements() {
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.CreateRelative("2");
     ok &= configSignals.Write("QualifiedName", "stateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
@@ -957,14 +876,6 @@ bool SSMGAMTest::TestSetupWrongInputElements() {
     ok &= configSignals.Write("QualifiedName", "stateVector2");
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
     ok &= configSignals.MoveToRoot();
     ok &= gam.SetConfiguredDatabase(configSignals);
@@ -1000,14 +911,6 @@ bool SSMGAMTest::TestSetupNoOutputElements() {
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.CreateRelative("2");
     ok &= configSignals.Write("QualifiedName", "stateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
@@ -1050,14 +953,6 @@ bool SSMGAMTest::TestSetupWrongOutputElements() {
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.Write("NumberOfElements", 3);
     ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
     ok &= configSignals.MoveToRoot();
     ok &= gam.SetConfiguredDatabase(configSignals);
@@ -1081,7 +976,7 @@ bool SSMGAMTest::TestSetupNoInputDimensions() {
     ok &= configSignals.Write("NumberOfElements", 1);
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.Write("ByteSize", 16);
+    ok &= configSignals.Write("ByteSize", 8);
     ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
     ok &= configSignals.CreateRelative("0");
     ok &= configSignals.Write("QualifiedName", "outputVector1");
@@ -1095,16 +990,6 @@ bool SSMGAMTest::TestSetupNoInputDimensions() {
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.CreateRelative("2");
     ok &= configSignals.Write("QualifiedName", "stateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.Write("NumberOfElements", 1);
     ok &= configSignals.MoveToAncestor(1u);
@@ -1149,16 +1034,6 @@ bool SSMGAMTest::TestSetupWrongInputDimensions() {
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.Write("NumberOfElements", 1);
     ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
     ok &= configSignals.MoveToRoot();
     ok &= gam.SetConfiguredDatabase(configSignals);
@@ -1197,16 +1072,6 @@ bool SSMGAMTest::TestSetupNoOutputDimensions() {
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.CreateRelative("2");
     ok &= configSignals.Write("QualifiedName", "stateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.Write("NumberOfElements", 1);
     ok &= configSignals.MoveToAncestor(1u);
@@ -1252,19 +1117,7 @@ bool SSMGAMTest::TestSetupWrongOutputDimensions() {
     ok &= configSignals.Write("QualifiedName", "stateVector2");
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 4);
+    ok &= configSignals.Write("NumberOfDimensions", 3);
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
     configSignals.MoveToRoot();
@@ -1307,18 +1160,6 @@ bool SSMGAMTest::TestSetupNoInputSamples() {
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.CreateRelative("2");
     ok &= configSignals.Write("QualifiedName", "stateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.Write("NumberOfElements", 1);
     ok &= configSignals.Write("NumberOfDimensions", 1);
@@ -1376,18 +1217,6 @@ bool SSMGAMTest::TestSetupWrongInputSamples() {
     ok &= configSignals.Write("NumberOfElements", 1);
     ok &= configSignals.Write("NumberOfDimensions", 1);
     ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
 
     ok &= configSignals.CreateAbsolute("Memory.InputSignals");
@@ -1437,18 +1266,6 @@ bool SSMGAMTest::TestSetupNoOutputSamples() {
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.CreateRelative("2");
     ok &= configSignals.Write("QualifiedName", "stateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
     ok &= configSignals.Write("Type", "float64");
     ok &= configSignals.Write("NumberOfElements", 1);
     ok &= configSignals.Write("NumberOfDimensions", 1);
@@ -1508,20 +1325,6 @@ bool SSMGAMTest::TestSetupWrongOutputSamples() {
     ok &= configSignals.Write("NumberOfElements", 1);
     ok &= configSignals.Write("NumberOfDimensions", 1);
     ok &= configSignals.Write("DataSource", "DataSourceStateVector");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector1");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector2");
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
 
@@ -1592,20 +1395,6 @@ bool SSMGAMTest::TestSetupWrongOutputSamples_2() {
     ok &= configSignals.Write("NumberOfDimensions", 1);
     ok &= configSignals.Write("DataSource", "DataSourceStateVector");
     ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector1");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector2");
-    ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
 
     ok &= configSignals.CreateAbsolute("Memory.InputSignals");
@@ -1630,19 +1419,6 @@ bool SSMGAMTest::TestSetupWrongOutputSamples_2() {
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.CreateRelative("2");
     ok &= configSignals.Write("Samples", 2);
-    ok &= configSignals.MoveToAncestor(3u);
-    ok &= configSignals.CreateRelative("2");
-    ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector1");
-    ok &= configSignals.CreateRelative("Signals");
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("Samples", 1);
-
-    ok &= configSignals.MoveToAncestor(3u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector2");
-    ok &= configSignals.CreateRelative("Signals");
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("Samples", 1);
 
     ok &= configSignals.MoveToRoot();
     /*
@@ -1702,20 +1478,6 @@ bool SSMGAMTest::TestSetupWrongOutputSamples_3() {
     ok &= configSignals.Write("NumberOfDimensions", 1);
     ok &= configSignals.Write("DataSource", "DataSourceStateVector");
     ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector1");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector1");
-    ok &= configSignals.MoveToAncestor(1u);
-    ok &= configSignals.CreateRelative("4");
-    ok &= configSignals.Write("QualifiedName", "derivativeStateVector2");
-    ok &= configSignals.Write("Type", "float64");
-    ok &= configSignals.Write("NumberOfElements", 1);
-    ok &= configSignals.Write("NumberOfDimensions", 1);
-    ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector2");
-    ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 16);
 
     ok &= configSignals.CreateAbsolute("Memory.InputSignals");
@@ -1736,22 +1498,9 @@ bool SSMGAMTest::TestSetupWrongOutputSamples_3() {
     ok &= configSignals.Write("DataSource", "DataSourceStateVector");
     ok &= configSignals.CreateRelative("Signals");
     ok &= configSignals.CreateRelative("1");
-    ok &= configSignals.Write("Samples", 1);
+    ok &= configSignals.Write("Samples", 2);
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.CreateRelative("2");
-    ok &= configSignals.Write("Samples", 1);
-    ok &= configSignals.MoveToAncestor(3u);
-    ok &= configSignals.CreateRelative("2");
-    ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector1");
-    ok &= configSignals.CreateRelative("Signals");
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("Samples", 2);
-
-    ok &= configSignals.MoveToAncestor(3u);
-    ok &= configSignals.CreateRelative("3");
-    ok &= configSignals.Write("DataSource", "DataSourceDerivativeStateVector2");
-    ok &= configSignals.CreateRelative("Signals");
-    ok &= configSignals.CreateRelative("4");
     ok &= configSignals.Write("Samples", 1);
 
     ok &= configSignals.MoveToRoot();
@@ -1853,22 +1602,16 @@ bool SSMGAMTest::TestExecute() {
     float64 *gamMemoryOutVector = NULL_PTR(float64 *);
     float64 *gamMemoryOutState1 = NULL_PTR(float64 *);
     float64 *gamMemoryOutState2 = NULL_PTR(float64 *);
-    float64 *gamMemoryOutDerivativeState1 = NULL_PTR(float64 *);
-    float64 *gamMemoryOutDerivativeState2 = NULL_PTR(float64 *);
 
     if (ok) {
         gamMemoryIn = static_cast<float64 *>(gam.GetInputSignalsMemory());
         gamMemoryOutVector = static_cast<float64 *>(gam.GetOutputSignalsMemory());
         gamMemoryOutState1 = static_cast<float64 *>(gam.GetOutputSignalsMemory(1u));
         gamMemoryOutState2 = static_cast<float64 *>(gam.GetOutputSignalsMemory(2u));
-        gamMemoryOutDerivativeState1 = static_cast<float64 *>(gam.GetOutputSignalsMemory(3u));
-        gamMemoryOutDerivativeState2 = static_cast<float64 *>(gam.GetOutputSignalsMemory(4u));
 
         *gamMemoryOutVector = 0.0;
         *gamMemoryOutState1 = 0.0;
         *gamMemoryOutState2 = 0.0;
-        *gamMemoryOutDerivativeState1 = 0.0;
-        *gamMemoryOutDerivativeState2 = 0.0;
         gamMemoryIn[0] = 1.0;
     }
     if (ok) {
@@ -1882,14 +1625,6 @@ bool SSMGAMTest::TestExecute() {
         ok &= gam.IsEqualLargerMargins(*gamMemoryOutState2, 0.0);
         if (!ok) {
             printf("*gamMemoryOutState2 = %.16lf\n", *gamMemoryOutState2);
-        }
-        ok &= gam.IsEqualLargerMargins(*gamMemoryOutDerivativeState1, 11.0);
-        if (!ok) {
-            printf("*gamMemoryOutDerivativeState1 = %.16lf\n", *gamMemoryOutDerivativeState1);
-        }
-        ok &= gam.IsEqualLargerMargins(*gamMemoryOutDerivativeState2, 21.0);
-        if (!ok) {
-            printf("*gamMemoryOutDerivativeState2 = %.16lf\n", *gamMemoryOutDerivativeState2);
         }
         ok &= gam.IsEqualLargerMargins(*gamMemoryOutVector, 411.0);
         if (!ok) {
@@ -1907,14 +1642,6 @@ bool SSMGAMTest::TestExecute() {
         ok &= gam.IsEqualLargerMargins(*gamMemoryOutState2, 21.0);
         if (!ok) {
             printf("*gamMemoryOutState2 = %.16lf\n", *gamMemoryOutState2);
-        }
-        ok &= gam.IsEqualLargerMargins(*gamMemoryOutDerivativeState1, 384.0);
-        if (!ok) {
-            printf("*gamMemoryOutDerivativeState1 = %.16lf\n", *gamMemoryOutDerivativeState1);
-        }
-        ok &= gam.IsEqualLargerMargins(*gamMemoryOutDerivativeState2, 714.0);
-        if (!ok) {
-            printf("*gamMemoryOutDerivativeState2 = %.16lf\n", *gamMemoryOutDerivativeState2);
         }
         ok &= gam.IsEqualLargerMargins(*gamMemoryOutVector, 10384.0);
         if (!ok) {
@@ -1953,22 +1680,15 @@ bool SSMGAMTest::TestExecuteSpring() {
     float64 *gamMemoryOutState1 = NULL_PTR(float64 *);
     float64 *gamMemoryOutState2 = NULL_PTR(float64 *);
 
-    float64 *gamMemoryOutDerivativeState1 = NULL_PTR(float64 *);
-    float64 *gamMemoryOutDerivativeState2 = NULL_PTR(float64 *);
-
     if (ok) {
         gamMemoryIn = static_cast<float64 *>(gam.GetInputSignalsMemory());
         gamMemoryOutVector = static_cast<float64 *>(gam.GetOutputSignalsMemory());
         gamMemoryOutState1 = static_cast<float64 *>(gam.GetOutputSignalsMemory(1u));
         gamMemoryOutState2 = static_cast<float64 *>(gam.GetOutputSignalsMemory(2u));
-        gamMemoryOutDerivativeState1 = static_cast<float64 *>(gam.GetOutputSignalsMemory(3u));
-        gamMemoryOutDerivativeState2 = static_cast<float64 *>(gam.GetOutputSignalsMemory(4u));
 
         *gamMemoryOutVector = 0.0;
         *gamMemoryOutState1 = 0.0;
         *gamMemoryOutState2 = 0.0;
-        *gamMemoryOutDerivativeState1 = 0.0;
-        *gamMemoryOutDerivativeState2 = 0.0;
 
         gamMemoryIn[0] = 1.0;
     }
@@ -2035,22 +1755,15 @@ bool SSMGAMTest::TestExecuteSpringNoFeedthroughMatrix() {
     float64 *gamMemoryOutState1 = NULL_PTR(float64 *);
     float64 *gamMemoryOutState2 = NULL_PTR(float64 *);
 
-    float64 *gamMemoryOutDerivativeState1 = NULL_PTR(float64 *);
-    float64 *gamMemoryOutDerivativeState2 = NULL_PTR(float64 *);
-
     if (ok) {
         gamMemoryIn = static_cast<float64 *>(gam.GetInputSignalsMemory());
         gamMemoryOutVector = static_cast<float64 *>(gam.GetOutputSignalsMemory());
         gamMemoryOutState1 = static_cast<float64 *>(gam.GetOutputSignalsMemory(1u));
         gamMemoryOutState2 = static_cast<float64 *>(gam.GetOutputSignalsMemory(2u));
-        gamMemoryOutDerivativeState1 = static_cast<float64 *>(gam.GetOutputSignalsMemory(3u));
-        gamMemoryOutDerivativeState2 = static_cast<float64 *>(gam.GetOutputSignalsMemory(4u));
 
         *gamMemoryOutVector = 0.0;
         *gamMemoryOutState1 = 0.0;
         *gamMemoryOutState2 = 0.0;
-        *gamMemoryOutDerivativeState1 = 0.0;
-        *gamMemoryOutDerivativeState2 = 0.0;
 
         gamMemoryIn[0] = 1.0;
     }
@@ -2117,9 +1830,6 @@ bool SSMGAMTest::TestPrepareNextStateReset(uint32 resetEachStateConfig = 1u) {
     float64 *gamMemoryOutState1 = NULL_PTR(float64 *);
     float64 *gamMemoryOutState2 = NULL_PTR(float64 *);
 
-    float64 *gamMemoryOutDerivativeState1 = NULL_PTR(float64 *);
-    float64 *gamMemoryOutDerivativeState2 = NULL_PTR(float64 *);
-
     if (ok) {
         gamMemoryIn = static_cast<float64 *>(gam.GetInputSignalsMemory());
         if (gamMemoryIn == NULL) {
@@ -2137,20 +1847,10 @@ bool SSMGAMTest::TestPrepareNextStateReset(uint32 resetEachStateConfig = 1u) {
         if (gamMemoryOutState2 == NULL) {
             printf("gamMemoryOutState2 is NULL\n");
         }
-        gamMemoryOutDerivativeState1 = static_cast<float64 *>(gam.GetOutputSignalsMemory(3u));
-        if (gamMemoryOutDerivativeState1 == NULL) {
-            printf("gamMemoryOutDerivativeState1 is NULL\n");
-        }
-        gamMemoryOutDerivativeState2 = static_cast<float64 *>(gam.GetOutputSignalsMemory(4u));
-        if (gamMemoryOutDerivativeState2 == NULL) {
-            printf("gamMemoryOutDerivativeState2 is NULL\n");
-        }
 
         *gamMemoryOutVector = 0.0;
         *gamMemoryOutState1 = 0.0;
         *gamMemoryOutState2 = 0.0;
-        *gamMemoryOutDerivativeState1 = 0.0;
-        *gamMemoryOutDerivativeState2 = 0.0;
 
         gamMemoryIn[0] = 1.0;
     }
@@ -2231,9 +1931,6 @@ bool SSMGAMTest::TestPrepareNextStateNoReset(uint32 resetEachStateConfig = 1u) {
     float64 *gamMemoryOutState1 = NULL_PTR(float64 *);
     float64 *gamMemoryOutState2 = NULL_PTR(float64 *);
 
-    float64 *gamMemoryOutDerivativeState1 = NULL_PTR(float64 *);
-    float64 *gamMemoryOutDerivativeState2 = NULL_PTR(float64 *);
-
     if (ok) {
         gamMemoryIn = static_cast<float64 *>(gam.GetInputSignalsMemory());
         if (gamMemoryIn == NULL) {
@@ -2251,20 +1948,10 @@ bool SSMGAMTest::TestPrepareNextStateNoReset(uint32 resetEachStateConfig = 1u) {
         if (gamMemoryOutState2 == NULL) {
             printf("gamMemoryOutState2 is NULL\n");
         }
-        gamMemoryOutDerivativeState1 = static_cast<float64 *>(gam.GetOutputSignalsMemory(3u));
-        if (gamMemoryOutDerivativeState1 == NULL) {
-            printf("gamMemoryOutDerivativeState1 is NULL\n");
-        }
-        gamMemoryOutDerivativeState2 = static_cast<float64 *>(gam.GetOutputSignalsMemory(4u));
-        if (gamMemoryOutDerivativeState2 == NULL) {
-            printf("gamMemoryOutDerivativeState2 is NULL\n");
-        }
 
         *gamMemoryOutVector = 0.0;
         *gamMemoryOutState1 = 0.0;
         *gamMemoryOutState2 = 0.0;
-        *gamMemoryOutDerivativeState1 = 0.0;
-        *gamMemoryOutDerivativeState2 = 0.0;
 
         gamMemoryIn[0] = 1.0;
     }
