@@ -67,6 +67,7 @@ Waveform::Waveform() :
     typeVariableOut = NULL_PTR(TypeDescriptor *);
     indexOutputSignal = 0u;
     triggersEnable = false;
+    lastTime = 0.0;
 }
 
 Waveform::~Waveform() {
@@ -284,7 +285,7 @@ bool Waveform::Execute() {
         }
         ok = PrecomputeValues();
         /*lint -e{613} typeVariableOut cannot be NULL as otherwise Execute will not be called*/
-        for (indexOutputSignal = 0u; indexOutputSignal < numberOfOutputSignals; indexOutputSignal++) {
+        for (indexOutputSignal = 0u; (indexOutputSignal < numberOfOutputSignals) && ok; indexOutputSignal++) {
             if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
                 ok = GetUInt8Value();
             }
@@ -327,54 +328,65 @@ bool Waveform::Execute() {
         if (numberOfOutputElements != 0u) {
             timeIncrement = ((static_cast<float64>(time1) - static_cast<float64>(time0)) / static_cast<float64>(numberOfOutputElements)) / 1e6;
         }
+
+        if(IsEqual(timeIncrement, 0.0)){
+            REPORT_ERROR(ErrorManagement::FatalError, "timeIncrement = 0.0. Two equal times while computing sample time");
+            ok = false;
+        }
         timeState++;
     }
     else {
 
     }
-    if (timeState == static_cast<uint8>(2u)) {
+    if ((timeState == static_cast<uint8>(2u)) && ok) {
         if (inputTime != NULL_PTR(uint32 *)) {
             currentTime = static_cast<float64>(*inputTime) / 1e6;
         }
-        //Check type and call correct function.
-        ok = PrecomputeValues();
-        for (indexOutputSignal = 0u; indexOutputSignal < numberOfOutputSignals; indexOutputSignal++) {
-            //If due to MISRA warning about null pointer
-            if (typeVariableOut != NULL_PTR(TypeDescriptor *)) {
-                if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
-                    ok = GetUInt8Value();
-                }
-                else if (typeVariableOut[indexOutputSignal] == SignedInteger8Bit) {
-                    ok = GetInt8Value();
-                }
-                else if (typeVariableOut[indexOutputSignal] == UnsignedInteger16Bit) {
-                    ok = GetUInt16Value();
-                }
-                else if (typeVariableOut[indexOutputSignal] == SignedInteger16Bit) {
-                    ok = GetInt16Value();
-                }
-                else if (typeVariableOut[indexOutputSignal] == UnsignedInteger32Bit) {
-                    ok = GetUInt32Value();
-                }
-                else if (typeVariableOut[indexOutputSignal] == SignedInteger32Bit) {
-                    ok = GetInt32Value();
-                }
-                else if (typeVariableOut[indexOutputSignal] == UnsignedInteger64Bit) {
-                    ok = GetUInt64Value();
-                }
-                else if (typeVariableOut[indexOutputSignal] == SignedInteger64Bit) {
-                    ok = GetInt64Value();
-                }
-                else if (typeVariableOut[indexOutputSignal] == Float32Bit) {
-                    ok = GetFloat32Value();
-                }
-                else if (typeVariableOut[indexOutputSignal] == Float64Bit) {
-                    ok = GetFloat64Value();
-                }
-                else {
+        if(currentTime > lastTime){
+            //Check type and call correct function.
+            ok = PrecomputeValues();
+            for (indexOutputSignal = 0u; (indexOutputSignal < numberOfOutputSignals) && ok; indexOutputSignal++) {
+                //If due to MISRA warning about null pointer
+                if (typeVariableOut != NULL_PTR(TypeDescriptor *)) {
+                    if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
+                        ok = GetUInt8Value();
+                    }
+                    else if (typeVariableOut[indexOutputSignal] == SignedInteger8Bit) {
+                        ok = GetInt8Value();
+                    }
+                    else if (typeVariableOut[indexOutputSignal] == UnsignedInteger16Bit) {
+                        ok = GetUInt16Value();
+                    }
+                    else if (typeVariableOut[indexOutputSignal] == SignedInteger16Bit) {
+                        ok = GetInt16Value();
+                    }
+                    else if (typeVariableOut[indexOutputSignal] == UnsignedInteger32Bit) {
+                        ok = GetUInt32Value();
+                    }
+                    else if (typeVariableOut[indexOutputSignal] == SignedInteger32Bit) {
+                        ok = GetInt32Value();
+                    }
+                    else if (typeVariableOut[indexOutputSignal] == UnsignedInteger64Bit) {
+                        ok = GetUInt64Value();
+                    }
+                    else if (typeVariableOut[indexOutputSignal] == SignedInteger64Bit) {
+                        ok = GetInt64Value();
+                    }
+                    else if (typeVariableOut[indexOutputSignal] == Float32Bit) {
+                        ok = GetFloat32Value();
+                    }
+                    else if (typeVariableOut[indexOutputSignal] == Float64Bit) {
+                        ok = GetFloat64Value();
+                    }
+                    else {
+                    }
                 }
             }
+        }else{
+            REPORT_ERROR(ErrorManagement::FatalError, "Input time is not increasing");
+            ok = false;
         }
+        lastTime = currentTime - timeIncrement;
     }
     return ok;
 }

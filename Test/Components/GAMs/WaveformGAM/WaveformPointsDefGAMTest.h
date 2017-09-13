@@ -130,6 +130,18 @@ public:
      */
     template<typename T>
     bool TestExecuteTrigger_1Element(StreamString str);
+
+    /**
+     * @brief Template test. Test execute messages errors.
+     */
+    template<typename T>
+    bool TestExecuteWrongInput(StreamString str);
+
+    /**
+     * @brief Template test. Test execute messages errors.
+     */
+    template<typename T>
+    bool TestExecuteWrongInput_2(StreamString str);
 };
 
 /*---------------------------------------------------------------------------*/
@@ -740,10 +752,15 @@ bool WaveformPointsDefGAMTest::TestExecute(StreamString str) {
         output[i] = static_cast<T1>(0.0);
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
-        gam.Execute();
-        ok &= gam.ComparePointsdef1(output);
+        ok = gam.Execute();
         if (!ok) {
-            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
+            REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "Execute fails in iteration %u\n", i);
+        }
+        if(ok){
+            ok = gam.ComparePointsdef1(output);
+            if (!ok) {
+                REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
+            }
         }
         *timeIteration += timeIterationIncrement;
     }
@@ -918,6 +935,95 @@ bool WaveformPointsDefGAMTest::TestExecuteTrigger_1Element(StreamString str) {
         }
         *timeIteration += timeIterationIncrement;
     }
+    return ok;
+}
+
+template<typename T>
+bool WaveformPointsDefGAMTest::TestExecuteWrongInput(StreamString str) {
+    using namespace MARTe;
+    bool ok = true;
+    uint32 timeIterationIncrement = 250000u;
+    uint32 *timeIteration = NULL;
+    uint32 sizeOutput = 1u;
+    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+
+    T *output = NULL;
+
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdef1Trigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    output = static_cast<T *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<T>(0.0);
+    }
+    if(ok){
+        ok = gam.Execute();
+    }
+    if(ok){
+        ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+    }
+    ok &= !gam.Execute();
+
+    return ok;
+}
+
+template<typename T>
+bool WaveformPointsDefGAMTest::TestExecuteWrongInput_2(StreamString str) {
+    using namespace MARTe;
+    bool ok = true;
+    uint32 timeIterationIncrement = 250000u;
+    uint32 *timeIteration = NULL;
+    uint32 sizeOutput = 1u;
+    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, str);
+
+    T *output = NULL;
+
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdef1Trigger();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    output = static_cast<T *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<T>(0.0);
+    }
+    if(ok){
+        ok = gam.Execute();
+    }
+    if(ok){
+        ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+    }
+    if(ok){
+        *timeIteration += timeIterationIncrement;
+        ok &= gam.Execute();
+    }
+    if(ok){
+        ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+    }
+    if(ok){//no input time increment--> Execute should fail.
+        ok &= !gam.Execute();
+    }
+
     return ok;
 }
 

@@ -399,6 +399,18 @@ TEST(WaveformPointsDefGAMTest, TestExecuteTrigger_1ElementFloat64) {
     ASSERT_TRUE(test.TestExecuteTrigger_1Element<float64>(str));
 }
 
+TEST(WaveformPointsDefGAMTest, TestExecuteWrongInput) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "float64";
+    ASSERT_TRUE(test.TestExecuteWrongInput<float64>(str));
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteWrongInput_2) {
+    WaveformPointsDefGAMTest test;
+    StreamString str = "float64";
+    ASSERT_TRUE(test.TestExecuteWrongInput_2<float64>(str));
+}
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

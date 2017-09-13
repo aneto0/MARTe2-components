@@ -288,6 +288,16 @@ public:
      */
     bool TestExecuteTigger1Element();
 
+    /**
+     * @brief Test the error messages of the Execute();
+     */
+    bool TestExecuteWrongInput();
+
+    /**
+     * @brief Test the error messages of the Execute();
+     */
+    bool TestExecuteWrongInput_2();
+
 };
 
 /*---------------------------------------------------------------------------*/
