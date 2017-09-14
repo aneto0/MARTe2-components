@@ -116,9 +116,29 @@ public:
     bool TestInitialise_Busy();
 
     /**
+     * @brief Tests the Initialise method  with a CPUMask.
+     */
+    bool TestInitialise_CPUMask();
+
+    /**
+     * @brief Tests the Initialise method  with a StackSize.
+     */
+    bool TestInitialise_StackSize();
+
+    /**
      * @brief Tests the Initialise method with an invalid SleepNature..
      */
     bool TestInitialise_False();
+
+    /**
+     * @brief Tests the TestGetCPUMask method.
+     */
+    bool TestGetCPUMask();
+
+    /**
+     * @brief Tests the TestGetStackSize method.
+     */
+    bool TestGetStackSize();
 
     /**
      * @brief Tests the SetConfiguredDatabase method.

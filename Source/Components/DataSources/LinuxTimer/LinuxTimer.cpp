@@ -74,7 +74,7 @@ bool LinuxTimer::AllocateMemory() {
 }
 
 bool LinuxTimer::Initialise(StructuredDataI& data) {
-    bool ok = true;
+    bool ok = DataSourceI::Initialise(data);
     StreamString sleepNatureStr;
     if (!data.Read("SleepNature", sleepNatureStr)) {
         REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
@@ -90,7 +90,31 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported SleepNature.");
         ok = false;
     }
+    if (ok) {
+        uint32 cpuMaskIn;
+        if (!data.Read("CPUMask", cpuMaskIn)) {
+            cpuMaskIn = 0xFFu;
+            REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMaskIn);
+        }
+        cpuMask = cpuMaskIn;
+    }
+    if (ok) {
+        if (!data.Read("StackSize", stackSize)) {
+            stackSize = THREADS_DEFAULT_STACKSIZE;
+            REPORT_ERROR(ErrorManagement::Warning, "StackSize not specified using: %d", stackSize);
+        }
+    }
+    if (ok) {
+        ok = (stackSize > 0u);
 
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
+        }
+    }
+    if (ok) {
+        executor.SetCPUMask(cpuMask);
+        executor.SetStackSize(stackSize);
+    }
     return ok;
 }
 
@@ -120,7 +144,8 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = (GetSignalType(1u).numberOfBits == 32u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall have 32 bits and %d were specified", uint16(GetSignalType(1u).numberOfBits));
+            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall have 32 bits and %d were specified",
+                         uint16(GetSignalType(1u).numberOfBits));
         }
     }
     if (ok) {
@@ -307,6 +332,14 @@ ErrorManagement::ErrorType LinuxTimer::Execute(const ExecutionInfo& info) {
     counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTime;
 
     return err;
+}
+
+const ProcessorType& LinuxTimer::GetCPUMask() const {
+    return cpuMask;
+}
+
+uint32 LinuxTimer::GetStackSize() const {
+    return stackSize;
 }
 
 CLASS_REGISTER(LinuxTimer, "1.0")

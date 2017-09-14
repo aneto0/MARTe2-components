@@ -861,6 +861,40 @@ bool LinuxTimerTest::TestInitialise_Busy() {
     return test.Initialise(cdb);
 }
 
+bool LinuxTimerTest::TestInitialise_CPUMask() {
+    using namespace MARTe;
+    LinuxTimer test;
+    ConfigurationDatabase cdb;
+    uint32 cpuMask = 0x5;
+    cdb.Write("CPUMask", cpuMask);
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = (test.GetCPUMask() == cpuMask);
+    }
+    return ok;
+}
+
+bool LinuxTimerTest::TestInitialise_StackSize() {
+    using namespace MARTe;
+    LinuxTimer test;
+    ConfigurationDatabase cdb;
+    uint32 stackSize = 1024000;
+    cdb.Write("StackSize", stackSize);
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = (test.GetStackSize() == stackSize);
+    }
+    return ok;
+}
+
+bool LinuxTimerTest::TestGetCPUMask() {
+    return TestInitialise_CPUMask();
+}
+
+bool LinuxTimerTest::TestGetStackSize() {
+    return TestInitialise_StackSize();
+}
+
 bool LinuxTimerTest::TestInitialise_False() {
     using namespace MARTe;
     LinuxTimer test;
