@@ -74,7 +74,7 @@ bool LinuxTimer::AllocateMemory() {
 }
 
 bool LinuxTimer::Initialise(StructuredDataI& data) {
-    bool ok = true;
+    bool ok = DataSourceI::Initialise(data);
     StreamString sleepNatureStr;
     if (!data.Read("SleepNature", sleepNatureStr)) {
         REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
