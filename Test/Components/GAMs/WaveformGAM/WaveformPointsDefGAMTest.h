@@ -142,6 +142,13 @@ public:
      */
     template<typename T>
     bool TestExecuteWrongInput_2(StreamString str);
+
+    /**
+     * @brief Test WaveformPointsDef::Execute() in time extreme condition
+     * @details Some of the increment times values are smaller than the sample time.
+     * @return true if the output is as expected.
+     */
+    bool TestExecuteSmallIncrementTimes();
 };
 
 /*---------------------------------------------------------------------------*/
@@ -156,7 +163,9 @@ public:
                                    uint32 samplesIn = 1,
                                    uint32 elementsOut = 4,
                                    uint32 samplesOut = 1,
-                                   StreamString str = "int8") {
+                                   StreamString str = "int8",
+                                   uint32 refStartTrigger = 5u,
+                                   uint32 reftStopTrigger = 4u) {
         numberOfElementsIn = elementsIn;
         numberOfSamplesIn = samplesIn;
         byteSizeIn = numberOfElementsIn * sizeof(uint32);
@@ -167,8 +176,8 @@ public:
         byteSizeOut = 0;
         startTrigger = NULL;
         stopTrigger = NULL;
-        elementsStartTrigger = 5;
-        elementsStopTrigger = 4;
+        elementsStartTrigger = refStartTrigger;
+        elementsStopTrigger = reftStopTrigger;
 
         typeStr = str;
         type = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
@@ -253,6 +262,44 @@ public:
     void *GetOutputSignalsMemory(uint32 idx) {
         return GAM::GetOutputSignalMemory(idx);
     }
+    bool InitialisePointsdefTimesExtreme() {
+        bool ret = true;
+        if (isInitialised == false) {
+            x1[0] = 0;
+            x1[1] = 2;
+            x1[2] = 2.1;
+            x1[3] = 4;
+            y1[0] = 0;
+            y1[1] = 2;
+            y1[2] = 1.6;
+            y1[3] = 5.4;
+            refValues1[0] = 0;
+            refValues1[1] = 1;
+            refValues1[2] = 2;
+            refValues1[3] = 1.6 + 0.9 * 2.0;
+            refValues1[4] = 5.4;
+            refValues1[5] = 0;
+            refValues1[6] = 1;
+            refValues1[7] = 2;
+            refValues1[8] = 1.6 + 0.9 * 2.0;
+            refValues1[9] = 5.4;
+            refValues1[10] = 0;
+            refValues1[11] = 1;
+            refValues1[12] = 2;
+            refValues1[13] = 1.6 + 0.9 * 2.0;
+            refValues1[14] = 5.4;
+
+            Vector<float64> yVec(y1, numberOfElementsY);
+            ret &= config.Write("Points", yVec);
+            Vector<float64> xVec(x1, numberOfElementsX);
+            ret &= config.Write("Times", xVec);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
+    }
     bool InitialisePointsdef1() {
         bool ret = true;
         if (isInitialised == false) {
@@ -294,7 +341,7 @@ public:
     bool IsEqualLargerMargins(float64 f1,
                               float64 f2) {
         float64 *min = reinterpret_cast<float64*>(const_cast<uint64*>(&EPSILON_FLOAT64));
-        float64 minLarger = *min * 3;
+        float64 minLarger = *min * 5;
         return ((f1 - f2) < (minLarger)) && ((f1 - f2) > -(minLarger));
     }
     bool InitialisePointsdef1Trigger() {
@@ -355,44 +402,44 @@ public:
     }
 
     bool Initialise2Pointsdef1Trigger() {
-            bool ret = true;
+        bool ret = true;
 
-            if (isInitialised == false) {
-                x11[0] = 0.0;
-                x11[1] = 1.5;
-                y11[0] = -5.25;
-                y11[1] = -5.25;
-                ref1Values1[0] = -5.25;
-                ref1Values1[1] = -5.25;
-                Vector<float64> yVec(y11, 2);
-                ret &= config.Write("Points", yVec);
-                Vector<float64> xVec(x11, 2);
-                ret &= config.Write("Times", xVec);
+        if (isInitialised == false) {
+            x11[0] = 0.0;
+            x11[1] = 1.5;
+            y11[0] = -5.25;
+            y11[1] = -5.25;
+            ref1Values1[0] = -5.25;
+            ref1Values1[1] = -5.25;
+            Vector<float64> yVec(y11, 2);
+            ret &= config.Write("Points", yVec);
+            Vector<float64> xVec(x11, 2);
+            ret &= config.Write("Times", xVec);
 
-                startTrigger = new float64[elementsStartTrigger];
-                stopTrigger = new float64[elementsStopTrigger];
-                startTrigger[0] = 1.25;
-                stopTrigger[0] = 1.75;
-                startTrigger[1] = 2.;
-                stopTrigger[1] = 3.25;
-                startTrigger[2] = 3.5;
-                stopTrigger[2] = 3.75;
-                startTrigger[3] = 4.;
-                stopTrigger[3] = 4.25;
-                startTrigger[4] = 4.55;
-                Vector<float64> startTVect(startTrigger, elementsStartTrigger);
-                Vector<float64> stopTVect(stopTrigger, elementsStopTrigger);
-                ret &= config.Write("StartTriggerTime", startTVect);
-                ret &= config.Write("StopTriggerTime", stopTVect);
-                isInitialised = ret;
-            }
-            else {
-                ret = false;
-            }
-
-            return ret;
-
+            startTrigger = new float64[elementsStartTrigger];
+            stopTrigger = new float64[elementsStopTrigger];
+            startTrigger[0] = 1.25;
+            stopTrigger[0] = 1.75;
+            startTrigger[1] = 2.;
+            stopTrigger[1] = 3.25;
+            startTrigger[2] = 3.5;
+            stopTrigger[2] = 3.75;
+            startTrigger[3] = 4.;
+            stopTrigger[3] = 4.25;
+            startTrigger[4] = 4.55;
+            Vector<float64> startTVect(startTrigger, elementsStartTrigger);
+            Vector<float64> stopTVect(stopTrigger, elementsStopTrigger);
+            ret &= config.Write("StartTriggerTime", startTVect);
+            ret &= config.Write("StopTriggerTime", stopTVect);
+            isInitialised = ret;
         }
+        else {
+            ret = false;
+        }
+
+        return ret;
+
+    }
 
     bool IsInitialised() {
         return isInitialised;
@@ -478,14 +525,14 @@ public:
         ok &= configSignals.CreateRelative("1");
         ok &= configSignals.Write("QualifiedName", "OutputSignal2");
         ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type","uint32");
+        ok &= configSignals.Write("Type", "uint32");
         ok &= configSignals.Write("NumberOfDimensions", 1);
         ok &= configSignals.Write("NumberOfElements", numberOfElementsOut);
         ok &= configSignals.Write("ByteSize", totalByteSizeOut2);
 
         ok &= configSignals.MoveToAncestor(1u);
 
-        uint32 totalByteSizeOut = totalByteSizeOut1+ totalByteSizeOut2;
+        uint32 totalByteSizeOut = totalByteSizeOut1 + totalByteSizeOut2;
         ok &= configSignals.Write("ByteSize", totalByteSizeOut);
 
         ok &= configSignals.MoveToRoot();
@@ -512,9 +559,8 @@ public:
     }
 
     template<typename T>
-    bool ComparePointsdef1(T *output) {
+    bool ComparePointsdef1(T *output, bool firstIteration) {
         bool ret = true;
-        static bool firstIteration = true;
         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
             if (firstIteration) {
                 ret = (static_cast<T>(0.0) == output[i]);
@@ -543,121 +589,121 @@ public:
     }
 
     template<typename T>
-     bool ComparePointsdef1Trigger(T *output,
-                                   float64 t,
-                                   float64 it) {
-         bool ret = true;
-         static bool firstIteration = true;
-         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
-             if (firstIteration) {
-                 ret = (static_cast<T>(0.0) == output[i]);
-             }
-             else {
-                 if (ShouldBeSignalOutOn(t)) {
-                     StreamString auxStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
-                     if (auxStr == "float32") {
-                         ret = IsEqual(static_cast<float32>(refValues1[indexCompare1]), static_cast<float32>(output[i]));
-                     }
-                     else if (auxStr == "float64") {
-                         ret = IsEqualLargerMargins(static_cast<float64>(refValues1[indexCompare1]), static_cast<float64>(output[i]));
-                     }
-                     else {
-                         ret = (static_cast<T>(refValues1[indexCompare1]) == output[i]);
-                     }
-                 }
-                 else {
-                     ret = (static_cast<T>(0.0) == output[i]);
-                 }
-             }
-             indexCompare1++;
-             if (indexCompare1 == dimArrayCompare1) {
-                 indexCompare1 = 0;
-             }
-             t += it;
-         }
-         if (firstIteration) {
-             firstIteration = false;
-         }
-         return ret;
-     }
+    bool ComparePointsdef1Trigger(T *output,
+                                  float64 t,
+                                  float64 it) {
+        bool ret = true;
+        static bool firstIteration = true;
+        for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
+            if (firstIteration) {
+                ret = (static_cast<T>(0.0) == output[i]);
+            }
+            else {
+                if (ShouldBeSignalOutOn(t)) {
+                    StreamString auxStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
+                    if (auxStr == "float32") {
+                        ret = IsEqual(static_cast<float32>(refValues1[indexCompare1]), static_cast<float32>(output[i]));
+                    }
+                    else if (auxStr == "float64") {
+                        ret = IsEqualLargerMargins(static_cast<float64>(refValues1[indexCompare1]), static_cast<float64>(output[i]));
+                    }
+                    else {
+                        ret = (static_cast<T>(refValues1[indexCompare1]) == output[i]);
+                    }
+                }
+                else {
+                    ret = (static_cast<T>(0.0) == output[i]);
+                }
+            }
+            indexCompare1++;
+            if (indexCompare1 == dimArrayCompare1) {
+                indexCompare1 = 0;
+            }
+            t += it;
+        }
+        if (firstIteration) {
+            firstIteration = false;
+        }
+        return ret;
+    }
 
     template<typename T>
-     bool Compare2Pointsdef1Trigger(T *output,
+    bool Compare2Pointsdef1Trigger(T *output,
                                    float64 t,
                                    float64 it) {
-         bool ret = true;
-         static bool firstIteration = true;
-         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
-             if (firstIteration) {
-                 ret = (static_cast<T>(0.0) == output[i]);
-             }
-             else {
-                 if (ShouldBeSignalOutOn(t)) {
-                     StreamString auxStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
-                     if (auxStr == "float32") {
-                         ret = IsEqual(static_cast<float32>(ref1Values1[indexCompare1]), static_cast<float32>(output[i]));
-                     }
-                     else if (auxStr == "float64") {
-                         ret = IsEqualLargerMargins(static_cast<float64>(ref1Values1[indexCompare1]), static_cast<float64>(output[i]));
-                     }
-                     else {
-                         ret = (static_cast<T>(ref1Values1[indexCompare1]) == output[i]);
-                     }
-                 }
-                 else {
-                     ret = (static_cast<T>(0.0) == output[i]);
-                 }
-             }
-             indexCompare1++;
-             if (indexCompare1 == 2) {
-                 indexCompare1 = 0;
-             }
-             t += it;
-         }
-         if (firstIteration) {
-             firstIteration = false;
-         }
-         return ret;
-     }
+        bool ret = true;
+        static bool firstIteration = true;
+        for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
+            if (firstIteration) {
+                ret = (static_cast<T>(0.0) == output[i]);
+            }
+            else {
+                if (ShouldBeSignalOutOn(t)) {
+                    StreamString auxStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
+                    if (auxStr == "float32") {
+                        ret = IsEqual(static_cast<float32>(ref1Values1[indexCompare1]), static_cast<float32>(output[i]));
+                    }
+                    else if (auxStr == "float64") {
+                        ret = IsEqualLargerMargins(static_cast<float64>(ref1Values1[indexCompare1]), static_cast<float64>(output[i]));
+                    }
+                    else {
+                        ret = (static_cast<T>(ref1Values1[indexCompare1]) == output[i]);
+                    }
+                }
+                else {
+                    ret = (static_cast<T>(0.0) == output[i]);
+                }
+            }
+            indexCompare1++;
+            if (indexCompare1 == 2) {
+                indexCompare1 = 0;
+            }
+            t += it;
+        }
+        if (firstIteration) {
+            firstIteration = false;
+        }
+        return ret;
+    }
 
     template<typename T>
-     bool ComparePointsdef1Trigger2(T *output,
+    bool ComparePointsdef1Trigger2(T *output,
                                    float64 t,
                                    float64 it) {
-         bool ret = true;
-         static bool firstIteration = true;
-         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
-             if (firstIteration) {
-                 ret = (static_cast<T>(0.0) == output[i]);
-             }
-             else {
-                 if (ShouldBeSignalOutOn(t)) {
-                     StreamString auxStr = "uint32";
-                     if (auxStr == "float32") {
-                         ret = IsEqual(static_cast<float32>(refValues1[indexCompare2]), static_cast<float32>(output[i]));
-                     }
-                     else if (auxStr == "float64") {
-                         ret = IsEqualLargerMargins(static_cast<float64>(refValues1[indexCompare2]), static_cast<float64>(output[i]));
-                     }
-                     else {
-                         ret = (static_cast<T>(refValues1[indexCompare2]) == output[i]);
-                     }
-                 }
-                 else {
-                     ret = (static_cast<T>(0.0) == output[i]);
-                 }
-             }
-             indexCompare2++;
-             if (indexCompare2 == dimArrayCompare1) {
-                 indexCompare2 = 0;
-             }
-             t += it;
-         }
-         if (firstIteration) {
-             firstIteration = false;
-         }
-         return ret;
-     }
+        bool ret = true;
+        static bool firstIteration = true;
+        for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
+            if (firstIteration) {
+                ret = (static_cast<T>(0.0) == output[i]);
+            }
+            else {
+                if (ShouldBeSignalOutOn(t)) {
+                    StreamString auxStr = "uint32";
+                    if (auxStr == "float32") {
+                        ret = IsEqual(static_cast<float32>(refValues1[indexCompare2]), static_cast<float32>(output[i]));
+                    }
+                    else if (auxStr == "float64") {
+                        ret = IsEqualLargerMargins(static_cast<float64>(refValues1[indexCompare2]), static_cast<float64>(output[i]));
+                    }
+                    else {
+                        ret = (static_cast<T>(refValues1[indexCompare2]) == output[i]);
+                    }
+                }
+                else {
+                    ret = (static_cast<T>(0.0) == output[i]);
+                }
+            }
+            indexCompare2++;
+            if (indexCompare2 == dimArrayCompare1) {
+                indexCompare2 = 0;
+            }
+            t += it;
+        }
+        if (firstIteration) {
+            firstIteration = false;
+        }
+        return ret;
+    }
 
     uint32 numberOfElementsIn;
     uint32 numberOfSamplesIn;
@@ -756,8 +802,13 @@ bool WaveformPointsDefGAMTest::TestExecute(StreamString str) {
         if (!ok) {
             REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "Execute fails in iteration %u\n", i);
         }
-        if(ok){
-            ok = gam.ComparePointsdef1(output);
+        if (ok) {
+            if(i == 0u){
+                ok = gam.ComparePointsdef1(output, true);
+            }
+            else{
+                ok = gam.ComparePointsdef1(output, false);
+            }
             if (!ok) {
                 REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
             }
@@ -853,8 +904,6 @@ bool WaveformPointsDefGAMTest::TestExecute2Signals(StreamString str) {
     }
     return ok;
 }
-
-
 
 template<typename T>
 bool WaveformPointsDefGAMTest::TestExecuteTrigger2Point(StreamString str) {
@@ -967,10 +1016,10 @@ bool WaveformPointsDefGAMTest::TestExecuteWrongInput(StreamString str) {
     for (uint32 i = 0u; i < sizeOutput; i++) {
         output[i] = static_cast<T>(0.0);
     }
-    if(ok){
+    if (ok) {
         ok = gam.Execute();
     }
-    if(ok){
+    if (ok) {
         ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
     }
     ok &= !gam.Execute();
@@ -1007,27 +1056,25 @@ bool WaveformPointsDefGAMTest::TestExecuteWrongInput_2(StreamString str) {
     for (uint32 i = 0u; i < sizeOutput; i++) {
         output[i] = static_cast<T>(0.0);
     }
-    if(ok){
+    if (ok) {
         ok = gam.Execute();
     }
-    if(ok){
+    if (ok) {
         ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
     }
-    if(ok){
+    if (ok) {
         *timeIteration += timeIterationIncrement;
         ok &= gam.Execute();
     }
-    if(ok){
+    if (ok) {
         ok &= gam.ComparePointsdef1Trigger(output, ((float64) (*timeIteration) / 1e6), (float64) (timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
     }
-    if(ok){//no input time increment--> Execute should fail.
+    if (ok) { //no input time increment--> Execute should fail.
         ok &= !gam.Execute();
     }
 
     return ok;
 }
-
-
 
 #endif /*WAVEFORMPOINTSDEFGAMTEST_H_ */
 

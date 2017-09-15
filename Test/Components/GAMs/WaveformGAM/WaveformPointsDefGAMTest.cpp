@@ -26,7 +26,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-
+#include "stdio.h"
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -68,14 +68,14 @@ bool WaveformPointsDefGAMTest::TestInitialise_FailingReadingPointsValues() {
     ok &= gam.config.Write("Points", y);
     Vector<float64> xVec(gam.x1, gam.numberOfElementsX);
     ok &= gam.config.Write("Times", xVec);
-/*
-    StreamString a;
-    printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-    printf("%d\n", a.Printf("%!", gam.config));
-    printf("size of a %llu\n", a.Size());
-    printf("%s\n", a.Buffer());
-    printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-    */
+    /*
+     StreamString a;
+     printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+     printf("%d\n", a.Printf("%!", gam.config));
+     printf("size of a %llu\n", a.Size());
+     printf("%s\n", a.Buffer());
+     printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+     */
     ok &= gam.Initialise(gam.config);
     return !ok;
 }
@@ -85,7 +85,7 @@ bool WaveformPointsDefGAMTest::TestInitialise_1Point() {
     WaveformPointsDefGAMTestHelper gam;
     float64 *x = new float64[1];
     *x = 0.0;
-    float64 *y =  new float64[1];
+    float64 *y = new float64[1];
     *y = 32.9;
     Vector<float64> yVec(y, 1);
     ok &= gam.config.Write("Points", yVec);
@@ -148,7 +148,7 @@ bool WaveformPointsDefGAMTest::TestInitialise_InvalidTimes2() {
     WaveformPointsDefGAMTestHelper gam;
     Vector<float64> yVec(gam.y1, gam.numberOfElementsY);
     ok &= gam.config.Write("Points", yVec);
-    for(uint32 i = 0; i< gam.numberOfElementsX; i++){
+    for (uint32 i = 0; i < gam.numberOfElementsX; i++) {
         gam.y1[i] = i;
     }
     Vector<float64> xVec(gam.x1, gam.numberOfElementsX);
@@ -169,5 +169,69 @@ bool WaveformPointsDefGAMTest::TestInitialise_FailWaveformSetup() {
     ok &= gam.Setup();
 
     return !ok;
+}
+
+bool WaveformPointsDefGAMTest::TestExecuteSmallIncrementTimes() {
+    bool ok = true;
+    WaveformPointsDefGAMTestHelper gam(1, 1, 4, 1, "float64", 0, 0);
+    uint32 sizeOutput = 4u;
+    uint32 timeIterationIncrement = 4000000u;
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdefTimesExtreme();
+    /*
+    //example
+    StreamString a;
+    printf("%d\n", a.Printf("%!", gam.config));
+    printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+    printf("%s\n", a.Buffer());
+    printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+    */
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    uint32 *timeIteration = NULL;
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+
+    float64 *output = NULL;
+    output = static_cast<float64 *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<float64>(0.0);
+    }
+    if (ok) {
+        ok = gam.Execute();
+    }
+    if (ok) {
+        ok &= gam.ComparePointsdef1(output, true);
+    }
+    if (ok) {
+        *timeIteration += timeIterationIncrement;
+        ok &= gam.Execute();
+    }
+    if (ok) {
+        ok &= gam.ComparePointsdef1(output, false);
+    }
+    if (ok) {
+        *timeIteration += timeIterationIncrement;
+        ok &= gam.Execute();
+    }
+    if (ok) {
+        ok &= gam.ComparePointsdef1(output, false);
+    }
+    if (ok) {
+        *timeIteration += timeIterationIncrement;
+        ok &= gam.Execute();
+    }
+    if (ok) {
+        ok &= gam.ComparePointsdef1(output, false);
+    }
+    return ok;
 }
 

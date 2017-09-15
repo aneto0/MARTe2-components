@@ -411,6 +411,12 @@ TEST(WaveformPointsDefGAMTest, TestExecuteWrongInput_2) {
     ASSERT_TRUE(test.TestExecuteWrongInput_2<float64>(str));
 }
 
+TEST(WaveformPointsDefGAMTest, TestExecuteSmallIncrementTimes) {
+    WaveformPointsDefGAMTest test;
+    ASSERT_TRUE(test.TestExecuteSmallIncrementTimes());
+}
+
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

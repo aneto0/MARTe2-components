@@ -176,8 +176,9 @@ bool WaveformPointsDef::PrecomputeValues() {
         else {
             uint32 aux = indexSlopes + 1u;
             if (times != NULL_PTR(float64 *)) {
-                if (currentTime >= times[aux]) {
+                while (currentTime >= times[aux]) {
                     indexSlopes++;
+                    aux = indexSlopes + 1;
                     if (points != NULL_PTR(float64 *)) {
                         refVal = points[indexSlopes];
                         timeRefVal = times[indexSlopes];
@@ -194,6 +195,7 @@ bool WaveformPointsDef::PrecomputeValues() {
                         }
                         beginningSequence = true;
                         indexSlopes = 0u;
+                        aux = 0;
                     }
                 }
             }
