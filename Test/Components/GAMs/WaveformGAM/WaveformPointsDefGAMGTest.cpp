@@ -416,6 +416,16 @@ TEST(WaveformPointsDefGAMTest, TestExecuteSmallIncrementTimes) {
     ASSERT_TRUE(test.TestExecuteSmallIncrementTimes());
 }
 
+TEST(WaveformPointsDefGAMTest, TestExecuteSawtooth) {
+    WaveformPointsDefGAMTest test;
+    ASSERT_TRUE(test.TestExecuteSawtooth());
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecuteSawtooth_4elements) {
+    WaveformPointsDefGAMTest test;
+    ASSERT_TRUE(test.TestExecuteSawtooth_4elements());
+}
+
 
 
 /*---------------------------------------------------------------------------*/

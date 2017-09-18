@@ -149,6 +149,16 @@ public:
      * @return true if the output is as expected.
      */
     bool TestExecuteSmallIncrementTimes();
+
+    /**
+     * @brief Test WaveformPointsDef::Execute() with a sawtooth
+     */
+    bool TestExecuteSawtooth();
+
+    /**
+     * @brief Test WaveformPointsDef::Execute() with a sawtooth
+     */
+    bool TestExecuteSawtooth_4elements();
 };
 
 /*---------------------------------------------------------------------------*/
@@ -165,7 +175,9 @@ public:
                                    uint32 samplesOut = 1,
                                    StreamString str = "int8",
                                    uint32 refStartTrigger = 5u,
-                                   uint32 reftStopTrigger = 4u) {
+                                   uint32 reftStopTrigger = 4u,
+                                   uint32 refNumberOfElementsY = 4u,
+                                   uint32 refNumberOfElementsX = 4u) {
         numberOfElementsIn = elementsIn;
         numberOfSamplesIn = samplesIn;
         byteSizeIn = numberOfElementsIn * sizeof(uint32);
@@ -182,8 +194,8 @@ public:
         typeStr = str;
         type = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
         isInitialised = false;
-        numberOfElementsY = 4;
-        numberOfElementsX = 4;
+        numberOfElementsY = refNumberOfElementsY;
+        numberOfElementsX = refNumberOfElementsX;
         x1 = new float64[numberOfElementsX];
         x11 = new float64[2];
         y1 = new float64[numberOfElementsY];
@@ -194,12 +206,17 @@ public:
         }
         dimArrayCompare1 = 15;
         refValues1 = new float64[dimArrayCompare1];
+        refValues = NULL;
         ref1Values1 = new float64[2];
         indexCompare1 = 0;
         indexCompare2 = 0;
     }
 
-    WaveformPointsDefGAMTestHelper(StreamString str) {
+    WaveformPointsDefGAMTestHelper(StreamString str,
+                                   uint32 refStartTrigger = 5u,
+                                   uint32 reftStopTrigger = 4u,
+                                   uint32 refNumberOfElementsY = 4u,
+                                   uint32 refNumberOfElementsX = 4u) {
         numberOfElementsIn = 1;
         numberOfSamplesIn = 1;
         byteSizeIn = numberOfElementsIn * sizeof(uint32);
@@ -210,13 +227,13 @@ public:
         byteSizeOut = 0;
         startTrigger = NULL;
         stopTrigger = NULL;
-        elementsStartTrigger = 5;
-        elementsStopTrigger = 4;
+        elementsStartTrigger = refStartTrigger;
+        elementsStopTrigger = reftStopTrigger;
         typeStr = str;
         type = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
         isInitialised = false;
-        numberOfElementsY = 4;
-        numberOfElementsX = 4;
+        numberOfElementsY = refNumberOfElementsY;
+        numberOfElementsX = refNumberOfElementsX;
         x1 = new float64[numberOfElementsX];
         x11 = new float64[2];
         y1 = new float64[numberOfElementsY];
@@ -228,6 +245,7 @@ public:
         dimArrayCompare1 = 15;
         refValues1 = new float64[dimArrayCompare1];
         ref1Values1 = new float64[2];
+        refValues = NULL;
         indexCompare1 = 0;
         indexCompare2 = 0;
         elementsStopTrigger = 4;
@@ -261,6 +279,36 @@ public:
 
     void *GetOutputSignalsMemory(uint32 idx) {
         return GAM::GetOutputSignalMemory(idx);
+    }
+    bool InitialisePointsdefSawtooth() {
+        bool ret = true;
+        if (isInitialised == false) {
+            x1[0] = 0;
+            x1[1] = 0.9;
+            y1[0] = 0;
+            y1[1] = 9;
+            refValues = new float64[10];
+            refValues[0] = 0;
+            refValues[1] = 1;
+            refValues[2] = 2;
+            refValues[3] = 3;
+            refValues[4] = 4;
+            refValues[5] = 5;
+            refValues[6] = 6;
+            refValues[7] = 7;
+            refValues[8] = 8;
+            refValues[9] = 9;
+            dimArrayCompare1 = 10;
+            Vector<float64> yVec(y1, numberOfElementsY);
+            ret &= config.Write("Points", yVec);
+            Vector<float64> xVec(x1, numberOfElementsX);
+            ret &= config.Write("Times", xVec);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
     }
     bool InitialisePointsdefTimesExtreme() {
         bool ret = true;
@@ -341,7 +389,7 @@ public:
     bool IsEqualLargerMargins(float64 f1,
                               float64 f2) {
         float64 *min = reinterpret_cast<float64*>(const_cast<uint64*>(&EPSILON_FLOAT64));
-        float64 minLarger = *min * 5;
+        float64 minLarger = *min * 200;
         return ((f1 - f2) < (minLarger)) && ((f1 - f2) > -(minLarger));
     }
     bool InitialisePointsdef1Trigger() {
@@ -558,8 +606,30 @@ public:
         return ok;
     }
 
+    bool ComparePointsdef(float64 *output,
+                          bool firstIteration,
+                          float64 &error) {
+        bool ret = true;
+        for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
+            if (firstIteration) {
+                ret = (static_cast<float64>(0.0) == output[i]);
+            }
+            else {
+                ret = IsEqualLargerMargins(refValues[indexCompare1], output[i]);
+            }
+
+            error = refValues[indexCompare1] - output[i];
+            indexCompare1++;
+            if (indexCompare1 == dimArrayCompare1) {
+                indexCompare1 = 0;
+            }
+        }
+        return ret;
+    }
+
     template<typename T>
-    bool ComparePointsdef1(T *output, bool firstIteration) {
+    bool ComparePointsdef1(T *output,
+                           bool firstIteration) {
         bool ret = true;
         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
             if (firstIteration) {
@@ -724,6 +794,7 @@ public:
     uint32 indexCompare1;
     uint32 indexCompare2;
     float64 *refValues1;
+    float64 *refValues;
     float64 *ref1Values1;
 private:
     bool isInitialised;
@@ -803,10 +874,10 @@ bool WaveformPointsDefGAMTest::TestExecute(StreamString str) {
             REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "Execute fails in iteration %u\n", i);
         }
         if (ok) {
-            if(i == 0u){
+            if (i == 0u) {
                 ok = gam.ComparePointsdef1(output, true);
             }
-            else{
+            else {
                 ok = gam.ComparePointsdef1(output, false);
             }
             if (!ok) {

@@ -179,13 +179,13 @@ bool WaveformPointsDefGAMTest::TestExecuteSmallIncrementTimes() {
     gam.SetName("Test");
     ok &= gam.InitialisePointsdefTimesExtreme();
     /*
-    //example
-    StreamString a;
-    printf("%d\n", a.Printf("%!", gam.config));
-    printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-    printf("%s\n", a.Buffer());
-    printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-    */
+     //example
+     StreamString a;
+     printf("%d\n", a.Printf("%!", gam.config));
+     printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+     printf("%s\n", a.Buffer());
+     printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+     */
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
@@ -234,4 +234,117 @@ bool WaveformPointsDefGAMTest::TestExecuteSmallIncrementTimes() {
     }
     return ok;
 }
+
+bool WaveformPointsDefGAMTest::TestExecuteSawtooth() {
+    bool ok = true;
+    WaveformPointsDefGAMTestHelper gam(1, 1, 1, 1, "float64", 0, 0, 2, 2);
+    uint32 sizeOutput = 1u;
+    uint32 timeIterationIncrement = 100000u;
+    uint32 MAX_REP = 100u;
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdefSawtooth();
+
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    uint32 *timeIteration = NULL;
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    float64 ref123 = 0.0;
+    float64 *output = NULL;
+    output = static_cast<float64 *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<float64>(0.0);
+    }
+    if (ok) {
+        ok = gam.Execute();
+    }
+    if (ok) {
+        ok &= gam.ComparePointsdef(output, true, ref123);
+    }
+    uint32 error = 0;
+    for (uint32 i = 1u; i < MAX_REP && (error < 5); i++) {
+        if (ok) {
+            *timeIteration += timeIterationIncrement;
+            ok = gam.Execute();
+        }
+        if (!ok) {
+            printf("Error. gam.Execute() returns an error in iteration %u\n", i);
+            error++;
+        }
+        if (ok) {
+            ok = gam.ComparePointsdef(output, false, ref123);
+        }
+        if (!ok) {
+            printf("Error. *output - refVal = %.16lf, iteration %u\n", ref123, i);
+            error++;
+        }
+    }
+    return ok;
+}
+
+bool WaveformPointsDefGAMTest::TestExecuteSawtooth_4elements() {
+    bool ok = true;
+    WaveformPointsDefGAMTestHelper gam(1, 1, 4, 1, "float64", 0, 0, 2, 2);
+    uint32 sizeOutput = 4u;
+    uint32 timeIterationIncrement = 400000u;
+    uint32 MAX_REP = 10u;
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdefSawtooth();
+
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    uint32 *timeIteration = NULL;
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    float64 ref123 = 0.0;
+    float64 *output = NULL;
+    output = static_cast<float64 *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<float64>(0.0);
+    }
+    if (ok) {
+        ok = gam.Execute();
+    }
+    if (ok) {
+        ok &= gam.ComparePointsdef(output, true, ref123);
+    }
+    uint32 error = 0;
+    for (uint32 i = 1u; i < MAX_REP && (error < 5); i++) {
+        if (ok) {
+            *timeIteration += timeIterationIncrement;
+            ok = gam.Execute();
+        }
+        if (!ok) {
+            printf("Error. gam.Execute() returns an error in iteration %u\n", i);
+            error++;
+        }
+        if (ok) {
+            ok = gam.ComparePointsdef(output, false, ref123);
+
+        }
+        if (!ok) {
+            printf("Error. refVal - output = %.16lf, iteration %u\n", ref123, i);
+            error++;
+        }
+    }
+    return ok;
+}
+
+
 

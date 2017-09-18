@@ -51,16 +51,17 @@ WaveformPointsDef::WaveformPointsDef() :
         Waveform() {
     points = NULL_PTR(float64 *);
     times = NULL_PTR(float64 *);
-    slopes = NULL_PTR(float64 *);
     numberOfPointsElements = 0u;
     numberOfTimesElements = 0u;
-    numberOfSlopeElements = 0u;
     lastOutputValue = 0.0;
-    refVal = 0.0;
-    timeRefVal = 0.0;
     indexSlopes = 0u;
     beginningSequence = true;
     lastTimeValue = 0.0;
+    pointRef1 = 0.0;
+    pointRef2 = 0.0;
+    timeRef1 = 0.0;
+    timeRef2 = 0.0;
+    slope = 0.0;
 
 }
 
@@ -73,18 +74,14 @@ WaveformPointsDef::~WaveformPointsDef() {
         delete[] times;
         times = NULL_PTR(float64 *);
     }
-    if (slopes != NULL_PTR(float64 *)) {
-        delete[] slopes;
-        slopes = NULL_PTR(float64 *);
-    }
 }
 bool WaveformPointsDef::Initialise(StructuredDataI &data) {
     bool ok = Waveform::Initialise(data);
-    if (!ok) {//Waveform::Initialise only fails if GAM::Initialise fails.
+    if (!ok) { //Waveform::Initialise only fails if GAM::Initialise fails.
         REPORT_ERROR(ErrorManagement::InitialisationError, "Error. Waveform::Initialise");
     }
     AnyType functionArray = data.GetType("Points");
-    if(ok){
+    if (ok) {
         ok = (functionArray.GetDataPointer() != NULL_PTR(void *));
     }
     if (!ok) {
@@ -143,66 +140,62 @@ bool WaveformPointsDef::Initialise(StructuredDataI &data) {
         //If is due to MISRA are worried about null pointer...
         if (times != NULL_PTR(float64 *)) {
             lastTimeValue = times[numberOfTimesElements - 1u];
-            numberOfSlopeElements = numberOfTimesElements - 1u;
-            slopes = new float64[numberOfSlopeElements];
-            if ((slopes != NULL_PTR(float64 *)) && (points != NULL_PTR(float64 *))) { //MISRA!!!
-                for (uint32 i = 0u; i < numberOfSlopeElements; i++) {
-                    uint32 aux = i + 1u;
-                    slopes[i] = (points[aux] - points[i]) / (times[aux] - times[i]);
-                }
-            }
-        }
-    }
-    if (ok) {
-        if ((points != NULL_PTR(float64 *)) && (times != NULL_PTR(float64 *))) {
-            refVal = points[0];
-            timeRefVal = times[0];
+           // numberOfSlopeElements = numberOfTimesElements - 1u;
         }
     }
     return ok;
 }
 
 bool WaveformPointsDef::PrecomputeValues() {
-    for (uint32 i = 0u; i < numberOfOutputElements; i++) {
+    for (uint32 i = 0u; (i < numberOfOutputElements); i++) {
         TriggerMechanism();
-        //decides which slope should be used
-        if (beginningSequence) {
-            if ((points != NULL_PTR(float64 *)) && (times != NULL_PTR(float64 *))) {
-                refVal = points[indexSlopes];
-                timeRefVal = times[indexSlopes];
-            }
-            beginningSequence = false;
-        }
-        else {
-            uint32 aux = indexSlopes + 1u;
-            if (times != NULL_PTR(float64 *)) {
-                while (currentTime >= times[aux]) {
-                    indexSlopes++;
-                    aux = indexSlopes + 1;
-                    if (points != NULL_PTR(float64 *)) {
-                        refVal = points[indexSlopes];
-                        timeRefVal = times[indexSlopes];
-                    }
-                    if (indexSlopes < numberOfSlopeElements) {
-                        //Don nothing
-                    }
-                    else { //reset index
-                           //move the points for the next iteration
-                        for (uint32 m = 0u; m < numberOfTimesElements; m++) {
-                            if (times != NULL_PTR(float64 *)) {
-                                times[m] = times[m] + lastTimeValue + timeIncrement;
-                            }
-                        }
-                        beginningSequence = true;
-                        indexSlopes = 0u;
-                        aux = 0;
-                    }
-                }
-            }
-        }
+        FindNearestPoints();
+        Slope();
+        /*
+         //decides which slope should be used
+         if (beginningSequence) {
+         if ((points != NULL_PTR(float64 *)) && (times != NULL_PTR(float64 *))) {
+         refVal = points[indexSlopes];
+         timeRefVal = times[indexSlopes];
+         }
+         beginningSequence = false;
+         }
+         else {
+         uint32 aux = indexSlopes + 1u;
+         if (times != NULL_PTR(float64 *)) {
+         bool isEqual = IsEqual(currentTime, times[aux]);
+         bool isBigger = (currentTime > times[aux]);
+         while (isEqual || isBigger) {
+         indexSlopes++;
+         aux = indexSlopes + 1;
+         if (points != NULL_PTR(float64 *)) {
+         refVal = points[indexSlopes];
+         timeRefVal = times[indexSlopes];
+         }
+         if (indexSlopes < numberOfSlopeElements) {
+         //Don nothing
+         }
+         else { //reset index
+         //move the points for the next iteration
+         for (uint32 m = 0u; m < numberOfTimesElements; m++) {
+         if (times != NULL_PTR(float64 *)) {
+         times[m] = times[m] + lastTimeValue + timeIncrement;
+         }
+         }
+         beginningSequence = true;
+         indexSlopes = 0u;
+         aux = indexSlopes + 1u;
+         }
+         isEqual = IsEqual(currentTime, times[aux]);
+         isBigger = (currentTime > times[aux]);
+         }
+         }
+         }
+         */
         if (signalOn && triggersOn) {
-            if ((outputFloat64 != NULL_PTR(float64 *)) && (slopes != NULL_PTR(float64 *))) {
-                outputFloat64[i] = refVal + ((currentTime - timeRefVal) * slopes[indexSlopes]);
+            if (outputFloat64 != NULL_PTR(float64 *)) {
+                //outputFloat64[i] = refVal + ((currentTime - timeRefVal) * slopes[indexSlopes]);
+                outputFloat64[i] = pointRef1 + ((currentTime - timeRef1) * slope);
             }
         }
         else {
@@ -253,14 +246,85 @@ bool WaveformPointsDef::GetFloat64Value() {
 }
 
 /*lint -e{613} times cannot be NULL as otherwise VerifyTimes will not be called.*/
-bool WaveformPointsDef::VerifyTimes () const {
-    bool ret = (IsEqual(times[0],0.0));
-    for(uint32 i = 0u; (i < (numberOfTimesElements - 1u)) && ret; i ++) {
+bool WaveformPointsDef::VerifyTimes() const {
+    bool ret = (IsEqual(times[0], 0.0));
+    for (uint32 i = 0u; (i < (numberOfTimesElements - 1u)) && ret; i++) {
         //Added due to MISRA:Suspicious Truncation in arithmetic expression combining with pointer
-        uint32 aux = i+1u;
+        uint32 aux = i + 1u;
         ret = (times[i] < times[aux]);
     }
     return ret;
+}
+
+//lint -e{613} Possible use of a null pointer. It is not possible due to this function only is called inside Execute() and Execute() only is called if Setup() and initialise() succeed.
+void WaveformPointsDef::FindNearestPoints() {
+    bool found = false;
+    bool end = false;
+    uint32 i = 0u;
+    while ((!found) && (!end)) {
+        if (times[i] > currentTime) {
+            found = true;
+        }
+        else {
+            i++;
+            if (i >= numberOfTimesElements) {
+                end = true;
+            }
+        }
+    }
+    if (found) {
+        uint32 auxIndex = i - 1u;
+        pointRef1 = points[auxIndex];
+        pointRef2 = points[i];
+        timeRef1 = times[auxIndex];
+        timeRef2 = times[i];
+    }
+    else {
+        uint32 auxIdx2 = numberOfTimesElements - 1u;
+        float64 remindTime = times[auxIdx2];
+        for (uint32 m = 0u; m < numberOfTimesElements; m++) { //update times
+            if (times != NULL_PTR(float64 *)) {
+                times[m] = times[m] + lastTimeValue + timeIncrement;
+            }
+        }
+        found = false;
+        end = false;
+        i = 0u;
+        while ((!found) && (!end)) { //find again
+            if (times[i] > currentTime) {
+                found = true;
+            }
+            else {
+                i++;
+                if ((i >= numberOfTimesElements)) {
+                    end = true;
+                }
+            }
+        }
+        if (found) {
+            if (i == 0u) {
+                uint32 auxIdx = numberOfPointsElements - 1u;
+                pointRef1 = points[auxIdx];
+                pointRef2 = points[i];
+                timeRef1 = remindTime;
+                timeRef2 = times[i];
+            }
+            else {
+                uint32 auxIndex = i - 1u;
+                pointRef1 = points[auxIndex];
+                pointRef2 = points[i];
+                timeRef1 = times[auxIndex];
+                timeRef2 = times[i];
+            }
+
+        }
+    }
+    return ;
+}
+
+void WaveformPointsDef::Slope() {
+    slope = (pointRef2 - pointRef1)/(timeRef2 - timeRef1);
+    return;
 }
 
 CLASS_REGISTER(WaveformPointsDef, "1.0")
