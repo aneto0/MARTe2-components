@@ -52,6 +52,8 @@ namespace MARTe {
  * +Timer = {
  *     Class = LinuxTimer
  *     SleepNature = Busy|Default//If SleepNature is not specified then Default is set
+ *     ExecutionMode = IndependentThread //Optional. If not set ExecutionMode = IndependentThread. If ExecutionMode == IndependentThread a thread is spawned to generate the time events. ExecutionMode == RealTimeThread the time is generated in the context of the real-time thread.
+ *     CPUMask = 0x8 //Optional and only relevant if ExecutionMode=IndependentThread
  *     Signals = {
  *         Counter = {
  *             Type = uint32 //int32 also supported
@@ -259,6 +261,11 @@ private:
      * The size of the stack of the thread that asynchronously generates the time.
      */
     uint32 stackSize;
+
+    /**
+     * The execution mode.
+     */
+    uint32 executionMode;
 
 };
 }

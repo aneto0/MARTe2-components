@@ -96,6 +96,11 @@ public:
     bool TestExecute_Busy();
 
     /**
+     * @brief Tests the Execute method in the context of the real-time thread.
+     */
+    bool TestExecute_RTThread();
+
+    /**
      * @brief Tests the PrepareNextState method.
      */
     bool TestPrepareNextState();

@@ -96,6 +96,11 @@ TEST(LinuxTimerGTest, TestExecute_Busy) {
     ASSERT_TRUE(test.TestExecute_Busy());
 }
 
+TEST(LinuxTimerGTest, TestExecute_RTThread) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute_RTThread());
+}
+
 TEST(LinuxTimerGTest, TestPrepareNextState) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestPrepareNextState());
