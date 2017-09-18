@@ -1245,14 +1245,7 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
         //Empty DMA buffer
         size_t nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
         if ((dma != NULL_PTR(struct xseries_dma *)) && (numberOfADCsEnabled > 0u)) {
-            while (nBytesInDMA > 0u) {
-                dmaOffset = dmaOffset + nBytesInDMA;
-                dmaOffset %= dma->ai.count;
-                nBytesInDMAFromStart += nBytesInDMA;
-                dma->ai.last_transfer_count = nBytesInDMAFromStart;
-                dmaChannel = (dma->ai.last_transfer_count % numberOfADCsEnabled);
-                nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
-            }
+            ResetDMA();
         }
     }
     else {
