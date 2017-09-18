@@ -96,6 +96,11 @@ TEST(LinuxTimerGTest, TestExecute_Busy) {
     ASSERT_TRUE(test.TestExecute_Busy());
 }
 
+TEST(LinuxTimerGTest, TestExecute_RTThread) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute_RTThread());
+}
+
 TEST(LinuxTimerGTest, TestPrepareNextState) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestPrepareNextState());
@@ -111,6 +116,16 @@ TEST(LinuxTimerGTest, TestInitialise_Busy) {
     ASSERT_TRUE(test.TestInitialise_Busy());
 }
 
+TEST(LinuxTimerGTest, TestInitialise_CPUMask) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_CPUMask());
+}
+
+TEST(LinuxTimerGTest, TestInitialise_StackSize) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_StackSize());
+}
+
 TEST(LinuxTimerGTest, TestInitialise_Empty) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestInitialise_Empty());
@@ -119,6 +134,16 @@ TEST(LinuxTimerGTest, TestInitialise_Empty) {
 TEST(LinuxTimerGTest, TestInitialise_False) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestInitialise_False());
+}
+
+TEST(LinuxTimerGTest, TestGetStackSize) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestGetStackSize());
+}
+
+TEST(LinuxTimerGTest, TestGetCPUMask) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestGetCPUMask());
 }
 
 TEST(LinuxTimerGTest, TestSetConfiguredDatabase) {
