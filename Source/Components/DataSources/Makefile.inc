@@ -38,6 +38,7 @@ endif
 
 ifdef MDSPLUS_DIR
 SPB    += MDSWriter.x
+SPB    += MDSReader.x
 endif
 
 ifdef EPICS_BASE
@@ -70,6 +71,7 @@ endif
 
 ifdef MDSPLUS_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriter$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/MDSReader/MDSReader$(LIBEXT)
 endif
 
 ifdef EPICS_BASE

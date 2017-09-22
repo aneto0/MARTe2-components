@@ -36,6 +36,7 @@ endif
 
 ifdef MDSPLUS_DIR
 SPB+=MDSWriter.x
+SPB+=MDSReader.x
 endif
 
 ifdef EPICS_BASE
@@ -68,6 +69,7 @@ endif
 
 ifdef MDSPLUS_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriterTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/MDSReader/MDSReaderTest$(LIBEXT)
 endif
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
