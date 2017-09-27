@@ -1243,7 +1243,6 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
     }
     else if (info.GetStage() == ExecutionInfo::StartupStage) {
         //Empty DMA buffer
-        size_t nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
         if ((dma != NULL_PTR(struct xseries_dma *)) && (numberOfADCsEnabled > 0u)) {
             ResetDMA();
         }
