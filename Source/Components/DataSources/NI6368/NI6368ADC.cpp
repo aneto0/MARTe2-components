@@ -1275,6 +1275,13 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
                         memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nBytesInDMA));
                     }
                     err = CopyFromDMA(nBytesInDMA);
+                    if (executionMode == NI6368ADC_EXEC_SPAWNED) {
+                        //Reset the error if this is being managed by another thread. The NotCompleted is only used in the Synchronise method 
+                        //if the DataSource is being driven by the RealTimeThread
+                        if (err == ErrorManagement::NotCompleted) {
+                            err = ErrorManagement::NoError;
+                        }
+                    }
                 }
                 dmaOffset = dmaOffset + nBytesInDMA;
                 dmaOffset %= dma->ai.count;
