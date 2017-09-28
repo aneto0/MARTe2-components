@@ -40,17 +40,129 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-
-TEST(MDSReaderGTest,TestConstructor) {
+TEST(MDSReaderGTest, TestInitialiseNoTreeName) {
     MDSReaderTest test;
-    ASSERT_TRUE(test.TestConstructor());
+    ASSERT_TRUE(test.TestInitialiseNoTreeName());
+}
+
+TEST(MDSReaderGTest, TestInitialiseWrongShotNumber) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestInitialiseWrongShotNumber());
+}
+
+TEST(MDSReaderGTest, TestInitialiseWrongTreeName) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestInitialiseWrongTreeName());
+}
+
+TEST(MDSReaderGTest, TestInitialiseUnexistingShotNumber) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestInitialiseUnexistingShotNumber());
+}
+
+TEST(MDSReaderGTest, TestInitialiseNoSignals) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestInitialiseNoSignals());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseNoSignals) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseNoSignals());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabase0Functions) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase0Functions());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabase2Functions) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase2Functions());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabase0Signals) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase0Signals());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseWrongSamples) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseWrongSamples());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseNoNodeName) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseNoNodeName());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseNoNodeName_2) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseNoNodeName_2());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseInvalidNodeName) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseInvalidNodeName());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseEqualNodeName) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseEqualNodeName());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseInvalidNodeType) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseInvalidNodeType());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseWrongType) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseWrongType());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseNoNumberOfElements) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseNoNumberOfElements());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseInvalidNumberOfElements) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseInvalidNumberOfElements());
 }
 
 
+/*
+ TEST(MDSReaderGTest, TestInitialiseWrongNodeNames) {
+ MDSReaderTest test;
+ ASSERT_TRUE(test.TestInitialiseWrongNodeNames());
+ }
+
+ TEST(MDSReaderGTest, TestInitialiseWrongNodeNames2) {
+ MDSReaderTest test;
+ ASSERT_TRUE(test.TestInitialiseWrongNodeNames2());
+ }
+
+ TEST(MDSReaderGTest, TestInitialiseWrongNodeNames3) {
+ MDSReaderTest test;
+ ASSERT_TRUE(test.TestInitialiseWrongNodeNames3());
+ }
+
+ TEST(MDSReaderGTest, TestInitialiseInvalidTypeNode) {
+ MDSReaderTest test;
+ ASSERT_TRUE(test.TestInitialiseInvalidTypeNode());
+ }
+
+ TEST(MDSReaderGTest, TestInitialiseInvalidTypeSpecified) {
+ MDSReaderTest test;
+ ASSERT_TRUE(test.TestInitialiseInvalidTypeSpecified());
+ }
+
+ TEST(MDSReaderGTest, TestInitialiseInvalidTypeSpecified2) {
+ MDSReaderTest test;
+ ASSERT_TRUE(test.TestInitialiseInvalidTypeSpecified2());
+ }
+ */
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-
-
-	

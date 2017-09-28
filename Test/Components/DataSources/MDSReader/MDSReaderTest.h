@@ -28,22 +28,181 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
+#include "mdsobjects.h"
+
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
+#include "MDSReader.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-
+using namespace MARTe;
 
 class MDSReaderTest {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API MDSReaderTest)
 public:
     MDSReaderTest();
+
+    /**
+     * @brief Sets the environment variable test_tree_path and creates a tree for testing.
+     */
     virtual ~MDSReaderTest();
-    bool TestConstructor();
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     */
+    bool TestInitialiseNoTreeName();
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     */
+    bool TestInitialiseWrongShotNumber();
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     */
+    bool TestInitialiseWrongTreeName();
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     */
+    bool TestInitialiseUnexistingShotNumber();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
+    bool TestInitialiseNoSignals();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
+    bool TestSetConfiguredDatabaseNoSignals();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
+    bool TestSetConfiguredDatabase0Functions();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
+    bool TestSetConfiguredDatabase2Functions();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
+    bool TestSetConfiguredDatabase0Signals();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
+    bool TestSetConfiguredDatabaseWrongSamples();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
+    bool TestSetConfiguredDatabaseDiffSignalsAndFunctions();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      * @details The configuration file of MDSReader::Initialise() contains an empty Signals node
+      */
+    bool TestSetConfiguredDatabaseNoNodeName();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseNoNodeName_2();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseInvalidNodeName();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseEqualNodeName();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseInvalidNodeType();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseWrongType();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseNoNumberOfElements();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseInvalidNumberOfElements();
+
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     * @details the node specified is not a vector
+     */
+    //bool TestInitialiseWrongNodeNames();
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     * @brief the node name specified is a number
+     */
+    //bool TestInitialiseWrongNodeNames2();
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     * @brief the node name specified is not a node of the tree.
+     */
+    //bool TestInitialiseWrongNodeNames3();
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     */
+    //bool TestInitialiseInvalidTypeNode();
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     * @details number of NodeNames different from the number of SignalTypes
+     */
+    //bool TestInitialiseInvalidTypeSpecified();
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     * @details SignalTypes different from the node types.
+     */
+    //bool TestInitialiseInvalidTypeSpecified2();
+
+
+private:
+    StreamString treeName;
+    StreamString fullPath;
+
+    /**
+     * List of node names which are supported by the MDSRead
+     */
+    StreamString *allValidNodeNames;
+
+    uint32 numberOfValidNodes;
+
+    /**
+     * list of nodes names used in the tests
+     */
+    StreamString *allNodeNames;
+
+    uint32 numberOfNodes;
+
+
 };
 
 
