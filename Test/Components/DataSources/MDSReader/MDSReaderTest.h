@@ -147,41 +147,40 @@ public:
       */
     bool TestSetConfiguredDatabaseInvalidNumberOfElements();
 
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseInvalidBytesSize();
 
     /**
-     * @brief Test message errors of MDSReader::Initialise().
-     * @details the node specified is not a vector
-     */
-    //bool TestInitialiseWrongNodeNames();
+      * @brief Test MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabase();
 
     /**
-     * @brief Test message errors of MDSReader::Initialise().
-     * @brief the node name specified is a number
-     */
-    //bool TestInitialiseWrongNodeNames2();
+      * @brief Test MDSReader::PrepareNextState().
+      */
+    bool TestPrepareNextState();
 
     /**
-     * @brief Test message errors of MDSReader::Initialise().
-     * @brief the node name specified is not a node of the tree.
-     */
-    //bool TestInitialiseWrongNodeNames3();
+      * @brief Test MDSReader::AllocateMemory().
+      */
+    bool TestAllocateMemory();
 
     /**
-     * @brief Test message errors of MDSReader::Initialise().
-     */
-    //bool TestInitialiseInvalidTypeNode();
+      * @brief Test MDSReader::GetNumberOfMemoryBuffers().
+      */
+    bool TestGetNumberOfMemoryBuffers();
 
     /**
-     * @brief Test message errors of MDSReader::Initialise().
-     * @details number of NodeNames different from the number of SignalTypes
-     */
-    //bool TestInitialiseInvalidTypeSpecified();
+      * @brief Test message errors of MDSReader::GetSignalMemoryBuffer().
+      */
+    bool TestGetSignalMemoryBufferNoMemory();
 
     /**
-     * @brief Test message errors of MDSReader::Initialise().
-     * @details SignalTypes different from the node types.
-     */
-    //bool TestInitialiseInvalidTypeSpecified2();
+      * @brief Test MDSReader::GetSignalMemoryBuffer().
+      */
+    bool TestGetSignalMemoryBuffer();
 
 
 private:

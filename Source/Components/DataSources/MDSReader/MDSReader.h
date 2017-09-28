@@ -82,24 +82,54 @@ public:
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
+    /**
+     * @brief Do nothing
+     * @return true
+     */
     virtual bool PrepareNextState(const char8 * const currentStateName,
                 const char8 * const nextStateName);
 
+    /**
+     * @brief Do nothing
+     * @return true
+     */
     virtual bool AllocateMemory();
 
+    /**
+     * @return 1u
+     */
     virtual uint32 GetNumberOfMemoryBuffers();
 
+    /**
+     * @brief Gets the signal memory buffer for the specified signal.
+     * @param[in] signalIdx indicates the index of the signal to be obtained.
+     * @param[in] bufferIdx indicate the index of the buffer to be obtained. Since only one buffer is allowed this parameter is always 0
+     * @param[out] signalAddress is where the address of the desired signal is copied.
+     */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
             const uint32 bufferIdx,
             void *&signalAddress);
 
+    /**
+     * @brief See DataSourceI::GetBrokerName.
+     * @details Only InputSignals are supported.
+     * @return MemoryMapSynchronisedInputBroker if interpolate = false, MemoryMapInterpolatedInputBroker otherwise.
+     */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
 
+    /**
+     * @brief See DataSourceI::GetInputBrokers.
+     * @details adds a MemoryMapSynchronisedInputBroker instance to the intputBrokers.
+     */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
             const char8* const functionName,
             void * const gamMemPtr);
 
+    /**
+     * @brief See DataSourceI::GetOutputBrokers.
+     * @return false.
+     */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
             const char8* const functionName,
             void * const gamMemPtr);
@@ -135,6 +165,20 @@ private:
 
     bool CheckTypeAgainstMdsNodeTypes(uint32 idx);
 
+    bool GetDataNode(uint32 nodeNumber);
+
+    /**
+     * @brief find tin which segment contains the time t for the signal index specified
+     * @details The algorithm goes throw all segments until the time t is found or the end of the segments are reached
+     * @param[in] t indicate the time to be found
+     * @param[out] if t is found the segment holds the segment where t was found.
+     * @param[in] index indicates which node number must be used.
+     * @return -1 if the end of data
+     * @return 0 if not found but is not the end of the data. It could happen if the data is only stored in trigger events
+     * @return 1 if the time t is in a segment.
+     */
+    uint8 FindSegment(float64 t, uint64 &segment, uint32 index);
+
     TypeDescriptor ConvertMDStypeToMARTeType(StreamString mdsType);
     StreamString treeName;
     MDSplus::Tree *tree;
@@ -166,13 +210,34 @@ private:
 
     uint32 *numberOfElements;
 
-    char *dataSourceMemory;
+    char8 *dataSourceMemory;
 
     uint32 *offsets;
 
     /**
+     * Time seconds.
+     */
+    float64 time;
+
+    /**
+     * time increment between Synchronisations. It is he inverse of frequency;
+     */
+    float64 period;
+
+    /**
      *
      */
+    float64 frequency;
+
+    /**
+     * Holds the maximum number of segments for each node of the tree.
+     */
+    uint64 *maxNumberOfSegments;
+
+    /**
+     * hold the last segments where the t was found. It is used for optimization since the time could not go back.
+     */
+    uint64 *lastSegment;
 
 
 };

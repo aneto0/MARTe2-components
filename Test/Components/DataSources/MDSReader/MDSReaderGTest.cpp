@@ -130,38 +130,41 @@ TEST(MDSReaderGTest, TestSetConfiguredDatabaseInvalidNumberOfElements) {
     ASSERT_TRUE(test.TestSetConfiguredDatabaseInvalidNumberOfElements());
 }
 
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseInvalidBytesSize) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseInvalidBytesSize());
+}
 
-/*
- TEST(MDSReaderGTest, TestInitialiseWrongNodeNames) {
- MDSReaderTest test;
- ASSERT_TRUE(test.TestInitialiseWrongNodeNames());
- }
+TEST(MDSReaderGTest, TestSetConfiguredDatabase) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase());
+}
 
- TEST(MDSReaderGTest, TestInitialiseWrongNodeNames2) {
- MDSReaderTest test;
- ASSERT_TRUE(test.TestInitialiseWrongNodeNames2());
- }
+TEST(MDSReaderGTest, TestPrepareNextState) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
+}
 
- TEST(MDSReaderGTest, TestInitialiseWrongNodeNames3) {
- MDSReaderTest test;
- ASSERT_TRUE(test.TestInitialiseWrongNodeNames3());
- }
+TEST(MDSReaderGTest, TestAllocateMemory) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestAllocateMemory());
+}
 
- TEST(MDSReaderGTest, TestInitialiseInvalidTypeNode) {
- MDSReaderTest test;
- ASSERT_TRUE(test.TestInitialiseInvalidTypeNode());
- }
+TEST(MDSReaderGTest, TestGetNumberOfMemoryBuffers) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
+}
 
- TEST(MDSReaderGTest, TestInitialiseInvalidTypeSpecified) {
- MDSReaderTest test;
- ASSERT_TRUE(test.TestInitialiseInvalidTypeSpecified());
- }
+TEST(MDSReaderGTest, TestGetSignalMemoryBufferNoMemory) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBufferNoMemory());
+}
 
- TEST(MDSReaderGTest, TestInitialiseInvalidTypeSpecified2) {
- MDSReaderTest test;
- ASSERT_TRUE(test.TestInitialiseInvalidTypeSpecified2());
- }
- */
+TEST(MDSReaderGTest, TestGetSignalMemoryBuffer) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

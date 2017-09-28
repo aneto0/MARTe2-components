@@ -59,8 +59,13 @@ MDSReader::MDSReader() {
     shotNumber = 0;
     type = NULL_PTR(TypeDescriptor *);
     numberOfElements = NULL_PTR(uint32 *);
-    dataSourceMemory = NULL_PTR(char *);
+    dataSourceMemory = NULL_PTR(char8 *);
     offsets = NULL_PTR(uint32 *);
+    time = 0.0;
+    frequency = 0.0;
+    period = 0.0;
+    maxNumberOfSegments = 0u;
+    lastSegment = NULL_PTR(uint64 *);
 }
 
 MDSReader::~MDSReader() {
@@ -101,9 +106,9 @@ MDSReader::~MDSReader() {
         delete[] offsets;
         offsets = NULL_PTR(uint32 *);
     }
-    if (dataSourceMemory != NULL_PTR(char *)) {
+    if (dataSourceMemory != NULL_PTR(char8 *)) {
         GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(dataSourceMemory));
-        dataSourceMemory = NULL_PTR(char *);
+        dataSourceMemory = NULL_PTR(char8 *);
     }
 
 }
@@ -137,6 +142,15 @@ bool MDSReader::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Error opening tree %s with shotNumber = %u\n", treeName.Buffer(), shotNumber);
         }
     }
+    if (ok) { //readFrequency
+        ok = data.Read("Frequency", frequency);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read frequency");
+        }
+        else {
+            period = 1 / frequency;
+        }
+    }
     if (ok) {
         ok = data.MoveRelative("Signals");
         if (!ok) {
@@ -159,100 +173,9 @@ bool MDSReader::Initialise(StructuredDataI& data) {
             ok = signalsDatabase.MoveToAncestor(1u);
         }
     }
-    /*
-     if (ok) { //read nodeNames
-     AnyType functionsArray = data.GetType("NodeNames");
-     ok = functionsArray.GetDataPointer() != NULL_PTR(void *);
-     if (!ok) {
-     REPORT_ERROR(ErrorManagement::ParametersError, "NodeNames pointer not found. data.GetType(NodeNames) returned a NULL pointer");
-     }
-     if (ok) {
-     numberOfNodeNames = functionsArray.GetNumberOfElements(0u);
-     ok = (numberOfNodeNames > 0u);
-     if (!ok) {
-     REPORT_ERROR(ErrorManagement::ParametersError, "Number of nodes is 0");
-     }
-     if (ok) {
-     nodeNames = new StreamString[numberOfNodeNames];
-     Vector<StreamString> vector(nodeNames, numberOfNodeNames);
-     ok = data.Read("NodeNames", vector);
-     if (!ok) {
-     REPORT_ERROR(ErrorManagement::ParametersError,
-     "Error reading NodeNames. The name exist but it is not a vector of strings. Do you forget the brackets{}?");
-     }
-     }
-     }
-     }
-
-     if (ok) { //open nodes
-     nodes = new MDSplus::TreeNode *[numberOfNodeNames];
-     for (uint32 i = 0u; i < numberOfNodeNames; i++) { //Initialise to NULL pointer because atomathically is not done and the destructor try to delete memory not allocated
-     nodes[i] = NULL_PTR(MDSplus::TreeNode *);
-     }
-     for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
-     ok = OpenNode(i);
-     if (!ok) {
-     REPORT_ERROR(ErrorManagement::ParametersError, "Error opening node %s. It may not exist \n", nodeNames[i].Buffer());
-     }
-     }
-     }
-     if (ok) { //get mds node type, validate type and get byte size of each node
-     mdsNodeTypes = new StreamString[numberOfNodeNames];
-     byteSizeNodes = new uint32[numberOfNodeNames];
-     for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
-     ok = GetTypeNode(i);
-     if (!ok) { //It should never happen because the node exist. But if the tree is corrupted it may launch the error
-     uint32 auxIdx = i;
-     REPORT_ERROR(ErrorManagement::ParametersError, "Error getting type node %u \n", auxIdx);
-     }
-     if (ok) {
-     ok = IsValidTypeNode(i);
-     if (!ok) {
-     REPORT_ERROR(ErrorManagement::ParametersError, "Type = %s. NodeName = %s\n", mdsNodeTypes[i].Buffer(), nodeNames[i].Buffer());
-     }
-     if (ok) {
-     GetByteSize(i);
-     }
-     }
-     }
-     }
-     if (ok) { //read signal types (optional). If they exist then check with the node types.
-     AnyType functionsArray = data.GetType("SignalTypes");
-     bool auxOk = functionsArray.GetDataPointer() != NULL_PTR(void *);
-     if (!auxOk) {
-     REPORT_ERROR(ErrorManagement::Information, "SignalTypes pointer not specified. Signal types will be obtained from the nodes");
-     }
-     if (auxOk) {
-     uint32 aux = functionsArray.GetNumberOfElements(0u);
-     ok = (numberOfNodeNames == aux);
-     if (!ok) {
-     REPORT_ERROR(ErrorManagement::ParametersError,
-     "Number of SignalTypes is different from the number of node names. number of SignalTypes = %u, number of NodeNames = %u", aux,
-     numberOfNodeNames);
-     }
-     if (ok) {
-     signalTypes = new StreamString[numberOfNodeNames];
-     Vector<StreamString> vector(signalTypes, numberOfNodeNames);
-     ok = data.Read("SignalTypes", vector);
-     if (!ok) { // it  should never happen because before data.GetType was called and succeed.
-     REPORT_ERROR(ErrorManagement::ParametersError, "Error reading SignalTypes");
-     }
-     }
-     if (ok) { //check SignalTypes against mdsNodeTypes
-     for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
-     ok = CheckSignalTypesAgainstMdsNodeTypes(i);
-     if (!ok) {
-     uint32 auxIdx = i;
-     StreamString auxStr = ConvertMDStypeToMARTeType(mdsNodeTypes[auxIdx]);
-     REPORT_ERROR(ErrorManagement::ParametersError,
-     "signalTypes different to mdsNodeTypes for signal %u. signalTypes = %s, mdsNodeTypes = %s (%s)", auxIdx, signalTypes[auxIdx].Buffer(),
-     mdsNodeTypes[auxIdx].Buffer(), auxStr.Buffer());
-     }
-     }
-     }
-     }
-     }
-     */
+    if (ok) {
+        ok = data.MoveToRoot();
+    }
     return ok;
 }
 
@@ -261,6 +184,7 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "DataSourceI::SetConfiguredDatabase(data) returned false");
     }
+
     if (ok) { // Check that only one GAM is Connected to the MDSReader
         uint32 auxNumberOfFunctions = GetNumberOfFunctions();
         ok = (auxNumberOfFunctions == 1u);
@@ -269,7 +193,6 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
                          auxNumberOfFunctions);
         }
     }
-
     if (ok) { //read number of nodes per function numberOfNodeNames
         //0u (second argument) because previously it is checked
         ok = GetFunctionNumberOfSignals(InputSignals, 0u, numberOfNodeNames);        //0u (second argument) because previously it is checked
@@ -283,7 +206,12 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
             }
         }
     }
-
+    if (ok) {        //allocate memory for lastSegment
+        lastSegment = new uint64[numberOfNodeNames];
+        for (uint32 i = 0u; i < numberOfNodeNames; i++) {
+            lastSegment[i] = 0u;
+        }
+    }
     if (ok) {
         for (uint32 n = 0u; (n < numberOfNodeNames) && ok; n++) {
             uint32 nSamples;
@@ -388,7 +316,8 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
                     uint32 auxIdx = i;
                     TypeDescriptor auxStr = ConvertMDStypeToMARTeType(mdsNodeTypes[auxIdx]);
                     REPORT_ERROR(ErrorManagement::ParametersError, "signalTypes different to mdsNodeTypes for signal %u. type = %s, mdsNodeTypes = %s (%s)",
-                                 auxIdx, type[auxIdx].type, mdsNodeTypes[auxIdx].Buffer(), auxStr.type);
+                                 auxIdx, TypeDescriptor::GetTypeNameFromTypeDescriptor(type[auxIdx]), mdsNodeTypes[auxIdx].Buffer(),
+                                 TypeDescriptor::GetTypeNameFromTypeDescriptor(auxStr));
                 }
             }
         }
@@ -428,13 +357,22 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
             dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalSignalMemory));
         }
     }
-
+    if (ok) {
+        maxNumberOfSegments = new uint64[numberOfNodeNames];
+        for (uint32 i = 0u; i < numberOfNodeNames; i++) {
+            maxNumberOfSegments[i] = nodes[i]->getNumSegments();
+        }
+    }
     return ok;
 }
 
 bool MDSReader::Synchronise() {
-
-    return true;
+    bool ok = true;
+    for (uint32 i = 0u; i < numberOfNodeNames; i++) {
+        GetDataNode(i);
+    }
+    time += period;
+    return ok;
 }
 
 bool MDSReader::PrepareNextState(const char8 * const currentStateName,
@@ -454,6 +392,9 @@ bool MDSReader::GetSignalMemoryBuffer(const uint32 signalIdx,
                                       const uint32 bufferIdx,
                                       void *&signalAddress) {
     bool ok = (dataSourceMemory != NULL_PTR(char8 *));
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Memory not allocated");
+    }
     if (ok) {
         /*lint -e{613} dataSourceMemory cannot be NULL here*/
         char8 *memPtr = &dataSourceMemory[offsets[signalIdx]];
@@ -464,10 +405,13 @@ bool MDSReader::GetSignalMemoryBuffer(const uint32 signalIdx,
 
 const char *MDSReader::GetBrokerName(StructuredDataI &data,
                                      const SignalDirection direction) {
-    return "";
+    const char8* brokerName = "";
+    if (direction == InputSignals) {
+        brokerName = "MemoryMapSynchronisedInputBroker";
+    }
+    return brokerName;
 }
 
-//TODO
 bool MDSReader::GetInputBrokers(ReferenceContainer &inputBrokers,
                                 const char8* const functionName,
                                 void * const gamMemPtr) {
@@ -627,10 +571,66 @@ TypeDescriptor MDSReader::ConvertMDStypeToMARTeType(StreamString mdsType) {
         str = Float32Bit;
     }
     else if (mdsType == "DTYPE_FT") {
-        str = Float32Bit;
+        str = Float64Bit;
     }
     return str;
 
+}
+
+/**
+ * -1--> end data (not found)
+ * 0--> is not end of data but not found
+ * 1--> found
+ */
+
+bool MDSReader::GetDataNode(uint32 nodeNumber) {
+    bool ok = true;
+    MDSplus::Data *dataD;
+    uint64 minSegment = 0u;
+    uint8 errorCodeMinSegment = -1;
+    uint64 maxSegment = 0u;
+    uint8 errorCodeMaxSegment = -1;
+    errorCodeMinSegment = FindSegment(time, minSegment, nodeNumber);
+    ok = (errorCodeMinSegment != -1);
+    if (ok) {
+        errorCodeMaxSegment = FindSegment(time + period, maxSegment, nodeNumber);
+    }
+    if (ok) { //in the time specified there is no segments
+        if ((errorCodeMinSegment == 0) && (errorCodeMaxSegment == 0)) {
+
+        }
+    }
+    dataD = nodes[nodeNumber]->getSegment(segment);
+    return ok;
+
+}
+
+uint8 MDSReader::FindSegment(float64 t,
+                             uint64 &segment,
+                             uint32 nodeIdx) {
+    bool find = false;
+    MDSplus::Data *tminD;
+    MDSplus::Data *tmaxD;
+    uint8 retVal = -1;
+    float64 tmax = 0.0;
+    for (uint64 i = lastSegment[nodeIdx]; (i < maxNumberOfSegments) && !find; i++) {
+        nodes[i]->getSegmentLimits(i, &tminD, &tmaxD);
+        tmax = tmaxD->getDouble();
+        if (t < tmax) {
+            find = true;
+            if (t < tminD->getDouble()) {
+                retVal = 0;
+
+            }
+            else {
+                retVal = 1;
+                segment = i;
+                lastSegment[nodeIdx] = i;
+            }
+        }
+    }
+
+    return retVal;
 }
 CLASS_REGISTER(MDSReader, "1.0")
 }
