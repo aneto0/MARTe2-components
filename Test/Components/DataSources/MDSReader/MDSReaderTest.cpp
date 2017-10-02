@@ -48,75 +48,111 @@ class MDSReaderTestHelper: public MDSReader {
 public:
     MDSReaderTestHelper(StreamString name) {
         treeName = name;
+        numberOfElementsPerSeg = 0;
+        numberOfSegments = 0;
+        elementsRead = 10;
+        sum_uint8 = 0;
+        sum_int8 = -20;
+        sum_uint16 = 0;
+        sum_int16 = -40;
+        sum_uint32 = 0;
+        sum_int32 = -80;
+        sum_uint64 = 0;
+        sum_int64 = -160;
+        sum_float32 = 0;
+        sum_float64 = 0;
     }
 
     virtual ~MDSReaderTestHelper() {
 
     }
-    bool CreateConfigurationFile() {
+    bool CreateConfigurationFile() { //DataManagement = 0, HoleManagement = 0
         bool ok = true;
         ok &= config.Write("TreeName", treeName.Buffer());
         ok &= config.Write("ShotNumber", 1);
+        float64 CycleFrequnecy = 1/(0.1*elementsRead);
+        ok &= config.Write("Frequency", CycleFrequnecy);//0.1 is the sample time of test_tree pulse 1
+
         ok &= config.CreateAbsolute(".Signals");
         ok &= config.CreateRelative("0");
         ok &= config.Write("NodeName", "S_uint8");
         ok &= config.Write("Type", "uint8");
-        ok &= config.Write("NumberOfElements", 100);
-        ok &= config.Write("ByteSize", 100);
+        ok &= config.Write("NumberOfElements", elementsRead);
+        ok &= config.Write("ByteSize", elementsRead * 1);
+        ok &= config.Write("DataManagement", 0);
+        ok &= config.Write("HoleManagement", 0);
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("1");
         ok &= config.Write("NodeName", "S_int8");
         ok &= config.Write("Type", "int8");
-        ok &= config.Write("NumberOfElements", 100);
-        ok &= config.Write("ByteSize", 100);
+        ok &= config.Write("NumberOfElements", elementsRead);
+        ok &= config.Write("ByteSize", elementsRead * 1);
+        ok &= config.Write("DataManagement", 0);
+        ok &= config.Write("HoleManagement", 0);
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("2");
         ok &= config.Write("NodeName", "S_uint16");
         ok &= config.Write("Type", "uint16");
-        ok &= config.Write("NumberOfElements", 100);
-        ok &= config.Write("ByteSize", 200);
+        ok &= config.Write("NumberOfElements", elementsRead);
+        ok &= config.Write("ByteSize", elementsRead * 2);
+        ok &= config.Write("DataManagement", 0);
+        ok &= config.Write("HoleManagement", 0);
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("3");
         ok &= config.Write("NodeName", "S_int16");
         ok &= config.Write("Type", "int16");
-        ok &= config.Write("NumberOfElements", 100);
-        ok &= config.Write("ByteSize", 200);
+        ok &= config.Write("NumberOfElements", elementsRead);
+        ok &= config.Write("ByteSize", elementsRead * 2);
+        ok &= config.Write("DataManagement", 0);
+        ok &= config.Write("HoleManagement", 0);
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("4");
         ok &= config.Write("NodeName", "S_uint32");
         ok &= config.Write("Type", "uint32");
-        ok &= config.Write("NumberOfElements", 100);
-        ok &= config.Write("ByteSize", 400);
+        ok &= config.Write("NumberOfElements", elementsRead);
+        ok &= config.Write("ByteSize", elementsRead * 4);
+        ok &= config.Write("DataManagement", 0);
+        ok &= config.Write("HoleManagement", 0);
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("5");
         ok &= config.Write("NodeName", "S_int32");
         ok &= config.Write("Type", "int32");
-        ok &= config.Write("NumberOfElements", 100);
-        ok &= config.Write("ByteSize",400);
+        ok &= config.Write("NumberOfElements", elementsRead);
+        ok &= config.Write("ByteSize", elementsRead * 4);
+        ok &= config.Write("DataManagement", 0);
+        ok &= config.Write("HoleManagement", 0);
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("6");
         ok &= config.Write("NodeName", "S_uint64");
         ok &= config.Write("Type", "uint64");
-        ok &= config.Write("NumberOfElements", 100);
-        ok &= config.Write("ByteSize", 800);
+        ok &= config.Write("NumberOfElements", elementsRead);
+        ok &= config.Write("ByteSize", elementsRead * 8);
+        ok &= config.Write("DataManagement", 0);
+        ok &= config.Write("HoleManagement", 0);
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("7");
         ok &= config.Write("NodeName", "S_int64");
         ok &= config.Write("Type", "int64");
-        ok &= config.Write("NumberOfElements", 100);
-        ok &= config.Write("ByteSize", 800);
+        ok &= config.Write("NumberOfElements", elementsRead);
+        ok &= config.Write("ByteSize", elementsRead * 8);
+        ok &= config.Write("DataManagement", 0);
+        ok &= config.Write("HoleManagement", 0);
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("8");
         ok &= config.Write("NodeName", "S_float32");
         ok &= config.Write("Type", "float32");
-        ok &= config.Write("NumberOfElements", 100);
-        ok &= config.Write("ByteSize", 400);
+        ok &= config.Write("NumberOfElements", elementsRead);
+        ok &= config.Write("ByteSize", elementsRead * 4);
+        ok &= config.Write("DataManagement", 0);
+        ok &= config.Write("HoleManagement", 0);
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("9");
         ok &= config.Write("NodeName", "S_float64");
         ok &= config.Write("Type", "float64");
-        ok &= config.Write("NumberOfElements", 100);
-        ok &= config.Write("ByteSize", 800);
+        ok &= config.Write("NumberOfElements", elementsRead);
+        ok &= config.Write("ByteSize", elementsRead * 8);
+        ok &= config.Write("DataManagement", 0);
+        ok &= config.Write("HoleManagement", 0);
         ok &= config.MoveToAncestor(1u);
 
         ok &= config.CreateAbsolute("Functions");
@@ -148,11 +184,145 @@ public:
         return ok;
     }
 
+    bool CompareS_uint8(uint8 *ptr,
+                        uint32 iteration) {
+        bool ok = true;
+        for (uint32 i = 0u; (i < elementsRead) && ok; i++) {
+            ok = (ptr[i] == sum_uint8);
+            if (!ok) {
+                printf("uint8 value = %u != ref = %u. iteration = %u\n", ptr[i], sum_uint8, iteration);
+            }
+            sum_uint8++;
+        }
+        return ok;
+    }
+    bool CompareS_int8(int8 *ptr,
+                       uint32 iteration) {
+        bool ok = true;
+        for (uint32 i = 0u; (i < elementsRead) && ok; i++) {
+            ok = ptr[i] == sum_int8;
+            if (!ok) {
+                printf("int8 value = %d != ref = %d. iteration = %u\n", ptr[i], sum_int8, iteration);
+            }
+            sum_int8++;
+        }
+
+        return ok;
+    }
+    bool CompareS_uint16(uint16 * ptr,
+                         uint32 iteration) {
+        bool ok = true;
+        for (uint32 i = 0u; (i < elementsRead) && ok; i++) {
+            ok = ptr[i] == sum_uint16;
+            if (!ok) {
+                printf("uint16 value = %u != ref = %u. iteration = %u\n", ptr[i], sum_uint16, iteration);
+            }
+            sum_uint16 += 2;
+        }
+        return ok;
+    }
+    bool CompareS_int16(int16 * ptr,
+                        uint32 iteration) {
+        bool ok = true;
+        for (uint32 i = 0u; (i < elementsRead) && ok; i++) {
+            ok = ptr[i] == sum_int16;
+            if (!ok) {
+                printf("int16 value = %d != ref = %d. iteration = %u\n", ptr[i], sum_int16, iteration);
+            }
+            sum_int16 += 2;
+        }
+        return ok;
+    }
+    bool CompareS_uint32(uint32 * ptr,
+                         uint32 iteration) {
+        bool ok = true;
+        for (uint32 i = 0u; (i < elementsRead) && ok; i++) {
+            ok = ptr[i] == sum_uint32;
+            if (!ok) {
+                printf("uint32 value = %u != ref = %u. iteration = %u\n", ptr[i], sum_uint32, iteration);
+            }
+            sum_uint32 += 4;
+        }
+        return ok;
+    }
+    bool CompareS_int32(int32 * ptr,
+                        uint32 iteration) {
+        bool ok = true;
+        for (uint32 i = 0u; (i < elementsRead) && ok; i++) {
+            ok = ptr[i] == sum_int32;
+            if (!ok) {
+                printf("int32 value = %d != ref = %d. iteration = %u\n", ptr[i], sum_int32, iteration);
+            }
+            sum_int32 += 4;
+        }
+        return ok;
+    }
+    bool CompareS_uint64(uint64 * ptr,
+                         uint32 iteration) {
+        bool ok = true;
+        for (uint32 i = 0u; (i < elementsRead) && ok; i++) {
+            ok = ptr[i] == sum_uint64;
+            if (!ok) {
+                printf("uint64 value = %llu != ref = %llu. iteration = %u\n", ptr[i], sum_uint64, iteration);
+            }
+            sum_uint64 += 8;
+        }
+        return ok;
+    }
+    bool CompareS_int64(int64 * ptr,
+                        uint32 iteration) {
+        bool ok = true;
+        for (uint32 i = 0u; (i < elementsRead) && ok; i++) {
+            ok = ptr[i] == sum_int64;
+            if (!ok) {
+                printf("int64 value = %lld!= ref = %lld. iteration = %u\n", ptr[i], sum_int64, iteration);
+            }
+            sum_int64 += 8;
+        }
+        return ok;
+    }
+    bool CompareS_float32(float32 * ptr,
+                          uint32 iteration) {
+        bool ok = true;
+        for (uint32 i = 0u; (i < elementsRead) && ok; i++) {
+            ok = IsEqual(ptr[i], sum_float32);
+            if (!ok) {
+                printf("float32 value = %f != ref = %f\n", ptr[i], sum_float32);
+            }
+            sum_float32 += 0.1;
+        }
+        return ok;
+    }
+    bool CompareS_float64(float64 * ptr,
+                          uint32 iteration) {
+        bool ok = true;
+        for (uint32 i = 0u; (i < elementsRead) && ok; i++) {
+            ok = IsEqual(ptr[i], sum_float64);
+            if (!ok) {
+                printf("float64 value = %lf != ref = %lf\n", ptr[i], sum_float64);
+            }
+            sum_float64 += 0.1;
+        }
+        return ok;
+    }
+
     ConfigurationDatabase config;
+    MARTe::uint32 numberOfElementsPerSeg;
+    MARTe::uint32 numberOfSegments;
+    uint32 elementsRead;
 
 private:
     StreamString treeName;
-
+    uint8 sum_uint8;
+    int8 sum_int8;
+    uint16 sum_uint16;
+    int16 sum_int16;
+    uint32 sum_uint32;
+    int32 sum_int32;
+    uint64 sum_uint64;
+    int64 sum_int64;
+    float32 sum_float32;
+    float64 sum_float64;
 };
 
 /**
@@ -178,9 +348,9 @@ public:
     CreateTree(StreamString name) {
         treeName = name;
         pulseNumber = 1;
-        numberOfElementsPerSeg = 400; //400000000;
+        numberOfElementsPerSeg = 20; //400000000;
         numberOfSegments = 10; //100;
-        elapsedTimeSegment = 1.0;
+        elapsedTimeSegment = 2;
         period = elapsedTimeSegment / numberOfElementsPerSeg;
         CreateModel();
         CreatePulseNumber(pulseNumber);
@@ -428,7 +598,7 @@ private:
             MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
             for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
                 data[i] = accum;
-                accum += 4;
+                accum += 8;
             }
             dataArray = new MDSplus::Uint64Array((const long unsigned int *) (data), numberOfElementsPerSeg);
             node1->makeSegment(Dstart, Dend, dimension, dataArray);
@@ -698,6 +868,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoSignals() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     /*
      //example how to print a ConfigurationDatabase
      StreamString a;
@@ -724,6 +895,7 @@ bool MDSReaderTest::TestSetConfiguredDatabase0Functions() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.MoveToRoot();
 
@@ -743,6 +915,7 @@ bool MDSReaderTest::TestSetConfiguredDatabase2Functions() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.MoveToAncestor(1u);
@@ -767,6 +940,7 @@ bool MDSReaderTest::TestSetConfiguredDatabase0Signals() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.MoveToAncestor(1u);
@@ -791,6 +965,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseWrongSamples() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.MoveToAncestor(1u);
@@ -820,6 +995,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseDiffSignalsAndFunctions() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.MoveToAncestor(1u);
@@ -854,6 +1030,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoNodeName() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.MoveToRoot();
     ok = dS.Initialise(config);
@@ -885,6 +1062,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoNodeName_2() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.MoveToAncestor(1u);
@@ -917,6 +1095,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidNodeName() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
@@ -952,6 +1131,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseEqualNodeName() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
@@ -987,6 +1167,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidNodeType() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
@@ -1027,6 +1208,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseWrongType() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
@@ -1064,6 +1246,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoNumberOfElements() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
@@ -1101,6 +1284,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidNumberOfElements() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
@@ -1140,6 +1324,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidBytesSize() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
@@ -1172,6 +1357,236 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidBytesSize() {
     return ok;
 }
 
+bool MDSReaderTest::TestSetConfiguredDatabaseNoDataManagement() {
+    CreateTree myTreeCreated(treeName);
+    bool ok;
+    MDSReader dS;
+    ConfigurationDatabase config;
+    config.Write("TreeName", treeName.Buffer());
+    config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
+    config.CreateAbsolute(".Signals");
+    config.CreateRelative("0");
+    config.Write("NodeName", "S_uint8");
+    config.Write("Type", "uint8");
+    config.Write("NumberOfElements", 100);
+    config.Write("ByteSize", 100);
+
+    config.Write("HoleManagement", 0);
+    config.MoveToAncestor(1u);
+    config.CreateRelative("1");
+    config.Write("NodeName", "S_int8");
+    config.Write("Type", "int8");
+    config.Write("NumberOfElements", 100);
+    config.Write("ByteSize", 100);
+    config.Write("DataManagement", 2);
+    config.Write("HoleManagement", 0);
+
+    config.CreateAbsolute("Functions");
+    config.CreateRelative("0");
+    config.CreateRelative("InputSignals");
+    config.CreateRelative("0");
+    config.Write("Samples", 1);
+    config.MoveToAncestor(1u);
+    config.CreateRelative("1");
+    config.MoveToAncestor(1u);
+    config.Write("ByteSize", 10);
+    config.MoveToRoot();
+
+    ok = dS.Initialise(config);
+
+    config.MoveToRoot();
+
+    if (ok) {
+        ok = !dS.SetConfiguredDatabase(config);
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSetConfiguredDatabaseInvalidDataManagement() {
+    CreateTree myTreeCreated(treeName);
+    bool ok;
+    MDSReader dS;
+    ConfigurationDatabase config;
+    config.Write("TreeName", treeName.Buffer());
+    config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
+    config.CreateAbsolute(".Signals");
+    config.CreateRelative("0");
+    config.Write("NodeName", "S_uint8");
+    config.Write("Type", "uint8");
+    config.Write("NumberOfElements", 100);
+    config.Write("ByteSize", 100);
+    config.Write("DataManagement", 4);
+    config.Write("HoleManagement", 0);
+    config.MoveToAncestor(1u);
+    config.CreateRelative("1");
+    config.Write("NodeName", "S_int8");
+    config.Write("Type", "int8");
+    config.Write("NumberOfElements", 100);
+    config.Write("ByteSize", 100);
+    config.Write("DataManagement", 2);
+    config.Write("HoleManagement", 0);
+
+    config.CreateAbsolute("Functions");
+    config.CreateRelative("0");
+    config.CreateRelative("InputSignals");
+    config.CreateRelative("0");
+    config.Write("Samples", 1);
+    config.MoveToAncestor(1u);
+    config.CreateRelative("1");
+    config.MoveToAncestor(1u);
+    config.Write("ByteSize", 10);
+    config.MoveToRoot();
+
+    ok = dS.Initialise(config);
+
+    config.MoveToRoot();
+
+    if (ok) {
+        ok = !dS.SetConfiguredDatabase(config);
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSetConfiguredDatabaseDataManagement0() {
+    CreateTree myTreeCreated(treeName);
+    bool ok;
+    MDSReader dS;
+    ConfigurationDatabase config;
+    config.Write("TreeName", treeName.Buffer());
+    config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1);
+    config.CreateAbsolute(".Signals");
+    config.CreateRelative("0");
+    config.Write("NodeName", "S_uint8");
+    config.Write("Type", "uint8");
+    config.Write("NumberOfElements", 400);
+    config.Write("ByteSize", 400);
+    config.Write("DataManagement", 0);
+    config.Write("HoleManagement", 0);
+    config.MoveToAncestor(1u);
+    config.CreateRelative("1");
+    config.Write("NodeName", "S_int8");
+    config.Write("Type", "int8");
+    config.Write("NumberOfElements", 100);
+    config.Write("ByteSize", 100);
+    config.Write("DataManagement", 0);
+    config.Write("HoleManagement", 0);
+
+    config.CreateAbsolute("Functions");
+    config.CreateRelative("0");
+    config.CreateRelative("InputSignals");
+    config.CreateRelative("0");
+    config.Write("Samples", 1);
+    config.MoveToAncestor(1u);
+    config.CreateRelative("1");
+    config.MoveToAncestor(1u);
+    config.Write("ByteSize", 10);
+    config.MoveToRoot();
+
+    ok = dS.Initialise(config);
+
+    config.MoveToRoot();
+
+    if (ok) {
+        ok = !dS.SetConfiguredDatabase(config);
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSetConfiguredDatabaseNoHoleManagement() {
+    CreateTree myTreeCreated(treeName);
+    bool ok;
+    MDSReader dS;
+    ConfigurationDatabase config;
+    config.Write("TreeName", treeName.Buffer());
+    config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
+    config.CreateAbsolute(".Signals");
+    config.CreateRelative("0");
+    config.Write("NodeName", "S_uint8");
+    config.Write("Type", "uint8");
+    config.Write("NumberOfElements", 100);
+    config.Write("ByteSize", 100);
+    config.Write("DataManagement", 2);
+
+    config.MoveToAncestor(1u);
+    config.CreateRelative("1");
+    config.Write("NodeName", "S_int8");
+    config.Write("Type", "int8");
+    config.Write("NumberOfElements", 100);
+    config.Write("ByteSize", 100);
+    config.Write("DataManagement", 2);
+    config.Write("HoleManagement", 0);
+
+    config.CreateAbsolute("Functions");
+    config.CreateRelative("0");
+    config.CreateRelative("InputSignals");
+    config.CreateRelative("0");
+    config.Write("Samples", 1);
+    config.MoveToAncestor(1u);
+    config.CreateRelative("1");
+    config.MoveToAncestor(1u);
+    config.Write("ByteSize", 10);
+    config.MoveToRoot();
+
+    ok = dS.Initialise(config);
+
+    config.MoveToRoot();
+
+    if (ok) {
+        ok = !dS.SetConfiguredDatabase(config);
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSetConfiguredDatabaseInvalidHoleManagement() {
+    CreateTree myTreeCreated(treeName);
+    bool ok;
+    MDSReader dS;
+    ConfigurationDatabase config;
+    config.Write("TreeName", treeName.Buffer());
+    config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
+    config.CreateAbsolute(".Signals");
+    config.CreateRelative("0");
+    config.Write("NodeName", "S_uint8");
+    config.Write("Type", "uint8");
+    config.Write("NumberOfElements", 100);
+    config.Write("ByteSize", 100);
+    config.Write("DataManagement", 2);
+    config.Write("HoleManagement", 2);
+    config.MoveToAncestor(1u);
+    config.CreateRelative("1");
+    config.Write("NodeName", "S_int8");
+    config.Write("Type", "int8");
+    config.Write("NumberOfElements", 100);
+    config.Write("ByteSize", 100);
+    config.Write("DataManagement", 2);
+    config.Write("HoleManagement", 0);
+
+    config.CreateAbsolute("Functions");
+    config.CreateRelative("0");
+    config.CreateRelative("InputSignals");
+    config.CreateRelative("0");
+    config.Write("Samples", 1);
+    config.MoveToAncestor(1u);
+    config.CreateRelative("1");
+    config.MoveToAncestor(1u);
+    config.Write("ByteSize", 10);
+    config.MoveToRoot();
+
+    ok = dS.Initialise(config);
+
+    config.MoveToRoot();
+
+    if (ok) {
+        ok = !dS.SetConfiguredDatabase(config);
+    }
+    return ok;
+}
+
 bool MDSReaderTest::TestSetConfiguredDatabase() {
     CreateTree myTreeCreated(treeName);
     bool ok;
@@ -1179,18 +1594,23 @@ bool MDSReaderTest::TestSetConfiguredDatabase() {
     ConfigurationDatabase config;
     config.Write("TreeName", treeName.Buffer());
     config.Write("ShotNumber", 1);
+    config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
     config.Write("Type", "uint8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
+    config.Write("DataManagement", 1);
+    config.Write("HoleManagement", 0);
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
     config.Write("Type", "int8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
+    config.Write("DataManagement", 2);
+    config.Write("HoleManagement", 0);
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -1238,19 +1658,200 @@ bool MDSReaderTest::TestGetSignalMemoryBuffer() {
     MDSReaderTestHelper dS(treeName);
     bool ok;
     ok = dS.CreateConfigurationFile();
-    if(ok){
+    if (ok) {
         ok = dS.Initialise(dS.config);
     }
-    if(ok){
+    if (ok) {
         ok = dS.SetConfiguredDatabase(dS.config);
     }
     void *ptr = NULL_PTR(void *);
-    for(uint32 i = 0u; (i < numberOfValidNodes) && ok; i++){
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
         ok = dS.GetSignalMemoryBuffer(i, 0, ptr);
-        if(ok){
+        if (ok) {
             ok = (ptr != NULL_PTR(void *));
         }
-        printf("%p\n", ptr);
+    }
+    return ok;
+}
+
+bool MDSReaderTest::Test() {
+    char8 *ptr = new char8[8];
+    for (uint32 i = 0u; i < 8; i += 4) {
+        ptr[i] = 0;
+        ptr[i + 1] = 1;
+        ptr[i + 2] = 0;
+        ptr[i + 3] = 0;
+    }
+    printf("ptr[0] = %d, ptr[1] = %d\n", ((int32 *) ptr)[0], ((int32 *) ptr)[1]);
+
+    MemoryOperationsHelper::Set(reinterpret_cast<void *>(ptr), 4, 8u);
+    printf("ptr[0] = %d, ptr[1] = %d\n", ((int32 *) ptr)[0], ((int32 *) ptr)[1]);
+    for (uint32 i = 0u; i < 10; i++) {
+        std::cout << "ptr[0] = " << ptr[i] << std::endl;
+    }
+    for (uint32 i = 0u; i < 10; i++) {
+        printf("ptr[%d] = %c\n", i, ptr[i]);
+    }
+    printf("\n%d, %d\n", static_cast<uint32>(3.1), static_cast<uint32>(3.99));
+    return false;
+
+}
+
+bool MDSReaderTest::TestSynchronise() {
+    MDSReaderTestHelper dS(treeName);
+    bool ok;
+    ok = dS.CreateConfigurationFile();
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    if (ok) { //last read not verified
+        for (uint32 i = 0u; (i < 20) && ok; i++) {
+            ok = dS.Synchronise();
+            /*
+            for(uint32 j = 0u; j <10; j++) {
+                printf("%d\n", ((int8 *)ptr[1])[j]);
+            }
+            */
+            if (ok) {
+                ok &= dS.CompareS_uint8(((uint8 *)ptr[0]), i);
+                ok &= dS.CompareS_int8(((int8 *)ptr[1]), i);
+                ok &= dS.CompareS_uint16(((uint16 *) ptr[2]), i);
+                ok &= dS.CompareS_int16(((int16 *) ptr[3]), i);
+                ok &= dS.CompareS_uint32(((uint32 *) ptr[4]), i);
+                ok &= dS.CompareS_int32(((int32 *) ptr[5]), i);
+                ok &= dS.CompareS_uint64(((uint64 *) ptr[6]), i);
+                ok &= dS.CompareS_int64(((int64 *) ptr[7]), i);
+                ok &= dS.CompareS_float32(((float32 *) ptr[8]), i);
+                ok &= dS.CompareS_float64(((float64 *) ptr[9]), i);
+            }
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise1() {
+    MDSReaderTestHelper dS(treeName);
+    bool ok;
+    dS.elementsRead = 20;
+    ok = dS.CreateConfigurationFile();
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    if (ok) { //last read not verified
+        for (uint32 i = 0u; (i < 10) && ok; i++) {
+            ok = dS.Synchronise();
+            /*
+            for(uint32 j = 0u; j <10; j++) {
+                printf("%d\n", ((int8 *)ptr[1])[j]);
+            }
+            */
+            if (ok) {
+                ok &= dS.CompareS_uint8(((uint8 *)ptr[0]), i);
+                ok &= dS.CompareS_int8(((int8 *)ptr[1]), i);
+                ok &= dS.CompareS_uint16(((uint16 *) ptr[2]), i);
+                ok &= dS.CompareS_int16(((int16 *) ptr[3]), i);
+                ok &= dS.CompareS_uint32(((uint32 *) ptr[4]), i);
+                ok &= dS.CompareS_int32(((int32 *) ptr[5]), i);
+                ok &= dS.CompareS_uint64(((uint64 *) ptr[6]), i);
+                ok &= dS.CompareS_int64(((int64 *) ptr[7]), i);
+                ok &= dS.CompareS_float32(((float32 *) ptr[8]), i);
+                ok &= dS.CompareS_float64(((float64 *) ptr[9]), i);
+            }
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise2() {
+    MDSReaderTestHelper dS(treeName);
+    bool ok;
+    dS.elementsRead = 40;
+    ok = dS.CreateConfigurationFile();
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    if (ok) { //last read not verified
+        for (uint32 i = 0u; (i < 5) && ok; i++) {
+            ok = dS.Synchronise();
+            /*
+            for(uint32 j = 0u; j <10; j++) {
+                printf("%d\n", ((int8 *)ptr[1])[j]);
+            }
+            */
+            if (ok) {
+                ok &= dS.CompareS_uint8(((uint8 *)ptr[0]), i);
+                ok &= dS.CompareS_int8(((int8 *)ptr[1]), i);
+                ok &= dS.CompareS_uint16(((uint16 *) ptr[2]), i);
+                ok &= dS.CompareS_int16(((int16 *) ptr[3]), i);
+                ok &= dS.CompareS_uint32(((uint32 *) ptr[4]), i);
+                ok &= dS.CompareS_int32(((int32 *) ptr[5]), i);
+                ok &= dS.CompareS_uint64(((uint64 *) ptr[6]), i);
+                ok &= dS.CompareS_int64(((int64 *) ptr[7]), i);
+                ok &= dS.CompareS_float32(((float32 *) ptr[8]), i);
+                ok &= dS.CompareS_float64(((float64 *) ptr[9]), i);
+            }
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise3() {
+    MDSReaderTestHelper dS(treeName);
+    bool ok;
+    dS.elementsRead = 15;
+    ok = dS.CreateConfigurationFile();
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    if (ok) { //last read not verified
+        for (uint32 i = 0u; (i < 5) && ok; i++) {
+            ok = dS.Synchronise();
+            /*
+            for(uint32 j = 0u; j <10; j++) {
+                printf("%d\n", ((int8 *)ptr[1])[j]);
+            }
+            */
+            if (ok) {
+                ok &= dS.CompareS_uint8(((uint8 *)ptr[0]), i);
+                ok &= dS.CompareS_int8(((int8 *)ptr[1]), i);
+                ok &= dS.CompareS_uint16(((uint16 *) ptr[2]), i);
+                ok &= dS.CompareS_int16(((int16 *) ptr[3]), i);
+                ok &= dS.CompareS_uint32(((uint32 *) ptr[4]), i);
+                ok &= dS.CompareS_int32(((int32 *) ptr[5]), i);
+                ok &= dS.CompareS_uint64(((uint64 *) ptr[6]), i);
+                ok &= dS.CompareS_int64(((int64 *) ptr[7]), i);
+                ok &= dS.CompareS_float32(((float32 *) ptr[8]), i);
+                ok &= dS.CompareS_float64(((float64 *) ptr[9]), i);
+            }
+        }
     }
     return ok;
 }

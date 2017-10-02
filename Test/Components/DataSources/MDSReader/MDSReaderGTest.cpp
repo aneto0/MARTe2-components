@@ -140,6 +140,31 @@ TEST(MDSReaderGTest, TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseNoDataManagement) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseNoDataManagement());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseInvalidDataManagement) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseInvalidDataManagement());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseDataManagement0) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseDataManagement0());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseNoHoleManagement) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseNoHoleManagement());
+}
+
+TEST(MDSReaderGTest, TestSetConfiguredDatabaseInvalidHoleManagement) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabaseInvalidHoleManagement());
+}
+
 TEST(MDSReaderGTest, TestPrepareNextState) {
     MDSReaderTest test;
     ASSERT_TRUE(test.TestPrepareNextState());
@@ -163,6 +188,31 @@ TEST(MDSReaderGTest, TestGetSignalMemoryBufferNoMemory) {
 TEST(MDSReaderGTest, TestGetSignalMemoryBuffer) {
     MDSReaderTest test;
     ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+}
+/*
+TEST(MDSReaderGTest, Test) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.Test());
+}
+*/
+TEST(MDSReaderGTest, TestSynchronise) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise());
+}
+
+TEST(MDSReaderGTest, TestSynchronise1) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise1());
+}
+
+TEST(MDSReaderGTest, TestSynchronise2) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise2());
+}
+
+TEST(MDSReaderGTest, TestSynchronise3) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise3());
 }
 
 /*---------------------------------------------------------------------------*/

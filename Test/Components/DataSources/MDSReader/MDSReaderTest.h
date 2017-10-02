@@ -153,6 +153,31 @@ public:
     bool TestSetConfiguredDatabaseInvalidBytesSize();
 
     /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseNoDataManagement();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseInvalidDataManagement();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseDataManagement0();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseNoHoleManagement();
+
+    /**
+      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+      */
+    bool TestSetConfiguredDatabaseInvalidHoleManagement();
+
+    /**
       * @brief Test MDSReader::SetConfiguredDatabase().
       */
     bool TestSetConfiguredDatabase();
@@ -181,6 +206,44 @@ public:
       * @brief Test MDSReader::GetSignalMemoryBuffer().
       */
     bool TestGetSignalMemoryBuffer();
+
+    /**
+      * @brief Test MDSReader::GetSignalMemoryBuffer().
+      */
+    bool Test();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details Each MARTe cycle reads half of a segment node.
+     * dataManagement[i] = 0
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details Each MARTe cycle reads one segment.
+     * dataManagement[i] = 0
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise1();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details Each MARTe cycle reads two segments.
+     * dataManagement[i] = 0
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise2();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details Each MARTe cycle reads 3/4 segment.
+     * dataManagement[i] = 0
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise3();
+
 
 
 private:

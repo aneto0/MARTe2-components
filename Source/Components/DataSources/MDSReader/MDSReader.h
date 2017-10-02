@@ -45,7 +45,10 @@
 
 namespace MARTe {
 
-class MDSReader:public DataSourceI, public MessageI {
+/**
+ * Segments of one element are not allowed
+ */
+class MDSReader: public DataSourceI, public MessageI {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API MDSReader)
 public:
     CLASS_REGISTER_DECLARATION()
@@ -87,7 +90,7 @@ public:
      * @return true
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-                const char8 * const nextStateName);
+                                  const char8 * const nextStateName);
 
     /**
      * @brief Do nothing
@@ -107,8 +110,8 @@ public:
      * @param[out] signalAddress is where the address of the desired signal is copied.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress);
 
     /**
      * @brief See DataSourceI::GetBrokerName.
@@ -116,23 +119,23 @@ public:
      * @return MemoryMapSynchronisedInputBroker if interpolate = false, MemoryMapInterpolatedInputBroker otherwise.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+                                       const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
      * @details adds a MemoryMapSynchronisedInputBroker instance to the intputBrokers.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
+                                 const char8* const functionName,
+                                 void * const gamMemPtr);
 
     /**
      * @brief See DataSourceI::GetOutputBrokers.
      * @return false.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
+                                  const char8* const functionName,
+                                  void * const gamMemPtr);
 private:
     /**
      * @brief Open MDS tree
@@ -158,11 +161,6 @@ private:
      */
     bool IsValidTypeNode(uint32 idx);
 
-    /**
-     * @brief Gets the size of the type in bytes of the node idx.
-     */
-    void GetByteSize(uint32 idx);
-
     bool CheckTypeAgainstMdsNodeTypes(uint32 idx);
 
     bool GetDataNode(uint32 nodeNumber);
@@ -177,7 +175,56 @@ private:
      * @return 0 if not found but is not the end of the data. It could happen if the data is only stored in trigger events
      * @return 1 if the time t is in a segment.
      */
-    uint8 FindSegment(float64 t, uint64 &segment, uint32 index);
+    int8 FindSegment(float64 t,
+                     uint32 &segment,
+                     uint32 index);
+
+    /**
+     * @brief Calculates the time difference between the first samples.
+     * @details It assumes that if there is one element per segment there is no holes between the first
+     * and the second element.
+     * @param[in] idx indicates the node number from where the time is extracted
+     * @param[out] tDiff hold the sample difference.
+     * @return true on succeed.
+     */
+    bool GetNodeSamplingTime(uint32 idx,
+                             float64 &tDiff);
+
+    void CopyTheSameValue(uint32 idxNumber,
+                          uint32 nTimes);
+
+    void AddValuesCopyData(uint32 nodeNumber,
+                           uint32 minSegment,
+                           uint32 maxSegment);
+
+    /**
+     * @brief Copy the data from the tree to the allocated memory
+     * @details It uses MemoryOperationsHelper::Copy() assuming that there is enough data to be copied.
+     * @param[in] nodeNumber indicates from which node the data must be copied.
+     * @param[in] minSeg indicates the first segment which must be copied from. Notice that not necessarily the data must be copied from the beginning.
+     * @param[in] SamplesToCopy indicates how man samples must be copied. The node must have more than SamplesToCopy remaining to be copied.
+     * @return the number of samples copied from the tree to the allocated memory
+     */
+    uint32 MakeRawCopy(uint32 nodeNumber,
+                       uint32 minSeg,
+                       uint32 SamplesToCopy);
+    uint32 LinearInterpolationCopy(uint32 nodeNumber,
+                                   uint32 minSegment,
+                                   uint32 SamplesToCopy);
+
+    bool CopyData(uint32 nodeNumber,
+                  uint32 minSegment);
+
+    bool CopyRemainingData(uint32 nodeNumber,
+                           uint32 minSegment);
+
+    template<typename T>
+    bool SampleInterpolation(float64 currentTime,
+                             T data1,
+                             T data2,
+                             float64 t1,
+                             float64 t2,
+                             char8 *tr);
 
     TypeDescriptor ConvertMDStypeToMARTeType(StreamString mdsType);
     StreamString treeName;
@@ -189,14 +236,12 @@ private:
      * MDSplus signal type. If signalTypes is given as input, consistency between mdsSignalType signalType
      */
     StreamString *mdsNodeTypes;
-    uint32 *byteSizeNodes;
+    uint32 *byteSizeSignals;
 
     /**
      * In SetConfiguredDatabase() the information is modified. I.e the node name is not copied because is unknown parameter for MARTe.
      */
     ConfigurationDatabase originalSignalInformation;
-
-
 
     /**
      * Indicates the pulse number to open. If it is not specified -1 by default.
@@ -208,6 +253,9 @@ private:
      */
     TypeDescriptor *type;
 
+    /**
+     * number of elements that should be read each MARTe cycle. It is read from the configuration file
+     */
     uint32 *numberOfElements;
 
     char8 *dataSourceMemory;
@@ -215,9 +263,14 @@ private:
     uint32 *offsets;
 
     /**
-     * Time seconds.
+     * Time seconds. It indicates the beginning of each segment
      */
     float64 time;
+
+    /**
+     * Time in seconds. It indicates the time of each sample. At the beginning of each cycle currentTime = time.
+     */
+    float64 currentTime;
 
     /**
      * time increment between Synchronisations. It is he inverse of frequency;
@@ -239,6 +292,35 @@ private:
      */
     uint64 *lastSegment;
 
+    /**
+     * Management of the data. indicates what to do with the data.
+     * 0 --> nothing
+     * 1 --> linear interpolation
+     * 2 --> hold last value.
+     *
+     */
+    uint8 *dataManagement;
+
+    /**
+     * Management of the  hole (when there is no data stored).
+     * 0 --> add 0
+     * 1 --> hold last value
+     */
+    uint8 *holeManagement;
+
+    /**
+     * Sampling time calculated from the configuration file. samplingTime[i]= 1/frequency/numberOfElements[i]
+     */
+    float64 *samplingTime;
+
+    char8 *lastValue;
+
+    uint32 *offsetLastValue;
+
+    /**
+     * Elements of the current segment already consumed. It is used to know from where the segment must be copied.
+     */
+    uint32 * elementsConsumed;
 
 };
 
