@@ -191,9 +191,14 @@ private:
                              float64 &tDiff);
 
     void CopyTheSameValue(uint32 idxNumber,
-                          uint32 nTimes);
+                          uint32 nTimes,
+                          uint32 samplesOffset);
 
     void AddValuesCopyData(uint32 nodeNumber,
+                           uint32 minSegment,
+                           uint32 maxSegment);
+
+    bool CopyDataAddValues(uint32 nodeNumber,
                            uint32 minSegment,
                            uint32 maxSegment);
 
@@ -206,11 +211,18 @@ private:
      * @return the number of samples copied from the tree to the allocated memory
      */
     uint32 MakeRawCopy(uint32 nodeNumber,
-                       uint32 minSeg,
-                       uint32 SamplesToCopy);
+                       uint32 minSegu,
+                       uint32 SamplesToCopy,
+                       uint32 OffsetSamples);
+
     uint32 LinearInterpolationCopy(uint32 nodeNumber,
                                    uint32 minSegment,
-                                   uint32 SamplesToCopy);
+                                   uint32 SamplesToCopy,
+                                   uint32 offsetSamples);
+    uint32 HoldCopy(uint32 nodeNumber,
+                    uint32 minSegment,
+                    uint32 SamplesToCopy,
+                    uint32 samplesOffset);
 
     bool CopyData(uint32 nodeNumber,
                   uint32 minSegment);
@@ -224,7 +236,7 @@ private:
                              T data2,
                              float64 t1,
                              float64 t2,
-                             char8 *tr);
+                             float64 *tr);
 
     TypeDescriptor ConvertMDStypeToMARTeType(StreamString mdsType);
     StreamString treeName;
@@ -314,6 +326,8 @@ private:
     float64 *samplingTime;
 
     char8 *lastValue;
+
+    float64 *lastTime;
 
     uint32 *offsetLastValue;
 

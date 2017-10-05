@@ -40,6 +40,7 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+/*
 TEST(MDSReaderGTest, TestInitialiseNoTreeName) {
     MDSReaderTest test;
     ASSERT_TRUE(test.TestInitialiseNoTreeName());
@@ -189,11 +190,6 @@ TEST(MDSReaderGTest, TestGetSignalMemoryBuffer) {
     MDSReaderTest test;
     ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
 }
-/*
-TEST(MDSReaderGTest, Test) {
-    MDSReaderTest test;
-    ASSERT_TRUE(test.Test());
-}
 */
 TEST(MDSReaderGTest, TestSynchronise) {
     MDSReaderTest test;
@@ -213,6 +209,131 @@ TEST(MDSReaderGTest, TestSynchronise2) {
 TEST(MDSReaderGTest, TestSynchronise3) {
     MDSReaderTest test;
     ASSERT_TRUE(test.TestSynchronise3());
+}
+
+TEST(MDSReaderGTest, TestSynchronise4) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise4());
+}
+
+TEST(MDSReaderGTest, TestSynchronise5) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise5());
+}
+
+TEST(MDSReaderGTest, TestSynchronise6) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise6());
+}
+
+TEST(MDSReaderGTest, TestSynchronise7) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise7());
+}
+
+TEST(MDSReaderGTest, TestSynchronise8) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise8());
+}
+
+TEST(MDSReaderGTest, TestSynchronise9) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise9());
+}
+
+TEST(MDSReaderGTest, TestSynchronise10) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise10());
+}
+
+TEST(MDSReaderGTest, TestSynchronise11) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise11());
+}
+
+TEST(MDSReaderGTest, TestSynchronise12) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise12());
+}
+
+TEST(MDSReaderGTest, TestSynchronise13) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise13());
+}
+
+TEST(MDSReaderGTest, TestSynchronise14) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise14());
+}
+
+TEST(MDSReaderGTest, TestSynchronise15) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise15());
+}
+
+TEST(MDSReaderGTest, TestSynchronise16) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise16());
+}
+
+TEST(MDSReaderGTest, TestSynchronise17) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise17());
+}
+
+TEST(MDSReaderGTest, TestSynchronise18) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise18());
+}
+
+TEST(MDSReaderGTest, TestSynchronise19) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise19());
+}
+
+TEST(MDSReaderGTest, TestSynchronise20) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise20());
+}
+
+TEST(MDSReaderGTest, TestSynchronise21) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise21());
+}
+
+TEST(MDSReaderGTest, TestSynchronise22) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise22());
+}
+
+TEST(MDSReaderGTest, TestSynchronise23) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise23());
+}
+
+TEST(MDSReaderGTest, TestSynchronise24) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise24());
+}
+
+TEST(MDSReaderGTest, TestSynchronise25) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise25());
+}
+
+TEST(MDSReaderGTest, TestSynchronise26) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise26());
+}
+
+TEST(MDSReaderGTest, TestSynchronise27) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise27());
+}
+
+TEST(MDSReaderGTest, TestSynchronise28) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise28());
 }
 
 /*---------------------------------------------------------------------------*/
