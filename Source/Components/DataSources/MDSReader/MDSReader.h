@@ -179,6 +179,10 @@ private:
                      uint32 &segment,
                      uint32 index);
 
+    uint32 CheckDiscontinuityOfTheSegments(uint32 nodeNumber,
+                                           uint32 initialSegment,
+                                           uint32 finalSegment);
+
     /**
      * @brief Calculates the time difference between the first samples.
      * @details It assumes that if there is one element per segment there is no holes between the first
@@ -194,13 +198,30 @@ private:
                           uint32 nTimes,
                           uint32 samplesOffset);
 
-    void AddValuesCopyData(uint32 nodeNumber,
+    bool AddValuesCopyData(uint32 nodeNumber,
                            uint32 minSegment,
-                           uint32 maxSegment);
+                           uint32 maxSegment,
+                           uint32 numberOFDiscontinuites);
 
     bool CopyDataAddValues(uint32 nodeNumber,
                            uint32 minSegment,
-                           uint32 maxSegment);
+                           uint32 maxSegment,
+                           uint32 numberOfDiscontinuities,
+                           uint32 samplesToRead,
+                           uint32 SamplesRead);
+
+    bool AddValuesCopyDataAddValues(uint32 nodeNumber,
+                                    uint32 minSegment,
+                                    uint32 numberOfDiscontinuities);
+
+    bool CopyDataAddValuesCopyData(uint32 nodeNumber,
+                                   uint32 minSegment,
+                                   uint32 numberOfDiscontinuities);
+
+    bool FindDisconinuity(uint32 nodeNumber,
+                          uint32 &segment,
+                          float64 &beginningTime,
+                          float64 &endTime);
 
     /**
      * @brief Copy the data from the tree to the allocated memory
@@ -219,6 +240,7 @@ private:
                                    uint32 minSegment,
                                    uint32 SamplesToCopy,
                                    uint32 offsetSamples);
+
     uint32 HoldCopy(uint32 nodeNumber,
                     uint32 minSegment,
                     uint32 SamplesToCopy,
@@ -229,6 +251,15 @@ private:
 
     bool CopyRemainingData(uint32 nodeNumber,
                            uint32 minSegment);
+
+    uint32 ComputeSamplesToCopy(uint32 nodeNumber,
+                                float64 tstart,
+                                float64 tend);
+
+    void VerifySamples(uint32 nodeNumber,
+                       uint32 &samples,
+                       float64 tstart,
+                       float64 tend);
 
     template<typename T>
     bool SampleInterpolation(float64 currentTime,

@@ -107,109 +107,109 @@ public:
     bool TestSetConfiguredDatabaseDiffSignalsAndFunctions();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      * @details The configuration file of MDSReader::Initialise() contains an empty Signals node
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     * @details The configuration file of MDSReader::Initialise() contains an empty Signals node
+     */
     bool TestSetConfiguredDatabaseNoNodeName();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseNoNodeName_2();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseInvalidNodeName();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseEqualNodeName();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseInvalidNodeType();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseWrongType();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseNoNumberOfElements();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseInvalidNumberOfElements();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseInvalidBytesSize();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseNoDataManagement();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseInvalidDataManagement();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseDataManagement0();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseNoHoleManagement();
 
     /**
-      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseInvalidHoleManagement();
 
     /**
-      * @brief Test MDSReader::SetConfiguredDatabase().
-      */
+     * @brief Test MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabase();
 
     /**
-      * @brief Test MDSReader::PrepareNextState().
-      */
+     * @brief Test MDSReader::PrepareNextState().
+     */
     bool TestPrepareNextState();
 
     /**
-      * @brief Test MDSReader::AllocateMemory().
-      */
+     * @brief Test MDSReader::AllocateMemory().
+     */
     bool TestAllocateMemory();
 
     /**
-      * @brief Test MDSReader::GetNumberOfMemoryBuffers().
-      */
+     * @brief Test MDSReader::GetNumberOfMemoryBuffers().
+     */
     bool TestGetNumberOfMemoryBuffers();
 
     /**
-      * @brief Test message errors of MDSReader::GetSignalMemoryBuffer().
-      */
+     * @brief Test message errors of MDSReader::GetSignalMemoryBuffer().
+     */
     bool TestGetSignalMemoryBufferNoMemory();
 
     /**
-      * @brief Test MDSReader::GetSignalMemoryBuffer().
-      */
+     * @brief Test MDSReader::GetSignalMemoryBuffer().
+     */
     bool TestGetSignalMemoryBuffer();
 
     /**
-      * @brief Test MDSReader::GetSignalMemoryBuffer().
-      */
+     * @brief Test MDSReader::GetSignalMemoryBuffer().
+     */
     bool Test();
 
     /**
@@ -303,6 +303,7 @@ public:
     /**
      * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 2
      * dataManagement[i] = 0
      * holeManagement[i] = 0
      */
@@ -310,7 +311,53 @@ public:
 
     /**
      * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 40
+     * shotNumber = 2
+     * dataManagement[i] = 0
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise11_1();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 40
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise11_2();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 40
+     * shotNumber = 2
+     * dataManagement[i] = 2
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise11_3();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 40
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise11_4();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 40
+     * shotNumber = 2
+     * dataManagement[i] = 2
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise11_5();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 2
      * dataManagement[i] = 0
      * holeManagement[i] = 0
      */
@@ -319,6 +366,7 @@ public:
     /**
      * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 5
+     * shotNumber = 2
      * dataManagement[i] = 0
      * holeManagement[i] = 0
      */
@@ -327,6 +375,7 @@ public:
     /**
      * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 2
      * dataManagement[i] = 0
      * holeManagement[i] = 1
      */
@@ -335,6 +384,7 @@ public:
     /**
      * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 2
      * dataManagement[i] = 0
      * holeManagement[i] = 1
      */
@@ -343,109 +393,360 @@ public:
     /**
      * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 5
+     * shotNumber = 2
      * dataManagement[i] = 0
      * holeManagement[i] = 1
      */
     bool TestSynchronise16();
 
     /**
-      * @brief Test Synchronise and compare the output against the expected values
-      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
-      * dataManagement[i] = 1
-      * holeManagement[i] = 0
-      */
-     bool TestSynchronise17();
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise17();
 
-     /**
-      * @brief Test Synchronise and compare the output against the expected values
-      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
-      * dataManagement[i] = 1
-      * holeManagement[i] = 0
-      */
-     bool TestSynchronise18();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise18();
 
-     /**
-      * @brief Test Synchronise and compare the output against the expected values
-      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 5
-      * dataManagement[i] = 1
-      * holeManagement[i] = 0
-      */
-     bool TestSynchronise19();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 5
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise19();
 
-     /**
-       * @brief Test Synchronise and compare the output against the expected values
-       * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
-       * dataManagement[i] = 1
-       * holeManagement[i] = 1
-       */
-      bool TestSynchronise20();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise20();
 
-      /**
-       * @brief Test Synchronise and compare the output against the expected values
-       * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
-       * dataManagement[i] = 1
-       * holeManagement[i] = 1
-       */
-      bool TestSynchronise21();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise21();
 
-      /**
-       * @brief Test Synchronise and compare the output against the expected values
-       * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 5
-       * dataManagement[i] = 1
-       * holeManagement[i] = 1
-       */
-      bool TestSynchronise22();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 5
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise22();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 2
+     * dataManagement[i] = 2
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise23();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 2
+     * dataManagement[i] = 2
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise24();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 5
+     * shotNumber = 2
+     * dataManagement[i] = 2
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise25();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 2
+     * dataManagement[i] = 2
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise26();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 2
+     * dataManagement[i] = 2
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise27();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 5
+     * shotNumber = 2
+     * dataManagement[i] = 2
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise28();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 3
+     * dataManagement[i] = 0
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise29();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 3
+     * dataManagement[i] = 0
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise30();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 3
+     * dataManagement[i] = 0
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise31();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 3
+     * dataManagement[i] = 0
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise32();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 3
+     * dataManagement[i] = 1
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise33();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 3
+     * dataManagement[i] = 1
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise34();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 3
+     * dataManagement[i] = 1
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise35();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 3
+     * dataManagement[i] = 1
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise36();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 3
+     * dataManagement[i] = 2
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise37();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 3
+     * dataManagement[i] = 2
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise38();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 3
+     * dataManagement[i] = 2
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise39();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
+     * shotNumber = 3
+     * dataManagement[i] = 2
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise40();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
+     * shotNumber = 4
+     * dataManagement[i] = 0
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise41();
 
 
-      /**
-        * @brief Test Synchronise and compare the output against the expected values
-        * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
-        * dataManagement[i] = 2
-        * holeManagement[i] = 0
-        */
-       bool TestSynchronise23();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 2
+     * dataManagement[i] = 0
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise42();
 
-       /**
-        * @brief Test Synchronise and compare the output against the expected values
-        * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
-        * dataManagement[i] = 2
-        * holeManagement[i] = 0
-        */
-       bool TestSynchronise24();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise43();
 
-       /**
-        * @brief Test Synchronise and compare the output against the expected values
-        * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 5
-        * dataManagement[i] = 2
-        * holeManagement[i] = 0
-        */
-       bool TestSynchronise25();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 2
+     * dataManagement[i] = 2
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise44();
 
-       /**
-         * @brief Test Synchronise and compare the output against the expected values
-         * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 15
-         * dataManagement[i] = 2
-         * holeManagement[i] = 1
-         */
-        bool TestSynchronise26();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 2
+     * dataManagement[i] = 0
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise45();
 
-        /**
-         * @brief Test Synchronise and compare the output against the expected values
-         * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 25
-         * dataManagement[i] = 2
-         * holeManagement[i] = 1
-         */
-        bool TestSynchronise27();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise46();
 
-        /**
-         * @brief Test Synchronise and compare the output against the expected values
-         * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 5
-         * dataManagement[i] = 2
-         * holeManagement[i] = 1
-         */
-        bool TestSynchronise28();
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 2
+     * dataManagement[i] = 2
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise47();
 
 
+
+
+
+
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 3
+     * dataManagement[i] = 0
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise48();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 3
+     * dataManagement[i] = 1
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise49();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 3
+     * dataManagement[i] = 2
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise50();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 3
+     * dataManagement[i] = 0
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise51();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 3
+     * dataManagement[i] = 1
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise52();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 3
+     * dataManagement[i] = 2
+     * holeManagement[i] = 1
+     */
+    bool TestSynchronise53();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
+     * shotNumber = 3
+     * dataManagement[i] = 2
+     * holeManagement[i] = 0
+     */
+    bool TestSynchronise54();
 
 
 private:
@@ -466,10 +767,7 @@ private:
 
     uint32 numberOfNodes;
 
-
 };
-
-
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

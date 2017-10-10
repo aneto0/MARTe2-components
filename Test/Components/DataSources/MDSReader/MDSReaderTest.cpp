@@ -409,8 +409,9 @@ public:
         AddSignal_float32();
         AddSignal_float64();
         AddSignal_Info();
-        pulseNumber++;
 
+        //1 segment with data and the other empty
+        pulseNumber++;
         CreatePulseNumber(pulseNumber);
         AddSignal_uint8(true);
         AddSignal_int8(true);
@@ -422,6 +423,34 @@ public:
         AddSignal_int64(true);
         AddSignal_float32(true);
         AddSignal_float64(true);
+
+        //1 segment empty another with data
+        pulseNumber++; // shotNumber = 3
+        CreatePulseNumber(pulseNumber);
+        AddSignal_uint8(true, false, 1);
+        AddSignal_int8(true, false, 1);
+        AddSignal_uint16(true, false, 1);
+        AddSignal_int16(true, false, 1);
+        AddSignal_uint32(true, false, 1);
+        AddSignal_int32(true, false, 1);
+        AddSignal_uint64(true, false, 1);
+        AddSignal_int64(true, false, 1);
+        AddSignal_float32(true, false, 1);
+        AddSignal_float64(true, false, 1);
+
+        //2 segment with data and 2 segment empty
+        pulseNumber++;
+        CreatePulseNumber(pulseNumber);
+        AddSignal_uint8(true, true, 2);
+        AddSignal_int8(true, true, 2);
+        AddSignal_uint16(true, true, 2);
+        AddSignal_int16(true, true, 2);
+        AddSignal_uint32(true, true, 2);
+        AddSignal_int32(true, true, 2);
+        AddSignal_uint64(true, true, 2);
+        AddSignal_int64(true, true, 2);
+        AddSignal_float32(true, true, 2);
+        AddSignal_float64(true, true, 2);
 
         //WriteTypes();
     }
@@ -452,7 +481,9 @@ private:
         delete tree;
     }
 
-    void AddSignal_uint8(bool toggle = false) {
+    void AddSignal_uint8(bool toggle = false,
+                         bool initialTrigger = true,
+                         uint32 segmentsOn = 1u) {
         MARTe::uint8 *data = new MARTe::uint8[numberOfElementsPerSeg];
         MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         MDSplus::TreeNode *node1 = tree->getNode("S_uint8");
@@ -462,9 +493,10 @@ private:
         MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
         MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
         MARTe::uint8 accum = 0u;
-        int32 trigger = 1;
+        uint32 countSegments = 0;
+        bool trigger = initialTrigger;
         for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger == 1) {
+            if (trigger) {
                 Dstart = new MDSplus::Float64(start);
                 Dend = new MDSplus::Float64(end);
                 MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
@@ -482,7 +514,16 @@ private:
             start = start + elapsedTimeSegment;
             end = end + elapsedTimeSegment;
             if (toggle) {
-                trigger = trigger * (-1);
+                countSegments++;
+                if (countSegments == segmentsOn) {
+                    if (trigger) {
+                        trigger = false;
+                    }
+                    else {
+                        trigger = true;
+                    }
+                    countSegments = 0u;
+                }
             }
 
         }
@@ -492,7 +533,9 @@ private:
         return;
     }
 
-    void AddSignal_int8(bool toggle = false) {
+    void AddSignal_int8(bool toggle = false,
+                        bool initialTrigger = true,
+                        uint32 segmentsOn = 1u) {
         MARTe::int8 *data = new MARTe::int8[numberOfElementsPerSeg];
         MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         MDSplus::TreeNode *node1 = tree->getNode("S_int8");
@@ -502,7 +545,8 @@ private:
         MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
         MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
         MARTe::int8 accum = -20;
-        int32 trigger = 1;
+        uint32 countSegments = 0;
+        bool trigger = initialTrigger;
         for (uint32 j = 0u; j < numberOfSegments; j++) {
             if (trigger == 1) {
                 Dstart = new MDSplus::Float64(start);
@@ -520,7 +564,16 @@ private:
             start = start + elapsedTimeSegment;
             end = end + elapsedTimeSegment;
             if (toggle) {
-                trigger = trigger * (-1);
+                countSegments++;
+                if (countSegments == segmentsOn) {
+                    if (trigger) {
+                        trigger = false;
+                    }
+                    else {
+                        trigger = true;
+                    }
+                    countSegments = 0u;
+                }
             }
         }
         delete[] data;
@@ -529,7 +582,9 @@ private:
         return;
     }
 
-    void AddSignal_uint16(bool toggle = false) {
+    void AddSignal_uint16(bool toggle = false,
+                          bool initialTrigger = true,
+                          uint32 segmentsOn = 1u) {
         MARTe::uint16 *data = new MARTe::uint16[numberOfElementsPerSeg];
         MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         MDSplus::TreeNode *node1 = tree->getNode("S_uint16");
@@ -539,7 +594,8 @@ private:
         MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
         MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
         MARTe::uint16 accum = 0u;
-        int32 trigger = 1;
+        uint32 countSegments = 0;
+        bool trigger = initialTrigger;
         for (uint32 j = 0u; j < numberOfSegments; j++) {
             if (trigger == 1) {
                 Dstart = new MDSplus::Float64(start);
@@ -557,7 +613,16 @@ private:
             start = start + elapsedTimeSegment;
             end = end + elapsedTimeSegment;
             if (toggle) {
-                trigger = trigger * (-1);
+                countSegments++;
+                if (countSegments == segmentsOn) {
+                    if (trigger) {
+                        trigger = false;
+                    }
+                    else {
+                        trigger = true;
+                    }
+                    countSegments = 0u;
+                }
             }
         }
         delete[] data;
@@ -566,7 +631,9 @@ private:
         return;
     }
 
-    void AddSignal_int16(bool toggle = false) {
+    void AddSignal_int16(bool toggle = false,
+                         bool initialTrigger = true,
+                         uint32 segmentsOn = 1u) {
         MARTe::int16 *data = new MARTe::int16[numberOfElementsPerSeg];
         MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         MDSplus::TreeNode *node1 = tree->getNode("S_int16");
@@ -576,7 +643,8 @@ private:
         MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
         MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
         MARTe::int16 accum = -40;
-        int32 trigger = 1;
+        uint32 countSegments = 0;
+        bool trigger = initialTrigger;
         for (uint32 j = 0u; j < numberOfSegments; j++) {
             if (trigger == 1) {
                 Dstart = new MDSplus::Float64(start);
@@ -594,7 +662,16 @@ private:
             start = start + elapsedTimeSegment;
             end = end + elapsedTimeSegment;
             if (toggle) {
-                trigger = trigger * (-1);
+                countSegments++;
+                if (countSegments == segmentsOn) {
+                    if (trigger) {
+                        trigger = false;
+                    }
+                    else {
+                        trigger = true;
+                    }
+                    countSegments = 0u;
+                }
             }
         }
         delete[] data;
@@ -603,7 +680,9 @@ private:
         return;
     }
 
-    void AddSignal_uint32(bool toggle = false) {
+    void AddSignal_uint32(bool toggle = false,
+                          bool initialTrigger = true,
+                          uint32 segmentsOn = 1u) {
         MARTe::uint32 *data = new MARTe::uint32[numberOfElementsPerSeg];
         MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         MDSplus::TreeNode *node1 = tree->getNode("S_uint32");
@@ -613,7 +692,8 @@ private:
         MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
         MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
         MARTe::uint32 accum = 0;
-        int32 trigger = 1;
+        uint32 countSegments = 0;
+        bool trigger = initialTrigger;
         for (uint32 j = 0u; j < numberOfSegments; j++) {
             if (trigger == 1) {
                 Dstart = new MDSplus::Float64(start);
@@ -631,7 +711,16 @@ private:
             start = start + elapsedTimeSegment;
             end = end + elapsedTimeSegment;
             if (toggle) {
-                trigger = trigger * (-1);
+                countSegments++;
+                if (countSegments == segmentsOn) {
+                    if (trigger) {
+                        trigger = false;
+                    }
+                    else {
+                        trigger = true;
+                    }
+                    countSegments = 0u;
+                }
             }
         }
         delete[] data;
@@ -640,7 +729,9 @@ private:
         return;
     }
 
-    void AddSignal_int32(bool toggle = false) {
+    void AddSignal_int32(bool toggle = false,
+                         bool initialTrigger = true,
+                         uint32 segmentsOn = 1u) {
         MARTe::int32 *data = new MARTe::int32[numberOfElementsPerSeg];
         MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         MDSplus::TreeNode *node1 = tree->getNode("S_int32");
@@ -650,7 +741,8 @@ private:
         MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
         MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
         MARTe::int32 accum = -80;
-        int32 trigger = 1;
+        uint32 countSegments = 0;
+        bool trigger = initialTrigger;
         for (uint32 j = 0u; j < numberOfSegments; j++) {
             if (trigger == 1) {
                 Dstart = new MDSplus::Float64(start);
@@ -668,7 +760,16 @@ private:
             start = start + elapsedTimeSegment;
             end = end + elapsedTimeSegment;
             if (toggle) {
-                trigger = trigger * (-1);
+                countSegments++;
+                if (countSegments == segmentsOn) {
+                    if (trigger) {
+                        trigger = false;
+                    }
+                    else {
+                        trigger = true;
+                    }
+                    countSegments = 0u;
+                }
             }
         }
         delete[] data;
@@ -677,7 +778,9 @@ private:
         return;
     }
 
-    void AddSignal_uint64(bool toggle = false) {
+    void AddSignal_uint64(bool toggle = false,
+                          bool initialTrigger = true,
+                          uint32 segmentsOn = 1u) {
         MARTe::uint64 *data = new MARTe::uint64[numberOfElementsPerSeg];
         MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         MDSplus::TreeNode *node1 = tree->getNode("S_uint64");
@@ -687,7 +790,8 @@ private:
         MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
         MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
         MARTe::uint64 accum = 0;
-        int32 trigger = 1;
+        uint32 countSegments = 0;
+        bool trigger = initialTrigger;
         for (uint32 j = 0u; j < numberOfSegments; j++) {
             if (trigger == 1) {
                 Dstart = new MDSplus::Float64(start);
@@ -705,7 +809,16 @@ private:
             start = start + elapsedTimeSegment;
             end = end + elapsedTimeSegment;
             if (toggle) {
-                trigger = trigger * (-1);
+                countSegments++;
+                if (countSegments == segmentsOn) {
+                    if (trigger) {
+                        trigger = false;
+                    }
+                    else {
+                        trigger = true;
+                    }
+                    countSegments = 0u;
+                }
             }
         }
         delete[] data;
@@ -714,7 +827,9 @@ private:
         return;
     }
 
-    void AddSignal_int64(bool toggle = false) {
+    void AddSignal_int64(bool toggle = false,
+                         bool initialTrigger = true,
+                         uint32 segmentsOn = 1u) {
         MARTe::int64 *data = new MARTe::int64[numberOfElementsPerSeg];
         MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         MDSplus::TreeNode *node1 = tree->getNode("S_int64");
@@ -724,7 +839,8 @@ private:
         MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
         MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
         MARTe::int64 accum = -160;
-        int32 trigger = 1;
+        uint32 countSegments = 0;
+        bool trigger = initialTrigger;
         for (uint32 j = 0u; j < numberOfSegments; j++) {
             if (trigger == 1) {
                 Dstart = new MDSplus::Float64(start);
@@ -742,7 +858,16 @@ private:
             start = start + elapsedTimeSegment;
             end = end + elapsedTimeSegment;
             if (toggle) {
-                trigger = trigger * (-1);
+                countSegments++;
+                if (countSegments == segmentsOn) {
+                    if (trigger) {
+                        trigger = false;
+                    }
+                    else {
+                        trigger = true;
+                    }
+                    countSegments = 0u;
+                }
             }
         }
         delete[] data;
@@ -751,7 +876,9 @@ private:
         return;
     }
 
-    void AddSignal_float32(bool toggle = false) {
+    void AddSignal_float32(bool toggle = false,
+                           bool initialTrigger = true,
+                           uint32 segmentsOn = 1u) {
         MARTe::float32 *data = new MARTe::float32[numberOfElementsPerSeg];
         MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         MDSplus::TreeNode *node1 = tree->getNode("S_float32");
@@ -761,7 +888,8 @@ private:
         MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
         MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
         MARTe::float32 accum = 0.0;
-        int32 trigger = 1;
+        uint32 countSegments = 0;
+        bool trigger = initialTrigger;
         for (uint32 j = 0u; j < numberOfSegments; j++) {
             if (trigger == 1) {
                 Dstart = new MDSplus::Float64(start);
@@ -779,7 +907,16 @@ private:
             start = start + elapsedTimeSegment;
             end = end + elapsedTimeSegment;
             if (toggle) {
-                trigger = trigger * (-1);
+                countSegments++;
+                if (countSegments == segmentsOn) {
+                    if (trigger) {
+                        trigger = false;
+                    }
+                    else {
+                        trigger = true;
+                    }
+                    countSegments = 0u;
+                }
             }
         }
         delete[] data;
@@ -788,7 +925,9 @@ private:
         return;
     }
 
-    void AddSignal_float64(bool toggle = false) {
+    void AddSignal_float64(bool toggle = false,
+                           bool initialTrigger = true,
+                           uint32 segmentsOn = 1u) {
         MARTe::float64 *data = new MARTe::float64[numberOfElementsPerSeg];
         MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         MDSplus::TreeNode *node1 = tree->getNode("S_float64");
@@ -798,7 +937,8 @@ private:
         MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
         MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
         MARTe::float64 accum = 0.0;
-        int32 trigger = 1;
+        uint32 countSegments = 0;
+        bool trigger = initialTrigger;
         for (uint32 j = 0u; j < numberOfSegments; j++) {
             if (trigger == 1) {
                 Dstart = new MDSplus::Float64(start);
@@ -816,7 +956,16 @@ private:
             start = start + elapsedTimeSegment;
             end = end + elapsedTimeSegment;
             if (toggle) {
-                trigger = trigger * (-1);
+                countSegments++;
+                if (countSegments == segmentsOn) {
+                    if (trigger) {
+                        trigger = false;
+                    }
+                    else {
+                        trigger = true;
+                    }
+                    countSegments = 0u;
+                }
             }
         }
         delete[] data;
@@ -2216,6 +2365,7 @@ bool MDSReaderTest::TestSynchronise11() {
     for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
         ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
     }
+    uint interation = 0u;
     if (ok) { //last read not verified
         for (uint32 i = 0u; (i < 1) && ok; i++) {
             ok = dS.Synchronise();
@@ -2235,17 +2385,18 @@ bool MDSReaderTest::TestSynchronise11() {
     }
     if (ok) {
         ok = dS.Synchronise();
+        interation++;
         if (ok) {
-            ok &= dS.CompareS_uint8(((uint8 *) ptr[0]), 1, 1, 5);
-            ok &= dS.CompareS_int8(((int8 *) ptr[1]), 1, 1, 5);
-            ok &= dS.CompareS_uint16(((uint16 *) ptr[2]), 1, 2, 5);
-            ok &= dS.CompareS_int16(((int16 *) ptr[3]), 1, 2, 5);
-            ok &= dS.CompareS_uint32(((uint32 *) ptr[4]), 1, 4, 5);
-            ok &= dS.CompareS_int32(((int32 *) ptr[5]), 1, 4, 5);
+            ok &= dS.CompareS_uint8(((uint8 *) ptr[0]), interation, 1, 5);
+            ok &= dS.CompareS_int8(((int8 *) ptr[1]), interation, 1, 5);
+            ok &= dS.CompareS_uint16(((uint16 *) ptr[2]), interation, 2, 5);
+            ok &= dS.CompareS_int16(((int16 *) ptr[3]), interation, 2, 5);
+            ok &= dS.CompareS_uint32(((uint32 *) ptr[4]), interation, 4, 5);
+            ok &= dS.CompareS_int32(((int32 *) ptr[5]), interation, 4, 5);
             ok &= dS.CompareS_uint64(((uint64 *) ptr[6]), 1, 8, 5);
-            ok &= dS.CompareS_int64(((int64 *) ptr[7]), 1, 8, 5);
-            ok &= dS.CompareS_float32(((float32 *) ptr[8]), 1, 0.1, 5);
-            ok &= dS.CompareS_float64(((float64 *) ptr[9]), 1, 0.1, 5);
+            ok &= dS.CompareS_int64(((int64 *) ptr[7]), interation, 8, 5);
+            ok &= dS.CompareS_float32(((float32 *) ptr[8]), interation, 0.1, 5);
+            ok &= dS.CompareS_float64(((float64 *) ptr[9]), interation, 0.1, 5);
         }
         for (uint32 i = 6u; (i < 15) && ok; i++) {
             ok &= (((uint8 *) ptr[0])[i] == 0);
@@ -2262,6 +2413,7 @@ bool MDSReaderTest::TestSynchronise11() {
     }
     if (ok) {
         ok = dS.Synchronise();
+        interation++;
         for (uint32 i = 0u; (i < 10) && ok; i++) {
             ok &= (((uint8 *) ptr[0])[i] == 0);
             ok &= (((int8 *) ptr[1])[i] == 0);
@@ -2274,16 +2426,406 @@ bool MDSReaderTest::TestSynchronise11() {
             ok &= (((float32 *) ptr[8])[i] == 0);
             ok &= (((float64 *) ptr[9])[i] == 0);
         }
-        ok &= dS.CompareS_uint8((&((uint8 *) ptr[0])[10]), 1, 1, 5);
-        ok &= dS.CompareS_int8((&((int8 *) ptr[1])[10]), 1, 1, 5);
-        ok &= dS.CompareS_uint16((&((uint16 *) ptr[2])[10]), 1, 2, 5);
-        ok &= dS.CompareS_int16((&((int16 *) ptr[3])[10]), 1, 2, 5);
-        ok &= dS.CompareS_uint32((&((uint32 *) ptr[4])[10]), 1, 4, 5);
-        ok &= dS.CompareS_int32((&((int32 *) ptr[5])[10]), 1, 4, 5);
-        ok &= dS.CompareS_uint64((&((uint64 *) ptr[6])[10]), 1, 8, 5);
-        ok &= dS.CompareS_int64((&((int64 *) ptr[7])[10]), 1, 8, 5);
-        ok &= dS.CompareS_float32((&((float32 *) ptr[8])[10]), 1, 0.1, 5);
-        ok &= dS.CompareS_float64((&((float64 *) ptr[9])[10]), 1, 0.1, 5);
+        ok &= dS.CompareS_uint8((&((uint8 *) ptr[0])[10]), interation, 1, 5);
+        ok &= dS.CompareS_int8((&((int8 *) ptr[1])[10]), interation, 1, 5);
+        ok &= dS.CompareS_uint16((&((uint16 *) ptr[2])[10]), interation, 2, 5);
+        ok &= dS.CompareS_int16((&((int16 *) ptr[3])[10]), interation, 2, 5);
+        ok &= dS.CompareS_uint32((&((uint32 *) ptr[4])[10]), interation, 4, 5);
+        ok &= dS.CompareS_int32((&((int32 *) ptr[5])[10]), interation, 4, 5);
+        ok &= dS.CompareS_uint64((&((uint64 *) ptr[6])[10]), interation, 8, 5);
+        ok &= dS.CompareS_int64((&((int64 *) ptr[7])[10]), interation, 8, 5);
+        ok &= dS.CompareS_float32((&((float32 *) ptr[8])[10]), interation, 0.1, 5);
+        ok &= dS.CompareS_float64((&((float64 *) ptr[9])[10]), interation, 0.1, 5);
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise11_1() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 40;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 0, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 0;
+        samplesToCheck = 20;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 20u; (i < 40) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 0);
+            ok &= (((int8 *) ptr[1])[i] == 0);
+            ok &= (((uint16 *) ptr[2])[i] == 0);
+            ok &= (((int16 *) ptr[3])[i] == 0);
+            ok &= (((uint32 *) ptr[4])[i] == 0);
+            ok &= (((int32 *) ptr[5])[i] == 0);
+            ok &= (((uint64 *) ptr[6])[i] == 0);
+            ok &= (((int64 *) ptr[7])[i] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 20;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 20u; (i < 40) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 0);
+            ok &= (((int8 *) ptr[1])[i] == 0);
+            ok &= (((uint16 *) ptr[2])[i] == 0);
+            ok &= (((int16 *) ptr[3])[i] == 0);
+            ok &= (((uint32 *) ptr[4])[i] == 0);
+            ok &= (((int32 *) ptr[5])[i] == 0);
+            ok &= (((uint64 *) ptr[6])[i] == 0);
+            ok &= (((int64 *) ptr[7])[i] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(0.0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 0.0);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise11_2() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 40;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 1, 0, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 0;
+        samplesToCheck = 20;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 20u; (i < 40) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 0);
+            ok &= (((int8 *) ptr[1])[i] == 0);
+            ok &= (((uint16 *) ptr[2])[i] == 0);
+            ok &= (((int16 *) ptr[3])[i] == 0);
+            ok &= (((uint32 *) ptr[4])[i] == 0);
+            ok &= (((int32 *) ptr[5])[i] == 0);
+            ok &= (((uint64 *) ptr[6])[i] == 0);
+            ok &= (((int64 *) ptr[7])[i] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 20;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 20u; (i < 40) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 0);
+            ok &= (((int8 *) ptr[1])[i] == 0);
+            ok &= (((uint16 *) ptr[2])[i] == 0);
+            ok &= (((int16 *) ptr[3])[i] == 0);
+            ok &= (((uint32 *) ptr[4])[i] == 0);
+            ok &= (((int32 *) ptr[5])[i] == 0);
+            ok &= (((uint64 *) ptr[6])[i] == 0);
+            ok &= (((int64 *) ptr[7])[i] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(0.0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 0.0);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise11_3() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 40;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 2, 0, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 0;
+        samplesToCheck = 20;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 20u; (i < 40) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 0);
+            ok &= (((int8 *) ptr[1])[i] == 0);
+            ok &= (((uint16 *) ptr[2])[i] == 0);
+            ok &= (((int16 *) ptr[3])[i] == 0);
+            ok &= (((uint32 *) ptr[4])[i] == 0);
+            ok &= (((int32 *) ptr[5])[i] == 0);
+            ok &= (((uint64 *) ptr[6])[i] == 0);
+            ok &= (((int64 *) ptr[7])[i] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 20;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 20u; (i < 40) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 0);
+            ok &= (((int8 *) ptr[1])[i] == 0);
+            ok &= (((uint16 *) ptr[2])[i] == 0);
+            ok &= (((int16 *) ptr[3])[i] == 0);
+            ok &= (((uint32 *) ptr[4])[i] == 0);
+            ok &= (((int32 *) ptr[5])[i] == 0);
+            ok &= (((uint64 *) ptr[6])[i] == 0);
+            ok &= (((int64 *) ptr[7])[i] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(0.0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 0.0);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise11_4() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 40;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 1, 1, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 0;
+        samplesToCheck = 20;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 20u; (i < 40) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 20;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 20u; (i < 40) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 39);
+            ok &= (((int8 *) ptr[1])[i] == 19);
+            ok &= (((uint16 *) ptr[2])[i] == 78);
+            ok &= (((int16 *) ptr[3])[i] == 38);
+            ok &= (((uint32 *) ptr[4])[i] == 156);
+            ok &= (((int32 *) ptr[5])[i] == 76);
+            ok &= (((uint64 *) ptr[6])[i] == 312);
+            ok &= (((int64 *) ptr[7])[i] == 152);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(3.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 3.9);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise11_5() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 40;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 2, 1, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 0;
+        samplesToCheck = 20;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 20u; (i < 40) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 20;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 20u; (i < 40) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 39);
+            ok &= (((int8 *) ptr[1])[i] == 19);
+            ok &= (((uint16 *) ptr[2])[i] == 78);
+            ok &= (((int16 *) ptr[3])[i] == 38);
+            ok &= (((uint32 *) ptr[4])[i] == 156);
+            ok &= (((int32 *) ptr[5])[i] == 76);
+            ok &= (((uint64 *) ptr[6])[i] == 312);
+            ok &= (((int64 *) ptr[7])[i] == 152);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(3.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 3.9);
+        }
     }
     return ok;
 }
@@ -2697,9 +3239,6 @@ bool MDSReaderTest::TestSynchronise16() {
     return ok;
 }
 
-
-
-
 bool MDSReaderTest::TestSynchronise17() {
     MDSReaderTestHelper dS(treeName);
     dS.elementsRead = 15;
@@ -2936,7 +3475,7 @@ bool MDSReaderTest::TestSynchronise19() {
                     ok &= (((uint16 *) ptr[2])[j] == 0);
                     int16 aux16 = int16(0);
                     ok &= (((int16 *) ptr[3])[j] == aux16);
-                    ok &= (((uint32 *) ptr[4])[j] ==0);
+                    ok &= (((uint32 *) ptr[4])[j] == 0);
                     int32 aux32 = int32(0);
                     ok &= (((int32 *) ptr[5])[j] == aux32);
                     ok &= (((uint64 *) ptr[6])[j] == 0);
@@ -2951,7 +3490,6 @@ bool MDSReaderTest::TestSynchronise19() {
     }
     return ok;
 }
-
 
 bool MDSReaderTest::TestSynchronise20() {
     MDSReaderTestHelper dS(treeName);
@@ -3205,7 +3743,6 @@ bool MDSReaderTest::TestSynchronise22() {
     return ok;
 }
 
-
 bool MDSReaderTest::TestSynchronise23() {
     MDSReaderTestHelper dS(treeName);
     dS.elementsRead = 15;
@@ -3457,8 +3994,6 @@ bool MDSReaderTest::TestSynchronise25() {
     }
     return ok;
 }
-
-
 
 bool MDSReaderTest::TestSynchronise26() {
     MDSReaderTestHelper dS(treeName);
@@ -3712,6 +4247,2650 @@ bool MDSReaderTest::TestSynchronise28() {
     return ok;
 }
 
+bool MDSReaderTest::TestSynchronise29() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 15;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 0, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteratin = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        for (uint32 j = 6u; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        for (uint32 j = 0u; (j < 5) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        if (ok) {
+            samplesToCheck = 10;
+            from = 5;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        if (ok) {
+            samplesToCheck = 10;
+            from = 0;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+        for (uint32 j = samplesToCheck; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    return ok;
+}
 
+bool MDSReaderTest::TestSynchronise30() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 25;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 0, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 20;
+        samplesToCheck = 5;
+        for (uint32 j = 6u; (j < from) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
 
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
 
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 15;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        for (uint32 j = 15u; (j < 25) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 10;
+        samplesToCheck = 15;
+        for (uint32 j = 0u; (j < from) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise31() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 15;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 1, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteratin = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        for (uint32 j = 6u; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        for (uint32 j = 0u; (j < 5) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        if (ok) {
+            samplesToCheck = 10;
+            from = 5;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        if (ok) {
+            samplesToCheck = 10;
+            from = 0;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+
+        for (uint32 i = samplesToCheck; (i < 15) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise32() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 25;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 1, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 20;
+        samplesToCheck = 5;
+        for (uint32 j = 6u; (j < from) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 15;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 15u; (i < 25) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 10;
+        samplesToCheck = 15;
+
+        for (uint32 i = 0u; (i < from) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise33() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 15;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 1, 0, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteratin = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        for (uint32 j = 6u; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        for (uint32 j = 0u; (j < 5) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        if (ok) {
+            samplesToCheck = 10;
+            from = 5;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        if (ok) {
+            samplesToCheck = 10;
+            from = 0;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+        for (uint32 j = samplesToCheck; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise34() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 25;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 1, 0, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 20;
+        samplesToCheck = 5;
+        for (uint32 j = 6u; (j < from) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 15;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        for (uint32 j = 15u; (j < 25) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 10;
+        samplesToCheck = 15;
+        for (uint32 j = 0u; (j < from) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise35() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 15;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 1, 1, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteratin = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        for (uint32 j = 6u; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        for (uint32 j = 0u; (j < 5) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        if (ok) {
+            samplesToCheck = 10;
+            from = 5;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        if (ok) {
+            samplesToCheck = 10;
+            from = 0;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+
+        for (uint32 i = samplesToCheck; (i < 15) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise36() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 25;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 1, 1, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 20;
+        samplesToCheck = 5;
+        for (uint32 j = 6u; (j < from) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 15;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 15u; (i < 25) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 10;
+        samplesToCheck = 15;
+
+        for (uint32 i = 0u; (i < from) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise37() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 15;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 2, 0, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteratin = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        for (uint32 j = 6u; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        for (uint32 j = 0u; (j < 5) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        if (ok) {
+            samplesToCheck = 10;
+            from = 5;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        if (ok) {
+            samplesToCheck = 10;
+            from = 0;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+        for (uint32 j = samplesToCheck; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise38() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 25;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 2, 0, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 20;
+        samplesToCheck = 5;
+        for (uint32 j = 6u; (j < from) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 15;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        for (uint32 j = 15u; (j < 25) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 10;
+        samplesToCheck = 15;
+        for (uint32 j = 0u; (j < from) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise39() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 15;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 2, 1, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteratin = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        for (uint32 j = 6u; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        for (uint32 j = 0u; (j < 5) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        if (ok) {
+            samplesToCheck = 10;
+            from = 5;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        if (ok) {
+            samplesToCheck = 10;
+            from = 0;
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+
+        for (uint32 i = samplesToCheck; (i < 15) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise40() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 25;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 2, 1, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    uint32 iteratin = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        from = 20;
+        samplesToCheck = 5;
+        for (uint32 j = 6u; (j < from) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], 1, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 0;
+        samplesToCheck = 15;
+        ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+        ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+        ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+        ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+        ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+        ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+
+        for (uint32 i = 15u; (i < 25) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        iteratin++;
+        from = 10;
+        samplesToCheck = 15;
+
+        for (uint32 i = 0u; (i < from) && ok; i++) {
+            ok &= (((uint8 *) ptr[0])[i] == 19);
+            ok &= (((int8 *) ptr[1])[i] == -1);
+            ok &= (((uint16 *) ptr[2])[i] == 38);
+            ok &= (((int16 *) ptr[3])[i] == -2);
+            ok &= (((uint32 *) ptr[4])[i] == 76);
+            ok &= (((int32 *) ptr[5])[i] == -4);
+            ok &= (((uint64 *) ptr[6])[i] == 152);
+            ok &= (((int64 *) ptr[7])[i] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[i], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[i], 1.9);
+        }
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise41() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 15;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 0, 4);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteratin = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 15;
+        from = 0;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 15;
+        from = 0;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 10;
+        from = 0;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+        for (uint32 j = samplesToCheck; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 0;
+        from = 0;
+        for (uint32 j = samplesToCheck; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 0;
+        from = 0;
+        for (uint32 j = samplesToCheck; (j < 15) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+    }
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 10;
+        from = 5;
+        for (uint32 j = 0; (j < from) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteratin, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteratin, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteratin, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteratin, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteratin, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteratin, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise42() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 0, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 20;
+        from = 0;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = samplesToCheck; (j < (samplesToCheck + 20)) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        samplesToCheck = 20;
+        from = 40;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 60; (j < 80) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        from = 80;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise43() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 0, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 20;
+        from = 0;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = samplesToCheck; (j < (samplesToCheck + 20)) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        samplesToCheck = 20;
+        from = 40;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 60; (j < 80) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        from = 80;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise44() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 0, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 20;
+        from = 0;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = samplesToCheck; (j < (samplesToCheck + 20)) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        samplesToCheck = 20;
+        from = 40;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 60; (j < 80) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= (((float32 *) ptr[8])[j] == 0);
+            ok &= (((float64 *) ptr[9])[j] == 0);
+        }
+        from = 80;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise45() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 1, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 20;
+        from = 0;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = samplesToCheck; (j < (samplesToCheck + 20)) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 19);
+            ok &= (((int8 *) ptr[1])[j] == -1);
+            ok &= (((uint16 *) ptr[2])[j] == 38);
+            ok &= (((int16 *) ptr[3])[j] == -2);
+            ok &= (((uint32 *) ptr[4])[j] == 76);
+            ok &= (((int32 *) ptr[5])[j] == -4);
+            ok &= (((uint64 *) ptr[6])[j] == 152);
+            ok &= (((int64 *) ptr[7])[j] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 1.9);
+        }
+        samplesToCheck = 20;
+        from = 40;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 60; (j < 80) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 39);
+            ok &= (((int8 *) ptr[1])[j] == 19);
+            ok &= (((uint16 *) ptr[2])[j] == 78);
+            ok &= (((int16 *) ptr[3])[j] == 38);
+            ok &= (((uint32 *) ptr[4])[j] == 156);
+            ok &= (((int32 *) ptr[5])[j] == 76);
+            ok &= (((uint64 *) ptr[6])[j] == 312);
+            ok &= (((int64 *) ptr[7])[j] == 152);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(3.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 3.9);
+        }
+        from = 80;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise46() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 1, 1, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 20;
+        from = 0;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = samplesToCheck; (j < (samplesToCheck + 20)) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 19);
+            ok &= (((int8 *) ptr[1])[j] == -1);
+            ok &= (((uint16 *) ptr[2])[j] == 38);
+            ok &= (((int16 *) ptr[3])[j] == -2);
+            ok &= (((uint32 *) ptr[4])[j] == 76);
+            ok &= (((int32 *) ptr[5])[j] == -4);
+            ok &= (((uint64 *) ptr[6])[j] == 152);
+            ok &= (((int64 *) ptr[7])[j] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 1.9);
+        }
+        samplesToCheck = 20;
+        from = 40;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 60; (j < 80) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 39);
+            ok &= (((int8 *) ptr[1])[j] == 19);
+            ok &= (((uint16 *) ptr[2])[j] == 78);
+            ok &= (((int16 *) ptr[3])[j] == 38);
+            ok &= (((uint32 *) ptr[4])[j] == 156);
+            ok &= (((int32 *) ptr[5])[j] == 76);
+            ok &= (((uint64 *) ptr[6])[j] == 312);
+            ok &= (((int64 *) ptr[7])[j] == 152);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(3.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 3.9);
+        }
+        from = 80;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise47() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 2, 1, 2);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 20;
+        from = 0;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = samplesToCheck; (j < (samplesToCheck + 20)) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 19);
+            ok &= (((int8 *) ptr[1])[j] == -1);
+            ok &= (((uint16 *) ptr[2])[j] == 38);
+            ok &= (((int16 *) ptr[3])[j] == -2);
+            ok &= (((uint32 *) ptr[4])[j] == 76);
+            ok &= (((int32 *) ptr[5])[j] == -4);
+            ok &= (((uint64 *) ptr[6])[j] == 152);
+            ok &= (((int64 *) ptr[7])[j] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 1.9);
+        }
+        samplesToCheck = 20;
+        from = 40;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 60; (j < 80) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 39);
+            ok &= (((int8 *) ptr[1])[j] == 19);
+            ok &= (((uint16 *) ptr[2])[j] == 78);
+            ok &= (((int16 *) ptr[3])[j] == 38);
+            ok &= (((uint32 *) ptr[4])[j] == 156);
+            ok &= (((int32 *) ptr[5])[j] == 76);
+            ok &= (((uint64 *) ptr[6])[j] == 312);
+            ok &= (((int64 *) ptr[7])[j] == 152);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(3.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 3.9);
+        }
+        from = 80;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise48() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 0, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+
+        for (uint32 j = 0; j < 20 && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0.0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0.0);
+        }
+        samplesToCheck = 20;
+        from = 20;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 40; (j < 60) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+        samplesToCheck = 20;
+        from = 60;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 80; (j < 100) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise49() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 1, 0, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+
+        for (uint32 j = 0; j < 20 && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0.0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0.0);
+        }
+        samplesToCheck = 20;
+        from = 20;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 40; (j < 60) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+        samplesToCheck = 20;
+        from = 60;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 80; (j < 100) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise50() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 2, 0, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+
+        for (uint32 j = 0; j < 20 && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0.0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0.0);
+        }
+        samplesToCheck = 20;
+        from = 20;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 40; (j < 60) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+        samplesToCheck = 20;
+        from = 60;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 80; (j < 100) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise51() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 0, 1, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 20;
+        from = 0;
+        for (uint32 j = 0; (j < 20) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+        samplesToCheck = 20;
+        from = 20;
+
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 40; (j < 60) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 19);
+            ok &= (((int8 *) ptr[1])[j] == -1);
+            ok &= (((uint16 *) ptr[2])[j] == 38);
+            ok &= (((int16 *) ptr[3])[j] == -2);
+            ok &= (((uint32 *) ptr[4])[j] == 76);
+            ok &= (((int32 *) ptr[5])[j] == -4);
+            ok &= (((uint64 *) ptr[6])[j] == 152);
+            ok &= (((int64 *) ptr[7])[j] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 1.9);
+        }
+
+        samplesToCheck = 20;
+        from = 60;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 80; (j < 100) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 39);
+            ok &= (((int8 *) ptr[1])[j] == 19);
+            ok &= (((uint16 *) ptr[2])[j] == 78);
+            ok &= (((int16 *) ptr[3])[j] == 38);
+            ok &= (((uint32 *) ptr[4])[j] == 156);
+            ok &= (((int32 *) ptr[5])[j] == 76);
+            ok &= (((uint64 *) ptr[6])[j] == 312);
+            ok &= (((int64 *) ptr[7])[j] == 152);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(3.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 3.9);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise52() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 1, 1, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 20;
+        from = 0;
+        for (uint32 j = 0; (j < 20) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+        samplesToCheck = 20;
+        from = 20;
+
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 40; (j < 60) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 19);
+            ok &= (((int8 *) ptr[1])[j] == -1);
+            ok &= (((uint16 *) ptr[2])[j] == 38);
+            ok &= (((int16 *) ptr[3])[j] == -2);
+            ok &= (((uint32 *) ptr[4])[j] == 76);
+            ok &= (((int32 *) ptr[5])[j] == -4);
+            ok &= (((uint64 *) ptr[6])[j] == 152);
+            ok &= (((int64 *) ptr[7])[j] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 1.9);
+        }
+
+        samplesToCheck = 20;
+        from = 60;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 80; (j < 100) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 39);
+            ok &= (((int8 *) ptr[1])[j] == 19);
+            ok &= (((uint16 *) ptr[2])[j] == 78);
+            ok &= (((int16 *) ptr[3])[j] == 38);
+            ok &= (((uint32 *) ptr[4])[j] == 156);
+            ok &= (((int32 *) ptr[5])[j] == 76);
+            ok &= (((uint64 *) ptr[6])[j] == 312);
+            ok &= (((int64 *) ptr[7])[j] == 152);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(3.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 3.9);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise53() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 2, 1, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 20;
+        from = 0;
+        for (uint32 j = 0; (j < 20) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+        samplesToCheck = 20;
+        from = 20;
+
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 40; (j < 60) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 19);
+            ok &= (((int8 *) ptr[1])[j] == -1);
+            ok &= (((uint16 *) ptr[2])[j] == 38);
+            ok &= (((int16 *) ptr[3])[j] == -2);
+            ok &= (((uint32 *) ptr[4])[j] == 76);
+            ok &= (((int32 *) ptr[5])[j] == -4);
+            ok &= (((uint64 *) ptr[6])[j] == 152);
+            ok &= (((int64 *) ptr[7])[j] == -8);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(1.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 1.9);
+        }
+
+        samplesToCheck = 20;
+        from = 60;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 80; (j < 100) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 39);
+            ok &= (((int8 *) ptr[1])[j] == 19);
+            ok &= (((uint16 *) ptr[2])[j] == 78);
+            ok &= (((int16 *) ptr[3])[j] == 38);
+            ok &= (((uint32 *) ptr[4])[j] == 156);
+            ok &= (((int32 *) ptr[5])[j] == 76);
+            ok &= (((uint64 *) ptr[6])[j] == 312);
+            ok &= (((int64 *) ptr[7])[j] == 152);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(3.9));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 3.9);
+        }
+    }
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise54() {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 100;
+    bool ok;
+    ok = dS.CreateConfigurationFile(0.1, 2, 0, 3);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    uint32 iteration = 0;
+    uint32 samplesToCheck = 0u;
+    uint32 from = 0;
+    if (ok) {
+        ok = dS.Synchronise();
+
+        for (uint32 j = 0; j < 20 && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0.0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0.0);
+        }
+        samplesToCheck = 20;
+        from = 20;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 40; (j < 60) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+        samplesToCheck = 20;
+        from = 60;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 80; (j < 100) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+    }
+
+    if (ok) {
+        ok = dS.Synchronise();
+        samplesToCheck = 20;
+        from = 0;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+
+        for (uint32 j = 20; (j < 40) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+        samplesToCheck = 20;
+        from = 40;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+        for (uint32 j = 60; (j < 80) && ok; j++) {
+            ok &= (((uint8 *) ptr[0])[j] == 0);
+            ok &= (((int8 *) ptr[1])[j] == 0);
+            ok &= (((uint16 *) ptr[2])[j] == 0);
+            ok &= (((int16 *) ptr[3])[j] == 0);
+            ok &= (((uint32 *) ptr[4])[j] == 0);
+            ok &= (((int32 *) ptr[5])[j] == 0);
+            ok &= (((uint64 *) ptr[6])[j] == 0);
+            ok &= (((int64 *) ptr[7])[j] == 0);
+            ok &= dS.IsEqualLargeMagins(((float32 *) ptr[8])[j], static_cast<float32>(0));
+            ok &= dS.IsEqualLargeMagins(((float64 *) ptr[9])[j], 0);
+        }
+        samplesToCheck = 20;
+        from = 80;
+        iteration++;
+        if (ok) {
+            ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 1, samplesToCheck);
+            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2, samplesToCheck);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4, samplesToCheck);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8, samplesToCheck);
+            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.1, samplesToCheck);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
+        }
+    }
+    return ok;
+}
