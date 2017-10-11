@@ -492,6 +492,11 @@ TEST(MDSReaderGTest, TestSynchronise54) {
     ASSERT_TRUE(test.TestSynchronise54());
 }
 
+TEST(MDSReaderGTest, TestSynchronise55) {
+    MDSReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise55());
+}
+
 
 
 

@@ -624,7 +624,6 @@ public:
      */
     bool TestSynchronise41();
 
-
     /**
      * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 100;
@@ -678,12 +677,6 @@ public:
      * holeManagement[i] = 1
      */
     bool TestSynchronise47();
-
-
-
-
-
-
 
     /**
      * @brief Test Synchronise and compare the output against the expected values
@@ -747,6 +740,15 @@ public:
      * holeManagement[i] = 0
      */
     bool TestSynchronise54();
+
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 10;
+     * shotNumber = 1
+     * dataManagement[i] = 0
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise55();
 
 
 private:

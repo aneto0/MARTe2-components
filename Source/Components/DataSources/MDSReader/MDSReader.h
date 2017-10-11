@@ -198,6 +198,11 @@ private:
                           uint32 nTimes,
                           uint32 samplesOffset);
 
+    template<typename T>
+    void CopyTheSameValueTemplate(uint32 idxNumber,
+                                  uint32 numberOfTimes,
+                                  uint32 samplesOffset);
+
     bool AddValuesCopyData(uint32 nodeNumber,
                            uint32 minSegment,
                            uint32 maxSegment,
@@ -225,10 +230,11 @@ private:
 
     /**
      * @brief Copy the data from the tree to the allocated memory
-     * @details It uses MemoryOperationsHelper::Copy() assuming that there is enough data to be copied.
+     * @details It uses MemoryOperationsHelper::Copy().
      * @param[in] nodeNumber indicates from which node the data must be copied.
      * @param[in] minSeg indicates the first segment which must be copied from. Notice that not necessarily the data must be copied from the beginning.
      * @param[in] SamplesToCopy indicates how man samples must be copied. The node must have more than SamplesToCopy remaining to be copied.
+     * @param[in] OffsetSamples indicates how many samples are already copied. It is used to know in which position of the dataSourceMemory the data should be copied.
      * @return the number of samples copied from the tree to the allocated memory
      */
     uint32 MakeRawCopy(uint32 nodeNumber,
@@ -236,18 +242,33 @@ private:
                        uint32 SamplesToCopy,
                        uint32 OffsetSamples);
 
+    template<typename T>
+    uint32 MakeRawCopyTemplate(uint32 nodeNumber,
+                               uint32 minSeg,
+                               uint32 SamplesToCopy,
+                               uint32 OffsetSamples);
+
     uint32 LinearInterpolationCopy(uint32 nodeNumber,
                                    uint32 minSegment,
                                    uint32 SamplesToCopy,
                                    uint32 offsetSamples);
+
+    template<typename T>
+    uint32 LinearInterpolationCopyTemplate(uint32 nodeNumber,
+                                           uint32 minSeg,
+                                           uint32 samplesToCopy,
+                                           uint32 offsetSamples);
 
     uint32 HoldCopy(uint32 nodeNumber,
                     uint32 minSegment,
                     uint32 SamplesToCopy,
                     uint32 samplesOffset);
 
-    bool CopyData(uint32 nodeNumber,
-                  uint32 minSegment);
+    template<typename T>
+    uint32 HoldCopyTemplate(uint32 nodeNumber,
+                            uint32 minSeg,
+                            uint32 samplesToCopy,
+                            uint32 samplesOffset);
 
     bool CopyRemainingData(uint32 nodeNumber,
                            uint32 minSegment);
@@ -270,6 +291,8 @@ private:
                              float64 *tr);
 
     TypeDescriptor ConvertMDStypeToMARTeType(StreamString mdsType);
+
+    bool AllNodesEnd();
     StreamString treeName;
     MDSplus::Tree *tree;
     StreamString *nodeName;
@@ -295,6 +318,8 @@ private:
      * signal type expected to read. It is optional parameter on the configuration file. If exist it is check against signalType.
      */
     TypeDescriptor *type;
+
+    uint32 *bytesType;
 
     /**
      * number of elements that should be read each MARTe cycle. It is read from the configuration file
@@ -366,6 +391,8 @@ private:
      * Elements of the current segment already consumed. It is used to know from where the segment must be copied.
      */
     uint32 * elementsConsumed;
+
+    bool *endNode;
 
 };
 
