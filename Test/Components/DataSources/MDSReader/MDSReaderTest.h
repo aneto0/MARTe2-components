@@ -45,6 +45,7 @@ class MDSReaderTest {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API MDSReaderTest)
 public:
     MDSReaderTest();
+    MDSReaderTest(MARTe::StreamString name, MARTe::uint32 nElementsPerSeg, MARTe::uint32 nSegments, MARTe::float64 elapsetTimeSeg);
 
     /**
      * @brief Sets the environment variable test_tree_path and creates a tree for testing.
@@ -55,6 +56,11 @@ public:
      * @brief Test message errors of MDSReader::Initialise().
      */
     bool TestInitialiseNoTreeName();
+
+    /**
+     * @brief Test message errors of MDSReader::Initialise().
+     */
+    bool TestInitialiseNoShotNumber();
 
     /**
      * @brief Test message errors of MDSReader::Initialise().
@@ -74,7 +80,17 @@ public:
     /**
      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
      */
+    bool TestInitialiseNoFrequency();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestInitialiseNoSignals();
+
+    /**
+     * @brief MDSReader::SetConfiguredDatabase().
+     */
+    bool TestInitialise();
 
     /**
      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
@@ -139,6 +155,12 @@ public:
 
     /**
      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     * @details the node type and the type specified in the configuration file are different.
+     */
+    bool TestSetConfiguredDatabaseInconsistentType();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
      */
     bool TestSetConfiguredDatabaseNoNumberOfElements();
 
@@ -150,7 +172,22 @@ public:
     /**
      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
      */
+    bool TestSetConfiguredDatabaseNoTimeNumberOfElements();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
+    bool TestSetConfiguredDatabaseInvalidTimeNumberOfElements();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
     bool TestSetConfiguredDatabaseInvalidBytesSize();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
+    bool TestSetConfiguredDatabaseInvalidTimeBytesSize();
 
     /**
      * @brief Test message errors of MDSReader::SetConfiguredDatabase().
@@ -178,9 +215,25 @@ public:
     bool TestSetConfiguredDatabaseInvalidHoleManagement();
 
     /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     */
+    bool TestSetConfiguredDatabaseInvalidTimeType();
+
+    /**
+     * @brief Test message errors of MDSReader::SetConfiguredDatabase().
+     * @details 1 segment with only one element per segment-> the sampling time cannot be calculated.
+     */
+    bool TestSetConfiguredDatabaseInvalidSamplingTime();
+
+    /**
      * @brief Test MDSReader::SetConfiguredDatabase().
      */
     bool TestSetConfiguredDatabase();
+    /**
+     * @brief Test MDSReader::SetConfiguredDatabase().
+     * @details shot number = -1.
+     */
+    bool TestSetConfiguredDatabaseShotNumber();
 
     /**
      * @brief Test MDSReader::PrepareNextState().
@@ -191,6 +244,21 @@ public:
      * @brief Test MDSReader::AllocateMemory().
      */
     bool TestAllocateMemory();
+
+    /**
+     * @brief Test MDSReader::GetBrokerName().
+     */
+    bool TestGetBrokerName();
+
+    /**
+     * @brief Test MDSReader::GetInputBroker().
+     */
+    bool TestGetInputBroker();
+
+    /**
+     * @brief Test MDSReader::GetOutputBroker().
+     */
+    bool TestGetOutputBroker();
 
     /**
      * @brief Test MDSReader::GetNumberOfMemoryBuffers().
@@ -206,11 +274,6 @@ public:
      * @brief Test MDSReader::GetSignalMemoryBuffer().
      */
     bool TestGetSignalMemoryBuffer();
-
-    /**
-     * @brief Test MDSReader::GetSignalMemoryBuffer().
-     */
-    bool Test();
 
     /**
      * @brief Test Synchronise and compare the output against the expected values
@@ -744,12 +807,137 @@ public:
     /**
      * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 10;
+     * Read all data of the tree
      * shotNumber = 1
      * dataManagement[i] = 0
      * hole management[i] = 0 (irrelevant no hole on the data)
      */
     bool TestSynchronise55();
 
+    /**
+     * @brief Test Synchronise and compare the output against the expected values
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 10;
+     * Read all data of the tree
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise56();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 10;
+     * time type = uint32.
+     * Read all data of the tree
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise57();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 10;
+     * time type = int32.
+     * Read all data of the tree
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise58();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 10;
+     * time type = uint64.
+     * Read all data of the tree
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise59();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 10;
+     * time type = int64.
+     * Read all data of the tree
+     * shotNumber = 2
+     * dataManagement[i] = 1
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise60();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 21, elementsRead = 10;
+     * time type = int64.
+     * Single element per node.
+     * shotNumber = 1
+     * dataManagement[i] = 0
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise61();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 10;
+     * time type = int64.
+     * Single element per node.
+     * shotNumber = 1
+     * dataManagement[i] = 1
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise62();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 2, elementsRead = 10;
+     * time type = int64.
+     * Single element per node.
+     * shotNumber = 1
+     * dataManagement[i] = 2
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise63();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 42;
+     * time type = int64.
+     * shotNumber = 2
+     * dataManagement[i] = 0
+     * hole management[i] = 0
+     */
+    bool TestSynchronise64();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 42;
+     * time type = int64.
+     * shotNumber = 3
+     * dataManagement[i] = 0
+     * hole management[i] = 0
+     */
+    bool TestSynchronise65();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 0.02, elementsRead = 40;
+     * shotNumber = 1
+     * dataManagement[i] = 2
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise66();
+
+    /**
+     * @brief Test Synchronise and compare the time against the expected value.
+     * @details node sampling time 0.1. Read sampling time = 0.02, elementsRead = 40;
+     * shotNumber = 1
+     * dataManagement[i] = 1
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise67();
 
 private:
     StreamString treeName;

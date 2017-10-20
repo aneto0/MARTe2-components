@@ -10,6 +10,7 @@
 -i./Source/Components/DataSources/FileDataSource/
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
+-i./Source/Components/DataSources/MDSReader/
 -i./Source/Components/DataSources/MDSWriter/
 -i./Source/Components/DataSources/NI6259/
 -i./Source/Components/DataSources/NI6368/
@@ -47,6 +48,7 @@ IOGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
+MDSReader.cpp
 MDSWriter.cpp
 MDSWriterNode.cpp
 NI6259ADC.cpp

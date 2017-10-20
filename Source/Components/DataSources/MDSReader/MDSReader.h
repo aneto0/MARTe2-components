@@ -46,9 +46,10 @@
 namespace MARTe {
 
 /**
+ * first signal must be the time
  * Segments of one element are not allowed
  */
-class MDSReader: public DataSourceI, public MessageI {
+class MDSReader: public DataSourceI {
 //TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API MDSReader)
 public:
     CLASS_REGISTER_DECLARATION()
@@ -159,11 +160,13 @@ private:
      * @brief validates the type of the node idx
      * @return true if the type is supported
      */
-    bool IsValidTypeNode(uint32 idx);
+    bool IsValidTypeNode(const uint32 idx) const;
 
-    bool CheckTypeAgainstMdsNodeTypes(uint32 idx);
+    bool CheckTypeAgainstMdsNodeTypes(const uint32 idx) const;
 
-    bool GetDataNode(uint32 nodeNumber);
+    bool GetDataNode(const uint32 nodeNumber);
+
+    void PublishTime();
 
     /**
      * @brief find tin which segment contains the time t for the signal index specified
@@ -175,13 +178,13 @@ private:
      * @return 0 if not found but is not the end of the data. It could happen if the data is only stored in trigger events
      * @return 1 if the time t is in a segment.
      */
-    int8 FindSegment(float64 t,
+    int8 FindSegment(const float64 t,
                      uint32 &segment,
-                     uint32 index);
+                     const uint32 nodeIdx);
 
-    uint32 CheckDiscontinuityOfTheSegments(uint32 nodeNumber,
-                                           uint32 initialSegment,
-                                           uint32 finalSegment);
+    uint32 CheckDiscontinuityOfTheSegments(const uint32 nodeNumber,
+                                           const uint32 initialSegment,
+                                           const uint32 finalSegment) const;
 
     /**
      * @brief Calculates the time difference between the first samples.
@@ -191,42 +194,40 @@ private:
      * @param[out] tDiff hold the sample difference.
      * @return true on succeed.
      */
-    bool GetNodeSamplingTime(uint32 idx,
-                             float64 &tDiff);
+    bool GetNodeSamplingTime(const uint32 idx,
+                             float64 &tDiff) const;
 
-    void CopyTheSameValue(uint32 idxNumber,
-                          uint32 nTimes,
-                          uint32 samplesOffset);
+    void CopyTheSameValue(const uint32 idxNumber,
+                          const uint32 numberOfTimes,
+                          const uint32 samplesOffset);
 
     template<typename T>
     void CopyTheSameValueTemplate(uint32 idxNumber,
                                   uint32 numberOfTimes,
                                   uint32 samplesOffset);
 
-    bool AddValuesCopyData(uint32 nodeNumber,
+    bool AddValuesCopyData(const uint32 nodeNumber,
                            uint32 minSegment,
-                           uint32 maxSegment,
-                           uint32 numberOFDiscontinuites);
+                           const uint32 numberOfDiscontinuities);
 
-    bool CopyDataAddValues(uint32 nodeNumber,
+    bool CopyDataAddValues(const uint32 nodeNumber,
                            uint32 minSegment,
-                           uint32 maxSegment,
-                           uint32 numberOfDiscontinuities,
-                           uint32 samplesToRead,
-                           uint32 SamplesRead);
+                           const uint32 numberOfDiscontinuities,
+                           const uint32 samplesToRead,
+                           const uint32 samplesRead);
 
-    bool AddValuesCopyDataAddValues(uint32 nodeNumber,
-                                    uint32 minSegment,
-                                    uint32 numberOfDiscontinuities);
+    bool AddValuesCopyDataAddValues(const uint32 nodeNumber,
+                                    const uint32 minSegment,
+                                    const uint32 numberOfDiscontinuities);
 
-    bool CopyDataAddValuesCopyData(uint32 nodeNumber,
+    bool CopyDataAddValuesCopyData(const uint32 nodeNumber,
                                    uint32 minSegment,
-                                   uint32 numberOfDiscontinuities);
+                                   const uint32 numberOfDiscontinuities);
 
-    bool FindDisconinuity(uint32 nodeNumber,
+    bool FindDisconinuity(const uint32 nodeNumber,
                           uint32 &segment,
                           float64 &beginningTime,
-                          float64 &endTime);
+                          float64 &endTime) const;
 
     /**
      * @brief Copy the data from the tree to the allocated memory
@@ -237,10 +238,10 @@ private:
      * @param[in] OffsetSamples indicates how many samples are already copied. It is used to know in which position of the dataSourceMemory the data should be copied.
      * @return the number of samples copied from the tree to the allocated memory
      */
-    uint32 MakeRawCopy(uint32 nodeNumber,
-                       uint32 minSegu,
-                       uint32 SamplesToCopy,
-                       uint32 OffsetSamples);
+    uint32 MakeRawCopy(const uint32 nodeNumber,
+                       const uint32 minSeg,
+                       const uint32 samplesToCopy,
+                       const uint32 offsetSamples);
 
     template<typename T>
     uint32 MakeRawCopyTemplate(uint32 nodeNumber,
@@ -248,10 +249,10 @@ private:
                                uint32 SamplesToCopy,
                                uint32 OffsetSamples);
 
-    uint32 LinearInterpolationCopy(uint32 nodeNumber,
-                                   uint32 minSegment,
-                                   uint32 SamplesToCopy,
-                                   uint32 offsetSamples);
+    uint32 LinearInterpolationCopy(const uint32 nodeNumber,
+                                   const uint32 minSeg,
+                                   const uint32 samplesToCopy,
+                                   const uint32 offsetSamples);
 
     template<typename T>
     uint32 LinearInterpolationCopyTemplate(uint32 nodeNumber,
@@ -259,10 +260,10 @@ private:
                                            uint32 samplesToCopy,
                                            uint32 offsetSamples);
 
-    uint32 HoldCopy(uint32 nodeNumber,
-                    uint32 minSegment,
-                    uint32 SamplesToCopy,
-                    uint32 samplesOffset);
+    uint32 HoldCopy(const uint32 nodeNumber,
+                    const uint32 minSeg,
+                    const uint32 samplesToCopy,
+                    const uint32 samplesOffset);
 
     template<typename T>
     uint32 HoldCopyTemplate(uint32 nodeNumber,
@@ -270,38 +271,42 @@ private:
                             uint32 samplesToCopy,
                             uint32 samplesOffset);
 
-    bool CopyRemainingData(uint32 nodeNumber,
-                           uint32 minSegment);
+    bool CopyRemainingData(const uint32 nodeNumber,
+                           const uint32 minSegment);
 
-    uint32 ComputeSamplesToCopy(uint32 nodeNumber,
-                                float64 tstart,
-                                float64 tend);
+    uint32 ComputeSamplesToCopy(const uint32 nodeNumber,
+                                const float64 tstart,
+                                const float64 tend) const;
 
-    void VerifySamples(uint32 nodeNumber,
+    void VerifySamples (const uint32 nodeNumber,
                        uint32 &samples,
-                       float64 tstart,
-                       float64 tend);
+                       const float64 tstart,
+                       const float64 tend)const;
 
     template<typename T>
-    bool SampleInterpolation(float64 currentTime,
+    bool SampleInterpolation(float64 cT,
                              T data1,
                              T data2,
                              float64 t1,
                              float64 t2,
-                             float64 *tr);
+                             float64 *ptr);
 
-    TypeDescriptor ConvertMDStypeToMARTeType(StreamString mdsType);
+    TypeDescriptor ConvertMDStypeToMARTeType(StreamString mdsType) const;
 
-    bool AllNodesEnd();
+    bool AllNodesEnd() const;
     StreamString treeName;
     MDSplus::Tree *tree;
     StreamString *nodeName;
     MDSplus::TreeNode **nodes;
     uint32 numberOfNodeNames;
+
+    uint32 nOfInputSignals;
+
     /**
      * MDSplus signal type. If signalTypes is given as input, consistency between mdsSignalType signalType
      */
     StreamString *mdsNodeTypes;
+
     uint32 *byteSizeSignals;
 
     /**
@@ -333,7 +338,7 @@ private:
     /**
      * Time seconds. It indicates the beginning of each segment
      */
-    float64 time;
+    float64 timeCycle;
 
     /**
      * Time in seconds. It indicates the time of each sample. At the beginning of each cycle currentTime = time.
@@ -353,12 +358,12 @@ private:
     /**
      * Holds the maximum number of segments for each node of the tree.
      */
-    uint64 *maxNumberOfSegments;
+    uint32 *maxNumberOfSegments;
 
     /**
      * hold the last segments where the t was found. It is used for optimization since the time could not go back.
      */
-    uint64 *lastSegment;
+    uint32 *lastSegment;
 
     /**
      * Management of the data. indicates what to do with the data.
@@ -390,9 +395,10 @@ private:
     /**
      * Elements of the current segment already consumed. It is used to know from where the segment must be copied.
      */
-    uint32 * elementsConsumed;
+    uint32 *elementsConsumed;
 
     bool *endNode;
+    float64 *nodeSamplingTime;
 
 };
 

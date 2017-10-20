@@ -39,9 +39,7 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-namespace {
-
-}
+/*lint -estring(1960, "*MDSplus::*") -estring(1960, "*std::*") Ignore errors that do not belong to this DataSource namespace*/
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -49,11 +47,13 @@ namespace {
 
 namespace MARTe {
 
-MDSReader::MDSReader() {
+MDSReader::MDSReader() :
+        DataSourceI() {
     tree = NULL_PTR(MDSplus::Tree *);
     nodeName = NULL_PTR(StreamString *);
     nodes = NULL_PTR(MDSplus::TreeNode **);
     numberOfNodeNames = 0u;
+    nOfInputSignals = 0u;
     mdsNodeTypes = NULL_PTR(StreamString *);
     byteSizeSignals = NULL_PTR(uint32 *);
     shotNumber = 0;
@@ -62,12 +62,12 @@ MDSReader::MDSReader() {
     numberOfElements = NULL_PTR(uint32 *);
     dataSourceMemory = NULL_PTR(char8 *);
     offsets = NULL_PTR(uint32 *);
-    time = 0.0;
-    currentTime = time;
+    timeCycle = 0.0;
+    currentTime = timeCycle;
     frequency = 0.0;
     period = 0.0;
-    maxNumberOfSegments = 0u;
-    lastSegment = NULL_PTR(uint64 *);
+    maxNumberOfSegments = NULL_PTR(uint32 *);
+    lastSegment = NULL_PTR(uint32 *);
     dataManagement = NULL_PTR(uint8 *);
     holeManagement = NULL_PTR(uint8 *);
     samplingTime = NULL_PTR(float64 *);
@@ -76,8 +76,10 @@ MDSReader::MDSReader() {
     offsetLastValue = NULL_PTR(uint32 *);
     elementsConsumed = NULL_PTR(uint32 *);
     endNode = NULL_PTR(bool *);
+    nodeSamplingTime = NULL_PTR(float64 *);
 }
 
+/*lint -e{1551} the destructor must guarantee that the MDSplus are deleted and the shared memory freed*/
 MDSReader::~MDSReader() {
 
     if (tree != NULL_PTR(MDSplus::Tree *)) {
@@ -120,13 +122,13 @@ MDSReader::~MDSReader() {
         GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(dataSourceMemory));
         dataSourceMemory = NULL_PTR(char8 *);
     }
-    if (maxNumberOfSegments != NULL_PTR(uint64 *)) {
+    if (maxNumberOfSegments != NULL_PTR(uint32 *)) {
         delete[] maxNumberOfSegments;
-        maxNumberOfSegments = NULL_PTR(uint64 *);
+        maxNumberOfSegments = NULL_PTR(uint32 *);
     }
-    if (lastSegment != NULL_PTR(uint64 *)) {
+    if (lastSegment != NULL_PTR(uint32 *)) {
         delete[] lastSegment;
-        lastSegment = NULL_PTR(uint64 *);
+        lastSegment = NULL_PTR(uint32 *);
     }
     if (dataManagement != NULL_PTR(uint8 *)) {
         delete[] dataManagement;
@@ -160,6 +162,18 @@ MDSReader::~MDSReader() {
         delete[] endNode;
         endNode = NULL_PTR(bool *);
     }
+    if (numberOfElements != NULL_PTR(uint32 *)) {
+        delete[] numberOfElements;
+        numberOfElements = NULL_PTR(uint32 *);
+    }
+    if (bytesType != NULL_PTR(uint32 *)) {
+        delete[] bytesType;
+        bytesType = NULL_PTR(uint32 *);
+    }
+    if (nodeSamplingTime != NULL_PTR(float64 *)) {
+        delete[] nodeSamplingTime;
+        nodeSamplingTime = NULL_PTR(float64 *);
+    }
 }
 
 bool MDSReader::Initialise(StructuredDataI& data) {
@@ -174,22 +188,16 @@ bool MDSReader::Initialise(StructuredDataI& data) {
         ok = data.Read("ShotNumber", shotNumber);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::Information, "ShotNumber shall be specified");
-            shotNumber = -1;
         }
         else {
-            bool cond1 = (shotNumber < -1);
-            bool cond2 = (shotNumber == 0);
-            ok = !(cond1 || cond2);
+            ok = (shotNumber >= 0);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "ShotNumber shall be -1 (last available shot) or positive");
+                REPORT_ERROR(ErrorManagement::ParametersError, "ShotNumber shall be 0 (last available shot) or positive");
             }
         }
     }
     if (ok) {
         ok = OpenTree();
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Error opening tree %s with shotNumber = %u\n", treeName.Buffer(), shotNumber);
-        }
     }
     if (ok) { //readFrequency
         ok = data.Read("Frequency", frequency);
@@ -197,7 +205,7 @@ bool MDSReader::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read frequency");
         }
         else {
-            period = 1 / frequency;
+            period = 1.0 / frequency;
         }
     }
     if (ok) {
@@ -244,25 +252,28 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
     }
     if (ok) { //read number of nodes per function numberOfNodeNames
         //0u (second argument) because previously it is checked
-        ok = GetFunctionNumberOfSignals(InputSignals, 0u, numberOfNodeNames);        //0u (second argument) because previously it is checked
+        ok = GetFunctionNumberOfSignals(InputSignals, 0u, nOfInputSignals);        //0u (second argument) because previously it is checked
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "GetFunctionNumberOfSignals() returned false");
         }
         if (ok) {
-            ok = (numberOfNodeNames > 0u);
+            ok = (nOfInputSignals > 1u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "The number of signals must be positive");
+                REPORT_ERROR(ErrorManagement::ParametersError, "The number of signals must be at least 2");
             }
         }
     }
+    if (ok) {
+        numberOfNodeNames = nOfInputSignals - 1u;
+    }
     if (ok) {        //allocate memory for lastSegment
-        lastSegment = new uint64[numberOfNodeNames];
+        lastSegment = new uint32[numberOfNodeNames];
         for (uint32 i = 0u; i < numberOfNodeNames; i++) {
             lastSegment[i] = 0u;
         }
     }
     if (ok) {
-        for (uint32 n = 0u; (n < numberOfNodeNames) && ok; n++) {
+        for (uint32 n = 0u; (n < nOfInputSignals) && ok; n++) {
             uint32 nSamples;
             ok = GetFunctionSignalSamples(InputSignals, 0u, n, nSamples);
             if (ok) {
@@ -275,7 +286,7 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
     }
 
     if (ok) {
-        ok = (numberOfNodeNames == GetNumberOfSignals());
+        ok = (nOfInputSignals == GetNumberOfSignals());
         if (!ok) {
             REPORT_ERROR(
                     ErrorManagement::ParametersError,
@@ -306,32 +317,10 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
             }
         }
     }
-    if (ok) { //read nodeNames from originalSignalInformation
-        nodeName = new StreamString[numberOfNodeNames];
-        for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
-            ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(i));
-            if (!ok) {
-                uint32 auxIdx = i;
-                REPORT_ERROR(ErrorManagement::ParametersError, "Cannot move to the children %u", auxIdx);
-            }
-            if (ok) {
-                ok = originalSignalInformation.Read("NodeName", nodeName[i]);
-                if (!ok) {
-                    uint32 auxIdx = i;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Parameter NodeName for signal %u not found", auxIdx);
-                }
-            }
-            if (ok) {
-                ok = originalSignalInformation.MoveToAncestor(1u);
-                if (!ok) { //Should never happen
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Cannot move to the the immediate ancestor");
-                }
-            }
-        }
-    }
     if (ok) { //check node names are different
         for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
             for (uint32 j = (i + 1u); (j < numberOfNodeNames) && ok; j++) {
+                //lint -e{613} Possible use of null pointer. Variable protected by ok bolean.
                 ok = (nodeName[i] != nodeName[j]);
                 if (!ok) {
                     uint32 auxI = i;
@@ -348,9 +337,6 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
         }
         for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
             ok = OpenNode(i);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Error opening node %s. It may not exist \n", nodeName[i].Buffer());
-            }
         }
     }
     if (ok) { //get MDSplus node type, validate type and get byte size of each node
@@ -372,8 +358,9 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
     }
 
     if (ok) { //read the type specified in the configuration file and compare against the mdsNodeTypes
-        type = new TypeDescriptor[numberOfNodeNames];
-        for (uint32 i = 0; (i < numberOfNodeNames) && ok; i++) {
+        type = new TypeDescriptor[nOfInputSignals];
+        //lint -e{613} Possible use of null pointer. type previously allocated (see previous line).
+        for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
             type[i] = GetSignalType(i);
             ok = !(type[i] == InvalidType);
             if (!ok) {
@@ -391,17 +378,40 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
             }
         }
     }
+    if (ok) { //read the type of the time. It should be uin64
+        //lint -e{662} [MISRA C++ 5-0-16] Possible access out-of-bounds pointer. nOfInputSignals is always 1 unit larger than numberOfNodeNames.
+        //lint -e{661} [MISRA C++ 5-0-16] Possible access out-of-bounds pointer. nOfInputSignals is always 1 unit larger than numberOfNodeNames.
+        if (type != NULL_PTR(TypeDescriptor *)) {
+            type[numberOfNodeNames] = GetSignalType(numberOfNodeNames);
+            bool cond1 = (type[numberOfNodeNames] == UnsignedInteger64Bit);
+            bool cond2 = (type[numberOfNodeNames] == UnsignedInteger32Bit);
+            bool cond3 = (type[numberOfNodeNames] == SignedInteger32Bit);
+            bool cond4 = (type[numberOfNodeNames] == SignedInteger64Bit);
+            ok = cond1 || cond2 || cond3 || cond4;
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported timeCycle type. Possible timeCycle types are: uint64, int64, uin32 or int32\n");
+            }
+        }
+        else {
+            ok = false;
+        }
+    }
 
     if (ok) { //Compute the type byte size
         bytesType = new uint32[numberOfNodeNames];
-        for (uint32 i = 0u; i < numberOfNodeNames; i++) {
-            bytesType[i] = type[i].numberOfBits / 8;
+        if ((bytesType != NULL_PTR(uint32 *)) && (type != NULL_PTR(TypeDescriptor *))) {
+            for (uint32 i = 0u; i < numberOfNodeNames; i++) {
+                bytesType[i] = static_cast<uint32>(type[i].numberOfBits) / 8u;
+            }
+        }
+        else {
+            ok = false;
         }
     }
 
     if (ok) { //read number of elements
-        numberOfElements = new uint32[numberOfNodeNames];
-        for (uint32 i = 0; (i < numberOfNodeNames) && ok; i++) {
+        numberOfElements = new uint32[nOfInputSignals];
+        for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
             ok = GetSignalNumberOfElements(i, numberOfElements[i]);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read NumberOfElements");
@@ -413,56 +423,117 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
                 }
             }
         }
+        if (ok) {
+            //lint -e{661} [MISRA C++ 5-0-16] Possible access out-of-bounds. nOfInputSignals is always 1 unit larger than numberOfNodeNames.
+            ok = GetSignalNumberOfElements(numberOfNodeNames, numberOfElements[numberOfNodeNames]);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read NumberOfElements");
+            }
+        }
+        if (ok) {
+            //lint -e{661} [MISRA C++ 5-0-16] Possible access out-of-bounds. nOfInputSignals is always 1 unit larger than numberOfNodeNames.
+            ok = numberOfElements[numberOfNodeNames] == 1u;
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfElements for the timeCycle must be 1");
+            }
+        }
     }
     if (ok) { //calculate samplingTime
         samplingTime = new float64[numberOfNodeNames];
-        for (uint32 i = 0u; i < numberOfNodeNames; i++) {
-            samplingTime[i] = (1.0 / (frequency)) / numberOfElements[i];
+        if ((samplingTime != NULL_PTR(float64 *)) && (numberOfElements != NULL_PTR(uint32 *))) {
+            for (uint32 i = 0u; i < numberOfNodeNames; i++) {
+                samplingTime[i] = (1.0 / (frequency)) / static_cast<float64>(numberOfElements[i]);
+            }
+        }
+        else {
+            ok = false;
         }
     }
-
+    //lint -e{661} [MISRA C++ 5-0-16] Possible access out-of-bounds. nOfInputSignals is always 1 unit larger than numberOfNodeNames.
     if (ok) { //Count and allocate memory for dataSourceMemory, lastValue and lastTime
-        offsets = new uint32[numberOfNodeNames];
-        byteSizeSignals = new uint32[numberOfNodeNames];
+        offsets = new uint32[nOfInputSignals];
+        byteSizeSignals = new uint32[nOfInputSignals];
         offsetLastValue = new uint32[numberOfNodeNames];
         lastTime = new float64[numberOfNodeNames];
         //Count the number of bytes
         uint32 totalSignalMemory = 0u;
         uint32 sumLastValueMemory = 0u;
-        for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
-            offsets[i] = totalSignalMemory;
-            offsetLastValue[i] = sumLastValueMemory;
-            uint32 nBytes = 0u;
-            ok = GetSignalByteSize(i, nBytes);
+        if (type != NULL_PTR(TypeDescriptor *)) {
+            if ((offsets != NULL_PTR(uint32 *)) && (byteSizeSignals != NULL_PTR(uint32 *))) {
+                for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
+                    offsets[i] = totalSignalMemory;
+                    offsetLastValue[i] = sumLastValueMemory;
+                    uint32 nBytes = 0u;
+                    ok = GetSignalByteSize(i, nBytes);
 
-            byteSizeSignals[i] = nBytes;
-            if (!ok) {
-                uint32 auxIdx = i;
-                REPORT_ERROR(ErrorManagement::ParametersError, "Error while GetSignalByteSize() for signal %u", auxIdx);
+                    byteSizeSignals[i] = nBytes;
+                    if (!ok) {
+                        uint32 auxIdx = i;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Error while GetSignalByteSize() for signal %u", auxIdx);
+                    }
+                    totalSignalMemory += nBytes;
+                    sumLastValueMemory += static_cast<uint32>(type[i].numberOfBits) / 8u;
+                }
+                if (ok) { // count the time as well
+                    offsets[numberOfNodeNames] = totalSignalMemory;
+                    uint32 nBytes = 0u;
+                    ok = GetSignalByteSize(numberOfNodeNames, nBytes);
+                    byteSizeSignals[numberOfNodeNames] = nBytes;
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Error while GetSignalByteSize() for signal %u", numberOfNodeNames);
+                    }
+                    totalSignalMemory += nBytes;
+
+                }
             }
-            totalSignalMemory += nBytes;
-            sumLastValueMemory += type[i].numberOfBits / 8u;
+            else {
+                ok = false;
+            }
         }
+        else {
+            ok = false;
+        }
+
         //Allocate memory
         if (ok) {
             dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalSignalMemory));
             lastValue = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(sumLastValueMemory));
         }
         if (ok) { //initialise lastValues and lastTimes
-            MemoryOperationsHelper::Set(reinterpret_cast<void *>(lastValue), 0, sumLastValueMemory);
-            for (uint32 i = 0u; i < numberOfNodeNames; i++) {
-                lastTime[i] = -samplingTime[i];
+            ok = MemoryOperationsHelper::Set(reinterpret_cast<void *>(lastValue), static_cast<char8>(0), sumLastValueMemory);
+            if ((lastTime != NULL_PTR(float64 *)) && (samplingTime != NULL_PTR(float64 *))) {
+                for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
+                    lastTime[i] = -samplingTime[i];
+                }
             }
         }
     }
     if (ok) {
-        maxNumberOfSegments = new uint64[numberOfNodeNames];
-        for (uint32 i = 0u; i < numberOfNodeNames; i++) {
-            maxNumberOfSegments[i] = nodes[i]->getNumSegments();
+        maxNumberOfSegments = new uint32[numberOfNodeNames];
+        if (nodes != NULL_PTR(MDSplus::TreeNode **)) {
+            for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
+                if (nodes[i] != NULL_PTR(MDSplus::TreeNode *)) {
+                    int32 auxSeg = nodes[i]->getNumSegments();
+                    if (auxSeg < 0) {
+                        ok = false;
+                    }
+                    else {
+                        maxNumberOfSegments[i] = static_cast<uint32>(auxSeg);
+                    }
+                }
+                else {
+                    ok = false;
+                }
+            }
+        }
+        else {
+            ok = false;
         }
     }
     if (ok) { //read DataManagement from originalSignalInformation
         dataManagement = new uint8[numberOfNodeNames];
+        nodeSamplingTime = new float64[numberOfNodeNames];
+        //lint -e{613} Possible use of null pointer. The pointer usage is protected by the ok variable.
         for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
             ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(i));
             if (!ok) {
@@ -477,7 +548,7 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
                 }
             }
             if (ok) {
-                ok = (dataManagement[i] < 3);
+                ok = (dataManagement[i] < 3u);
                 if (!ok) {
                     uint32 auxIdx = i;
                     REPORT_ERROR(
@@ -486,21 +557,21 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
                             auxIdx, dataManagement[auxIdx]);
                 }
             }
+            if (ok) {
+                ok = GetNodeSamplingTime(i, nodeSamplingTime[i]);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Error getting node sample time for nodeName = %s", nodeName[i].Buffer());
+                }
+            }
             if (ok) { //check time of doing nothing option
                 if (dataManagement[i] == 0u) {
-                    float64 nodeSamplingTime = 0.0;
-                    ok = GetNodeSamplingTime(i, nodeSamplingTime);
+//                    float64 nodeSamplingTime = 0.0;
+                    ok = IsEqual(samplingTime[i], nodeSamplingTime[i]);
                     if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Error getting node sample time for nodeName = %s", nodeName[i].Buffer());
-                    }
-                    if (ok) {
-                        ok = IsEqual(samplingTime[i], nodeSamplingTime);
-                        if (!ok) {
-                            REPORT_ERROR(
-                                    ErrorManagement::ParametersError,
-                                    "the sampling time of the node %s = %f is different than the sampling time calculated from the parameters = %f and the dataManagement = 0 (do nothing)",
-                                    nodeName[i].Buffer(), nodeSamplingTime, samplingTime[i]);
-                        }
+                        REPORT_ERROR(
+                                ErrorManagement::ParametersError,
+                                "the sampling time of the node %s = %f is different than the sampling time calculated from the parameters = %f and the dataManagement = 0 (do nothing)",
+                                nodeName[i].Buffer(), nodeSamplingTime[i], samplingTime[i]);
                     }
                 }
             }
@@ -528,7 +599,7 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
                 }
             }
             if (ok) {
-                ok = (holeManagement[i] < 2);
+                ok = (holeManagement[i] < 2u);
                 if (!ok) {
                     uint32 auxIdx = i;
                     REPORT_ERROR(ErrorManagement::ParametersError,
@@ -560,24 +631,60 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
 }
 
 bool MDSReader::Synchronise() {
-    bool ok = true;
+    bool ok;
     for (uint32 i = 0u; i < numberOfNodeNames; i++) {
-        currentTime = time;
+        currentTime = timeCycle;
         endNode[i] = !GetDataNode(i);
     }
+    PublishTime();
     ok = !AllNodesEnd();
-    time += period;
+    timeCycle += period;
     return ok;
 }
 
-bool MDSReader::AllNodesEnd(){
+//lint -e{613} Possible use of null pointer. Not Possible. If initialise fails this function is not called.
+//lint -e{661} Possible access of out-of-bounds pointer. Initialisation garanties that all pointers are correctly initialised.
+//lint -e{662} Possible creation of out-of-bounds pointer (4294967294 beyond end of data) by operator. Itialisation garanties that all pointers are correctly initialised.
+//lint -e{927} cast from pointer to pointer [MISRA C++ Rule 5-2-7]. A pointer cast must be done...
+//lint -e{826} Suspicious pointer-to-pointer conversion. char8 * to uint64 * convertion must be done...
+void MDSReader::PublishTime() {
+    float64 auxFloat = timeCycle * static_cast<float64>(1000000);
+    if (type[numberOfNodeNames] == UnsignedInteger32Bit) {
+        *reinterpret_cast<uint32 *>(&dataSourceMemory[offsets[numberOfNodeNames]]) = static_cast<uint32>(auxFloat);
+    }
+    else if (type[numberOfNodeNames] == SignedInteger32Bit) {
+        //int32 auxInt = static_cast<int32>(auxFloat);
+        //MemoryOperationsHelper::Copy(reinterpret_cast<void *>(&dataSourceMemory[offsets[numberOfNodeNames]]), static_cast<void *>(&auxInt), 4u);
+        *reinterpret_cast<int32 *>(&dataSourceMemory[offsets[numberOfNodeNames]]) = static_cast<int32>(auxFloat);
+    }
+    else if (type[numberOfNodeNames] == UnsignedInteger64Bit) {
+        uint32 auxIdx = offsets[numberOfNodeNames];
+        uint64 *ptr = reinterpret_cast<uint64 *>(&(dataSourceMemory[auxIdx]));
+        *ptr = static_cast<uint64>(auxFloat);
+    }
+    else if (type[numberOfNodeNames] == SignedInteger64Bit) {
+        uint32 auxIdx = offsets[numberOfNodeNames];
+        char8 *ptr2 = &dataSourceMemory[auxIdx];
+        int64 *ptr = reinterpret_cast<int64 *>(ptr2);
+        *ptr = static_cast<int64>(auxFloat);
+    }
+    else {
+
+    }
+    return;
+}
+
+bool MDSReader::AllNodesEnd() const {
     bool ret = true;
-    for(uint32 i = 0u; (i < numberOfNodeNames) && ret; i++){
-        ret = endNode[i];
+    if (endNode != NULL_PTR(bool *)) {
+        for (uint32 i = 0u; (i < numberOfNodeNames) && ret; i++) {
+            ret = endNode[i];
+        }
     }
     return ret;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
 bool MDSReader::PrepareNextState(const char8 * const currentStateName,
                                  const char8 * const nextStateName) {
     return true;
@@ -591,6 +698,7 @@ uint32 MDSReader::GetNumberOfMemoryBuffers() {
     return 1u;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
 bool MDSReader::GetSignalMemoryBuffer(const uint32 signalIdx,
                                       const uint32 bufferIdx,
                                       void *&signalAddress) {
@@ -606,8 +714,9 @@ bool MDSReader::GetSignalMemoryBuffer(const uint32 signalIdx,
     return ok;
 }
 
-const char *MDSReader::GetBrokerName(StructuredDataI &data,
-                                     const SignalDirection direction) {
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction*/
+const char8 *MDSReader::GetBrokerName(StructuredDataI &data,
+                                      const SignalDirection direction) {
     const char8* brokerName = "";
     if (direction == InputSignals) {
         brokerName = "MemoryMapSynchronisedInputBroker";
@@ -624,10 +733,10 @@ bool MDSReader::GetInputBrokers(ReferenceContainer &inputBrokers,
     if (ok) {
         ok = inputBrokers.Insert(broker);
     }
-    return true;
+    return ok;
 }
 
-//No output broker supported
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: InputBrokers are not supported. Function returns false irrespectively of the parameters.*/
 bool MDSReader::GetOutputBrokers(ReferenceContainer &outputBrokers,
                                  const char8* const functionName,
                                  void * const gamMemPtr) {
@@ -639,65 +748,42 @@ bool MDSReader::OpenTree() {
     try {
         tree = new MDSplus::Tree(treeName.Buffer(), shotNumber);
     }
-    catch (MDSplus::MdsException &exc) {
+    catch (const MDSplus::MdsException &exc) {
+        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Fail opening tree %s with shotNumber %d:  %s", treeName.Buffer(), shotNumber, exc.what());
         ret = false;
     }
     return ret;
 }
 
-bool MDSReader::OpenNode(uint32 idx) {
+bool MDSReader::OpenNode(const uint32 idx) {
     bool ret = true;
-    try {
-        nodes[idx] = tree->getNode(nodeName[idx].Buffer());
-    }
-    catch (MDSplus::MdsException &exc) {
-        ret = false;
+    if ((nodeName != NULL_PTR(StreamString *)) && (nodes != NULL_PTR(MDSplus::TreeNode **)) && (tree != NULL_PTR(MDSplus::Tree *))) {
+        try {
+            nodes[idx] = tree->getNode(nodeName[idx].Buffer());
+        }
+        catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node %s: %s", nodeName[idx].Buffer(), exc.what());
+            ret = false;
+        }
     }
     return ret;
 }
 
-bool MDSReader::GetTypeNode(uint32 idx) {
+bool MDSReader::GetTypeNode(const uint32 idx) {
     bool ret = true;
-    try {
-        mdsNodeTypes[idx] = nodes[idx]->getDType();
-    }
-    catch (MDSplus::MdsException &exc) {
-        ret = false;
-    }
-    return ret;
-}
-
-bool MDSReader::IsValidTypeNode(uint32 idx) {
-    bool ret = true;
-    if (mdsNodeTypes[idx] == "DTYPE_BU") {
-
-    }
-    else if (mdsNodeTypes[idx] == "DTYPE_B") {
-
-    }
-    else if (mdsNodeTypes[idx] == "DTYPE_WU") {
-
-    }
-    else if (mdsNodeTypes[idx] == "DTYPE_W") {
-
-    }
-    else if (mdsNodeTypes[idx] == "DTYPE_LU") {
-
-    }
-    else if (mdsNodeTypes[idx] == "DTYPE_L") {
-
-    }
-    else if (mdsNodeTypes[idx] == "DTYPE_QU") {
-
-    }
-    else if (mdsNodeTypes[idx] == "DTYPE_Q") {
-
-    }
-    else if (mdsNodeTypes[idx] == "DTYPE_FS") {
-
-    }
-    else if (mdsNodeTypes[idx] == "DTYPE_FT") {
-
+    if (nodes != NULL_PTR(MDSplus::TreeNode **)) {
+        if ((nodes[idx] != NULL_PTR(MDSplus::TreeNode *)) && (mdsNodeTypes != NULL_PTR(StreamString *)) && (nodeName != NULL_PTR(StreamString *))) {
+            try {
+                mdsNodeTypes[idx] = nodes[idx]->getDType();
+            }
+            catch (const MDSplus::MdsException &exc) {
+                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed getting type node from %s: %s", nodeName[idx].Buffer(), exc.what());
+                ret = false;
+            }
+        }
+        else {
+            ret = false;
+        }
     }
     else {
         ret = false;
@@ -705,12 +791,61 @@ bool MDSReader::IsValidTypeNode(uint32 idx) {
     return ret;
 }
 
-bool MDSReader::CheckTypeAgainstMdsNodeTypes(uint32 idx) {
-    bool ret = (type[idx] == ConvertMDStypeToMARTeType(mdsNodeTypes[idx]));
+bool MDSReader::IsValidTypeNode(const uint32 idx) const {
+    bool ret = true;
+    if (mdsNodeTypes != NULL_PTR(StreamString *)) {
+        if (mdsNodeTypes[idx] == "DTYPE_BU") {
+
+        }
+        else if (mdsNodeTypes[idx] == "DTYPE_B") {
+
+        }
+        else if (mdsNodeTypes[idx] == "DTYPE_WU") {
+
+        }
+        else if (mdsNodeTypes[idx] == "DTYPE_W") {
+
+        }
+        else if (mdsNodeTypes[idx] == "DTYPE_LU") {
+
+        }
+        else if (mdsNodeTypes[idx] == "DTYPE_L") {
+
+        }
+        else if (mdsNodeTypes[idx] == "DTYPE_QU") {
+
+        }
+        else if (mdsNodeTypes[idx] == "DTYPE_Q") {
+
+        }
+        else if (mdsNodeTypes[idx] == "DTYPE_FS") {
+
+        }
+        else if (mdsNodeTypes[idx] == "DTYPE_FT") {
+
+        }
+        else {
+            ret = false;
+        }
+    }
+    else {
+        ret = false;
+    }
     return ret;
 }
 
-TypeDescriptor MDSReader::ConvertMDStypeToMARTeType(StreamString mdsType) {
+bool MDSReader::CheckTypeAgainstMdsNodeTypes(const uint32 idx) const {
+    bool ret = true;
+    if ((type != NULL_PTR(TypeDescriptor *)) && (mdsNodeTypes != NULL_PTR(StreamString *))) {
+        ret = (type[idx] == ConvertMDStypeToMARTeType(mdsNodeTypes[idx]));
+    }
+    else {
+        ret = false;
+    }
+    return ret;
+}
+
+TypeDescriptor MDSReader::ConvertMDStypeToMARTeType(StreamString mdsType) const {
     TypeDescriptor str;
     if (mdsType == "DTYPE_BU") {
         str = UnsignedInteger8Bit;
@@ -742,6 +877,9 @@ TypeDescriptor MDSReader::ConvertMDStypeToMARTeType(StreamString mdsType) {
     else if (mdsType == "DTYPE_FT") {
         str = Float64Bit;
     }
+    else {
+
+    }
     return str;
 
 }
@@ -752,34 +890,34 @@ TypeDescriptor MDSReader::ConvertMDStypeToMARTeType(StreamString mdsType) {
  * 1--> time found in a segment
  */
 
-bool MDSReader::GetDataNode(uint32 nodeNumber) {
-    bool ok = true;
+bool MDSReader::GetDataNode(const uint32 nodeNumber) {
+    bool ok;
 //MDSplus::Array *dataA = NULL_PTR(MDSplus::Array *);
 //MDSplus::Data *timeD = NULL_PTR(MDSplus::Data *);
     uint32 minSegment = 0u;
-    int8 errorCodeMinSegment = -1;
+    int8 errorCodeMinSegment;
     uint32 maxSegment = 0u;
     int8 errorCodeMaxSegment = -1;
-    errorCodeMinSegment = FindSegment(time, minSegment, nodeNumber);
+    errorCodeMinSegment = FindSegment(timeCycle, minSegment, nodeNumber);
     ok = (errorCodeMinSegment != -1);
     uint32 numberOfDiscontinuities = 0u;
     if (ok) {
-        errorCodeMaxSegment = FindSegment(time + period, maxSegment, nodeNumber);
+        errorCodeMaxSegment = FindSegment(timeCycle + period, maxSegment, nodeNumber);
         numberOfDiscontinuities = CheckDiscontinuityOfTheSegments(nodeNumber, minSegment, maxSegment);
     }
     if (ok) {    //Decides how to copy data
 // there are 4 options
         if ((errorCodeMinSegment == 0) && (errorCodeMaxSegment == 0)) {
-            AddValuesCopyDataAddValues(nodeNumber, minSegment, numberOfDiscontinuities);
+            ok = AddValuesCopyDataAddValues(nodeNumber, minSegment, numberOfDiscontinuities);
         }
         else if ((errorCodeMinSegment == 0) && (errorCodeMaxSegment == 1)) {
-            AddValuesCopyData(nodeNumber, minSegment, maxSegment, numberOfDiscontinuities);
+            ok = AddValuesCopyData(nodeNumber, minSegment, numberOfDiscontinuities);
         }
         else if ((errorCodeMinSegment == 1) && (errorCodeMaxSegment == 0)) {
-            CopyDataAddValues(nodeNumber, minSegment, maxSegment, numberOfDiscontinuities, numberOfElements[nodeNumber], 0u);
+            ok = CopyDataAddValues(nodeNumber, minSegment, numberOfDiscontinuities, numberOfElements[nodeNumber], 0u);
         }
         else if ((errorCodeMinSegment == 1) && (errorCodeMaxSegment == 1)) {
-            CopyDataAddValuesCopyData(nodeNumber, minSegment, numberOfDiscontinuities);
+            ok = CopyDataAddValuesCopyData(nodeNumber, minSegment, numberOfDiscontinuities);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Error while coping data from the tree to the dynamic memory");
             }
@@ -792,31 +930,39 @@ bool MDSReader::GetDataNode(uint32 nodeNumber) {
             //end node
             ok = false;
         }
+        else {
+        }
     }
-    else {
-        MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber]]), 0, byteSizeSignals[nodeNumber]);
+    else {    // add 0. No more data on the node.
+        bool error = !MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber]]), static_cast<char8>(0),
+                                                  byteSizeSignals[nodeNumber]);
+        if (error) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Error while coping data from the node = %s to the dynamic memory", nodeName[nodeNumber]);
+        }
+        ok = false; //end data
     }
     return ok;
 }
 
-int8 MDSReader::FindSegment(float64 t,
+//lint -e{613} Possible use of null pointer. Not possible. If initialise fails this function is not called.
+int8 MDSReader::FindSegment(const float64 t,
                             uint32 &segment,
-                            uint32 nodeIdx) {
+                            const uint32 nodeIdx) {
     bool find = false;
     MDSplus::Data *tminD;
     MDSplus::Data *tmaxD;
     int8 retVal = -1;
     float64 tmax = 0.0;
     float64 tmin = 0.0;
-    for (uint64 i = lastSegment[nodeIdx]; (i < maxNumberOfSegments[nodeIdx]) && !find; i++) {
-        nodes[nodeIdx]->getSegmentLimits(i, &tminD, &tmaxD);
+    for (uint32 i = lastSegment[nodeIdx]; (i < maxNumberOfSegments[nodeIdx]) && (!find); i++) {
+        nodes[nodeIdx]->getSegmentLimits(static_cast<int32>(i), &tminD, &tmaxD);
         tmax = tmaxD->getDouble();
-        if (t < tmax) {
+        if (t <= tmax) {
             find = true;
             tmin = tminD->getDouble();
             if (t < tmin) {
                 //look the tmax Previous segment and verify if the difference is smaller than the
-                if (i < 2) {
+                if (i < 2u) {
                     retVal = 0;
                     //It is very important. Even the segment does not exist the index must be updated saying the next segment to be look for is this one.
                     //At the same time it is used in the case that the tmin does not exist but tmax segment exist.
@@ -826,12 +972,12 @@ int8 MDSReader::FindSegment(float64 t,
                 else {
                     MDSplus::Data *tminPreviousD;
                     MDSplus::Data *tmaxPreviousD;
-                    float64 tmaxPrevious = 0.0;
-                    float64 nodeSamplingTime = 0.0;
-                    nodes[nodeIdx]->getSegmentLimits(i - 1, &tminPreviousD, &tmaxPreviousD);
+                    float64 tmaxPrevious;
+//                    float64 nodeSamplingTime = 0.0;
+                    nodes[nodeIdx]->getSegmentLimits(static_cast<int32>(i) - 1, &tminPreviousD, &tmaxPreviousD);
                     tmaxPrevious = tmaxPreviousD->getDouble();
-                    GetNodeSamplingTime(nodeIdx, nodeSamplingTime);
-                    if ((tmin - tmaxPrevious) > (nodeSamplingTime * 1.5)) { //1.5 due o numeric errors. if a samples i s not saved the difference should be nodeSamplingTime * 2
+//                    GetNodeSamplingTime(nodeIdx, nodeSamplingTime);
+                    if ((tmin - tmaxPrevious) > (nodeSamplingTime[nodeIdx] * 1.5)) { //1.5 due o numeric errors. if a samples i s not saved the difference should be nodeSamplingTime * 2
                         retVal = 0;
                         //It is very important. Even the segment does not exist the index must be updated saying the next segment to be look for is this one.
                         //At the same time it is used in the case that the tmin does not exist but tmax segment exist.
@@ -857,25 +1003,26 @@ int8 MDSReader::FindSegment(float64 t,
     return retVal;
 }
 
-uint32 MDSReader::CheckDiscontinuityOfTheSegments(uint32 nodeNumber,
-                                                  uint32 initialSegment,
-                                                  uint32 finalSegment) {
-    uint32 counter = 0;
-    int32 maxSegment = static_cast<int32>(finalSegment + 1u);
+//lint -e{613} Possible use of null pointer. If initialisation fails this function is not called.
+uint32 MDSReader::CheckDiscontinuityOfTheSegments(const uint32 nodeNumber,
+                                                  const uint32 initialSegment,
+                                                  const uint32 finalSegment) const {
+    uint32 counter = 0u;
+    int32 maxSegment = static_cast<int32>(finalSegment) + 1;
     MDSplus::Data *tminD = NULL_PTR(MDSplus::Data *);
     MDSplus::Data *tmaxD = NULL_PTR(MDSplus::Data *);
 
     float64 tmin = 0.0;
-    float64 tmax = 0.0;
+    float64 tmax;
 
-    float64 nodeTimeDiff;
-    GetNodeSamplingTime(nodeNumber, nodeTimeDiff);
-    nodes[nodeNumber]->getSegmentLimits(initialSegment, &tminD, &tmaxD);
+//    float64 nodeTimeDiff;
+//    GetNodeSamplingTime(nodeNumber, nodeTimeDiff);
+    nodes[nodeNumber]->getSegmentLimits(static_cast<int32>(initialSegment), &tminD, &tmaxD);
     tmax = tmaxD->getDouble();
-    for (int32 currentSegment = static_cast<int32>(initialSegment + 1u); currentSegment < maxSegment; currentSegment++) {
+    for (int32 currentSegment = static_cast<int32>(initialSegment) + 1; currentSegment < maxSegment; currentSegment++) {
         nodes[nodeNumber]->getSegmentLimits(currentSegment, &tminD, &tmaxD);
         tmin = tminD->getDouble();
-        if ((tmin - tmax) > nodeTimeDiff * 1.5) {
+        if ((tmin - tmax) > (nodeSamplingTime[nodeNumber] * 1.5)) {
             counter++;
         }
         tmax = tmaxD->getDouble();
@@ -885,35 +1032,37 @@ uint32 MDSReader::CheckDiscontinuityOfTheSegments(uint32 nodeNumber,
     return counter;
 }
 
-bool MDSReader::GetNodeSamplingTime(uint32 idx,
-                                    float64 &tDiff) {
+//lint -e{613} Possible use of null pointer. It is no possible. If initialisation fails this function is not called.
+bool MDSReader::GetNodeSamplingTime(const uint32 idx,
+                                    float64 &tDiff) const {
     bool ret = true;
     MDSplus::Data *timeD = nodes[idx]->getSegmentDim(0);
     int32 numberOfElementsPerSeg = 0;
-    float64 *time = timeD->getDoubleArray(&numberOfElementsPerSeg);
+    float64 *timeNode = timeD->getDoubleArray(&numberOfElementsPerSeg);
     if (numberOfElementsPerSeg < 1) {
         ret = false;
     }
     else if (numberOfElementsPerSeg == 1) {
-        MDSplus::Data *timeD2 = nodes[idx]->getSegmentDim(1);
-        int32 numberOfElementsPerSeg2 = 0;
-        float64 *time2 = timeD2->getDoubleArray(&numberOfElementsPerSeg2);
-        if (numberOfElementsPerSeg2 < 1) {
-            ret = false;
+        if (maxNumberOfSegments[idx] > 1u) {
+            MDSplus::Data *timeD2 = nodes[idx]->getSegmentDim(1);
+            int32 numberOfElementsPerSeg2 = 0;
+            float64 *time2 = timeD2->getDoubleArray(&numberOfElementsPerSeg2);
+            tDiff = time2[0] - timeNode[0];
         }
         else {
-            tDiff = time2[0] - time[0];
+            ret = false;
         }
     }
     else {
-        tDiff = time[1] - time[0];
+        tDiff = timeNode[1] - timeNode[0];
     }
     return ret;
 }
 
-void MDSReader::CopyTheSameValue(uint32 idxNumber,
-                                 uint32 numberOfTimes,
-                                 uint32 samplesOffset) {
+//lint -e{613} Possible use of null pointer. Not possible. If initialisation fails this function is not called.
+void MDSReader::CopyTheSameValue(const uint32 idxNumber,
+                                 const uint32 numberOfTimes,
+                                 const uint32 samplesOffset) {
 
     if (type[idxNumber] == UnsignedInteger8Bit) {
         CopyTheSameValueTemplate<uint8>(idxNumber, numberOfTimes, samplesOffset);
@@ -945,6 +1094,9 @@ void MDSReader::CopyTheSameValue(uint32 idxNumber,
     else if (type[idxNumber] == Float64Bit) {
         CopyTheSameValueTemplate<float64>(idxNumber, numberOfTimes, samplesOffset);
     }
+    else {
+
+    }
     return;
 }
 
@@ -959,134 +1111,142 @@ void MDSReader::CopyTheSameValueTemplate(uint32 idxNumber,
     }
 }
 
-bool MDSReader::AddValuesCopyData(uint32 nodeNumber,
+//lint -e{613} Possible use of null pointer. If initialise fails this function is not called.
+bool MDSReader::AddValuesCopyData(const uint32 nodeNumber,
                                   uint32 minSegment,
-                                  uint32 maxSegment,
-                                  uint32 numberOfDiscontinuities) {
-    uint32 remainingSamplesToCopy = numberOfElements[nodeNumber];
+                                  const uint32 numberOfDiscontinuities) {
 
+    uint32 remainingSamplesToCopy = numberOfElements[nodeNumber];
     uint32 numberOfSamplesActuallyCopied = 0u;
     uint32 numberOfSamplesToCopy = 0u;
     float64 tBeginningDiscontinuity = 0.0;
     float64 tEndDiscontinuity = 0.0;
     uint32 futureSegment = 0u;
-    uint32 extraOffset = 0;
-    if (minSegment > 0) {
-        futureSegment = minSegment - 1;
+    uint32 extraOffset = 0u;
+    if (minSegment > 0u) {
+        futureSegment = minSegment - 1u;
     }
     uint32 numberOfSamplesCopied = 0u;
-    bool ret = true;
 
-    FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
-    numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, tEndDiscontinuity);
-    extraOffset = numberOfSamplesCopied * bytesType[nodeNumber];
-    if (holeManagement[nodeNumber] == 0u) {
-        uint32 numberOfBytes = numberOfSamplesToCopy * bytesType[nodeNumber];
-        MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]), 0, numberOfBytes);
-    }
-    else {
-        CopyTheSameValue(nodeNumber, numberOfSamplesToCopy, numberOfSamplesCopied);
-    }
-    numberOfSamplesCopied += numberOfSamplesToCopy;
-    remainingSamplesToCopy -= numberOfSamplesToCopy;
-    currentTime += numberOfSamplesToCopy * samplingTime[nodeNumber];
-
-    for (uint32 i = 0u; (i < numberOfDiscontinuities) && ret; i++) {
-        FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
-        float64 auxTime = tBeginningDiscontinuity + samplingTime[nodeNumber];
-        numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
-        if (dataManagement[nodeNumber] == 0) {
-            numberOfSamplesActuallyCopied = MakeRawCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
-            currentTime += numberOfSamplesActuallyCopied * samplingTime[nodeNumber];
+    bool ret = FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
+    if (ret) {
+        numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, tEndDiscontinuity);
+        if (holeManagement[nodeNumber] == 0u) {
+            uint32 numberOfBytes = numberOfSamplesToCopy * bytesType[nodeNumber];
+            ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber]]), static_cast<char8>(0), numberOfBytes);
         }
-        else if (dataManagement[nodeNumber] == 1) {
+        else {
+            CopyTheSameValue(nodeNumber, numberOfSamplesToCopy, numberOfSamplesCopied);
+        }
+        numberOfSamplesCopied += numberOfSamplesToCopy;
+        remainingSamplesToCopy -= numberOfSamplesToCopy;
+        currentTime += static_cast<float64>(numberOfSamplesToCopy) * samplingTime[nodeNumber];
+    }
+    for (uint32 i = 0u; (i < numberOfDiscontinuities) && ret; i++) {
+        ret = FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
+        if (ret) {
+            float64 auxTime = tBeginningDiscontinuity + samplingTime[nodeNumber];
+            numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
+            if (dataManagement[nodeNumber] == 0u) {
+                numberOfSamplesActuallyCopied = MakeRawCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
+                currentTime += static_cast<float64>(numberOfSamplesActuallyCopied) * samplingTime[nodeNumber];
+            }
+            else if (dataManagement[nodeNumber] == 1u) {
+                numberOfSamplesActuallyCopied = LinearInterpolationCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
+            }
+            else {
+                numberOfSamplesActuallyCopied = HoldCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
+            }
+            numberOfSamplesCopied += numberOfSamplesActuallyCopied;
+            remainingSamplesToCopy -= numberOfSamplesActuallyCopied;
+            ret = (numberOfSamplesActuallyCopied == numberOfSamplesToCopy);
+            numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, tEndDiscontinuity);
+        }
+        if (ret) {
+            extraOffset = numberOfSamplesCopied * bytesType[nodeNumber];
+            if (holeManagement[nodeNumber] == 0u) {
+                uint32 numberOfBytes = numberOfSamplesToCopy * bytesType[nodeNumber];
+                uint32 auxIdx = offsets[nodeNumber] + extraOffset;
+                ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[auxIdx]), static_cast<char8>(0), numberOfBytes);
+            }
+            else {
+                CopyTheSameValue(nodeNumber, numberOfSamplesToCopy, numberOfSamplesCopied);
+            }
+            currentTime += static_cast<float64>(numberOfSamplesToCopy) * samplingTime[nodeNumber];
+            numberOfSamplesCopied += numberOfSamplesToCopy;
+            remainingSamplesToCopy -= numberOfSamplesToCopy;
+            minSegment = futureSegment;
+        }
+    }
+    if (ret) {
+        numberOfSamplesToCopy = remainingSamplesToCopy;
+        if (dataManagement[nodeNumber] == 0u) {
+            numberOfSamplesActuallyCopied = MakeRawCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
+            currentTime += static_cast<float64>(numberOfSamplesToCopy) * samplingTime[nodeNumber];
+        }
+        else if (dataManagement[nodeNumber] == 1u) {
             numberOfSamplesActuallyCopied = LinearInterpolationCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
         }
         else {
             numberOfSamplesActuallyCopied = HoldCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
         }
         numberOfSamplesCopied += numberOfSamplesActuallyCopied;
-        remainingSamplesToCopy -= numberOfSamplesActuallyCopied;
-        ret = (numberOfSamplesActuallyCopied == numberOfSamplesToCopy);
-        numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, tEndDiscontinuity);
-        if (ret) {
-            extraOffset = numberOfSamplesCopied * bytesType[nodeNumber];
-            if (holeManagement[nodeNumber] == 0u) {
-                uint32 numberOfBytes = numberOfSamplesToCopy * bytesType[nodeNumber];
-                MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]), 0, numberOfBytes);
-            }
-            else {
-                CopyTheSameValue(nodeNumber, numberOfSamplesToCopy, numberOfSamplesCopied);
-            }
-            currentTime += numberOfSamplesToCopy * samplingTime[nodeNumber];
-            numberOfSamplesCopied += numberOfSamplesToCopy;
-            remainingSamplesToCopy -= numberOfSamplesToCopy;
-            minSegment = futureSegment;
-        }
     }
-
-    numberOfSamplesToCopy = remainingSamplesToCopy;
-    if (dataManagement[nodeNumber] == 0) {
-        numberOfSamplesActuallyCopied = MakeRawCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
-        currentTime += numberOfSamplesToCopy * samplingTime[nodeNumber];
-    }
-    else if (dataManagement[nodeNumber] == 1) {
-        numberOfSamplesActuallyCopied = LinearInterpolationCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
-    }
-    else {
-        numberOfSamplesActuallyCopied = HoldCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
-    }
-    numberOfSamplesCopied += numberOfSamplesActuallyCopied;
     ret = (numberOfSamplesCopied == numberOfElements[nodeNumber]);
 //nodes[nodeNumber]->getSegmentAndDimension(minSegment,dataA, timeD);
     return ret;
 }
 
-uint32 MDSReader::ComputeSamplesToCopy(uint32 nodeNumber,
-                                       float64 tstart,
-                                       float64 tend) {
-    uint32 samplesToCopy = static_cast<int32>((tend - tstart) / samplingTime[nodeNumber]);
+//lint -e{613} Possible use of null pointer. Not possible. If initialise fails this function is not called.
+uint32 MDSReader::ComputeSamplesToCopy(const uint32 nodeNumber,
+                                       const float64 tstart,
+                                       const float64 tend) const {
+    float64 auxFloat = (tend - tstart) / samplingTime[nodeNumber];
+    uint32 samplesToCopy = static_cast<uint32>(auxFloat);
     VerifySamples(nodeNumber, samplesToCopy, tstart, tend);
     return samplesToCopy;
 
 }
 
-void MDSReader::VerifySamples(uint32 nodeNumber,
+//lint -e{613} Possible use of null pointer. If the initialisation fails this function is not called.
+void MDSReader::VerifySamples(const uint32 nodeNumber,
                               uint32 &samples,
-                              float64 tstart,
-                              float64 tend) {
+                              const float64 tstart,
+                              const float64 tend) const {
 
     float64 tinterval = tend - tstart;
-    float64 samplesInterval = samples * samplingTime[nodeNumber];
+    float64 samplesInterval = static_cast<float64>(samples) * samplingTime[nodeNumber];
     float64 diff = tinterval - samplesInterval;
-    if (diff > samplingTime[nodeNumber] * 0.9999999) {
+    if (diff > (samplingTime[nodeNumber] * 0.9999999)) {
         samples++;
     }
     return;
 }
-bool MDSReader::CopyDataAddValues(uint32 nodeNumber,
+
+//lint -e{613} Possible use of null pointer. If initialisation fails this function is not called.
+bool MDSReader::CopyDataAddValues(const uint32 nodeNumber,
                                   uint32 minSegment,
-                                  uint32 maxSegment,
-                                  uint32 numberOfDiscontinuities,
-                                  uint32 samplesToRead,
-                                  uint32 samplesRead) {
-    int32 numberOfSamplesToCopy = 0u;
+                                  const uint32 numberOfDiscontinuities,
+                                  const uint32 samplesToRead,
+                                  const uint32 samplesRead) {
+    bool ret = true;
+    uint32 numberOfSamplesToCopy = 0u;
     uint32 remainingSamplesToCopy = samplesToRead;
-    uint32 numberOfSamplesCopied = 0;
+    uint32 numberOfSamplesCopied = 0u;
     uint32 totalSamplesCopied = samplesRead;
     uint32 numberOfSamplesActuallyCopied = 0u;
     float64 tBeginningDiscontinuity = 0.0;
     float64 tEndDiscontinuity = 0.0;
     uint32 futureSegment = minSegment;
-    for (uint32 i = 0u; i < numberOfDiscontinuities; i++) {
-        FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
+    for (uint32 i = 0u; (i < numberOfDiscontinuities) && ret; i++) {
+        ret = FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
         float64 auxTime = tBeginningDiscontinuity + samplingTime[nodeNumber];
         numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
-        if (dataManagement[nodeNumber] == 0) {
+        if (dataManagement[nodeNumber] == 0u) {
             numberOfSamplesActuallyCopied = MakeRawCopy(nodeNumber, minSegment, numberOfSamplesToCopy, totalSamplesCopied);
-            currentTime += numberOfSamplesActuallyCopied * samplingTime[nodeNumber];
+            currentTime += static_cast<float64>(numberOfSamplesActuallyCopied) * samplingTime[nodeNumber];
         }
-        else if (dataManagement[nodeNumber] == 1) {
+        else if (dataManagement[nodeNumber] == 1u) {
             numberOfSamplesActuallyCopied = LinearInterpolationCopy(nodeNumber, minSegment, numberOfSamplesToCopy, totalSamplesCopied);
         }
         else {
@@ -1095,7 +1255,8 @@ bool MDSReader::CopyDataAddValues(uint32 nodeNumber,
         numberOfSamplesCopied += numberOfSamplesActuallyCopied;
         totalSamplesCopied += numberOfSamplesActuallyCopied;
         remainingSamplesToCopy -= numberOfSamplesActuallyCopied;
-        uint32 samplesToEndDiscontinuity = (tEndDiscontinuity - tBeginningDiscontinuity) / samplingTime[nodeNumber];
+        float64 auxFloat = (tEndDiscontinuity - tBeginningDiscontinuity) / samplingTime[nodeNumber];
+        uint32 samplesToEndDiscontinuity = static_cast<uint32>(auxFloat);
         if (samplesToEndDiscontinuity > remainingSamplesToCopy) {
             numberOfSamplesToCopy = remainingSamplesToCopy;
         }
@@ -1104,55 +1265,76 @@ bool MDSReader::CopyDataAddValues(uint32 nodeNumber,
         }
         if (holeManagement[nodeNumber] == 0u) {
             uint32 numberOfBytes = numberOfSamplesToCopy * bytesType[nodeNumber];
-            uint32 extraOffset = numberOfSamplesCopied * bytesType[nodeNumber];
-            MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]), 0, numberOfBytes);
+            uint32 extraOffset = totalSamplesCopied * bytesType[nodeNumber];
+            uint32 auxIdx = offsets[nodeNumber] + extraOffset;
+            ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[auxIdx]), static_cast<char8>(0), numberOfBytes);
         }
         else {
-            CopyTheSameValue(nodeNumber, numberOfSamplesToCopy, numberOfSamplesCopied);
+            CopyTheSameValue(nodeNumber, numberOfSamplesToCopy, totalSamplesCopied);
         }
-        currentTime += numberOfSamplesToCopy * samplingTime[nodeNumber];
+        currentTime += static_cast<float64>(numberOfSamplesToCopy) * samplingTime[nodeNumber];
         numberOfSamplesCopied += numberOfSamplesToCopy;
         totalSamplesCopied += numberOfSamplesToCopy;
         remainingSamplesToCopy -= numberOfSamplesToCopy;
         minSegment = futureSegment;
     }
-    return (numberOfSamplesCopied == samplesToRead);
+    if (ret) {
+        ret = (numberOfSamplesCopied == samplesToRead);
+    }
+    return ret;
 }
 
-bool MDSReader::AddValuesCopyDataAddValues(uint32 nodeNumber,
-                                           uint32 minSegment,
-                                           uint32 numberOfDiscontinuities) {
-    bool ret = true;
+//lint -e{613} Possible use of null pointer. If initialisation fails this function is not called.
+bool MDSReader::AddValuesCopyDataAddValues(const uint32 nodeNumber,
+                                           const uint32 minSegment,
+                                           const uint32 numberOfDiscontinuities) {
+    bool ret;
     uint32 numberOfSamplesToCopy = 0u;
     uint32 numberOfSamplesCopied = 0u;
     float64 tBeginningDiscontinuity = 0.0;
     float64 tEndDiscontinuity = 0.0;
-    uint32 futureSegment = 0;
-    if (minSegment > 0) {
-        futureSegment = minSegment - 1;
+    uint32 remainingSamplesInTheSegment = 0u;
+    uint32 futureSegment = 0u;
+    if (minSegment > 0u) {
+        futureSegment = minSegment - 1u;
     }
     else {
     }
 
-    FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
-    float64 auxTime = tBeginningDiscontinuity + samplingTime[nodeNumber];
-    numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
-    if (holeManagement[nodeNumber] == 0u) {
-        MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber]]), 0, byteSizeSignals[nodeNumber]);
+    ret = FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
+    if (ret) {
+        float64 auxTime = tEndDiscontinuity;                        //tBeginningDiscontinuity + samplingTime[nodeNumber];
+        remainingSamplesInTheSegment = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
+        if (remainingSamplesInTheSegment > numberOfElements[nodeNumber]) {
+            numberOfSamplesToCopy = numberOfElements[nodeNumber];
+        }
+        else {
+            numberOfSamplesToCopy = remainingSamplesInTheSegment;
+        }
+        //numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
+        if (holeManagement[nodeNumber] == 0u) {
+            uint32 bytesToCopy = numberOfSamplesToCopy * bytesType[nodeNumber];
+            ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber]]), static_cast<char8>(0),
+                                              bytesToCopy);
+        }
+        else {
+            CopyTheSameValue(nodeNumber, numberOfSamplesToCopy, numberOfSamplesCopied);
+        }
+        numberOfSamplesCopied += numberOfSamplesToCopy;
+        currentTime += static_cast<float64>(numberOfSamplesToCopy) * samplingTime[nodeNumber];
     }
-    else {
-        CopyTheSameValue(nodeNumber, numberOfElements[nodeNumber], numberOfSamplesCopied);
+    if (ret) {
+        ret = CopyDataAddValues(nodeNumber, futureSegment, numberOfDiscontinuities, numberOfElements[nodeNumber] - numberOfSamplesCopied,
+                                numberOfSamplesCopied);
     }
-    numberOfSamplesCopied += numberOfSamplesToCopy;
-    currentTime += numberOfSamplesToCopy * samplingTime[nodeNumber];
-    ret = CopyDataAddValues(nodeNumber, futureSegment, futureSegment, numberOfDiscontinuities, numberOfElements[nodeNumber] - numberOfSamplesCopied,
-                            numberOfSamplesCopied);
     return ret;
 }
 
-bool MDSReader::CopyDataAddValuesCopyData(uint32 nodeNumber,
+//lint -e{794} Conceivable use of null pointer. Not possible. If initialisation fails this function is not called.
+//lint -e{613} possible use of null pointer. Not possible. If initiaisation fails this function is not called.
+bool MDSReader::CopyDataAddValuesCopyData(const uint32 nodeNumber,
                                           uint32 minSegment,
-                                          uint32 numberOfDiscontinuities) {
+                                          const uint32 numberOfDiscontinuities) {
     bool ret = true;
     uint32 numberOfSamplesToCopy = 0u;
     uint32 numberOfSamplesCopied = 0u;
@@ -1161,14 +1343,14 @@ bool MDSReader::CopyDataAddValuesCopyData(uint32 nodeNumber,
     float64 tEndDiscontinuity = 0.0;
     uint32 futureSegment = minSegment;
     for (uint32 i = 0u; (i < numberOfDiscontinuities) && ret; i++) {
-        FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
+        ret = FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
         float64 auxTime = tBeginningDiscontinuity + samplingTime[nodeNumber];
         numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
-        if (dataManagement[nodeNumber] == 0) {
+        if (dataManagement[nodeNumber] == 0u) {
             numberOfSamplesActuallyCopied += MakeRawCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
-            currentTime += numberOfSamplesActuallyCopied * samplingTime[nodeNumber];
+            currentTime += static_cast<float64>(numberOfSamplesActuallyCopied) * samplingTime[nodeNumber];
         }
-        else if (dataManagement[nodeNumber] == 1) {
+        else if (dataManagement[nodeNumber] == 1u) {
             numberOfSamplesActuallyCopied += LinearInterpolationCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
         }
         else {
@@ -1184,27 +1366,29 @@ bool MDSReader::CopyDataAddValuesCopyData(uint32 nodeNumber,
             if (holeManagement[nodeNumber] == 0u) {
                 uint32 numberOfBytes = numberOfSamplesToCopy * bytesType[nodeNumber];
                 uint32 extraOffset = numberOfSamplesCopied * bytesType[nodeNumber];
-                MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]), 0, numberOfBytes);
+                uint32 auxIndex = offsets[nodeNumber] + extraOffset;
+                void * auxPtr = reinterpret_cast<void *>(&(dataSourceMemory[auxIndex]));
+                ret = MemoryOperationsHelper::Set(auxPtr, static_cast<char8>(0), numberOfBytes);
                 numberOfSamplesCopied += numberOfSamplesToCopy;
             }
             else {
                 CopyTheSameValue(nodeNumber, numberOfSamplesToCopy, numberOfSamplesCopied);
                 numberOfSamplesCopied += numberOfSamplesToCopy;
             }
-            currentTime += numberOfSamplesToCopy * samplingTime[nodeNumber];
+            currentTime += static_cast<float64>(numberOfSamplesToCopy) * samplingTime[nodeNumber];
         }
         minSegment = futureSegment;
     }
     if (ret) {
         numberOfSamplesToCopy = numberOfElements[nodeNumber] - numberOfSamplesCopied;
-        if (dataManagement[nodeNumber] == 0) {
-            numberOfSamplesActuallyCopied += MakeRawCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
+        if (dataManagement[nodeNumber] == 0u) {
+            numberOfSamplesActuallyCopied = MakeRawCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
         }
-        else if (dataManagement[nodeNumber] == 1) {
-            numberOfSamplesActuallyCopied += LinearInterpolationCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
+        else if (dataManagement[nodeNumber] == 1u) {
+            numberOfSamplesActuallyCopied = LinearInterpolationCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
         }
         else {
-            numberOfSamplesActuallyCopied += HoldCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
+            numberOfSamplesActuallyCopied = HoldCopy(nodeNumber, minSegment, numberOfSamplesToCopy, numberOfSamplesCopied);
         }
         if (numberOfSamplesActuallyCopied == numberOfSamplesToCopy) {
             numberOfSamplesCopied += numberOfSamplesActuallyCopied;
@@ -1213,24 +1397,28 @@ bool MDSReader::CopyDataAddValuesCopyData(uint32 nodeNumber,
             ret = false;
         }
     }
+    if (ret) {
+        ret = (numberOfSamplesCopied == numberOfElements[nodeNumber]);
+    }
     return ret;
 }
 
-bool MDSReader::FindDisconinuity(uint32 nodeNumber,
+//lint -e{613} Possible use of null pointer. Not possible.If initialisation fails this function is not called
+bool MDSReader::FindDisconinuity(const uint32 nodeNumber,
                                  uint32 &segment,
                                  float64 &beginningTime,
-                                 float64 &endTime) {
+                                 float64 &endTime) const {
     bool find = false;
-
+//    bool error;
     MDSplus::Data *tminD = NULL_PTR(MDSplus::Data *);
     MDSplus::Data *tmaxD = NULL_PTR(MDSplus::Data *);
 
-    float64 tmin = 0.0;
-    float64 tmax = 0.0;
+    float64 tmin;
+    float64 tmax;
 
-    float64 nodeTimeDiff;
-    GetNodeSamplingTime(nodeNumber, nodeTimeDiff);
-    nodes[nodeNumber]->getSegmentLimits(segment, &tminD, &tmaxD);
+//    float64 nodeTimeDiff;
+//    error = !GetNodeSamplingTime(nodeNumber, nodeTimeDiff);
+    nodes[nodeNumber]->getSegmentLimits(static_cast<int32>(segment), &tminD, &tmaxD);
     tmin = tminD->getDouble();
 //Playing with tolerances
     float64 auxDiff = tmin - currentTime;
@@ -1240,59 +1428,64 @@ bool MDSReader::FindDisconinuity(uint32 nodeNumber,
     }
     else {
         tmax = tmaxD->getDouble();
-
-        for (int32 currentSegment = static_cast<int32>(segment + 1u); (currentSegment < maxNumberOfSegments[nodeNumber]) && !find; currentSegment++) {
+        int32 initialSemgnet = static_cast<int32>(segment) + 1;
+        for (int32 currentSegment = initialSemgnet; (currentSegment < static_cast<int32>(maxNumberOfSegments[nodeNumber])) && (!find); currentSegment++) {
             nodes[nodeNumber]->getSegmentLimits(currentSegment, &tminD, &tmaxD);
             tmin = tminD->getDouble();
-            if ((tmin - tmax) > nodeTimeDiff * 1.5) {
+            if ((tmin - tmax) > (nodeSamplingTime[nodeNumber] * 1.5)) {
                 beginningTime = tmax;
                 endTime = tmin;
                 find = true;
             }
             tmax = tmaxD->getDouble();
-            segment = currentSegment;
+            segment = static_cast<uint32>(currentSegment);
         }
     }
     MDSplus::deleteData(tminD);
     MDSplus::deleteData(tmaxD);
     return find;
-
+//    return (find && (!error));
 }
-uint32 MDSReader::MakeRawCopy(uint32 nodeNumber,
-                              uint32 minSeg,
-                              uint32 SamplesToCopy,
-                              uint32 OffsetSamples) {
 
-    uint32 samplesCopied = 0;
+//lint -e{613} Possible use of null pointer. Not possible. If initilisation fails this function is not called.
+uint32 MDSReader::MakeRawCopy(const uint32 nodeNumber,
+                              const uint32 minSeg,
+                              const uint32 samplesToCopy,
+                              const uint32 offsetSamples) {
+
+    uint32 samplesCopied = 0u;
     if (type[nodeNumber] == UnsignedInteger8Bit) {
-        samplesCopied = MakeRawCopyTemplate<uint8>(nodeNumber, minSeg, SamplesToCopy, OffsetSamples);
+        samplesCopied = MakeRawCopyTemplate<uint8>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
     }
     else if (type[nodeNumber] == SignedInteger8Bit) {
-        samplesCopied = MakeRawCopyTemplate<int8>(nodeNumber, minSeg, SamplesToCopy, OffsetSamples);
+        samplesCopied = MakeRawCopyTemplate<int8>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
     }
     else if (type[nodeNumber] == UnsignedInteger16Bit) {
-        samplesCopied = MakeRawCopyTemplate<uint16>(nodeNumber, minSeg, SamplesToCopy, OffsetSamples);
+        samplesCopied = MakeRawCopyTemplate<uint16>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
     }
     else if (type[nodeNumber] == SignedInteger16Bit) {
-        samplesCopied = MakeRawCopyTemplate<int16>(nodeNumber, minSeg, SamplesToCopy, OffsetSamples);
+        samplesCopied = MakeRawCopyTemplate<int16>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
     }
     else if (type[nodeNumber] == UnsignedInteger32Bit) {
-        samplesCopied = MakeRawCopyTemplate<uint32>(nodeNumber, minSeg, SamplesToCopy, OffsetSamples);
+        samplesCopied = MakeRawCopyTemplate<uint32>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
     }
     else if (type[nodeNumber] == SignedInteger32Bit) {
-        samplesCopied = MakeRawCopyTemplate<int32>(nodeNumber, minSeg, SamplesToCopy, OffsetSamples);
+        samplesCopied = MakeRawCopyTemplate<int32>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
     }
     else if (type[nodeNumber] == UnsignedInteger64Bit) {
-        samplesCopied = MakeRawCopyTemplate<uint64>(nodeNumber, minSeg, SamplesToCopy, OffsetSamples);
+        samplesCopied = MakeRawCopyTemplate<uint64>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
     }
     else if (type[nodeNumber] == SignedInteger64Bit) {
-        samplesCopied = MakeRawCopyTemplate<int64>(nodeNumber, minSeg, SamplesToCopy, OffsetSamples);
+        samplesCopied = MakeRawCopyTemplate<int64>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
     }
     else if (type[nodeNumber] == Float32Bit) {
-        samplesCopied = MakeRawCopyTemplate<float32>(nodeNumber, minSeg, SamplesToCopy, OffsetSamples);
+        samplesCopied = MakeRawCopyTemplate<float32>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
     }
     else if (type[nodeNumber] == Float64Bit) {
-        samplesCopied = MakeRawCopyTemplate<float64>(nodeNumber, minSeg, SamplesToCopy, OffsetSamples);
+        samplesCopied = MakeRawCopyTemplate<float64>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
+    }
+    else {
+
     }
     return samplesCopied;
 }
@@ -1308,7 +1501,7 @@ uint32 MDSReader::MakeRawCopyTemplate(uint32 nodeNumber,
     uint32 bytesToCopy = 0u;
     uint32 extraOffset = OffsetSamples * bytesType[nodeNumber];
     bool endSegment = false;
-    uint32 samplesCopied = 0;
+    uint32 samplesCopied = 0u;
     uint32 remainingSamplesOnTheSegment = 0u;
     T* data = NULL_PTR(T *);
     for (uint32 currentSegment = minSeg; (currentSegment < maxNumberOfSegments[nodeNumber]) && (SamplesToCopy != 0); currentSegment++) {
@@ -1377,12 +1570,13 @@ uint32 MDSReader::MakeRawCopyTemplate(uint32 nodeNumber,
     return samplesCopied;
 }
 
-uint32 MDSReader::LinearInterpolationCopy(uint32 nodeNumber,
-                                          uint32 minSeg,
-                                          uint32 samplesToCopy,
-                                          uint32 offsetSamples) {
+//lint -e{613} Possible use of null pointer. Not possible. If initialisation fails LinearInterpolationCopy() is not called.
+uint32 MDSReader::LinearInterpolationCopy(const uint32 nodeNumber,
+                                          const uint32 minSeg,
+                                          const uint32 samplesToCopy,
+                                          const uint32 offsetSamples) {
 
-    uint32 samplesCopied = 0;
+    uint32 samplesCopied = 0u;
 
     if (type[nodeNumber] == UnsignedInteger8Bit) {
         samplesCopied = LinearInterpolationCopyTemplate<uint8>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
@@ -1413,6 +1607,9 @@ uint32 MDSReader::LinearInterpolationCopy(uint32 nodeNumber,
     }
     else if (type[nodeNumber] == Float64Bit) {
         samplesCopied = LinearInterpolationCopyTemplate<float64>(nodeNumber, minSeg, samplesToCopy, offsetSamples);
+    }
+    else {
+
     }
     return samplesCopied;
 }
@@ -1516,12 +1713,13 @@ uint32 MDSReader::LinearInterpolationCopyTemplate(uint32 nodeNumber,
 
 }
 
-uint32 MDSReader::HoldCopy(uint32 nodeNumber,
-                           uint32 minSeg,
-                           uint32 samplesToCopy,
-                           uint32 samplesOffset) {
+//lint -e{613} Possible use of null pointer. If initialisation fails the Synchronise is not called neither HoldCopy()
+uint32 MDSReader::HoldCopy(const uint32 nodeNumber,
+                           const uint32 minSeg,
+                           const uint32 samplesToCopy,
+                           const uint32 samplesOffset) {
 
-    uint32 samplesCopied = 0;
+    uint32 samplesCopied = 0u;
     if (type[nodeNumber] == UnsignedInteger8Bit) {
         samplesCopied = HoldCopyTemplate<uint8>(nodeNumber, minSeg, samplesToCopy, samplesOffset);
     }
@@ -1551,6 +1749,9 @@ uint32 MDSReader::HoldCopy(uint32 nodeNumber,
     }
     else if (type[nodeNumber] == Float64Bit) {
         samplesCopied = HoldCopyTemplate<float64>(nodeNumber, minSeg, samplesToCopy, samplesOffset);
+    }
+    else {
+
     }
     return samplesCopied;
 }
@@ -1605,7 +1806,7 @@ uint32 MDSReader::HoldCopyTemplate(uint32 nodeNumber,
             data = reinterpret_cast<T *>(dataD->getDoubleArray(&nElements));
         }
         timeNode = timeNodeD->getDoubleArray(&nElements);
-        T auxTime = timeNode[nElements - 1] + samplingTime[nodeNumber];
+        float64 auxTime = timeNode[nElements - 1] + samplingTime[nodeNumber];
         remainingSamplesOnTheSegment = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime); //static_cast<uint32>(1 + ((timeNode[nElements - 1] - currentTime) / samplingTime[nodeNumber]));
         endSegment = (remainingSamplesOnTheSegment <= samplesToCopy);
         if (!endSegment) {        //no end of segment but no more data need to be copied
@@ -1645,9 +1846,9 @@ uint32 MDSReader::HoldCopyTemplate(uint32 nodeNumber,
             currentTime += samplingTime[nodeNumber];
             samplesToCopy--;
         }
-        *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]) = data[nElements - 1];
-        lastTime[nodeNumber] = timeNode[nElements - 1];
         if (endSegment) {
+            *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]) = data[nElements - 1];
+            lastTime[nodeNumber] = timeNode[nElements - 1];
             elementsConsumed[nodeNumber] = 0u;
         }
         MDSplus::deleteData(dataD);
@@ -1659,38 +1860,39 @@ uint32 MDSReader::HoldCopyTemplate(uint32 nodeNumber,
 }
 
 template<typename T>
-bool MDSReader::SampleInterpolation(float64 ct,
+bool MDSReader::SampleInterpolation(float64 cT,
                                     T data1,
                                     T data2,
                                     float64 t1,
                                     float64 t2,
-                                    float64 * ptr) {
+                                    float64 *ptr) {
     bool ret = t2 > t1;
     if (ret) {
         float64 slope = (data2 - data1) / (t2 - t1);
-        *ptr = slope * (ct - t1) + data1;
+        *ptr = slope * (cT - t1) + data1;
     }
     return ret;
 }
-bool MDSReader::CopyRemainingData(uint32 nodeNumber,
-                                  uint32 minSegment) {
+//lint -e{613} Warning 613: Possible use of null pointer. All pointers are initialised previously. If initialisation fails the CopyRemainingData() is not called.
+bool MDSReader::CopyRemainingData(const uint32 nodeNumber,
+                                  const uint32 minSegment) {
     bool ret = false;
     uint32 samplesCopied;
-    if (dataManagement[nodeNumber] == 0) {
-        samplesCopied = MakeRawCopy(nodeNumber, minSegment, numberOfElements[nodeNumber], 0);
+    if (dataManagement[nodeNumber] == 0u) {
+        samplesCopied = MakeRawCopy(nodeNumber, minSegment, numberOfElements[nodeNumber], 0u);
         ret = (samplesCopied <= numberOfElements[nodeNumber]);
     }
-    else if (dataManagement[nodeNumber] == 0) {
-        samplesCopied = LinearInterpolationCopy(nodeNumber, minSegment, numberOfElements[nodeNumber], 0);
+    else if (dataManagement[nodeNumber] == 1u) {
+        samplesCopied = LinearInterpolationCopy(nodeNumber, minSegment, numberOfElements[nodeNumber], 0u);
         ret = (samplesCopied <= numberOfElements[nodeNumber]);
     }
     else {
-        samplesCopied = HoldCopy(nodeNumber, minSegment, numberOfElements[nodeNumber], 0);
+        samplesCopied = HoldCopy(nodeNumber, minSegment, numberOfElements[nodeNumber], 0u);
         ret = (samplesCopied <= numberOfElements[nodeNumber]);
     }
-    if(samplesCopied > 0u){
+    if ((samplesCopied > 0u) && ret) {
         uint32 bytesToCopy = (numberOfElements[nodeNumber] - samplesCopied) * bytesType[nodeNumber];
-        MemoryOperationsHelper::Set(reinterpret_cast<void *>(&(dataSourceMemory[offsets[nodeNumber]])), 0, bytesToCopy);
+        ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&(dataSourceMemory[offsets[nodeNumber]])), static_cast<char8>(0), bytesToCopy);
     }
     return ret;
 }
