@@ -869,7 +869,7 @@ public:
     bool TestSynchronise60();
 
     /**
-     * @brief Test Synchronise and compare the time against the expected value.
+     * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 21, elementsRead = 10;
      * time type = int64.
      * Single element per node.
@@ -880,7 +880,7 @@ public:
     bool TestSynchronise61();
 
     /**
-     * @brief Test Synchronise and compare the time against the expected value.
+     * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 10;
      * time type = int64.
      * Single element per node.
@@ -891,7 +891,7 @@ public:
     bool TestSynchronise62();
 
     /**
-     * @brief Test Synchronise and compare the time against the expected value.
+     * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 2, elementsRead = 10;
      * time type = int64.
      * Single element per node.
@@ -902,7 +902,7 @@ public:
     bool TestSynchronise63();
 
     /**
-     * @brief Test Synchronise and compare the time against the expected value.
+     * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 42;
      * time type = int64.
      * shotNumber = 2
@@ -912,7 +912,7 @@ public:
     bool TestSynchronise64();
 
     /**
-     * @brief Test Synchronise and compare the time against the expected value.
+     * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.1, elementsRead = 42;
      * time type = int64.
      * shotNumber = 3
@@ -922,7 +922,7 @@ public:
     bool TestSynchronise65();
 
     /**
-     * @brief Test Synchronise and compare the time against the expected value.
+     * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.02, elementsRead = 40;
      * shotNumber = 1
      * dataManagement[i] = 2
@@ -931,7 +931,7 @@ public:
     bool TestSynchronise66();
 
     /**
-     * @brief Test Synchronise and compare the time against the expected value.
+     * @brief Test Synchronise and compare the output against the expected values
      * @details node sampling time 0.1. Read sampling time = 0.02, elementsRead = 40;
      * shotNumber = 1
      * dataManagement[i] = 1

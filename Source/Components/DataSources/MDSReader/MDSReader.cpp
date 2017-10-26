@@ -989,6 +989,8 @@ int8 MDSReader::FindSegment(const float64 t,
                         segment = i;
                         lastSegment[nodeIdx] = i;
                     }
+                    MDSplus::deleteData(tminPreviousD);
+                    MDSplus::deleteData(tmaxPreviousD);
                 }
             }
             else {
@@ -1048,6 +1050,7 @@ bool MDSReader::GetNodeSamplingTime(const uint32 idx,
             int32 numberOfElementsPerSeg2 = 0;
             float64 *time2 = timeD2->getDoubleArray(&numberOfElementsPerSeg2);
             tDiff = time2[0] - timeNode[0];
+            deleteData(timeD2);
         }
         else {
             ret = false;
@@ -1056,6 +1059,7 @@ bool MDSReader::GetNodeSamplingTime(const uint32 idx,
     else {
         tDiff = timeNode[1] - timeNode[0];
     }
+    MDSplus::deleteData(timeD);
     return ret;
 }
 
@@ -1314,8 +1318,7 @@ bool MDSReader::AddValuesCopyDataAddValues(const uint32 nodeNumber,
         //numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
         if (holeManagement[nodeNumber] == 0u) {
             uint32 bytesToCopy = numberOfSamplesToCopy * bytesType[nodeNumber];
-            ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber]]), static_cast<char8>(0),
-                                              bytesToCopy);
+            ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber]]), static_cast<char8>(0), bytesToCopy);
         }
         else {
             CopyTheSameValue(nodeNumber, numberOfSamplesToCopy, numberOfSamplesCopied);
@@ -1699,9 +1702,9 @@ uint32 MDSReader::LinearInterpolationCopyTemplate(uint32 nodeNumber,
             currentTime += samplingTime[nodeNumber];
             samplesToCopy--;
         }
-        *reinterpret_cast<T *>(&(lastValue[offsetLastValue[nodeNumber]])) = data[nElements - 1];
-        lastTime[nodeNumber] = timeNode[nElements - 1];
         if (endSegment) {
+            *reinterpret_cast<T *>(&(lastValue[offsetLastValue[nodeNumber]])) = data[nElements - 1];
+            lastTime[nodeNumber] = timeNode[nElements - 1];
             elementsConsumed[nodeNumber] = 0u;
         }
         MDSplus::deleteData(dataD);
@@ -1892,7 +1895,8 @@ bool MDSReader::CopyRemainingData(const uint32 nodeNumber,
     }
     if ((samplesCopied > 0u) && ret) {
         uint32 bytesToCopy = (numberOfElements[nodeNumber] - samplesCopied) * bytesType[nodeNumber];
-        ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&(dataSourceMemory[offsets[nodeNumber]])), static_cast<char8>(0), bytesToCopy);
+        uint32 extraOffset = samplesCopied * bytesType[nodeNumber];
+        ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&(dataSourceMemory[offsets[nodeNumber]+extraOffset])), static_cast<char8>(0), bytesToCopy);
     }
     return ret;
 }
