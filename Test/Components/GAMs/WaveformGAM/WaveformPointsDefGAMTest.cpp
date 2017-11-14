@@ -346,5 +346,58 @@ bool WaveformPointsDefGAMTest::TestExecuteSawtooth_4elements() {
     return ok;
 }
 
+bool WaveformPointsDefGAMTest::TestExecuteLargeElements() {
+    bool ok = true;
+    WaveformPointsDefGAMTestHelper gam(1, 1, 2000000, 1, "int32", 0, 0, 2, 2);
+    uint32 sizeOutput = 2000000u;
+    uint32 timeIterationIncrement = 1000000u;
+    uint32 MAX_REP = 5u;
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdefConstValue();
 
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    uint32 *timeIteration = NULL;
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    int32 *output = NULL;
+    output = static_cast<int32 *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = 0;
+    }
+    if (ok) {
+        ok = gam.Execute();
+    }
+    if (ok) {
+        ok &= gam.ComparePointsdef1(output, true);
+    }
+    uint32 error = 0;
+    for (uint32 i = 1u; (i < MAX_REP) && ok; i++) {
+
+        *timeIteration += timeIterationIncrement;
+        ok = gam.Execute();
+
+        if (!ok) {
+            printf("Error. gam.Execute() returns an error in iteration %u\n", i);
+            error++;
+        }
+        if (ok) {
+            ok = gam.ComparePointsdef1(output, false);
+
+        }
+        if (!ok) {
+            printf("Error. output = %d, iteration %u\n", output[i], i);
+            error++;
+        }
+    }
+    return ok;
+}
 

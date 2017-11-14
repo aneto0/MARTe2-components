@@ -159,6 +159,12 @@ public:
      * @brief Test WaveformPointsDef::Execute() with a sawtooth
      */
     bool TestExecuteSawtooth_4elements();
+
+    /**
+     * @brief Test WaveformPointsDef::Execute() timeCycle = 1s numberOfElements = 2000000
+     * @details The origin of the test is the real time application with the Waveform() and UnpackGAM()
+     */
+    bool TestExecuteLargeElements();
 };
 
 /*---------------------------------------------------------------------------*/
@@ -299,6 +305,27 @@ public:
             refValues[8] = 8;
             refValues[9] = 9;
             dimArrayCompare1 = 10;
+            Vector<float64> yVec(y1, numberOfElementsY);
+            ret &= config.Write("Points", yVec);
+            Vector<float64> xVec(x1, numberOfElementsX);
+            ret &= config.Write("Times", xVec);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
+    }
+    bool InitialisePointsdefConstValue() {
+        bool ret = true;
+        if (isInitialised == false) {
+            x1[0] = 0.0;
+            x1[1] = 0.5;
+            y1[0] = 125;
+            y1[1] = 125;
+            dimArrayCompare1 = 1;
+            refValues1 = new float64[dimArrayCompare1];
+            refValues1[0] = 125;
             Vector<float64> yVec(y1, numberOfElementsY);
             ret &= config.Write("Points", yVec);
             Vector<float64> xVec(x1, numberOfElementsX);
