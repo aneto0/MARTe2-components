@@ -54,6 +54,7 @@ MDSReader::MDSReader() :
     nodes = NULL_PTR(MDSplus::TreeNode **);
     numberOfNodeNames = 0u;
     nOfInputSignals = 0u;
+    nOfInputSignalsPerFunction = 0u;
     mdsNodeTypes = NULL_PTR(StreamString *);
     byteSizeSignals = NULL_PTR(uint32 *);
     shotNumber = 0;
@@ -231,7 +232,7 @@ bool MDSReader::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = data.MoveToRoot();
+        ok = data.MoveToAncestor(1u);
     }
     return ok;
 }
@@ -241,7 +242,9 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "DataSourceI::SetConfiguredDatabase(data) returned false");
     }
-
+    if (ok) {
+        ok = data.MoveRelative("Signals");
+    }
     if (ok) { // Check that only one GAM is Connected to the MDSReader
         uint32 auxNumberOfFunctions = GetNumberOfFunctions();
         ok = (auxNumberOfFunctions == 1u);
@@ -252,15 +255,24 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
     }
     if (ok) { //read number of nodes per function numberOfNodeNames
         //0u (second argument) because previously it is checked
-        ok = GetFunctionNumberOfSignals(InputSignals, 0u, nOfInputSignals);        //0u (second argument) because previously it is checked
+        ok = GetFunctionNumberOfSignals(InputSignals, 0u, nOfInputSignalsPerFunction);        //0u (second argument) because previously it is checked
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "GetFunctionNumberOfSignals() returned false");
         }
         if (ok) {
-            ok = (nOfInputSignals > 1u);
+            ok = (nOfInputSignalsPerFunction > 1u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "The number of signals must be at least 2");
+                REPORT_ERROR(ErrorManagement::ParametersError, "The number of signals must be at least 2 (1 node and one time)");
             }
+        }
+    }
+    if (ok) {
+        nOfInputSignals = GetNumberOfSignals();
+        ok = (nOfInputSignals == nOfInputSignalsPerFunction);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError,
+                         "nOfInputSignals must be equal than number of signals per function (since only one function can be connected to this data source",
+                         GetNumberOfSignals(), numberOfNodeNames);
         }
     }
     if (ok) {
@@ -285,15 +297,6 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
         }
     }
 
-    if (ok) {
-        ok = (nOfInputSignals == GetNumberOfSignals());
-        if (!ok) {
-            REPORT_ERROR(
-                    ErrorManagement::ParametersError,
-                    "GetFunctionNumberOfSignals != GetNumberOfSignals(). They should be the same since only one GAM can be connected to this DataSource. GetNumberOfSignals() = %u, numberOfNodeNames = %u",
-                    GetNumberOfSignals(), numberOfNodeNames);
-        }
-    }
     if (ok) { //read nodeNames from originalSignalInformation
         nodeName = new StreamString[numberOfNodeNames];
         for (uint32 i = 0u; (i < numberOfNodeNames) && ok; i++) {
@@ -1896,7 +1899,7 @@ bool MDSReader::CopyRemainingData(const uint32 nodeNumber,
     if ((samplesCopied > 0u) && ret) {
         uint32 bytesToCopy = (numberOfElements[nodeNumber] - samplesCopied) * bytesType[nodeNumber];
         uint32 extraOffset = samplesCopied * bytesType[nodeNumber];
-        ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&(dataSourceMemory[offsets[nodeNumber]+extraOffset])), static_cast<char8>(0), bytesToCopy);
+        ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&(dataSourceMemory[offsets[nodeNumber] + extraOffset])), static_cast<char8>(0), bytesToCopy);
     }
     return ret;
 }

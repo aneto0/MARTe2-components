@@ -98,7 +98,7 @@ namespace MARTe {
  *The configuration syntax is (names and signal quantity are only given as an example):
  *<pre>
  * +MDSReader_0 = {
- *     Class = MDSR
+ *     Class = MDSReader
  *     TreeName = "test_tree" //Compulsory. Name of the MDSplus tree.
  *     ShotNumber = 1 //Compulsory. 0 --> last shot number (to use 0 shotid.sys must exist)
  *     Frequency = 1000 // in Hz. Is the cycle time of the real time application.
@@ -122,7 +122,7 @@ namespace MARTe {
  *         ....
  *         Time = { //Compulsory
  *             Type = "uint32" //can be any of the supported types
- *             numberOfElements = 1 //must be always one.
+ *             NumberOfElements = 1 //must be always one.
  *         }
  *     }
  * }
@@ -459,6 +459,8 @@ private:
     uint32 numberOfNodeNames;
 
     uint32 nOfInputSignals;
+
+    uint32 nOfInputSignalsPerFunction;
 
     /**
      * MDSplus signal type. If signalTypes is given as input, consistency between mdsSignalType signalType
