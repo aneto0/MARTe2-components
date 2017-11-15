@@ -240,10 +240,10 @@ bool Waveform::Setup() {
 
     if (ok) {
         typeVariableIn = GetSignalType(InputSignals, 0u);
-        bool auxBool = (typeVariableIn == UnsignedInteger32Bit);
+        bool auxBool = ((typeVariableIn == UnsignedInteger32Bit) || (typeVariableIn == UnsignedInteger64Bit) || (typeVariableIn == SignedInteger64Bit));
         ok = ((typeVariableIn == SignedInteger32Bit) || auxBool);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading input typeVariable.");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Variable type not supported. Valid types: uint32, int32, uint64, int64");
         }
     }
 
@@ -329,7 +329,7 @@ bool Waveform::Execute() {
             timeIncrement = ((static_cast<float64>(time1) - static_cast<float64>(time0)) / static_cast<float64>(numberOfOutputElements)) / 1e6;
         }
 
-        if(IsEqual(timeIncrement, 0.0)){
+        if (IsEqual(timeIncrement, 0.0)) {
             REPORT_ERROR(ErrorManagement::FatalError, "timeIncrement = 0.0. Two equal times while computing sample time");
             ok = false;
         }
@@ -342,7 +342,7 @@ bool Waveform::Execute() {
         if (inputTime != NULL_PTR(uint32 *)) {
             currentTime = static_cast<float64>(*inputTime) / 1e6;
         }
-        if(currentTime > lastTime){
+        if (currentTime > lastTime) {
             //Check type and call correct function.
             ok = PrecomputeValues();
             for (indexOutputSignal = 0u; (indexOutputSignal < numberOfOutputSignals) && ok; indexOutputSignal++) {
@@ -382,7 +382,8 @@ bool Waveform::Execute() {
                     }
                 }
             }
-        }else{
+        }
+        else {
             REPORT_ERROR(ErrorManagement::FatalError, "Input time is not increasing");
             ok = false;
         }
@@ -469,7 +470,8 @@ bool Waveform::IsValidType(TypeDescriptor const &typeRef) const {
     auxBool[7] = typeRef == UnsignedInteger32Bit;
     auxBool[8] = typeRef == SignedInteger64Bit;
     auxBool[9] = typeRef == UnsignedInteger64Bit;
-    retVal = ((auxBool[0]) || (auxBool[1]) || (auxBool[2]) || (auxBool[3]) || (auxBool[4]) || (auxBool[5]) || (auxBool[6]) || (auxBool[7]) || (auxBool[8]) || (auxBool[9]));
+    retVal = ((auxBool[0]) || (auxBool[1]) || (auxBool[2]) || (auxBool[3]) || (auxBool[4]) || (auxBool[5]) || (auxBool[6]) || (auxBool[7]) || (auxBool[8])
+            || (auxBool[9]));
     delete[] auxBool;
     return retVal;
 }

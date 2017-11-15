@@ -55,7 +55,7 @@ namespace MARTe {
  *     InputSignals = {
  *         Time = {
  *             DataSource = "DDB1"
- *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative)
+ *             Type = uint32 //Supported type uint32 (int32 | int64 | uint64 are also valid types)
  *         }
  *     }
  *     OutputSignals = {
