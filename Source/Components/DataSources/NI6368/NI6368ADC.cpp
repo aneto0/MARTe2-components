@@ -1086,8 +1086,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (xseries_set_ai_scan_interval_counter(&adcConfiguration, scanIntervalCounterSource, scanIntervalCounterPolarity, scanIntervalCounterPeriod,
-                                                   scanIntervalCounterDelay) == 0);
+        ok = (xseries_set_ai_scan_interval_counter(&adcConfiguration, scanIntervalCounterSource, scanIntervalCounterPolarity, scanIntervalCounterPeriod, scanIntervalCounterDelay) == 0);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName);
         }
@@ -1270,7 +1269,7 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
                     if (executionMode == NI6368ADC_EXEC_SPAWNED) {
                         //Reset the error if this is being managed by another thread. The NotCompleted is only used in the Synchronise method 
                         //if the DataSource is being driven by the RealTimeThread
-                        if (err == ErrorManagement::NotCompleted) {
+                        if ((err == ErrorManagement::NotCompleted) || (err == ErrorManagement::Completed)) {
                             err = ErrorManagement::NoError;
                         }
                     }
