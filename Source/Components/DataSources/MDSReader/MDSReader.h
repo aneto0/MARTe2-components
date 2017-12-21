@@ -47,16 +47,17 @@ namespace MARTe {
 
 /**
  * @brief MDSReader is a data source which allows to read data from a MDSplus tree.
- * @details MDSReader is a input data source which takes data from MDSPlus nodes (as many as desired) and publish it on a real time application.
+ * @details MDSReader is an input data source which takes data from MDSPlus nodes (as many as desired) and publish it on a real time application.
  *
- * MDSReader can interpolate, decimate and take the data as it is from the tree depending on the parameter called DataManagement given in the initial configuration file.
+ * MDSReader can interpolate, decimate and take the data as it is from the tree depending on the parameter called "DataManagement" which is given
+ * in the initial configuration file.
  * Moreover, this data source can deal with discontinuous data and has a configuration parameter for managing the absence of data.
  * DataManagement can take the following values:
  * <ul>
  * <li>0 --> MDSReader takes the data from the tree as it is. In this configuration, the frequency/numberOfElements must be the same than the node sampling frequency.</li>
  * <li>1--> MDSReader interpolates the signal taking as a reference the two nearest data values. If the frequency/numberOfElements is smaller than the sample frequency
- * of the node the data source interpolates the signal. If the frequency/numberOfElements larger than the node sample frequency the signals is decimated.</li>
- * <li>2 --> MDSReader takes the nearest data to a given time. I.e the node data is (t1, d1) = (1, 1) and (t2, d2) = (2, 5) and the currentTime is t = 1.6 the
+ * of the MDSplus node the data source interpolates the signal. If the frequency/numberOfElements larger than the node sample frequency the signals is decimated.</li>
+ * <li>2 --> MDSReader holes the value following the criteria of the nearest value given specific time. I.e the node data is (t1, d1) = (1, 1) and (t2, d2) = (2, 5) and the currentTime is t = 1.6 the
  * nearest data to the given time is 5.</li>
  * </ul>
  *
@@ -352,7 +353,7 @@ private:
 
 
     /**
-     * @brief First copy data and then add values
+     * @brief First copies data and then add values
      * @param[in] nodeNumber node number from where copy data.
      * @param[in] minSegment indicates the segment from where start to be copied.
      * @param[in] numberOfDiscontinuities indicates the number of times that the algorithm must be applied
@@ -366,11 +367,16 @@ private:
                            const uint32 samplesRead);
 
 
+    /**
+     * @brief First it fills the holes with data then copy data from MDSplus and the continue coping data
+     */
     bool AddValuesCopyDataAddValues(const uint32 nodeNumber,
                                     const uint32 minSegment,
                                     const uint32 numberOfDiscontinuities);
 
-
+    /**
+     * @brief First it copies real data from MDSplus then fill the holes with some data and then continue coping data
+     */
     bool CopyDataAddValuesCopyData(const uint32 nodeNumber,
                                    uint32 minSegment,
                                    const uint32 numberOfDiscontinuities);
@@ -388,7 +394,7 @@ private:
                           float64 &endTime) const;
 
     /**
-     * @brief Copy the data from the tree to the allocated memory
+     * @brief Copies the data from the tree to the allocated memory
      * @details It uses MemoryOperationsHelper::Copy().
      * @param[in] nodeNumber indicates from which node the data must be copied.
      * @param[in] minSeg indicates the first segment which must be copied from. Notice that not necessarily the data must be copied from the beginning.
@@ -401,46 +407,77 @@ private:
                        const uint32 samplesToCopy,
                        const uint32 offsetSamples);
 
+    /**
+     * @brief template which copies data using MemoryOperationsHelper::Copy
+     */
     template<typename T>
     uint32 MakeRawCopyTemplate(uint32 nodeNumber,
                                uint32 minSeg,
                                uint32 SamplesToCopy,
                                uint32 OffsetSamples);
 
+    /**
+     * @brief Copies data interpolating the samples
+     * @brief this function decides the type of data and the calls the LinearInterpolationCopyTemplate()
+     */
     uint32 LinearInterpolationCopy(const uint32 nodeNumber,
                                    const uint32 minSeg,
                                    const uint32 samplesToCopy,
                                    const uint32 offsetSamples);
 
+
+    /**
+     * @brief Template function which reads the data from MDSplus and performs the interpolation
+     */
     template<typename T>
     uint32 LinearInterpolationCopyTemplate(uint32 nodeNumber,
                                            uint32 minSeg,
                                            uint32 samplesToCopy,
                                            uint32 offsetSamples);
 
+    /**
+     * @brief Fills the holes with the last value.
+     * @details this function calls the HoldCopyTemplate.
+     */
     uint32 HoldCopy(const uint32 nodeNumber,
                     const uint32 minSeg,
                     const uint32 samplesToCopy,
                     const uint32 samplesOffset);
 
+    /**
+     * @brief Template function which actually fills the dataSourceMemory buffer
+     */
     template<typename T>
     uint32 HoldCopyTemplate(uint32 nodeNumber,
                             uint32 minSeg,
                             uint32 samplesToCopy,
                             uint32 samplesOffset);
 
+    /**
+     * @brief Copy the remaining data of the MDSpls into the dataSourceMemory buffer
+     * @details this function is called just to managed the end of the MDSplus data.
+     */
     bool CopyRemainingData(const uint32 nodeNumber,
                            const uint32 minSegment);
 
+    /**
+     * @brief Given tstart and tend this function decide how many samples to copy
+     */
     uint32 ComputeSamplesToCopy(const uint32 nodeNumber,
                                 const float64 tstart,
                                 const float64 tend) const;
 
+    /**
+     * @brief modifies samples in case it was not well calculated due to numeric errors.
+     */
     void VerifySamples(const uint32 nodeNumber,
                        uint32 &samples,
                        const float64 tstart,
                        const float64 tend) const;
 
+    /**
+     * @brief Compute the interpolation given to samples.
+     */
     template<typename T>
     bool SampleInterpolation(float64 cT,
                              T data1,
@@ -449,6 +486,9 @@ private:
                              float64 t2,
                              float64 *ptr);
 
+    /**
+     * @brief Convert the the MDSplus type into MARTe type.
+     */
     TypeDescriptor ConvertMDStypeToMARTeType(StreamString mdsType) const;
 
     bool AllNodesEnd() const;
