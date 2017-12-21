@@ -55,7 +55,7 @@ namespace MARTe {
  *     InputSignals = {
  *         Time = {
  *             DataSource = "DDB1"
- *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative)
+ *             Type = uint32 //Supported type uint32 (int32 | int64 | uint64 are also valid types)
  *         }
  *     }
  *     OutputSignals = {
@@ -82,10 +82,8 @@ public:
      * @post
      * points = NULL_PTR(float64 *)\n
      * times = NULL_PTR(float64 *)\n
-     * slopes = NULL_PTR(float64 *)\n
      * numberOfPointsElements = 0u\n
      * numberOfTimesElements = 0u\n
-     * numberOfSlopeElements = 0u\n
      * lastOutputValue = 0.0\n
      * refVal = 0.0\n
      * timeRefVal = 0.0\n
@@ -100,7 +98,6 @@ WaveformPointsDef    ();
      * @post
      *  points = NULL_PTR(float64 *)\n
      *  times = NULL_PTR(float64 *)\n
-     *  slopes = NULL_PTR(float64 *)\n
      */
     virtual ~WaveformPointsDef();
 
@@ -188,7 +185,7 @@ protected:
      * @details computes the following operations:
      *
      * \f$
-     * outputFloat64[i] = refVal + ((currentTime - timeRefVal) * slopes[indexSlopes])
+     * outputFloat64[i] = pointRef1 + ((currentTime - timeRef1) * slope)
      * \f$
      *
      * and save the data in #MARTe#Waveform::outputFloat64
@@ -212,11 +209,6 @@ private:
     float64 *times;
 
     /**
-     * holds the slopes of the linear interpolation
-     */
-    float64 *slopes;
-
-    /**
      * Indicates the current applied slope
      */
     uint32 indexSlopes;
@@ -230,11 +222,6 @@ private:
      * numberOfTImesElements. It must be equal than numberOfPointsElements
      */
     uint32 numberOfTimesElements;
-
-    /**
-     * number of slope elements. It is numberOfPointsElements - 1. It is computed from points and times
-     */
-    uint32 numberOfSlopeElements;
 
     /**
      * remember the last output value
@@ -252,14 +239,29 @@ private:
     float64 lastTimeValue;
 
     /**
-     * Is the reference value from which the signal is interpolated. This values is changed for each point.
+     * Used to interpolate
      */
-    float64 refVal;
+    float64 pointRef1;
 
     /**
-     * Remembers the time from which the interpolation is done.
+     * Used to interpolate
      */
-    float64 timeRefVal;
+    float64 pointRef2;
+
+    /**
+     * Used to interpolate
+     */
+    float64 timeRef1;
+
+    /**
+     * Used to interpolate
+     */
+    float64 timeRef2;
+
+    /**
+     * Used to interpolate. slope = (pointRef2 - pointRef1)/(timeRef2 - timeRef1)
+     */
+    float64 slope;
 
     /**
      * @brief Verifies if the times values are correctly configured.
@@ -267,6 +269,19 @@ private:
      * @return true if the time is consistent with the previous listed conditions.
      */
     bool VerifyTimes () const;
+
+    /**
+     * @brief Using the time decides between which points the interpolation must be done.
+     * @details given the times array looks the nearest points to currentTime. If currentTime is beyond
+     * the array the function updates times for the next interval and tries to find again.
+     */
+    void FindNearestPoints();
+
+    /**
+     * @brief computes the slope to be applied.
+     * @details slope = (pointRef2 - pointRef1)/(timeRef2 - timeRef1);
+     */
+    void Slope();
 
 };
 

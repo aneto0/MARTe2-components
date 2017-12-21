@@ -240,6 +240,11 @@ protected:
     uint32 indexOutputSignal;
 
     /**
+     * Remembers the last time in order to check input time consistency.
+     */
+    float64 lastTime;
+
+    /**
      * @brief Decides if triggersOn is enabled
      * @details This function decides if the triggersON is enabled allowing to output the waveform generated.
      */

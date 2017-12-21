@@ -282,6 +282,16 @@ TEST(WaveformSinGAMTest, TestExecuteTigger1Element) {
     ASSERT_TRUE(test.TestExecuteTigger1Element());
 }
 
+TEST(WaveformSinGAMTest, TestExecuteWrongInput) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestExecuteWrongInput());
+}
+
+TEST(WaveformSinGAMTest, TestExecuteWrongInput_2) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestExecuteWrongInput_2());
+}
+
 
 
 
