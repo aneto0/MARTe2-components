@@ -51,16 +51,16 @@ namespace MARTe {
  * The selectors are always uint32 and the number of elements could be or 1 or the same than the input and output signals.
  *
  * When the number of selector elements is 1,for a giver input signal array, all the elements will be routed to the
- * same output, in the other hand if the number of selector elements is equal than the number of input signal elements
+ * same output. On the other hand, if the number of selector elements is equal to the number of input signal elements
  * the routed path (input-output) can be changed for each element of the array.
  *
  * Any number of inputs/outputs are allowed with the following restrictions:
  * <ul>
- * <li>The number of selectors signals must be equal than the number of outputs.</li>
+ * <li>The number of selectors signals must be equal to the number of outputs.</li>
  * <li>The number of output signals <= number of input signals.</li>
  * <li>The minimum number of outputs is 1.</li>
  * <li>The minimum number of input signals is 2. Hence the minimum number of inputs is 3 (1 selector and 2 input signals).</li>
- * <li>The maximum number of inputs is limited by an uin32 (2^32-1 inputs).</li>
+ * <li>The maximum number of inputs is limited by the uint32 size (2^32-1 inputs).</li>
  * </ul>
  *\n
  * The type supported by the GAM are:
@@ -77,7 +77,7 @@ namespace MARTe {
  *
  * As an example imagine a MuxGAM with 4 inputs (2 input signals, 2 selectors) and 2 output signals. Inputs and outputs
  * are named I<sub>0</sub>, I<sub>1</sub>, S<sub>0</sub>, S<sub>1</sub>,
- * O<sub>0</sub> and O<sub>1</sub>. The S<sub>0</sub> control the O<sub>0</sub> and the S<sub>1</sub> controls the
+ * O<sub>0</sub> and O<sub>1</sub>. The S<sub>0</sub> controls the O<sub>0</sub> and the S<sub>1</sub> controls the
  * O<sub>1</sub>. With the previous conditions the following functional table could be done:\n
  * <table>
  * <tr>
@@ -99,7 +99,7 @@ namespace MARTe {
  *  \n
  * As can be observed the same input can be connected to several outputs.
  *
- * If an invalid selector is sent the GAM::Execute() return an error
+ * If an invalid selector is sent the GAM::Execute() returns an error
  * *The configuration syntax is (names and signal quantity are only given as an example):
  *<pre>
  * +MuxGAM1 = {
