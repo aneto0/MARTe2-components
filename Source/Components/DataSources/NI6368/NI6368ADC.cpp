@@ -213,7 +213,7 @@ bool NI6368ADC::Synchronise() {
         if (executionMode == NI6368ADC_EXEC_RTTHREAD) {
             ExecutionInfo info;
             info.SetStage(ExecutionInfo::MainStage);
-            ErrorManagement::ErrorType err = ErrorManagement::NotCompleted;
+            err = ErrorManagement::NotCompleted;
             while (err == ErrorManagement::NotCompleted) {
                 err = Execute(info);
             }
@@ -245,6 +245,7 @@ bool NI6368ADC::Synchronise() {
     return err.ErrorsCleared();
 }
 
+//lint -e{613} -e{414} dma cannot be null as otherwise ResetDMA would not be called.
 void NI6368ADC::ResetDMA() {
     size_t nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
     while (nBytesInDMA > 0u) {
@@ -252,6 +253,7 @@ void NI6368ADC::ResetDMA() {
         dmaOffset %= dma->ai.count;
         nBytesInDMAFromStart += nBytesInDMA;
         dma->ai.last_transfer_count = nBytesInDMAFromStart;
+        //lint -e{414} numberOfADCsEnabled > 0 guaranteed during configuration.
         dmaChannel = (dma->ai.last_transfer_count % numberOfADCsEnabled);
         nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
     }
@@ -1269,6 +1271,7 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
                     if (executionMode == NI6368ADC_EXEC_SPAWNED) {
                         //Reset the error if this is being managed by another thread. The NotCompleted is only used in the Synchronise method 
                         //if the DataSource is being driven by the RealTimeThread
+                        //lint -e{9007} no side effects on the right hand side if it is not evaluated.
                         if ((err == ErrorManagement::NotCompleted) || (err == ErrorManagement::Completed)) {
                             err = ErrorManagement::NoError;
                         }
