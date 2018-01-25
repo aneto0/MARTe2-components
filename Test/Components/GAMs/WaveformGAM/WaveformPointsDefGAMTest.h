@@ -156,6 +156,12 @@ public:
     bool TestExecuteSawtooth();
 
     /**
+     * @brief Test WaveformPointsDef::Execute()
+     * @details the signal output should be 1, 0, 1, 0
+     */
+    bool TestExecute_0_1();
+
+    /**
      * @brief Test WaveformPointsDef::Execute() with a sawtooth
      */
     bool TestExecuteSawtooth_4elements();
@@ -286,13 +292,13 @@ public:
     void *GetOutputSignalsMemory(uint32 idx) {
         return GAM::GetOutputSignalMemory(idx);
     }
-    bool InitialisePointsdefSawtooth() {
+    bool InitialisePointsdefSawtooth(float64 t0 = 0.0, float64 t1 = 0.9, float64 p0 = 0, float64 p1 = 9) {
         bool ret = true;
         if (isInitialised == false) {
-            x1[0] = 0;
-            x1[1] = 0.9;
-            y1[0] = 0;
-            y1[1] = 9;
+            x1[0] = t0;
+            x1[1] = t1;
+            y1[0] = p0;
+            y1[1] = p1;
             refValues = new float64[10];
             refValues[0] = 0;
             refValues[1] = 1;

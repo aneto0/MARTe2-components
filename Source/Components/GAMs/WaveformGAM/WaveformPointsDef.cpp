@@ -140,7 +140,7 @@ bool WaveformPointsDef::Initialise(StructuredDataI &data) {
         //If is due to MISRA are worried about null pointer...
         if (times != NULL_PTR(float64 *)) {
             lastTimeValue = times[numberOfTimesElements - 1u];
-           // numberOfSlopeElements = numberOfTimesElements - 1u;
+            // numberOfSlopeElements = numberOfTimesElements - 1u;
         }
     }
     return ok;
@@ -273,15 +273,24 @@ void WaveformPointsDef::FindNearestPoints() {
         }
     }
     if (found) {
-        uint32 auxIndex = i - 1u;
-        pointRef1 = points[auxIndex];
-        pointRef2 = points[i];
-        timeRef1 = times[auxIndex];
-        timeRef2 = times[i];
+        if (i > 0) {
+            uint32 auxIndex = i - 1u;
+            pointRef1 = points[auxIndex];
+            pointRef2 = points[i];
+            timeRef1 = times[auxIndex];
+            timeRef2 = times[i];
+        }
+        else {
+            uint32 auxIdx = numberOfPointsElements - 1u;
+            pointRef1 = points[auxIdx];
+            pointRef2 = points[i];
+            timeRef1 = remindTime;
+            timeRef2 = times[i];
+        }
     }
     else {
         uint32 auxIdx2 = numberOfTimesElements - 1u;
-        float64 remindTime = times[auxIdx2];
+        remindTime = times[auxIdx2];
         for (uint32 m = 0u; m < numberOfTimesElements; m++) { //update times
             if (times != NULL_PTR(float64 *)) {
                 times[m] = times[m] + lastTimeValue + timeIncrement;
@@ -316,14 +325,21 @@ void WaveformPointsDef::FindNearestPoints() {
                 timeRef1 = times[auxIndex];
                 timeRef2 = times[i];
             }
-
         }
     }
-    return ;
+    uint32 auxIdx = numberOfPointsElements - 1u;
+    remindTime = times[auxIdx];
+    return;
 }
 
 void WaveformPointsDef::Slope() {
-    slope = (pointRef2 - pointRef1)/(timeRef2 - timeRef1);
+    if (timeRef2 != timeRef1) {
+        slope = (pointRef2 - pointRef1) / (timeRef2 - timeRef1);
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::FatalError, "debugging.timeRef2 = timeRef1. It is going to divide by 0");
+    }
+
     return;
 }
 

@@ -290,6 +290,70 @@ bool WaveformPointsDefGAMTest::TestExecuteSawtooth() {
     return ok;
 }
 
+bool WaveformPointsDefGAMTest::TestExecute_0_1() {
+    bool ok = true;
+    WaveformPointsDefGAMTestHelper gam(1, 1, 1, 1, "int32", 0, 0, 2, 2);
+    uint32 sizeOutput = 1u;
+    uint32 timeIterationIncrement = 1u;
+    uint32 MAX_REP = 10000u;
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdefSawtooth(0.0, 0.000001, 0.0, 2.0);
+
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    uint32 *timeIteration = NULL;
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    int32 *output = NULL;
+    output = static_cast<int32 *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = 0;
+    }
+    if (ok) {
+        ok = gam.Execute();
+    }
+    uint32 error = 0;
+    int32 ref = 1;
+    for (uint32 i = 1u; i < MAX_REP && (error < 5); i++) {
+        if (ok) {
+            *timeIteration += timeIterationIncrement;
+            ok = gam.Execute();
+        }
+        if (!ok) {
+            printf("Error. gam.Execute() returns an error in iteration %u\n", i);
+            error++;
+        }
+        if (ok) {
+            if (ref == 1) {
+                ok = 1 <= output[0];
+            }
+            else {
+                ok = 0 == output[0];
+            }
+        }
+        if (!ok) {
+            printf("Error. *output = %d, refVal = %d, iteration %u\n", output[0], ref, i);
+            error++;
+        }
+        if (ref == 1) {
+            ref = 0;
+        }
+        else {
+            ref = 1;
+        }
+
+    }
+    return ok;
+}
+
 bool WaveformPointsDefGAMTest::TestExecuteSawtooth_4elements() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam(1, 1, 4, 1, "float64", 0, 0, 2, 2);

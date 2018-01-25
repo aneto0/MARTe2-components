@@ -263,6 +263,9 @@ private:
      */
     float64 slope;
 
+    /*remind the last cycle time*/
+    float64 remindTime;
+
     /**
      * @brief Verifies if the times values are correctly configured.
      * @details It checks that the first element is equal than 0.0 and the time is increasing.

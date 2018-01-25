@@ -421,6 +421,11 @@ TEST(WaveformPointsDefGAMTest, TestExecuteSawtooth) {
     ASSERT_TRUE(test.TestExecuteSawtooth());
 }
 
+TEST(WaveformPointsDefGAMTest, TestExecute_0_1) {
+    WaveformPointsDefGAMTest test;
+    ASSERT_TRUE(test.TestExecute_0_1());
+}
+
 TEST(WaveformPointsDefGAMTest, TestExecuteSawtooth_4elements) {
     WaveformPointsDefGAMTest test;
     ASSERT_TRUE(test.TestExecuteSawtooth_4elements());
