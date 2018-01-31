@@ -215,6 +215,8 @@ public:
      */
     virtual bool PrecomputeValues();
 
+    virtual bool TimeIncrementValidation();
+
 private:
 
     /**

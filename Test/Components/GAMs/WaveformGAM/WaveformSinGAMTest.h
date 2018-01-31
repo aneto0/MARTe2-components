@@ -164,6 +164,11 @@ public:
     bool TestInitialise_MissingSecondOutputType();
 
     /**
+     * @brief Test WaveformSinGAMTest::Execute() on error.
+     */
+    bool TestExecuteNyquistViolation();
+
+    /**
      * @brief Test the correctness of the output with uint8.
      */
     bool TestUInt8Execute();

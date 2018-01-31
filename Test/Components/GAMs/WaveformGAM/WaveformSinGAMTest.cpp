@@ -225,9 +225,9 @@ WaveformSinGAMTest::~WaveformSinGAMTest() {
 
 }
 
-
 bool WaveformSinGAMTest::TestInitialise_MissingAmplitude() {
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
     ok &= gam.Initialise(gam.config);
@@ -236,7 +236,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingAmplitude() {
 }
 
 bool WaveformSinGAMTest::TestInitialise_MissingFrequency() {
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
     ok &= gam.config.Write("Amplitude", 10.0);
@@ -245,7 +246,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingFrequency() {
 }
 
 bool WaveformSinGAMTest::TestInitialise_MissingPhase() {
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
     ok &= gam.config.Write("Amplitude", 10.0);
@@ -255,7 +257,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingPhase() {
 }
 
 bool WaveformSinGAMTest::TestInitialise_MissingOffset() {
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     bool ok = true;
     WaveformSinGAMTestHelper gam;
     ok &= gam.config.Write("Amplitude", 10.0);
@@ -267,7 +270,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingOffset() {
 
 bool WaveformSinGAMTest::TestInitialise_Frequency0() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
 
@@ -281,7 +285,8 @@ bool WaveformSinGAMTest::TestInitialise_Frequency0() {
 
 bool WaveformSinGAMTest::TestInitialise_Amplitude0() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
 
@@ -295,7 +300,8 @@ bool WaveformSinGAMTest::TestInitialise_Amplitude0() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingInputSignal() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
 
@@ -308,7 +314,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingInputSignal() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingOutputSignal() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -335,7 +342,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingOutputSignal() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingInputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -376,7 +384,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingInputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestInitialise_WrongInputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -417,7 +426,8 @@ bool WaveformSinGAMTest::TestInitialise_WrongInputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingOutputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -458,7 +468,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingOutputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestInitialise_WrongOutputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -499,7 +510,8 @@ bool WaveformSinGAMTest::TestInitialise_WrongOutputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingSecondOutputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -548,7 +560,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingSecondOutputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestInitialise_WrongSecondOutputNumberOfElements() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -597,7 +610,8 @@ bool WaveformSinGAMTest::TestInitialise_WrongSecondOutputNumberOfElements() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingInputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -653,7 +667,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingInputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestInitialise_WrongInputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -709,7 +724,8 @@ bool WaveformSinGAMTest::TestInitialise_WrongInputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingOutputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -765,7 +781,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingOutputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestInitialise_WrongOutputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -821,7 +838,8 @@ bool WaveformSinGAMTest::TestInitialise_WrongOutputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingSeondOutputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -889,7 +907,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingSeondOutputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestInitialise_WrongSecondOutputNumberOfSamples() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -957,7 +976,8 @@ bool WaveformSinGAMTest::TestInitialise_WrongSecondOutputNumberOfSamples() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingInputType() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -1025,7 +1045,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingInputType() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingOutputType() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -1093,7 +1114,8 @@ bool WaveformSinGAMTest::TestInitialise_MissingOutputType() {
 
 bool WaveformSinGAMTest::TestInitialise_MissingSecondOutputType() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10.0, 1.0, 0.0, 10);
@@ -1232,9 +1254,66 @@ bool WaveformSinGAMTest::TestUInt8Execute() {
     return ok;
 }
 
+bool WaveformSinGAMTest::TestExecuteNyquistViolation() {
+    bool ok = true;
+    using namespace MARTe;
+    using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin();
+
+    gam.config.MoveToRoot();
+    /*
+     //example how to print a ConfigurationDatabase
+     StreamString a;
+     printf("size of a %llu\n", a.Size());
+     printf("%d\n", a.Printf("%!", gam.config));
+     printf("size of a %llu\n", a.Size());
+     printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+     printf("%s\n", a.Buffer());
+     printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");*/
+
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    /*StreamString b;
+     printf("size of a %llu\n", b.Size());
+     printf("%d\n", b.Printf("%!", gam.configSignals));
+     printf("size of a %llu\n", b.Size());
+     printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+     printf("%s\n", b.Buffer());
+     printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");*/
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    uint8 *gamMemoryOut = static_cast<uint8 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        ok = gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0); //uint8(gam.amplitude[0] * sin(2.02.0 * FastMath::PI * gam.frequency[0] *() + gam.phase[0])));
+    }
+    *gamMemoryIn = 10000000;
+    if (ok) {
+        ok = !gam.Execute();
+    }
+    return ok;
+}
+
 bool WaveformSinGAMTest::TestInt8Execute() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10, 1, 0, 0);
@@ -1289,7 +1368,8 @@ bool WaveformSinGAMTest::TestInt8Execute() {
 
 bool WaveformSinGAMTest::TestInt16Execute() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(100, 1, 0, 0);
@@ -1344,7 +1424,9 @@ bool WaveformSinGAMTest::TestInt16Execute() {
 
 bool WaveformSinGAMTest::TestUInt16Execute() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(100, 1, 0, 100);
@@ -1399,7 +1481,8 @@ bool WaveformSinGAMTest::TestUInt16Execute() {
 
 bool WaveformSinGAMTest::TestInt32Execute() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10000, 1, 0, 0);
@@ -1454,7 +1537,8 @@ bool WaveformSinGAMTest::TestInt32Execute() {
 
 bool WaveformSinGAMTest::TestUInt32Execute() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(10000, 1, 0, 10000);
@@ -1509,7 +1593,8 @@ bool WaveformSinGAMTest::TestUInt32Execute() {
 
 bool WaveformSinGAMTest::TestInt64Execute() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
 
     gam.SetName("Test");
@@ -1565,7 +1650,8 @@ bool WaveformSinGAMTest::TestInt64Execute() {
 
 bool WaveformSinGAMTest::TestUInt64Execute() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(100000, 1, 0, 10000);
@@ -1620,7 +1706,8 @@ bool WaveformSinGAMTest::TestUInt64Execute() {
 
 bool WaveformSinGAMTest::TestFloat32Execute() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(100000, 1, 0, 10000);
@@ -1675,7 +1762,8 @@ bool WaveformSinGAMTest::TestFloat32Execute() {
 
 bool WaveformSinGAMTest::TestFloat64Execute() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSin(100000, 1, 0, 10000);
@@ -1730,7 +1818,8 @@ bool WaveformSinGAMTest::TestFloat64Execute() {
 
 bool WaveformSinGAMTest::TestSetup_StopTriggerGreaterThanStartTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
 
@@ -1769,7 +1858,8 @@ bool WaveformSinGAMTest::TestSetup_StopTriggerGreaterThanStartTrigger() {
 
 bool WaveformSinGAMTest::TestSetup_StartTriggerGreaterThanStopTriggerPlus2() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
 
@@ -1808,7 +1898,8 @@ bool WaveformSinGAMTest::TestSetup_StartTriggerGreaterThanStopTriggerPlus2() {
 
 bool WaveformSinGAMTest::TestSetup_StartTriggerTimeArrayInconsistent() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
 
@@ -1847,7 +1938,8 @@ bool WaveformSinGAMTest::TestSetup_StartTriggerTimeArrayInconsistent() {
 
 bool WaveformSinGAMTest::TestUInt8ExecuteTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSinTrigger();
@@ -1937,7 +2029,8 @@ bool WaveformSinGAMTest::TestUInt8ExecuteTrigger() {
 
 bool WaveformSinGAMTest::TestInt8ExecuteTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSinTrigger();
@@ -2027,7 +2120,8 @@ bool WaveformSinGAMTest::TestInt8ExecuteTrigger() {
 
 bool WaveformSinGAMTest::TestUInt16ExecuteTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSinTrigger();
@@ -2117,7 +2211,8 @@ bool WaveformSinGAMTest::TestUInt16ExecuteTrigger() {
 
 bool WaveformSinGAMTest::TestInt16ExecuteTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSinTrigger();
@@ -2207,7 +2302,8 @@ bool WaveformSinGAMTest::TestInt16ExecuteTrigger() {
 
 bool WaveformSinGAMTest::TestUInt32ExecuteTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSinTrigger();
@@ -2297,7 +2393,8 @@ bool WaveformSinGAMTest::TestUInt32ExecuteTrigger() {
 
 bool WaveformSinGAMTest::TestInt32ExecuteTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSinTrigger();
@@ -2387,7 +2484,8 @@ bool WaveformSinGAMTest::TestInt32ExecuteTrigger() {
 
 bool WaveformSinGAMTest::TestUInt64ExecuteTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSinTrigger(1000, 1, 0, 1000);
@@ -2477,7 +2575,8 @@ bool WaveformSinGAMTest::TestUInt64ExecuteTrigger() {
 
 bool WaveformSinGAMTest::TestInt64ExecuteTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSinTrigger(1000);
@@ -2567,7 +2666,8 @@ bool WaveformSinGAMTest::TestInt64ExecuteTrigger() {
 
 bool WaveformSinGAMTest::TestFloat32ExecuteTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSinTrigger(1000);
@@ -2661,7 +2761,8 @@ bool WaveformSinGAMTest::TestFloat32ExecuteTrigger() {
 
 bool WaveformSinGAMTest::TestFloat64ExecuteTrigger() {
     bool ok = true;
-    using namespace MARTe;using namespace FastMath;
+    using namespace MARTe;
+    using namespace FastMath;
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     ok &= gam.InitialiseWaveSinTrigger(1000);
@@ -2837,14 +2938,12 @@ bool WaveformSinGAMTest::TestExecuteTriggerDiffArrayLength() {
     }
     //Compare result against expected vale
 
-    aux = int64(
-            gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    aux = int64(gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
     ok &= (gamMemoryOut[0] == aux);
 
     ok &= (gamMemoryOut[1] == 0);
 
-    aux = int64(
-            gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    aux = int64(gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 2 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
     ok &= (gamMemoryOut[2] == aux);
 
     ok &= (gamMemoryOut[3] == 0u);
@@ -2853,15 +2952,13 @@ bool WaveformSinGAMTest::TestExecuteTriggerDiffArrayLength() {
     if (ok) {
         gam.Execute();
     }
-    aux = int64(
-            gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    aux = int64(gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
     ok &= (gamMemoryOut[0] == aux);
 
     ok &= (gamMemoryOut[1] == 0u);
     ok &= (gamMemoryOut[2] == 0u);
 
-    aux = int64(
-            gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+    aux = int64(gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 3 * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
     ok &= (gamMemoryOut[3] == aux);
     *gamMemoryIn = 5000000;
     if (ok) {
@@ -2869,7 +2966,7 @@ bool WaveformSinGAMTest::TestExecuteTriggerDiffArrayLength() {
     }
     for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
         aux = int64(
-                   gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
         ok &= (gamMemoryOut[i] == aux);
     }
 
@@ -2892,7 +2989,7 @@ bool WaveformSinGAMTest::TestExecuteTigger1Element() {
     WaveformSinGAMTestHelper gam;
     gam.SetName("Test");
     gam.amplitude = 1000;
-    gam.frequency = 1;
+    gam.frequency = 0.1;
     gam.phase = 0;
     gam.offset = 0;
     ok &= gam.config.Write("Amplitude", gam.amplitude);
@@ -2920,9 +3017,6 @@ bool WaveformSinGAMTest::TestExecuteTigger1Element() {
 
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
-
-
-
 
     uint32 totalByteSizeIn = 4u;
     ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
@@ -2970,9 +3064,6 @@ bool WaveformSinGAMTest::TestExecuteTigger1Element() {
 
     ok &= gam.configSignals.MoveToRoot();
 
-
-
-
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
@@ -2986,7 +3077,7 @@ bool WaveformSinGAMTest::TestExecuteTigger1Element() {
         gamMemoryOut[i] = 0;
     }
     if (ok) {
-        gam.Execute();
+        ok = gam.Execute();
     }
     //Compare result against expected vale
     for (uint32 i = 0; i < 1; i++) {
@@ -2994,50 +3085,47 @@ bool WaveformSinGAMTest::TestExecuteTigger1Element() {
     }
     *gamMemoryIn = 1000000;
     if (ok) {
-        gam.Execute();
+        ok = gam.Execute();
     }
     //Compare result against expected vale
     float32 aux = 0;
     ok &= (gamMemoryOut[0] == 0.0);
     *gamMemoryIn = 2000000;
     if (ok) {
-        gam.Execute();
+        ok = gam.Execute();
     }
     //Compare result against expected vale
     for (uint32 i = 0; i < 1; i++) {
-        aux = float32(
-                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / 1)) + gam.phase) + gam.offset);
+        aux = float32(gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / 1)) + gam.phase) + gam.offset);
         ok &= IsEqual(gamMemoryOut[i], aux);
     }
 
     *gamMemoryIn = 3000000;
     if (ok) {
-        gam.Execute();
+        ok = gam.Execute();
     }
     //Compare result against expected vale
 
-    aux = float32(
-            gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / 1)) + gam.phase) + gam.offset);
+    aux = float32(gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / 1)) + gam.phase) + gam.offset);
     ok &= IsEqual(gamMemoryOut[0], aux);
 
     *gamMemoryIn = 4000000;
     if (ok) {
-        gam.Execute();
+        ok = gam.Execute();
     }
-    aux = float32(
-            gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / 1)) + gam.phase) + gam.offset);
+    aux = float32(gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + 0 * (1.0 / 1)) + gam.phase) + gam.offset);
     ok &= IsEqual(gamMemoryOut[0], aux);
 
     *gamMemoryIn = 5000000;
     if (ok) {
-        gam.Execute();
+        ok = gam.Execute();
     }
 
     ok &= (gamMemoryOut[0] == 0.0);
 
     *gamMemoryIn = 6000000;
     if (ok) {
-        gam.Execute();
+        ok = gam.Execute();
     }
     ok &= (gamMemoryOut[0] == 0.0);
     return ok;
@@ -3079,9 +3167,6 @@ bool WaveformSinGAMTest::TestExecuteWrongInput() {
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-
-
-
     uint32 totalByteSizeIn = 4u;
     ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
     ok &= gam.configSignals.CreateRelative("0");
@@ -3127,9 +3212,6 @@ bool WaveformSinGAMTest::TestExecuteWrongInput() {
     ok &= gam.configSignals.Write("Samples", 1);
 
     ok &= gam.configSignals.MoveToRoot();
-
-
-
 
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
@@ -3193,9 +3275,6 @@ bool WaveformSinGAMTest::TestExecuteWrongInput_2() {
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
 
-
-
-
     uint32 totalByteSizeIn = 4u;
     ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
     ok &= gam.configSignals.CreateRelative("0");
@@ -3242,9 +3321,6 @@ bool WaveformSinGAMTest::TestExecuteWrongInput_2() {
 
     ok &= gam.configSignals.MoveToRoot();
 
-
-
-
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
@@ -3264,13 +3340,13 @@ bool WaveformSinGAMTest::TestExecuteWrongInput_2() {
     for (uint32 i = 0; i < 1; i++) {
         ok &= (gamMemoryOut[i] == 0.0);
     }
-    *gamMemoryIn = 1000000;
+    *gamMemoryIn = 100000;
     if (ok) {
         ok = gam.Execute();
     }
     //Compare result against expected vale
     ok &= (gamMemoryOut[0] == 0.0);
-    *gamMemoryIn = 1000000;
+    *gamMemoryIn = 100000;
     if (ok) {
         ok = !gam.Execute();
     }

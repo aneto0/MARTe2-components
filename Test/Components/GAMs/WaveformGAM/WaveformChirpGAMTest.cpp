@@ -37,7 +37,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -50,7 +49,7 @@ WaveformChirpGAMTest::WaveformChirpGAMTest() {
 WaveformChirpGAMTest::~WaveformChirpGAMTest() {
 }
 
-bool WaveformChirpGAMTest::TestInitialiseMissingAmplitude(){
+bool WaveformChirpGAMTest::TestInitialiseMissingAmplitude() {
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -59,7 +58,7 @@ bool WaveformChirpGAMTest::TestInitialiseMissingAmplitude(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestInitialise0Amplitude(){
+bool WaveformChirpGAMTest::TestInitialise0Amplitude() {
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -83,7 +82,7 @@ bool WaveformChirpGAMTest::TestInitialise0Amplitude(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestInitialiseMissingPhase(){
+bool WaveformChirpGAMTest::TestInitialiseMissingPhase() {
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -106,7 +105,7 @@ bool WaveformChirpGAMTest::TestInitialiseMissingPhase(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestInitialiseMissingOffset(){
+bool WaveformChirpGAMTest::TestInitialiseMissingOffset() {
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -129,7 +128,7 @@ bool WaveformChirpGAMTest::TestInitialiseMissingOffset(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestInitialiseMissingFreq1(){
+bool WaveformChirpGAMTest::TestInitialiseMissingFreq1() {
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -152,7 +151,7 @@ bool WaveformChirpGAMTest::TestInitialiseMissingFreq1(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestInitialiseMissingFreq2(){
+bool WaveformChirpGAMTest::TestInitialiseMissingFreq2() {
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -175,7 +174,7 @@ bool WaveformChirpGAMTest::TestInitialiseMissingFreq2(){
     return !ok;
 }
 
-bool WaveformChirpGAMTest::TestInitialiseMissingChirpDuration(){
+bool WaveformChirpGAMTest::TestInitialiseMissingChirpDuration() {
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -198,8 +197,7 @@ bool WaveformChirpGAMTest::TestInitialiseMissingChirpDuration(){
     return !ok;
 }
 
-
-bool WaveformChirpGAMTest::TestInitialise0ChirpDuration(){
+bool WaveformChirpGAMTest::TestInitialise0ChirpDuration() {
     bool ok = true;
     uint32 sizeOutput = 4u;
     WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1);
@@ -222,6 +220,68 @@ bool WaveformChirpGAMTest::TestInitialise0ChirpDuration(){
     return !ok;
 }
 
+bool WaveformChirpGAMTest::TestExecuteNyquistViolation() {
+    using namespace MARTe;
+    bool ok = true;
+    uint32 timeIterationIncrement = 100000u;
+    uint32 *timeIteration = NULL;
+    uint32 sizeOutput = 4u;
+    WaveformChirpGAMTestHelper gam(1, 1, sizeOutput, 1, "int8");
+
+    int8 *output = NULL;
+
+    gam.SetName("Test");
+    float64 f1 = 100000;
+    float64 f2 = 10;
+    float64 amplitude = 10.0;
+    float64 phase = 0.0;
+    float64 offset = 0.0;
+    float64 chirpDuration = 10.0;
+    //chirp configuration
+    ok &= gam.config.Write("Frequency1", f1);
+    ok &= gam.config.Write("Frequency2", f2);
+    ok &= gam.config.Write("Amplitude", amplitude);
+    ok &= gam.config.Write("Phase", phase);
+    ok &= gam.config.Write("Offset", offset);
+    ok &= gam.config.Write("ChirpDuration", chirpDuration);
+    ok &= gam.Initialise(gam.config);
+
+    if (ok) {
+        ok &= gam.InitialiseConfigDataBaseSignal1();
+    }
+    if (ok) {
+        ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    }
+    if (ok) {
+        ok &= gam.AllocateInputSignalsMemory();
+    }
+    if (ok) {
+        ok &= gam.AllocateOutputSignalsMemory();
+    }
+    if (ok) {
+        ok &= gam.Setup();
+    }
+
+    if (ok) {
+        timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+
+        *timeIteration = 0;
+    }
+    if (ok) {
+        output = static_cast<int8 *>(gam.GetOutputSignalsMemory());
+    }
+    for (uint32 i = 0u; (i < sizeOutput) && ok; i++) {
+        output[i] = static_cast<int8>(0.0);
+    }
+    if (ok) {
+        ok = gam.Execute();
+    }
+    timeIteration[0] += timeIterationIncrement;
+    if (ok) {
+        ok = !gam.Execute();
+    }
+    return ok;
+}
 
 }
 

@@ -95,6 +95,11 @@ public:
     bool TestInitialise0ChirpDuration();
 
     /**
+     * @brief Test error message of WaveformChirp::Execute()
+     */
+    bool TestExecuteNyquistViolation();
+
+    /**
      * @brief Template test. Verifies the correctness of the data.
      */
     template<typename T>
@@ -131,7 +136,11 @@ namespace MARTe {
 class WaveformChirpGAMTestHelper: public WaveformChirp {
 public:
 
-    WaveformChirpGAMTestHelper(uint32 elementsIn = 1, uint32 samplesIn = 1, uint32 elementsOut = 4, uint32 samplesOut = 1, StreamString str = "int8") {
+    WaveformChirpGAMTestHelper(uint32 elementsIn = 1,
+                               uint32 samplesIn = 1,
+                               uint32 elementsOut = 4,
+                               uint32 samplesOut = 1,
+                               StreamString str = "int8") {
         numberOfElementsIn = elementsIn;
         numberOfSamplesIn = samplesIn;
         byteSizeIn = numberOfElementsIn * sizeof(uint32);
@@ -228,13 +237,15 @@ public:
         return ret;
     }
 
-    bool IsEqualLargerMargins(float64 f1, float64 f2) {
+    bool IsEqualLargerMargins(float64 f1,
+                              float64 f2) {
         float64 *min = reinterpret_cast<float64*>(const_cast<uint64*>(&EPSILON_FLOAT64));
         float64 minLarger = *min * 4;
         return ((f1 - f2) < (minLarger)) && ((f1 - f2) > -(minLarger));
     }
 
-    bool IsEqualLargerMargins(float32 f1, float32 f2) {
+    bool IsEqualLargerMargins(float32 f1,
+                              float32 f2) {
         float32 *min = reinterpret_cast<float32*>(const_cast<uint32*>(&EPSILON_FLOAT32));
         float32 minLarger = *min * 4;
         return ((f1 - f2) < (minLarger)) && ((f1 - f2) > -(minLarger));
@@ -401,7 +412,9 @@ public:
     }
 
     template<typename T>
-    bool CompareChirp1(T *output, float64 t, float64 it) {
+    bool CompareChirp1(T *output,
+                       float64 t,
+                       float64 it) {
         bool ret = true;
         static bool firstIteration = true;
         for (uint32 i = 0; (i < numberOfElementsOut) && ret; i++) {
@@ -430,7 +443,9 @@ public:
     }
 
     template<typename T>
-    bool CompareChirp1Trigger(T *output, float64 t, float64 it) {
+    bool CompareChirp1Trigger(T *output,
+                              float64 t,
+                              float64 it) {
         bool ret = true;
 
         static bool firstIteration = true;
@@ -469,7 +484,9 @@ public:
     }
 
     template<typename T>
-    bool CompareChirpTrigger2(T *output, float64 t, float64 it) {
+    bool CompareChirpTrigger2(T *output,
+                              float64 t,
+                              float64 it) {
         bool ret = true;
 
         static bool firstIteration = true;
@@ -556,7 +573,7 @@ template<typename T>
 bool WaveformChirpGAMTest::TestExecute(StreamString str) {
     using namespace MARTe;
     bool ok = true;
-    uint32 timeIterationIncrement = 1000000u;
+    uint32 timeIterationIncrement = 100000u;
     uint32 *timeIteration = NULL;
     uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
     uint32 sizeOutput = 4u;
@@ -599,7 +616,8 @@ bool WaveformChirpGAMTest::TestExecute(StreamString str) {
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
         gam.Execute();
-        ok &= gam.CompareChirp1(output, static_cast<float64>(*timeIteration) / 1e6, static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirp1(output, static_cast<float64>(*timeIteration) / 1e6,
+                                static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
             REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
@@ -612,7 +630,7 @@ template<typename T>
 bool WaveformChirpGAMTest::TestExecuteTrigger(StreamString str) {
     using namespace MARTe;
     bool ok = true;
-    uint32 timeIterationIncrement = 1000000u;
+    uint32 timeIterationIncrement = 10000u;
     uint32 *timeIteration = NULL;
     uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
     uint32 sizeOutput = 4u;
@@ -655,7 +673,8 @@ bool WaveformChirpGAMTest::TestExecuteTrigger(StreamString str) {
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
         gam.Execute();
-        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6, static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6,
+                                       static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
             REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
@@ -668,7 +687,7 @@ template<typename T>
 bool WaveformChirpGAMTest::TestExecute2Signals(StreamString str) {
     using namespace MARTe;
     bool ok = true;
-    uint32 timeIterationIncrement = 1000000u;
+    uint32 timeIterationIncrement = 10000u;
     uint32 *timeIteration = NULL;
     uint32 numberOfIteration = 4000u; //if the number of iteration is too large the time will overflow
     uint32 sizeOutput = 4u;
@@ -714,8 +733,10 @@ bool WaveformChirpGAMTest::TestExecute2Signals(StreamString str) {
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
         gam.Execute();
-        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6, static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
-        ok &= gam.CompareChirpTrigger2(output2, static_cast<float64>(*timeIteration) / 1e6, static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6,
+                                       static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok &= gam.CompareChirpTrigger2(output2, static_cast<float64>(*timeIteration) / 1e6,
+                                       static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
             REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }
@@ -728,7 +749,7 @@ template<typename T>
 bool WaveformChirpGAMTest::TestExecute1ElementPerCycle(StreamString str) {
     using namespace MARTe;
     bool ok = true;
-    uint32 timeIterationIncrement = 2000000u;
+    uint32 timeIterationIncrement = 20000u;
     uint32 *timeIteration = NULL;
     uint32 numberOfIteration = 2000u; //if the number of iteration is too large the time will overflow
     uint32 sizeOutput = 1u;
@@ -770,8 +791,9 @@ bool WaveformChirpGAMTest::TestExecute1ElementPerCycle(StreamString str) {
         output[i] = static_cast<T>(0.0);
     }
     for (uint32 i = 0u; (i < numberOfIteration) && ok; i++) {
-        gam.Execute();
-        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6, static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
+        ok = gam.Execute();
+        ok &= gam.CompareChirp1Trigger(output, static_cast<float64>(*timeIteration) / 1e6,
+                                       static_cast<float64>(timeIterationIncrement) / gam.numberOfElementsOut / 1e6);
         if (!ok) {
             REPORT_ERROR_STATIC_PARAMETERS(ErrorManagement::FatalError, "iteration which fails %u\n", i);
         }

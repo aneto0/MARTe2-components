@@ -153,11 +153,15 @@ TEST(WaveformSinGAMTest, TestInitialise_MissingSecondOutputType) {
     ASSERT_TRUE(test.TestInitialise_MissingSecondOutputType());
 }
 
+TEST(WaveformSinGAMTest, TestExecuteNyquistViolation) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestExecuteNyquistViolation());
+}
+
 TEST(WaveformSinGAMTest, TestUInt8Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestUInt8Execute());
 }
-
 
 TEST(WaveformSinGAMTest, TestInt8Execute) {
     WaveformSinGAMTest test;
@@ -184,18 +188,15 @@ TEST(WaveformSinGAMTest, TestInt32Execute) {
     ASSERT_TRUE(test.TestInt32Execute());
 }
 
-
 TEST(WaveformSinGAMTest, TestInt64Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestInt64Execute());
 }
 
-
 TEST(WaveformSinGAMTest, TestUInt64Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestUInt64Execute());
 }
-
 
 TEST(WaveformSinGAMTest, TestFloat32Execute) {
     WaveformSinGAMTest test;

@@ -62,6 +62,7 @@ WaveformPointsDef::WaveformPointsDef() :
     timeRef1 = 0.0;
     timeRef2 = 0.0;
     slope = 0.0;
+    remindTime = 0.0;
 
 }
 
@@ -151,47 +152,6 @@ bool WaveformPointsDef::PrecomputeValues() {
         TriggerMechanism();
         FindNearestPoints();
         Slope();
-        /*
-         //decides which slope should be used
-         if (beginningSequence) {
-         if ((points != NULL_PTR(float64 *)) && (times != NULL_PTR(float64 *))) {
-         refVal = points[indexSlopes];
-         timeRefVal = times[indexSlopes];
-         }
-         beginningSequence = false;
-         }
-         else {
-         uint32 aux = indexSlopes + 1u;
-         if (times != NULL_PTR(float64 *)) {
-         bool isEqual = IsEqual(currentTime, times[aux]);
-         bool isBigger = (currentTime > times[aux]);
-         while (isEqual || isBigger) {
-         indexSlopes++;
-         aux = indexSlopes + 1;
-         if (points != NULL_PTR(float64 *)) {
-         refVal = points[indexSlopes];
-         timeRefVal = times[indexSlopes];
-         }
-         if (indexSlopes < numberOfSlopeElements) {
-         //Don nothing
-         }
-         else { //reset index
-         //move the points for the next iteration
-         for (uint32 m = 0u; m < numberOfTimesElements; m++) {
-         if (times != NULL_PTR(float64 *)) {
-         times[m] = times[m] + lastTimeValue + timeIncrement;
-         }
-         }
-         beginningSequence = true;
-         indexSlopes = 0u;
-         aux = indexSlopes + 1u;
-         }
-         isEqual = IsEqual(currentTime, times[aux]);
-         isBigger = (currentTime > times[aux]);
-         }
-         }
-         }
-         */
         if (signalOn && triggersOn) {
             if (outputFloat64 != NULL_PTR(float64 *)) {
                 //outputFloat64[i] = refVal + ((currentTime - timeRefVal) * slopes[indexSlopes]);
@@ -204,6 +164,15 @@ bool WaveformPointsDef::PrecomputeValues() {
         currentTime += timeIncrement;
     }
     return true;
+}
+
+//lint -e{613} Possible use of null pointer. This function only will be called if times is initialised.
+bool WaveformPointsDef::TimeIncrementValidation() {
+    bool ok = timeIncrement <= times[numberOfTimesElements - 1u];
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::FatalError, "times interval is smaller than timeIncrement.");
+    }
+    return ok;
 }
 
 bool WaveformPointsDef::GetInt8Value() {
@@ -273,7 +242,7 @@ void WaveformPointsDef::FindNearestPoints() {
         }
     }
     if (found) {
-        if (i > 0) {
+        if (i > 0u) {
             uint32 auxIndex = i - 1u;
             pointRef1 = points[auxIndex];
             pointRef2 = points[i];
@@ -327,19 +296,11 @@ void WaveformPointsDef::FindNearestPoints() {
             }
         }
     }
-    uint32 auxIdx = numberOfPointsElements - 1u;
-    remindTime = times[auxIdx];
     return;
 }
 
 void WaveformPointsDef::Slope() {
-    if (timeRef2 != timeRef1) {
-        slope = (pointRef2 - pointRef1) / (timeRef2 - timeRef1);
-    }
-    else {
-        REPORT_ERROR(ErrorManagement::FatalError, "debugging.timeRef2 = timeRef1. It is going to divide by 0");
-    }
-
+    slope = (pointRef2 - pointRef1) / (timeRef2 - timeRef1);
     return;
 }
 

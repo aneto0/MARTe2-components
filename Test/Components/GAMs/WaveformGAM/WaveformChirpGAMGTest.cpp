@@ -80,6 +80,10 @@ TEST(WaveformChirpGAMTest, TestInitialise0ChirpDuration) {
     ASSERT_TRUE(test.TestInitialise0ChirpDuration());
 }
 
+TEST(WaveformChirpGAMTest, TestExecuteNyquistViolation) {
+    WaveformChirpGAMTest test;
+    ASSERT_TRUE(test.TestExecuteNyquistViolation());
+}
 
 TEST(WaveformChirpGAMTest, TestExecuteUInt8) {
     WaveformChirpGAMTest test;

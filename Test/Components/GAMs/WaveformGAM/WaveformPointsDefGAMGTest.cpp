@@ -88,74 +88,69 @@ TEST(WaveformPointsDefGAMTest, TestFailWaveformSetup) {
     ASSERT_TRUE(test.TestInitialise_FailWaveformSetup());
 }
 
+TEST(WaveformPointsDefGAMTest, TestExecuteNyquistViolation) {
+    WaveformPointsDefGAMTest test;
+    ASSERT_TRUE(test.TestExecuteNyquistViolation());
+}
+
 TEST(WaveformPointsDefGAMTest, TestExecuteInt8) {
     WaveformPointsDefGAMTest test;
     StreamString str = "int8";
     ASSERT_TRUE(test.TestExecute<int8>(str));
-
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteUInt8) {
     WaveformPointsDefGAMTest test;
     StreamString str = "uint8";
     ASSERT_TRUE(test.TestExecute<uint8>(str));
-
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteInt16) {
     WaveformPointsDefGAMTest test;
     StreamString str = "int16";
     ASSERT_TRUE(test.TestExecute<int16>(str));
-
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteUInt16) {
     WaveformPointsDefGAMTest test;
     StreamString str = "uint16";
     ASSERT_TRUE(test.TestExecute<uint16>(str));
-
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteInt32) {
     WaveformPointsDefGAMTest test;
     StreamString str = "int32";
     ASSERT_TRUE(test.TestExecute<int32>(str));
-
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteUInt32) {
     WaveformPointsDefGAMTest test;
     StreamString str = "uint32";
     ASSERT_TRUE(test.TestExecute<uint32>(str));
-
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteInt64) {
     WaveformPointsDefGAMTest test;
     StreamString str = "int64";
     ASSERT_TRUE(test.TestExecute<int64>(str));
-
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteUInt64) {
     WaveformPointsDefGAMTest test;
     StreamString str = "uint64";
     ASSERT_TRUE(test.TestExecute<uint64>(str));
-
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteFloat32) {
     WaveformPointsDefGAMTest test;
     StreamString str = "float32";
     ASSERT_TRUE(test.TestExecute<float32>(str));
-
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteFloat64) {
     WaveformPointsDefGAMTest test;
     StreamString str = "float64";
     ASSERT_TRUE(test.TestExecute<float64>(str));
-
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteTriggerInt8) {
@@ -424,6 +419,11 @@ TEST(WaveformPointsDefGAMTest, TestExecuteSawtooth) {
 TEST(WaveformPointsDefGAMTest, TestExecute_0_1) {
     WaveformPointsDefGAMTest test;
     ASSERT_TRUE(test.TestExecute_0_1());
+}
+
+TEST(WaveformPointsDefGAMTest, TestExecute_0_1_TwoSignals) {
+    WaveformPointsDefGAMTest test;
+    ASSERT_TRUE(test.TestExecute_0_1_TwoSignals());
 }
 
 TEST(WaveformPointsDefGAMTest, TestExecuteSawtooth_4elements) {

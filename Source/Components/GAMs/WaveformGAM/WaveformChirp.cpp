@@ -147,6 +147,20 @@ bool WaveformChirp::PrecomputeValues() {
     return true;
 }
 
+bool WaveformChirp::TimeIncrementValidation() {
+    bool ok;
+    if (frequency2 > frequency1) {
+        ok = (1 / timeIncrement) / 2.0 >= frequency2;
+    }
+    else {
+        ok = (1 / timeIncrement) / 2.0 >= frequency1;
+    }
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::FatalError, "sample frequency /2 < maxFrequency");
+    }
+    return ok;
+}
+
 bool WaveformChirp::GetUInt8Value() {
     return WaveformChirp::GetValue<uint8>();
 }

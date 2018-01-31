@@ -194,6 +194,12 @@ protected:
     virtual bool PrecomputeValues() = 0;
 
     /**
+     * @brief Validate timeIncrement according to the configuration parameters
+     * @details checks that the signal frequency < timeIncrement/2 (Nyquist-Shannon theorem).
+     */
+    virtual bool TimeIncrementValidation()=0;
+
+    /**
      * Output pointer. It support several output signals
      */
     void **outputValue;

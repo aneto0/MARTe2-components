@@ -329,10 +329,12 @@ bool Waveform::Execute() {
         if (numberOfOutputElements != 0u) {
             timeIncrement = ((static_cast<float64>(time1) - static_cast<float64>(time0)) / static_cast<float64>(numberOfOutputElements)) / 1e6;
         }
-
         if (IsEqual(timeIncrement, 0.0)) {
             REPORT_ERROR(ErrorManagement::FatalError, "timeIncrement = 0.0. Two equal times while computing sample time");
             ok = false;
+        }
+        if (ok) {
+            ok = TimeIncrementValidation();
         }
         timeState++;
     }

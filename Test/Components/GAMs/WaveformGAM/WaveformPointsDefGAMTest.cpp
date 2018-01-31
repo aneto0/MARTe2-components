@@ -171,6 +171,44 @@ bool WaveformPointsDefGAMTest::TestInitialise_FailWaveformSetup() {
     return !ok;
 }
 
+bool WaveformPointsDefGAMTest::TestExecuteNyquistViolation() {
+    using namespace MARTe;
+    bool ok = true;
+    uint32 timeIterationIncrement = 40000000u;
+    uint32 *timeIteration = NULL;
+    uint32 sizeOutput = 4u;
+    WaveformPointsDefGAMTestHelper gam(1, 1, sizeOutput, 1, "int8");
+
+    int8 *output = NULL;
+
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdef1();
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    output = static_cast<int8 *>(gam.GetOutputSignalsMemory());
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output[i] = static_cast<int8>(0.0);
+    }
+    if (ok) {
+        ok = gam.Execute();
+    }
+    timeIteration[0] += timeIterationIncrement;
+    if (ok) {
+        ok = !gam.Execute();
+    }
+    return ok;
+}
+
 bool WaveformPointsDefGAMTest::TestExecuteSmallIncrementTimes() {
     bool ok = true;
     WaveformPointsDefGAMTestHelper gam(1, 1, 4, 1, "float64", 0, 0);
@@ -295,7 +333,7 @@ bool WaveformPointsDefGAMTest::TestExecute_0_1() {
     WaveformPointsDefGAMTestHelper gam(1, 1, 1, 1, "int32", 0, 0, 2, 2);
     uint32 sizeOutput = 1u;
     uint32 timeIterationIncrement = 1u;
-    uint32 MAX_REP = 10000u;
+    uint32 MAX_REP = 100000000u;
     gam.SetName("Test");
     ok &= gam.InitialisePointsdefSawtooth(0.0, 0.000001, 0.0, 2.0);
 
@@ -333,7 +371,7 @@ bool WaveformPointsDefGAMTest::TestExecute_0_1() {
         }
         if (ok) {
             if (ref == 1) {
-                ok = 1 <= output[0];
+                ok = (1 <= output[0])  && (output[0] < 3);
             }
             else {
                 ok = 0 == output[0];
@@ -341,6 +379,143 @@ bool WaveformPointsDefGAMTest::TestExecute_0_1() {
         }
         if (!ok) {
             printf("Error. *output = %d, refVal = %d, iteration %u\n", output[0], ref, i);
+            error++;
+        }
+        if (ref == 1) {
+            ref = 0;
+        }
+        else {
+            ref = 1;
+        }
+
+    }
+    return ok;
+}
+
+bool WaveformPointsDefGAMTest::TestExecute_0_1_TwoSignals() {
+    bool ok = true;
+    WaveformPointsDefGAMTestHelper gam(1, 1, 1, 1, "int32", 0, 0, 2, 2);
+    uint32 sizeOutput = 1u;
+    uint32 timeIterationIncrement = 1000u;
+    uint32 MAX_REP = 1000000u;
+    gam.SetName("Test");
+    ok &= gam.InitialisePointsdefSawtooth(0.0, 0.001, 0.0, 2.0);
+
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    uint32 totalByteSizeIn = 4;
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeIn);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeIn);
+
+    uint32 totalByteSizeOut1 = 1;
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint8");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeOut1);
+
+    uint32 totalByteSizeOut2 = 4;
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal2");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "int32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeOut2);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+
+    uint32 totalByteSizeOut = totalByteSizeOut1 + totalByteSizeOut2;
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeOut);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.CreateRelative("1");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    uint32 *timeIteration = NULL;
+    timeIteration = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    *timeIteration = 0;
+    uint8 *output1 = NULL;
+    int32 *output2 = NULL;
+    output1 = static_cast<uint8 *>(gam.GetOutputSignalsMemory(0u));
+    output2 = static_cast<int32 *>(gam.GetOutputSignalsMemory(1u));
+    for (uint32 i = 0u; i < sizeOutput; i++) {
+        output1[i] = 0;
+        output2[i] = 0;
+    }
+    if (ok) {
+        ok = gam.Execute();
+    }
+    uint32 error = 0;
+    int32 ref = 1;
+    for (uint32 i = 1u; i < MAX_REP && (error < 5); i++) {
+        if (ok) {
+            *timeIteration += timeIterationIncrement;
+            ok = gam.Execute();
+        }
+        if (!ok) {
+            printf("Error. gam.Execute() returns an error in iteration %u\n", i);
+            error++;
+        }
+        if (ok) {
+            if (ref == 1) {
+                ok = (1 <= output1[0]) && (output1[0] < 3);
+            }
+            else {
+                ok = 0 == output1[0];
+            }
+        }
+        if (!ok) {
+            printf("Error. *output1 = %d, refVal = %d, iteration %u\n", output1[0], ref, i);
+            error++;
+        }
+        if (ok) {
+            if (ref == 1) {
+                ok = (1 <= output2[0])  && (output2[0] < 3);
+            }
+            else {
+                ok = 0 == output2[0];
+            }
+        }
+        if (!ok) {
+            printf("Error. *output2 = %d, refVal = %d, iteration %u\n", output2[0], ref, i);
             error++;
         }
         if (ref == 1) {

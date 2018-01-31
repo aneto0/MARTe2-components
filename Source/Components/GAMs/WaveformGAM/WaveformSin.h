@@ -210,6 +210,8 @@ protected:
      */
     virtual bool PrecomputeValues();
 
+    virtual bool TimeIncrementValidation();
+
 private:
 
     /**

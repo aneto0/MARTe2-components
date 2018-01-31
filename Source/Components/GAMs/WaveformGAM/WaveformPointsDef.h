@@ -192,6 +192,13 @@ protected:
      * @return true always
      */
     virtual bool PrecomputeValues();
+
+    /**
+     * @brief Validates that the time between samples is small enough.
+     * @details check that the time increment between samples is smaller than the times interval specified in the configuration file.
+     * @returns true if timeIncrement is smaller than the largest times.
+     */
+    virtual bool TimeIncrementValidation();
 private:
 
     /**
@@ -297,10 +304,10 @@ namespace MARTe {
 
 template<typename T>
 bool WaveformPointsDef::GetValue() {
-    for (uint32 i = 0u; (i < numberOfOutputElements); i++) {
-        static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
-    }
-    return true;
+for (uint32 i = 0u; (i < numberOfOutputElements); i++) {
+    static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
+}
+return true;
 }
 }
 
