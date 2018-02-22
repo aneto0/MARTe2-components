@@ -179,6 +179,12 @@ public:
     bool TestInt8Execute();
 
     /**
+     * @brief Test the correctness of the output with int8.
+     * @details the input pointer is uint64
+     */
+    bool TestInt8Execute_2();
+
+    /**
      * @brief Test the correctness of the output with int16.
      */
     bool TestInt16Execute();
@@ -302,6 +308,16 @@ public:
      * @brief Test the error messages of the Execute();
      */
     bool TestExecuteWrongInput_2();
+
+    /**
+     * @brief Test the error messages of the Execute();
+     */
+    bool TestExecuteNegativeInput();
+
+    /**
+     * @brief Test the error messages of the Execute();
+     */
+    bool TestExecuteNegativeInput_2();
 
 };
 

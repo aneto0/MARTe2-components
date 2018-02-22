@@ -60,7 +60,7 @@ WaveformChirp::WaveformChirp() :
     w2 = 0.0;
     w12 = w2 - w1;
     chirpDuration = 0.0;
-    cD2 = chirpDuration * 2;
+    cD2 = chirpDuration * 2.0;
 }
 
 WaveformChirp::~WaveformChirp() {
@@ -125,7 +125,7 @@ bool WaveformChirp::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
-        cD2 = chirpDuration * 2;
+        cD2 = chirpDuration * 2.0;
     }
 
     return ok;
@@ -135,7 +135,7 @@ bool WaveformChirp::PrecomputeValues() {
     for (uint32 i = 0u; i < numberOfOutputElements; i++) {
         TriggerMechanism();
         if (signalOn && triggersOn) {
-            float64 aux = (w1 * currentTime + w12 * currentTime * currentTime / cD2) + phase;
+            float64 aux = ((w1 * currentTime) + ((w12 * currentTime * currentTime) / cD2)) + phase;
             float64 aux2 = sin(aux);
             outputFloat64[i] = (amplitude * aux2) + offset;
         }
@@ -150,10 +150,10 @@ bool WaveformChirp::PrecomputeValues() {
 bool WaveformChirp::TimeIncrementValidation() {
     bool ok;
     if (frequency2 > frequency1) {
-        ok = (1 / timeIncrement) / 2.0 >= frequency2;
+        ok = ((1.0 / timeIncrement) / 2.0) >= frequency2;
     }
     else {
-        ok = (1 / timeIncrement) / 2.0 >= frequency1;
+        ok = ((1.0 / timeIncrement) / 2.0 )>= frequency1;
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "%s::sample frequency /2 < maxFrequency", GAMName.Buffer());

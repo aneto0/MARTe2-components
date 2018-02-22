@@ -79,6 +79,9 @@ StatisticsHelperT.h
 SysLogger.cpp
 Types.h
 Waveform.cpp
+Waveform.h
+WaveformChirp.cpp
+WaveformChirp.h
 WaveformSin.cpp
 WaveformSin.h
 WaveformPointsDef.cpp

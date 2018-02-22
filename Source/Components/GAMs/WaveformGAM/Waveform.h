@@ -47,7 +47,7 @@ namespace MARTe {
  * WaveformPointsDefGAM
  * WaveformChirpGAM
  *
- * This class implements the common functionality that is common to all the derived classes, which are basically the setup of the
+ * This class implements the common functionalities that are common to all the derived classes, which are basically the setup of the
  * trigger mechanism and the selection of the output type.
  *
  * The trigger time must be specified in seconds and the type shall be float64.
@@ -265,7 +265,7 @@ private:
     /**
      * pointer to the input time. It is the input of the GAM
      */
-    uint32 *inputTime;
+    void *inputTime;
 
     /**
      * Pointer to the start trigger time array.
@@ -299,12 +299,12 @@ private:
     /**
      * first time received in us
      */
-    uint32 time0;
+    uint64 time0;
 
     /**
      * second time received in us
      */
-    uint32 time1;
+    uint64 time1;
 
     /**
      * it is used to determine when time0, time1 are saved. The first iteration of his GAM is used to calculate the timeIncrement and the output is 0
@@ -369,6 +369,8 @@ private:
      * @return true if the type is one of the supported types.
      */
     bool IsValidType(TypeDescriptor const &typeRef) const;
+
+    bool GetInputTime(uint64 &timeOut);
 
 };
 

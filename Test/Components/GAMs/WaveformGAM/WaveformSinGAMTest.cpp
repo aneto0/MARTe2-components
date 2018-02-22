@@ -1375,6 +1375,110 @@ bool WaveformSinGAMTest::TestInt8Execute() {
     return ok;
 }
 
+
+bool WaveformSinGAMTest::TestInt8Execute_2() {
+    bool ok = true;
+    using namespace MARTe;
+    using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    ok &= gam.InitialiseWaveSin(10, 1, 0, 0);
+    StreamString a;
+    //example how to print a ConfigurationDatabase
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    TypeDescriptor type = UnsignedInteger8Bit;
+    ok &= gam.configSignals.Write("QualifiedName", "WaveformSinGAMTest");
+    uint32 totalByteSizeIn = gam.byteSizeIn;
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "uint64");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeIn);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeIn);
+
+    uint32 totalByteSizeOut = gam.numberOfElementsOut * type.numberOfBits / 8;
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", TypeDescriptor::GetTypeNameFromTypeDescriptor(type));
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", gam.numberOfElementsOut);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeOut);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeOut);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", gam.numberOfSamplesIn);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", gam.numberOfSamplesOut);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    int8 *gamMemoryOut = static_cast<int8 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElementsOut; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 1000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    int8 aux = 0;
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = int8(
+                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    *gamMemoryIn = 2000000;
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < gam.numberOfElementsOut; i++) {
+        aux = int8(
+                gam.amplitude * sin(2.0 * FastMath::PI * gam.frequency * (*gamMemoryIn / 1e6 + i * (1.0 / gam.numberOfElementsOut)) + gam.phase) + gam.offset);
+        ok &= (gamMemoryOut[i] == aux);
+    }
+    return ok;
+}
+
 bool WaveformSinGAMTest::TestInt16Execute() {
     bool ok = true;
     using namespace MARTe;
@@ -3359,6 +3463,236 @@ bool WaveformSinGAMTest::TestExecuteWrongInput_2() {
     //Compare result against expected vale
     ok &= (gamMemoryOut[0] == 0.0);
     *gamMemoryIn = 100000;
+    if (ok) {
+        ok = !gam.Execute();
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestExecuteNegativeInput() {
+    bool ok = true;
+    using namespace MARTe;
+    using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    gam.amplitude = 1000;
+    gam.frequency = 1;
+    gam.phase = 0;
+    gam.offset = 0;
+    ok &= gam.config.Write("Amplitude", gam.amplitude);
+    ok &= gam.config.Write("Frequency", gam.frequency);
+    ok &= gam.config.Write("Phase", gam.phase);
+    ok &= gam.config.Write("Offset", gam.offset);
+    uint32 dimTrigger = 5;
+    float64 *startTrigger = new float64[dimTrigger];
+    float64 *stopTrigger = new float64[dimTrigger - 1];
+    startTrigger[0] = 1.25;
+    stopTrigger[0] = 1.75;
+    startTrigger[1] = 2.;
+    stopTrigger[1] = 3.25;
+    startTrigger[2] = 3.5;
+    stopTrigger[2] = 3.75;
+    startTrigger[3] = 4.0;
+    stopTrigger[3] = 4.25;
+    startTrigger[4] = 4.55;
+    stopTrigger[4] = 4.8;
+    Vector<float64> startTVect(startTrigger, dimTrigger);
+    Vector<float64> stopTVect(stopTrigger, dimTrigger);
+    //ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StopTriggerTime", stopTVect);
+
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    uint32 totalByteSizeIn = 4u;
+    ok &= gam.configSignals.Write("QualifiedName", "WaveformSinGAMTest");
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "int32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeIn);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeIn);
+
+    uint32 totalByteSizeOut = 1 * 4;
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "float32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeOut);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeOut);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    int32 *gamMemoryIn = static_cast<int32 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < 1; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < 1; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 100000;
+    if (ok) {
+        ok = gam.Execute();
+    }
+    //Compare result against expected vale
+    ok &= (gamMemoryOut[0] == 0.0);
+    *gamMemoryIn = -100000;
+    if (ok) {
+        ok = !gam.Execute();
+    }
+    return ok;
+}
+
+bool WaveformSinGAMTest::TestExecuteNegativeInput_2() {
+    bool ok = true;
+    using namespace MARTe;
+    using namespace FastMath;
+    WaveformSinGAMTestHelper gam;
+    gam.SetName("Test");
+    gam.amplitude = 1000;
+    gam.frequency = 1;
+    gam.phase = 0;
+    gam.offset = 0;
+    ok &= gam.config.Write("Amplitude", gam.amplitude);
+    ok &= gam.config.Write("Frequency", gam.frequency);
+    ok &= gam.config.Write("Phase", gam.phase);
+    ok &= gam.config.Write("Offset", gam.offset);
+    uint32 dimTrigger = 5;
+    float64 *startTrigger = new float64[dimTrigger];
+    float64 *stopTrigger = new float64[dimTrigger - 1];
+    startTrigger[0] = 1.25;
+    stopTrigger[0] = 1.75;
+    startTrigger[1] = 2.;
+    stopTrigger[1] = 3.25;
+    startTrigger[2] = 3.5;
+    stopTrigger[2] = 3.75;
+    startTrigger[3] = 4.0;
+    stopTrigger[3] = 4.25;
+    startTrigger[4] = 4.55;
+    stopTrigger[4] = 4.8;
+    Vector<float64> startTVect(startTrigger, dimTrigger);
+    Vector<float64> stopTVect(stopTrigger, dimTrigger);
+    //ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StartTriggerTime", startTVect);
+    ok &= gam.config.Write("StopTriggerTime", stopTVect);
+
+    gam.config.MoveToRoot();
+    ok &= gam.Initialise(gam.config);
+
+    uint32 totalByteSizeIn = 4u;
+    ok &= gam.configSignals.Write("QualifiedName", "WaveformSinGAMTest");
+    ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "int64");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeIn);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeIn);
+
+    uint32 totalByteSizeOut = 1 * 4;
+    ok &= gam.configSignals.MoveToRoot();
+    ok &= gam.configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("QualifiedName", "OutputSignal1");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.Write("Type", "float32");
+    ok &= gam.configSignals.Write("NumberOfDimensions", 1);
+
+    ok &= gam.configSignals.Write("NumberOfElements", 1);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeOut);
+
+    ok &= gam.configSignals.MoveToAncestor(1u);
+    ok &= gam.configSignals.Write("ByteSize", totalByteSizeOut);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("DataSource", "TestDataSource");
+    ok &= gam.configSignals.CreateRelative("Signals");
+    ok &= gam.configSignals.CreateRelative("0");
+    ok &= gam.configSignals.Write("Samples", 1);
+
+    ok &= gam.configSignals.MoveToRoot();
+
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+    ok &= gam.Setup();
+
+    int64 *gamMemoryIn = static_cast<int64 *>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    *gamMemoryIn = 0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < 1; i++) {
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    //Compare result against expected vale
+    for (uint32 i = 0; i < 1; i++) {
+        ok &= (gamMemoryOut[i] == 0.0);
+    }
+    *gamMemoryIn = 100000;
+    if (ok) {
+        ok = gam.Execute();
+    }
+    //Compare result against expected vale
+    ok &= (gamMemoryOut[0] == 0.0);
+    *gamMemoryIn = -100000;
     if (ok) {
         ok = !gam.Execute();
     }

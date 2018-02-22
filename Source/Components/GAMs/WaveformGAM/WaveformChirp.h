@@ -68,7 +68,7 @@ namespace MARTe {
  *     Time = {
  *         InputSignal1 = {
  *             DataSource = "DDB1"
- *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative)
+ *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative. uint64 && int64 valid types)
  *         }
  *     }
  *     OutputSignals = {
@@ -104,7 +104,7 @@ public:
      * chirpDuration = 0.0\n
      * cD2 = chirpDuration * 2\n
      */
-    WaveformChirp();
+WaveformChirp    ();
 
     /**
      * @brief default destructor
@@ -202,6 +202,8 @@ public:
      */
     virtual bool GetFloat64Value();
 
+protected:
+
     /**
      * @brief computes the chirp signal in float64
      * @details computes the following operations:
@@ -215,6 +217,9 @@ public:
      */
     virtual bool PrecomputeValues();
 
+    /**
+     * @brief check that increment between consecutive samples have enough resolution to not violate the sample frequency theorem.
+     */
     virtual bool TimeIncrementValidation();
 
 private:
@@ -226,7 +231,6 @@ private:
      */
     template<typename T>
     bool GetValue();
-
 
     /**
      * Amplitude of the chirp signal
@@ -288,10 +292,10 @@ namespace MARTe {
 
 template<typename T>
 bool WaveformChirp::GetValue() {
-    for (uint32 i = 0u; (i < numberOfOutputElements); i++) {
-        static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
-    }
-    return true;
+for (uint32 i = 0u; (i < numberOfOutputElements); i++) {
+    static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
+}
+return true;
 }
 }
 #endif /* WAVEFORMCHIRP_H_ */

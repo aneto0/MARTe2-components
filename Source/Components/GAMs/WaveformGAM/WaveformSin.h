@@ -53,7 +53,7 @@ namespace MARTe {
  * elements with different types (i.e example type output1 = uint8 and type output2 = float64.
  * Note that in the first iteration the output is always 0 due to the fact that a second time is needed to compute the time step (or time increment) for each output sample.
  *
- * The GAM supports the following types:<b>\n
+ * The GAM supports the following output types:<b>\n
  * int8\n
  * uint8\n
  * int16\n
@@ -84,7 +84,7 @@ namespace MARTe {
  *     InputSignals = {
  *         Time = {
  *             DataSource = "DDB1"
- *             Type = uint32 //Supported type uint32 (int32 also valid since time cannot be negative)
+ *             Type = uint32 //Supported type uint32 (int32 | uint64 int64 also valid)
  *         }
  *     }
  *     OutputSignals = {

@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  WaveformSinGAMTest.x WaveformPointsDefGAMTest.x WaveformChirpGAMTest.x
+OBJSX +=  WaveformSinGAMTest.x WaveformPointsDefGAMTest.x WaveformChirpGAMTest.x WaveformTest.x
 		
 PACKAGE=Components/GAMs
 ROOT_DIR=../../../..

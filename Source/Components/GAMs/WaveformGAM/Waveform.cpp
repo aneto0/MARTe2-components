@@ -42,7 +42,7 @@
 namespace MARTe {
 Waveform::Waveform() :
         GAM() {
-    inputTime = NULL_PTR(uint32 *);
+    inputTime = NULL_PTR(void *);
     outputValue = NULL_PTR(void **);
     outputFloat64 = NULL_PTR(float64 *);
     nOfInputSignals = 0u;
@@ -94,7 +94,6 @@ Waveform::~Waveform() {
         delete[] outputFloat64;
         outputFloat64 = NULL_PTR(float64 *);
     }
-//lint -e{1740} only delete when new previously used.
 }
 
 bool Waveform::Initialise(StructuredDataI& data) {
@@ -215,22 +214,12 @@ bool Waveform::Setup() {
             }
         }
     }
-
     if (ok) {
-        ok = GetSignalNumberOfSamples(OutputSignals, 0u, numberOfOutputSamples);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Error reading numberOfOutputSamples", GAMName.Buffer());
-        }
-        if (ok) {
-            ok = (numberOfOutputSamples == 1u);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "%s::numberOfOutputSamples must be 1", GAMName.Buffer());
-            }
-        }
-        for (uint32 i = 1u; (i < nOfOutputSignals) && ok; i++) {
+        for (uint32 i = 0u; (i < nOfOutputSignals) && ok; i++) {
             ok = GetSignalNumberOfSamples(OutputSignals, i, numberOfOutputSamples);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Error reading numberOfOutputSamples", GAMName.Buffer());
+                uint32 auxi = i;
+                REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Error reading numberOfOutputSamples for input %u", GAMName.Buffer(), auxi);
             }
             if (ok) {
                 ok = (numberOfOutputSamples == 1u);
@@ -242,17 +231,16 @@ bool Waveform::Setup() {
             }
         }
     }
-
     if (ok) {
         typeVariableIn = GetSignalType(InputSignals, 0u);
         //lint -e{9007} no true side effects on the evaluation of the condition.
         bool auxBool = ((typeVariableIn == UnsignedInteger32Bit) || (typeVariableIn == UnsignedInteger64Bit) || (typeVariableIn == SignedInteger64Bit));
         ok = ((typeVariableIn == SignedInteger32Bit) || auxBool);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Variable type not supported. Valid types: uint32, int32, uint64, int64", GAMName.Buffer());
+            REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Input variable type not supported. Valid types: uint32, int32, uint64, int64",
+                         GAMName.Buffer());
         }
     }
-
     typeVariableOut = new TypeDescriptor[nOfOutputSignals];
     if (ok) {
         for (uint32 i = 0u; (i < nOfOutputSignals) && ok; i++) {
@@ -260,35 +248,67 @@ bool Waveform::Setup() {
             ok = IsValidType(typeVariableOut[i]);
             if (!ok) {
                 const uint32 aux = i;
-                REPORT_ERROR(ErrorManagement::ParametersError, "%s::Variable type not supported for signal %u", GAMName.Buffer(), aux);
-
+                REPORT_ERROR(ErrorManagement::ParametersError, "%s::Output variable type for signal %u not supported.", GAMName.Buffer(), aux);
             }
         }
     }
-
-    if (ok) {
-        outputValue = new void *[nOfOutputSignals];
-        inputTime = static_cast<uint32 *>(GetInputSignalMemory(0u));
-        for (uint32 i = 0u; i < nOfOutputSignals; i++) {
-            outputValue[i] = (GetOutputSignalMemory(i));
+    if (ok) { //Read and check input dimensions
+        uint32 auxDimension = 9999;
+        ok = GetSignalNumberOfDimensions(InputSignals, 0u, auxDimension);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "%s::Error getting input dimension for input 0.", GAMName.Buffer());
+        }
+        if (ok) {
+            ok = (auxDimension == 1u) || (auxDimension == 0u);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "%s::The input dimension for input 0 must be 1.", GAMName.Buffer());
+            }
         }
     }
-
+    if (ok) { //Read and check output dimensions
+        for (uint32 i = 0u; (i < nOfOutputSignals) && ok; i++) {
+            uint32 auxDimension = 0;
+            ok = GetSignalNumberOfDimensions(OutputSignals, i, auxDimension);
+            if (!ok) {
+                uint32 auxId = i;
+                REPORT_ERROR(ErrorManagement::ParametersError, "%s::Error getting output dimension for output %u.", GAMName.Buffer(), auxId);
+            }
+            if (ok) {
+                ok = auxDimension == 1u;
+                if (!ok) {
+                    uint32 auxId = i;
+                    REPORT_ERROR(ErrorManagement::ParametersError, "%s::The output dimension for output %u must be 1.", GAMName.Buffer(), auxId);
+                }
+            }
+        }
+    }
+    if (ok) {
+        inputTime = GetInputSignalMemory(0u);
+        ok = inputTime != NULL_PTR(void *);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "%s::Error getting input pointers.", GAMName.Buffer());
+        }
+    }
+    if (ok) {
+        outputValue = new void *[nOfOutputSignals];
+        for (uint32 i = 0u; (i < nOfOutputSignals) && ok; i++) {
+            outputValue[i] = (GetOutputSignalMemory(i));
+            ok = (outputValue[i] != NULL_PTR(void *));
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "%s::Error getting output pointers.", GAMName.Buffer());
+            }
+        }
+    }
     return ok;
 }
 
 bool Waveform::Execute() {
-
     bool ok = true;
     if (timeState == static_cast<uint8>(0u)) {
-        if (inputTime != NULL_PTR(uint32 *)) {
-            time0 = *inputTime;
-        }
+        ok = GetInputTime(time0);
         timeState++;
         signalOn = false;
-        if (inputTime != NULL_PTR(uint32 *)) {
-            currentTime = static_cast<float64>(*inputTime) / 1e6;
-        }
+        currentTime = static_cast<float64>(time0) / 1e6;
         ok = PrecomputeValues();
         /*lint -e{613} typeVariableOut cannot be NULL as otherwise Execute will not be called*/
         for (indexOutputSignal = 0u; (indexOutputSignal < numberOfOutputSignals) && ok; indexOutputSignal++) {
@@ -328,74 +348,76 @@ bool Waveform::Execute() {
         signalOn = true;
     }
     else if (timeState == static_cast<uint8>(1u)) {
-        if (inputTime != NULL_PTR(uint32 *)) {
-            time1 = *inputTime;
-        }
-        if (numberOfOutputElements != 0u) {
-            timeIncrement = ((static_cast<float64>(time1) - static_cast<float64>(time0)) / static_cast<float64>(numberOfOutputElements)) / 1e6;
-        }
-        if (IsEqual(timeIncrement, 0.0)) {
-            REPORT_ERROR(ErrorManagement::FatalError, "%s::timeIncrement = 0.0. Two equal times while computing sample time",GAMName.Buffer());
-            ok = false;
-        }
+        ok = GetInputTime(time1);
         if (ok) {
-            ok = TimeIncrementValidation();
+            if (numberOfOutputElements != 0u) {
+                timeIncrement = ((static_cast<float64>(time1) - static_cast<float64>(time0)) / static_cast<float64>(numberOfOutputElements)) / 1e6;
+            }
+            if (IsEqual(timeIncrement, 0.0)) {
+                REPORT_ERROR(ErrorManagement::FatalError, "%s::timeIncrement = 0.0. Two equal times while computing sample time", GAMName.Buffer());
+                ok = false;
+            }
+            if (ok) {
+                ok = TimeIncrementValidation();
+            }
+            timeState++;
         }
-        timeState++;
     }
     else {
 
     }
     if ((timeState == static_cast<uint8>(2u)) && ok) {
-        if (inputTime != NULL_PTR(uint32 *)) {
-            currentTime = static_cast<float64>(*inputTime) / 1e6;
-        }
-        if (currentTime > lastTime) {
-            //Check type and call correct function.
-            ok = PrecomputeValues();
-            for (indexOutputSignal = 0u; (indexOutputSignal < numberOfOutputSignals) && ok; indexOutputSignal++) {
-                //If due to MISRA warning about null pointer
-                if (typeVariableOut != NULL_PTR(TypeDescriptor *)) {
-                    if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
-                        ok = GetUInt8Value();
-                    }
-                    else if (typeVariableOut[indexOutputSignal] == SignedInteger8Bit) {
-                        ok = GetInt8Value();
-                    }
-                    else if (typeVariableOut[indexOutputSignal] == UnsignedInteger16Bit) {
-                        ok = GetUInt16Value();
-                    }
-                    else if (typeVariableOut[indexOutputSignal] == SignedInteger16Bit) {
-                        ok = GetInt16Value();
-                    }
-                    else if (typeVariableOut[indexOutputSignal] == UnsignedInteger32Bit) {
-                        ok = GetUInt32Value();
-                    }
-                    else if (typeVariableOut[indexOutputSignal] == SignedInteger32Bit) {
-                        ok = GetInt32Value();
-                    }
-                    else if (typeVariableOut[indexOutputSignal] == UnsignedInteger64Bit) {
-                        ok = GetUInt64Value();
-                    }
-                    else if (typeVariableOut[indexOutputSignal] == SignedInteger64Bit) {
-                        ok = GetInt64Value();
-                    }
-                    else if (typeVariableOut[indexOutputSignal] == Float32Bit) {
-                        ok = GetFloat32Value();
-                    }
-                    else if (typeVariableOut[indexOutputSignal] == Float64Bit) {
-                        ok = GetFloat64Value();
-                    }
-                    else {
+        uint64 auxTime;
+        ok = GetInputTime(auxTime);
+        if (ok) {
+            currentTime = static_cast<float64>(auxTime) / 1e6;
+            if (currentTime > lastTime) {
+                //Check type and call correct function.
+                ok = PrecomputeValues();
+                for (indexOutputSignal = 0u; (indexOutputSignal < numberOfOutputSignals) && ok; indexOutputSignal++) {
+                    //If due to MISRA warning about null pointer
+                    if (typeVariableOut != NULL_PTR(TypeDescriptor *)) {
+                        if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
+                            ok = GetUInt8Value();
+                        }
+                        else if (typeVariableOut[indexOutputSignal] == SignedInteger8Bit) {
+                            ok = GetInt8Value();
+                        }
+                        else if (typeVariableOut[indexOutputSignal] == UnsignedInteger16Bit) {
+                            ok = GetUInt16Value();
+                        }
+                        else if (typeVariableOut[indexOutputSignal] == SignedInteger16Bit) {
+                            ok = GetInt16Value();
+                        }
+                        else if (typeVariableOut[indexOutputSignal] == UnsignedInteger32Bit) {
+                            ok = GetUInt32Value();
+                        }
+                        else if (typeVariableOut[indexOutputSignal] == SignedInteger32Bit) {
+                            ok = GetInt32Value();
+                        }
+                        else if (typeVariableOut[indexOutputSignal] == UnsignedInteger64Bit) {
+                            ok = GetUInt64Value();
+                        }
+                        else if (typeVariableOut[indexOutputSignal] == SignedInteger64Bit) {
+                            ok = GetInt64Value();
+                        }
+                        else if (typeVariableOut[indexOutputSignal] == Float32Bit) {
+                            ok = GetFloat32Value();
+                        }
+                        else if (typeVariableOut[indexOutputSignal] == Float64Bit) {
+                            ok = GetFloat64Value();
+                        }
+                        else {
+                        }
                     }
                 }
             }
+            else {
+                REPORT_ERROR(ErrorManagement::FatalError, "%s::Input time is not increasing", GAMName.Buffer());
+                ok = false;
+            }
+            lastTime = currentTime - timeIncrement;
         }
-        else {
-            REPORT_ERROR(ErrorManagement::FatalError, "%s::Input time is not increasing",GAMName.Buffer());
-            ok = false;
-        }
-        lastTime = currentTime - timeIncrement;
     }
     return ok;
 }
@@ -482,6 +504,42 @@ bool Waveform::IsValidType(TypeDescriptor const &typeRef) const {
             || (auxBool[9]));
     delete[] auxBool;
     return retVal;
+}
+
+//lint -e{613} Possible use of null pointer. Not possible this functions is called only if inputTime != NULL
+bool Waveform::GetInputTime(uint64 &timeOut) {
+    bool ok = true;
+    if (typeVariableIn == UnsignedInteger32Bit) {
+        timeOut = static_cast<uint64>(reinterpret_cast<uint32 *>(inputTime)[0]);
+    }
+    else if (typeVariableIn == SignedInteger32Bit) {
+        int32 aux = reinterpret_cast<int32 *>(inputTime)[0];
+        if (aux < 0) {
+            REPORT_ERROR(ErrorManagement::FatalError, "%s::input time is negative!", GAMName.Buffer());
+            ok = false;
+        }
+        else {
+            timeOut = static_cast<uint64>(aux);
+        }
+    }
+    else if (typeVariableIn == UnsignedInteger64Bit) {
+        timeOut = reinterpret_cast<uint64 *>(inputTime)[0];
+    }
+    else if (typeVariableIn == SignedInteger64Bit) {
+        int64 aux = reinterpret_cast<int64 *>(inputTime)[0];
+        if (aux < 0) {
+            REPORT_ERROR(ErrorManagement::FatalError, "%s::input time is negative!", GAMName.Buffer());
+            ok = false;
+        }
+        else {
+            timeOut = static_cast<uint64>(aux);
+        }
+    }
+    else {                //never executed, previously checked
+        REPORT_ERROR(ErrorManagement::FatalError, "%s::Input type not supported", GAMName.Buffer());
+        ok = false;
+    }
+    return ok;
 }
 
 }

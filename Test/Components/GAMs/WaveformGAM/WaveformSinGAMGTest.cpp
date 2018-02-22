@@ -168,6 +168,11 @@ TEST(WaveformSinGAMTest, TestInt8Execute) {
     ASSERT_TRUE(test.TestInt8Execute());
 }
 
+TEST(WaveformSinGAMTest, TestInt8Execute_2) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestInt8Execute_2());
+}
+
 TEST(WaveformSinGAMTest, TestInt16Execute) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestInt16Execute());
@@ -292,6 +297,18 @@ TEST(WaveformSinGAMTest, TestExecuteWrongInput_2) {
     WaveformSinGAMTest test;
     ASSERT_TRUE(test.TestExecuteWrongInput_2());
 }
+
+TEST(WaveformSinGAMTest, TestExecuteNegativeInput) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestExecuteNegativeInput());
+}
+
+TEST(WaveformSinGAMTest, TestExecuteNegativeInput_2) {
+    WaveformSinGAMTest test;
+    ASSERT_TRUE(test.TestExecuteNegativeInput_2());
+}
+
+
 
 
 
