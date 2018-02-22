@@ -164,11 +164,10 @@ bool WaveformPointsDefGAMTest::TestInitialise_FailWaveformSetup() {
     ok &= gam.InitialisePointsdef1();
     gam.config.MoveToRoot();
     ok &= gam.Initialise(gam.config);
-
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
-    ok &= gam.Setup();
+    ok &= !gam.Setup();
 
-    return !ok;
+    return ok;
 }
 
 bool WaveformPointsDefGAMTest::TestExecuteNyquistViolation() {
@@ -405,6 +404,7 @@ bool WaveformPointsDefGAMTest::TestExecute_0_1_TwoSignals() {
     ok &= gam.Initialise(gam.config);
 
     uint32 totalByteSizeIn = 4;
+    ok &= gam.configSignals.Write("QualifiedName", "WaveformPointsDefTest");
     ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
     ok &= gam.configSignals.CreateRelative("0");
     ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");

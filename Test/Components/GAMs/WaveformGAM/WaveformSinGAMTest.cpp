@@ -46,12 +46,15 @@
 namespace MARTe {
 class WaveformSinGAMTestHelper: public WaveformSin {
 public:
-    CLASS_REGISTER_DECLARATION()
 
-WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 elementsOut=4, uint32 samplesOut=1 ) {
+    WaveformSinGAMTestHelper(uint32 elementsIn = 1,
+                             uint32 samplesIn = 1,
+                             uint32 elementsOut = 4,
+                             uint32 samplesOut = 1) :
+            WaveformSin() {
         numberOfElementsIn = elementsIn;
         numberOfSamplesIn = samplesIn;
-        if(numberOfElementsIn > numberOfSamplesIn) {
+        if (numberOfElementsIn > numberOfSamplesIn) {
             byteSizeIn = numberOfElementsIn * sizeof(uint32);
         }
         else {
@@ -70,7 +73,7 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
         isInitialised = false;
     }
 
-    virtual ~WaveformSinGAMTestHelper () {
+    virtual ~WaveformSinGAMTestHelper() {
 
     }
 
@@ -87,9 +90,12 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
     void *GetOutputSignalsMemory(uint32 idx) {
         return GAM::GetOutputSignalMemory(idx);
     }
-    bool InitialiseWaveSin(float64 A=10.0, float64 freq = 1.0, float64 angle = 0.0, float64 DC = 10.0) {
+    bool InitialiseWaveSin(float64 A = 10.0,
+                           float64 freq = 1.0,
+                           float64 angle = 0.0,
+                           float64 DC = 10.0) {
         bool ret = true;
-        if(isInitialised == false) {
+        if (isInitialised == false) {
             amplitude = A;
             frequency = freq;
             phase = angle;
@@ -106,9 +112,12 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
         return ret;
     }
 
-    bool InitialiseWaveSinTrigger(float64 A=10.0, float64 freq = 1.0, float64 angle = 0.0, float64 DC = 10.0) {
+    bool InitialiseWaveSinTrigger(float64 A = 10.0,
+                                  float64 freq = 1.0,
+                                  float64 angle = 0.0,
+                                  float64 DC = 10.0) {
         bool ret = true;
-        if(isInitialised == false) {
+        if (isInitialised == false) {
             amplitude = A;
             frequency = freq;
             phase = angle;
@@ -118,10 +127,10 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
             ret &= config.Write("Phase", phase);
             ret &= config.Write("Offset", offset);
             uint32 dimTrigger = 5;
-            float64 *startTrigger = new float64 [dimTrigger];
-            float64 *stopTrigger = new float64 [dimTrigger];
+            float64 *startTrigger = new float64[dimTrigger];
+            float64 *stopTrigger = new float64[dimTrigger];
             startTrigger[0] = 1.25;
-            stopTrigger[0] =1.750000;
+            stopTrigger[0] = 1.750000;
             startTrigger[1] = 2.0;
             stopTrigger[1] = 3.25;
             startTrigger[2] = 3.5;
@@ -145,8 +154,9 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
     bool IsInitialised() {
         return isInitialised;
     }
-    bool InitialiseConfigDataBaseSignal1(TypeDescriptor type =UnsignedInteger8Bit ) {
+    bool InitialiseConfigDataBaseSignal1(TypeDescriptor type = UnsignedInteger8Bit) {
         bool ok = true;
+        ok &= configSignals.Write("QualifiedName", "WaveformSinGAMTest");
         uint32 totalByteSizeIn = byteSizeIn;
         ok &= configSignals.CreateAbsolute("Signals.InputSignals");
         ok &= configSignals.CreateRelative("0");
@@ -160,7 +170,7 @@ WaveformSinGAMTestHelper    (uint32 elementsIn=1, uint32 samplesIn=1, uint32 ele
         ok &= configSignals.MoveToAncestor(1u);
         ok &= configSignals.Write("ByteSize", totalByteSizeIn);
 
-        uint32 totalByteSizeOut = numberOfElementsOut * type.numberOfBits/8;
+        uint32 totalByteSizeOut = numberOfElementsOut * type.numberOfBits / 8;
         ok &= configSignals.MoveToRoot();
         ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
         ok &= configSignals.CreateRelative("0");
@@ -211,7 +221,6 @@ private:
     bool isInitialised;
 };
 
-CLASS_REGISTER(WaveformSinGAMTestHelper, "1.0")
 }
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -3019,6 +3028,7 @@ bool WaveformSinGAMTest::TestExecuteTigger1Element() {
     ok &= gam.Initialise(gam.config);
 
     uint32 totalByteSizeIn = 4u;
+    ok &= gam.configSignals.Write("QualifiedName", "WaveformSinGAMTest");
     ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
     ok &= gam.configSignals.CreateRelative("0");
     ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
@@ -3168,6 +3178,7 @@ bool WaveformSinGAMTest::TestExecuteWrongInput() {
     ok &= gam.Initialise(gam.config);
 
     uint32 totalByteSizeIn = 4u;
+    ok &= gam.configSignals.Write("QualifiedName", "WaveformSinGAMTest");
     ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
     ok &= gam.configSignals.CreateRelative("0");
     ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");
@@ -3276,6 +3287,7 @@ bool WaveformSinGAMTest::TestExecuteWrongInput_2() {
     ok &= gam.Initialise(gam.config);
 
     uint32 totalByteSizeIn = 4u;
+    ok &= gam.configSignals.Write("QualifiedName", "WaveformSinGAMTest");
     ok &= gam.configSignals.CreateAbsolute("Signals.InputSignals");
     ok &= gam.configSignals.CreateRelative("0");
     ok &= gam.configSignals.Write("QualifiedName", "InputSignal1");

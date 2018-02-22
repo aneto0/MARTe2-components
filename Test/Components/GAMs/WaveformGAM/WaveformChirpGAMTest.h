@@ -300,6 +300,7 @@ public:
     bool InitialiseConfigDataBaseSignal1() {
         bool ok = true;
         uint32 totalByteSizeIn = byteSizeIn;
+        ok &= configSignals.Write("QualifiedName", "WaveformChirpGAMTests");
         ok &= configSignals.CreateAbsolute("Signals.InputSignals");
         ok &= configSignals.CreateRelative("0");
         ok &= configSignals.Write("QualifiedName", "InputSignal1");
@@ -350,6 +351,7 @@ public:
     bool InitialiseConfigDataBaseSignal2() {
         bool ok = true;
         uint32 totalByteSizeIn = byteSizeIn;
+        ok &= configSignals.Write("QualifiedName", "WaveformChirpGAMTests");
         ok &= configSignals.CreateAbsolute("Signals.InputSignals");
         ok &= configSignals.CreateRelative("0");
         ok &= configSignals.Write("QualifiedName", "InputSignal1");

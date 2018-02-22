@@ -170,7 +170,7 @@ bool WaveformPointsDef::PrecomputeValues() {
 bool WaveformPointsDef::TimeIncrementValidation() {
     bool ok = timeIncrement <= times[numberOfTimesElements - 1u];
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::FatalError, "times interval is smaller than timeIncrement.");
+        REPORT_ERROR(ErrorManagement::FatalError, "%s::times interval is smaller than timeIncrement.", GAMName.Buffer());
     }
     return ok;
 }

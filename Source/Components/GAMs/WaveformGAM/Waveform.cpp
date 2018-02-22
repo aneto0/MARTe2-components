@@ -142,40 +142,45 @@ bool Waveform::Initialise(StructuredDataI& data) {
     return ok;
 }
 bool Waveform::Setup() {
-    bool ok;
-    nOfInputSignals = GetNumberOfInputSignals();
-    ok = (nOfInputSignals == 1u);
+    bool ok = GetQualifiedName(GAMName);
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "nOfInputSignals must be 1");
+        REPORT_ERROR(ErrorManagement::ParametersError, "%s::Error. Cannot get the qualified Name", GAMName.Buffer());
+    }
+    if (ok) {
+        nOfInputSignals = GetNumberOfInputSignals();
+        ok = (nOfInputSignals == 1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "%s::nOfInputSignals must be 1", GAMName.Buffer());
+        }
     }
     if (ok) {
         nOfOutputSignals = GetNumberOfOutputSignals();
         ok = (nOfOutputSignals != 0u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "nOfOutputSignals must be positive");
+            REPORT_ERROR(ErrorManagement::ParametersError, "%s::nOfOutputSignals must be positive", GAMName.Buffer());
         }
     }
     if (ok) {
         ok = GetSignalNumberOfElements(InputSignals, 0u, numberOfInputElements);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading input numberOfElements");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Error reading input numberOfElements", GAMName.Buffer());
         }
         else {
             ok = (numberOfInputElements == 1u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "The number of input elements must be 1");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "%s::The number of input elements must be 1", GAMName.Buffer());
             }
         }
     }
     if (ok) {
         ok = GetSignalNumberOfElements(OutputSignals, 0u, numberOfOutputElements);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output numberOfElements");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Error reading output numberOfElements", GAMName.Buffer());
         }
         if (ok) {
             ok = (numberOfOutputElements != 0u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOutputElements must be positive");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "%s::numberOfOutputElements must be positive", GAMName.Buffer());
             }
         }
         for (uint32 i = 1u; (i < nOfOutputSignals) && ok; i++) {
@@ -184,13 +189,13 @@ bool Waveform::Setup() {
             if (ok) {
                 ok = (auxNumberOfOutputElements == numberOfOutputElements);
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "The number of elements between channels is different");
+                    REPORT_ERROR(ErrorManagement::ParametersError, "%s::The number of elements between channels is different", GAMName.Buffer());
                 }
             }
             else {
                 //MISRA believe that i can be changed by REPORT_ERROR
                 const uint32 aux = i;
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading output numberOfElements for signal %u", aux);
+                REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Error reading output numberOfElements for signal %u", GAMName.Buffer(), aux);
 
             }
         }
@@ -201,12 +206,12 @@ bool Waveform::Setup() {
     if (ok) {
         ok = GetSignalNumberOfSamples(InputSignals, 0u, numberOfInputSamples);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading numberOfInputSamples");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Error reading numberOfInputSamples", GAMName.Buffer());
         }
         if (ok) {
             ok = (numberOfInputSamples == 1u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfInputSamples must be 1");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "%s::numberOfInputSamples must be 1", GAMName.Buffer());
             }
         }
     }
@@ -214,24 +219,24 @@ bool Waveform::Setup() {
     if (ok) {
         ok = GetSignalNumberOfSamples(OutputSignals, 0u, numberOfOutputSamples);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading numberOfOutputSamples");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Error reading numberOfOutputSamples", GAMName.Buffer());
         }
         if (ok) {
             ok = (numberOfOutputSamples == 1u);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOutputSamples must be 1");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "%s::numberOfOutputSamples must be 1", GAMName.Buffer());
             }
         }
         for (uint32 i = 1u; (i < nOfOutputSignals) && ok; i++) {
             ok = GetSignalNumberOfSamples(OutputSignals, i, numberOfOutputSamples);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading numberOfOutputSamples");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Error reading numberOfOutputSamples", GAMName.Buffer());
             }
             if (ok) {
                 ok = (numberOfOutputSamples == 1u);
                 if (!ok) {
                     const uint32 aux = i;
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfOutputSamples must be 1 for signal %u", aux);
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "%s::numberOfOutputSamples must be 1 for signal %u", GAMName.Buffer(), aux);
 
                 }
             }
@@ -244,7 +249,7 @@ bool Waveform::Setup() {
         bool auxBool = ((typeVariableIn == UnsignedInteger32Bit) || (typeVariableIn == UnsignedInteger64Bit) || (typeVariableIn == SignedInteger64Bit));
         ok = ((typeVariableIn == SignedInteger32Bit) || auxBool);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Variable type not supported. Valid types: uint32, int32, uint64, int64");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "%s::Variable type not supported. Valid types: uint32, int32, uint64, int64", GAMName.Buffer());
         }
     }
 
@@ -255,7 +260,7 @@ bool Waveform::Setup() {
             ok = IsValidType(typeVariableOut[i]);
             if (!ok) {
                 const uint32 aux = i;
-                REPORT_ERROR(ErrorManagement::ParametersError, "Variable type not supported for signal %u", aux);
+                REPORT_ERROR(ErrorManagement::ParametersError, "%s::Variable type not supported for signal %u", GAMName.Buffer(), aux);
 
             }
         }
@@ -330,7 +335,7 @@ bool Waveform::Execute() {
             timeIncrement = ((static_cast<float64>(time1) - static_cast<float64>(time0)) / static_cast<float64>(numberOfOutputElements)) / 1e6;
         }
         if (IsEqual(timeIncrement, 0.0)) {
-            REPORT_ERROR(ErrorManagement::FatalError, "timeIncrement = 0.0. Two equal times while computing sample time");
+            REPORT_ERROR(ErrorManagement::FatalError, "%s::timeIncrement = 0.0. Two equal times while computing sample time",GAMName.Buffer());
             ok = false;
         }
         if (ok) {
@@ -387,7 +392,7 @@ bool Waveform::Execute() {
             }
         }
         else {
-            REPORT_ERROR(ErrorManagement::FatalError, "Input time is not increasing");
+            REPORT_ERROR(ErrorManagement::FatalError, "%s::Input time is not increasing",GAMName.Buffer());
             ok = false;
         }
         lastTime = currentTime - timeIncrement;

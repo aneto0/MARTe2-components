@@ -156,7 +156,7 @@ bool WaveformChirp::TimeIncrementValidation() {
         ok = (1 / timeIncrement) / 2.0 >= frequency1;
     }
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::FatalError, "sample frequency /2 < maxFrequency");
+        REPORT_ERROR(ErrorManagement::FatalError, "%s::sample frequency /2 < maxFrequency", GAMName.Buffer());
     }
     return ok;
 }

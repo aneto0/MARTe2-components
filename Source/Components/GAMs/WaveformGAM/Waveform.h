@@ -251,6 +251,11 @@ protected:
     float64 lastTime;
 
     /**
+     * Is the name of the GAM.
+     */
+    StreamString GAMName;
+
+    /**
      * @brief Decides if triggersOn is enabled
      * @details This function decides if the triggersON is enabled allowing to output the waveform generated.
      */
