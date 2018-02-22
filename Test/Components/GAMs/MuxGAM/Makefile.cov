@@ -20,20 +20,15 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
 TARGET=cov
 
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = MuxGAMGTest.x
+
 include Makefile.inc
 
-LIBRARIES_STATIC=IOGAM/cov/IOGAM$(LIBEXT)
-LIBRARIES_STATIC+=ConversionGAM/cov/ConversionGAM$(LIBEXT)
-LIBRARIES_STATIC+=FilterGAM/cov/FilterGAM$(LIBEXT)
-LIBRARIES_STATIC+=MuxGAM/cov/MuxGAM$(LIBEXT)
-LIBRARIES_STATIC+=PIDGAM/cov/PIDGAM$(LIBEXT)
-LIBRARIES_STATIC+=SSMGAM/cov/SSMGAM$(LIBEXT)
-LIBRARIES_STATIC+=StatisticsGAM/cov/StatisticsGAM$(LIBEXT)
-LIBRARIES_STATIC+=WaveformGAM/cov/WaveformGAM$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=BaseLib2GAM/cov/BaseLib2GAM$(LIBEXT)
-endif

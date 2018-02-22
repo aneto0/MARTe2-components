@@ -194,6 +194,12 @@ protected:
     virtual bool PrecomputeValues() = 0;
 
     /**
+     * @brief Validate timeIncrement according to the configuration parameters
+     * @details checks that the signal frequency < timeIncrement/2 (Nyquist-Shannon theorem).
+     */
+    virtual bool TimeIncrementValidation()=0;
+
+    /**
      * Output pointer. It support several output signals
      */
     void **outputValue;
@@ -238,6 +244,16 @@ protected:
      * Indicates which output signal must be casted
      */
     uint32 indexOutputSignal;
+
+    /**
+     * Remembers the last time in order to check input time consistency.
+     */
+    float64 lastTime;
+
+    /**
+     * Is the name of the GAM.
+     */
+    StreamString GAMName;
 
     /**
      * @brief Decides if triggersOn is enabled

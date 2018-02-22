@@ -71,6 +71,7 @@ NI6368ADC::NI6368ADC() :
     dmaChannel = 0u;
     lastTimeValue = 0u;
     fastMuxSleepTime = 1e-3;
+    executionMode = NI6368ADC_EXEC_SPAWNED;
     dma = NULL_PTR(struct xseries_dma *);
 
     keepRunning = true;
@@ -209,16 +210,26 @@ bool NI6368ADC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
 bool NI6368ADC::Synchronise() {
     ErrorManagement::ErrorType err(true);
     if (synchronising) {
-        (void) fastMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
-        if (lastBufferIdx == currentBufferIdx) {
-            err = !synchSem.Reset();
-            fastMux.FastUnLock();
-            if (err.ErrorsCleared()) {
-                err = synchSem.Wait(TTInfiniteWait);
+        if (executionMode == NI6368ADC_EXEC_RTTHREAD) {
+            ExecutionInfo info;
+            info.SetStage(ExecutionInfo::MainStage);
+            err = ErrorManagement::NotCompleted;
+            while (err == ErrorManagement::NotCompleted) {
+                err = Execute(info);
             }
         }
         else {
-            fastMux.FastUnLock();
+            (void) fastMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
+            if (lastBufferIdx == currentBufferIdx) {
+                err = !synchSem.Reset();
+                fastMux.FastUnLock();
+                if (err.ErrorsCleared()) {
+                    err = synchSem.Wait(TTInfiniteWait);
+                }
+            }
+            else {
+                fastMux.FastUnLock();
+            }
         }
     }
     if (timeValue != NULL_PTR(uint32 *)) {
@@ -234,9 +245,28 @@ bool NI6368ADC::Synchronise() {
     return err.ErrorsCleared();
 }
 
+//lint -e{613} -e{414} dma cannot be null as otherwise ResetDMA would not be called.
+void NI6368ADC::ResetDMA() {
+    size_t nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
+    while (nBytesInDMA > 0u) {
+        dmaOffset = dmaOffset + nBytesInDMA;
+        dmaOffset %= dma->ai.count;
+        nBytesInDMAFromStart += nBytesInDMA;
+        dma->ai.last_transfer_count = nBytesInDMAFromStart;
+        //lint -e{414} numberOfADCsEnabled > 0 guaranteed during configuration.
+        dmaChannel = (dma->ai.last_transfer_count % numberOfADCsEnabled);
+        nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
+    }
+}
+
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the counter and the timer are always reset irrespectively of the states being changed.*/
 bool NI6368ADC::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
     bool ok = (counterResetFastMux.FastLock() == ErrorManagement::NoError);
+    if (ok) {
+        if (executionMode == NI6368ADC_EXEC_RTTHREAD) {
+            ResetDMA();
+        } 
+    }
     if (ok) {
         counter = 0u;
         uint32 b;
@@ -252,12 +282,14 @@ bool NI6368ADC::PrepareNextState(const char8* const currentStateName, const char
     }
     counterResetFastMux.FastUnLock();
     if (ok) {
-        if (executor.GetStatus() == EmbeddedThreadI::OffState) {
-            keepRunning = true;
-            if (cpuMask != 0u) {
-                executor.SetCPUMask(cpuMask);
+        if (executionMode == NI6368ADC_EXEC_SPAWNED) {
+            if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+                keepRunning = true;
+                if (cpuMask != 0u) {
+                    executor.SetCPUMask(cpuMask);
+                }
+                ok = executor.Start();
             }
-            ok = executor.Start();
         }
     }
     return ok;
@@ -275,6 +307,19 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
         ok = data.Read("BoardId", boardId);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The BoardId shall be specified");
+        }
+    }
+    if (ok) {
+        StreamString executionModeStr;
+        if (!data.Read("ExecutionMode", executionModeStr)) {
+            executionModeStr = "IndependentThread";
+            REPORT_ERROR(ErrorManagement::Warning, "No ExecutionMode specified. Using IndependentThread");
+        }
+        if (executionModeStr == "IndependentThread") {
+            executionMode = NI6368ADC_EXEC_SPAWNED;
+        }
+        else {
+            executionMode = NI6368ADC_EXEC_RTTHREAD;
         }
     }
     if (ok) {
@@ -1043,8 +1088,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (xseries_set_ai_scan_interval_counter(&adcConfiguration, scanIntervalCounterSource, scanIntervalCounterPolarity, scanIntervalCounterPeriod,
-                                                   scanIntervalCounterDelay) == 0);
+        ok = (xseries_set_ai_scan_interval_counter(&adcConfiguration, scanIntervalCounterSource, scanIntervalCounterPolarity, scanIntervalCounterPeriod, scanIntervalCounterDelay) == 0);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName);
         }
@@ -1141,7 +1185,7 @@ bool NI6368ADC::IsSynchronising() const {
 }
 
 ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFromDMA) {
-    ErrorManagement::ErrorType err;
+    ErrorManagement::ErrorType err = ErrorManagement::NotCompleted;
     uint32 s = 0u;
     if (dmaReadBuffer != NULL_PTR(int16 *)) {
         (void) (counterResetFastMux.FastLock());
@@ -1181,6 +1225,7 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
                     }
                     if (synchronising) {
                         err = !synchSem.Post();
+                        err = ErrorManagement::Completed;
                     }
                     fastMux.FastUnLock();
                     counter++;
@@ -1199,16 +1244,8 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
     }
     else if (info.GetStage() == ExecutionInfo::StartupStage) {
         //Empty DMA buffer
-        size_t nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
         if ((dma != NULL_PTR(struct xseries_dma *)) && (numberOfADCsEnabled > 0u)) {
-            while (nBytesInDMA > 0u) {
-                dmaOffset = dmaOffset + nBytesInDMA;
-                dmaOffset %= dma->ai.count;
-                nBytesInDMAFromStart += nBytesInDMA;
-                dma->ai.last_transfer_count = nBytesInDMAFromStart;
-                dmaChannel = (dma->ai.last_transfer_count % numberOfADCsEnabled);
-                nBytesInDMA = xsereis_ai_dma_samples_in_buffer(dma);
-            }
+            ResetDMA();
         }
     }
     else {
@@ -1231,11 +1268,19 @@ ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
                         memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nBytesInDMA));
                     }
                     err = CopyFromDMA(nBytesInDMA);
-                    dmaOffset = dmaOffset + nBytesInDMA;
-                    dmaOffset %= dma->ai.count;
-                    nBytesInDMAFromStart += nBytesInDMA;
-                    dma->ai.last_transfer_count = nBytesInDMAFromStart;
+                    if (executionMode == NI6368ADC_EXEC_SPAWNED) {
+                        //Reset the error if this is being managed by another thread. The NotCompleted is only used in the Synchronise method 
+                        //if the DataSource is being driven by the RealTimeThread
+                        //lint -e{9007} no side effects on the right hand side if it is not evaluated.
+                        if ((err == ErrorManagement::NotCompleted) || (err == ErrorManagement::Completed)) {
+                            err = ErrorManagement::NoError;
+                        }
+                    }
                 }
+                dmaOffset = dmaOffset + nBytesInDMA;
+                dmaOffset %= dma->ai.count;
+                nBytesInDMAFromStart += nBytesInDMA;
+                dma->ai.last_transfer_count = nBytesInDMAFromStart;
             }
         }
     }

@@ -48,7 +48,7 @@ WaveformSin::WaveformSin() :
         Waveform() {
     amplitude = 0.0;
     frequency = 0.0;
-    w = 2.0*FastMath::PI * frequency;
+    w = 2.0 * FastMath::PI * frequency;
     phase = 0.0;
     offset = 0.0;
 
@@ -60,7 +60,7 @@ WaveformSin::~WaveformSin() {
 
 bool WaveformSin::Initialise(StructuredDataI& data) {
     bool ok = Waveform::Initialise(data);
-    if (!ok) {//Waveform only fails if GAM::initialize fails (a wrong trigger configurations is a warning, not a InitialisationError)
+    if (!ok) { //Waveform only fails if GAM::initialize fails (a wrong trigger configurations is a warning, not a InitialisationError)
         REPORT_ERROR(ErrorManagement::InitialisationError, "Error. Waveform returns an initialization error");
     }
     if (ok) {
@@ -86,8 +86,8 @@ bool WaveformSin::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading Frequency");
         }
     }
-    if(ok){
-        w = 2.0 * FastMath::PI* frequency;
+    if (ok) {
+        w = 2.0 * FastMath::PI * frequency;
     }
     if (ok) {
         ok = data.Read("Phase", phase);
@@ -104,14 +104,13 @@ bool WaveformSin::Initialise(StructuredDataI& data) {
     return ok;
 }
 
-
 bool WaveformSin::PrecomputeValues() {
     for (uint32 i = 0u; i < numberOfOutputElements; i++) {
         TriggerMechanism();
         if (signalOn && triggersOn) {
             float64 aux = (w * currentTime) + phase;
             float64 aux2 = sin(aux);
-            outputFloat64[i] = ((amplitude * aux2)+ offset);
+            outputFloat64[i] = ((amplitude * aux2) + offset);
         }
         else {
             outputFloat64[i] = 0.0;
@@ -119,6 +118,14 @@ bool WaveformSin::PrecomputeValues() {
         currentTime += timeIncrement;
     }
     return true;
+}
+
+bool WaveformSin::TimeIncrementValidation() {
+    bool ok = ((1.0 / timeIncrement) / 2.0) >= frequency;
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::FatalError, "sample frequency /2 < frequency");
+    }
+    return ok;
 }
 
 bool WaveformSin::GetUInt8Value() {

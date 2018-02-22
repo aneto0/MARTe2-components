@@ -52,6 +52,8 @@ namespace MARTe {
  * +Timer = {
  *     Class = LinuxTimer
  *     SleepNature = Busy|Default//If SleepNature is not specified then Default is set
+ *     ExecutionMode = IndependentThread //Optional. If not set ExecutionMode = IndependentThread. If ExecutionMode == IndependentThread a thread is spawned to generate the time events. ExecutionMode == RealTimeThread the time is generated in the context of the real-time thread.
+ *     CPUMask = 0x8 //Optional and only relevant if ExecutionMode=IndependentThread
  *     Signals = {
  *         Counter = {
  *             Type = uint32 //int32 also supported
@@ -184,6 +186,18 @@ LinuxTimer    ();
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
+    /**
+     * @brief Gets the affinity of the thread which is going to be used to asynchronously wait for the time to elapse.
+     * @return the affinity of the thread which is going to be used to asynchronously wait for the time to elapse.
+     */
+    const ProcessorType& GetCPUMask() const;
+
+    /**
+     * @brief Gets the stack size of the thread which is going to be used to asynchronously wait for the time to elapse.
+     * @return the stack size of the thread which is going to be used to asynchronously wait for the time to elapse.
+     */
+    uint32 GetStackSize() const;
+
 private:
     /**
      * The two supported sleep natures.
@@ -237,6 +251,22 @@ private:
      * True if this a synchronising data source
      */
     bool synchronising;
+
+    /**
+     * The affinity of the thread that asynchronously generates the time.
+     */
+    ProcessorType cpuMask;
+
+    /**
+     * The size of the stack of the thread that asynchronously generates the time.
+     */
+    uint32 stackSize;
+
+    /**
+     * The execution mode.
+     */
+    uint32 executionMode;
+
 };
 }
 

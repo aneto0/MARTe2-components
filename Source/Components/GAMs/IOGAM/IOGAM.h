@@ -36,6 +36,8 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+
+namespace MARTe {
 /**
  * @brief GAM which copies its inputs to its outputs. Allows to plug different DataSources (e.g. driver with a DDB).
  * @details This GAM copies its inputs to its outputs. The number of inputs shall
@@ -68,7 +70,6 @@
  *     }
  * }
  */
-namespace MARTe {
 class IOGAM: public GAM {
 public:
     CLASS_REGISTER_DECLARATION()
