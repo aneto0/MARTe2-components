@@ -137,8 +137,15 @@ public:
 
     /**
      * @brief Test the Waveform::Setup() on error
+     * @details NumberOfDimensions = 2
      */
     bool SetupWrongOutputDimension();
+
+    /**
+     * @brief Test the Waveform::Setup() on error
+     * @details NumberOfDimensions = 0, numberOfOutputElements = 2
+     */
+    bool SetupWrongOutputDimension_2();
 
     /**
      * @brief Test the Waveform::Setup() on error

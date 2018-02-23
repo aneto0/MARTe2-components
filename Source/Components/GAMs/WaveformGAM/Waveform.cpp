@@ -274,10 +274,20 @@ bool Waveform::Setup() {
                 REPORT_ERROR(ErrorManagement::ParametersError, "%s::Error getting output dimension for output %u.", GAMName.Buffer(), auxId);
             }
             if (ok) {
-                ok = auxDimension == 1u;
+                if (auxDimension == 1u) {
+                    ok = (numberOfOutputElements >= 1);
+                }
+                else if (auxDimension == 0u) {
+                    ok = (numberOfOutputElements = 1);
+                }
+                else {
+                    ok = false;
+                }
                 if (!ok) {
                     uint32 auxId = i;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "%s::The output dimension for output %u must be 1.", GAMName.Buffer(), auxId);
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "%s::The output dimension for output %u must be (0 && numberOfOutputElements = 1) || (1 && numberOfOutputElements >=1).",
+                                 GAMName.Buffer(), auxId);
                 }
             }
         }

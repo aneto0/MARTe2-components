@@ -145,6 +145,11 @@ TEST(WaveformTest, SetupWrongOutputDimension) {
     ASSERT_TRUE(test.SetupWrongOutputDimension());
 }
 
+TEST(WaveformTest, SetupWrongOutputDimension_2) {
+    WaveformTest test;
+    ASSERT_TRUE(test.SetupWrongOutputDimension_2());
+}
+
 TEST(WaveformTest, SetupNULLInputPointer) {
     WaveformTest test;
     ASSERT_TRUE(test.SetupNULLInputPointer());

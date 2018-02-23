@@ -675,6 +675,61 @@ bool WaveformTest::SetupWrongOutputDimension() {
     ok &= configSignals.Write("NumberOfElements", 135);
     ok &= configSignals.Write("DataSource", "OutputDataSource");
     ok &= configSignals.Write("Type", "uint64");
+    ok &= configSignals.Write("NumberOfDimensions", 2);
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.Write("ByteSize", 123);
+
+    ok &= configSignals.CreateAbsolute("Memory.InputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("DataSource", "InputDataSource");
+    ok &= configSignals.CreateRelative("Signals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("Samples", 1);
+
+    ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("DataSource", "OutputDataSource");
+    ok &= configSignals.CreateRelative("Signals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("Samples", 1);
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("Samples", 1);
+
+    ok &= configSignals.MoveToRoot();
+    if (ok) {
+        gam.SetConfiguredDatabase(configSignals);
+    }
+    if (ok) {
+        ok = !gam.Setup();
+    }
+    return ok;
+}
+
+bool WaveformTest::SetupWrongOutputDimension_2() {
+    WaveformSin gam;
+    ConfigurationDatabase configSignals;
+    bool ok = configSignals.Write("QualifiedName", "WaveformSinGAMTest");
+    ok &= configSignals.CreateAbsolute("Signals.InputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("NumberOfElements", 1);
+    ok &= configSignals.Write("DataSource", "InputDataSource");
+    ok &= configSignals.Write("Type", "uint32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.Write("ByteSize", 123);
+
+    ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
+    ok &= configSignals.CreateRelative("0");
+    ok &= configSignals.Write("NumberOfElements", 2);
+    ok &= configSignals.Write("DataSource", "OutputDataSource");
+    ok &= configSignals.Write("Type", "uint32");
+    ok &= configSignals.Write("NumberOfDimensions", 1);
+    ok &= configSignals.MoveToAncestor(1u);
+    ok &= configSignals.CreateRelative("1");
+    ok &= configSignals.Write("NumberOfElements", 2);
+    ok &= configSignals.Write("DataSource", "OutputDataSource");
+    ok &= configSignals.Write("Type", "uint64");
     ok &= configSignals.Write("NumberOfDimensions", 0);
     ok &= configSignals.MoveToAncestor(1u);
     ok &= configSignals.Write("ByteSize", 123);

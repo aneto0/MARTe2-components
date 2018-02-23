@@ -573,7 +573,7 @@ bool MDSReader::SetConfiguredDatabase(StructuredDataI & data) {
                     if (!ok) {
                         REPORT_ERROR(
                                 ErrorManagement::ParametersError,
-                                "the sampling time of the node %s = %f is different than the sampling time calculated from the parameters = %f and the dataManagement = 0 (do nothing)",
+                                "the sampling time of the node %s = %.9f is different than the sampling time calculated from the parameters = %.9f and the dataManagement = 0 (do nothing)",
                                 nodeName[i].Buffer(), nodeSamplingTime[i], samplingTime[i]);
                     }
                 }
