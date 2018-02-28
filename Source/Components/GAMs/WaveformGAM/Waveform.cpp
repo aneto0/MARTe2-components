@@ -71,7 +71,7 @@ Waveform::Waveform() :
 }
 
 Waveform::~Waveform() {
-    if (typeVariableOut == NULL_PTR(TypeDescriptor *)) {
+    if (typeVariableOut != NULL_PTR(TypeDescriptor *)) {
         delete[] typeVariableOut;
         typeVariableOut = NULL_PTR(TypeDescriptor *);
     }
@@ -94,6 +94,7 @@ Waveform::~Waveform() {
         delete[] outputFloat64;
         outputFloat64 = NULL_PTR(float64 *);
     }
+    /*lint -e{1740} the inputTime pointer is cleaned by the framework*/
 }
 
 bool Waveform::Initialise(StructuredDataI& data) {
@@ -253,7 +254,7 @@ bool Waveform::Setup() {
         }
     }
     if (ok) { //Read and check input dimensions
-        uint32 auxDimension = 9999;
+        uint32 auxDimension = 9999u;
         ok = GetSignalNumberOfDimensions(InputSignals, 0u, auxDimension);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "%s::Error getting input dimension for input 0.", GAMName.Buffer());
@@ -267,7 +268,7 @@ bool Waveform::Setup() {
     }
     if (ok) { //Read and check output dimensions
         for (uint32 i = 0u; (i < nOfOutputSignals) && ok; i++) {
-            uint32 auxDimension = 0;
+            uint32 auxDimension = 0u;
             ok = GetSignalNumberOfDimensions(OutputSignals, i, auxDimension);
             if (!ok) {
                 uint32 auxId = i;
@@ -275,10 +276,10 @@ bool Waveform::Setup() {
             }
             if (ok) {
                 if (auxDimension == 1u) {
-                    ok = (numberOfOutputElements >= 1);
+                    ok = (numberOfOutputElements >= 1u);
                 }
                 else if (auxDimension == 0u) {
-                    ok = (numberOfOutputElements = 1);
+                    ok = (numberOfOutputElements == 1u);
                 }
                 else {
                     ok = false;
@@ -316,10 +317,12 @@ bool Waveform::Execute() {
     bool ok = true;
     if (timeState == static_cast<uint8>(0u)) {
         ok = GetInputTime(time0);
-        timeState++;
-        signalOn = false;
-        currentTime = static_cast<float64>(time0) / 1e6;
-        ok = PrecomputeValues();
+        if (ok) {
+            timeState++;
+            signalOn = false;
+            currentTime = static_cast<float64>(time0) / 1e6;
+            ok = PrecomputeValues();
+        }
         /*lint -e{613} typeVariableOut cannot be NULL as otherwise Execute will not be called*/
         for (indexOutputSignal = 0u; (indexOutputSignal < numberOfOutputSignals) && ok; indexOutputSignal++) {
             if (typeVariableOut[indexOutputSignal] == UnsignedInteger8Bit) {
@@ -529,6 +532,7 @@ bool Waveform::GetInputTime(uint64 &timeOut) {
             ok = false;
         }
         else {
+            //lint -e{571} cast to correct type required.
             timeOut = static_cast<uint64>(aux);
         }
     }

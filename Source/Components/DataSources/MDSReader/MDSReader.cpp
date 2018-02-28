@@ -922,13 +922,13 @@ bool MDSReader::GetDataNode(const uint32 nodeNumber) {
         else if ((errorCodeMinSegment == 1) && (errorCodeMaxSegment == 1)) {
             ok = CopyDataAddValuesCopyData(nodeNumber, minSegment, numberOfDiscontinuities);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Error while coping data from the tree to the dynamic memory");
+                REPORT_ERROR(ErrorManagement::FatalError, "Error while copying data from the tree to the dynamic memory");
             }
         }
         else if ((errorCodeMinSegment == 1) && (errorCodeMaxSegment == -1)) {
             ok = CopyRemainingData(nodeNumber, minSegment);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Error while coping data from the node = %s to the dynamic memory", nodeName[nodeNumber]);
+                REPORT_ERROR(ErrorManagement::FatalError, "Error while copying data from the node = %s to the dynamic memory", nodeName[nodeNumber]);
             }
             //end node
             ok = false;
@@ -940,7 +940,7 @@ bool MDSReader::GetDataNode(const uint32 nodeNumber) {
         bool error = !MemoryOperationsHelper::Set(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber]]), static_cast<char8>(0),
                                                   byteSizeSignals[nodeNumber]);
         if (error) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Error while coping data from the node = %s to the dynamic memory", nodeName[nodeNumber]);
+            REPORT_ERROR(ErrorManagement::FatalError, "Error while copying data from the node = %s to the dynamic memory", nodeName[nodeNumber]);
         }
         ok = false; //end data
     }
@@ -1107,17 +1107,6 @@ void MDSReader::CopyTheSameValue(const uint32 idxNumber,
     return;
 }
 
-template<typename T>
-void MDSReader::CopyTheSameValueTemplate(uint32 idxNumber,
-                                         uint32 numberOfTimes,
-                                         uint32 samplesOffset) {
-    uint32 extraOffset = samplesOffset * bytesType[idxNumber];
-    T *ptr = reinterpret_cast<T *>(&dataSourceMemory[offsets[idxNumber] + extraOffset]);
-    for (uint32 i = 0u; i < numberOfTimes; i++) {
-        ptr[i] = *reinterpret_cast<T *>(&lastValue[offsetLastValue[idxNumber]]);
-    }
-}
-
 //lint -e{613} Possible use of null pointer. If initialise fails this function is not called.
 bool MDSReader::AddValuesCopyData(const uint32 nodeNumber,
                                   uint32 minSegment,
@@ -1135,7 +1124,7 @@ bool MDSReader::AddValuesCopyData(const uint32 nodeNumber,
     }
     uint32 numberOfSamplesCopied = 0u;
 
-    bool ret = FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
+    bool ret = FindDiscontinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
     if (ret) {
         numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, tEndDiscontinuity);
         if (holeManagement[nodeNumber] == 0u) {
@@ -1150,7 +1139,7 @@ bool MDSReader::AddValuesCopyData(const uint32 nodeNumber,
         currentTime += static_cast<float64>(numberOfSamplesToCopy) * samplingTime[nodeNumber];
     }
     for (uint32 i = 0u; (i < numberOfDiscontinuities) && ret; i++) {
-        ret = FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
+        ret = FindDiscontinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
         if (ret) {
             float64 auxTime = tBeginningDiscontinuity + samplingTime[nodeNumber];
             numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
@@ -1246,7 +1235,7 @@ bool MDSReader::CopyDataAddValues(const uint32 nodeNumber,
     float64 tEndDiscontinuity = 0.0;
     uint32 futureSegment = minSegment;
     for (uint32 i = 0u; (i < numberOfDiscontinuities) && ret; i++) {
-        ret = FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
+        ret = FindDiscontinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
         float64 auxTime = tBeginningDiscontinuity + samplingTime[nodeNumber];
         numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
         if (dataManagement[nodeNumber] == 0u) {
@@ -1308,7 +1297,7 @@ bool MDSReader::AddValuesCopyDataAddValues(const uint32 nodeNumber,
     else {
     }
 
-    ret = FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
+    ret = FindDiscontinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
     if (ret) {
         float64 auxTime = tEndDiscontinuity;                        //tBeginningDiscontinuity + samplingTime[nodeNumber];
         remainingSamplesInTheSegment = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
@@ -1349,7 +1338,7 @@ bool MDSReader::CopyDataAddValuesCopyData(const uint32 nodeNumber,
     float64 tEndDiscontinuity = 0.0;
     uint32 futureSegment = minSegment;
     for (uint32 i = 0u; (i < numberOfDiscontinuities) && ret; i++) {
-        ret = FindDisconinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
+        ret = FindDiscontinuity(nodeNumber, futureSegment, tBeginningDiscontinuity, tEndDiscontinuity);
         float64 auxTime = tBeginningDiscontinuity + samplingTime[nodeNumber];
         numberOfSamplesToCopy = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime);
         if (dataManagement[nodeNumber] == 0u) {
@@ -1410,7 +1399,7 @@ bool MDSReader::CopyDataAddValuesCopyData(const uint32 nodeNumber,
 }
 
 //lint -e{613} Possible use of null pointer. Not possible.If initialisation fails this function is not called
-bool MDSReader::FindDisconinuity(const uint32 nodeNumber,
+bool MDSReader::FindDiscontinuity(const uint32 nodeNumber,
                                  uint32 &segment,
                                  float64 &beginningTime,
                                  float64 &endTime) const {
@@ -1496,85 +1485,7 @@ uint32 MDSReader::MakeRawCopy(const uint32 nodeNumber,
     return samplesCopied;
 }
 
-template<typename T>
-uint32 MDSReader::MakeRawCopyTemplate(uint32 nodeNumber,
-                                      uint32 minSeg,
-                                      uint32 SamplesToCopy,
-                                      uint32 OffsetSamples) {
 
-    MDSplus::Data *dataD = NULL_PTR(MDSplus::Data *);
-    int32 nElements = 0u;
-    uint32 bytesToCopy = 0u;
-    uint32 extraOffset = OffsetSamples * bytesType[nodeNumber];
-    bool endSegment = false;
-    uint32 samplesCopied = 0u;
-    uint32 remainingSamplesOnTheSegment = 0u;
-    T* data = NULL_PTR(T *);
-    for (uint32 currentSegment = minSeg; (currentSegment < maxNumberOfSegments[nodeNumber]) && (SamplesToCopy != 0); currentSegment++) {
-        dataD = nodes[nodeNumber]->getSegment(currentSegment);
-        if (type[nodeNumber] == UnsignedInteger8Bit) {
-            data = reinterpret_cast<T *>(dataD->getByteUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger8Bit) {
-            data = reinterpret_cast<T *>(dataD->getByteArray(&nElements));
-        }
-        else if (type[nodeNumber] == UnsignedInteger16Bit) {
-            data = reinterpret_cast<T *>(dataD->getShortUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger16Bit) {
-            data = reinterpret_cast<T *>(dataD->getShortArray(&nElements));
-        }
-        else if (type[nodeNumber] == UnsignedInteger32Bit) {
-            data = reinterpret_cast<T *>(dataD->getIntUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger32Bit) {
-            data = reinterpret_cast<T *>(dataD->getIntArray(&nElements));
-        }
-        else if (type[nodeNumber] == UnsignedInteger64Bit) {
-            data = reinterpret_cast<T *>(dataD->getLongUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger64Bit) {
-            data = reinterpret_cast<T *>(dataD->getLongArray(&nElements));
-        }
-        else if (type[nodeNumber] == Float32Bit) {
-            data = reinterpret_cast<T *>(dataD->getFloatArray(&nElements));
-        }
-        else if (type[nodeNumber] == Float64Bit) {
-            data = reinterpret_cast<T *>(dataD->getDoubleArray(&nElements));
-        }
-
-        remainingSamplesOnTheSegment = static_cast<uint32>(nElements) - elementsConsumed[nodeNumber];
-        endSegment = remainingSamplesOnTheSegment <= SamplesToCopy;
-        if (!endSegment) {        // no end of segment but no more data need to be copied
-            bytesToCopy = SamplesToCopy * bytesType[nodeNumber];
-            samplesCopied += SamplesToCopy;
-        }
-        else {        // end segment but still more data must be copied
-            bytesToCopy = remainingSamplesOnTheSegment * bytesType[nodeNumber];
-            samplesCopied += remainingSamplesOnTheSegment;
-
-            //
-        }
-        MemoryOperationsHelper::Copy(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]),
-                                     reinterpret_cast<void *>(&data[elementsConsumed[nodeNumber]]), bytesToCopy);
-        extraOffset += bytesToCopy;
-
-//Update values
-        if (!endSegment) {        // no end of segment but no more data need to be copied
-            elementsConsumed[nodeNumber] += SamplesToCopy;
-            SamplesToCopy = 0u;
-        }
-        else {        // end segment but still more data must be copied
-            SamplesToCopy -= ((static_cast<uint32>(nElements)) - elementsConsumed[nodeNumber]);
-            elementsConsumed[nodeNumber] = 0u;
-        }
-        *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]) = data[nElements - 1];
-        MDSplus::deleteData(dataD);
-        delete data;
-
-    }
-    return samplesCopied;
-}
 
 //lint -e{613} Possible use of null pointer. Not possible. If initialisation fails LinearInterpolationCopy() is not called.
 uint32 MDSReader::LinearInterpolationCopy(const uint32 nodeNumber,
@@ -1620,104 +1531,6 @@ uint32 MDSReader::LinearInterpolationCopy(const uint32 nodeNumber,
     return samplesCopied;
 }
 
-template<typename T>
-uint32 MDSReader::LinearInterpolationCopyTemplate(uint32 nodeNumber,
-                                                  uint32 minSeg,
-                                                  uint32 samplesToCopy,
-                                                  uint32 offsetSamples) {
-
-    MDSplus::Array *dataD = NULL_PTR(MDSplus::Array *);
-    MDSplus::Data *timeNodeD = NULL_PTR(MDSplus::Data *);
-    float64 *timeNode = NULL_PTR(float64 *);
-    int32 nElements = 0u;
-    uint32 extraOffset = offsetSamples * bytesType[nodeNumber];
-    bool endSegment = false;
-    uint32 samplesCopied = 0;
-    uint32 iterations = 0u;
-    uint32 remainingSamplesOnTheSegment = 0u;
-
-    T* data = NULL_PTR(T *);
-    for (uint32 currentSegment = minSeg; (currentSegment < maxNumberOfSegments[nodeNumber]) && (samplesToCopy != 0); currentSegment++) {
-        nodes[nodeNumber]->getSegmentAndDimension(currentSegment, dataD, timeNodeD);
-        if (type[nodeNumber] == UnsignedInteger8Bit) {
-            data = reinterpret_cast<T *>(dataD->getByteUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger8Bit) {
-            data = reinterpret_cast<T *>(dataD->getByteArray(&nElements));
-        }
-        else if (type[nodeNumber] == UnsignedInteger16Bit) {
-            data = reinterpret_cast<T *>(dataD->getShortUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger16Bit) {
-            data = reinterpret_cast<T *>(dataD->getShortArray(&nElements));
-        }
-        else if (type[nodeNumber] == UnsignedInteger32Bit) {
-            data = reinterpret_cast<T *>(dataD->getIntUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger32Bit) {
-            data = reinterpret_cast<T *>(dataD->getIntArray(&nElements));
-        }
-        else if (type[nodeNumber] == UnsignedInteger64Bit) {
-            data = reinterpret_cast<T *>(dataD->getLongUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger64Bit) {
-            data = reinterpret_cast<T *>(dataD->getLongArray(&nElements));
-        }
-        else if (type[nodeNumber] == Float32Bit) {
-            data = reinterpret_cast<T *>(dataD->getFloatArray(&nElements));
-        }
-        else if (type[nodeNumber] == Float64Bit) {
-            data = reinterpret_cast<T *>(dataD->getDoubleArray(&nElements));
-        }
-        timeNode = timeNodeD->getDoubleArray(&nElements);
-        float64 auxTime = timeNode[nElements - 1] + samplingTime[nodeNumber];
-        remainingSamplesOnTheSegment = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime); //static_cast<uint32>(1 + ((timeNode[nElements - 1] - currentTime) / samplingTime[nodeNumber]));
-        endSegment = (remainingSamplesOnTheSegment <= samplesToCopy);
-        if (!endSegment) {        //no end of segment but no more data need to be copied
-            samplesCopied += samplesToCopy;
-            iterations = samplesToCopy;
-        }
-        else {        // end segment but still more data must be copied
-            samplesCopied += remainingSamplesOnTheSegment;
-            iterations = remainingSamplesOnTheSegment;
-        }
-        float64 outputInterpolation = 0.0;
-        for (uint32 i = 0u; i < iterations; i++) {
-            while ((currentTime >= timeNode[elementsConsumed[nodeNumber]]) && (elementsConsumed[nodeNumber] < static_cast<uint32>(nElements - 1))) {
-                elementsConsumed[nodeNumber]++;
-            }
-            if (elementsConsumed[nodeNumber] == 0u) {
-                SampleInterpolation<T>(currentTime, *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]), data[elementsConsumed[nodeNumber]],
-                                       lastTime[nodeNumber], timeNode[elementsConsumed[nodeNumber]], &outputInterpolation);
-
-            }
-            else {
-                SampleInterpolation<T>(currentTime, data[elementsConsumed[nodeNumber] - 1], data[elementsConsumed[nodeNumber]],
-                                       timeNode[elementsConsumed[nodeNumber] - 1], timeNode[elementsConsumed[nodeNumber]], &outputInterpolation);
-            }
-            if ((type[nodeNumber] == Float32Bit) || (type[nodeNumber] == Float64Bit)) {
-                *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) = static_cast<T>(outputInterpolation);
-            }
-            else {
-                *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) = static_cast<T>(round(outputInterpolation));
-            }
-            extraOffset += bytesType[nodeNumber];
-            currentTime += samplingTime[nodeNumber];
-            samplesToCopy--;
-        }
-        if (endSegment) {
-            *reinterpret_cast<T *>(&(lastValue[offsetLastValue[nodeNumber]])) = data[nElements - 1];
-            lastTime[nodeNumber] = timeNode[nElements - 1];
-            elementsConsumed[nodeNumber] = 0u;
-        }
-        MDSplus::deleteData(dataD);
-        MDSplus::deleteData(timeNodeD);
-        delete data;
-        delete timeNode;
-    }
-    return samplesCopied;
-
-}
 
 //lint -e{613} Possible use of null pointer. If initialisation fails the Synchronise is not called neither HoldCopy()
 uint32 MDSReader::HoldCopy(const uint32 nodeNumber,
@@ -1762,123 +1575,6 @@ uint32 MDSReader::HoldCopy(const uint32 nodeNumber,
     return samplesCopied;
 }
 
-template<typename T>
-uint32 MDSReader::HoldCopyTemplate(uint32 nodeNumber,
-                                   uint32 minSeg,
-                                   uint32 samplesToCopy,
-                                   uint32 samplesOffset) {
-
-    MDSplus::Array *dataD = NULL_PTR(MDSplus::Array *);
-    MDSplus::Data *timeNodeD = NULL_PTR(MDSplus::Data *);
-    float64 *timeNode = NULL_PTR(float64 *);
-    int32 nElements = 0u;
-    uint32 extraOffset = samplesOffset * bytesType[nodeNumber];
-    bool endSegment = false;
-    uint32 samplesCopied = 0;
-    uint32 iterations = 0u;
-    uint32 remainingSamplesOnTheSegment = 0u;
-
-    T* data = NULL_PTR(T *);
-    for (uint32 currentSegment = minSeg; (currentSegment < maxNumberOfSegments[nodeNumber]) && (samplesToCopy != 0); currentSegment++) {
-        nodes[nodeNumber]->getSegmentAndDimension(currentSegment, dataD, timeNodeD);
-        if (type[nodeNumber] == UnsignedInteger8Bit) {
-            data = reinterpret_cast<T *>(dataD->getByteUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger8Bit) {
-            data = reinterpret_cast<T *>(dataD->getByteArray(&nElements));
-        }
-        else if (type[nodeNumber] == UnsignedInteger16Bit) {
-            data = reinterpret_cast<T *>(dataD->getShortUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger16Bit) {
-            data = reinterpret_cast<T *>(dataD->getShortArray(&nElements));
-        }
-        else if (type[nodeNumber] == UnsignedInteger32Bit) {
-            data = reinterpret_cast<T *>(dataD->getIntUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger32Bit) {
-            data = reinterpret_cast<T *>(dataD->getIntArray(&nElements));
-        }
-        else if (type[nodeNumber] == UnsignedInteger64Bit) {
-            data = reinterpret_cast<T *>(dataD->getLongUnsignedArray(&nElements));
-        }
-        else if (type[nodeNumber] == SignedInteger64Bit) {
-            data = reinterpret_cast<T *>(dataD->getLongArray(&nElements));
-        }
-        else if (type[nodeNumber] == Float32Bit) {
-            data = reinterpret_cast<T *>(dataD->getFloatArray(&nElements));
-        }
-        else if (type[nodeNumber] == Float64Bit) {
-            data = reinterpret_cast<T *>(dataD->getDoubleArray(&nElements));
-        }
-        timeNode = timeNodeD->getDoubleArray(&nElements);
-        float64 auxTime = timeNode[nElements - 1] + samplingTime[nodeNumber];
-        remainingSamplesOnTheSegment = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime); //static_cast<uint32>(1 + ((timeNode[nElements - 1] - currentTime) / samplingTime[nodeNumber]));
-        endSegment = (remainingSamplesOnTheSegment <= samplesToCopy);
-        if (!endSegment) {        //no end of segment but no more data need to be copied
-            samplesCopied += samplesToCopy;
-            iterations = samplesToCopy;
-        }
-        else {        // end segment but still more data must be copied
-            samplesCopied += remainingSamplesOnTheSegment;
-            iterations = remainingSamplesOnTheSegment;
-        }
-        for (uint32 i = 0u; i < iterations; i++) {
-            while ((currentTime >= timeNode[elementsConsumed[nodeNumber]]) && (elementsConsumed[nodeNumber] < static_cast<uint32>(nElements - 1))) {
-                elementsConsumed[nodeNumber]++;
-            }
-            if (elementsConsumed[nodeNumber] == 0u) {
-                float64 diff1 = currentTime - lastTime[nodeNumber];
-                float64 diff2 = timeNode[0] - currentTime;
-                if (diff1 < diff2) {
-                    *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) =
-                            *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]);
-                }
-                else {
-                    *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) = data[0];
-                }
-            }
-            else {
-                float64 diff1 = currentTime - timeNode[elementsConsumed[nodeNumber] - 1];
-                float64 diff2 = timeNode[elementsConsumed[nodeNumber]] - currentTime;
-                if (diff1 < diff2) {
-                    *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) = data[elementsConsumed[nodeNumber] - 1];
-                }
-                else {
-                    *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) = data[elementsConsumed[nodeNumber]];
-                }
-            }
-            extraOffset += bytesType[nodeNumber];
-            currentTime += samplingTime[nodeNumber];
-            samplesToCopy--;
-        }
-        if (endSegment) {
-            *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]) = data[nElements - 1];
-            lastTime[nodeNumber] = timeNode[nElements - 1];
-            elementsConsumed[nodeNumber] = 0u;
-        }
-        MDSplus::deleteData(dataD);
-        MDSplus::deleteData(timeNodeD);
-        delete data;
-        delete timeNode;
-    }
-    return samplesCopied;
-}
-
-template<typename T>
-bool MDSReader::SampleInterpolation(float64 cT,
-                                    T data1,
-                                    T data2,
-                                    float64 t1,
-                                    float64 t2,
-                                    float64 *ptr) {
-    bool ret = t2 > t1;
-    if (ret) {
-        float64 slope = (data2 - data1) / (t2 - t1);
-        *ptr = slope * (cT - t1) + data1;
-    }
-    return ret;
-}
 //lint -e{613} Warning 613: Possible use of null pointer. All pointers are initialised previously. If initialisation fails the CopyRemainingData() is not called.
 bool MDSReader::CopyRemainingData(const uint32 nodeNumber,
                                   const uint32 minSegment) {
@@ -1899,7 +1595,8 @@ bool MDSReader::CopyRemainingData(const uint32 nodeNumber,
     if ((samplesCopied > 0u) && ret) {
         uint32 bytesToCopy = (numberOfElements[nodeNumber] - samplesCopied) * bytesType[nodeNumber];
         uint32 extraOffset = samplesCopied * bytesType[nodeNumber];
-        ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&(dataSourceMemory[offsets[nodeNumber] + extraOffset])), static_cast<char8>(0), bytesToCopy);
+        uint32 offset = offsets[nodeNumber] + extraOffset;
+        ret = MemoryOperationsHelper::Set(reinterpret_cast<void *>(&(dataSourceMemory[offset])), static_cast<char8>(0), bytesToCopy);
     }
     return ret;
 }

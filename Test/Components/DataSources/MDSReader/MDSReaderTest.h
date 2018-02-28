@@ -42,7 +42,6 @@
 using namespace MARTe;
 
 class MDSReaderTest {
-//TODO Add the macro DLL_API to the class declaration (i.e. class DLL_API MDSReaderTest)
 public:
     MDSReaderTest();
     MDSReaderTest(MARTe::StreamString name, MARTe::uint32 nElementsPerSeg, MARTe::uint32 nSegments, MARTe::float64 elapsetTimeSeg);

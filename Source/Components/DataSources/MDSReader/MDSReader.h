@@ -47,17 +47,17 @@ namespace MARTe {
 
 /**
  * @brief MDSReader is a data source which allows to read data from a MDSplus tree.
- * @details MDSReader is an input data source which takes data from MDSPlus nodes (as many as desired) and publish it on a real time application.
+ * @details MDSReader is an input data source which takes data from MDSPlus nodes (as many as desired) and publishes it on a real time application.
  *
- * MDSReader can interpolate, decimate and take the data as it is from the tree depending on the parameter called "DataManagement" which is given
- * in the initial configuration file.
+ * The MDSReader can either interpolate, decimate or take the raw data, as it is, from the tree depending on the parameter called "DataManagement" which is given
+ * in the configuration file.
  * Moreover, this data source can deal with discontinuous data and has a configuration parameter for managing the absence of data.
  * DataManagement can take the following values:
  * <ul>
- * <li>0 --> MDSReader takes the data from the tree as it is. In this configuration, the frequency/numberOfElements must be the same than the node sampling frequency.</li>
+ * <li>0 --> MDSReader takes the data from the tree as it is (raw). In this configuration, the frequency/numberOfElements must be the same than the node sampling frequency.</li>
  * <li>1--> MDSReader interpolates the signal taking as a reference the two nearest data values. If the frequency/numberOfElements is smaller than the sample frequency
  * of the MDSplus node the data source interpolates the signal. If the frequency/numberOfElements larger than the node sample frequency the signals is decimated.</li>
- * <li>2 --> MDSReader holes the value following the criteria of the nearest value given specific time. I.e the node data is (t1, d1) = (1, 1) and (t2, d2) = (2, 5) and the currentTime is t = 1.6 the
+ * <li>2 --> MDSReader holds the value following the criteria of the nearest value given specific time. I.e the node data is (t1, d1) = (1, 1) and (t2, d2) = (2, 5) and the currentTime is t = 1.6 the
  * nearest data to the given time is 5.</li>
  * </ul>
  *
@@ -67,10 +67,10 @@ namespace MARTe {
  * <li>1 --> MDSReader fills the absence of data with the last value.</li>
  * </ul>
  *
- * Even the MDSReader can deal with the absence of data, when a segment is filled the sampling time must be constant in the node, however the sampling time between
+ * Even if the MDSReader can deal with the absence of data, the sampling time must be constant with-in the node, however the sampling time between
  * nodes can be different.
  *
- * MDSReader can handle as many nodes as desired. Each node can has their on data type, maximum number of segments, elements per segment and sampling time. When the
+ * The MDSReader can handle as many nodes as desired. Each node can have their on data type, maximum number of segments, elements per segment and sampling time. When the
  * end of a node is reached the data of the corresponding node is filled with 0 and the data source continuous running until all nodes reach the end.
  *
  * The supported types for the nodes are:
@@ -87,7 +87,7 @@ namespace MARTe {
  * <li>float64</li>
  * </ul>
  *
- * The last signals specified must be the time.
+ * The last signal specified must be the time.
  * The supported type for the time are:
  * <ul>
  * <li>uint32</li>
@@ -137,7 +137,7 @@ public:
     /**
      * @brief default constructor
      */
-    MDSReader();
+MDSReader    ();
 
     /**
      * @brief default destructor.
@@ -159,7 +159,7 @@ public:
      * <li>Reads tree name </li>
      * <li>Reads the shot number </li>
      * <li>Opens the tree with the shot number </li>
-     * <li>reads Frequency </li>
+     * <li>Reads the real-time thread Frequency parameter.</li>
      * </ul>
      * @param[in] data is the configuration file.
      * @return true if all parameters can be read and the values are valid
@@ -189,7 +189,7 @@ public:
      * @return true
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-                                  const char8 * const nextStateName);
+            const char8 * const nextStateName);
 
     /**
      * @brief Do nothing
@@ -209,32 +209,32 @@ public:
      * @param[out] signalAddress is where the address of the desired signal is copied.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-                                       const uint32 bufferIdx,
-                                       void *&signalAddress);
+            const uint32 bufferIdx,
+            void *&signalAddress);
 
     /**
      * @brief See DataSourceI::GetBrokerName.
      * @details Only InputSignals are supported.
-     * @return MemoryMapSynchronisedInputBroker if interpolate = false, MemoryMapInterpolatedInputBroker otherwise.
+     * @return MemoryMapSynchronisedInputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-                                       const SignalDirection direction);
+            const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
-     * @details adds a MemoryMapSynchronisedInputBroker instance to the intputBrokers.
+     * @details adds a MemoryMapSynchronisedInputBroker instance to the inputBrokers.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-                                 const char8* const functionName,
-                                 void * const gamMemPtr);
+            const char8* const functionName,
+            void * const gamMemPtr);
 
     /**
      * @brief See DataSourceI::GetOutputBrokers.
      * @return false.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-                                  const char8* const functionName,
-                                  void * const gamMemPtr);
+            const char8* const functionName,
+            void * const gamMemPtr);
 private:
     /**
      * @brief Open MDS tree
@@ -257,7 +257,7 @@ private:
 
     /**
      * @brief validates the type of the node idx.
-     * @param[in] idx node indext to be validated.
+     * @param[in] idx node index to be validated.
      * @return true if the type is supported
      */
     bool IsValidTypeNode(const uint32 idx) const;
@@ -285,7 +285,7 @@ private:
 
     /**
      * @brief Finds which segment contains the time t for the signal index specified
-     * @details The algorithm goes throw all segments until the time t is found or the end of the segments are reached
+     * @details The algorithm goes through all segments until the time t is found or the end of the segments are reached
      * @param[in] t indicate the time to be found
      * @param[out] segment if t is found the segment holds the segment where t was found.
      * @param[in] index indicates which node must be used.
@@ -294,8 +294,8 @@ private:
      * @return 1 if the time t is in a segment.
      */
     int8 FindSegment(const float64 t,
-                     uint32 &segment,
-                     const uint32 nodeIdx);
+            uint32 &segment,
+            const uint32 nodeIdx);
 
     /**
      * @brief Counts how many discontinuities are in the specified period
@@ -305,8 +305,8 @@ private:
      * @return the number of discontinuities.
      */
     uint32 CheckDiscontinuityOfTheSegments(const uint32 nodeNumber,
-                                           const uint32 initialSegment,
-                                           const uint32 finalSegment) const;
+            const uint32 initialSegment,
+            const uint32 finalSegment) const;
 
     /**
      * @brief Calculates the time difference between the first samples.
@@ -317,7 +317,7 @@ private:
      * @return true on succeed.
      */
     bool GetNodeSamplingTime(const uint32 idx,
-                             float64 &tDiff) const;
+            float64 &tDiff) const;
 
     /**
      * @brief Copy the same value as many times as indicated.
@@ -327,8 +327,8 @@ private:
      * @param[in] samplesOffset indicates how many samples has already copied.
      */
     void CopyTheSameValue(const uint32 idxNumber,
-                          const uint32 numberOfTimes,
-                          const uint32 samplesOffset);
+            const uint32 numberOfTimes,
+            const uint32 samplesOffset);
 
     /**
      * @brief Template functions which actually performs the copy
@@ -338,8 +338,8 @@ private:
      */
     template<typename T>
     void CopyTheSameValueTemplate(uint32 idxNumber,
-                                  uint32 numberOfTimes,
-                                  uint32 samplesOffset);
+            uint32 numberOfTimes,
+            uint32 samplesOffset);
 
     /**
      * @brief First fills a hole and then copy data from the node
@@ -348,12 +348,11 @@ private:
      * @param[in] numberOfDiscontinuities indicates the number of times that the algorithm must be applied
      */
     bool AddValuesCopyData(const uint32 nodeNumber,
-                           uint32 minSegment,
-                           const uint32 numberOfDiscontinuities);
-
+            uint32 minSegment,
+            const uint32 numberOfDiscontinuities);
 
     /**
-     * @brief First copies data and then add values
+     * @brief First copies data and then adds values
      * @param[in] nodeNumber node number from where copy data.
      * @param[in] minSegment indicates the segment from where start to be copied.
      * @param[in] numberOfDiscontinuities indicates the number of times that the algorithm must be applied
@@ -361,25 +360,24 @@ private:
      * @param[in] samplesRead Samples already copied.
      */
     bool CopyDataAddValues(const uint32 nodeNumber,
-                           uint32 minSegment,
-                           const uint32 numberOfDiscontinuities,
-                           const uint32 samplesToRead,
-                           const uint32 samplesRead);
-
+            uint32 minSegment,
+            const uint32 numberOfDiscontinuities,
+            const uint32 samplesToRead,
+            const uint32 samplesRead);
 
     /**
-     * @brief First it fills the holes with data then copy data from MDSplus and the continue coping data
+     * @brief First it fills the holes with data then copy data from MDSplus and the continue copying data
      */
     bool AddValuesCopyDataAddValues(const uint32 nodeNumber,
-                                    const uint32 minSegment,
-                                    const uint32 numberOfDiscontinuities);
+            const uint32 minSegment,
+            const uint32 numberOfDiscontinuities);
 
     /**
-     * @brief First it copies real data from MDSplus then fill the holes with some data and then continue coping data
+     * @brief First it copies real data from MDSplus then fill the holes with some data and then continues copying data
      */
     bool CopyDataAddValuesCopyData(const uint32 nodeNumber,
-                                   uint32 minSegment,
-                                   const uint32 numberOfDiscontinuities);
+            uint32 minSegment,
+            const uint32 numberOfDiscontinuities);
 
     /**
      * @brief Finds the next discontinuity
@@ -388,10 +386,10 @@ private:
      * @param[out] endTime indicates the first time after the discontinuity with data.
      * @return true if the discontinuity exist.
      */
-    bool FindDisconinuity(const uint32 nodeNumber,
-                          uint32 &segment,
-                          float64 &beginningTime,
-                          float64 &endTime) const;
+    bool FindDiscontinuity(const uint32 nodeNumber,
+            uint32 &segment,
+            float64 &beginningTime,
+            float64 &endTime) const;
 
     /**
      * @brief Copies the data from the tree to the allocated memory
@@ -403,88 +401,87 @@ private:
      * @return the number of samples copied from the tree to the allocated memory
      */
     uint32 MakeRawCopy(const uint32 nodeNumber,
-                       const uint32 minSeg,
-                       const uint32 samplesToCopy,
-                       const uint32 offsetSamples);
+            const uint32 minSeg,
+            const uint32 samplesToCopy,
+            const uint32 offsetSamples);
 
     /**
      * @brief template which copies data using MemoryOperationsHelper::Copy
      */
     template<typename T>
     uint32 MakeRawCopyTemplate(uint32 nodeNumber,
-                               uint32 minSeg,
-                               uint32 SamplesToCopy,
-                               uint32 OffsetSamples);
+            uint32 minSeg,
+            uint32 SamplesToCopy,
+            uint32 OffsetSamples);
 
     /**
      * @brief Copies data interpolating the samples
      * @brief this function decides the type of data and the calls the LinearInterpolationCopyTemplate()
      */
     uint32 LinearInterpolationCopy(const uint32 nodeNumber,
-                                   const uint32 minSeg,
-                                   const uint32 samplesToCopy,
-                                   const uint32 offsetSamples);
-
+            const uint32 minSeg,
+            const uint32 samplesToCopy,
+            const uint32 offsetSamples);
 
     /**
      * @brief Template function which reads the data from MDSplus and performs the interpolation
      */
     template<typename T>
     uint32 LinearInterpolationCopyTemplate(uint32 nodeNumber,
-                                           uint32 minSeg,
-                                           uint32 samplesToCopy,
-                                           uint32 offsetSamples);
+            uint32 minSeg,
+            uint32 samplesToCopy,
+            uint32 offsetSamples);
 
     /**
      * @brief Fills the holes with the last value.
      * @details this function calls the HoldCopyTemplate.
      */
     uint32 HoldCopy(const uint32 nodeNumber,
-                    const uint32 minSeg,
-                    const uint32 samplesToCopy,
-                    const uint32 samplesOffset);
+            const uint32 minSeg,
+            const uint32 samplesToCopy,
+            const uint32 samplesOffset);
 
     /**
      * @brief Template function which actually fills the dataSourceMemory buffer
      */
     template<typename T>
     uint32 HoldCopyTemplate(uint32 nodeNumber,
-                            uint32 minSeg,
-                            uint32 samplesToCopy,
-                            uint32 samplesOffset);
+            uint32 minSeg,
+            uint32 samplesToCopy,
+            uint32 samplesOffset);
 
     /**
      * @brief Copy the remaining data of the MDSpls into the dataSourceMemory buffer
      * @details this function is called just to managed the end of the MDSplus data.
      */
     bool CopyRemainingData(const uint32 nodeNumber,
-                           const uint32 minSegment);
+            const uint32 minSegment);
 
     /**
      * @brief Given tstart and tend this function decide how many samples to copy
      */
     uint32 ComputeSamplesToCopy(const uint32 nodeNumber,
-                                const float64 tstart,
-                                const float64 tend) const;
+            const float64 tstart,
+            const float64 tend) const;
 
     /**
      * @brief modifies samples in case it was not well calculated due to numeric errors.
      */
     void VerifySamples(const uint32 nodeNumber,
-                       uint32 &samples,
-                       const float64 tstart,
-                       const float64 tend) const;
+            uint32 &samples,
+            const float64 tstart,
+            const float64 tend) const;
 
     /**
      * @brief Compute the interpolation given to samples.
      */
     template<typename T>
     bool SampleInterpolation(float64 cT,
-                             T data1,
-                             T data2,
-                             float64 t1,
-                             float64 t2,
-                             float64 *ptr);
+            T data1,
+            T data2,
+            float64 t1,
+            float64 t2,
+            float64 *ptr);
 
     /**
      * @brief Convert the the MDSplus type into MARTe type.
@@ -492,14 +489,40 @@ private:
     TypeDescriptor ConvertMDStypeToMARTeType(StreamString mdsType) const;
 
     bool AllNodesEnd() const;
+
+    /**
+     * The name of the MDSplus tree to be opened.
+     */
     StreamString treeName;
+
+    /**
+     * The MDSplus tree to be opened.
+     */
     MDSplus::Tree *tree;
+
+    /**
+     * The names of the nodes to be managed.
+     */
     StreamString *nodeName;
+
+    /**
+     * The nodes to be managed.
+     */
     MDSplus::TreeNode **nodes;
+
+    /**
+     * The number of nodes to be managed.
+     */
     uint32 numberOfNodeNames;
 
+    /**
+     * The number of input signals.
+     */
     uint32 nOfInputSignals;
 
+    /**
+     * The number of input on each function.
+     */
     uint32 nOfInputSignalsPerFunction;
 
     /**
@@ -520,19 +543,28 @@ private:
     int32 shotNumber;
 
     /**
-     * signal type expected to read. It is optional parameter on the configuration file. If exist it is check against signalType.
+     * Signal type expected to be read. It is optional parameter on the configuration file. If exist it is check against signalType.
      */
     TypeDescriptor *type;
 
+    /**
+     * Number of bytes of each signal to be read.
+     */
     uint32 *bytesType;
 
     /**
-     * number of elements that should be read each MARTe cycle. It is read from the configuration file
+     * Number of elements that should be read each MARTe cycle. It is read from the configuration file
      */
     uint32 *numberOfElements;
 
+    /**
+     * Data source memory.
+     */
     char8 *dataSourceMemory;
 
+    /**
+     * Signals offsets in the memory.
+     */
     uint32 *offsets;
 
     /**
@@ -546,12 +578,12 @@ private:
     float64 currentTime;
 
     /**
-     * time increment between Synchronisations. It is he inverse of frequency;
+     * Time increment between Synchronisations. It is he inverse of frequency;
      */
     float64 period;
 
     /**
-     *
+     * Real-time application frequency.
      */
     float64 frequency;
 
@@ -586,7 +618,11 @@ private:
      */
     float64 *samplingTime;
 
+    /**
+     * Last values to be copied.
+     */
     char8 *lastValue;
+
 
     float64 *lastTime;
 
@@ -602,11 +638,320 @@ private:
 
 };
 
-}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+template<typename T>
+void MDSReader::CopyTheSameValueTemplate(uint32 idxNumber,
+                                         uint32 numberOfTimes,
+                                         uint32 samplesOffset) {
+    uint32 extraOffset = samplesOffset * bytesType[idxNumber];
+    T *ptr = reinterpret_cast<T *>(&dataSourceMemory[offsets[idxNumber] + extraOffset]);
+    for (uint32 i = 0u; i < numberOfTimes; i++) {
+        ptr[i] = *reinterpret_cast<T *>(&lastValue[offsetLastValue[idxNumber]]);
+    }
+}
+
+template<typename T>
+uint32 MDSReader::MakeRawCopyTemplate(uint32 nodeNumber,
+                                      uint32 minSeg,
+                                      uint32 SamplesToCopy,
+                                      uint32 OffsetSamples) {
+
+    MDSplus::Data *dataD = NULL_PTR(MDSplus::Data *);
+    int32 nElements = 0u;
+    uint32 bytesToCopy = 0u;
+    uint32 extraOffset = OffsetSamples * bytesType[nodeNumber];
+    bool endSegment = false;
+    uint32 samplesCopied = 0u;
+    uint32 remainingSamplesOnTheSegment = 0u;
+    T* data = NULL_PTR(T *);
+    for (uint32 currentSegment = minSeg; (currentSegment < maxNumberOfSegments[nodeNumber]) && (SamplesToCopy != 0); currentSegment++) {
+        dataD = nodes[nodeNumber]->getSegment(currentSegment);
+        if (type[nodeNumber] == UnsignedInteger8Bit) {
+            data = reinterpret_cast<T *>(dataD->getByteUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger8Bit) {
+            data = reinterpret_cast<T *>(dataD->getByteArray(&nElements));
+        }
+        else if (type[nodeNumber] == UnsignedInteger16Bit) {
+            data = reinterpret_cast<T *>(dataD->getShortUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger16Bit) {
+            data = reinterpret_cast<T *>(dataD->getShortArray(&nElements));
+        }
+        else if (type[nodeNumber] == UnsignedInteger32Bit) {
+            data = reinterpret_cast<T *>(dataD->getIntUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger32Bit) {
+            data = reinterpret_cast<T *>(dataD->getIntArray(&nElements));
+        }
+        else if (type[nodeNumber] == UnsignedInteger64Bit) {
+            data = reinterpret_cast<T *>(dataD->getLongUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger64Bit) {
+            data = reinterpret_cast<T *>(dataD->getLongArray(&nElements));
+        }
+        else if (type[nodeNumber] == Float32Bit) {
+            data = reinterpret_cast<T *>(dataD->getFloatArray(&nElements));
+        }
+        else if (type[nodeNumber] == Float64Bit) {
+            data = reinterpret_cast<T *>(dataD->getDoubleArray(&nElements));
+        }
+
+        remainingSamplesOnTheSegment = static_cast<uint32>(nElements) - elementsConsumed[nodeNumber];
+        endSegment = remainingSamplesOnTheSegment <= SamplesToCopy;
+        if (!endSegment) {        // no end of segment but no more data need to be copied
+            bytesToCopy = SamplesToCopy * bytesType[nodeNumber];
+            samplesCopied += SamplesToCopy;
+        }
+        else {        // end segment but still more data must be copied
+            bytesToCopy = remainingSamplesOnTheSegment * bytesType[nodeNumber];
+            samplesCopied += remainingSamplesOnTheSegment;
+
+            //
+        }
+        MemoryOperationsHelper::Copy(reinterpret_cast<void *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]),
+                                     reinterpret_cast<void *>(&data[elementsConsumed[nodeNumber]]), bytesToCopy);
+        extraOffset += bytesToCopy;
+
+//Update values
+        if (!endSegment) {        // no end of segment but no more data need to be copied
+            elementsConsumed[nodeNumber] += SamplesToCopy;
+            SamplesToCopy = 0u;
+        }
+        else {        // end segment but still more data must be copied
+            SamplesToCopy -= ((static_cast<uint32>(nElements)) - elementsConsumed[nodeNumber]);
+            elementsConsumed[nodeNumber] = 0u;
+        }
+        *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]) = data[nElements - 1];
+        MDSplus::deleteData(dataD);
+        delete data;
+
+    }
+    return samplesCopied;
+}
+
+
+template<typename T>
+uint32 MDSReader::LinearInterpolationCopyTemplate(uint32 nodeNumber,
+                                                  uint32 minSeg,
+                                                  uint32 samplesToCopy,
+                                                  uint32 offsetSamples) {
+
+    MDSplus::Array *dataD = NULL_PTR(MDSplus::Array *);
+    MDSplus::Data *timeNodeD = NULL_PTR(MDSplus::Data *);
+    float64 *timeNode = NULL_PTR(float64 *);
+    int32 nElements = 0u;
+    uint32 extraOffset = offsetSamples * bytesType[nodeNumber];
+    bool endSegment = false;
+    uint32 samplesCopied = 0;
+    uint32 iterations = 0u;
+    uint32 remainingSamplesOnTheSegment = 0u;
+
+    T* data = NULL_PTR(T *);
+    for (uint32 currentSegment = minSeg; (currentSegment < maxNumberOfSegments[nodeNumber]) && (samplesToCopy != 0); currentSegment++) {
+        nodes[nodeNumber]->getSegmentAndDimension(currentSegment, dataD, timeNodeD);
+        if (type[nodeNumber] == UnsignedInteger8Bit) {
+            data = reinterpret_cast<T *>(dataD->getByteUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger8Bit) {
+            data = reinterpret_cast<T *>(dataD->getByteArray(&nElements));
+        }
+        else if (type[nodeNumber] == UnsignedInteger16Bit) {
+            data = reinterpret_cast<T *>(dataD->getShortUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger16Bit) {
+            data = reinterpret_cast<T *>(dataD->getShortArray(&nElements));
+        }
+        else if (type[nodeNumber] == UnsignedInteger32Bit) {
+            data = reinterpret_cast<T *>(dataD->getIntUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger32Bit) {
+            data = reinterpret_cast<T *>(dataD->getIntArray(&nElements));
+        }
+        else if (type[nodeNumber] == UnsignedInteger64Bit) {
+            data = reinterpret_cast<T *>(dataD->getLongUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger64Bit) {
+            data = reinterpret_cast<T *>(dataD->getLongArray(&nElements));
+        }
+        else if (type[nodeNumber] == Float32Bit) {
+            data = reinterpret_cast<T *>(dataD->getFloatArray(&nElements));
+        }
+        else if (type[nodeNumber] == Float64Bit) {
+            data = reinterpret_cast<T *>(dataD->getDoubleArray(&nElements));
+        }
+        timeNode = timeNodeD->getDoubleArray(&nElements);
+        float64 auxTime = timeNode[nElements - 1] + samplingTime[nodeNumber];
+        remainingSamplesOnTheSegment = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime); //static_cast<uint32>(1 + ((timeNode[nElements - 1] - currentTime) / samplingTime[nodeNumber]));
+        endSegment = (remainingSamplesOnTheSegment <= samplesToCopy);
+        if (!endSegment) {        //no end of segment but no more data need to be copied
+            samplesCopied += samplesToCopy;
+            iterations = samplesToCopy;
+        }
+        else {        // end segment but still more data must be copied
+            samplesCopied += remainingSamplesOnTheSegment;
+            iterations = remainingSamplesOnTheSegment;
+        }
+        float64 outputInterpolation = 0.0;
+        for (uint32 i = 0u; i < iterations; i++) {
+            while ((currentTime >= timeNode[elementsConsumed[nodeNumber]]) && (elementsConsumed[nodeNumber] < static_cast<uint32>(nElements - 1))) {
+                elementsConsumed[nodeNumber]++;
+            }
+            if (elementsConsumed[nodeNumber] == 0u) {
+                SampleInterpolation<T>(currentTime, *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]), data[elementsConsumed[nodeNumber]],
+                                       lastTime[nodeNumber], timeNode[elementsConsumed[nodeNumber]], &outputInterpolation);
+
+            }
+            else {
+                SampleInterpolation<T>(currentTime, data[elementsConsumed[nodeNumber] - 1], data[elementsConsumed[nodeNumber]],
+                                       timeNode[elementsConsumed[nodeNumber] - 1], timeNode[elementsConsumed[nodeNumber]], &outputInterpolation);
+            }
+            if ((type[nodeNumber] == Float32Bit) || (type[nodeNumber] == Float64Bit)) {
+                *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) = static_cast<T>(outputInterpolation);
+            }
+            else {
+                *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) = static_cast<T>(round(outputInterpolation));
+            }
+            extraOffset += bytesType[nodeNumber];
+            currentTime += samplingTime[nodeNumber];
+            samplesToCopy--;
+        }
+        if (endSegment) {
+            *reinterpret_cast<T *>(&(lastValue[offsetLastValue[nodeNumber]])) = data[nElements - 1];
+            lastTime[nodeNumber] = timeNode[nElements - 1];
+            elementsConsumed[nodeNumber] = 0u;
+        }
+        MDSplus::deleteData(dataD);
+        MDSplus::deleteData(timeNodeD);
+        delete data;
+        delete timeNode;
+    }
+    return samplesCopied;
+
+}
+
+template<typename T>
+uint32 MDSReader::HoldCopyTemplate(uint32 nodeNumber,
+                                   uint32 minSeg,
+                                   uint32 samplesToCopy,
+                                   uint32 samplesOffset) {
+
+    MDSplus::Array *dataD = NULL_PTR(MDSplus::Array *);
+    MDSplus::Data *timeNodeD = NULL_PTR(MDSplus::Data *);
+    float64 *timeNode = NULL_PTR(float64 *);
+    int32 nElements = 0u;
+    uint32 extraOffset = samplesOffset * bytesType[nodeNumber];
+    bool endSegment = false;
+    uint32 samplesCopied = 0;
+    uint32 iterations = 0u;
+    uint32 remainingSamplesOnTheSegment = 0u;
+
+    T* data = NULL_PTR(T *);
+    for (uint32 currentSegment = minSeg; (currentSegment < maxNumberOfSegments[nodeNumber]) && (samplesToCopy != 0); currentSegment++) {
+        nodes[nodeNumber]->getSegmentAndDimension(currentSegment, dataD, timeNodeD);
+        if (type[nodeNumber] == UnsignedInteger8Bit) {
+            data = reinterpret_cast<T *>(dataD->getByteUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger8Bit) {
+            data = reinterpret_cast<T *>(dataD->getByteArray(&nElements));
+        }
+        else if (type[nodeNumber] == UnsignedInteger16Bit) {
+            data = reinterpret_cast<T *>(dataD->getShortUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger16Bit) {
+            data = reinterpret_cast<T *>(dataD->getShortArray(&nElements));
+        }
+        else if (type[nodeNumber] == UnsignedInteger32Bit) {
+            data = reinterpret_cast<T *>(dataD->getIntUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger32Bit) {
+            data = reinterpret_cast<T *>(dataD->getIntArray(&nElements));
+        }
+        else if (type[nodeNumber] == UnsignedInteger64Bit) {
+            data = reinterpret_cast<T *>(dataD->getLongUnsignedArray(&nElements));
+        }
+        else if (type[nodeNumber] == SignedInteger64Bit) {
+            data = reinterpret_cast<T *>(dataD->getLongArray(&nElements));
+        }
+        else if (type[nodeNumber] == Float32Bit) {
+            data = reinterpret_cast<T *>(dataD->getFloatArray(&nElements));
+        }
+        else if (type[nodeNumber] == Float64Bit) {
+            data = reinterpret_cast<T *>(dataD->getDoubleArray(&nElements));
+        }
+        timeNode = timeNodeD->getDoubleArray(&nElements);
+        float64 auxTime = timeNode[nElements - 1] + samplingTime[nodeNumber];
+        remainingSamplesOnTheSegment = ComputeSamplesToCopy(nodeNumber, currentTime, auxTime); //static_cast<uint32>(1 + ((timeNode[nElements - 1] - currentTime) / samplingTime[nodeNumber]));
+        endSegment = (remainingSamplesOnTheSegment <= samplesToCopy);
+        if (!endSegment) {        //no end of segment but no more data need to be copied
+            samplesCopied += samplesToCopy;
+            iterations = samplesToCopy;
+        }
+        else {        // end segment but still more data must be copied
+            samplesCopied += remainingSamplesOnTheSegment;
+            iterations = remainingSamplesOnTheSegment;
+        }
+        for (uint32 i = 0u; i < iterations; i++) {
+            while ((currentTime >= timeNode[elementsConsumed[nodeNumber]]) && (elementsConsumed[nodeNumber] < static_cast<uint32>(nElements - 1))) {
+                elementsConsumed[nodeNumber]++;
+            }
+            if (elementsConsumed[nodeNumber] == 0u) {
+                float64 diff1 = currentTime - lastTime[nodeNumber];
+                float64 diff2 = timeNode[0] - currentTime;
+                if (diff1 < diff2) {
+                    *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) =
+                            *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]);
+                }
+                else {
+                    *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) = data[0];
+                }
+            }
+            else {
+                float64 diff1 = currentTime - timeNode[elementsConsumed[nodeNumber] - 1];
+                float64 diff2 = timeNode[elementsConsumed[nodeNumber]] - currentTime;
+                if (diff1 < diff2) {
+                    *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) = data[elementsConsumed[nodeNumber] - 1];
+                }
+                else {
+                    *reinterpret_cast<T *>(&dataSourceMemory[offsets[nodeNumber] + extraOffset]) = data[elementsConsumed[nodeNumber]];
+                }
+            }
+            extraOffset += bytesType[nodeNumber];
+            currentTime += samplingTime[nodeNumber];
+            samplesToCopy--;
+        }
+        if (endSegment) {
+            *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]) = data[nElements - 1];
+            lastTime[nodeNumber] = timeNode[nElements - 1];
+            elementsConsumed[nodeNumber] = 0u;
+        }
+        MDSplus::deleteData(dataD);
+        MDSplus::deleteData(timeNodeD);
+        delete data;
+        delete timeNode;
+    }
+    return samplesCopied;
+}
+
+template<typename T>
+bool MDSReader::SampleInterpolation(float64 cT,
+                                    T data1,
+                                    T data2,
+                                    float64 t1,
+                                    float64 t2,
+                                    float64 *ptr) {
+    bool ret = t2 > t1;
+    if (ret) {
+        float64 slope = (data2 - data1) / (t2 - t1);
+        *ptr = slope * (cT - t1) + data1;
+    }
+    return ret;
+}
+}
+
 
 #endif /* DATASOURCES_MDSREADER_MDSREADER_H_ */
 
