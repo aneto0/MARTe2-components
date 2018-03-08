@@ -153,4 +153,9 @@ TEST(EPICSCAOutputGTest,TestExecute_Arrays) {
     EPICSCAOutputTest test;
     ASSERT_TRUE(test.TestExecute_Arrays());
 }
-	
+
+TEST(EPICSCAOutputGTest,TestIsIgnoringBufferOverrun) {
+    EPICSCAOutputTest test;
+    ASSERT_TRUE(test.TestIsIgnoringBufferOverrun());
+}
+

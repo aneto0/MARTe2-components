@@ -45,6 +45,7 @@ EPICSCAOutput::EPICSCAOutput() :
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
     numberOfBuffers = 0u;
+    ignoreBufferOverrun = 1u;
     threadContextSet = false;
 }
 
@@ -81,6 +82,10 @@ bool EPICSCAOutput::Initialise(StructuredDataI & data) {
         if (!data.Read("StackSize", stackSize)) {
             REPORT_ERROR(ErrorManagement::Information, "No StackSize defined. Using default = %d", stackSize);
         }
+        if (!data.Read("IgnoreBufferOverrun", ignoreBufferOverrun)) {
+            REPORT_ERROR(ErrorManagement::Information, "No IgnoreBufferOverrun defined. Using default = %d", ignoreBufferOverrun);
+        }
+
     }
     if (ok) {
         ok = data.MoveRelative("Signals");
@@ -255,6 +260,7 @@ bool EPICSCAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const ch
     bool ok = broker->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
     if (ok) {
         ok = outputBrokers.Insert(broker);
+        broker->SetIgnoreBufferOverrun(ignoreBufferOverrun == 1u);
     }
 
     return ok;
@@ -315,6 +321,11 @@ bool EPICSCAOutput::Synchronise() {
 
     return ok;
 }
+
+bool EPICSCAOutput::IsIgnoringBufferOverrun() const {
+    return (ignoreBufferOverrun == 1u);
+}
+
 
 CLASS_REGISTER(EPICSCAOutput, "1.0")
 

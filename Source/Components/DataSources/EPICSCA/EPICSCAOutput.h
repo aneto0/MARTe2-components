@@ -53,6 +53,7 @@ namespace MARTe {
  *     Class = EPICSCA::EPICSCAOutput
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
  *     CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
+ *     IgnoreBufferOverrun = 1 //Optional. If true no error will be triggered when the thread that writes into EPICS does not consume the data fast enough.
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in a circular buffer that asynchronously writes the PV values. Each buffer is capable of holding a copy of all the DataSourceI signals.
  *     Signals = {
  *          PV1 = { //At least one shall be defined
@@ -176,6 +177,12 @@ EPICSCAOutput    ();
     virtual bool Synchronise();
 
     /**
+     * @brief Gets if buffer overruns is being ignored (i.e. the consumer thread which writes into EPICS is not consuming the data fast enough).
+     * @return if true no error is to be triggered when there is a buffer overrun.
+     */
+    bool IsIgnoringBufferOverrun() const;
+
+    /**
      * @brief Registered as the ca_create_subscription callback function.
      * It calls updates the memory of the corresponding PV variable.
      */
@@ -211,6 +218,11 @@ private:
      * True once the epics thread context is set
      */
     bool threadContextSet;
+
+    /**
+     * If true no error will be triggered when the data cannot be consumed by the thread doing the caputs.
+     */
+    uint32 ignoreBufferOverrun;
 };
 }
 

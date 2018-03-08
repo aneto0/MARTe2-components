@@ -155,6 +155,11 @@ public:
      */
     bool TestGetNumberOfBuffers();
 
+    /**
+     * @brief Tests the IsIgnoringBufferOverrun method.
+     */
+    bool TestIsIgnoringBufferOverrun();
+
 };
 
 /*---------------------------------------------------------------------------*/

@@ -882,6 +882,7 @@ bool EPICSCAOutputTest::TestInitialise() {
     cdb.Write("CPUs", 1);
     cdb.Write("StackSize", 100000);
     cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("IgnoreBufferOverrun", 0);
     cdb.CreateAbsolute("Signals");
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
@@ -889,6 +890,7 @@ bool EPICSCAOutputTest::TestInitialise() {
         ok = (test.GetCPUMask() == 1);
         ok &= (test.GetStackSize() == 100000);
         ok &= (test.GetNumberOfBuffers() == 10);
+        ok &= (!test.IsIgnoringBufferOverrun());
     }
     return ok;
 }
@@ -905,6 +907,7 @@ bool EPICSCAOutputTest::TestInitialise_Defaults() {
         ok = (test.GetCPUMask() == 0xff);
         ok &= (test.GetStackSize() == (THREADS_DEFAULT_STACKSIZE * 4u));
         ok &= (test.GetNumberOfBuffers() == 11);
+        ok &= (test.IsIgnoringBufferOverrun());
     }
     return ok;
 }
@@ -963,6 +966,10 @@ bool EPICSCAOutputTest::TestGetStackSize() {
 }
 
 bool EPICSCAOutputTest::TestGetNumberOfBuffers() {
+    return TestInitialise();
+}
+
+bool EPICSCAOutputTest::TestIsIgnoringBufferOverrun() {
     return TestInitialise();
 }
 
