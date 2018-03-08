@@ -158,6 +158,9 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
                 else if (modeValueStr == "Parameter") {
                     eventMode.parameter = true;
                 }
+                else if (modeValueStr == "ParameterName") {
+                    eventMode.parameterName = true;
+                }
                 else if (modeValueStr == "Ignore") {
                     eventMode.ignore = true;
                 }
@@ -210,7 +213,8 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
             if (data.Read("Function", function)) {
                 ok = (!eventMode.function.operator bool());
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "With PVValue=Function the Function to be called is the PV value. Remove this parameter. At most specify a FunctionMap");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "With PVValue=Function the Function to be called is the PV value. Remove this parameter. At most specify a FunctionMap");
                 }
             }
         }
@@ -218,7 +222,8 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
             //In these cases the Function parameter shall be specified
             bool isIgnore = eventMode.ignore.operator bool();
             bool isParameter = eventMode.parameter.operator bool();
-            if ((isIgnore) || (isParameter)) {
+            bool isParameterName = eventMode.parameterName.operator bool();
+            if ((isIgnore) || (isParameter) || (isParameterName)) {
                 ok = (function.Size() != 0u);
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "The Function parameter must be specified");
@@ -327,6 +332,29 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
                 ok = cdb.Write("Function", function.Buffer());
             }
         }
+        else if (eventMode.parameterName.operator bool()) {
+            if (ok) {
+                ok = cdb.Write("Function", function.Buffer());
+            }
+            if (ok) {
+                ok = cdb.CreateAbsolute("+Parameters");
+            }
+            if (ok) {
+                ok = cdb.Write("Class", "ConfigurationDatabase");
+            }
+            if (ok) {
+                ok = cdb.Write("param1", GetName());
+            }
+            if (ok) {
+                ok = cdb.Write("param2", newValue.Buffer());
+            }
+            if (ok) {
+                ok = cdb.MoveToAncestor(1u);
+            }
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not create ConfigurationDatabase for message");
+            }
+        }
         //Must be eventMode.parameter.operator bool()
         else {
             if (ok) {
@@ -346,7 +374,6 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
             }
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Could not create ConfigurationDatabase for message");
-
             }
         }
         if (ok) {

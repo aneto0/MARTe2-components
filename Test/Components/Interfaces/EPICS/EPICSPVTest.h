@@ -112,6 +112,11 @@ public:
     bool TestInitialise_Event_Parameter();
 
     /**
+     * @brief Tests the Initialise method with an Event and PVValue=Parameter.
+     */
+    bool TestInitialise_Event_ParameterName();
+
+    /**
      * @brief Tests the Initialise method with an Event and PVValue=Ignore.
      */
     bool TestInitialise_Event_Ignore();
@@ -220,6 +225,11 @@ public:
      * @brief Tests the HandlePVEvent method calling a function with a string parameter.
      */
     bool TestHandlePVEvent_Function_Parameter_String();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function with an int parameter.
+     */
+    bool TestHandlePVEvent_Function_ParameterName_Int();
 
     /**
      * @brief Tests the HandlePVEvent method calling a function in Ignore mode.

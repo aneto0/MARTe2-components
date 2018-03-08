@@ -57,8 +57,9 @@ namespace MARTe {
  *     PVValue = Function //Compulsory. Can either be Function, Parameter or Ignore.
  *                        //If Function the PV value will be used as the name of the Function to call.
  *                        //If Parameter the PV value will be used as the parameter of the Function to call. This implies that the Function parameter must be set.
+ *                        //If ParameterName the PV value will be used as the second parameter of the Function to call. The first parameter will the Object name. This implies that the Function parameter must be set.
  *                        //If Ignore, the PV value will not be used and the Function will always be called.
- *     Function = STOP //Compulsory if PVValue=Parameter or PVValue=Ignore. Shall not be set if FunctionMap is defined or if PVValue=Function.
+ *     Function = STOP //Compulsory if PVValue=Parameter, PVValue=ParameterName or PVValue=Ignore. Shall not be set if FunctionMap is defined or if PVValue=Function.
  *     FunctionMap = {{"1", "RUN"}, {"0", "STOP"}} //Optional Nx2 matrix. Only allowed if PVValue == Function. If defined then the PV value (first column of the matrix) will be used to map the Function name (second column of the matrix).
  *   }
  * }
@@ -147,7 +148,7 @@ EPICSPV    ();
     chtype GetPVType() const;
 
     /**
-     * @brief Defines the possible EventMode values (Function, Parameter, Ignore).
+     * @brief Defines the possible EventMode values (Function, Parameter, ParameterName, Ignore).
      */
     /*lint ++flb*/
     union EventMode {
@@ -167,14 +168,19 @@ EPICSPV    ();
         BitBoolean<uint8, 2u> parameter;
 
         /**
+         * Value is to be used as the second function parameter (the first parameter name is this object name).
+         */
+        BitBoolean<uint8, 3u> parameterName;
+
+        /**
          * Value is to be ignored
          */
-        BitBoolean<uint8, 3u> ignore;
+        BitBoolean<uint8, 4u> ignore;
 
         /**
          * Unmapped area
          */
-        BitRange<uint8, 4u, 4u> unMapped;
+        BitRange<uint8, 5u, 3u> unMapped;
 
         /**
          * Output as uint16

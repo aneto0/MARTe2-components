@@ -109,6 +109,11 @@ TEST(EPICSPVGTest,TestInitialise_Event_Parameter) {
     ASSERT_TRUE(test.TestInitialise_Event_Parameter());
 }
 
+TEST(EPICSPVGTest,TestInitialise_Event_ParameterName) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestInitialise_Event_ParameterName());
+}
+
 TEST(EPICSPVGTest,TestInitialise_Event_Ignore) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestInitialise_Event_Ignore());
@@ -272,6 +277,11 @@ TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Float64) {
 TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_String) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_String());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_ParameterName_Int) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_ParameterName_Int());
 }
 
 TEST(EPICSPVGTest,TestHandlePVEvent_Function_Ignore) {

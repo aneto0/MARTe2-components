@@ -92,11 +92,18 @@ public:
         return MARTe::ErrorManagement::NoError;
     }
 
+    MARTe::ErrorManagement::ErrorType HandleInt32ParameterName(MARTe::StreamString parameterNameIn, const MARTe::int32 newValue) {
+        int32Value = newValue;
+        parameterName = parameterNameIn;
+        return MARTe::ErrorManagement::NoError;
+    }
+
     MARTe::uint32 uint32Value;
     MARTe::int32 int32Value;
     MARTe::float32 float32Value;
     MARTe::float64 float64Value;
     MARTe::StreamString stringValue;
+    MARTe::StreamString parameterName;
     bool noParameterFunctionCalled;
 };
 CLASS_REGISTER(EPICSPVTestHelper, "1.0")
@@ -106,6 +113,7 @@ CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleUInt32)
 CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleFloat32)
 CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleFloat64)
 CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleString)
+CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleInt32ParameterName)
 
 /**
  * Helper class to test the CAPut
@@ -545,6 +553,31 @@ bool EPICSPVTest::TestInitialise_Event_Parameter() {
     ok &= (pv.GetFunction() == "AFunction");
     ok &= (pv.GetFunctionFromMap("ANYKEY") == "");
     ok &= (pv.GetMode().parameter);
+    ok &= (pv.GetPVName() == "PVONES");
+    ok &= (pv.GetPVChid() == 0u);
+    ok &= (pv.GetPVType() == DBR_STRING);
+    ok &= (pv.GetTimeout() == 5.0);
+    return ok;
+}
+
+bool EPICSPVTest::TestInitialise_Event_ParameterName() {
+    using namespace MARTe;
+    EPICSPV pv;
+    ConfigurationDatabase cdb;
+    cdb.Write("PVName", "PVONES");
+    cdb.Write("PVType", "string");
+    cdb.CreateRelative("Event");
+    cdb.Write("Destination", "AnObject");
+    cdb.Write("PVValue", "ParameterName");
+    cdb.Write("Function", "AFunction");
+    cdb.MoveToRoot();
+
+    bool ok = (pv.Initialise(cdb));
+    ok &= (pv.GetContext() == NULL);
+    ok &= (pv.GetDestination() == "AnObject");
+    ok &= (pv.GetFunction() == "AFunction");
+    ok &= (pv.GetFunctionFromMap("ANYKEY") == "");
+    ok &= (pv.GetMode().parameterName);
     ok &= (pv.GetPVName() == "PVONES");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_STRING);
@@ -1251,6 +1284,57 @@ bool EPICSPVTest::TestHandlePVEvent_Function_Parameter_String() {
         //Call twice to trigger change
         aPV->HandlePVEvent(reinterpret_cast<const void *>(value.Buffer()));
         ok = (anObject->stringValue == value);
+    }
+    ord->Purge();
+    return ok;
+}
+
+bool EPICSPVTest::TestHandlePVEvent_Function_ParameterName_Int() {
+    using namespace MARTe;
+    EPICSPV pv;
+    StreamString config = ""
+            "+PV_1 = {"
+            "    Class = EPICSPV"
+            "    PVName = PVS::PV1"
+            "    PVType = int32"
+            "    Event = {"
+            "        PVValue = ParameterName"
+            "        Destination = AnObject"
+            "        Function = HandleInt32ParameterName"
+            "    }"
+            "}"
+            "+AnObject = {"
+            "    Class = EPICSPVTestHelper"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPVTestHelper> anObject;
+    ReferenceT<EPICSPV> aPV;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        aPV = ord->Find("PV_1");
+        ok = aPV.IsValid();
+    }
+    if (ok) {
+        anObject = ord->Find("AnObject");
+        ok = anObject.IsValid();
+    }
+    if (ok) {
+        int32 value = 7;
+        aPV->HandlePVEvent(reinterpret_cast<const void *>(&value));
+        //Call twice to trigger change
+        aPV->HandlePVEvent(reinterpret_cast<const void *>(&value));
+        ok = (anObject->int32Value == value);
+        if (ok) {
+            ok = (anObject->parameterName == "PV_1");
+        }
     }
     ord->Purge();
     return ok;
