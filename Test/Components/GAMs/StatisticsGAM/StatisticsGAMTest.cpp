@@ -50,27 +50,27 @@
 
 namespace MARTe {
 
-class ConstantGAM: public GAM {
+class StatisticsGAMTestHelper_Constant: public GAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
-ConstantGAM    ();
-    virtual ~ConstantGAM();
+StatisticsGAMTestHelper_Constant    ();
+    virtual ~StatisticsGAMTestHelper_Constant();
     virtual bool Setup();
     virtual bool Execute();
     template <typename Type> bool SetOutput (uint32 index, Type& value);
 };
 
-ConstantGAM::ConstantGAM() :
+StatisticsGAMTestHelper_Constant::StatisticsGAMTestHelper_Constant() :
         GAM() {
 
 }
 
-ConstantGAM::~ConstantGAM() {
+StatisticsGAMTestHelper_Constant::~StatisticsGAMTestHelper_Constant() {
 
 }
 
-bool ConstantGAM::Setup() {
+bool StatisticsGAMTestHelper_Constant::Setup() {
 
     bool ret = (GetNumberOfInputSignals() == 0u);
 
@@ -137,10 +137,10 @@ bool ConstantGAM::Setup() {
         }
 
         if (ret) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ConstantGAM::Setup - '%s' '%!'", signalName.Buffer(), signalDefValue);
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "StatisticsGAMTestHelper_Constant::Setup - '%s' '%!'", signalName.Buffer(), signalDefValue);
         }
         else {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "ConstantGAM::Setup - GetSignalDefaultValue '%s'", signalName.Buffer());
+            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "StatisticsGAMTestHelper_Constant::Setup - GetSignalDefaultValue '%s'", signalName.Buffer());
         }
 
     }
@@ -148,11 +148,11 @@ bool ConstantGAM::Setup() {
     return ret;
 }
 
-bool ConstantGAM::Execute() {
+bool StatisticsGAMTestHelper_Constant::Execute() {
     return true;
 }
 
-template<typename Type> bool ConstantGAM::SetOutput(uint32 signalIndex, Type& value) {
+template<typename Type> bool StatisticsGAMTestHelper_Constant::SetOutput(uint32 signalIndex, Type& value) {
 
     bool ret = (GetNumberOfOutputSignals() > signalIndex);
 
@@ -180,13 +180,13 @@ template<typename Type> bool ConstantGAM::SetOutput(uint32 signalIndex, Type& va
     }
 
     if (ret) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ConstantGAM::SetOutput- '%s' '%!'", signalName.Buffer(), value);
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "StatisticsGAMTestHelper_Constant::SetOutput- '%s' '%!'", signalName.Buffer(), value);
     }
 
     return ret;
 }
 
-CLASS_REGISTER(ConstantGAM, "1.0")
+CLASS_REGISTER(StatisticsGAMTestHelper_Constant, "1.0")
 
 class SinkGAM: public GAM {
 public:
@@ -488,7 +488,7 @@ bool StatisticsGAMTest::TestSetup_float32() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Constants = {"
-            "            Class = ConstantGAM"
+            "            Class = StatisticsGAMTestHelper_Constant"
             "            OutputSignals = {"
             "                Constant_float32 = {"
             "                    DataSource = DDB"
@@ -582,7 +582,7 @@ bool StatisticsGAMTest::TestSetup_NoInputSignal() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Constants = {"
-            "            Class = ConstantGAM"
+            "            Class = StatisticsGAMTestHelper_Constant"
             "            OutputSignals = {"
             "                Constant_float32 = {"
             "                    DataSource = DDB"
@@ -654,7 +654,7 @@ bool StatisticsGAMTest::TestSetup_NoOutputSignal() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Constants = {"
-            "            Class = ConstantGAM"
+            "            Class = StatisticsGAMTestHelper_Constant"
             "            OutputSignals = {"
             "                Constant_float32 = {"
             "                    DataSource = DDB"
@@ -714,7 +714,7 @@ bool StatisticsGAMTest::TestSetup_NotAScalarInput() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Constants = {"
-            "            Class = ConstantGAM"
+            "            Class = StatisticsGAMTestHelper_Constant"
             "            OutputSignals = {"
             "                Constant_float32 = {"
             "                    DataSource = DDB"
@@ -794,7 +794,7 @@ bool StatisticsGAMTest::TestSetup_NotAScalarOutput() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Constants = {"
-            "            Class = ConstantGAM"
+            "            Class = StatisticsGAMTestHelper_Constant"
             "            OutputSignals = {"
             "                Constant_float32 = {"
             "                    DataSource = DDB"
@@ -876,7 +876,7 @@ bool StatisticsGAMTest::TestSetup_DistinctTypes_1() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Constants = {"
-            "            Class = ConstantGAM"
+            "            Class = StatisticsGAMTestHelper_Constant"
             "            OutputSignals = {"
             "                Constant_float32 = {"
             "                    DataSource = DDB"
@@ -951,7 +951,7 @@ bool StatisticsGAMTest::TestSetup_DistinctTypes_2() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Constants = {"
-            "            Class = ConstantGAM"
+            "            Class = StatisticsGAMTestHelper_Constant"
             "            OutputSignals = {"
             "                Constant_int32 = {"
             "                    DataSource = DDB"
@@ -1040,7 +1040,7 @@ bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Constants = {"
-            "            Class = ConstantGAM"
+            "            Class = StatisticsGAMTestHelper_Constant"
             "            OutputSignals = {"
             "                Constant_in = {"
             "                    DataSource = DDB"
@@ -1135,7 +1135,7 @@ bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
 
         ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
         ReferenceT<RealTimeApplication> application = god->Find("Test");
-        ReferenceT<ConstantGAM> cst = application->Find("Functions.Constants");
+        ReferenceT<StatisticsGAMTestHelper_Constant> cst = application->Find("Functions.Constants");
         ReferenceT<StatisticsGAM> gam = application->Find("Functions.Statistics");
         ReferenceT<SinkGAM> sink = application->Find("Functions.Sink");
 
@@ -1261,7 +1261,7 @@ bool StatisticsGAMTest::TestPrepareForNextState_Success() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Constants = {"
-            "            Class = ConstantGAM"
+            "            Class = StatisticsGAMTestHelper_Constant"
             "            OutputSignals = {"
             "                Constant_float32 = {"
             "                    DataSource = DDB"

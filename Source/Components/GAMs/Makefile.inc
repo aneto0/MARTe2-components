@@ -24,7 +24,7 @@
 
 OBJSX= 
 
-SPB=IOGAM.x ConversionGAM.x FilterGAM.x MuxGAM.x PIDGAM.x SSMGAM.x StatisticsGAM.x WaveformGAM.x
+SPB=IOGAM.x ConstantGAM.x ConversionGAM.x FilterGAM.x MuxGAM.x PIDGAM.x SSMGAM.x StatisticsGAM.x WaveformGAM.x
 ifdef EFDA_MARTe_DIR
 SPB+=BaseLib2GAM.x
 endif
@@ -37,6 +37,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 
 LIBRARIES_STATIC=$(BUILD_DIR)/IOGAM/IOGAM$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/ConstantGAM/ConstantGAM$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/ConversionGAM/ConversionGAM$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/FilterGAM/FilterGAM$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/MuxGAM/MuxGAM$(LIBEXT)

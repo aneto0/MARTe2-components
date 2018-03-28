@@ -33,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 
 #include "GAM.h"
+#include "MessageI.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -40,7 +41,8 @@
 
 /**
  * @brief GAM which provides constant output signals. Allows to plug different DataSources (e.g. driver with a DDB).
- * @details This GAM provides constant output signals.
+ * @details This GAM provides constant output signals, the value of which is provided through configuration, and
+ * may be asynchronously altered using MARTe messages.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
  * +Constants = {
@@ -55,21 +57,33 @@
  *             DataSource = "DDB"
  *             Type = int32
  *             Default = 100
- *         Signal2 = {
+ *         Signal3 = {
  *             DataSource = "DDB"
  *             Type = int8
+ *             NumberOfDimensions = 1
  *             NumberOfElements = 8
  *             Default = {1 2 3 4 5 6 7 8}
  *         }
  *     }
  * }
  *
- * @todo Add messaging to allow for runtime change of signal values.
+ * The GAM registers a messageable 'SetOutput' method which allows to update signals through messages:
+ * +Message = {
+ *     Class = Message
+ *     Destination = "Functions.Constants"
+ *     Function = "SetOutput"
+ *     +Parameters = {
+ *         Class = ConfigurationDatabase
+ *         SignalIndex = 0 // The index of the signal to modify, or
+ *         SignalName = "Signal1" // Alternatively, the name of the signal from which the index can be retrieved
+ *         SignalValue = 10
+ *     }
+ * }
  */
 
 namespace MARTe {
 
-class ConstantGAM: public GAM {
+class ConstantGAM: public GAM, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -84,8 +98,8 @@ public:
     virtual ~ConstantGAM();
 
     /**
-     * @brief Initialises the output signal memory with defaultvalues  provided through configuration.
-     * @return if the pre-conditions are met.
+     * @brief Initialises the output signal memory with default values provided through configuration.
+     * @return true if the pre-conditions are met.
      * @pre
      *   SetConfiguredDatabase() && GetNumberOfInputSignals() == 0 &&
      *   for each signal i: The default value provided corresponds to the expected type and dimensionality.
@@ -97,6 +111,19 @@ public:
      * @return true.
      */
     virtual bool Execute();
+
+    /**
+     * @brief SetOutput method.
+     * @details The method is registered as a messageable function. It assumes the ReferenceContainer
+     * includes a reference to a StructuredDataI instance which contains a valid 'SignalIndex' attribute, 
+     * or alternatively, a valid 'SignalName' from which the output signal can be identified. 
+     * The 'SignalValue' attribute must match the expected type and dimensionality of the output signal.
+     * @return ErrorManagement::NoError if the pre-conditions are met.
+     * @pre
+     *   'SignalIndex' < GetNumberOfOutputSignals() &&
+     *   The 'SignalValue' provided corresponds to the expected type and dimensionality.
+     */
+    ErrorManagement::ErrorType SetOutput(ReferenceContainer& message);
 };
 
 }

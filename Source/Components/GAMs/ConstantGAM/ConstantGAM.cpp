@@ -30,6 +30,8 @@
 /*---------------------------------------------------------------------------*/
 
 #include "AdvancedErrorManagement.h"
+#include "CLASSMETHODREGISTER.h"
+#include "RegisteredMethodsMessageFilter.h"
 #include "ConstantGAM.h"
 
 /*---------------------------------------------------------------------------*/
@@ -43,7 +45,15 @@
 namespace MARTe {
 
 ConstantGAM::ConstantGAM() :
-        GAM() {
+    GAM(), MessageI() {
+
+    /* Message filter */
+    ReferenceT<RegisteredMethodsMessageFilter> registeredMethodsMessageFilter("RegisteredMethodsMessageFilter");
+    registeredMethodsMessageFilter->SetDestination(this);
+
+    if (registeredMethodsMessageFilter.IsValid()) {
+        InstallMessageFilter(registeredMethodsMessageFilter);
+    }
 
 }
 
@@ -82,45 +92,48 @@ bool ConstantGAM::Setup() {
 	    ret = (signalType != InvalidType);
 	}
 
-	/* This is the basic element type */
-	/* Handle the multi-dimensional case */
-	
-        AnyType signalDefValue (signalType, 0u, GetOutputSignalMemory(signalIndex));
-
-	uint32 signalNumberOfDimensions = 0u;
+        StreamString signalTypeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType);
 
 	if (ret) {
-	    ret = GetSignalNumberOfDimensions(OutputSignals, signalIndex, signalNumberOfDimensions);
+	    REPORT_ERROR(ErrorManagement::Information, "Signal '%!' has type '%!'", signalName.Buffer(), signalTypeName.Buffer());
 	}
 
+	/* The type of the 'Default' value is string */
+	/* Associate an AnyType to the signal memory area */
+	
 	if (ret) {
-	    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signalDefValue.SetNumberOfDimensions(%u)", signalNumberOfDimensions);
+            ret = MoveToSignalIndex(OutputSignals, signalIndex);        
+	}
+
+        AnyType signalDefType = configuredDatabase.GetType("Default");
+        AnyType signalDefValue (signalType, 0u, GetOutputSignalMemory(signalIndex));
+
+	uint32 signalNumberOfDimensions = signalDefType.GetNumberOfDimensions();
+
+	if (ret) {
 	    signalDefValue.SetNumberOfDimensions(signalNumberOfDimensions);
 	}
 
-	uint32 signalNumberOfElements = 0u;
+	uint32 dimensionIndex;
 
-	if (ret) {
-	    ret = GetSignalNumberOfElements(OutputSignals, signalIndex, signalNumberOfElements);
+	for (dimensionIndex = 0u; ((dimensionIndex < signalNumberOfDimensions) && (ret)); dimensionIndex++) {
+	    uint32 dimensionNumberOfElements = signalDefType.GetNumberOfElements(dimensionIndex);
+	    signalDefValue.SetNumberOfElements(dimensionIndex, dimensionNumberOfElements);
 	}
 
 	if (ret) {
-	    uint32 dimensionIndex;
-
-	    for (dimensionIndex = 0u; dimensionIndex < signalNumberOfDimensions; dimensionIndex++) {
-	        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "signalDefValue.SetNumberOfElements(%u, %u)", dimensionIndex, signalNumberOfElements);
-	        signalDefValue.SetNumberOfElements(dimensionIndex, signalNumberOfElements);
-	    }
+            ret = MoveToSignalIndex(OutputSignals, signalIndex);        
 	}
 
 	if (ret) {
-	    ret = GetSignalDefaultValue(OutputSignals, signalIndex, signalDefValue);
+	    //ret = GetSignalDefaultValue(OutputSignals, signalIndex, signalDefValue);
+	    ret = configuredDatabase.Read("Default", signalDefValue);
 	}
 
 	if (ret) {
-	    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ConstantGAM::Setup - '%s' '%!'", signalName.Buffer(), signalDefValue);
+	    REPORT_ERROR(ErrorManagement::Information, "Signal '%!' has value '%!'", signalName.Buffer(), signalDefValue);
 	} else {
-	    REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "ConstantGAM::Setup - GetSignalDefaultValue '%s'", signalName.Buffer());
+	    REPORT_ERROR(ErrorManagement::InitialisationError, "ConstantGAM::Setup - GetSignalDefaultValue '%s'", signalName.Buffer());
 	} 
 	
     }
@@ -132,7 +145,105 @@ bool ConstantGAM::Execute() {
     return true;
 }
 
+ErrorManagement::ErrorType ConstantGAM::SetOutput(ReferenceContainer& message) {
+
+    ErrorManagement::ErrorType ret = ErrorManagement::NoError;
+
+    /* Assume one ReferenceT<StructuredDataI> contained in the message */
+
+    bool ok = (message.Size() == 1u);
+    ReferenceT<StructuredDataI> data = message.Get(0u);
+
+    if (ok) {
+        ok = data.IsValid();
+    }
+
+    if (!ok) {
+        ret = ErrorManagement::ParametersError;
+	REPORT_ERROR(ret, "Message does not contain a ReferenceT<StructuredDataI>");
+    }
+
+    uint32 signalIndex = 0u;
+
+    if (ok) {
+        ok = data->Read("SignalIndex", signalIndex);
+    }
+
+    StreamString signalName;
+
+    if (ok) {
+        ok = (signalIndex < GetNumberOfOutputSignals());
+    } 
+
+    if (ok) {
+        ok = GetSignalName(OutputSignals, signalIndex, signalName);
+    } else {
+	REPORT_ERROR(ErrorManagement::Information, "Try and retrieve signal index from name");
+
+	if (data->Read("SignalName", signalName)) {
+	    ok = GetSignalIndex(OutputSignals, signalIndex, signalName.Buffer());
+	}
+
+	if (ok) {
+	    REPORT_ERROR(ErrorManagement::Information, "Retrieve signal index '%u' from name '%!'", signalIndex, signalName.Buffer());
+	}
+    }
+
+    if (!ok) {
+        ret = ErrorManagement::ParametersError;
+	REPORT_ERROR(ret, "No valid signal index or name provided");
+    }
+
+    TypeDescriptor signalType = InvalidType;
+
+    if (ok) {
+        signalType = GetSignalType(OutputSignals, signalIndex);
+	ok = (signalType != InvalidType);
+    }
+
+    StreamString signalTypeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType);
+
+    if (ok) {
+        REPORT_ERROR(ErrorManagement::Information, "Signal '%!' has type '%!'", signalName.Buffer(), signalTypeName.Buffer());
+    }
+
+    if (ok) {
+        ok = MoveToSignalIndex(OutputSignals, signalIndex);        
+    }
+
+    AnyType signalDefType = configuredDatabase.GetType("Default");
+    AnyType signalNewValue (signalType, 0u, GetOutputSignalMemory(signalIndex));
+
+    uint32 signalNumberOfDimensions = signalDefType.GetNumberOfDimensions();
+
+    if (ok) {
+        signalNewValue.SetNumberOfDimensions(signalNumberOfDimensions);
+    }
+
+    uint32 dimensionIndex;
+
+    for (dimensionIndex = 0u; ((dimensionIndex < signalNumberOfDimensions) && (ok)); dimensionIndex++) {
+        uint32 dimensionNumberOfElements = signalDefType.GetNumberOfElements(dimensionIndex);
+	signalNewValue.SetNumberOfElements(dimensionIndex, dimensionNumberOfElements);
+    }
+
+    if (ok) {
+        ok = data->Read("SignalValue", signalNewValue);
+    }
+
+    if (ok) {
+        REPORT_ERROR(ErrorManagement::Information, "Signal '%!' new value '%!'", signalName.Buffer(), signalNewValue);
+    } else {
+        ret = ErrorManagement::ParametersError;
+        REPORT_ERROR(ret, "Failed to update signal value");
+    } 
+
+    return ret;
+}
+
 CLASS_REGISTER(ConstantGAM, "1.0")
+
+CLASS_METHOD_REGISTER(ConstantGAM, SetOutput)
 
 } /* namespace MARTe */
 
