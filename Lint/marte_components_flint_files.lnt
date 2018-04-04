@@ -17,6 +17,7 @@
 -i./Source/Components/DataSources/RealTimeThreadSynchronisation/
 -i./Source/Components/DataSources/SDN/
 -i./Source/Components/GAMs/BaseLib2GAM/
+-i./Source/Components/GAMs/ConstantGAM/
 -i./Source/Components/GAMs/ConversionGAM/
 -i./Source/Components/GAMs/FilterGAM/
 -i./Source/Components/GAMs/IOGAM/
@@ -33,6 +34,7 @@ Atomic2.h
 BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
+ConstantGAM.cpp
 ConversionGAM.cpp
 ConversionHelper.cpp
 DANSource.cpp
