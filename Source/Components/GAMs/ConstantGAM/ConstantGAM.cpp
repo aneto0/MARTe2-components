@@ -167,18 +167,15 @@ ErrorManagement::ErrorType ConstantGAM::SetOutput(ReferenceContainer& message) {
     }
 
     StreamString signalName;
-
-    if (ok) {
-        ok = data->Read("SignalName", signalName);
-    }
-
     uint32 signalIndex = 0u;
 
     if (ok) {
-        ok = GetSignalIndex(OutputSignals, signalIndex, signalName.Buffer());
-    }
-    else {
-	ok = data->Read("SignalIndex", signalIndex);
+        if (data->Read("SignalName", signalName)) {
+	    ok = GetSignalIndex(OutputSignals, signalIndex, signalName.Buffer());
+	}
+	else {
+	    ok = data->Read("SignalIndex", signalIndex);
+	}
     }
 
     if (ok) {
@@ -207,7 +204,7 @@ ErrorManagement::ErrorType ConstantGAM::SetOutput(ReferenceContainer& message) {
 	AnyType signalNewValue(signalType, 0u, GetOutputSignalMemory(signalIndex));
 
 	// Use the default value type to query the signal properties (dimensions, ...)
-	/*lint -w{534}  [MISRA C++ Rule 0-1-7], [MISRA C++ Rule 0-3-2]. Justification: SignalIndex is tested valid prio to this part of the code.*/
+	/*lint -e{534}  [MISRA C++ Rule 0-1-7], [MISRA C++ Rule 0-3-2]. Justification: SignalIndex is tested valid prio to this part of the code.*/
         MoveToSignalIndex(OutputSignals, signalIndex);
 	AnyType signalDefType = configuredDatabase.GetType("Default");
 
@@ -236,6 +233,7 @@ ErrorManagement::ErrorType ConstantGAM::SetOutput(ReferenceContainer& message) {
 
 CLASS_REGISTER(ConstantGAM, "1.0")
 
+/*lint -e{1023} Justification: Macro provided by the Core.*/
 CLASS_METHOD_REGISTER(ConstantGAM, SetOutput)
 
 } /* namespace MARTe */

@@ -1160,6 +1160,99 @@ bool ConstantGAMTest::TestSetOutput_WithIndex() {
     return ok;
 }
 
+bool ConstantGAMTest::TestSetOutput_Error_NoStructuredDataI() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAMHelper"
+            "            OutputSignals = {"
+            "                Constant_1 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    Default = 0"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    using namespace MARTe;
+    
+    ReferenceT<Message> message = ReferenceT<Message>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+
+    if (ok) {
+        ok = cdb.Write("Destination", "Test.Functions.Constants");
+    }
+
+    if (ok) {
+        cdb.Write("Function", "SetOutput");
+    }
+    
+    if (ok) {                
+        ok = cdb.CreateAbsolute("+Parameters");            
+    }
+
+    if (ok) {                
+        ok = cdb.Write("Class", "Message");            
+    }            
+
+    if (ok) {
+        ok = cdb.Write("Destination", "Test.Functions.Constants");
+    }
+
+    if (ok) {
+        cdb.Write("Function", "SetOutput");
+    }
+    
+    if (ok) {                
+        ok = cdb.MoveToAncestor(1u);            
+    }    
+
+    if (ok) {
+        ok = message->Initialise(cdb);
+    }
+
+    if (ok) {
+        ErrorManagement::ErrorType status = MessageI::SendMessage(message, NULL);
+	ok = (status == ErrorManagement::NoError);
+    }
+
+    return !ok; // Expect failure
+}
+
 bool ConstantGAMTest::TestSetOutput_Error_NoName() {
     const MARTe::char8 * const config = ""
             "$Test = {"

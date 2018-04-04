@@ -130,6 +130,13 @@ public:
      * @details Verify the post-conditions
      * @return true if SetOutput is invoked() and failss.
      */
+    bool TestSetOutput_Error_NoStructuredDataI();
+
+    /**
+     * @brief Tests the SetOutput() method
+     * @details Verify the post-conditions
+     * @return true if SetOutput is invoked() and failss.
+     */
     bool TestSetOutput_Error_NoName();
 
     /**

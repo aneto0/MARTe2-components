@@ -93,6 +93,11 @@ TEST(ConstantGAMGTest,TestSetOutput_WithIndex) {
     ASSERT_TRUE(test.TestSetOutput_WithIndex());
 }
 
+TEST(ConstantGAMGTest,TestSetOutput_Error_NoStructuredDataI) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetOutput_Error_NoStructuredDataI());
+}
+
 TEST(ConstantGAMGTest,TestSetOutput_Error_NoName) {
     ConstantGAMTest test;
     ASSERT_TRUE(test.TestSetOutput_Error_NoName());
