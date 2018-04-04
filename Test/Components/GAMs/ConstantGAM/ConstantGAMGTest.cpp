@@ -43,24 +43,34 @@ TEST(ConstantGAMGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(ConstantGAMGTest,TestSetup_InputSignal) {
+TEST(ConstantGAMGTest,TestExecute) {
     ConstantGAMTest test;
-    ASSERT_TRUE(test.TestSetup_InputSignal());
+    ASSERT_TRUE(test.TestExecute());
 }
 
-TEST(ConstantGAMGTest,TestSetup_NoOutputSignal) {
+TEST(ConstantGAMGTest,TestSetup) {
     ConstantGAMTest test;
-    ASSERT_TRUE(test.TestSetup_NoOutputSignal());
-}
-
-TEST(ConstantGAMGTest,TestSetup_OutputSignal) {
-    ConstantGAMTest test;
-    ASSERT_TRUE(test.TestSetup_OutputSignal());
+    ASSERT_TRUE(test.TestSetup());
 }
 
 TEST(ConstantGAMGTest,TestSetup_OutputSignal_int8) {
     ConstantGAMTest test;
     ASSERT_TRUE(test.TestSetup_OutputSignal_int8());
+}
+
+TEST(ConstantGAMGTest,TestSetup_Error_InputSignal) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Error_InputSignal());
+}
+
+TEST(ConstantGAMGTest,TestSetup_Error_NoOutputSignal) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Error_NoOutputSignal());
+}
+
+TEST(ConstantGAMGTest,TestSetup_Error_NoDefault) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Error_NoDefault());
 }
 
 TEST(ConstantGAMGTest,TestSetOutput_int8) {

@@ -57,25 +57,17 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the Setup() method
-     * @details Verify the post-conditions
-     * @return true if Setup() fails.
+     * @brief Tests the Execute() method
+     * @return true if Execute succeeds.
      */
-    bool TestSetup_InputSignal();
-
-    /**
-     * @brief Tests the Setup() method
-     * @details Verify the post-conditions
-     * @return true if Setup() fails.
-     */
-    bool TestSetup_NoOutputSignal();
+    bool TestExecute();
 
     /**
      * @brief Tests the Setup() method
      * @details Verify the post-conditions
      * @return true if Setup() succeeds.
      */
-    bool TestSetup_OutputSignal();
+    bool TestSetup();
 
     /**
      * @brief Tests the Setup() method
@@ -83,6 +75,27 @@ public:
      * @return true if Setup() succeeds.
      */
     bool TestSetup_OutputSignal_int8();
+
+    /**
+     * @brief Tests the Setup() method
+     * @details Verify the post-conditions
+     * @return true if Setup() fails.
+     */
+    bool TestSetup_Error_InputSignal();
+
+    /**
+     * @brief Tests the Setup() method
+     * @details Verify the post-conditions
+     * @return true if Setup() fails.
+     */
+    bool TestSetup_Error_NoOutputSignal();
+
+    /**
+     * @brief Tests the Setup() method
+     * @details Verify the post-conditions
+     * @return true if Setup() fails.
+     */
+    bool TestSetup_Error_NoDefault();
 
     /**
      * @brief Tests the SetOutput() method

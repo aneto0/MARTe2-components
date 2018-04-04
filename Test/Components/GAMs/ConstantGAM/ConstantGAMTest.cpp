@@ -231,108 +231,16 @@ bool ConstantGAMTest::TestConstructor() {
     return ok;
 }
 
-bool ConstantGAMTest::TestSetup_InputSignal() {
-    const MARTe::char8 * const config = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +Constants = {"
-            "            Class = ConstantGAM"
-            "            InputSignals = {"
-            "                Constant_float32 = {"
-            "                    DataSource = DDB"
-            "                    Type = float32"
-            "                }"
-            "            }"
-            "            OutputSignals = {"
-            "                Constant_float32 = {"
-            "                    DataSource = DDB"
-            "                    Type = float32"
-            "                    Default = 0.0"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +Running = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Constants}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool ConstantGAMTest::TestExecute() {
+    using namespace MARTe;
+    ConstantGAM gam;
 
-    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+    bool ok = gam.Execute();
 
-    return !ok; // Expect failure 
+    return ok;
 }
 
-bool ConstantGAMTest::TestSetup_NoOutputSignal() {
-    const MARTe::char8 * const config = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +Constants = {"
-            "            Class = ConstantGAM"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +Running = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Constants}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
-
-    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
-
-    return !ok; // Expect failure 
-}
-
-bool ConstantGAMTest::TestSetup_OutputSignal() {
+bool ConstantGAMTest::TestSetup() {
     const MARTe::char8 * const config = ""
             "$Test = {"
             "    Class = RealTimeApplication"
@@ -540,6 +448,157 @@ bool ConstantGAMTest::TestSetup_OutputSignal_int8() {
     god->Purge();
 
     return ok;
+}
+
+bool ConstantGAMTest::TestSetup_Error_InputSignal() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAM"
+            "            InputSignals = {"
+            "                Constant_float32 = {"
+            "                    DataSource = DDB"
+            "                    Type = float32"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                Constant_float32 = {"
+            "                    DataSource = DDB"
+            "                    Type = float32"
+            "                    Default = 0.0"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    return !ok; // Expect failure 
+}
+
+bool ConstantGAMTest::TestSetup_Error_NoOutputSignal() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAM"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    return !ok; // Expect failure 
+}
+
+bool ConstantGAMTest::TestSetup_Error_NoDefault() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAM"
+            "            OutputSignals = {"
+            "                Constant_float32 = {"
+            "                    DataSource = DDB"
+            "                    Type = float32"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    return !ok; // Expect failure
 }
 
 bool ConstantGAMTest::TestSetOutput_int8() {
