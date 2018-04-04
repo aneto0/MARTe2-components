@@ -580,7 +580,7 @@ bool ConstantGAMTest::TestSetOutput_int8() {
             "                    NumberOfElements = 8"
             "                    Default = {{0 -10 127 -1} {-1 127 -10 0}}"
             "                }"
-             "            }"
+            "            }"
             "        }"
             "    }"
             "    +Data = {"
@@ -679,7 +679,7 @@ bool ConstantGAMTest::TestSetOutput_int8() {
     return ok;
 }
 
-bool ConstantGAMTest::TestSetOutput_array() {
+bool ConstantGAMTest::TestSetOutput_1Darray() {
     const MARTe::char8 * const config = ""
             "$Test = {"
             "    Class = RealTimeApplication"
@@ -717,7 +717,7 @@ bool ConstantGAMTest::TestSetOutput_array() {
             "                    NumberOfElements = 8"
             "                    Default = {{0 -10 127 -1} {-1 127 -10 0}}"
             "                }"
-             "            }"
+            "            }"
             "        }"
             "    }"
             "    +Data = {"
@@ -808,6 +808,18 @@ bool ConstantGAMTest::TestSetOutput_array() {
     int8 value = 0;
 
     if (ok) {
+      ok = (gam->GetOutput(3u, value, 0) && (value == 1));
+    }
+
+    if (ok) {
+      ok = (gam->GetOutput(3u, value, 1) && (value == 2));
+    }
+
+    if (ok) {
+      ok = (gam->GetOutput(3u, value, 2) && (value == 3));
+    }
+
+    if (ok) {
       ok = (gam->GetOutput(3u, value, 3) && (value == 4));
     }
 
@@ -816,4 +828,652 @@ bool ConstantGAMTest::TestSetOutput_array() {
     return ok;
 }
 
+bool ConstantGAMTest::TestSetOutput_2Darray() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAMHelper"
+            "            OutputSignals = {"
+            "                Constant_1 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    Default = 0"
+            "                }"
+            "                Constant_2 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    Default = -10"
+            "                }"
+            "                Constant_3 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    Default = 127"
+            "                }"
+            "                Constant_4 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 4"
+            "                    Default = {0 -10 127 -1}"
+            "                }"
+            "                Constant_5 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    NumberOfDimensions = 2"
+            "                    NumberOfElements = 8"
+            "                    Default = {{0 -10 127 -1} {-1 127 -10 0}}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    using namespace MARTe;
+    
+    ReferenceT<Message> message = ReferenceT<Message>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+
+    if (ok) {
+        ok = cdb.Write("Destination", "Test.Functions.Constants");
+    }
+
+    if (ok) {
+        cdb.Write("Function", "SetOutput");
+    }
+    
+    if (ok) {                
+        ok = cdb.CreateAbsolute("+Parameters");            
+    }
+
+    if (ok) {                
+        ok = cdb.Write("Class", "ConfigurationDatabase");            
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalName", "Constant_5");
+    }            
+
+    if (ok) {
+        int8 array [2][4] = {{ 1, 2, 3, 4 },
+			     { 9, 8, 7, 6 }};
+	AnyType Value (array);      
+        ok = cdb.Write("SignalValue", Value);            
+    }
+
+    if (ok) {                
+        ok = cdb.MoveToAncestor(1u);            
+    }    
+
+    if (ok) {
+        ok = message->Initialise(cdb);
+    }
+
+    if (ok) {
+        ErrorManagement::ErrorType status = MessageI::SendMessage(message, NULL);
+	ok = (status == ErrorManagement::NoError);
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ReferenceT<RealTimeApplication> application = god->Find("Test");
+    ReferenceT<ConstantGAMHelper> gam = application->Find("Functions.Constants");
+
+    if (ok) {
+        ok = gam.IsValid();
+    }
+
+    int8 value = 0;
+
+    if (ok) {
+      ok = (gam->GetOutput(4u, value, 0) && (value == 1));
+    }
+
+    if (ok) {
+      ok = (gam->GetOutput(4u, value, 1) && (value == 2));
+    }
+
+    if (ok) {
+      ok = (gam->GetOutput(4u, value, 2) && (value == 3));
+    }
+
+    if (ok) {
+      ok = (gam->GetOutput(4u, value, 3) && (value == 4));
+    }
+
+    if (ok) {
+      ok = (gam->GetOutput(4u, value, 4) && (value == 9));
+    }
+
+    if (ok) {
+      ok = (gam->GetOutput(4u, value, 5) && (value == 8));
+    }
+
+    if (ok) {
+      ok = (gam->GetOutput(4u, value, 6) && (value == 7));
+    }
+
+    if (ok) {
+      ok = (gam->GetOutput(4u, value, 7) && (value == 6));
+    }
+
+    god->Purge();
+
+    return ok;
+}
+
+bool ConstantGAMTest::TestSetOutput_WithIndex() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAMHelper"
+            "            OutputSignals = {"
+            "                Constant_1 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    Default = 0"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    using namespace MARTe;
+    
+    ReferenceT<Message> message = ReferenceT<Message>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+
+    if (ok) {
+        ok = cdb.Write("Destination", "Test.Functions.Constants");
+    }
+
+    if (ok) {
+        cdb.Write("Function", "SetOutput");
+    }
+    
+    if (ok) {                
+        ok = cdb.CreateAbsolute("+Parameters");            
+    }
+
+    if (ok) {                
+        ok = cdb.Write("Class", "ConfigurationDatabase");            
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalIndex", 0);
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalValue", "-1");            
+    }
+
+    if (ok) {                
+        ok = cdb.MoveToAncestor(1u);            
+    }    
+
+    if (ok) {
+        ok = message->Initialise(cdb);
+    }
+
+    if (ok) {
+        ErrorManagement::ErrorType status = MessageI::SendMessage(message, NULL);
+	ok = (status == ErrorManagement::NoError);
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ReferenceT<RealTimeApplication> application = god->Find("Test");
+    ReferenceT<ConstantGAMHelper> gam = application->Find("Functions.Constants");
+
+    if (ok) {
+        ok = gam.IsValid();
+    }
+
+    int8 value = 0;
+
+    if (ok) {
+        ok = (gam->GetOutput(0u, value) && (value == -1));
+    }
+
+    god->Purge();
+
+    return ok;
+}
+
+bool ConstantGAMTest::TestSetOutput_Error_NoName() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAMHelper"
+            "            OutputSignals = {"
+            "                Constant_1 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    Default = 0"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    using namespace MARTe;
+    
+    ReferenceT<Message> message = ReferenceT<Message>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+
+    if (ok) {
+        ok = cdb.Write("Destination", "Test.Functions.Constants");
+    }
+
+    if (ok) {
+        cdb.Write("Function", "SetOutput");
+    }
+    
+    if (ok) {                
+        ok = cdb.CreateAbsolute("+Parameters");            
+    }
+
+    if (ok) {                
+        ok = cdb.Write("Class", "ConfigurationDatabase");            
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalValue", "-1");
+    }            
+
+    if (ok) {                
+        ok = cdb.MoveToAncestor(1u);            
+    }    
+
+    if (ok) {
+        ok = message->Initialise(cdb);
+    }
+
+    if (ok) {
+        ErrorManagement::ErrorType status = MessageI::SendMessage(message, NULL);
+	ok = (status == ErrorManagement::NoError);
+    }
+
+    return !ok; // Expect failure
+}
+
+bool ConstantGAMTest::TestSetOutput_Error_InvalidName() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAMHelper"
+            "            OutputSignals = {"
+            "                Constant_1 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    Default = 0"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    using namespace MARTe;
+    
+    ReferenceT<Message> message = ReferenceT<Message>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+
+    if (ok) {
+        ok = cdb.Write("Destination", "Test.Functions.Constants");
+    }
+
+    if (ok) {
+        cdb.Write("Function", "SetOutput");
+    }
+    
+    if (ok) {                
+        ok = cdb.CreateAbsolute("+Parameters");            
+    }
+
+    if (ok) {                
+        ok = cdb.Write("Class", "ConfigurationDatabase");            
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalIndex", 0);
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalName", "Undefined");
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalValue", "-1");
+    }            
+
+    if (ok) {                
+        ok = cdb.MoveToAncestor(1u);            
+    }    
+
+    if (ok) {
+        ok = message->Initialise(cdb);
+    }
+
+    if (ok) {
+        ErrorManagement::ErrorType status = MessageI::SendMessage(message, NULL);
+	ok = (status == ErrorManagement::NoError);
+    }
+
+    return !ok; // Expect failure
+}
+
+bool ConstantGAMTest::TestSetOutput_Error_NoValue() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAMHelper"
+            "            OutputSignals = {"
+            "                Constant_1 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    Default = 0"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    using namespace MARTe;
+    
+    ReferenceT<Message> message = ReferenceT<Message>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+
+    if (ok) {
+        ok = cdb.Write("Destination", "Test.Functions.Constants");
+    }
+
+    if (ok) {
+        cdb.Write("Function", "SetOutput");
+    }
+    
+    if (ok) {                
+        ok = cdb.CreateAbsolute("+Parameters");            
+    }
+
+    if (ok) {                
+        ok = cdb.Write("Class", "ConfigurationDatabase");            
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalIndex", 0);
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalName", "Constant_1");
+    }            
+
+    if (ok) {                
+        ok = cdb.MoveToAncestor(1u);            
+    }    
+
+    if (ok) {
+        ok = message->Initialise(cdb);
+    }
+
+    if (ok) {
+        ErrorManagement::ErrorType status = MessageI::SendMessage(message, NULL);
+	ok = (status == ErrorManagement::NoError);
+    }
+
+    return !ok; // Expect failure
+}
+
+bool ConstantGAMTest::TestSetOutput_Error_InvalidValue() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAMHelper"
+            "            OutputSignals = {"
+            "                Constant_1 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    Default = 0"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    using namespace MARTe;
+    
+    ReferenceT<Message> message = ReferenceT<Message>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+
+    if (ok) {
+        ok = cdb.Write("Destination", "Test.Functions.Constants");
+    }
+
+    if (ok) {
+        cdb.Write("Function", "SetOutput");
+    }
+    
+    if (ok) {                
+        ok = cdb.CreateAbsolute("+Parameters");            
+    }
+
+    if (ok) {                
+        ok = cdb.Write("Class", "ConfigurationDatabase");            
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalIndex", 0);
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalName", "Constant_1");
+    }            
+
+    if (ok) {                
+        ok = cdb.Write("SignalValue", "3.14");
+    }            
+
+    if (ok) {                
+        ok = cdb.MoveToAncestor(1u);            
+    }    
+
+    if (ok) {
+        ok = message->Initialise(cdb);
+    }
+
+    if (ok) {
+        ErrorManagement::ErrorType status = MessageI::SendMessage(message, NULL);
+	ok = (status == ErrorManagement::NoError);
+    }
+
+    return !ok; // Expect failure
+}
 

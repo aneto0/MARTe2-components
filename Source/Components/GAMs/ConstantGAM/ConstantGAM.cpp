@@ -164,62 +164,68 @@ ErrorManagement::ErrorType ConstantGAM::SetOutput(ReferenceContainer& message) {
         REPORT_ERROR(ret, "Message does not contain a ReferenceT<StructuredDataI>");
     }
 
+    StreamString signalName;
+
+    if (ok) {
+        ok = data->Read("SignalName", signalName);
+    }
+
     uint32 signalIndex = 0u;
 
     if (ok) {
-        ok = data->Read("SignalIndex", signalIndex);
+        ok = GetSignalIndex(OutputSignals, signalIndex, signalName.Buffer());
     }
-
-    StreamString signalName;
+    else {
+	ok = data->Read("SignalIndex", signalIndex);
+    }
 
     if (ok) {
         ok = (signalIndex < GetNumberOfOutputSignals());
     }
 
-    if (ok) {
-        ok = GetSignalName(OutputSignals, signalIndex, signalName);
-    }
-    else {
-        REPORT_ERROR(ErrorManagement::Information, "Try and retrieve signal index from name");
-
-        if (data->Read("SignalName", signalName)) {
-            ok = GetSignalIndex(OutputSignals, signalIndex, signalName.Buffer());
-        }
-
-        if (ok) {
-            REPORT_ERROR(ErrorManagement::Information, "Retrieve signal index '%u' from name '%!'", signalIndex, signalName.Buffer());
-        }
-    }
-
     if (!ok) {
         ret = ErrorManagement::ParametersError;
-        REPORT_ERROR(ret, "No valid signal index or name provided");
+        REPORT_ERROR(ret, "No valid signal name or index provided");
+    }
+    
+    TypeDescriptor signalType = InvalidType;
+
+    if (ok) {
+        signalType = GetSignalType(OutputSignals, signalIndex);
+	ok = (signalType != InvalidType);
     }
 
     if (ok) {
-        ok = MoveToSignalIndex(OutputSignals, signalIndex);
-    }
 
-    //Use the default value to query the signal properties (type, dimensions, ...)
-    AnyType signalNewValue;
-    if (ok) {
-        ok = GetSignalDefaultValue(OutputSignals, signalIndex, signalNewValue);
-    }
-    if (ok) {
-        //Reset the signal output memory
-        signalNewValue.SetDataPointer(GetOutputSignalMemory(signalIndex));
-    }
+        // To be removed
+	StreamString signalTypeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType);
+	REPORT_ERROR(ErrorManagement::Information, "Signal '%!' has type '%!'", signalName.Buffer(), signalTypeName.Buffer());
 
-    if (ok) {
-        ok = data->Read("SignalValue", signalNewValue);
-    }
+        // Signal index and type are tested and valid ... go ahead with AnyType instantiation
+	AnyType signalNewValue(signalType, 0u, GetOutputSignalMemory(signalIndex));
 
-    if (ok) {
-        REPORT_ERROR(ErrorManagement::Information, "Signal '%!' new value '%!'", signalName.Buffer(), signalNewValue);
-    }
-    else {
-        ret = ErrorManagement::ParametersError;
-        REPORT_ERROR(ret, "Failed to update signal value");
+	// Use the default value type to query the signal properties (dimensions, ...)
+        MoveToSignalIndex(OutputSignals, signalIndex);
+	AnyType signalDefType = configuredDatabase.GetType("Default");
+
+	uint32 signalNumberOfDimensions = signalDefType.GetNumberOfDimensions();
+	signalNewValue.SetNumberOfDimensions(signalNumberOfDimensions);
+
+	uint32 dimensionIndex;
+
+	for (dimensionIndex = 0u; dimensionIndex < signalNumberOfDimensions; dimensionIndex++) {
+	    uint32 dimensionNumberOfElements = signalDefType.GetNumberOfElements(dimensionIndex);
+	    signalNewValue.SetNumberOfElements(dimensionIndex, dimensionNumberOfElements);
+	}
+ 
+	if (data->Read("SignalValue", signalNewValue)) {
+            REPORT_ERROR(ErrorManagement::Information, "Signal '%!' new value '%!'", signalName.Buffer(), signalNewValue);
+	}
+	else {
+	    ret = ErrorManagement::ParametersError;
+	    REPORT_ERROR(ret, "Failed to read and apply new signal value");
+	}
+
     }
 
     return ret;

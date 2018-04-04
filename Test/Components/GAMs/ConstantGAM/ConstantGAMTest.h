@@ -87,16 +87,58 @@ public:
     /**
      * @brief Tests the SetOutput() method
      * @details Verify the post-conditions
-     * @return true if SetOutput is invoked() succeeds.
+     * @return true if SetOutput is invoked() and succeeds.
      */
     bool TestSetOutput_int8();
 
     /**
      * @brief Tests the SetOutput() method
      * @details Verify the post-conditions
-     * @return true if SetOutput is invoked() succeeds.
+     * @return true if SetOutput is invoked() and succeeds.
      */
-    bool TestSetOutput_array();
+    bool TestSetOutput_1Darray();
+
+    /**
+     * @brief Tests the SetOutput() method
+     * @details Verify the post-conditions
+     * @return true if SetOutput is invoked() and succeeds.
+     */
+    bool TestSetOutput_2Darray();
+
+    /**
+     * @brief Tests the SetOutput() method
+     * @details Verify the post-conditions
+     * @return true if SetOutput is invoked() and succeeds.
+     */
+    bool TestSetOutput_WithIndex();
+
+    /**
+     * @brief Tests the SetOutput() method
+     * @details Verify the post-conditions
+     * @return true if SetOutput is invoked() and failss.
+     */
+    bool TestSetOutput_Error_NoName();
+
+    /**
+     * @brief Tests the SetOutput() method
+     * @details Verify the post-conditions
+     * @return true if SetOutput is invoked() and failss.
+     */
+    bool TestSetOutput_Error_InvalidName();
+
+    /**
+     * @brief Tests the SetOutput() method
+     * @details Verify the post-conditions
+     * @return true if SetOutput is invoked() and failss.
+     */
+    bool TestSetOutput_Error_NoValue();
+
+    /**
+     * @brief Tests the SetOutput() method
+     * @details Verify the post-conditions
+     * @return true if SetOutput is invoked() and failss.
+     */
+    bool TestSetOutput_Error_InvalidValue();
 
 };
 

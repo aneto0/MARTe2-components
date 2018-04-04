@@ -68,9 +68,39 @@ TEST(ConstantGAMGTest,TestSetOutput_int8) {
     ASSERT_TRUE(test.TestSetOutput_int8());
 }
 
-TEST(ConstantGAMGTest,TestSetOutput_array) {
+TEST(ConstantGAMGTest,TestSetOutput_1Darray) {
     ConstantGAMTest test;
-    ASSERT_TRUE(test.TestSetOutput_array());
+    ASSERT_TRUE(test.TestSetOutput_1Darray());
+}
+
+TEST(ConstantGAMGTest,TestSetOutput_2Darray) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetOutput_2Darray());
+}
+
+TEST(ConstantGAMGTest,TestSetOutput_WithIndex) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetOutput_WithIndex());
+}
+
+TEST(ConstantGAMGTest,TestSetOutput_Error_NoName) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetOutput_Error_NoName());
+}
+
+TEST(ConstantGAMGTest,TestSetOutput_Error_InvalidName) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetOutput_Error_InvalidName());
+}
+
+TEST(ConstantGAMGTest,TestSetOutput_Error_NoValue) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetOutput_Error_NoValue());
+}
+
+TEST(ConstantGAMGTest,TestSetOutput_Error_InvalidValue) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetOutput_Error_InvalidValue());
 }
 
 /*---------------------------------------------------------------------------*/
