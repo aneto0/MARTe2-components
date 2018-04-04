@@ -47,14 +47,6 @@ namespace MARTe {
 ConstantGAM::ConstantGAM() :
         GAM(), MessageI() {
 
-    /* Message filter */
-    ReferenceT<RegisteredMethodsMessageFilter> registeredMethodsMessageFilter("RegisteredMethodsMessageFilter");
-    registeredMethodsMessageFilter->SetDestination(this);
-
-    if (registeredMethodsMessageFilter.IsValid()) {
-        InstallMessageFilter(registeredMethodsMessageFilter);
-    }
-
 }
 
 ConstantGAM::~ConstantGAM() {
@@ -75,9 +67,7 @@ bool ConstantGAM::Setup() {
 
         StreamString signalName;
 
-        if (ret) {
-            ret = GetSignalName(OutputSignals, signalIndex, signalName);
-        }
+	ret = GetSignalName(OutputSignals, signalIndex, signalName);
 
         uint32 signalByteSize = 0u;
 
@@ -108,17 +98,17 @@ bool ConstantGAM::Setup() {
         AnyType signalDefType = configuredDatabase.GetType("Default");
         AnyType signalDefValue(signalType, 0u, GetOutputSignalMemory(signalIndex));
 
-        uint32 signalNumberOfDimensions = signalDefType.GetNumberOfDimensions();
+        uint8 signalNumberOfDimensions = signalDefType.GetNumberOfDimensions();
 
         if (ret) {
             signalDefValue.SetNumberOfDimensions(signalNumberOfDimensions);
         }
 
-        uint32 dimensionIndex;
+        uint8 dimensionIndex;
 
         for (dimensionIndex = 0u; ((dimensionIndex < signalNumberOfDimensions) && (ret)); dimensionIndex++) {
-            uint32 dimensionNumberOfElements = signalDefType.GetNumberOfElements(dimensionIndex);
-            signalDefValue.SetNumberOfElements(dimensionIndex, dimensionNumberOfElements);
+	    uint32 dimensionNumberOfElements = signalDefType.GetNumberOfElements(static_cast<uint32>(dimensionIndex));
+            signalDefValue.SetNumberOfElements(static_cast<uint32>(dimensionIndex), dimensionNumberOfElements);
         }
 
         if (ret) {
@@ -137,6 +127,18 @@ bool ConstantGAM::Setup() {
             REPORT_ERROR(ErrorManagement::InitialisationError, "ConstantGAM::Setup - GetSignalDefaultValue '%s'", signalName.Buffer());
         }
 
+    }
+
+    // Install message filter
+    ReferenceT<RegisteredMethodsMessageFilter> registeredMethodsMessageFilter("RegisteredMethodsMessageFilter");
+
+    if (ret) {
+        ret = registeredMethodsMessageFilter.IsValid();
+    }
+
+    if (ret) {
+        registeredMethodsMessageFilter->SetDestination(this);
+        ret = InstallMessageFilter(registeredMethodsMessageFilter);
     }
 
     return ret;
@@ -205,17 +207,18 @@ ErrorManagement::ErrorType ConstantGAM::SetOutput(ReferenceContainer& message) {
 	AnyType signalNewValue(signalType, 0u, GetOutputSignalMemory(signalIndex));
 
 	// Use the default value type to query the signal properties (dimensions, ...)
+	/*lint -w{534}  [MISRA C++ Rule 0-1-7], [MISRA C++ Rule 0-3-2]. Justification: SignalIndex is tested valid prio to this part of the code.*/
         MoveToSignalIndex(OutputSignals, signalIndex);
 	AnyType signalDefType = configuredDatabase.GetType("Default");
 
-	uint32 signalNumberOfDimensions = signalDefType.GetNumberOfDimensions();
+	uint8 signalNumberOfDimensions = signalDefType.GetNumberOfDimensions();
 	signalNewValue.SetNumberOfDimensions(signalNumberOfDimensions);
 
 	uint32 dimensionIndex;
 
 	for (dimensionIndex = 0u; dimensionIndex < signalNumberOfDimensions; dimensionIndex++) {
-	    uint32 dimensionNumberOfElements = signalDefType.GetNumberOfElements(dimensionIndex);
-	    signalNewValue.SetNumberOfElements(dimensionIndex, dimensionNumberOfElements);
+	    uint32 dimensionNumberOfElements = signalDefType.GetNumberOfElements(static_cast<uint32>(dimensionIndex));
+	    signalNewValue.SetNumberOfElements(static_cast<uint32>(dimensionIndex), dimensionNumberOfElements);
 	}
  
 	if (data->Read("SignalValue", signalNewValue)) {
