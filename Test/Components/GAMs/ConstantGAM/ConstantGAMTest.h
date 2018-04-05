@@ -74,6 +74,13 @@ public:
      * @details Verify the post-conditions
      * @return true if Setup() succeeds.
      */
+    bool TestSetup_OutputSignal_Scalar();
+
+    /**
+     * @brief Tests the Setup() method
+     * @details Verify the post-conditions
+     * @return true if Setup() succeeds.
+     */
     bool TestSetup_OutputSignal_int8();
 
     /**

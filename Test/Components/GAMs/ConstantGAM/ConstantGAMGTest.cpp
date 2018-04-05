@@ -53,6 +53,11 @@ TEST(ConstantGAMGTest,TestSetup) {
     ASSERT_TRUE(test.TestSetup());
 }
 
+TEST(ConstantGAMGTest,TestSetup_OutputSignal_Scalar) {
+    ConstantGAMTest test;
+    ASSERT_TRUE(test.TestSetup_OutputSignal_Scalar());
+}
+
 TEST(ConstantGAMGTest,TestSetup_OutputSignal_int8) {
     ConstantGAMTest test;
     ASSERT_TRUE(test.TestSetup_OutputSignal_int8());

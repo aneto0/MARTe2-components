@@ -90,7 +90,7 @@ template<typename Type> bool ConstantGAMHelper::GetOutput(MARTe::uint32 signalIn
     }
 
     if (ret) {
-      REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ConstantGAMHelper::GetOutput - '%s' at offset '%u' '%!'", signalName.Buffer(), index, value);
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ConstantGAMHelper::GetOutput - '%s' at offset '%u' '%!'", signalName.Buffer(), index, value);
     }
 
     return ret;
@@ -301,6 +301,169 @@ bool ConstantGAMTest::TestSetup() {
     return ok;
 }
 
+bool ConstantGAMTest::TestSetup_OutputSignal_Scalar() {
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Constants = {"
+            "            Class = ConstantGAMHelper"
+            "            OutputSignals = {"
+            "                Constant_1 = {"
+            "                    DataSource = DDB"
+            "                    Type = int8"
+            "                    Default = -100"
+            "                }"
+            "                Constant_2 = {"
+            "                    DataSource = DDB"
+            "                    Type = uint8"
+            "                    Default = 100"
+            "                }"
+            "                Constant_3 = {"
+            "                    DataSource = DDB"
+            "                    Type = int16"
+            "                    Default = -10000"
+            "                }"
+            "                Constant_4 = {"
+            "                    DataSource = DDB"
+            "                    Type = uint16"
+            "                    Default = 10000"
+            "                }"
+            "                Constant_5 = {"
+            "                    DataSource = DDB"
+            "                    Type = int32"
+            "                    Default = -1000000000"
+            "                }"
+            "                Constant_6 = {"
+            "                    DataSource = DDB"
+            "                    Type = uint32"
+            "                    Default = 1000000000"
+            "                }"
+            "                Constant_7 = {"
+            "                    DataSource = DDB"
+            "                    Type = int64"
+            "                    Default = -10000000000"
+            "                }"
+            "                Constant_8 = {"
+            "                    DataSource = DDB"
+            "                    Type = uint64"
+            "                    Default = 10000000000"
+            "                }"
+            "                Constant_9 = {"
+            "                    DataSource = DDB"
+            "                    Type = float32"
+            "                    Default = 0.001"
+            "                }"
+            "                Constant_10 = {"
+            "                    DataSource = DDB"
+            "                    Type = float64"
+            "                    Default = 0.001"
+            "                }"
+            "                Constant_11 = {"
+            "                    DataSource = DDB"
+            "                    Type = string"
+            "                    Default = \"undefined\""
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB"
+            "        +DDB = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConstantGAMTestHelper::ConfigureApplication(config);
+
+    using namespace MARTe;
+    
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ReferenceT<RealTimeApplication> application = god->Find("Test");
+    ReferenceT<ConstantGAMHelper> gam = application->Find("Functions.Constants");
+
+    if (ok) {
+        ok = gam.IsValid();
+    }
+
+    if (ok) {
+        int8 value = 0;
+        ok = (gam->GetOutput(0u, value) && (value == -100));
+    }
+
+    if (ok) {
+        uint8 value = 0;
+        ok = (gam->GetOutput(1u, value) && (value == 100));
+    }
+
+    if (ok) {
+        int16 value = 0;
+        ok = (gam->GetOutput(2u, value) && (value == -10000));
+    }
+
+    if (ok) {
+        uint16 value = 0;
+        ok = (gam->GetOutput(3u, value) && (value == 10000));
+    }
+
+    if (ok) {
+        int32 value = 0;
+        ok = (gam->GetOutput(4u, value) && (value == -1000000000));
+    }
+
+    if (ok) {
+        uint32 value = 0u;
+        ok = (gam->GetOutput(5u, value) && (value == 1000000000u));
+    }
+
+    if (ok) {
+        int64 value = 0l;
+        ok = (gam->GetOutput(6u, value) && (value == -10000000000l));
+    }
+
+    if (ok) {
+        uint64 value = 0ul;
+        ok = (gam->GetOutput(7u, value) && (value == 10000000000ul));
+    }
+
+    if (ok) {
+        float32 value = 0.0;
+        ok = (gam->GetOutput(8u, value) && ((value > 0.000999) && (value < 0.001001)));
+    }
+
+    if (ok) {
+        float64 value = 0.0;
+        ok = (gam->GetOutput(9u, value) && ((value > 0.000999) && (value < 0.001001)));
+    }
+
+    god->Purge();
+
+    return ok;
+}
+
 bool ConstantGAMTest::TestSetup_OutputSignal_int8() {
     const MARTe::char8 * const config = ""
             "$Test = {"
@@ -339,7 +502,7 @@ bool ConstantGAMTest::TestSetup_OutputSignal_int8() {
             "                    NumberOfElements = 8"
             "                    Default = {{0 -10 127 -1} {-1 127 -10 0}}"
             "                }"
-             "            }"
+            "            }"
             "        }"
             "    }"
             "    +Data = {"
