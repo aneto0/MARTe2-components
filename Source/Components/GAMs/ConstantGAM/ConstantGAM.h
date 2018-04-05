@@ -1,7 +1,7 @@
 /**
  * @file ConstantGAM.h
  * @brief Header file for class ConstantGAM
- * @date 08/03/2017
+ * @date 22/03/2018
  * @author Bertrand Bauvir
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -40,9 +40,9 @@
 /*---------------------------------------------------------------------------*/
 
 /**
- * @brief GAM which provides constant output signals. Allows to plug different DataSources (e.g. driver with a DDB).
- * @details This GAM provides constant output signals, the value of which is provided through configuration, and
- * may be asynchronously altered using MARTe messages.
+ * @brief GAM which provides constant output signals. 
+ * @details This GAM provides constant output signals, the value of which is defined through configuration, and
+ * may be asynchronously altered using MARTe messages sent e.g. from a StateMachine.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
  * +Constants = {
@@ -74,8 +74,8 @@
  *     Function = "SetOutput"
  *     +Parameters = {
  *         Class = ConfigurationDatabase
- *         SignalIndex = 0 // The index of the signal to modify, or
- *         SignalName = "Signal1" // Alternatively, the name of the signal from which the index can be retrieved
+ *         SignalName = "Signal1" // The name of the signal to modify, or
+ *         SignalIndex = 0 // Alternatively, the index of the signal.
  *         SignalValue = 10
  *     }
  * }
@@ -115,10 +115,11 @@ public:
     /**
      * @brief SetOutput method.
      * @details The method is registered as a messageable function. It assumes the ReferenceContainer
-     * includes a reference to a StructuredDataI instance which contains a valid 'SignalIndex' attribute, 
-     * or alternatively, a valid 'SignalName' from which the output signal can be identified. 
+     * includes a reference to a StructuredDataI instance which contains a valid 'SignalName' attribute, 
+     * or alternatively, a valid 'SignalIndex' from which the output signal can be identified. 
      * The 'SignalValue' attribute must match the expected type and dimensionality of the output signal.
-     * @return ErrorManagement::NoError if the pre-conditions are met.
+     * @return ErrorManagement::NoError if the pre-conditions are met, ErrorManagement::ParametersError
+     * otherwise.
      * @pre
      *   'SignalIndex' < GetNumberOfOutputSignals() &&
      *   The 'SignalValue' provided corresponds to the expected type and dimensionality.

@@ -1,7 +1,7 @@
 /**
  * @file ConstantGAM.cpp
  * @brief Source file for class ConstantGAM
- * @date 08/03/2017
+ * @date 22/03/2018
  * @author Bertrand Bauvir
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -88,9 +88,6 @@ bool ConstantGAM::Setup() {
             REPORT_ERROR(ErrorManagement::Information, "Signal '%!' has type '%!'", signalName.Buffer(), signalTypeName.Buffer());
         }
 
-        /* The type of the 'Default' value is string */
-        /* Associate an AnyType to the signal memory area */
-
         if (ret) {
             ret = MoveToSignalIndex(OutputSignals, signalIndex);
         }
@@ -116,7 +113,6 @@ bool ConstantGAM::Setup() {
         }
 
         if (ret) {
-            //ret = GetSignalDefaultValue(OutputSignals, signalIndex, signalDefValue);
             ret = configuredDatabase.Read("Default", signalDefValue);
         }
 
@@ -152,7 +148,7 @@ ErrorManagement::ErrorType ConstantGAM::SetOutput(ReferenceContainer& message) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
 
-    /* Assume one ReferenceT<StructuredDataI> contained in the message */
+    // Assume one ReferenceT<StructuredDataI> contained in the message
 
     bool ok = (message.Size() == 1u);
     ReferenceT<StructuredDataI> data = message.Get(0u);
@@ -196,17 +192,13 @@ ErrorManagement::ErrorType ConstantGAM::SetOutput(ReferenceContainer& message) {
 
     if (ok) {
 
-        // To be removed
-	StreamString signalTypeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType);
-	REPORT_ERROR(ErrorManagement::Information, "Signal '%!' has type '%!'", signalName.Buffer(), signalTypeName.Buffer());
-
         // Signal index and type are tested and valid ... go ahead with AnyType instantiation
-	AnyType signalNewValue(signalType, 0u, GetOutputSignalMemory(signalIndex));
 
 	// Use the default value type to query the signal properties (dimensions, ...)
 	/*lint -e{534}  [MISRA C++ Rule 0-1-7], [MISRA C++ Rule 0-3-2]. Justification: SignalIndex is tested valid prio to this part of the code.*/
         MoveToSignalIndex(OutputSignals, signalIndex);
 	AnyType signalDefType = configuredDatabase.GetType("Default");
+	AnyType signalNewValue(signalType, 0u, GetOutputSignalMemory(signalIndex));
 
 	uint8 signalNumberOfDimensions = signalDefType.GetNumberOfDimensions();
 	signalNewValue.SetNumberOfDimensions(signalNumberOfDimensions);
