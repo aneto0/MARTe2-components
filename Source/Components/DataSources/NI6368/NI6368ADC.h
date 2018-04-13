@@ -165,7 +165,7 @@ NI6368ADC    ();
      * @details Reads data from all the configured DMA channels and posts the synchronisation semaphore.
      * @return false if the synchronisation semaphore cannot be posted.
      */
-    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+    virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
     /**
      * @brief Gets the last index written by the DMA (can be either 0 or 1).

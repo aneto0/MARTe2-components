@@ -156,7 +156,7 @@ NI6259ADC    ();
      * return an error as the reading operation will be retried forever.
      * @warning This method sleeps for 100 us. This is needed as otherwise it gets stuck on the function pxi6259_read_ai.
      */
-    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+    virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
     /**
      * @brief Starts the EmbeddedThread and sets the counter and the time to zero.

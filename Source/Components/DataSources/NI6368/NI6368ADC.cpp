@@ -1237,7 +1237,7 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
     return err;
 }
 
-ErrorManagement::ErrorType NI6368ADC::Execute(const ExecutionInfo& info) {
+ErrorManagement::ErrorType NI6368ADC::Execute(ExecutionInfo& info) {
     ErrorManagement::ErrorType err;
     if (info.GetStage() == ExecutionInfo::TerminationStage) {
         keepRunning = false;

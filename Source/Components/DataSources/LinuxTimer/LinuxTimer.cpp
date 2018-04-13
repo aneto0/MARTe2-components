@@ -333,7 +333,7 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName, const cha
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the method sleeps for the given period irrespectively of the input info.*/
-ErrorManagement::ErrorType LinuxTimer::Execute(const ExecutionInfo& info) {
+ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     if (lastTimeTicks == 0u) {
         lastTimeTicks = HighResolutionTimer::Counter();
     }

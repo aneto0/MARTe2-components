@@ -89,7 +89,7 @@ EPICSCAClient    ();
      * ca_clear_event, ca_clear_channel, ca_detach_context and ca_context_destroy
      * @return ErrorManagement::NoError if all the EPICS calls return without any error.
      */
-    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+    virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
     /**
      * @brief Registered as the ca_create_subscription callback function.

@@ -234,7 +234,7 @@ SDNSubscriber    ();
      * @param[in] info not used.
      * @return NoError if the EventSem can be successfully posted.
      */
-    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+    virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
 private:
 
