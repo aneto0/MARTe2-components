@@ -47,6 +47,8 @@ const uint32 NI6259DAC_MAX_CHANNELS = 4u;
 /**
  * @brief A DataSource which provides an analogue output interface to the NI6259 boards.
  * @details The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +NI6259_0_DAC = {
  *     Class = NI6259::NI6259DAC
  *     DeviceName = "/dev/pxi6259" //Mandatory
@@ -62,7 +64,7 @@ const uint32 NI6259DAC_MAX_CHANNELS = 4u;
  *         }
  *     }
  * }
- *
+ * </pre>
  * Note that at least one of the GAMs writing to this DataSource must have set one of the signals with Trigger=1 (which forces the writing of all the signals to the DAC).
  * The clock configuration is fixed to AO_UPDATE_SOURCE_SELECT_UI_TC and AO_UPDATE_SOURCE_POLARITY_RISING_EDGE.
  */

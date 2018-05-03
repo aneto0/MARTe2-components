@@ -51,6 +51,7 @@ const uint32 NI6259ADC_HEADER_SIZE = 2u;
  * shared between the number of enabled channels.
  *
  * The configuration syntax is (names are only given as an example):
+ * <pre>
  * +NI6259_0 = {
  *     Class = NI6259::NI6259ADC
  *     SamplingFrequency = 1000000 //]0, 1 MHZ]
@@ -82,6 +83,7 @@ const uint32 NI6259ADC_HEADER_SIZE = 2u;
  *          ...
  *     }
  * }
+ * </pre>
  */
 class NI6259ADC: public DataSourceI, public EmbeddedServiceMethodBinderI {
 public:

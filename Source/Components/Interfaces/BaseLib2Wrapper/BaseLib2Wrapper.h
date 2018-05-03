@@ -43,6 +43,8 @@ namespace MARTe {
  * @brief Load BaseLib2 objects into a BaseLib2 GlobalObjectDatabase.
  * @details This class allows to instantiate BaseLib2 objects and to send and receive Messages from these objects.
  * The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +BL2Wrapper = {
  *     Class = BaseLib2Wrapper
  *     BaseLib2Config = "
@@ -56,7 +58,7 @@ namespace MARTe {
  *         }
  *     }"
  * }
- *
+ * </pre>
  */
 class BaseLib2Wrapper : public Object, public QueuedMessageI, public BaseLib2::AdapterMessageListener {
 public:

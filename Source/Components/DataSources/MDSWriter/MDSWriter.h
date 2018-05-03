@@ -53,6 +53,8 @@ namespace MARTe {
  * This DataSourceI has the functions FlushSegments and OpenTree registered as an RPC.
  *
  * The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +MDSWriter_0 = {
  *     Class = MDSWriter
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
@@ -106,6 +108,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+ * </pre>
  */
 class MDSWriter: public DataSourceI, public MessageI {
 public:

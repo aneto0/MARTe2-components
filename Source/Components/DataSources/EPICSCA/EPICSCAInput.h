@@ -70,6 +70,8 @@ struct PVWrapper {
  * Data is asynchronously retrieved using ca_create_subscriptions in the context of a different thread (w.r.t. to the real-time thread).
  *
  * The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +EPICSCAInput_1 = {
  *     Class = EPICSCA::EPICSCAInput
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
@@ -83,6 +85,8 @@ struct PVWrapper {
  *          ...
  *     }
  * }
+ *
+ * </pre>
  */
 class EPICSCAInput: public DataSourceI, public EmbeddedServiceMethodBinderI {
 public:

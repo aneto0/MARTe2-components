@@ -53,6 +53,7 @@ namespace MARTe {
  * This DataSourceI has the functions OpenStream and CloseStream registered as an RPC.
  *
  * The configuration syntax is (names are only given as an example):
+ * <pre>
  * +DANSource_0 = {
  *     Class = DAN::DANSource
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
@@ -81,7 +82,7 @@ namespace MARTe {
  *         ...
  *     }
  * }
- *
+ * </pre>
  * A DANStream instance will be created for every different signal_type/sampling_frequency pair. Signals must be listed in the same order as they appear on the DAN xml.
  */
 class DANSource: public DataSourceI, public MessageI {
