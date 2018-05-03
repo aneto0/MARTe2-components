@@ -59,6 +59,8 @@ namespace MARTe {
  * to support fault investigation purposes.
  *
  * The configuration syntax is (signals names are only given as an example):
+ *
+ * <pre>
  * +Publisher = {
  *     Class = SDNPublisher
  *     Topic = <name> // The name is used to establish many-to-many communication channels
@@ -76,6 +78,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+ * </pre>
  *
  * The DataSource relies on a MemoryMap(Synchronised)OutputBroker to interface to GAM signals.
  * The DataSource does not allocate memory, rather maps directly the signals to the SDN message
