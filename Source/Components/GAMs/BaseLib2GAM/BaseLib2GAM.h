@@ -42,6 +42,7 @@ namespace MARTe {
  * @details This GAM instantiates a BaseLib2 GAM. It plugs into its inputs the input signals from MARTe2
  * and plugs into its outputs the output signals of MARTe2. The names and sizes of the signals shall match.
  * The configuration syntax is (names are only given as an example):
+ * <pre>
  * +BL2SynchGAM = {
  *     Class = BaseLib2GAM
  *     GAMName = TypeConvert1 //This name must be the same of the one specified in the BaseLib2Config
@@ -83,7 +84,7 @@ namespace MARTe {
  *         }
  *     }
  * }
- *
+ *</pre>
  */
 class BaseLib2GAM: public GAM {
 public:

@@ -51,6 +51,7 @@ namespace MARTe {
  * signals are required to conform to the type of the input signal.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
+ * <pre>
  * +Statistics = {
  *     Class = StatisticsGAM
  *     WindowSize = 1000 // Optional - Defaults to 1024, see StatisticsHelperT
@@ -80,6 +81,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+ * </pre>
  *
  * @TODO Receive inputs signal depth in lieu of storing history internally.
  *

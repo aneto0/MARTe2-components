@@ -64,6 +64,8 @@ namespace MARTe {
  * Only one and one GAM is allowed to write into this DataSourceI.
  *
  * The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +FileWriter_0 = {
  *     Class = FileWriter
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
@@ -114,6 +116,8 @@ namespace MARTe {
  *         }
  *     }
  * }
+ *
+ * </pre>
  */
 class FileWriter: public DataSourceI, public MessageI {
 public:

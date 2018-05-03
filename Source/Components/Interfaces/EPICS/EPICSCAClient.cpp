@@ -129,7 +129,7 @@ EmbeddedThreadI::States EPICSCAClient::GetStatus() {
 }
 
 
-ErrorManagement::ErrorType EPICSCAClient::Execute(const ExecutionInfo& info) {
+ErrorManagement::ErrorType EPICSCAClient::Execute(ExecutionInfo& info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() == ExecutionInfo::StartupStage) {
         (void) eventCallbackFastMux.FastLock();

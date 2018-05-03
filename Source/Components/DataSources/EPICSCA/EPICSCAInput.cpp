@@ -274,7 +274,7 @@ bool EPICSCAInput::PrepareNextState(const char8* const currentStateName, const c
     return true;
 }
 
-ErrorManagement::ErrorType EPICSCAInput::Execute(const ExecutionInfo& info) {
+ErrorManagement::ErrorType EPICSCAInput::Execute(ExecutionInfo& info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() == ExecutionInfo::StartupStage) {
         (void) eventCallbackFastMux.FastLock();

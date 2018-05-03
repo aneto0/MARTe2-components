@@ -47,6 +47,7 @@ namespace MARTe {
  * @brief A DataSource which provides a digital input/output interface to the NI6368 boards.
  * @details The configuration syntax is (names are only given as an example):
  *
+ * <pre>
  * +NI6368_0_DIO = {
  *     Class = NI6368::NI6368DIO
  *     DeviceName = "/dev/pxi6368" //Mandatory
@@ -72,7 +73,7 @@ namespace MARTe {
  *         }
  *     }
  * }
- *
+ * </pre>
  */
 
 class NI6368DIO: public DataSourceI {

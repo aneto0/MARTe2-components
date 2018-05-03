@@ -452,7 +452,7 @@ bool SDNSubscriber::Synchronise() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the method operates regardless of the input parameter.*/
-ErrorManagement::ErrorType SDNSubscriber::Execute(const ExecutionInfo& info) {
+ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
 
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
 

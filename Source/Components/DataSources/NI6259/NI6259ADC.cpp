@@ -851,7 +851,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     return ok;
 }
 
-ErrorManagement::ErrorType NI6259ADC::Execute(const ExecutionInfo& info) {
+ErrorManagement::ErrorType NI6259ADC::Execute(ExecutionInfo& info) {
     ErrorManagement::ErrorType err;
     (void) counterResetFastMux.FastLock();
     if (info.GetStage() == ExecutionInfo::TerminationStage) {

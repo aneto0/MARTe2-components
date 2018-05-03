@@ -53,6 +53,7 @@ namespace MARTe {
  * The number of samples for all the signals of any given GAM reading from this DataSource shall be the same.
  *
  * The configuration syntax is (names are only given as an example):
+ * <pre>
  * +Functions = {"
  *   +GAM1 = {
  *     Class = AGAM
@@ -79,14 +80,14 @@ namespace MARTe {
  *         NumberOfDimensions = 1
  *         NumberOfElements = 4
  *         DataSource = RealTimeThreadSynch"
- *         NumberOfSamples = 2 //Will run at half the frequency
+ *         Samples = 2 //Will run at half the frequency
  *       }
  *       Signal2 = {
  *         SignalType = float64
  *         NumberOfDimensions = 1
  *         NumberOfElements = 1
  *         DataSource = RealTimeThreadSynch"
- *         NumberOfSamples = 2 //Will run at half the frequency
+ *         Samples = 2 //Will run at half the frequency
  *       }
  *     }
  *   }
@@ -98,14 +99,14 @@ namespace MARTe {
  *         NumberOfDimensions = 1
  *         NumberOfElements = 4
  *         DataSource = RealTimeThreadSynch"
- *         NumberOfSamples = 4 //Will run at a quarter of the frequency
+ *         Samples = 4 //Will run at a quarter of the frequency
  *       }
  *       Signal2 = {
  *         SignalType = float64
  *         NumberOfDimensions = 1
  *         NumberOfElements = 1
  *         DataSource = RealTimeThreadSynch"
- *         NumberOfSamples = 4 //Will run at a quarter of the frequency
+ *         Samples = 4 //Will run at a quarter of the frequency
  *       }
  *     }
  *   }
@@ -139,6 +140,7 @@ namespace MARTe {
  *                    //Default is 1000
  *   }
  * }
+ * </pre>
  */
 class RealTimeThreadSynchronisation: public DataSourceI {
 public:
@@ -219,7 +221,7 @@ RealTimeThreadSynchronisation    ();
      *  are valid and consistent the following rules:
      * - Only one GAM is writing signals into this DataSourceI instance.
      * - The number of written samples is exactly one.
-     * - The number of read samples is constant for all the signal of any given GAM (but may different between GAMs).
+     * - The number of read samples is constant for all the signals of any given GAM (but may different between GAMs).
      * - If there is a GAM reading from this DataSourceI, then there must be a GAM writing into this DataSourceI.
      * @return true if all the parameters are valid and the conditions above are met.
      */

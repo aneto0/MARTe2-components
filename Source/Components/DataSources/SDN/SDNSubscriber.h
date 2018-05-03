@@ -57,6 +57,8 @@ namespace MARTe {
  * to support fault investigation purposes.
  *
  * The configuration syntax is (signals names are only given as an example):
+ *
+ * <pre>
  * +Subscriber = {
  *     Class = SDNSubscriber
  *     Topic = <name> // The name is used to establish many-to-many communication channels
@@ -76,6 +78,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+ * </pre>
  *
  * The DataSource relies on a MemoryMapInputBroker to interface to GAM signals. The DataSource
  * does not allocate memory, rather maps directly the signals to the SDN message payload directly.
@@ -234,7 +237,7 @@ SDNSubscriber    ();
      * @param[in] info not used.
      * @return NoError if the EventSem can be successfully posted.
      */
-    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+    virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
 private:
 

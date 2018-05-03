@@ -87,9 +87,9 @@ namespace MARTe {
  * </li>
  * </ul>
  *
+ * The configuration syntax is (names and signal quantity are only given as an example):
  *
  * <pre>
- * The configuration syntax is (names and signal quantity are only given as an example):
  * +SSMGAM1 = {
  *     Class = SSMGAM
  *     StateMatrix = {{0.5 0.5}{1.0 2.0}} //Compulsory

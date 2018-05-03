@@ -45,6 +45,7 @@ namespace MARTe {
  * @brief A DataSource which provides a digital input/output interface to the NI6259 boards.
  * @details The DataSource shall always be ...
  *
+ * <pre>
  * +NI6259_0_DIO = {
  *     Class = NI6259::NI6259DIO
  *     DeviceName = "/dev/pxi6259" //Mandatory
@@ -57,7 +58,7 @@ namespace MARTe {
  *         }
  *     }
  * }
- *
+ * </pre>
  * Note that at least one of the GAMs writing to this DataSource must have set one of the signals with Trigger=1 (which forces the writing of all the signals to the DIO ports).
  */
 

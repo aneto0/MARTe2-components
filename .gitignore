@@ -7,5 +7,5 @@
 *.gcno
 *.o
 *.so
-
 /filewriter_test.bin
+depends*.x86-linux

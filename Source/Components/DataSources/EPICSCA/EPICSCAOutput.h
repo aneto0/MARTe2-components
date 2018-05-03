@@ -49,6 +49,8 @@ namespace MARTe {
  * Data is asynchronously ca_put in the context of a different thread (w.r.t. to the real-time thread).
  *
  * The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +EPICSCAOutput_1 = {
  *     Class = EPICSCA::EPICSCAOutput
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
@@ -63,6 +65,8 @@ namespace MARTe {
  *          ...
  *     }
  * }
+ *
+ * </pre>
  */
 class EPICSCAOutput: public DataSourceI {
 public:

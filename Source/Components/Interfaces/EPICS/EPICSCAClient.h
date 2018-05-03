@@ -48,6 +48,8 @@ namespace MARTe {
 /**
  * @brief A container of EPICSPV variables. Provides the threading context for the EPICS CA interface.
  * @details The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +EPICS_CA = {
  *   Class = EPICSInterface::EPICSCAClient
  *   StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
@@ -62,6 +64,7 @@ namespace MARTe {
  *      ...
  *   }
  * }
+ * </pre>
  */
 class EPICSCAClient: public ReferenceContainer, public EmbeddedServiceMethodBinderI, public MessageI {
 public:
@@ -89,7 +92,7 @@ EPICSCAClient    ();
      * ca_clear_event, ca_clear_channel, ca_detach_context and ca_context_destroy
      * @return ErrorManagement::NoError if all the EPICS calls return without any error.
      */
-    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+    virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
     /**
      * @brief Registered as the ca_create_subscription callback function.

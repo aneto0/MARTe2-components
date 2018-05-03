@@ -67,6 +67,7 @@ namespace MARTe {
  * defined below will be ignored and replaced by Frequency * 1e9 and the XAxisSignal will be replaced by this signal name.
  *
  * The configuration syntax is (names are only given as an example):
+ * <pre>
  * +FileReader_0 = {
  *     Class = FileReader
  *     Filename = "test.bin" //Compulsory.
@@ -87,6 +88,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+ * </pre>
  */
 class FileReader: public DataSourceI, public MessageI {
 public:

@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef ConstantGAM_H_
-#define ConstantGAM_H_
+#ifndef CONSTANT_GAM_H_
+#define CONSTANT_GAM_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -45,6 +45,8 @@
  * may be asynchronously altered using MARTe messages sent e.g. from a StateMachine.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
+ *
+ * <pre>
  * +Constants = {
  *     Class = ConstantGAM
  *     OutputSignals = {
@@ -66,8 +68,11 @@
  *         }
  *     }
  * }
+ * </pre>
  *
  * The GAM registers a messageable 'SetOutput' method which allows to update signals through messages:
+ *
+ * <pre>
  * +Message = {
  *     Class = Message
  *     Destination = "Functions.Constants"
@@ -79,6 +84,7 @@
  *         SignalValue = 10
  *     }
  * }
+ * </pre>
  */
 
 namespace MARTe {
@@ -133,5 +139,5 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* ConstantGAM_H_ */
+#endif /* CONSTANT_GAM_H_ */
 

@@ -43,12 +43,15 @@ namespace MARTe {
 /**
  * @brief A LoggerConsumerI which outputs the log messages to a syslog.
  * @details The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +SysLogger = {
  *     Class = SysLogger
  *     Format = ItOoFm //Compulsory. As described in LoggerConsumerI::LoadPrintPreferences
  *     PrintKeys = 1 //Optional. As described in LoggerConsumerI::LoadPrintPreferences
  *     Ident = myapp //Compulsory. Name of the syslog ident.
  * }
+ * </pre>
  */
 class SysLogger: public Object, public LoggerConsumerI {
 public:
