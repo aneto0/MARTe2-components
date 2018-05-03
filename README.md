@@ -16,7 +16,7 @@ These include general purpose GAMs, support to off-the-shelf hardware and interf
 | [PIDGAM](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/GAMs/PIDGAM) | [A generic PID with saturation and anti-windup.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1PIDGAM.html)|
 | [SSMGAM](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/GAMs/SSMGAM) | [A generic State Space model with constant matrices and float64.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1SSMGAM.html)|
 | [StatisticsGAM](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/GAMs/StatisticsGAM) | [GAM which provides average, standard deviation, minimum and maximum of its input signal over a moving time window.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1StatisticsGAM.html)|
-| [Waveform](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/GAMs/Waveform) | [GAM which provides average, standard deviation, minimum and maximum of its input signal over a moving time window.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1Waveform.html)|
+| [WaveformGAM](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/GAMs/WaveformGAM) | [GAM which provides average, standard deviation, minimum and maximum of its input signal over a moving time window.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1Waveform.html)|
 
 ## DataSources
 

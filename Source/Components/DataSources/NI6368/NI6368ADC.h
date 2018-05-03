@@ -60,6 +60,8 @@ const uint32 NI6368ADC_EXEC_SPAWNED = 2u;
  * @brief A DataSource which provides an input interface to the NI6368 boards.
  *
  * The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +NI6368_0 = {
  *     Class = NI6368::NI6368ADC
  *     DeviceName = "/dev/pxie-6368" //Mandatory
@@ -94,6 +96,7 @@ const uint32 NI6368ADC_EXEC_SPAWNED = 2u;
  *          ...
  *     }
  * }
+ * </pre>
  */
 class NI6368ADC: public DataSourceI, public EmbeddedServiceMethodBinderI {
 public:
