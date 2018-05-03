@@ -10,12 +10,13 @@ The current components are currently available:
 
 | Component | Documentation |
 | --------- | ------------- |
-| [Source-code](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/) | [Encapsulate and execute GAMs from BaseLib2 in MARTe2](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1BaseLib2GAM.html)|
+| [BaseLib2GAM](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/GAMs/BaseLib2GAM) | [Encapsulate and execute GAMs from BaseLib2 in MARTe2](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1BaseLib2GAM.html)|
+| [ConversionGAM](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/GAMs/ConversionGAM) | [GAM which allows to convert between different signal types](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1ConversionGAM.html)|
+| [FilterGAM](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/GAMs/FilterGAM) | [GAM which allows to implement FIR & IIR filter with float32 type](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1FilterGAM.html)|
 
 ## DataSources
 
 ## Interfaces
-
 
 # Other information
 
@@ -42,3 +43,10 @@ $ Build/linux/GTest/MainGTest.ex
 + marte2_dir is the root directory of MARTe2 project's source code.
 
 **Note:** The directory marte2_dir can be a snapshot of the project or a clone of the repository itself, so it can be switched to any branch or commit.
+
+# License
+
+Copyright 2015 F4E | European Joint Undertaking for ITER and the Development of Fusion Energy ('Fusion for Energy').
+Licensed under the EUPL, Version 1.1 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence"). You may not use this work except in compliance with the Licence. You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence permissions and limitations under the Licence.

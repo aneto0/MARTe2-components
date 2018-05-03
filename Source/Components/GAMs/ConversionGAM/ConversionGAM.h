@@ -52,6 +52,7 @@ namespace MARTe {
  * Note that the number of elements or samples can be different, provided that the equality above is respected.
  *
  * The configuration syntax is (names and signal quantities are only given as an example):
+ * <pre>
  * +Conversion1 = {
  *     Class = ConversionGAM
  *     InputSignals = {
@@ -79,6 +80,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+ * </pre>
  */
 class ConversionGAM: public GAM {
 public:
