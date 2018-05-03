@@ -254,7 +254,9 @@ bool FileReader::Synchronise() {
                 signalIdx++;
                 token = "";
                 if (ok) {
-                    ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
+                    if (signalIdx != nSignals) {
+                        ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
+                    }
                 }
             }
             if (ok) {

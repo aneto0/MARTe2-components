@@ -1,8 +1,8 @@
 #############################################################
 #
-# Copyright 2015 EFDA | European Joint Undertaking for ITER
-# and the Development of Fusion Energy ("Fusion for Energy")
-#
+# Copyright 2015 F4E | European Joint Undertaking for ITER 
+#  and the Development of Fusion Energy ('Fusion for Energy')
+# 
 # Licensed under the EUPL, Version 1.1 or - as soon they 
 # will be approved by the European Commission - subsequent  
 # versions of the EUPL (the "Licence"); 
@@ -20,12 +20,13 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.linux 3 2015-01-15 16:26:07Z aneto $
+# $Id: Makefile.inc 3 2015-01-15 16:26:07Z aneto $
 #
 #############################################################
 
-# Note that this should in the future be replaced by Makefile.x86-linux or removed (and define the TARGET as an environment variable)
 
-export TARGET=x86-linux
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = MDSReaderGTest.x
 
 include Makefile.inc
