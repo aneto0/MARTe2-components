@@ -74,8 +74,9 @@ namespace MARTe {
  * @pre The size of the numerator and the denominator must be at least 1;
  * @post The output is the input filtered.
  *
- * <pre>
  * The configuration syntax is (names and signal quantity are only given as an example):
+ *
+ * <pre>
  * +Filter1 = {
  *     Class = FilterGAM
  *     Num = {0.5 0.5} //Compulsory. Filter numerator coefficient.
