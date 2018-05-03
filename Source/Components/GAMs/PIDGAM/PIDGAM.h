@@ -73,7 +73,8 @@ namespace MARTe {
  *
  *
  *The configuration syntax is (names and signal quantity are only given as an example):
- *<pre>
+ *
+ * <pre>
  * +PID1 = {
  *     Class = PIDGAM
  *     kp = 10.0 // or kp or ki or kd must be defined, otherwise an error will occur

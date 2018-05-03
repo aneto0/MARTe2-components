@@ -46,6 +46,7 @@ namespace MARTe {
  *  serve as a (direct) connector between DataSources.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
+ * <pre>
  * +Buffer = {
  *     Class = IOGAM
  *     InputSignals = {
@@ -69,6 +70,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+ * </pre>
  */
 class IOGAM: public GAM {
 public:

@@ -74,6 +74,7 @@ namespace MARTe {
  * @pre The size of the numerator and the denominator must be at least 1;
  * @post The output is the input filtered.
  *
+ * <pre>
  * The configuration syntax is (names and signal quantity are only given as an example):
  * +Filter1 = {
  *     Class = FilterGAM
@@ -101,6 +102,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+ * </pre>
  */
 class FilterGAM: public GAM, public StatefulI {
 public:
