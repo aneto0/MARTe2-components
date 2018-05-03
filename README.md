@@ -10,7 +10,7 @@ The current components are currently available:
 
 | Component | Documentation |
 | --------- | ------------- |
-| [Source-code](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/
+| [Source-code](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/) | [Encapsulate and execute GAMs from BaseLib2 in MARTe2](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1BaseLib2GAM.html)|
 
 ## DataSources
 
