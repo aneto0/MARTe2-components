@@ -53,13 +53,9 @@ These include general purpose GAMs, support to off-the-shelf hardware and interf
 
 More information about the MARTe software framework can be found in: 
 
-- [User documentation](https://vcis-jenkins.f4e.europa.eu/job/MARTe2/docs)
+- [User documentation](https://vcis.f4e.europa.eu/marte2-docs/master/html/)
 - [API documentation](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-docs-master/doxygen/annotated.html)
 - [API documentation (components)](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-components-docs-master/doxygen/annotated.html)
-
-- [Source-code](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2)
-- [Integration](https://vcis-jenkins.f4e.europa.eu/job/MARTe2)
-
 
 ## How to build components and run tests
 
