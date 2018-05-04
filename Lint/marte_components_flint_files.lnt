@@ -20,6 +20,7 @@
 -i./Source/Components/GAMs/ConstantGAM/
 -i./Source/Components/GAMs/ConversionGAM/
 -i./Source/Components/GAMs/FilterGAM/
+-i./Source/Components/GAMs/Interleaved2FlatGAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/GAMs/PIDGAM/
 -i./Source/Components/GAMs/MuxGAM/
@@ -45,9 +46,10 @@ EPICSPV.cpp
 EPICSCAClient.cpp
 EPICSCAInput.cpp
 EPICSCAOutput.cpp
-FilterGAM.cpp
 FileReader.cpp
 FileWriter.cpp
+FilterGAM.cpp
+Interleaved2FlatGAM.cpp
 IOGAM.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
