@@ -218,6 +218,9 @@ bool NI6368ADC::Synchronise() {
             while (err == ErrorManagement::NotCompleted) {
                 err = Execute(info);
             }
+            if (err == ErrorManagement::Completed) {
+                err = ErrorManagement::NoError;
+            }
         }
         else {
             (void) fastMux.FastLock(TTInfiniteWait, fastMuxSleepTime);

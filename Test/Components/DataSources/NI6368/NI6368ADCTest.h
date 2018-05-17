@@ -97,6 +97,16 @@ public:
     bool TestExecute();
 
     /**
+     * @brief Tests the Execute method in the context of the RealTimeThread.
+     */
+    bool TestExecute_RealTimeThread();
+
+    /**
+     * @brief Tests the Execute method in the context of the RealTimeMode.
+     */
+    bool TestExecute_RealTimeMode();
+
+    /**
      * @brief Tests the PrepareNextState method.
      */
     bool TestPrepareNextState();
