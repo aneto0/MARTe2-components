@@ -46,6 +46,7 @@
 namespace MARTe {
 NI6368ADC::NI6368ADC() :
         DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
+    lastBufferIdx = 0u;
     cycleFrequency = 0.F;
     numberOfSamples = 0u;
     boardId = 0;
