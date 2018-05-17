@@ -1606,21 +1606,7 @@ bool NI6368ADCTest::TestGetNumberOfMemoryBuffers() {
 }
 
 bool NI6368ADCTest::TestGetSignalMemoryBuffer() {
-    using namespace MARTe;
-    NI6368ADC test;
-    uint32 *counter;
-    uint32 *timer;
-    uint16 *adc0;
-    uint16 *adc16;
-    test.GetSignalMemoryBuffer(0, 0, (void *&) counter);
-    test.GetSignalMemoryBuffer(1, 0, (void *&) timer);
-    test.GetSignalMemoryBuffer(20, 0, (void *&) adc0);
-    test.GetSignalMemoryBuffer(160, 0, (void *&) adc16);
-    bool ok = (*counter == 0);
-    ok &= (*timer == 0);
-    ok &= (adc0 == NULL);
-    ok &= (adc16 == NULL);
-    return ok;
+    return TestIntegratedInApplication(config1);
 }
 
 bool NI6368ADCTest::TestGetSignalMemoryBuffer_False() {
