@@ -60,6 +60,7 @@ MDSWriterNode.cpp
 MuxGAM.cpp
 MuxGAM.h
 NI6259ADC.cpp
+NI6259ADCInputBroker.cpp
 NI6259DAC.cpp
 NI6259DIO.cpp
 NI6368ADC.cpp
