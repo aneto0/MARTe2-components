@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  NI6259ADCTest.x NI6259DACTest.x NI6259DIOTest.x
+OBJSX +=  NI6259ADCTest.x NI6259ADCInputBrokerTest.x NI6259DACTest.x NI6259DIOTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..

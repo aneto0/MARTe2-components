@@ -42,6 +42,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 //Number of ADC channels
+/*lint -esym(551, MARTe::NI6259ADC_MAX_CHANNELS) the symbol is used to define the size of several arrays below*/
 const uint32 NI6259ADC_MAX_CHANNELS = 32u;
 //Counter and timer
 const uint32 NI6259ADC_HEADER_SIZE = 2u;
@@ -354,11 +355,6 @@ private:
     size_t dmaChannel;
 
     /**
-     * Total number of DMA bytes from the beginning
-     */
-    size_t nBytesInDMAFromStart;
-
-    /**
      * The ADCs that are enabled
      */
     bool adcEnabled[NI6259ADC_MAX_CHANNELS];
@@ -418,6 +414,10 @@ private:
      */
     float64 fastMuxSleepTime;
 
+    /**
+     * The sampling frequency of the single ADC.
+     */                
+    uint32 singleADCFrequency;
 };
 }
 

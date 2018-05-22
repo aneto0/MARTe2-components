@@ -30,8 +30,6 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "MemoryMapInputBroker.h"
-#include "MemoryMapSynchronisedInputBroker.h"
 #include "NI6259ADC.h"
 #include "NI6259ADCInputBroker.h"
 
@@ -50,6 +48,7 @@ NI6259ADC::NI6259ADC() :
     numberOfSamples = 0u;
     boardId = 0u;
     samplingFrequency = 0u;
+    singleADCFrequency = 0u;
     boardFileDescriptor = -1;
     deviceName = "";
     counter = 0u;
@@ -79,7 +78,6 @@ NI6259ADC::NI6259ADC() :
     dma = NULL_PTR(struct pxi6259_dma *);
     dmaOffset = 0u;
     dmaChannel = 0u;
-    nBytesInDMAFromStart = 0u;
 
     uint32 n;
     for (n = 0u; n < NI6259ADC_MAX_CHANNELS; n++) {
@@ -99,7 +97,7 @@ NI6259ADC::NI6259ADC() :
     }
 }
 
-/*lint -e{1551} the destructor must guarantee that the NI6259ADC SingleThreadService is stopped and that all the file descriptors are closed.*/
+/*lint -e{1551} -e{1740} the destructor must guarantee that the NI6259ADC SingleThreadService is stopped and that all the file descriptors are closed. The dma is freed by the pxi-6259-lib*/
 NI6259ADC::~NI6259ADC() {
     if (!executor.Stop()) {
         if (!executor.Stop()) {
@@ -145,7 +143,7 @@ bool NI6259ADC::AllocateMemory() {
 }
 
 uint32 NI6259ADC::GetNumberOfMemoryBuffers() {
-    return 1u;
+    return NUMBER_OF_BUFFERS;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
@@ -177,13 +175,10 @@ const char8* NI6259ADC::GetBrokerName(StructuredDataI& data, const SignalDirecti
             frequency = -1.F;
         }
 
+        brokerName = "NI6259ADCInputBroker";
         if (frequency > 0.F) {
-            brokerName = "MemoryMapSynchronisedInputBroker";
             cycleFrequency = frequency;
             synchronising = true;
-        }
-        else {
-            brokerName = "MemoryMapInputBroker";
         }
     }
     else {
@@ -695,10 +690,10 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (ok) {
         for (i = 0u; (i < numberOfADCsEnabled) && (ok); i++) {
-            ok = (GetSignalType(NI6259ADC_HEADER_SIZE + i) == Float32Bit);
+            ok = (GetSignalType(NI6259ADC_HEADER_SIZE + i) == SignedInteger16Bit);
         }
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "All the ADC signals shall be of type Float32Bit");
+            REPORT_ERROR(ErrorManagement::ParametersError, "All the ADC signals shall be of type SignedInteger16Bit");
         }
     }
 
@@ -760,7 +755,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         if (synchronising) {
             //numberOfADCsEnabled > 0 as otherwise it would be stopped
             if (numberOfADCsEnabled > 0u) {
-                uint32 singleADCFrequency = samplingFrequency / numberOfADCsEnabled;
+                singleADCFrequency = samplingFrequency / numberOfADCsEnabled;
                 float32 totalNumberOfSamplesPerSecond = (static_cast<float32>(numberOfSamples) * cycleFrequency);
                 ok = (singleADCFrequency == static_cast<uint32>(totalNumberOfSamplesPerSecond));
                 if (!ok) {
@@ -861,16 +856,16 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        dma = pxi6259_dma_init(boardId);
-        ok = (dma != NULL_PTR(struct pxi6259_dma *));
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the dma for device %s", fullDeviceName);
-        }
-    }
-    if (ok) {
         ok = (pxi6259_start_ai(boardFileDescriptor) == 0);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName);
+        }
+    }
+    if (ok) {
+        dma = pxi6259_dma_init(static_cast<int32>(boardId));
+        ok = (dma != NULL_PTR(struct pxi6259_dma *));
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the dma for device %s", fullDeviceName);
         }
     }
     if (ok) {
@@ -912,7 +907,8 @@ ErrorManagement::ErrorType NI6259ADC::CopyFromDMA(const size_t numberOfSamplesFr
                         uint64 counterSamples = counter;
                         counterSamples *= numberOfSamples;
                         counterSamples *= 1000000LLU;
-                        counterSamples /= samplingFrequency;
+                        //lint -e{414} singleADCFrequency > 0 guaranteed during configuration.
+                        counterSamples /= singleADCFrequency;
                         if (timeValue != NULL_PTR(uint32 *)) {
                             timeValue[currentBufferIdx] = static_cast<uint32>(counterSamples);
                         }
@@ -942,21 +938,22 @@ ErrorManagement::ErrorType NI6259ADC::Execute(ExecutionInfo& info) {
     }
     else if (info.GetStage() == ExecutionInfo::StartupStage) {
         //Empty DMA buffer
+        //Does not work. The returned nBytesInDMA is always > 0...
+        #if 0
         size_t nBytesInDMA = pxi6259_dma_samples_in_buffer(dma, dmaOffset);
         if ((dma != NULL_PTR(struct pxi6259_dma *)) && (numberOfADCsEnabled > 0u)) {
             while (nBytesInDMA > 0u) {
                 dmaOffset = dmaOffset + nBytesInDMA;
                 dmaOffset %= dma->ai.count;
-                nBytesInDMAFromStart += nBytesInDMA;
-                dma->ai.count = nBytesInDMAFromStart;
                 dmaChannel = (dma->ai.count % numberOfADCsEnabled);
                 nBytesInDMA = pxi6259_dma_samples_in_buffer(dma, dmaOffset);
             }
         }
+        #endif
     }
     else {
         if ((dma != NULL_PTR(struct pxi6259_dma *)) && (dmaReadBuffer != NULL_PTR(int16 *))) {
-            size_t nBytesInDMA = pxi6259_dma_samples_in_buffer(dma, dmaOffset);
+            size_t nBytesInDMA = pxi6259_dma_samples_in_buffer(dma, static_cast<off_t>(dmaOffset));
             if (nBytesInDMA > 0u) {
                 if (nBytesInDMA > dma->ai.count) {
                     REPORT_ERROR(ErrorManagement::FatalError, "Overflow while reading from the ADC");
@@ -974,11 +971,9 @@ ErrorManagement::ErrorType NI6259ADC::Execute(ExecutionInfo& info) {
                         memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nBytesInDMA));
                     }
                     err = CopyFromDMA(nBytesInDMA);
-                    dmaOffset = dmaOffset + nBytesInDMA;
-                    dmaOffset %= dma->ai.count;
-                    nBytesInDMAFromStart += nBytesInDMA;
-                    dma->ai.count = nBytesInDMAFromStart;
                 }
+                dmaOffset = dmaOffset + nBytesInDMA;
+                dmaOffset %= dma->ai.count;
             }
         }
     }
