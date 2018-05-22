@@ -267,6 +267,174 @@ static const MARTe::char8 * const config1 = ""
         "    }"
         "}";
 
+static const MARTe::char8 * const config1b = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6368ADCTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = NI6368_0"
+        "                }"
+        "                Time = {"
+        "                    DataSource = NI6368_0"
+        "                }"
+        "                ADC0_0 = {"
+        "                    DataSource = NI6368_0"
+        "                    Type = int16"
+        "                    Samples = 2000"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6368_0 = {"
+        "            Class = NI6368ADC"
+        "            DeviceName = \"/dev/pxie-6368\""
+        "            BoardId = 0"
+        "            DMABufferSize = 1000"
+        "            ClockSampleSource = \"INTERNALTIMING\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"INTERNALTIMING\""
+        "            ClockConvertPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ScanIntervalCounterSource = \"COUNTER_TB3\""
+        "            ScanIntervalCounterPolarity = \"RISING_EDGE\""
+        "            ScanIntervalCounterPeriod = 50"
+        "            ScanIntervalCounterDelay = 2"
+        "            CPUs = 0xf"
+        "            ExecutionMode = RealTimeThread"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                ADC0_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 0"
+        "                }"
+        "                ADC1_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//As config1 but with RealTimeMode = 1
+static const MARTe::char8 * const config1c = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6368ADCTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = NI6368_0"
+        "                }"
+        "                Time = {"
+        "                    DataSource = NI6368_0"
+        "                }"
+        "                ADC0_0 = {"
+        "                    DataSource = NI6368_0"
+        "                    Type = int16"
+        "                    Samples = 2000"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6368_0 = {"
+        "            Class = NI6368ADC"
+        "            DeviceName = \"/dev/pxie-6368\""
+        "            BoardId = 0"
+        "            DMABufferSize = 1000"
+        "            ClockSampleSource = \"INTERNALTIMING\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"INTERNALTIMING\""
+        "            ClockConvertPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ScanIntervalCounterSource = \"COUNTER_TB3\""
+        "            ScanIntervalCounterPolarity = \"RISING_EDGE\""
+        "            ScanIntervalCounterPeriod = 50"
+        "            ScanIntervalCounterDelay = 2"
+        "            CPUs = 0xf"
+        "            RealTimeMode = 1"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                ADC0_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 0"
+        "                }"
+        "                ADC1_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+
 //One channel base configuration
 static const MARTe::char8 * const config2 = ""
         "$Test = {"
@@ -1602,25 +1770,11 @@ bool NI6368ADCTest::TestAllocateMemory() {
 bool NI6368ADCTest::TestGetNumberOfMemoryBuffers() {
     using namespace MARTe;
     NI6368ADC ni6368ADC;
-    return (ni6368ADC.GetNumberOfMemoryBuffers() == 2u);
+    return (ni6368ADC.GetNumberOfMemoryBuffers() == 8u);
 }
 
 bool NI6368ADCTest::TestGetSignalMemoryBuffer() {
-    using namespace MARTe;
-    NI6368ADC test;
-    uint32 *counter;
-    uint32 *timer;
-    uint16 *adc0;
-    uint16 *adc16;
-    test.GetSignalMemoryBuffer(0, 0, (void *&) counter);
-    test.GetSignalMemoryBuffer(1, 0, (void *&) timer);
-    test.GetSignalMemoryBuffer(2, 0, (void *&) adc0);
-    test.GetSignalMemoryBuffer(16, 0, (void *&) adc16);
-    bool ok = (*counter == 0);
-    ok &= (*timer == 0);
-    ok &= (adc0 == NULL);
-    ok &= (adc16 == NULL);
-    return ok;
+    return TestIntegratedInApplication(config1);
 }
 
 bool NI6368ADCTest::TestGetSignalMemoryBuffer_False() {
@@ -1670,6 +1824,14 @@ bool NI6368ADCTest::TestSynchronise() {
 
 bool NI6368ADCTest::TestExecute() {
     return TestIntegratedInApplication(config1);
+}
+
+bool NI6368ADCTest::TestExecute_RealTimeThread() {
+    return TestIntegratedInApplication(config1b);
+}
+
+bool NI6368ADCTest::TestExecute_RealTimeMode() {
+    return TestIntegratedInApplication(config1c);
 }
 
 bool NI6368ADCTest::TestPrepareNextState() {

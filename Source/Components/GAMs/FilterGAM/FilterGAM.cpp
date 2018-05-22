@@ -88,7 +88,7 @@ FilterGAM::~FilterGAM() {
                 input[i] = NULL_PTR(float32 *);
             }
         }
-        input = NULL_PTR(float32 **);
+        delete [] input;
     }
     if (output != NULL_PTR(float32 **)) {
         for (uint32 i = 0u; i < numberOfSignals; i++) {
@@ -96,7 +96,7 @@ FilterGAM::~FilterGAM() {
                 output[i] = NULL_PTR(float32 *);
             }
         }
-        output = NULL_PTR(float32 **);
+        delete [] output;
     }
 }
 

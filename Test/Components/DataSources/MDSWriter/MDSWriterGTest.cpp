@@ -1,6 +1,6 @@
 /**
- * @file NI6259ADCGTest.cpp
- * @brief Source file for class NI6259ADCGTest
+ * @file MDWriterGTest.cpp
+ * @brief Source file for class MDWriterGTest
  * @date 14/02/2017
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class NI6259ADCGTest (public, protected, and private). Be aware that some 
+ * the class MDWriterGTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -276,4 +276,44 @@ TEST(MDSWriterGTest,TestIsStoreOnTrigger) {
 TEST(MDSWriterGTest,TestGetTimeSignalIdx) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestGetTimeSignalIdx());
+}
+
+TEST(MDSWriterGTest,TestOpenTreeOKMessage) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestOpenTreeOKMessage());
+}
+
+TEST(MDSWriterGTest,TestOpenTreeFailMessage) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestOpenTreeFailMessage());
+}
+
+TEST(MDSWriterGTest,TestFlushSegmentsMessage) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestFlushSegmentsMessage());
+}
+
+TEST(MDSWriterGTest,TestOpenTreeOKMessage_Fail) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestOpenTreeOKMessage_Fail());
+}
+
+TEST(MDSWriterGTest,TestOpenTreeFailMessage_Fail) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestOpenTreeFailMessage_Fail());
+}
+
+TEST(MDSWriterGTest,TestFlushSegmentsMessage_Fail) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestFlushSegmentsMessage_Fail());
+}
+
+TEST(MDSWriterGTest,TestInvalidMessageName) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInvalidMessageName());
+}
+
+TEST(MDSWriterGTest,TestInvalidMessageType) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestInvalidMessageType());
 }

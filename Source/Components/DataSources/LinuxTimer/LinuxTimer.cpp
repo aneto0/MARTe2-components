@@ -37,6 +37,10 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
+const uint32 LINUX_TIMER_EXEC_MODE_RTTHREAD = 1u;
+const uint32 LINUX_TIMER_EXEC_MODE_SPAWNED = 2u;
+}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -52,6 +56,7 @@ LinuxTimer::LinuxTimer() :
     counterAndTimer[1] = 0u;
     sleepNature = Busy;
     synchronising = false;
+    executionMode = 0u;
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
@@ -74,7 +79,7 @@ bool LinuxTimer::AllocateMemory() {
 }
 
 bool LinuxTimer::Initialise(StructuredDataI& data) {
-    bool ok = true;
+    bool ok = DataSourceI::Initialise(data);
     StreamString sleepNatureStr;
     if (!data.Read("SleepNature", sleepNatureStr)) {
         REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
@@ -90,7 +95,45 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported SleepNature.");
         ok = false;
     }
+    StreamString executionModeStr;
+    if (!data.Read("ExecutionMode", executionModeStr)) {
+        executionModeStr = "IndependentThread";
+        REPORT_ERROR(ErrorManagement::Warning, "ExecutionMode not specified using: %s", executionModeStr.Buffer());
+    }
+    if (executionModeStr == "IndependentThread") {
+        executionMode = LINUX_TIMER_EXEC_MODE_SPAWNED;
+    }
+    else {
+        executionMode = LINUX_TIMER_EXEC_MODE_RTTHREAD;
+    }
 
+    if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
+        if (ok) {
+            uint32 cpuMaskIn;
+            if (!data.Read("CPUMask", cpuMaskIn)) {
+                cpuMaskIn = 0xFFu;
+                REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMaskIn);
+            }
+            cpuMask = cpuMaskIn;
+        }
+        if (ok) {
+            if (!data.Read("StackSize", stackSize)) {
+                stackSize = THREADS_DEFAULT_STACKSIZE;
+                REPORT_ERROR(ErrorManagement::Warning, "StackSize not specified using: %d", stackSize);
+            }
+        }
+        if (ok) {
+            ok = (stackSize > 0u);
+
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
+            }
+        }
+        if (ok) {
+            executor.SetCPUMask(cpuMask);
+            executor.SetStackSize(stackSize);
+        }
+    }
     return ok;
 }
 
@@ -120,7 +163,8 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = (GetSignalType(1u).numberOfBits == 32u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall have 32 bits and %d were specified", uint16(GetSignalType(1u).numberOfBits));
+            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall have 32 bits and %d were specified",
+                         uint16(GetSignalType(1u).numberOfBits));
         }
     }
     if (ok) {
@@ -263,15 +307,25 @@ bool LinuxTimer::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8
 }
 
 bool LinuxTimer::Synchronise() {
-    ErrorManagement::ErrorType err = synchSem.ResetWait(TTInfiniteWait);
+    ErrorManagement::ErrorType err;
+    if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
+        err = synchSem.ResetWait(TTInfiniteWait);
+    }
+    else {
+        ExecutionInfo info;
+        info.SetStage(ExecutionInfo::MainStage);
+        err = Execute(info);
+    }
     return err.ErrorsCleared();
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the counter and the timer are always reset irrespectively of the states being changed.*/
 bool LinuxTimer::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
     bool ok = true;
-    if (executor.GetStatus() == EmbeddedThreadI::OffState) {
-        ok = executor.Start();
+    if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
+        if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+            ok = executor.Start();
+        }
     }
     counterAndTimer[0] = 0u;
     counterAndTimer[1] = 0u;
@@ -279,7 +333,7 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName, const cha
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the method sleeps for the given period irrespectively of the input info.*/
-ErrorManagement::ErrorType LinuxTimer::Execute(const ExecutionInfo& info) {
+ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     if (lastTimeTicks == 0u) {
         lastTimeTicks = HighResolutionTimer::Counter();
     }
@@ -307,6 +361,14 @@ ErrorManagement::ErrorType LinuxTimer::Execute(const ExecutionInfo& info) {
     counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTime;
 
     return err;
+}
+
+const ProcessorType& LinuxTimer::GetCPUMask() const {
+    return cpuMask;
+}
+
+uint32 LinuxTimer::GetStackSize() const {
+    return stackSize;
 }
 
 CLASS_REGISTER(LinuxTimer, "1.0")

@@ -96,15 +96,15 @@ public:
 
 CLASS_REGISTER(SDNPublisherTestGAM, "1.0")
 
-class ConstantGAM: public MARTe::GAM {
+class SDNPublisherTestConstantGAM: public MARTe::GAM {
 
 public:
 
     CLASS_REGISTER_DECLARATION()
 
-    ConstantGAM() : GAM() { dflt = 0; }
+    SDNPublisherTestConstantGAM() : GAM() { dflt = 0; }
 
-    ~ConstantGAM() {}
+    ~SDNPublisherTestConstantGAM() {}
 
     bool Execute() {
 
@@ -132,7 +132,7 @@ public:
 
 };
 
-CLASS_REGISTER(ConstantGAM, "1.0")
+CLASS_REGISTER(SDNPublisherTestConstantGAM, "1.0")
 
 /**
  * Starts a MARTe application that uses this driver instance.
@@ -471,7 +471,7 @@ bool SDNPublisherTest::TestSetConfiguredDatabase_False_NOfSignals() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Timer = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = DDB1"
@@ -594,7 +594,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_1() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Timer = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNPub"
@@ -652,7 +652,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_2() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Timer = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNPub"
@@ -709,7 +709,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_3() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Timer = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNPub"
@@ -768,7 +768,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_4() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Timer = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNPub"
@@ -833,7 +833,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_5() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Counter = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNPub"
@@ -843,7 +843,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_5() {
             "            }"
             "        }"
             "        +Timer = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = DDB1"
@@ -910,7 +910,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_6() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Counter = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNPub"
@@ -920,7 +920,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_6() {
             "            }"
             "        }"
             "        +Timer = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = DDB1"
@@ -988,7 +988,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_7() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Timer = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNPub"
@@ -1002,7 +1002,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_7() {
             "            }"
             "        }"
             "        +ADC = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Sample = {"
             "                    DataSource = SDNPub"
@@ -1072,7 +1072,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_8() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Timer = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNPub"
@@ -1092,7 +1092,7 @@ bool SDNPublisherTest::TestGetOutputBrokers_8() {
             "            }"
             "        }"
             "        +ADC = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                Sample = {"
             "                    DataSource = SDNPub"
@@ -1356,7 +1356,7 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_2() {
             "            }"
             "        }"
             "        +Arrays = {"
-            "            Class = ConstantGAM"
+            "            Class = SDNPublisherTestConstantGAM"
             "            OutputSignals = {"
             "                ArrayInt32_1D = {"
             "                    DataSource = SDNPub"
@@ -1434,7 +1434,7 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_2() {
         ReferenceT<RealTimeApplication> application = god->Find("Test");
         ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
         ReferenceT<SDNPublisherTestGAM> timer = application->Find("Functions.Timer");
-        ReferenceT<ConstantGAM> array = application->Find("Functions.Arrays");
+        ReferenceT<SDNPublisherTestConstantGAM> array = application->Find("Functions.Arrays");
 
         ok = ((publisher.IsValid()) && (timer.IsValid()) && (array.IsValid()));
 

@@ -24,7 +24,7 @@
 #
 #############################################################
 
-SPB=  IOGAM.x ConversionGAM.x FilterGAM.x
+SPB=  IOGAM.x ConstantGAM.x ConversionGAM.x FilterGAM.x Interleaved2FlatGAM.x MuxGAM.x PIDGAM.x SSMGAM.x StatisticsGAM.x WaveformGAM.x
 
 ifdef EFDA_MARTe_DIR
 SPB += BaseLib2GAM.x
@@ -37,14 +37,21 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 LIBRARIES_STATIC+=$(BUILD_DIR)/IOGAM/IOGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/FilterGAM/FilterGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/ConstantGAM/ConstantGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/ConversionGAM/ConversionGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/FilterGAM/FilterGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/Interleaved2FlatGAM/Interleaved2FlatGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/MuxGAM/MuxGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/PIDGAM/PIDGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/SSMGAM/SSMGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/StatisticsGAM/StatisticsGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/WaveformGAM/WaveformGAMTest$(LIBEXT)
 ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAMTest$(LIBEXT)
 endif
 
 all: $(OBJS) $(SUBPROJ) \
-                $(BUILD_DIR)/GAMsTests$(LIBEXT)
+    $(BUILD_DIR)/GAMsTests$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

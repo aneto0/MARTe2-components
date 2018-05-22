@@ -88,7 +88,7 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
         ok = false;
     }
     else {
-        log_info("SDNPublisher::Initialise - Interface is '%s'", ifaceName.Buffer());
+        REPORT_ERROR(ErrorManagement::Information, "SDN interface is '%s'", ifaceName.Buffer());
     }
 
     if (!net_is_interface_valid(ifaceName.Buffer())) {
@@ -96,7 +96,7 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
         ok = false;
     }
     else {
-        log_info("SDNPublisher::Initialise - Interface '%s' is valid", ifaceName.Buffer());
+        REPORT_ERROR(ErrorManagement::Information, "SDN interface '%s' is valid", ifaceName.Buffer());
     }
 
     // Retrieve and verify topic name
@@ -105,7 +105,7 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
         ok = false;
     }
     else {
-        log_info("SDNPublisher::Initialise - Topic name is '%s'", topicName.Buffer());
+        REPORT_ERROR(ErrorManagement::Information, "Topic name is '%s'", topicName.Buffer());
     }
 
     // The topic name is used to generate UDP/IPv4 multicast mapping. Optionally, the mapping
@@ -117,7 +117,7 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
             ok = false;
         }
         else {
-            log_info("SDNPublisher::Initialise - Valid destination address '%s'", destAddr.Buffer());
+            REPORT_ERROR(ErrorManagement::Information, "Valid destination address '%s'", destAddr.Buffer());
         }
 
     }
@@ -139,7 +139,7 @@ bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "nOfSignals must be > 0u");
     }
     else {
-        log_info("SDNPublisher::SetConfiguredDatabase - Number of signals '%u'", nOfSignals);
+        REPORT_ERROR(ErrorManagement::Information, "Number of signals '%u'", nOfSignals);
     }
 
     if (ok) {

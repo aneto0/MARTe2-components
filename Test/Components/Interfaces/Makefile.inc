@@ -30,6 +30,10 @@ ifdef EFDA_MARTe_DIR
 SPB += BaseLib2Wrapper.x
 endif
 
+ifdef EPICS_BASE
+SPB   += EPICS.x
+endif
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -39,6 +43,9 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC=$(BUILD_DIR)/SysLogger/SysLoggerTest$(LIBEXT)
 ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2WrapperTest$(LIBEXT)
+endif
+ifdef EPICS_BASE
+LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICSTest$(LIBEXT)
 endif
 
 all: $(OBJS) $(SUBPROJ) \

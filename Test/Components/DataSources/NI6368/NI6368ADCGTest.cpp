@@ -95,6 +95,16 @@ TEST(NI6368ADCGTest,TestExecute) {
     ASSERT_TRUE(test.TestExecute());
 }
 
+TEST(NI6368ADCGTest,TestExecute_RealTimeThread) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestExecute_RealTimeThread());
+}
+
+TEST(NI6368ADCGTest,TestExecute_RealTimeMode) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestExecute_RealTimeMode());
+}
+
 TEST(NI6368ADCGTest,TestPrepareNextState) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestPrepareNextState());

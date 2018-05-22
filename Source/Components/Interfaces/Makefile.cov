@@ -31,3 +31,7 @@ ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=BaseLib2Wrapper/cov/BaseLib2Wrapper$(LIBEXT)
 LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
 endif
+ifdef EPICS_BASE
+LIBRARIES_STATIC+=EPICS/cov/EPICS$(LIBEXT)
+endif
+

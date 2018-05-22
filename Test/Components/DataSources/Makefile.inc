@@ -24,14 +24,23 @@
 #
 #############################################################
 
-SPB    =  LinuxTimer.x LoggerDataSource.x
+SPB    = EpicsDataSource.x \
+        FileDataSource.x \
+        LinuxTimer.x \
+        LoggerDataSource.x \
+        RealTimeThreadSynchronisation.x
 
 ifdef CODAC_ROOT
-SPB+=NI6259.x NI6368.x
+SPB+=NI6259.x NI6368.x DAN.x
 endif
 
 ifdef MDSPLUS_DIR
 SPB+=MDSWriter.x
+SPB+=MDSReader.x
+endif
+
+ifdef EPICS_BASE
+SPB+=EPICSCA.x
 endif
 
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
@@ -46,21 +55,30 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+LIBRARIES_STATIC=$(BUILD_DIR)/EpicsDataSource/EpicsDataSourceTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/FileDataSource/FileDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadSynchronisation/RealTimeThreadSynchronisationTest$(LIBEXT)
 
 ifdef CODAC_ROOT
+LIBRARIES_STATIC+=$(BUILD_DIR)/DAN/DANTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259Test$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI6368/NI6368Test$(LIBEXT)
 endif
 
 ifdef MDSPLUS_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriterTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/MDSReader/MDSReaderTest$(LIBEXT)
 endif
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
 LIBRARIES_STATIC+=$(BUILD_DIR)/SDN/SDNTest$(LIBEXT)
+endif
+
+ifdef EPICS_BASE
+LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSCA/EPICSCATest$(LIBEXT)
 endif
 
 all: $(OBJS) $(SUBPROJ) \

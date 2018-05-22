@@ -681,6 +681,58 @@ const MARTe::char8 * const config10 = ""
         "    }"
         "}";
 
+
+//Standard configuration for testing in the context of the real-time thread
+const MARTe::char8 * const config11 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = LinuxTimerTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            ExecutionMode = RealTimeThread"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -764,6 +816,10 @@ bool LinuxTimerTest::TestExecute() {
 
 bool LinuxTimerTest::TestExecute_Busy() {
     return TestIntegratedInApplication(config2);
+}
+
+bool LinuxTimerTest::TestExecute_RTThread() {
+    return TestIntegratedInApplication(config11);
 }
 
 bool LinuxTimerTest::TestPrepareNextState() {
@@ -859,6 +915,40 @@ bool LinuxTimerTest::TestInitialise_Busy() {
     ConfigurationDatabase cdb;
     cdb.Write("SleepNature", "Busy");
     return test.Initialise(cdb);
+}
+
+bool LinuxTimerTest::TestInitialise_CPUMask() {
+    using namespace MARTe;
+    LinuxTimer test;
+    ConfigurationDatabase cdb;
+    uint32 cpuMask = 0x5;
+    cdb.Write("CPUMask", cpuMask);
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = (test.GetCPUMask() == cpuMask);
+    }
+    return ok;
+}
+
+bool LinuxTimerTest::TestInitialise_StackSize() {
+    using namespace MARTe;
+    LinuxTimer test;
+    ConfigurationDatabase cdb;
+    uint32 stackSize = 1024000;
+    cdb.Write("StackSize", stackSize);
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = (test.GetStackSize() == stackSize);
+    }
+    return ok;
+}
+
+bool LinuxTimerTest::TestGetCPUMask() {
+    return TestInitialise_CPUMask();
+}
+
+bool LinuxTimerTest::TestGetStackSize() {
+    return TestInitialise_StackSize();
 }
 
 bool LinuxTimerTest::TestInitialise_False() {

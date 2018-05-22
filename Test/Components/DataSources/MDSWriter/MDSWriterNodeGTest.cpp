@@ -1,6 +1,6 @@
 /**
- * @file NI6259ADCGTest.cpp
- * @brief Source file for class NI6259ADCGTest
+ * @file MDWriterGTest.cpp
+ * @brief Source file for class MDWriterGTest
  * @date 14/02/2017
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class NI6259ADCGTest (public, protected, and private). Be aware that some 
+ * the class MDWriterGTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 

@@ -75,6 +75,8 @@ namespace MARTe {
  * @post The output is the input filtered.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
+ *
+ * <pre>
  * +Filter1 = {
  *     Class = FilterGAM
  *     Num = {0.5 0.5} //Compulsory. Filter numerator coefficient.
@@ -101,6 +103,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+ * </pre>
  */
 class FilterGAM: public GAM, public StatefulI {
 public:

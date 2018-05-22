@@ -52,14 +52,21 @@ const uint32 NI6368ADC_HEADER_SIZE = 2u;
 const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
 //The number of buffers to synchronise with the DMA
 const uint32 NUMBER_OF_BUFFERS = 8u;
+//If the execution mode is RealTimeThread the synchronisation is performed in the scope of the real-time thread. Otherwise if the mode is IndependentThread then a thread is spawned in order to synchronised with the CPU
+const uint32 NI6368ADC_EXEC_RTTHREAD = 1u;
+const uint32 NI6368ADC_EXEC_SPAWNED = 2u;
+
 /**
  * @brief A DataSource which provides an input interface to the NI6368 boards.
  *
  * The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +NI6368_0 = {
  *     Class = NI6368::NI6368ADC
  *     DeviceName = "/dev/pxie-6368" //Mandatory
  *     BoardId = 0 //Mandatory
+ *     ExecutionMode = IndependentThread //Optional. If not specified ExecutionMode=IndependentThread. If the execution mode is RealTimeThread the synchronisation is performed in the scope of the real-time thread. Otherwise if the mode is IndependentThread then a thread is spawned in order to synchronised with the CPU
  *     DMABufferSize = 1000 //Mandatory. DMA size in bytes > 0.
  *     ClockSampleSource = "INTERNALTIMING" //Mandatory. Sampling clock source. Possible values: INTERNALTIMING, PFI0, ..., PFI15, RTSI0, ..., RTSI6, DIO_CHGDETECT, G0_OUT, ..., G3_OUT, STAR_TRIGGER, SCXI_TRIG1, LOW, PXIE_DSTARA, ATRIG, PXIE_DSTARB, G0_SAMPLECLK, ..., G3_SAMPLECLK, DI_CONVERT, AO_UPDATE, DO_UPDATE, INTTRIGGERA0, ..., INTTRIGGERA7
  *     ClockSamplePolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Mandatory. Sampling clock polarity. Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
@@ -69,8 +76,8 @@ const uint32 NUMBER_OF_BUFFERS = 8u;
  *     ScanIntervalCounterPolarity = "RISING_EDGE" //Mandatory. Convert clock polarity. Possible values: RISING_EDGE, FALLING_EDGE
  *     ScanIntervalCounterPeriod = 50 //Mandatory. Period of the scan interval.
  *     ScanIntervalCounterDelay = 2 //Mandatory. Minimum delay after the start trigger.
- *     CPUs = 0xf //Optional. CPU affinity for the thread which reads data from the board.
- *     RealTimeMode = 0 //Optional. If 1 it will busy sleep on the synchronisation semaphores.
+ *     CPUs = 0xf //Optional and only relevant if ExecutionMode==IndependentThread. CPU affinity for the thread which reads data from the board.
+ *     RealTimeMode = 0 //Optional and onle relevant if ExecutionMode==IndependentThread. If 1 it will busy sleep on the synchronisation semaphores.
  *     Signals = {
  *          Counter = { //Mandatory. Number of ticks since last state change.
  *              Type = uint32 //int32 also supported.
@@ -89,6 +96,7 @@ const uint32 NUMBER_OF_BUFFERS = 8u;
  *          ...
  *     }
  * }
+ * </pre>
  */
 class NI6368ADC: public DataSourceI, public EmbeddedServiceMethodBinderI {
 public:
@@ -160,7 +168,7 @@ NI6368ADC    ();
      * @details Reads data from all the configured DMA channels and posts the synchronisation semaphore.
      * @return false if the synchronisation semaphore cannot be posted.
      */
-    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo & info);
+    virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
     /**
      * @brief Gets the last index written by the DMA.
@@ -211,6 +219,11 @@ NI6368ADC    ();
     bool ReadAIConfiguration(xseries_ai_conf_t *conf) const;
 
 private:
+
+    /**
+     * @brief Resets the DMA
+     */
+    void ResetDMA();
 
     /**
      * @brief Copies from the DMA memory into the broker memory.
@@ -420,6 +433,11 @@ private:
      * The thread CPUs mask.
      */
     uint32 cpuMask;
+
+    /**
+     * The execution mode.
+     */
+    uint32 executionMode;
 
 };
 }

@@ -135,25 +135,17 @@ public:
 
 CLASS_REGISTER(SDNSubscriberTestConstantGAM, "1.0")
 
-class SinkGAM: public MARTe::GAM {
+class SDNSubscriberTestSinkGAM: public MARTe::GAM {
 
 public:
 
     CLASS_REGISTER_DECLARATION()
 
-    SinkGAM() : GAM() { }
+    SDNSubscriberTestSinkGAM() : GAM() { }
 
-    ~SinkGAM() {}
+    ~SDNSubscriberTestSinkGAM() {}
 
     bool Execute() {
-
-        MARTe::uint32 nOfSignals = GetNumberOfInputSignals();
-        MARTe::uint32 signalIndex = 0u;
-
-        for (signalIndex = 0; signalIndex < nOfSignals; signalIndex++) {
-            MARTe::uint32 byteSize = 0u; GetSignalByteSize(MARTe::InputSignals, signalIndex, byteSize);
-        }
-
         return true;
     }
 
@@ -161,28 +153,12 @@ public:
         return true;
     }
 
-    bool TestSignal(MARTe::uint32 signalIndex = 0u, MARTe::char8 value = 0u) {
+    template <typename Type> bool TestSignal(MARTe::uint32 signalIndex = 0u, Type value = 0) {
 
-        MARTe::uint32 nOfSignals = GetNumberOfInputSignals();
-        MARTe::uint32 byteSize = 0u; GetSignalByteSize(MARTe::InputSignals, signalIndex, byteSize);
-        bool ok = (signalIndex < nOfSignals);
+        bool ok = (signalIndex < GetNumberOfInputSignals());
 
         if (ok) {
-            ok = (value == *((MARTe::char8 *) GetInputSignalMemory(signalIndex)));
-        }
-
-        return ok;
-    }
-
-    bool TestSignal(MARTe::uint32 signalIndex = 0u, MARTe::uint32 value = 0u) {
-
-        MARTe::uint32 nOfSignals = GetNumberOfInputSignals();
-        MARTe::uint32 byteSize = 0u; GetSignalByteSize(MARTe::InputSignals, signalIndex, byteSize);
-        bool ok = (signalIndex < nOfSignals);
-
-        if (ok) {
-            log_info("SinkGAM::TestSignal - '%lu %lu'", *((MARTe::uint32 *) GetInputSignalMemory(signalIndex)), value);
-            ok = (value == *((MARTe::uint32 *) GetInputSignalMemory(signalIndex)));
+	    ok = (value == *(static_cast<Type*>(GetInputSignalMemory(signalIndex))));
         }
 
         return ok;
@@ -190,7 +166,7 @@ public:
 
 };
 
-CLASS_REGISTER(SinkGAM, "1.0")
+CLASS_REGISTER(SDNSubscriberTestSinkGAM, "1.0")
 
 /**
  * Starts a MARTe application that uses this driver instance.
@@ -575,7 +551,7 @@ bool SDNSubscriberTest::TestSetConfiguredDatabase_False_NOfSignals_1() {
             "            }"
             "        }"
             "        +Sink = {"
-            "            Class = SinkGAM"
+            "            Class = SDNSubscriberTestSinkGAM"
             "            InputSignals = {"
             "                Counter = {"
             "                    DataSource = DDB1"
@@ -634,7 +610,7 @@ bool SDNSubscriberTest::TestSetConfiguredDatabase_False_NOfSignals_2() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Sink = {"
-            "            Class = SinkGAM"
+            "            Class = SDNSubscriberTestSinkGAM"
             "            InputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNSub"
@@ -756,7 +732,7 @@ bool SDNSubscriberTest::TestGetInputBrokers_1() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Sink = {"
-            "            Class = SinkGAM"
+            "            Class = SDNSubscriberTestSinkGAM"
             "            InputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNSub"
@@ -821,7 +797,7 @@ bool SDNSubscriberTest::TestGetInputBrokers_2() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Sink = {"
-            "            Class = SinkGAM"
+            "            Class = SDNSubscriberTestSinkGAM"
             "            InputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNSub"
@@ -887,7 +863,7 @@ bool SDNSubscriberTest::TestGetInputBrokers_3() {
             "    +Functions = {"
             "        Class = ReferenceContainer"
             "        +Sink = {"
-            "            Class = SinkGAM"
+            "            Class = SDNSubscriberTestSinkGAM"
             "            InputSignals = {"
             "                Counter = {"
             "                    DataSource = SDNSub"
@@ -1803,7 +1779,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_6() {
             "            }"
             "        }"
             "        +DAC = {"
-            "            Class = SinkGAM"
+            "            Class = SDNSubscriberTestSinkGAM"
             "            InputSignals = {"
             "                ArrayInt32_1D = {"
             "                    DataSource = SDNSub"
@@ -1924,7 +1900,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_6() {
         ReferenceT<RealTimeApplication> application = god->Find("Test");
         ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
         ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
-        ReferenceT<SinkGAM> dac = application->Find("Functions.DAC");
+        ReferenceT<SDNSubscriberTestSinkGAM> dac = application->Find("Functions.DAC");
         ok = subscriber.IsValid();
 
         // Prepare data
@@ -1949,10 +1925,16 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_6() {
         }
         // Test reception
         if (ok) {
+	    ok = sink.IsValid();
+        }
+        if (ok) {
             ok = sink->TestCounter(counter);
         }
         if (ok) {
             ok = sink->TestTimestamp(timestamp);
+        }
+        if (ok) {
+	    ok = dac.IsValid();
         }
         if (ok) {
             ok = dac->TestSignal(0u, (MARTe::uint32) 101u);

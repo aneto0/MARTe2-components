@@ -99,6 +99,7 @@ public:
      */
     bool TestInitialiseWrongDenType();
 
+
     /**
      * @brief Tests that the static gain is set properly with FIR filter
      */
@@ -121,6 +122,16 @@ public:
      * @return true  if Setup returns true.
      */
     bool TestSetup();
+
+    /**
+     * @brief Tests that the Setup returns false if the wrong input signal type is asked for.
+     */
+    bool TestSetupWrongInputSignalType();
+
+    /**
+     * @brief Tests that the Setup returns false if the wrong output signal type is asked for.
+     */
+    bool TestSetupWrongOutputSignalType();
 
     /**
      * @brief Tests errors regarding to wrong GAM input setup

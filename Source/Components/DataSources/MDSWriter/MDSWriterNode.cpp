@@ -250,7 +250,6 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree * const tree) {
     return ok;
 }
 
-
 bool MDSWriterNode::Flush() {
     flush = true;
     return Execute();
@@ -370,11 +369,23 @@ bool MDSWriterNode::Execute() {
         if (array != NULL_PTR(MDSplus::Array *)) {
             if (decimatedMinMax) {
                 //lint -e{613} node is checked not to be null in the beginning of the function
-                node->makeSegmentMinMax(startD, endD, dimension, array, decimatedNode, minMaxResampleFactor);
+                try {
+                    node->makeSegmentMinMax(startD, endD, dimension, array, decimatedNode, minMaxResampleFactor);
+                }
+                catch (const MDSplus::MdsException &exc) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed makeSegmentMinMax Error: %s", exc.what());
+                    ok = false;
+                }
             }
             else {
                 //lint -e{613} node is checked not to be null in the beginning of the function
-                node->makeSegment(startD, endD, dimension, array);
+                try {
+                    node->makeSegment(startD, endD, dimension, array);
+                }
+                catch (const MDSplus::MdsException &exc) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed makeSegment Error: %s", exc.what());
+                    ok = false;
+                }
             }
             MDSplus::deleteData(array);
         }
@@ -383,7 +394,7 @@ bool MDSWriterNode::Execute() {
 
         //discontuityFound will only be triggered if makeSegmentAfterNWrites > 1, so Execute will be called again later
         //discontuityFound will only be triggered if signalMemory != NULL_PTR (i.e. that we are triggering based on event).
-        if (discontinuityFound) {
+        if ((ok) && (discontinuityFound)) {
             if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(void *))) {
                 //currentBuffer had already been incremented. Copy the last buffer to the beginning
                 char8 *bufferedDataC = reinterpret_cast<char8 *>(bufferedData);

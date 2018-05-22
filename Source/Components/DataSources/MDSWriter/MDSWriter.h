@@ -53,6 +53,8 @@ namespace MARTe {
  * This DataSourceI has the functions FlushSegments and OpenTree registered as an RPC.
  *
  * The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +MDSWriter_0 = {
  *     Class = MDSWriter
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
@@ -84,7 +86,29 @@ namespace MARTe {
  *         }
  *         ...
  *     }
+ *     +Messages = { //Optional. If set a message will be fired every time one of the events below occur
+ *         Class = ReferenceContainer
+ *         +TreeOpenedOK = { //Optional, but if set, the name of the Object shall be TreeOpenedOK. If set a message containing a ConfigurationDatabase with param1=PULSE_NUMBER will be sent to the Destination, every time the Tree is successfully opened
+ *             Class = Message
+ *             Destination = SomeObject
+ *             Function = SomeFunction
+ *             Mode = ExpectsReply
+ *         }
+ *         +TreeOpenedFail = { //Optional, but if set, the name of the Object shall be TreeOpenedFail. If set a message will be sent to the Destination, every time the Tree cannot be successfully opened
+ *             Class = Message
+ *             Destination = SomeObject
+ *             Function = SomeFunction
+ *             Mode = ExpectsReply
+ *         }*
+ *         +TreeFlushed = { //Optional, but if set, the name of the Object shall be TreeFlushed. If set a message will be sent to the Destination, every time the Tree is flushed.
+ *             Class = Message
+ *             Destination = SomeObject
+ *             Function = SomeFunction
+ *             Mode = ExpectsReply
+ *         }
+ *     }
  * }
+ * </pre>
  */
 class MDSWriter: public DataSourceI, public MessageI {
 public:
@@ -342,6 +366,11 @@ private:
     uint32 stackSize;
 
     /**
+     * If a fatal tree node error occurred do not try to flush segments nor do further writes.
+     */
+    bool fatalTreeNodeError;
+
+    /**
      * The name of the MDSplus tree.
      */
     StreamString treeName;
@@ -371,6 +400,25 @@ private:
      */
     MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
 
+    /**
+     * The message to send if the Tree is successfully opened.
+     */
+    ReferenceT<Message> treeOpenedOKMsg;
+
+    /**
+     * The message to send if the Tree cannot be successfully opened.
+     */
+    ReferenceT<Message> treeOpenedFailMsg;
+
+    /**
+     * The message to send if the Tree is be successfully flushed.
+     */
+    ReferenceT<Message> treeFlushedMsg;
+
+    /**
+     * The message to send if there is a runtime error.
+     */
+    ReferenceT<Message> treeRuntimeErrorMsg;
 };
 }
 

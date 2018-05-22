@@ -63,6 +63,7 @@ MDSWriter::MDSWriter() :
     pulseNumber = MDS_UNDEFINED_PULSE_NUMBER;
     lastTimeRefreshCount = 0u;
     refreshEveryCounts = 0u;
+    fatalTreeNodeError = false;
     brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -138,7 +139,8 @@ bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     if (storeOnTrigger) {
         ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
         brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
+        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+                                                              numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTriggerNew);
         }
@@ -154,18 +156,29 @@ bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
 }
 
 bool MDSWriter::Synchronise() {
-    bool ok = true;
     uint32 n;
     if (nodes != NULL_PTR(MDSWriterNode **)) {
-        for (n = 0u; (n < numberOfMDSSignals) && (ok); n++) {
-            ok = nodes[n]->Execute();
+        for (n = 0u; (n < numberOfMDSSignals) && (!fatalTreeNodeError); n++) {
+            fatalTreeNodeError = !nodes[n]->Execute();
+            if (fatalTreeNodeError) {
+                if (treeRuntimeErrorMsg.IsValid()) {
+                    //Reset any previous replies
+                    treeRuntimeErrorMsg->SetAsReply(false);
+                    if (!MessageI::SendMessage(treeRuntimeErrorMsg, this)) {
+                        StreamString destination = treeRuntimeErrorMsg->GetDestination();
+                        StreamString function = treeRuntimeErrorMsg->GetFunction();
+                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(),
+                                     function.Buffer());
+                    }
+                }
+            }
         }
     }
     if ((HighResolutionTimer::Counter() - lastTimeRefreshCount) > refreshEveryCounts) {
         lastTimeRefreshCount = HighResolutionTimer::Counter();
         MDSplus::Event::setEvent(eventName.Buffer());
     }
-    return ok;
+    return !fatalTreeNodeError;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
@@ -263,19 +276,63 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
         if (ok) {
-            //Do not allow to add signals in run-time
-            ok = data.Write("Locked", 1);
-        }
-        if (ok) {
             ok = data.Copy(originalSignalInformation);
         }
         if (ok) {
             ok = originalSignalInformation.MoveToRoot();
         }
+        //Do not allow to add signals in run-time
+        if (ok) {
+            ok = signalsDatabase.MoveRelative("Signals");
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
+        }
     }
     if (ok) {
         ok = data.MoveToAncestor(1u);
         refreshEveryCounts = timeRefresh * HighResolutionTimer::Frequency();
+    }
+    if (ok) {
+        //Check if there are any Message elements set
+        if (Size() > 0u) {
+            ReferenceT<ReferenceContainer> msgContainer = Get(0u);
+            if (msgContainer.IsValid()) {
+                uint32 j;
+                uint32 nOfMessages = msgContainer->Size();
+                for (j = 0u; (j < nOfMessages) && (ok); j++) {
+                    ReferenceT<Message> msg = msgContainer->Get(j);
+                    ok = msg.IsValid();
+                    if (ok) {
+                        StreamString msgName = msg->GetName();
+                        if (msgName == "TreeOpenedOK") {
+                            treeOpenedOKMsg = msg;
+                        }
+                        else if (msgName == "TreeOpenedFail") {
+                            treeOpenedFailMsg = msg;
+                        }
+                        else if (msgName == "TreeFlushed") {
+                            treeFlushedMsg = msg;
+                        }
+                        else if (msgName == "TreeRuntimeError") {
+                            treeRuntimeErrorMsg = msg;
+                        }
+                        else {
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Message %s is not supported.", msgName.Buffer());
+                            ok = false;
+                        }
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Found an invalid Message in container %s", msgContainer->GetName());
+                        ok = false;
+                    }
+
+                }
+            }
+        }
     }
     return ok;
 }
@@ -445,8 +502,19 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
     bool ok = true;
     pulseNumber = pulseNumberIn;
     if (tree != NULL_PTR(MDSplus::Tree *)) {
-        if (FlushSegments() != ErrorManagement::NoError) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
+        try {
+            //Check if the tree is still valid before flushing any segments. It might have been closed due to a fault in the meanwhile...
+            MDSplus::Tree *treeTemp = new MDSplus::Tree(treeName.Buffer(), -1);
+            delete treeTemp;
+        }
+        catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR(ErrorManagement::Warning, "Tree %s is no longer valid. Error: %s", treeName.Buffer(), exc.what());
+            fatalTreeNodeError = true;
+        }
+        if (!fatalTreeNodeError) {
+            if (FlushSegments() != ErrorManagement::NoError) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
+            }
         }
         try {
             delete tree;
@@ -483,7 +551,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::Warning, "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
+            REPORT_ERROR(ErrorManagement::Warning, "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s",
+                         treeName.Buffer(), pulseNumber, exc.what());
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;
             }
@@ -496,7 +565,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
                 tree->createPulse(pulseNumber);
             }
             catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
+                REPORT_ERROR(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber,
+                             exc.what());
                 ok = false;
             }
         }
@@ -511,7 +581,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s", treeName.Buffer(), pulseNumber, exc.what());
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s",
+                         treeName.Buffer(), pulseNumber, exc.what());
             ok = false;
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;
@@ -533,7 +604,39 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             brokerAsyncTrigger->ResetPreTriggerBuffers();
         }
     }
-
+    if (ok) {
+        if (treeOpenedOKMsg.IsValid()) {
+            //Remove old pulse number from message.
+            if (treeOpenedOKMsg->Size() > 0u) {
+                ReferenceT<ConfigurationDatabase> cdbe = treeOpenedOKMsg->Get(0u);
+                if (cdbe.IsValid()) {
+                    (void) treeOpenedOKMsg->Delete(cdbe);
+                }
+            }
+            //Reset any previous replies
+            treeOpenedOKMsg->SetAsReply(false);
+            ReferenceT<ConfigurationDatabase> cdbn(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+            (void) cdbn->Write("param1", pulseNumber);
+            (void) treeOpenedOKMsg->Insert(cdbn);
+            if (!MessageI::SendMessage(treeOpenedOKMsg, this)) {
+                StreamString destination = treeOpenedOKMsg->GetDestination();
+                StreamString function = treeOpenedOKMsg->GetFunction();
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedOK message to %s [%s]", destination.Buffer(), function.Buffer());
+            }
+        }
+    }
+    else {
+        if (treeOpenedFailMsg.IsValid()) {
+            //Reset any previous replies
+            treeOpenedFailMsg->SetAsReply(false);
+            if (!MessageI::SendMessage(treeOpenedFailMsg, this)) {
+                StreamString destination = treeOpenedFailMsg->GetDestination();
+                StreamString function = treeOpenedFailMsg->GetFunction();
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedFail message to %s [%s]", destination.Buffer(), function.Buffer());
+            }
+        }
+    }
+    fatalTreeNodeError = !ok;
     ErrorManagement::ErrorType ret(ok);
     return ret;
 }
@@ -549,6 +652,17 @@ ErrorManagement::ErrorType MDSWriter::FlushSegments() {
             ok = nodes[n]->Flush();
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed to flush MDSWriterNode");
+            }
+        }
+    }
+    if (ok) {
+        if (treeFlushedMsg.IsValid()) {
+            //Reset any previous replies
+            treeFlushedMsg->SetAsReply(false);
+            if (!MessageI::SendMessage(treeFlushedMsg, this)) {
+                StreamString destination = treeFlushedMsg->GetDestination();
+                StreamString function = treeFlushedMsg->GetFunction();
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeFlushed message to %s [%s]", destination.Buffer(), function.Buffer());
             }
         }
     }

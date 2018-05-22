@@ -36,6 +36,8 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+
+namespace MARTe {
 /**
  * @brief GAM which copies its inputs to its outputs. Allows to plug different DataSources (e.g. driver with a DDB).
  * @details This GAM copies its inputs to its outputs. The number of inputs shall
@@ -44,6 +46,7 @@
  *  serve as a (direct) connector between DataSources.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
+ * <pre>
  * +Buffer = {
  *     Class = IOGAM
  *     InputSignals = {
@@ -67,8 +70,8 @@
  *         }
  *     }
  * }
+ * </pre>
  */
-namespace MARTe {
 class IOGAM: public GAM {
 public:
     CLASS_REGISTER_DECLARATION()

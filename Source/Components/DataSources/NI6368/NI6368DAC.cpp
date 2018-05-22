@@ -715,9 +715,15 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
+        //Do not allow to add signals in run-time
         if (ok) {
-            //Do not allow to add signals in run-time
-            ok = data.Write("Locked", 1);
+            ok = signalsDatabase.MoveRelative("Signals");
+        }
+        if (ok) {
+            ok = signalsDatabase.Write("Locked", 1u);
+        }
+        if (ok) {
+            ok = signalsDatabase.MoveToAncestor(1u);
         }
         uint32 maxChannelId = 0u;
         while ((i < NI6368DAC_MAX_CHANNELS) && (ok)) {
@@ -928,14 +934,16 @@ bool NI6368DAC::Synchronise() {
     for (i = 0u; (i < NI6368DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
             size_t samplesToWrite = numberOfElements[i];
+            ssize_t k = 0;
             if (channelsMemory[i] != NULL_PTR(float32 *)) {
                 while ((samplesToWrite > 0u) && (ok)) {
-                    ssize_t samplesWritten = xseries_write_ao(channelsFileDescriptors[i], channelsMemory[i], samplesToWrite);
+                    ssize_t samplesWritten = xseries_write_ao(channelsFileDescriptors[i], &channelsMemory[i][k], samplesToWrite);
                     if (samplesWritten < 0) {
                         ok = false;
                     }
                     else {
                         samplesToWrite -= static_cast<size_t>(samplesWritten);
+                        k += samplesWritten;
                     }
                 }
             }
