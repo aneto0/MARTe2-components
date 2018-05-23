@@ -975,7 +975,22 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
 
+    //The current code would not work with more than one function interacting with this DataSourceI (see GetLastBufferIdx).
+    //TODO reimplement with CircularBuffer from the core.
+    if (ok) {
+        ok = synchronising;
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The function interacting with this DataSourceI must be synchronising");
+        }
+    }
     uint32 nOfFunctions = GetNumberOfFunctions();
+    if (ok) {
+        ok = (nOfFunctions == 1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "At most one function shall interact with this DataSourceI");
+        }
+    }
+
     uint32 functionIdx;
     //Check that the number of samples for the counter and the time is one and that for the other signals is always the same
     for (functionIdx = 0u; (functionIdx < nOfFunctions) && (ok); functionIdx++) {

@@ -74,11 +74,6 @@ TEST(NI6259ADCGTest,TestGetInputBrokers) {
     ASSERT_TRUE(test.TestGetInputBrokers());
 }
 
-TEST(NI6259ADCGTest,TestGetInputBrokers_NotSynchronisingGAM) {
-    NI6259ADCTest test;
-    ASSERT_TRUE(test.TestGetInputBrokers_NotSynchronisingGAM());
-}
-
 TEST(NI6259ADCGTest,TestGetOutputBrokers) {
     NI6259ADCTest test;
     ASSERT_TRUE(test.TestGetOutputBrokers());
@@ -307,6 +302,16 @@ TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_CounterSamples) {
 TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_TimerSamples) {
     NI6259ADCTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimerSamples());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_MoreThanOneGAM) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneGAM());
+}
+
+TEST(NI6259ADCGTest,TestSetConfiguredDatabase_False_NotSynchronisingGAM) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NotSynchronisingGAM());
 }
 
 TEST(NI6259ADCGTest,TestIntegrated) {

@@ -1022,6 +1022,88 @@ static const MARTe::char8 * const config5 = ""
         "    }"
         "}";
 
+static const MARTe::char8 * const config5b = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6259ADCTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = NI6259_0"
+        "                }"
+        "                Time = {"
+        "                    DataSource = NI6259_0"
+        "                }"
+        "                ADC0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = int16"
+        "                    Samples = 10000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6259_0 = {"
+        "            Class = NI6259ADC"
+        "            SamplingFrequency = 1000000"
+        "            DeviceName = \"/dev/pxi6259\""
+        "            BoardId = 0"
+        "            DelayDivisor = 3"
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
+        "            CPUs = 0xf"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                ADC0_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 0"
+        "                   InputPolarity = Bipolar"
+        "                   InputMode = RSE"
+        "                }"
+        "                ADC1_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 1"
+        "                   InputPolarity = Bipolar"
+        "                   InputMode = RSE"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 //No channels defined
 static const MARTe::char8 * const config6 = ""
         "$Test = {"
@@ -1359,11 +1441,6 @@ static const MARTe::char8 * const config10 = ""
         "                    Samples = 10000"
         "                    Frequency = 50"
         "                }"
-        "            }"
-        "        }"
-        "        +GAMB = {"
-        "            Class = NI6259ADCTestGAM"
-        "            InputSignals = {"
         "                ADC1_0 = {"
         "                    DataSource = NI6259_0"
         "                    Type = int16"
@@ -1421,7 +1498,7 @@ static const MARTe::char8 * const config10 = ""
         "                Class = ReferenceContainer"
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
-        "                    Functions = {GAMA GAMB}"
+        "                    Functions = {GAMA}"
         "                }"
         "            }"
         "        }"
@@ -1836,10 +1913,6 @@ bool NI6259ADCTest::TestGetBrokerName() {
 
 bool NI6259ADCTest::TestGetInputBrokers() {
     return TestIntegratedInApplication(config1);
-}
-
-bool NI6259ADCTest::TestGetInputBrokers_NotSynchronisingGAM() {
-    return TestIntegratedInApplication(config5);
 }
 
 bool NI6259ADCTest::TestGetOutputBrokers() {
@@ -3130,6 +3203,14 @@ bool NI6259ADCTest::TestSetConfiguredDatabase_False_CounterSamples() {
 
 bool NI6259ADCTest::TestSetConfiguredDatabase_False_TimerSamples() {
     return !TestIntegratedInApplication(config14);
+}
+
+bool NI6259ADCTest::TestSetConfiguredDatabase_False_NotSynchronisingGAM() {
+    return !TestIntegratedInApplication(config5b);
+}
+
+bool NI6259ADCTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
+    return !TestIntegratedInApplication(config5);
 }
 
 bool NI6259ADCTest::TestIntegrated() {

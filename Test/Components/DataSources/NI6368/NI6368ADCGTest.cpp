@@ -75,11 +75,6 @@ TEST(NI6368ADCGTest,TestGetInputBrokers) {
     ASSERT_TRUE(test.TestGetInputBrokers());
 }
 
-TEST(NI6368ADCGTest,TestGetInputBrokers_NotSynchronisingGAM) {
-    NI6368ADCTest test;
-    ASSERT_TRUE(test.TestGetInputBrokers_NotSynchronisingGAM());
-}
-
 TEST(NI6368ADCGTest,TestGetOutputBrokers) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestGetOutputBrokers());
@@ -323,6 +318,16 @@ TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_CounterSamples) {
 TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_TimerSamples) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimerSamples());
+}
+
+TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_MoreThanOneGAM) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneGAM());
+}
+
+TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_NotSynchronisingGAM) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NotSynchronisingGAM());
 }
 
 TEST(NI6368ADCGTest,TestGetLastBufferIdx) {

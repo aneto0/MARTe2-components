@@ -820,7 +820,7 @@ static const MARTe::char8 * const config4 = ""
         "    }"
         "}";
 
-//Two channels base configuration including a not synchronising GAM
+//Two channels base configuration with more than one function
 static const MARTe::char8 * const config5 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
@@ -912,6 +912,89 @@ static const MARTe::char8 * const config5 = ""
         "        TimingDataSource = Timings"
         "    }"
         "}";
+
+//Two channels base configuration including a not synchronising GAM
+static const MARTe::char8 * const config5b = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6368ADCTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = NI6368_0"
+        "                }"
+        "                Time = {"
+        "                    DataSource = NI6368_0"
+        "                }"
+        "                ADC0_0 = {"
+        "                    DataSource = NI6368_0"
+        "                    Type = int16"
+        "                    Samples = 2000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6368_0 = {"
+        "            Class = NI6368ADC"
+        "            SamplingFrequency = 1000000"
+        "            DeviceName = \"/dev/pxie-6368\""
+        "            BoardId = 0"
+        "            DMABufferSize = 1000"
+        "            ClockSampleSource = \"INTERNALTIMING\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"INTERNALTIMING\""
+        "            ClockConvertPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ScanIntervalCounterSource = \"COUNTER_TB3\""
+        "            ScanIntervalCounterPolarity = \"RISING_EDGE\""
+        "            ScanIntervalCounterPeriod = 50"
+        "            ScanIntervalCounterDelay = 2"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                ADC0_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 0"
+        "                }"
+        "                ADC1_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 
 //No channels defined
 static const MARTe::char8 * const config6 = ""
@@ -1805,10 +1888,6 @@ bool NI6368ADCTest::TestGetBrokerName() {
 
 bool NI6368ADCTest::TestGetInputBrokers() {
     return TestIntegratedInApplication(config1);
-}
-
-bool NI6368ADCTest::TestGetInputBrokers_NotSynchronisingGAM() {
-    return TestIntegratedInApplication(config5);
 }
 
 bool NI6368ADCTest::TestGetOutputBrokers() {
@@ -3723,12 +3802,20 @@ bool NI6368ADCTest::TestSetConfiguredDatabase_False_TimerSamples() {
     return !TestIntegratedInApplication(config14);
 }
 
+bool NI6368ADCTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
+    return !TestIntegratedInApplication(config5);
+}
+
+bool NI6368ADCTest::TestSetConfiguredDatabase_False_NotSynchronisingGAM() {
+    return !TestIntegratedInApplication(config5b);
+}
+
 bool NI6368ADCTest::TestGetLastBufferIdx() {
     return TestIntegratedInApplication(config1);
 }
 
 bool NI6368ADCTest::TestIsSynchronising() {
-    return TestIntegratedInApplication(config5);
+    return TestIntegratedInApplication(config1);
 }
 
 bool NI6368ADCTest::TestIntegrated() {
