@@ -236,7 +236,8 @@ bool SDNSubscriber::AllocateMemory() {
 
     // Create sdn::Subscriber
     if (ok) {
-        subscriber = new sdn::Subscriber(*topic);
+        subscriber = new (std::nothrow) sdn::Subscriber(*topic);
+	ok = (NULL_PTR(sdn::Subscriber *) != subscriber);
     }
 
     if (ok) {

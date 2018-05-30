@@ -15,7 +15,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class LinuxTimer (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
@@ -57,7 +57,10 @@ SDNPublisher::SDNPublisher() :
 
     nOfSignals = 0u;
     nOfTriggers = 0u;
-
+#ifdef FEATURE_10840
+    sourcePort = 0u;
+    networkByteOrder = false; // Assume host native byte order used for SDN payload
+#endif
     topic = NULL_PTR(sdn::Topic *);
     publisher = NULL_PTR(sdn::Publisher *);
 
@@ -90,8 +93,11 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
     else {
         REPORT_ERROR(ErrorManagement::Information, "SDN interface is '%s'", ifaceName.Buffer());
     }
-
+#ifdef FEATURE_10840
+    if (!sdn::HelperTools::IsInterfaceValid(ifaceName.Buffer())) {
+#else
     if (!net_is_interface_valid(ifaceName.Buffer())) {
+#endif
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be a valid identifier");
         ok = false;
     }
@@ -111,17 +117,32 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
     // The topic name is used to generate UDP/IPv4 multicast mapping. Optionally, the mapping
     // to a destination '<address>:<port>' can be explicitly defined
     if (data.Read("Address", destAddr)) {
-
+#ifdef FEATURE_10840
+        if (!sdn::HelperTools::IsAddressValid(destAddr.Buffer())) {
+#else
         if (!sdn_is_address_valid(destAddr.Buffer())) {
+#endif
             REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
             ok = false;
         }
         else {
             REPORT_ERROR(ErrorManagement::Information, "Valid destination address '%s'", destAddr.Buffer());
         }
-
+    }
+#ifdef FEATURE_10840
+    // Read optional source port
+    if (data.Read("SourcePort", sourcePort)) {
+        REPORT_ERROR(ErrorManagement::Information, "Source port is '%!'", sourcePort);
     }
 
+    // Read optional wire byte ordering
+    uint32 byteOrder = 0u;
+    if (data.Read("NetworkByteOrder", byteOrder)) {
+        REPORT_ERROR(ErrorManagement::Information, "Network byte order is '%!'", byteOrder);
+    }
+
+    networkByteOrder = (0u != byteOrder);
+#endif
     return ok;
 }
 
@@ -220,14 +241,35 @@ bool SDNPublisher::AllocateMemory() {
 
     // Create sdn::Publisher
     if (ok) {
-        publisher = new sdn::Publisher(*topic);
+        publisher = new (std::nothrow) sdn::Publisher(*topic);
+	ok = (NULL_PTR(sdn::Publisher *) != publisher);
     }
 
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
+#ifdef FEATURE_10840
+        if (0u != sourcePort) {
+	    ok = (publisher->SetInterface(ifaceName.Buffer(), sourcePort) == STATUS_SUCCESS);
+	}
+	else {
+            ok = (publisher->SetInterface(ifaceName.Buffer()) == STATUS_SUCCESS);
+	}
+#else
         ok = (publisher->SetInterface(ifaceName.Buffer()) == STATUS_SUCCESS);
+#endif
     }
-
+#ifdef FEATURE_10840
+    if (ok) {
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
+        if (networkByteOrder) {
+	    REPORT_ERROR(ErrorManagement::Information, "Use network byte ordering on the wire");
+	    publisher->SetPayloadOrder(sdn::types::NetworkByteOrder);
+	}
+	else {
+	    REPORT_ERROR(ErrorManagement::Information, "Use native host byte ordering on the wire");
+	}
+    }
+#endif
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (publisher->Configure() == STATUS_SUCCESS);
@@ -250,12 +292,12 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bu
     bool ok = (signalIdx < nOfSignals);
 
     if (ok) {
-        ok = (topic != NULL_PTR(sdn::Topic *));
+        ok = (NULL_PTR(sdn::Topic *) != topic);
     }
 
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
-        ok = (topic->GetTypeDefinition() != NULL_PTR(sdn::base::AnyType *));
+        ok = (NULL_PTR(sdn::base::AnyType *) != topic->GetTypeDefinition());
     }
 
     if (ok) {
@@ -408,12 +450,62 @@ bool SDNPublisher::PrepareNextState(const char8* const currentStateName, const c
 
 bool SDNPublisher::Synchronise() {
 
-    bool ok = (publisher != NULL_PTR(sdn::Publisher *));
+    bool ok = (NULL_PTR(sdn::Publisher *) != publisher);
 
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "sdn::Publisher has not been initiaised");
     }
+#ifdef FEATURE_10840
+    if (ok && networkByteOrder) {
+        // Convert payload to network byte order
+        uint32 signalIndex;
+	for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
 
+	    TypeDescriptor signalType = GetSignalType(signalIndex);
+	    uint32 typeNOfBits = signalType.numberOfBits;
+	    void* signalReference = NULL_PTR(void*);
+
+            ok = GetSignalMemoryBuffer(signalIndex, 0u, signalReference);
+
+	    uint32 signalNOfElements = 0u;
+
+	    if (ok) {
+	        ok = GetSignalNumberOfElements(signalIndex, signalNOfElements);
+	    }
+
+	    uint8 signalNOfDimensions = 0u;
+
+	    if (ok) {
+	        ok = GetSignalNumberOfDimensions(signalIndex, signalNOfDimensions);
+	    }
+
+	    if (signalNOfDimensions > 1u) {
+	        signalNOfElements *= signalNOfDimensions;
+	    }
+
+	    uint32 elementIndex;
+	    for (elementIndex = 0u; (elementIndex < signalNOfElements) && (ok); elementIndex++) {
+
+	        if (typeNOfBits == 16u) {
+		    sdn::types::uint16_t val = static_cast<sdn::types::uint16_t*>(signalReference)[elementIndex];
+		    static_cast<sdn::types::uint16_t*>(signalReference)[elementIndex] = sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint16_t>(val);
+		}
+
+	        if (typeNOfBits == 32u) {
+		    sdn::types::uint32_t val = static_cast<sdn::types::uint32_t*>(signalReference)[elementIndex];
+		    static_cast<sdn::types::uint32_t*>(signalReference)[elementIndex] = sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint32_t>(val);
+		}
+
+	        if (typeNOfBits == 64u) {
+		    sdn::types::uint64_t val = static_cast<sdn::types::uint64_t*>(signalReference)[elementIndex];
+		    static_cast<sdn::types::uint64_t*>(signalReference)[elementIndex] = sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint64_t>(val);
+		}
+
+	    }
+
+	}
+    }
+#endif
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (publisher->Publish() == STATUS_SUCCESS);
@@ -425,8 +517,10 @@ bool SDNPublisher::Synchronise() {
 
     return ok;
 }
-
-CLASS_REGISTER(SDNPublisher, "1.0.11")
-
+#ifdef FEATURE_10840
+CLASS_REGISTER(SDNPublisher, "1.2") // Or above
+#else
+CLASS_REGISTER(SDNPublisher, "1.0.12")
+#endif
 } /* namespace MARTe */
 
