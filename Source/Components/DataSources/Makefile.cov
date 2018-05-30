@@ -30,6 +30,7 @@ LIBRARIES_STATIC=EpicsDataSource/cov/EpicsDataSource$(LIBEXT)
 LIBRARIES_STATIC+=FileDataSource/cov/FileDataSource$(LIBEXT)
 LIBRARIES_STATIC+=LinuxTimer/cov/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
+LIBRARIES_STATIC+=RealTimeThreadAsyncBridge/cov/RealTimeThreadAsyncBridge$(LIBEXT)
 LIBRARIES_STATIC+=RealTimeThreadSynchronisation/cov/RealTimeThreadSynchronisation$(LIBEXT)
 
 ifdef CODAC_ROOT

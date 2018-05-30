@@ -28,6 +28,7 @@ SPB    = EpicsDataSource.x \
         FileDataSource.x \
         LinuxTimer.x \
         LoggerDataSource.x \
+        RealTimeThreadAsyncBridge.x \
         RealTimeThreadSynchronisation.x
 
 ifdef CODAC_ROOT
@@ -59,6 +60,7 @@ LIBRARIES_STATIC=$(BUILD_DIR)/EpicsDataSource/EpicsDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/FileDataSource/FileDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadAsyncBridge/RealTimeThreadAsyncBridgeTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadSynchronisation/RealTimeThreadSynchronisationTest$(LIBEXT)
 
 ifdef CODAC_ROOT
