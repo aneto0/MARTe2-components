@@ -47,6 +47,26 @@ namespace MARTe {
  * writer is guaranteed by spinlock semaphores, one for each buffer of each signal. If no buffer is available for the writer, the GetOutputOffset
  * function returns false. The same happens if there is no buffer available for the reader (impossible if more than one buffer has been declared),
  * in this case the GetInputOffset returns false.
+ *
+  * <pre>
+ * +ThisDataSourceIObjectName = {
+ *    Class = RealTimeThreadAsyncBridge
+ *    NumberOfBuffers = 3 //Optional but < 64. Default = 1. Each buffer contains a copy of each signal.
+ *    HeapName = "Default" //Optional. Default = GlobalObjectsDatabase::Instance()->GetStandardHeap();
+ *    ResetMSecTimeout = 1 //Optional. Default = TTInfiniteWait. The TerminateOutputCopy function can block when the counter used to newest written buffer overflows and needs to be reset.
+ *                                                               If the reader should wait for this counter to be properly reset then the ResetMSecTimeout should
+ *                                                               be increased to a large number. If instead the reader does not mind to get oldest buffer (instead of the newest) while this reset operation
+ *                                                               is being performed, the ResetMSecTimeout should be set to 0.
+ *                                                               This overflow will occur every 2**32-1 writes, which at e.g. 1 kHz frequency, will occur every ~49 days).
+ *    Signals = {
+ *        +*NAME = {
+ *            +Type = BasicType|StructuredType
+ *            +NumberOfDimensions = 0|1|2
+ *            +NumberOfElements = NUMBER>0
+ *       }
+ *    }
+ * }
+ * </pre>
  */
 class RealTimeThreadAsyncBridge: public MemoryDataSourceI {
 public:
@@ -54,13 +74,6 @@ public:
 
     /**
      * @brief Constructor
-     * @post
-     *   spinlocksRead = NULL_PTR(volatile int32 *);\n
-     *   spinlocksWrite = NULL_PTR(FastPollingMutexSem *);\n
-     *   whatIsNewestCounter = NULL_PTR(uint32 *);\n
-     *   writeOp = NULL_PTR(uint32 *);\n
-     *   writeOpCounter = NULL_PTR(uint32 *);\n
-     *   offsetStore = 0u;\n
      */
 RealTimeThreadAsyncBridge    ();
 
@@ -74,8 +87,11 @@ RealTimeThreadAsyncBridge    ();
      * @see DataSourceI::Initialise
      * @details Checks that (NumberOfBuffers < 64) .
      *   NumberOfBuffers = N (<64)\n
-     *   ResetMSecTimeout = msec (the TerminateWrite can block when the counter used to denote the oldest and newest written buffer
-     *   goes in overflow)
+     *   ResetMSecTimeout = msec (the TerminateOutputCopy can block when the counter used to denote the oldest and newest written buffer
+     *   overflows and needs to be reset. If the read should wait for this counter to be properly reset then the ResetMSecTimeout should
+     *   be increased to a large number. If instead the reader does not mind to get oldest buffer (instead of the newest) while this reset operation
+     *    is being performed, the ResetMSecTimeout should be set to 0.
+     *   This overflow will occur every 2**32-1 writes, which at e.g. 1 kHz frequency, will occur every ~49 days).
      */
     virtual bool Initialise(StructuredDataI &data);
 
@@ -88,24 +104,24 @@ RealTimeThreadAsyncBridge    ();
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @brief Returns true.
+     * @brief NOOP.
+     * @return true.
      */
     virtual bool Synchronise();
 
     /**
      * @brief Initialises the variables that depends by the application state.
-     * @details In case with signals written more than one time by the writer GAM and/or signals with more than one range defined,
-     * the TerminateWrite function will not unlock the buffer until all the write operations have been completed. In this function
+     * @details In the case where signals are written more than one time by the writer GAM and/or signals with more than one range defined,
+     * the TerminateOutputCopy function will not unlock the buffer until all the write operations have been completed. In this function
      * the \a writeOp variable is set as the sum of the write operations for each signal.
-     * @post
-     *   for each signal i: writeOp[i] = sum of write operations for the signal i
+     * @return true.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
             const char8 * const nextStateName);
 
     /**
      * @see DataSourceI::GetInputOffset
-     * @details Checks the last written available buffer and returns its offset. the atomic variable \a spinlocksRead, denoting the number
+     * @details Checks the last written available buffer and returns its offset. The atomic variable \a spinlocksRead, denoting the number
      * of readers on that buffer is incremented. The writer can not write on that buffer if this atomic variable is greater than zero.
      * @return false if no buffer is available. This happens only if only one buffer is defined and the writer is writing on it.
      */
@@ -123,7 +139,7 @@ RealTimeThreadAsyncBridge    ();
 
     /**
      * @see DataSourceI::TerminateInputCopy
-     * @details Decrements the atomic variable \a spinlocksRead for the buffer that have just been read.
+     * @details Decrements the atomic variable \a spinlocksRead for the buffer that has just been read.
      */
     virtual bool TerminateInputCopy(const uint32 signalIdx, const uint32 offset,
             const uint32 numberOfSamples);
@@ -171,7 +187,7 @@ protected:
     uint32 *writeOp;
 
     /**
-     * Initialised equal to \a writeOp and decremented in TerminateWrite.
+     * Initialised equal to \a writeOp and decremented in TerminateOutputCopy.
      * When it reaches zero, the \a spinlocksWrite semaphore for the signal
      * is unlocked.
      */

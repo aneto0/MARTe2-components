@@ -29,9 +29,9 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "RealTimeThreadAsyncBridge.h"
 #include "AdvancedErrorManagement.h"
 #include "Atomic.h"
+#include "RealTimeThreadAsyncBridge.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -40,8 +40,6 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-//#define NULL_PTR(x) NULL
-//multi buffer async communication between thrads
 //If all the buffer are busy by readers or other writers, the writer returns without doing anything jumping a cycle
 //Trigger=1 for the writers
 //Last refreshed mechanism based on an incrementing counter... write on the oldest and read on the newest
@@ -337,15 +335,11 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx, const ui
     }
 
     offsetStore = offset;
-    /*
-     if(signalIdx==0){
-     REPORT_ERROR(ErrorManagement::Information, "Write %d %d", startFromIdx, signalIdx);
-     }
-     */
+
     return ok;
 }
 
-/*lint -e{715} symbols not referenced.*/
+/*lint -e{715} numberOfSamples not required for this implementation.*/
 /*lint -e{613} null pointer checked before.*/
 bool RealTimeThreadAsyncBridge::TerminateInputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples) {
 
@@ -355,7 +349,7 @@ bool RealTimeThreadAsyncBridge::TerminateInputCopy(const uint32 signalIdx, const
     return true;
 }
 
-/*lint -e{715} symbols not referenced.*/
+/*lint -e{715} numberOfSamples not required for this implementation.*/
 /*lint -e{613} null pointer checked before.*/
 bool RealTimeThreadAsyncBridge::TerminateOutputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples) {
 

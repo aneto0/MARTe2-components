@@ -45,92 +45,96 @@
 /*---------------------------------------------------------------------------*/
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestConstructor) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestConstructor());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestConstructor());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestInitialise) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestInitialise());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestInitialise());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestInitialise_False_GreaterNumberOfBuffers) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestInitialise_False_GreaterNumberOfBuffers());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestInitialise_False_GreaterNumberOfBuffers());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestSetConfiguredDatabase) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestSetConfiguredDatabase());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestSetConfiguredDatabase_False_InputSamples) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InputSamples());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InputSamples());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestSetConfiguredDatabase_False_OutputSamples) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestSetConfiguredDatabase_False_OutputSamples());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_OutputSamples());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestSynchronise) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestSynchronise());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestSynchronise());
 }
 
+TEST(RealTimeThreadAsyncBridgeGTest,TestGetBrokerName) {
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetBrokerName());
+}
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestPrepareNextState) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestPrepareNextState());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestGetInputOffset) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestGetInputOffset());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetInputOffset());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestGetOutputOffset) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestGetOutputOffset());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetOutputOffset());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestGetInputOffset_2Readers) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestGetInputOffset_2Readers());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetInputOffset_2Readers());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestGetInputOffset_Ranges) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestGetInputOffset_Ranges());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetInputOffset_Ranges());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestGetOutputOffset_Ranges) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestGetOutputOffset_Ranges());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetOutputOffset_Ranges());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestGetInputOffset_False_BufferBusy) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestGetInputOffset_False_BufferBusy());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetInputOffset_False_BufferBusy());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestGetOutputOffset_False_BufferBusy) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestGetOutputOffset_False_BufferBusy());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetOutputOffset_False_BufferBusy());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestTerminateRead) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestTerminateRead());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestTerminateRead());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestTerminateWrite) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestTerminateWrite());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestTerminateWrite());
 }
 
 TEST(RealTimeThreadAsyncBridgeGTest,TestTerminateWrite_ResetCounter) {
-	RealTimeThreadAsyncBridgeTest test;
-	ASSERT_TRUE(test.TestTerminateWrite_ResetCounter());
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestTerminateWrite_ResetCounter());
 }

@@ -14,8 +14,8 @@
 -i./Source/Components/DataSources/MDSWriter/
 -i./Source/Components/DataSources/NI6259/
 -i./Source/Components/DataSources/NI6368/
--i./Source/Components/DataSources/RealTimeThreadSynchronisation/
 -i./Source/Components/DataSources/RealTimeThreadAsyncBridge/
+-i./Source/Components/DataSources/RealTimeThreadSynchronisation/
 -i./Source/Components/DataSources/SDN/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConstantGAM/

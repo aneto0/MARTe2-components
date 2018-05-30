@@ -75,6 +75,11 @@ public:
     bool TestSetConfiguredDatabase();
 
     /**
+     * @brief Tests the GetBrokerName method
+     */
+    bool TestGetBrokerName();
+
+    /**
      * @brief Tests the SetConfiguredDatabase method that fails if one or more input
      * signals have defined a number of samples > 1
      */
