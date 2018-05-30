@@ -101,8 +101,11 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     else {
         REPORT_ERROR(ErrorManagement::Information, "Interface is '%s'", ifaceName.Buffer());
     }
-
+#ifdef FEATURE_10840
+    if (!sdn::HelperTools::IsInterfaceValid(ifaceName.Buffer())) {
+#else
     if (!net_is_interface_valid(ifaceName.Buffer())) {
+#endif
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be a valid identifier");
         ok = false;
     }
@@ -122,15 +125,17 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     // The topic name is used to generate UDP/IPv4 multicast mapping. Optionally, the mapping
     // to a destination '<address>:<port>' can be explicitly defined
     if (data.Read("Address", destAddr)) {
-
+#ifdef FEATURE_10840
+        if (!sdn::HelperTools::IsAddressValid(destAddr.Buffer())) {
+#else
         if (!sdn_is_address_valid(destAddr.Buffer())) {
+#endif
             REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
             ok = false;
         }
         else {
             REPORT_ERROR(ErrorManagement::Information, "Valid destination address '%s'", destAddr.Buffer());
         }
-
     }
 
     // Timeout parameter
@@ -473,6 +478,59 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
 	    //REPORT_ERROR(ErrorManagement::Timeout, "sdn::Subscriber failed to receive topic");
             err.SetError(ErrorManagement::Timeout);
         }
+#ifdef FEATURE_10840
+	else {
+	    if (!subscriber->IsPayloadOrdered()) {
+	        // Convert payload from network byte order
+	        uint32 signalIndex;
+		for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
+
+		    TypeDescriptor signalType = GetSignalType(signalIndex);
+		    uint32 typeNOfBits = signalType.numberOfBits;
+		    void* signalReference = NULL_PTR(void*);
+
+		    ok = GetSignalMemoryBuffer(signalIndex, 0u, signalReference);
+
+		    uint32 signalNOfElements = 0u;
+
+		    if (ok) {
+		        ok = GetSignalNumberOfElements(signalIndex, signalNOfElements);
+		    }
+
+		    uint8 signalNOfDimensions = 0u;
+
+		    if (ok) {
+		        ok = GetSignalNumberOfDimensions(signalIndex, signalNOfDimensions);
+		    }
+
+		    if (signalNOfDimensions > 1u) {
+		        signalNOfElements *= signalNOfDimensions;
+		    }
+
+		    uint32 elementIndex;
+		    for (elementIndex = 0u; (elementIndex < signalNOfElements) && (ok); elementIndex++) {
+		      
+		        if (typeNOfBits == 16u) {
+			    sdn::types::uint16_t val = static_cast<sdn::types::uint16_t*>(signalReference)[elementIndex];
+			    static_cast<sdn::types::uint16_t*>(signalReference)[elementIndex] = sdn::HelperTools::FromNetworkByteOrder<sdn::types::uint16_t>(val);
+			}
+
+			if (typeNOfBits == 32u) {
+			    sdn::types::uint32_t val = static_cast<sdn::types::uint32_t*>(signalReference)[elementIndex];
+			    static_cast<sdn::types::uint32_t*>(signalReference)[elementIndex] = sdn::HelperTools::FromNetworkByteOrder<sdn::types::uint32_t>(val);
+			}
+
+			if (typeNOfBits == 64u) {
+			    sdn::types::uint64_t val = static_cast<sdn::types::uint64_t*>(signalReference)[elementIndex];
+			    static_cast<sdn::types::uint64_t*>(signalReference)[elementIndex] = sdn::HelperTools::FromNetworkByteOrder<sdn::types::uint64_t>(val);
+			}
+			
+		    }
+
+		}
+	    }
+	}
+#endif
     }
 
     if (ok) {
@@ -491,7 +549,9 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
 
     return err;
 }
-
+#ifdef FEATURE_10840
+CLASS_REGISTER(SDNSubscriber, "1.2")
+#else
 CLASS_REGISTER(SDNSubscriber, "1.0.11")
-
+#endif
 } /* namespace MARTe */

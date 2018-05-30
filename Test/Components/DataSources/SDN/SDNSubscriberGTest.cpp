@@ -263,7 +263,17 @@ TEST(SDNSubscriberGTest, TestSynchronise_UCAST_Topic_3) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise_UCAST_Topic_3());
 }
+#ifdef FEATURE_10840
+TEST(SDNSubscriberGTest, TestSynchronise_NetworkByteOrder_Topic_1) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_NetworkByteOrder_Topic_1());
+}
 
+TEST(SDNSubscriberGTest, TestSynchronise_NetworkByteOrder_Topic_2) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_NetworkByteOrder_Topic_2());
+}
+#endif
 TEST(SDNSubscriberGTest, TestExecute_False) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestExecute_False());
