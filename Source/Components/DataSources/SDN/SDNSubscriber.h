@@ -301,6 +301,21 @@ private:
      */
     uint32 cpuMask;
 
+    /**
+     * Accelerator for signal types (to be used when translating to different endianness)
+     */
+    uint16 *payloadNumberOfBits;
+
+    /**
+     * Accelerator for signal number of Elements (to be used when translating to different endianness)
+     */
+    uint32 *payloadNumberOfElements;
+
+    /**
+     * Accelerator for signal memory address (to be used when translating to different endianness)
+     */
+    void **payloadAddresses;
+
 };
 
 }

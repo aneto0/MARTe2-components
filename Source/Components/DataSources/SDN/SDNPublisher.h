@@ -66,10 +66,10 @@ namespace MARTe {
  *     Topic = <name> // The name is used to establish many-to-many communication channels
  *     Interface = <name> // The network interface name to be used
  *     Address = <address>:<port> // Optional - Explicit destination address
-#ifdef FEATURE_10840
+ #ifdef FEATURE_10840
  *     SourcePort = <port> // Optional - Explicit source-side port to bind to
  *     NetworkByteOrder = 1 // Optional - Enforce On-the-wire network byte ordering
-#endif
+ #endif
  *     Signals = {
  *         Counter = {
  *             Type = uint64
@@ -87,14 +87,14 @@ namespace MARTe {
  * The DataSource relies on a MemoryMap(Synchronised)OutputBroker to interface to GAM signals.
  * The DataSource does not allocate memory, rather maps directly the signals to the SDN message
  * payload directly.
-#ifdef FEATURE_10840
+ #ifdef FEATURE_10840
  * The DataSource has additional optional parameters to override the default publisher-side
  * source port and/or opt for publishing messages on the wire using network byte order. The valid
  * range for source port is 0 || [1024, 65535]. The default on-the-wire byte order is the host
  * native ordering (MemoryMapOutputBroker performs memory copies pf the signals directly to the
  * message payload) and may be overridden to use network byte order, in which case the DataSource
  * performs the necessary byte swaps before publication.
-#endif
+ #endif
  * @notice The DataSource requires that one and only one signal be identified as synchronisation
  * point (i.e. only one signal must set Trigger = 1).
  *
@@ -266,7 +266,7 @@ private:
      * The sdn::Publisher reference
      */
     sdn::Publisher *publisher;
-#ifdef FEATURE_10840
+
     /**
      * The sdn::Publisher optional source port
      */
@@ -276,7 +276,21 @@ private:
      * The sdn::Publisher optional wire byte order
      */
     bool networkByteOrder;
-#endif
+
+    /**
+     * Accelerator for signal types (to be used when translating to different endianness)
+     */
+    uint16 *payloadNumberOfBits;
+
+    /**
+     * Accelerator for signal number of Elements (to be used when translating to different endianness)
+     */
+    uint32 *payloadNumberOfElements;
+
+    /**
+     * Accelerator for signal memory address (to be used when translating to different endianness)
+     */
+    void **payloadAddresses;
 };
 
 }

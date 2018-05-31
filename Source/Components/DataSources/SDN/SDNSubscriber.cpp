@@ -26,6 +26,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include <new> //For the std::nothrow.
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -63,7 +64,9 @@ SDNSubscriber::SDNSubscriber() :
     if (!synchronisingSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem");
     }
-
+    payloadNumberOfBits = NULL_PTR(uint16);
+    payloadNumberOfElements = NULL_PTR(uint32 *);
+    payloadAddresses = NULL_PTR(void **);
 }
 
 /*lint -e{1551} the destructor must guarantee that the SDNSubscriber SingleThreadService is stopped and that all the SDN objects are destroyed.*/
@@ -87,6 +90,17 @@ SDNSubscriber::~SDNSubscriber() {
         topic = NULL_PTR(sdn::Topic *);
     }
 
+    if (payloadNumberOfBits != NULL_PTR(uint16 *)) {
+        delete [] payloadNumberOfBits;
+    }
+
+    if (payloadNumberOfElements != NULL_PTR(uint32 *)) {
+        delete [] payloadNumberOfElements;
+    }
+
+    if (payloadAddresses != NULL_PTR(void **)) {
+        delete [] payloadAddresses;
+    }
 }
 
 bool SDNSubscriber::Initialise(StructuredDataI &data) {
@@ -199,6 +213,10 @@ bool SDNSubscriber::AllocateMemory() {
     bool ok = true;
     uint32 signalIndex;
 
+    payloadNumberOfBits = new uint16[nOfSignals];
+    payloadNumberOfElements = new uint32[nOfSignals];
+    payloadAddresses = new void *[nOfSignals];
+
     // Create one topic attribute for each signal
     for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
 
@@ -225,6 +243,11 @@ bool SDNSubscriber::AllocateMemory() {
         }
 
         if (ok) {
+            payloadNumberOfBits[signalIndex] = signalType.numberOfBits;
+            payloadNumberOfElements[signalIndex] = signalNOfElements;
+        }
+
+        if (ok) {
             ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
         }
 
@@ -242,7 +265,7 @@ bool SDNSubscriber::AllocateMemory() {
     // Create sdn::Subscriber
     if (ok) {
         subscriber = new (std::nothrow) sdn::Subscriber(*topic);
-	ok = (NULL_PTR(sdn::Subscriber *) != subscriber);
+        ok = (NULL_PTR(sdn::Subscriber *)!= subscriber);
     }
 
     if (ok) {
@@ -253,6 +276,16 @@ bool SDNSubscriber::AllocateMemory() {
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (subscriber->Configure() == STATUS_SUCCESS);
+    }
+
+    if (ok) {
+        for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
+            void *signalAddress;
+            ok = GetSignalMemoryBuffer(signalIndex, 0u, signalAddress);
+            if (ok) {
+                payloadAddresses[signalIndex] = signalAddress;
+            }
+        }
     }
 
     if (!ok) {
@@ -475,71 +508,46 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
         ok = (subscriber->Receive(100000000ul) == STATUS_SUCCESS);
 
         if (!ok) {
-	    //REPORT_ERROR(ErrorManagement::Timeout, "sdn::Subscriber failed to receive topic");
+            //REPORT_ERROR(ErrorManagement::Timeout, "sdn::Subscriber failed to receive topic");
             err.SetError(ErrorManagement::Timeout);
         }
 #ifdef FEATURE_10840
-	else {
-	    if (!subscriber->IsPayloadOrdered()) {
-	        // Convert payload from network byte order
-	        uint32 signalIndex;
-		for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
-
-		    TypeDescriptor signalType = GetSignalType(signalIndex);
-		    uint32 typeNOfBits = signalType.numberOfBits;
-		    void* signalReference = NULL_PTR(void*);
-
-		    ok = GetSignalMemoryBuffer(signalIndex, 0u, signalReference);
-
-		    uint32 signalNOfElements = 0u;
-
-		    if (ok) {
-		        ok = GetSignalNumberOfElements(signalIndex, signalNOfElements);
-		    }
-
-		    uint8 signalNOfDimensions = 0u;
-
-		    if (ok) {
-		        ok = GetSignalNumberOfDimensions(signalIndex, signalNOfDimensions);
-		    }
-
-		    if (signalNOfDimensions > 1u) {
-		        signalNOfElements *= signalNOfDimensions;
-		    }
-
-		    uint32 elementIndex;
-		    for (elementIndex = 0u; (elementIndex < signalNOfElements) && (ok); elementIndex++) {
-		      
-		        if (typeNOfBits == 16u) {
-			    sdn::types::uint16_t val = static_cast<sdn::types::uint16_t*>(signalReference)[elementIndex];
-			    static_cast<sdn::types::uint16_t*>(signalReference)[elementIndex] = sdn::HelperTools::FromNetworkByteOrder<sdn::types::uint16_t>(val);
-			}
-
-			if (typeNOfBits == 32u) {
-			    sdn::types::uint32_t val = static_cast<sdn::types::uint32_t*>(signalReference)[elementIndex];
-			    static_cast<sdn::types::uint32_t*>(signalReference)[elementIndex] = sdn::HelperTools::FromNetworkByteOrder<sdn::types::uint32_t>(val);
-			}
-
-			if (typeNOfBits == 64u) {
-			    sdn::types::uint64_t val = static_cast<sdn::types::uint64_t*>(signalReference)[elementIndex];
-			    static_cast<sdn::types::uint64_t*>(signalReference)[elementIndex] = sdn::HelperTools::FromNetworkByteOrder<sdn::types::uint64_t>(val);
-			}
-			
-		    }
-
-		}
-	    }
-	}
+        else {
+            if (!subscriber->IsPayloadOrdered()) {
+                // Convert payload from network byte order
+                uint32 signalIndex;
+                for (signalIndex = 0u; (signalIndex < nOfSignals); signalIndex++) {
+                    if (payloadNumberOfBits[signalIndex] == 16u) {
+                        uint32 elementIndex;
+                        for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
+                            Endianity::FromBigEndian(*reinterpret_cast<uint16 *>(payloadAddresses[signalIndex]));
+                        }
+                    }
+                    if (payloadNumberOfBits[signalIndex] == 32u) {
+                        uint32 elementIndex;
+                        for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
+                            Endianity::FromBigEndian(*reinterpret_cast<uint32 *>(payloadAddresses[signalIndex]));
+                        }
+                    }
+                    if (payloadNumberOfBits[signalIndex] == 64u) {
+                        uint32 elementIndex;
+                        for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
+                            Endianity::FromBigEndian(*reinterpret_cast<uint64 *>(payloadAddresses[signalIndex]));
+                        }
+                    }
+                }
+            }
+        }
 #endif
     }
 
     if (ok) {
         ok = synchronisingSem.Post();
 
-	if (!ok) {
-	    REPORT_ERROR(ErrorManagement::FatalError, "EventSem::Post failed");
-	    err.SetError(ErrorManagement::FatalError);
-	}
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::FatalError, "EventSem::Post failed");
+            err.SetError(ErrorManagement::FatalError);
+        }
     }
 
     if (err.Contains(ErrorManagement::Timeout)) {

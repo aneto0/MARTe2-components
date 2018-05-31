@@ -52,13 +52,17 @@ endif
 
 INCLUDES += -I../../../../Source/Components/DataSources/SDN
 
-## SDN core from v1.2 onwards
+## SDN core from v1.2 onwards (only check in CCS machines, otherwise codac-version will not exist for sure).
+ifdef CODAC_ROOT
 FEATURE_10840 = $(shell if [ -z ${SDN_CORE_VERSION} ] && [ `codac-version -f | grep 'PATCHED (10840)' | wc -l` == 0 ]; then echo 0; else echo 1; fi)
 ifeq "$(FEATURE_10840)" "0"
 # Override CPPFLAGS due to scoped enums
 CPPFLAGS += -std=c++0x
 else
 CPPFLAGS += -DFEATURE_10840
+endif
+else
+CPPFLAGS += -std=c++0x
 endif
 
 all: $(OBJS) \
