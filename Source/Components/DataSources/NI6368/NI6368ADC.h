@@ -171,7 +171,7 @@ NI6368ADC    ();
     virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
     /**
-     * @brief Gets the last index written by the DMA (can be either 0 or 1).
+     * @brief Gets the last index written by the DMA.
      * @return the last index written by the DMA.
      */
     uint8 GetLastBufferIdx();

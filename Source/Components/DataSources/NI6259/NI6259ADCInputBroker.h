@@ -1,6 +1,6 @@
 /**
- * @file NI6368ADCInputBroker.h
- * @brief Header file for class NI6368ADCInputBroker
+ * @file NI6259ADCInputBroker.h
+ * @brief Header file for class NI6259ADCInputBroker
  * @date 13/01/2017
  * @author Andre Neto
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class NI6368ADCInputBroker
+ * @details This header file contains the declaration of the class NI6259ADCInputBroker
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef NI6368_NI6368ADCINPUTBROKER_H_
-#define NI6368_NI6368ADCINPUTBROKER_H_
+#ifndef NI6259_NI6259ADCINPUTBROKER_H_
+#define NI6259_NI6259ADCINPUTBROKER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -31,8 +31,8 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "BrokerI.h"
-#include "NI6368ADC.h"
+#include "MemoryMapStatefulBroker.h"
+#include "NI6259ADC.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -47,7 +47,7 @@ namespace MARTe {
  * that are to be copied by this MemoryMapStatefulBroker. Note that the dataSourcePointer will
  * hold the address of variable which has the pointer to the memory (and not the memory address itself).
  */
-struct NI6368CopyTableEntry {
+struct NI6259CopyTableEntry {
     /**
      * The pointer to the base address of the GAM.
      */
@@ -66,29 +66,29 @@ struct NI6368CopyTableEntry {
     uint32 copySize;
 };
 /**
- * @brief An input broker for NI6368 which copies from the latest buffer available.
- * @details The NI6368 DataSourceI copies the data using DMA to one of two buffers.
- * This NI6368ADCInputBroker copies the data back to the GAM memory from the latest
- * complete buffer written by the NI6368ADC.
+ * @brief An input broker for NI6259 which copies from the latest buffer available.
+ * @details The NI6259 DataSourceI copies the data using DMA to one of two buffers.
+ * This NI6259ADCInputBroker copies the data back to the GAM memory from the latest
+ * complete buffer written by the NI6259ADC.
  */
-class DLL_API NI6368ADCInputBroker: public BrokerI {
+class DLL_API NI6259ADCInputBroker: public BrokerI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief Default constructor. NOOP.
      */
-NI6368ADCInputBroker    ();
+NI6259ADCInputBroker    ();
 
     /**
-     * @brief Default constructor. Sets a pointer to the NI6368ADC board.
-     * @param adcBoard a reference to the NI6368ADC board.
+     * @brief Default constructor. Sets a pointer to the NI6259ADC board.
+     * @param adcBoard a reference to the NI6259ADC board.
      */
-    NI6368ADCInputBroker(NI6368ADC *adcBoardIn);
+    NI6259ADCInputBroker(NI6259ADC *adcBoardIn);
 
     /**
      * @brief Destructor. NOOP.
      */
-    virtual ~NI6368ADCInputBroker();
+    virtual ~NI6259ADCInputBroker();
 
     /**
      * @brief TODO.
@@ -99,22 +99,22 @@ NI6368ADCInputBroker    ();
             void * const gamMemoryAddress);
 
     /**
-     * @brief Sequentially copies all the signals to the GAM memory from the DataSourceI memory buffer[NI6368::GetLastBufferIdx()].
+     * @brief Sequentially copies all the signals to the GAM memory from the DataSourceI memory buffer[NI6259::GetLastBufferIdx()].
      * @return true if all copies are successfully performed.
      */
     virtual bool Execute();
 
 private:
     /**
-     * Reference to the NI6368ADC board
+     * Reference to the NI6259ADC board
      */
-    NI6368ADC *adcBoard;
+    NI6259ADC *adcBoard;
 
 
     /**
      * A table with all the elements to be copied
      */
-    NI6368CopyTableEntry *copyTable;
+    NI6259CopyTableEntry *copyTable;
 
 };
 
@@ -124,5 +124,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* NI6368_NI6368ADCINPUTBROKER_H_ */
+#endif /* NI6259_NI6259ADCINPUTBROKER_H_ */
 

@@ -42,9 +42,12 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 //Number of ADC channels
+/*lint -esym(551, MARTe::NI6259ADC_MAX_CHANNELS) the symbol is used to define the size of several arrays below*/
 const uint32 NI6259ADC_MAX_CHANNELS = 32u;
 //Counter and timer
 const uint32 NI6259ADC_HEADER_SIZE = 2u;
+//The number of buffers to synchronise with the DMA
+const uint32 NUMBER_OF_BUFFERS = 8u;
 /**
  * @brief A DataSource which provides an input interface to the NI6259 boards.
  * @details Note that this is a multiplexed board and thus the sampling frequency is
@@ -198,7 +201,33 @@ NI6259ADC    ();
      */
     bool ReadAIConfiguration(pxi6259_ai_conf_t *conf) const;
 
+    /**
+     * @brief Gets the last index written by the DMA.
+     * @return the last index written by the DMA.
+     */
+    uint8 GetLastBufferIdx();
+
+    /**
+     * @brief Returns true if there is one GAM synchronising on this board.
+     * @return true if there is one GAM synchronising on this board.
+     */
+    bool IsSynchronising() const;
+
 private:
+
+    /**
+     * @brief Copies from the DMA memory into the broker memory.
+     * @details The DMA memory is organised in a different way (see xseries-lib.h) w.r.t. to the broker memory.
+     * This function maps the DMA memory into the broker memory.
+     * @param numberOfSamplesFromDMA number of samples to copy between memories.
+     * @return ErrorManagement::FatalError if the semaphore cannot be posted.
+     */
+    ErrorManagement::ErrorType CopyFromDMA(size_t numberOfSamplesFromDMA);
+
+    /**
+     * The number of samples written to the current buffer.
+     */
+    uint32 currentBufferOffset;
 
     /**
      * The counter value
@@ -208,12 +237,17 @@ private:
     /**
      * The time value
      */
-    uint32 timeValue;
+    uint32 *timeValue;
+
+    /**
+     * The last time value (for error checking)
+     */
+    uint32 lastTimeValue;
 
     /**
      * The counter value. Different from counter to avoid synchronisation issues.
      */
-    uint32 counterValue;
+    uint32 *counterValue;
 
     /**
      * The EmbeddedThread where the Execute method waits for the ADC data to be available.
@@ -298,12 +332,27 @@ private:
     /**
      * The signals memory
      */
-    float32 *channelsMemory[NI6259ADC_MAX_CHANNELS];
+    int16 *channelsMemory[NUMBER_OF_BUFFERS][NI6259ADC_MAX_CHANNELS];
 
     /**
-     * The memory of the current signal being read
+     * The memory DMA offset
      */
-    float32 *channelMemory;
+    size_t dmaOffset;
+
+    /**
+     * The memory DMA
+     */
+    struct pxi6259_dma *dma;
+
+    /**
+     * The memory where the DMA is copied to.
+     */
+    int16 *dmaReadBuffer;
+
+    /**
+     * The current DMA channel being copied.
+     */
+    size_t dmaChannel;
 
     /**
      * The ADCs that are enabled
@@ -345,6 +394,30 @@ private:
      */
     FastPollingMutexSem counterResetFastMux;
 
+    /**
+     * The last written buffer
+     */
+    uint8 currentBufferIdx;
+
+    /**
+     * The last read buffer index
+     */
+    uint8 lastBufferIdx;
+
+    /**
+     * Semaphore to manage the buffer indexes.
+     */
+    FastPollingMutexSem fastMux;
+
+    /**
+     * Sleep for the fastMux. Default if RealTimeMode == 0 or 0 if RealTimeMode == 1
+     */
+    float64 fastMuxSleepTime;
+
+    /**
+     * The sampling frequency of the single ADC.
+     */                
+    uint32 singleADCFrequency;
 };
 }
 

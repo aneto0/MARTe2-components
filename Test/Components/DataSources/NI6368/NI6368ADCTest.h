@@ -77,11 +77,6 @@ public:
     bool TestGetInputBrokers();
 
     /**
-     * @brief Tests the GetInputBrokers method without synchronising on this board.
-     */
-    bool TestGetInputBrokers_NotSynchronisingGAM();
-
-    /**
      * @brief Tests the GetOutputBrokers method.
      */
     bool TestGetOutputBrokers();
@@ -95,6 +90,16 @@ public:
      * @brief Tests the Execute method.
      */
     bool TestExecute();
+
+    /**
+     * @brief Tests the Execute method in the context of the RealTimeThread.
+     */
+    bool TestExecute_RealTimeThread();
+
+    /**
+     * @brief Tests the Execute method in the context of the RealTimeMode.
+     */
+    bool TestExecute_RealTimeMode();
 
     /**
      * @brief Tests the PrepareNextState method.
@@ -325,6 +330,16 @@ public:
      * @brief Tests the SetConfiguredDatabase specifying more than one sample for the counter.
      */
     bool TestSetConfiguredDatabase_False_TimerSamples();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase specifying more than one GAM.
+     */
+    bool TestSetConfiguredDatabase_False_MoreThanOneGAM();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase without specifying a synchronising GAM.
+     */
+    bool TestSetConfiguredDatabase_False_NotSynchronisingGAM();
 
     /**
      * @brief Tests the GetLastBufferIdx function.
