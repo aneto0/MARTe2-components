@@ -1,6 +1,6 @@
 /**
- * @file EpicsDataSource.cpp
- * @brief Source file for class EpicsDataSource
+ * @file Sigblock.cpp
+ * @brief Source file for class Sigblock
  * @date 01/12/2016
  * @author Ivan Herrero Molina
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EpicsDataSource (public, protected, and private). Be aware that some
+ * the class Sigblock (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 

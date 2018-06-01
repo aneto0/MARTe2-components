@@ -1,6 +1,6 @@
 /**
- * @file Atomic.h
- * @brief Header file for module Atomic
+ * @file Atomic2.h
+ * @brief Header file for module Atomic2
  * @date 21/12/2016
  * @author Ivan Herrero Molina
  *
@@ -16,7 +16,7 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the module Atomic
+ * @details This header file contains the declaration of the module Atomic2
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */

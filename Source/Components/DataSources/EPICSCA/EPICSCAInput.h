@@ -41,7 +41,9 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-//Maximum size that a PV name may have
+/**
+ * Maximum size that a PV name may have
+ */
 /*lint -esym(551, MARTe::PV_NAME_MAX_SIZE) the symbol is used to define the size of PVWrapper below*/
 const uint32 PV_NAME_MAX_SIZE = 64u;
 
@@ -49,19 +51,33 @@ const uint32 PV_NAME_MAX_SIZE = 64u;
  * Wraps a PV
  */
 struct PVWrapper {
-    //The channel identifier
+    /**
+     * The channel identifier
+     */
     chid pvChid;
-    //The event identifier
+    /**
+     * The event identifier
+     */
     evid pvEvid;
-    //The PV type
+    /**
+     * The PV type
+     */
     chtype pvType;
-    //The memory of the signal associated to this channel
+    /**
+     * The memory of the signal associated to this channel
+     */
     void *memory;
-    //The number of elements > 0
+    /**
+     * The number of elements > 0
+     */
     uint32 numberOfElements;
-    //The memory size
+    /**
+     * The memory size
+     */
     uint32 memorySize;
-    //The PV name
+    /**
+     * The PV name
+     */
     char8 pvName[PV_NAME_MAX_SIZE];
 };
 

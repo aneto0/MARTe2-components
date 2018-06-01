@@ -83,12 +83,12 @@ namespace MARTe {
  * }
  * </pre>
  *
- * @TODO Receive inputs signal depth in lieu of storing history internally.
+ * \b TODO Receive inputs signal depth in lieu of storing history internally.
  *
- * @TODO Since the RMS is the native computed value being the STD, it can be promoted
+ * \b TODO Since the RMS is the native computed value being the STD, it can be promoted
  * to be available on an output signal without additional penalty.
  *
- * @TODO Deliver histogram as output array.
+ * \b TODO Deliver histogram as output array.
  *
  */
 
@@ -131,7 +131,7 @@ public:
 
     /**
      * @brief Execute method. Statistical computation of the input signal.
-     * @detail Delegates execution of the statistical computation and update
+     * @details Delegates execution of the statistical computation and update
      * of the output signals to the Execute<signaType> method.
      * @return true.
      */

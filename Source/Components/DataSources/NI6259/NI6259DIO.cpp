@@ -38,7 +38,9 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-//To keep MISRA happy about the signs...
+/**
+ * To keep MISRA happy about the signs...
+ */
 #define PXI6259_NUMBER_OF_PORTS_ static_cast<uint32>(PXI6259_NUMBER_OF_PORTS)
 
 /*---------------------------------------------------------------------------*/

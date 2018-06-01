@@ -137,7 +137,7 @@ EPICSPV    ();
 
     /**
      * @brief Sets the EPICS evid of the PV.
-     * @param[in] pvChidIn the EPICS evid of the PV.
+     * @param[in] pvEvidIn the EPICS evid of the PV.
      */
     void SetPVEvid(const evid pvEvidIn);
 

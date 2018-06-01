@@ -83,19 +83,19 @@ public:
 
         /**
          * @brief Gets the signal's name from its index.
-         * @param[in] The index of the signal.
+         * @param[in] index The index of the signal.
          */
         const SDA::char8* GetSignalName(const SDA::int32 index) const;
 
         /**
          * @brief Gets the signal's offset from its index.
-         * @param[in] The index of the signal.
+         * @param[in] index The index of the signal.
          */
         SDA::size_type GetSignalOffsetByIndex(const SDA::uint32 index) const;
 
         /**
          * @brief Gets the signal's size from its index.
-         * @param[in] The index of the signal.
+         * @param[in] index The index of the signal.
          */
         SDA::size_type GetSignalSizeByIndex(const SDA::int32 index) const;
 

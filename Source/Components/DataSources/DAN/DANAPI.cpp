@@ -37,6 +37,9 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 namespace DANAPI {
+/**
+ * dan_DataCore singleton interface.
+ */
 dan_DataCore danDataCore = NULL_PTR(dan_DataCore);
 }
 }

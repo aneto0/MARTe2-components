@@ -38,7 +38,13 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+/**
+ * Execute in the context of the real-time thread.
+ */
 const uint32 LINUX_TIMER_EXEC_MODE_RTTHREAD = 1u;
+/**
+ * Execute in the context of a spawned thread.
+ */
 const uint32 LINUX_TIMER_EXEC_MODE_SPAWNED = 2u;
 }
 

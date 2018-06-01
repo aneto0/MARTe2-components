@@ -53,7 +53,7 @@ namespace MARTe {
  * @details The DataSource collects its inputs signals into a SDN topic and publishes
  * the topic over the SDN network.
  *
- * The SDN core library uses topic <name> as key to establish matching communication channels
+ * The SDN core library uses topic "name" as key to establish matching communication channels
  * across all participants. Alternatively, the destination address required by the underlying
  * transport may be defined explicitly, in which case matching topic names would only be used
  * to support fault investigation purposes.
@@ -63,13 +63,13 @@ namespace MARTe {
  * <pre>
  * +Publisher = {
  *     Class = SDNPublisher
- *     Topic = <name> // The name is used to establish many-to-many communication channels
- *     Interface = <name> // The network interface name to be used
- *     Address = <address>:<port> // Optional - Explicit destination address
- #ifdef FEATURE_10840
- *     SourcePort = <port> // Optional - Explicit source-side port to bind to
+ *     Topic = name // The name is used to establish many-to-many communication channels
+ *     Interface = name // The network interface name to be used
+ *     Address = address:port // Optional - Explicit destination address
+ * \b ifdef FEATURE_10840
+ *     SourcePort = port // Optional - Explicit source-side port to bind to
  *     NetworkByteOrder = 1 // Optional - Enforce On-the-wire network byte ordering
- #endif
+ * \b endif
  *     Signals = {
  *         Counter = {
  *             Type = uint64
@@ -87,20 +87,21 @@ namespace MARTe {
  * The DataSource relies on a MemoryMap(Synchronised)OutputBroker to interface to GAM signals.
  * The DataSource does not allocate memory, rather maps directly the signals to the SDN message
  * payload directly.
- #ifdef FEATURE_10840
+ * \b ifdef FEATURE_10840
  * The DataSource has additional optional parameters to override the default publisher-side
  * source port and/or opt for publishing messages on the wire using network byte order. The valid
  * range for source port is 0 || [1024, 65535]. The default on-the-wire byte order is the host
  * native ordering (MemoryMapOutputBroker performs memory copies pf the signals directly to the
  * message payload) and may be overridden to use network byte order, in which case the DataSource
  * performs the necessary byte swaps before publication.
- #endif
- * @notice The DataSource requires that one and only one signal be identified as synchronisation
+ * \b endif
+ *
+ * @warning The DataSource requires that one and only one signal be identified as synchronisation
  * point (i.e. only one signal must set Trigger = 1).
  *
- * @notice The DataSource does not support signal samples batching.
+ * @warning the DataSource does not support signal samples batching.
  *
- * @notice The data payload over the network is structured in the same way as the signal definition
+ * @warning the data payload over the network is structured in the same way as the signal definition
  * order. Interoperability between distributed participants require strict configuration control
  * of the payload definition.
  */
@@ -130,20 +131,22 @@ SDNPublisher    ();
     /**
      * @brief Verifies and parses instance parameters.
      * @param[in] data configuration in the form:
+     * <pre>
      * +Publisher = {
      *     Class = SDNPublisher
-     *     Topic = <name> // The name is used to establish many-to-many communication channels
-     *     Interface = <name> // The network interface name to be used, e.g. eth0
-     *     Address = <address>:<port> // Optional - Explicit destination address
+     *     Topic = name // The name is used to establish many-to-many communication channels
+     *     Interface = name // The network interface name to be used, e.g. eth0
+     *     Address = address:port // Optional - Explicit destination address
      * }
+     * </pre>
      * @details The configuration parameters are subject to the following criteria:
-     * The topic <name> is mandatory and can be any string. The <name> is used to associate the
+     * The topic "name" is mandatory and can be any string. The "name" is used to associate the
      * publisher to an address and must be identical on all participants. The mapping between topic
-     * <name> and address is done within the scope of the SDN core library and guaranteed to match
-     * between all participants using the same topic <name>. Alternatively, the destination address
-     * can be explicitly defined using a topic <name> of the form 'sdn://<address>:<port>/<name>';
+     * "name" and address is done within the scope of the SDN core library and guaranteed to match
+     * between all participants using the same topic "name". Alternatively, the destination address
+     * can be explicitly defined using a topic "name" of the form 'sdn://address:port/name';
      * which is purposeful to establish e.g. a unicast connection.
-     * The interface <name> is mandatory and verified to correspond to a valid named
+     * The interface "name" is mandatory and verified to correspond to a valid named
      * interface on the host, e.g. eth0.
      * @return true if the criteria above is met.
      */
@@ -222,7 +225,7 @@ SDNPublisher    ();
      * @brief See DataSourceI::Synchronise.
      * @details The method calls sdn::Publisher::Publish and relies on the fact that SDN
      * message payload has been previously completely modified by the OutputBroker instances.
-     * @notice It is for the application-specific configuration to ensure and organise ordering of the
+     * @warning It is for the application-specific configuration to ensure and organise ordering of the
      * GAMs so as to ensure proper payload update prior to publication, e.g. the synchronising
      * GAM is scheduled after all the non-synchronising GAMs contributing signals to the 
      * DataSource.

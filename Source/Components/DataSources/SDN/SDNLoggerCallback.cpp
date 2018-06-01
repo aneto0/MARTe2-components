@@ -39,8 +39,14 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 #ifdef FEATURE_10840
+/**
+ * Callback function for the ccs logger.
+ */
 void vMessage2MARTe (ccs::log::Severity_t severity, const char* source, const char* message, va_list args)
 #else // Version prior to SDN v1.2
+/**
+ * Callback function for the ccs logger.
+ */
 void vMessage2MARTe (Severity_t severity, const char* source, const char* message, va_list args)
 #endif
 { 

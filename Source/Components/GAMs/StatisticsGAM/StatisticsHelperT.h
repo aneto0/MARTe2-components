@@ -46,7 +46,7 @@ namespace MARTe {
 
 /**
  * @brief The class provides templated statistics computation.
- * @detail The class allocates circular buffers to store values of samples and
+ * @details The class allocates circular buffers to store values of samples and
  * computes average, standard deviation, minimum and maximum over a moving time
  * window. As such, the sum of samples and sum of squares is computed upon calling
  * the PushSample() method in a way to minimise operations. The minimum or maximum
@@ -71,7 +71,7 @@ public:
 
     /**
      * @brief Constructor.
-     * @detail Allocates memory buffers to store samples, and squares of, in a moving
+     * @details Allocates memory buffers to store samples, and squares of, in a moving
      * time window. In case of integer types, the actual window size will be the highest
      * power of 2 smaller or equal to the specified size.
      */
@@ -90,7 +90,7 @@ public:
 
     /**
      * @brief Inserts new sample in the moving time window.
-     * @detail The method inserts the sample in the historical buffer and re-computes the
+     * @details The method inserts the sample in the historical buffer and re-computes the
      * sum of samples over the time window with two operations, i.e. to remove the oldest
      * sample leaving the buffer from the cumulative sum before adding the new one.
      * The minimum and maximum sample attributes are changed if the newly inserted sample
@@ -108,14 +108,14 @@ public:
     /**
      * @brief Accessor. Retrieves the sample at index in the sample buffer.
      * @return sample at index. 0 if index out of bounds.
-     * @detail If the index is out of bounds, raises error and returns the 0 casted to the respective type.
+     * @details If the index is out of bounds, raises error and returns the 0 casted to the respective type.
      */
     Type GetSample(uint32 index) const;
 
     /**
      * @brief Accessor. Retrieves the last inserted sample.
      * @return Last inserted sample. 0 if fails.
-     * @detail If CircularStaticList<Type>::GetLast returns false raises error and returns the 0 casted to the respective type.
+     * @details If CircularStaticList<Type>::GetLast returns false raises error and returns the 0 casted to the respective type.
      */
     Type GetSample(void) const;
 
@@ -133,7 +133,7 @@ public:
 
     /**
      * @brief Average over the moving window of samples.
-     * @detail The average is computed  in this method from the cumulative sum of samples
+     * @details The average is computed  in this method from the cumulative sum of samples
      * over the time window maintained/updated by the PushSample() method. The average is
      * computed by bit-shifting the accumulator in case of integer types or by multiplying
      * it with pre-computed (1.0 / size) for floating point types.
@@ -155,7 +155,7 @@ public:
 
     /**
      * @brief Root mean squares over the moving window of samples.
-     * @detail The root mean square is computed in this method from the cumulative sum of
+     * @details The root mean square is computed in this method from the cumulative sum of
      * squared samples over the time window maintained/updated by the PushSample() method.
      * The rms is computed by bit-shifting the accumulator in case of integer types or by
      * multiplying it with pre-computed (1.0 / size) for floating point types. And
@@ -166,7 +166,7 @@ public:
 
     /**
      * @brief Standard deviation over the moving window of samples.
-     * @detail This is the most computation heavy accessor since it involves computing the
+     * @details This is the most computation heavy accessor since it involves computing the
      * average, squaring it and substrating it from the average of the squared samples over
      * the time window.
      * @return standard deviation.
@@ -286,6 +286,9 @@ template<typename Type> bool StatisticsHelperT<Type>::Reset() {
 
 }
 
+/**
+ * @brief float32 implementation of StatisticsHelperT<>::Reset()
+ */
 template<> inline bool StatisticsHelperT<float32>::Reset() { // Must be declared/defined before use in the constructor
 
     /* Reset attributes */
@@ -312,6 +315,9 @@ template<> inline bool StatisticsHelperT<float32>::Reset() { // Must be declared
 
 }
 
+/**
+ * @brief float64 implementation of StatisticsHelperT<>::Reset()
+ */
 template<> inline bool StatisticsHelperT<float64>::Reset() { // Must be declared/defined before use in the constructor
 
     /* Reset attributes */
@@ -381,6 +387,10 @@ template<typename Type> StatisticsHelperT<Type>::StatisticsHelperT(const uint32 
 
  }
  */
+
+/**
+ * @brief float32 implementation of StatisticsHelperT<>::StatisticsHelperT()
+ */
 /*lint -e{1566} initialisation of the attributes in the Reset() method*/
 /*lint -e{1732} no assignment ever used */
 /*lint -e{1733} no assignment ever used */
@@ -399,6 +409,9 @@ template<> inline StatisticsHelperT<float32>::StatisticsHelperT(const uint32 win
 
 }
 
+/**
+ * @brief float64 implementation of StatisticsHelperT<>::StatisticsHelperT
+ */
 /*lint -e{1566} initialisation of the attributes in the Reset() method*/
 /*lint -e{1732} no assignment ever used */
 /*lint -e{1733} no assignment ever used */
@@ -601,6 +614,9 @@ template<typename Type> Type StatisticsHelperT<Type>::GetAvg() const {
     return avg;
 }
 
+/**
+ * @brief float32 implementation of StatisticsHelperT<>::GetAvg()
+ */
 template<> inline float32 StatisticsHelperT<float32>::GetAvg() const {
 
     float32 avg = Xavg * Xdiv;
@@ -608,6 +624,9 @@ template<> inline float32 StatisticsHelperT<float32>::GetAvg() const {
     return avg;
 }
 
+/**
+ * @brief float64 implementation of StatisticsHelperT<>::GetAvg()
+ */
 template<> inline float64 StatisticsHelperT<float64>::GetAvg() const {
 
     float64 avg = Xavg * Xdiv;
