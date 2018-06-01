@@ -34,6 +34,7 @@
 
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
+#include "Endianity.h"
 #include "MemoryMapInputBroker.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "SDNSubscriber.h"
