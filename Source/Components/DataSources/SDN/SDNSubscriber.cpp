@@ -522,19 +522,19 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
                     if (payloadNumberOfBits[signalIndex] == 16u) {
                         uint32 elementIndex;
                         for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
-                            Endianity::FromBigEndian(*reinterpret_cast<uint16 *>(payloadAddresses[signalIndex]));
+                            Endianity::FromBigEndian(reinterpret_cast<uint16 *>(payloadAddresses[signalIndex])[elementIndex]);
                         }
                     }
                     if (payloadNumberOfBits[signalIndex] == 32u) {
                         uint32 elementIndex;
                         for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
-                            Endianity::FromBigEndian(*reinterpret_cast<uint32 *>(payloadAddresses[signalIndex]));
+                            Endianity::FromBigEndian(reinterpret_cast<uint32 *>(payloadAddresses[signalIndex])[elementIndex]);
                         }
                     }
                     if (payloadNumberOfBits[signalIndex] == 64u) {
                         uint32 elementIndex;
                         for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
-                            Endianity::FromBigEndian(*reinterpret_cast<uint64 *>(payloadAddresses[signalIndex]));
+                            Endianity::FromBigEndian(reinterpret_cast<uint64 *>(payloadAddresses[signalIndex])[elementIndex]);
                         }
                     }
                 }
