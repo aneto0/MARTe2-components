@@ -51,7 +51,7 @@ namespace MARTe {
  * @details The DataSource connects to the SDN network named interface and received topics
  * with configurable blocking (with timeout) behaviour.
  *
- * The SDN core library uses topic <name> as key to establish matching communication channels
+ * The SDN core library uses topic "name" as key to establish matching communication channels
  * across all participants. Alternatively, the destination address required by the underlying
  * transport may be defined explicitly, in which case matching topic names would only be used
  * to support fault investigation purposes.
@@ -61,11 +61,11 @@ namespace MARTe {
  * <pre>
  * +Subscriber = {
  *     Class = SDNSubscriber
- *     Topic = <name> // The name is used to establish many-to-many communication channels
- *     Interface = <name> // The network interface name to be used
- *     Address = <address>:<port> // Optional - Explicit destination address
- *     Timeout = <timeout_in_ms> // Optional - Used for synchronising mode semaphore
- *     CPUs = <cpumask> // Optional - Explicit affinity for the thread
+ *     Topic = "name" // The name is used to establish many-to-many communication channels
+ *     Interface = "name" // The network interface name to be used
+ *     Address = address:port // Optional - Explicit destination address
+ *     Timeout = timeout_in_ms // Optional - Used for synchronising mode semaphore
+ *     CPUs = cpumask // Optional - Explicit affinity for the thread
  *     Signals = {
  *         Counter = {
  *             Type = uint64
@@ -87,15 +87,15 @@ namespace MARTe {
  * synchronised with an alternative method and the SDNSubscriber holds whichever signal
  * samples were last received.
  *
- * @notice The DataSource does not support more than one signal identified as synchronisation point
+ * @warning The DataSource does not support more than one signal identified as synchronisation point
  * so as to ensure that the message payload is consistently provided to all GAMs associated to it. It
  * does support however a signal 'caching' mode (non-synchronising) to cater for the cases where the
  * application real-time threads are synchronised using an alternate source, in which case the
  * DataSource only provides the last received payload, 
  *
- * @notice The DataSource does not support signal samples batching.
+ * @warning The DataSource does not support signal samples batching.
  *
- * @notice The data payload over the network is structured in the same way as the signal definition
+ * @warning The data payload over the network is structured in the same way as the signal definition
  * order. Interoperability between distributed participants require strict configuration control
  * of the payload definition.
  */
@@ -124,21 +124,23 @@ SDNSubscriber    ();
     /**
      * @brief Verifies and parses instance parameters.
      * @param[in] data configuration in the form:
+     * <pre>
      * +Subscriber = {
      *     Class = SDNSubscriber
-     *     Topic = <name> // The name is used to establish many-to-many communication channels
-     *     Interface = <name> // The network interface name to be used, e.g. eth0
-     *     Address = <address>:<port> // Optional - Explicit destination address
-     *     CPUs = <cpumask> // Optional - Explicit affinity for the thread
+     *     Topic = "name" // The name is used to establish many-to-many communication channels
+     *     Interface = "name" // The network interface name to be used, e.g. eth0
+     *     Address = address:port // Optional - Explicit destination address
+     *     CPUs = cpumask // Optional - Explicit affinity for the thread
      * }
+     * </pre>
      * @details The configuration parameters are subject to the following criteria:
-     * The topic <name> is mandatory and can be any string. The <name> is used to associate the
+     * The topic "name" is mandatory and can be any string. The "name" is used to associate the
      * subscriber to an address and must be identical on all participants. The mapping between topic
-     * <name> and address is done within the scope of the SDN core library and guaranteed to match
-     * between all participants using the same topic <name>. Alternatively, the destination address
-     * can be explicitly defined using a topic <name> of the form 'sdn://<address>:<port>/<name>';
+     * "name" and address is done within the scope of the SDN core library and guaranteed to match
+     * between all participants using the same topic "name". Alternatively, the destination address
+     * can be explicitly defined using a topic "name" of the form 'sdn://address:port/name';
      * which is purposeful to establish e.g. a unicast connection.
-     * The interface <name> is mandatory and verified to correspond to a valid named interface on
+     * The interface "name" is mandatory and verified to correspond to a valid named interface on
      * the host, e.g. eth0.
      * The DataSource operates in two modes, i.e. caching (the thread updates the signal memory with
      * each received SDN message but the synchronisation of the RT thread is managed with an
@@ -300,6 +302,21 @@ private:
      * The thread CPUs mask.
      */
     uint32 cpuMask;
+
+    /**
+     * Accelerator for signal types (to be used when translating to different endianness)
+     */
+    uint16 *payloadNumberOfBits;
+
+    /**
+     * Accelerator for signal number of Elements (to be used when translating to different endianness)
+     */
+    uint32 *payloadNumberOfElements;
+
+    /**
+     * Accelerator for signal memory address (to be used when translating to different endianness)
+     */
+    void **payloadAddresses;
 
 };
 

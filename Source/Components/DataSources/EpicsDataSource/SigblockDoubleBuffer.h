@@ -1,6 +1,6 @@
 /**
- * @file EpicsDataSource.h
- * @brief Header file for class EpicsDataSource
+ * @file SigblockDoubleBuffer.h
+ * @brief Header file for class SigblockDoubleBuffer
  * @date 01/12/2016
  * @author Ivan Herrero Molina
  *
@@ -16,7 +16,7 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EpicsDataSource
+ * @details This header file contains the declaration of the class SigblockDoubleBuffer
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
@@ -44,7 +44,7 @@ namespace SDA {
 /**
  * @brief Double buffer of sigblocks
  *
- * @description This class implements a double buffer for interchange
+ * @details This class implements a double buffer for interchange
  * sigblocks, meant for SC/SP (single consumer and single producer)
  * running on different threads or processes through shared memory.
  *
@@ -74,14 +74,14 @@ public:
 
     /**
      * @brief Gets a sigblock from the double buffer.
-     * @param[out] sb The sigblock holder where the signals
+     * @param[out] item The sigblock holder where the signals
      * from the double buffer must be written.
      */
     bool Get(SDA::Sigblock& item);
 
     /**
      * @brief Puts a sigblock into the double buffer.
-     * @param[in] sb The sigblock container of the signals
+     * @param[in] item The sigblock container of the signals
      * which must written to the double buffer.
      */
     bool Put(const SDA::Sigblock& item);

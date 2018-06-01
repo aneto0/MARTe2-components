@@ -42,7 +42,9 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-//Number of DAC channels
+/**
+ * Number of DAC channels
+ */
 const uint32 NI6259DAC_MAX_CHANNELS = 4u;
 /**
  * @brief A DataSource which provides an analogue output interface to the NI6259 boards.

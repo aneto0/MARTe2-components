@@ -41,12 +41,18 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-//Number of ADC channels
+/**
+ * Number of ADC channels
+ */
 /*lint -esym(551, MARTe::NI6259ADC_MAX_CHANNELS) the symbol is used to define the size of several arrays below*/
 const uint32 NI6259ADC_MAX_CHANNELS = 32u;
-//Counter and timer
+/**
+ * Header definition.
+ */
 const uint32 NI6259ADC_HEADER_SIZE = 2u;
-//The number of buffers to synchronise with the DMA
+/**
+ * The number of buffers to synchronise with the DMA
+ */
 const uint32 NUMBER_OF_BUFFERS = 8u;
 /**
  * @brief A DataSource which provides an input interface to the NI6259 boards.

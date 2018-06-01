@@ -48,7 +48,7 @@ public:
     /**
      * @brief Constructor which assigns the DANStream parameters.
      * @param[in] tdIn the TypeDescriptor of DANStream.
-     * @param[in] baseName the name of the DANSource, which will be used to register the stream with the name baseName_TypeDescriptor::GetTypeNameFromTypeDescriptor(tdIn).
+     * @param[in] baseNameIn the name of the DANSource, which will be used to register the stream with the name baseName_TypeDescriptor::GetTypeNameFromTypeDescriptor(tdIn).
      * @param[in] danBufferMultiplierIn the number of buffers that will be used by the DAN library to store the signals in order to avoid buffer overwrites after a PutData.
      * @param[in] samplingFrequencyIn the stream sampling frequency.
      * @param[in] numberOfSamplesIn the number of samples written on every PutData call.
@@ -139,7 +139,7 @@ public:
 
     /**
      * @brief Sets the relative time signal (in micro-seconds) to be used by the PutData.
-     * @param[in] timeAbsoluteSignalIn the relative time signal (in micro-seconds) to be used by the PutData.
+     * @param[in] timeRelativeSignalIn the relative time signal (in micro-seconds) to be used by the PutData.
      */
     void SetRelativeTimeSignal(uint32 *timeRelativeSignalIn);
 

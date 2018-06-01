@@ -42,18 +42,32 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-//Number of ADC channels
+/**
+ * Number of ADC channels
+ */
 /*lint -esym(551, MARTe::NI6368ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
 const uint32 NI6368ADC_MAX_CHANNELS = 16u;
-//Counter and timer
+/**
+ * Counter and timer
+ */
 /*lint -esym(551, MARTe::NI6368ADC_HEADER_SIZE) the symbol is used to define the size of one array below*/
 const uint32 NI6368ADC_HEADER_SIZE = 2u;
-//Sampling frequency
+/**
+ * Sampling frequency
+ */
 const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
-//The number of buffers to synchronise with the DMA
+/**
+ * The number of buffers to synchronise with the DMA
+ */
 const uint32 NUMBER_OF_BUFFERS = 8u;
 //If the execution mode is RealTimeThread the synchronisation is performed in the scope of the real-time thread. Otherwise if the mode is IndependentThread then a thread is spawned in order to synchronised with the CPU
+/**
+ * Execute in the context of the real-time thread.
+ */
 const uint32 NI6368ADC_EXEC_RTTHREAD = 1u;
+/**
+ * Execute in the context of a spawned thread.
+ */
 const uint32 NI6368ADC_EXEC_SPAWNED = 2u;
 
 /**

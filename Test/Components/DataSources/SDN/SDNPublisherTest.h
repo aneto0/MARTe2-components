@@ -122,12 +122,42 @@ public:
      * @brief Tests the Initialise method with .
      */
     bool TestInitialise_False_Address_5();
+#ifdef FEATURE_10840
+    /**
+     * @brief Tests the Initialise method.
+     */
+    bool TestInitialise_SourcePort();
 
+    /**
+     * @brief Tests the Initialise method.
+     */
+    bool TestInitialise_NetworkByteOrder();
+#endif
     /**
      * @brief Tests the AllocateMemory method.
      */
     bool TestAllocateMemory();
 
+    /**
+     * @brief Tests the AllocateMemory method.
+     */
+    bool TestAllocateMemory_False();
+#ifdef FEATURE_10840
+    /**
+     * @brief Tests the AllocateMemory method.
+     */
+    bool TestAllocateMemory_SourcePort();
+
+    /**
+     * @brief Tests the AllocateMemory method.
+     */
+    bool TestAllocateMemory_False_SourcePort();
+
+    /**
+     * @brief Tests the AllocateMemory method.
+     */
+    bool TestAllocateMemory_NetworkByteOrder();
+#endif
     /**
      * @brief Tests the SetConfiguredDatabase method.
      */
@@ -137,11 +167,6 @@ public:
      * @brief Tests the SetConfiguredDatabase method without signals.
      */
     bool TestSetConfiguredDatabase_False_NOfSignals();
-
-    /**
-     * @brief Tests the AllocateMemory method.
-     */
-    bool TestAllocateMemory_False();
 
     /**
      * @brief Tests the GetNumberOfMemoryBuffers method.
@@ -257,7 +282,17 @@ public:
      * @brief Tests the Synchronise method.
      */
     bool TestSynchronise_UCAST_Topic_1();
+#ifdef FEATURE_10840
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_NetworkByteOrder_Topic_1();
 
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_NetworkByteOrder_Topic_2();
+#endif
 };
 
 /*---------------------------------------------------------------------------*/

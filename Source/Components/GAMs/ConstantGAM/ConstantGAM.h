@@ -39,6 +39,8 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+namespace MARTe {
+
 /**
  * @brief GAM which provides constant output signals. 
  * @details This GAM provides constant output signals, the value of which is defined through configuration, and
@@ -86,9 +88,6 @@
  * }
  * </pre>
  */
-
-namespace MARTe {
-
 class ConstantGAM: public GAM, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()

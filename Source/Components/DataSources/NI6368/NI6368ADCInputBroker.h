@@ -81,7 +81,7 @@ NI6368ADCInputBroker    ();
 
     /**
      * @brief Default constructor. Sets a pointer to the NI6368ADC board.
-     * @param adcBoard a reference to the NI6368ADC board.
+     * @param adcBoardIn a reference to the NI6368ADC board.
      */
     NI6368ADCInputBroker(NI6368ADC *adcBoardIn);
 

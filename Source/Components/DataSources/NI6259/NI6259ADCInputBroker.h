@@ -81,7 +81,7 @@ NI6259ADCInputBroker    ();
 
     /**
      * @brief Default constructor. Sets a pointer to the NI6259ADC board.
-     * @param adcBoard a reference to the NI6259ADC board.
+     * @param adcBoardIn a reference to the NI6259ADC board.
      */
     NI6259ADCInputBroker(NI6259ADC *adcBoardIn);
 

@@ -172,7 +172,7 @@ public:
 
     /**
      * @brief Consumer interface class
-     * @description This class is an interface to the shared data area meant for
+     * @details This class is an interface to the shared data area meant for
      * the consumer, so only reading of data is allowed. It also offers access
      * to the metadata. No instances of it can be created.
      */
@@ -202,7 +202,7 @@ public:
 
     /**
      * @brief Producer interface class
-     * @description This class is an interface to the shared data area meant for
+     * @details This class is an interface to the shared data area meant for
      * the producer, so only writing of data is allowed. It also offers access
      * to the metadata. No instances of it can be created.
      */
@@ -267,6 +267,7 @@ public:
      * supplied in the signalsMetadata parameter, and returns it casted as a
      * SharedDataArea object, i.e. it does not create a new C++ instance of
      * SharedDataArea, but it maps it to the interprocess shared memory.
+     * @param[in] sda The SharedDataArea.
      * @param[in] name The name of the interprocess shared memory.
      * @param[in] signalsCount The number of signals expected.
      * @param[in] signalsMetadata[] The metadata for each expected signal.
@@ -288,6 +289,7 @@ public:
      * identified with the name parameter, and returns it casted as a
      * SharedDataArea object, i.e. it does not create a new C++ instance of
      * SharedDataArea, but it maps it to the interprocess shared memory.
+     * @param[in] sda The SharedDataArea.
      * @param[in] name The name of the interprocess shared memory.
      * @pre An interprocess shared memory identified by the name parameter
      * must exist and must conform to the representation expected by a

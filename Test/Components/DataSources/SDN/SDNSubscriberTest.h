@@ -267,7 +267,17 @@ public:
      * @brief Tests the Synchronise method.
      */
     bool TestSynchronise_UCAST_Topic_3();
+#ifdef FEATURE_10840
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_NetworkByteOrder_Topic_1();
 
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_NetworkByteOrder_Topic_2();
+#endif
     /**
      * @brief Tests the Execute method.
      */

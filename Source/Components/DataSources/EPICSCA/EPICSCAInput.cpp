@@ -1,6 +1,6 @@
 /**
- * @file EPICSCADataSource.cpp
- * @brief Source file for class EPICSCADataSource
+ * @file EPICSCAInput.cpp
+ * @brief Source file for class EPICSCAInput
  * @date 20/04/2017
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSCADataSource (public, protected, and private). Be aware that some 
+ * the class EPICSCAInput (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 

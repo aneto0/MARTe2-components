@@ -102,11 +102,19 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-    SDNPublisherTestConstantGAM() : GAM() { dflt = 0; }
+    SDNPublisherTestConstantGAM() : GAM() {}
 
     ~SDNPublisherTestConstantGAM() {}
 
     bool Execute() {
+        return true;
+    }
+
+    bool Setup() {
+        return true;
+    }
+
+    bool SetDefault(MARTe::char8 dflt) {
 
         MARTe::uint32 nOfSignals = GetNumberOfOutputSignals();
         MARTe::uint32 signalIndex = 0u;
@@ -117,18 +125,47 @@ public:
         }
 
         return true;
+
     }
 
-    bool Setup() {
+    bool SetDefault(MARTe::uint16 dflt) {
+
+        MARTe::uint32 nOfSignals = GetNumberOfOutputSignals();
+        MARTe::uint32 signalIndex = 0u;
+
+        for (signalIndex = 0; signalIndex < nOfSignals; signalIndex++) {
+            MARTe::MemoryOperationsHelper::Copy(GetOutputSignalMemory(signalIndex), &dflt, sizeof(MARTe::uint16));
+        }
+
         return true;
+
     }
 
-    bool SetDefault(MARTe::char8 dflt) {
-        this->dflt = dflt;
+    bool SetDefault(MARTe::uint32 dflt) {
+
+        MARTe::uint32 nOfSignals = GetNumberOfOutputSignals();
+        MARTe::uint32 signalIndex = 0u;
+
+        for (signalIndex = 0; signalIndex < nOfSignals; signalIndex++) {
+            MARTe::MemoryOperationsHelper::Copy(GetOutputSignalMemory(signalIndex), &dflt, sizeof(MARTe::uint32));
+        }
+
         return true;
+
     }
 
-    MARTe::char8 dflt;
+    bool SetDefault(MARTe::uint64 dflt) {
+
+        MARTe::uint32 nOfSignals = GetNumberOfOutputSignals();
+        MARTe::uint32 signalIndex = 0u;
+
+        for (signalIndex = 0; signalIndex < nOfSignals; signalIndex++) {
+            MARTe::MemoryOperationsHelper::Copy(GetOutputSignalMemory(signalIndex), &dflt, sizeof(MARTe::uint64));
+        }
+
+        return true;
+
+    }
 
 };
 
@@ -458,7 +495,31 @@ bool SDNPublisherTest::TestInitialise_False_Address_5() {
     bool ok = test.Initialise(cdb);
     return !ok; // Expect failure
 }
+#ifdef FEATURE_10840
+bool SDNPublisherTest::TestInitialise_SourcePort() {
+    using namespace MARTe;
+    SDNPublisher test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Topic", "Default");
+    cdb.Write("Interface", "lo");
+    cdb.Write("Address", "239.0.0.1:60000");
+    cdb.Write("SourcePort", 1024);
+    bool ok = test.Initialise(cdb);
+    return ok;
+}
 
+bool SDNPublisherTest::TestInitialise_NetworkByteOrder() {
+    using namespace MARTe;
+    SDNPublisher test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Topic", "Default");
+    cdb.Write("Interface", "lo");
+    cdb.Write("Address", "239.0.0.1:60000");
+    cdb.Write("NetworkByteOrder", 1u);
+    bool ok = test.Initialise(cdb);
+    return ok;
+}
+#endif
 bool SDNPublisherTest::TestSetConfiguredDatabase() {
     return TestIntegratedInApplication(config_default);
 }
@@ -532,7 +593,181 @@ bool SDNPublisherTest::TestAllocateMemory_False() {
     bool ok = test.AllocateMemory();
     return !ok; // Expect failure
 }
+#ifdef FEATURE_10840
+bool SDNPublisherTest::TestAllocateMemory_SourcePort() {
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Timer = {"
+            "            Class = SDNPublisherTestConstantGAM"
+            "            OutputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint64"
+            "                    Trigger = 1"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNPub = {"
+            "            Class = SDNPublisher"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            SourcePort = 1024"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Timer}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
 
+    bool ok = ConfigureApplication(config);
+    return ok;
+}
+
+bool SDNPublisherTest::TestAllocateMemory_False_SourcePort() {
+
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Timer = {"
+            "            Class = SDNPublisherTestConstantGAM"
+            "            OutputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint64"
+            "                    Trigger = 1"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNPub = {"
+            "            Class = SDNPublisher"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            SourcePort = 1023"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Timer}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+    return !ok; // Expect failure
+}
+
+bool SDNPublisherTest::TestAllocateMemory_NetworkByteOrder() {
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Timer = {"
+            "            Class = SDNPublisherTestConstantGAM"
+            "            OutputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint64"
+            "                    Trigger = 1"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNPub = {"
+            "            Class = SDNPublisher"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            NetworkByteOrder = 1"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Timer}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+    return ok;
+}
+#endif
 bool SDNPublisherTest::TestGetNumberOfMemoryBuffers() {
     using namespace MARTe;
     SDNPublisher test;
@@ -1320,7 +1555,7 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_1() {
                 MARTe::uint64 counter = 0ul;
                 ok = (topic->GetAttribute(0u, &counter) == STATUS_SUCCESS);
                 log_info("Received counter '%lu'", counter);
-                ok = (counter == (MARTe::uint64) 10ul);
+		ok = (counter == (MARTe::uint64) 10ul);
             }
         }
     }
@@ -1504,10 +1739,9 @@ bool SDNPublisherTest::TestSynchronise_MCAST_Topic_2() {
                 MARTe::uint64 counter = 0ul;
                 ok = (topic->GetAttribute(0u, &counter) == STATUS_SUCCESS);
                 log_info("Received counter '%lu'", counter);
-                ok = (counter == (MARTe::uint64) 10ul);
                 MARTe::char8 byte = *((MARTe::char8 *) topic->GetTypeDefinition()->GetAttributeReference(2u));
                 log_info("Received byte '%hhu'", byte);
-                ok = (byte == (MARTe::char8) 24u);
+		ok = (byte == (MARTe::char8) 24u);
             }
         }
     }
@@ -1635,4 +1869,353 @@ bool SDNPublisherTest::TestSynchronise_UCAST_Topic_1() {
 
     return ok;
 }
+#ifdef FEATURE_10840
+bool SDNPublisherTest::TestSynchronise_NetworkByteOrder_Topic_1() {
+    using namespace MARTe;
+    
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Timer = {"
+            "            Class = SDNPublisherTestGAM"
+            "            OutputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint64"
+            "                    Trigger = 1"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNPub = {"
+            "            Class = SDNPublisher"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            NetworkByteOrder = 1"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Timer}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
 
+    bool ok = ConfigureApplication(config);
+
+    if (ok) {
+
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
+        ReferenceT<SDNPublisherTestGAM> timer = application->Find("Functions.Timer");
+
+        ok = ((publisher.IsValid()) && (timer.IsValid()));
+
+        if (ok) {
+            // Instantiate a sdn::Metadata structure to configure the topic
+            sdn::Metadata_t mdata; sdn::Topic_InitializeMetadata(mdata, "Default", 0);
+            // Instantiate SDN topic from metadata specification
+            sdn::Topic* topic = new sdn::Topic; topic->SetMetadata(mdata);
+            sdn::Subscriber* subscriber;
+
+            if (ok) {
+                ok = (topic->AddAttribute(0u, "Counter", "uint64") == STATUS_SUCCESS);
+            }
+            if (ok) {
+                ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
+            }
+            if (ok) {
+                topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+                ok = (topic->Configure() == STATUS_SUCCESS);
+            }
+            if (ok) {
+                ok = topic->IsInitialized();
+            }
+            // Create sdn::Subscriber
+            if (ok) {
+                subscriber = new sdn::Subscriber(*topic);
+            }
+            if (ok) {
+                ok = (subscriber->SetInterface((char*) "lo") == STATUS_SUCCESS);
+            }
+            if (ok) {
+                ok = (subscriber->Configure() == STATUS_SUCCESS);
+            }
+            // Call SDNPublisher::Synchronise
+            if (ok) {
+                ok = publisher->Synchronise();
+            }
+            // Test reception
+            if (ok) {
+                ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
+            }
+            // Set test value
+            if (ok) {
+                timer->SetCounter((MARTe::uint64) 10ul);
+            }
+            // Start Application
+            if (ok) {
+                log_info("Start application");
+                ok = StartApplication();
+            }
+            // Let the application run
+            if (ok) {
+                wait_for(500000000ul);
+            }
+            // Test reception
+            if (ok) {
+                ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
+            }
+            if (ok) {
+                MARTe::uint64 counter = 0ul;
+                ok = (topic->GetAttribute(0u, &counter) == STATUS_SUCCESS);
+                log_info("Received counter '%lu'", counter);
+		if (sdn::HelperTools::IsLittleEndian()) {
+		    ok = (counter == (MARTe::uint64) 720575940379279360ul);
+		} 
+		else {
+		    ok = (counter == (MARTe::uint64) 10ul);
+		}
+            }
+        }
+    }
+
+    if (ok) {
+        log_info("Stop application");
+        ok = StopApplication();
+    }
+
+    return ok;
+}
+
+bool SDNPublisherTest::TestSynchronise_NetworkByteOrder_Topic_2() {
+    using namespace MARTe;
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Timer = {"
+            "            Class = SDNPublisherTestGAM"
+            "            OutputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint64"
+            "                    Trigger = 1"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "        +Arrays = {"
+            "            Class = SDNPublisherTestConstantGAM"
+            "            OutputSignals = {"
+            "                ArrayInt32_1D = {"
+            "                    DataSource = SDNPub"
+            "                    Type = uint32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNPub = {"
+            "            Class = SDNPublisher"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            NetworkByteOrder = 1"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "                ArrayInt32_1D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayInt32_2D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "                ArrayFlt32_1D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayFlt32_2D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Arrays Timer}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+
+    if (ok) {
+
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
+        ReferenceT<SDNPublisherTestGAM> timer = application->Find("Functions.Timer");
+        ReferenceT<SDNPublisherTestConstantGAM> array = application->Find("Functions.Arrays");
+
+        ok = ((publisher.IsValid()) && (timer.IsValid()) && (array.IsValid()));
+
+        if (ok) {
+            // Instantiate a sdn::Metadata structure to configure the topic (name, version and size)
+            sdn::Metadata_t mdata; sdn::Topic_InitializeMetadata(mdata, "Default", 0u, 0u);
+            // Instantiate SDN topic from metadata specification
+            sdn::Topic* topic = new sdn::Topic; topic->SetMetadata(mdata);
+            sdn::Subscriber* subscriber;
+
+            if (ok) {
+                ok = (topic->AddAttribute(0u, "Counter", "uint64") == STATUS_SUCCESS);
+            }
+            if (ok) {
+                ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
+            }
+            if (ok) {
+                ok = (topic->AddAttribute(2u, "ArrayInt32_1D", "uint32", 10) == STATUS_SUCCESS);
+            }
+            if (ok) {
+                ok = (topic->AddAttribute(3u, "Reserved", "uint8", 104) == STATUS_SUCCESS);
+            }
+            if (ok) {
+                topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+                ok = (topic->Configure() == STATUS_SUCCESS);
+            }
+            if (ok) {
+                ok = topic->IsInitialized();
+            }
+            // Create sdn::Subscriber
+            if (ok) {
+                subscriber = new sdn::Subscriber(*topic);
+            }
+            if (ok) {
+                ok = (subscriber->SetInterface((char*) "lo") == STATUS_SUCCESS);
+            }
+            if (ok) {
+                ok = (subscriber->Configure() == STATUS_SUCCESS);
+            }
+            // Call SDNPublisher::Synchronise
+            if (ok) {
+                ok = publisher->Synchronise();
+            }
+            // Test reception
+            if (ok) {
+                ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
+            }
+            // Set test value
+            if (ok) {
+                timer->SetCounter((MARTe::uint64) 10ul);
+                array->SetDefault((MARTe::uint32) 24u);
+            }
+            // Start Application
+            if (ok) {
+                log_info("Start application");
+                ok = StartApplication();
+            }
+            // Let the application run
+            if (ok) {
+                wait_for(500000000ul);
+            }
+            // Test reception
+            if (ok) {
+                ok = (subscriber->Receive(0ul) == STATUS_SUCCESS);
+            }
+            if (ok) {
+                MARTe::uint64 counter = 0ul;
+                ok = (topic->GetAttribute(0u, &counter) == STATUS_SUCCESS);
+                log_info("Received counter '%lu'", counter);
+		if (sdn::HelperTools::IsLittleEndian()) {
+		    ok = (counter == (MARTe::uint64) 720575940379279360ul);
+		} 
+		else {
+		    ok = (counter == (MARTe::uint64) 10ul);
+		}
+                MARTe::uint32 element = *((MARTe::uint32 *) topic->GetTypeDefinition()->GetAttributeReference(2u));
+                log_info("Received element '%u'", element);
+		if (sdn::HelperTools::IsLittleEndian()) {
+		    ok = (element == (MARTe::uint32) 402653184u);
+		} 
+		else {
+		    ok = (element == (MARTe::uint32) 24u);
+		}
+            }
+        }
+    }
+
+    if (ok) {
+        log_info("Stop application");
+        ok = StopApplication();
+    }
+
+    return ok;
+}
+#endif

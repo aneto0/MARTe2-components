@@ -123,7 +123,17 @@ TEST(SDNPublisherGTest, TestInitialise_False_Address_5) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestInitialise_False_Address_5());
 }
+#ifdef FEATURE_10840
+TEST(SDNPublisherGTest, TestInitialise_SourcePort) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestInitialise_SourcePort());
+}
 
+TEST(SDNPublisherGTest, TestInitialise_NetworkByteOrder) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestInitialise_NetworkByteOrder());
+}
+#endif
 TEST(SDNPublisherGTest, TestSetConfiguredDatabase) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
@@ -143,7 +153,22 @@ TEST(SDNPublisherGTest,TestAllocateMemory_False) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestAllocateMemory_False());
 }
+#ifdef FEATURE_10840
+TEST(SDNPublisherGTest,TestAllocateMemory_SourcePort) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestAllocateMemory_SourcePort());
+}
 
+TEST(SDNPublisherGTest,TestAllocateMemory_False_SourcePort) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestAllocateMemory_False());
+}
+
+TEST(SDNPublisherGTest,TestAllocateMemory_NetworkByteOrder) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestAllocateMemory_NetworkByteOrder());
+}
+#endif
 TEST(SDNPublisherGTest,TestGetNumberOfMemoryBuffers) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
@@ -243,7 +268,17 @@ TEST(SDNPublisherGTest, TestSynchronise_UCAST_Topic_1) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestSynchronise_UCAST_Topic_1());
 }
+#ifdef FEATURE_10840
+TEST(SDNPublisherGTest, TestSynchronise_NetworkByteOrder_Topic_1) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestSynchronise_NetworkByteOrder_Topic_1());
+}
 
+TEST(SDNPublisherGTest, TestSynchronise_NetworkByteOrder_Topic_2) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestSynchronise_NetworkByteOrder_Topic_2());
+}
+#endif
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

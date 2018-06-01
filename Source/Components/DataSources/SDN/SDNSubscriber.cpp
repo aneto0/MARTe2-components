@@ -26,6 +26,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include <new> //For the std::nothrow.
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -33,6 +34,9 @@
 
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
+#ifdef FEATURE_10840
+#include "Endianity.h"
+#endif
 #include "MemoryMapInputBroker.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "SDNSubscriber.h"
@@ -63,7 +67,9 @@ SDNSubscriber::SDNSubscriber() :
     if (!synchronisingSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem");
     }
-
+    payloadNumberOfBits = NULL_PTR(uint16 *);
+    payloadNumberOfElements = NULL_PTR(uint32 *);
+    payloadAddresses = NULL_PTR(void **);
 }
 
 /*lint -e{1551} the destructor must guarantee that the SDNSubscriber SingleThreadService is stopped and that all the SDN objects are destroyed.*/
@@ -87,6 +93,17 @@ SDNSubscriber::~SDNSubscriber() {
         topic = NULL_PTR(sdn::Topic *);
     }
 
+    if (payloadNumberOfBits != NULL_PTR(uint16 *)) {
+        delete [] payloadNumberOfBits;
+    }
+
+    if (payloadNumberOfElements != NULL_PTR(uint32 *)) {
+        delete [] payloadNumberOfElements;
+    }
+
+    if (payloadAddresses != NULL_PTR(void **)) {
+        delete [] payloadAddresses;
+    }
 }
 
 bool SDNSubscriber::Initialise(StructuredDataI &data) {
@@ -101,8 +118,11 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     else {
         REPORT_ERROR(ErrorManagement::Information, "Interface is '%s'", ifaceName.Buffer());
     }
-
+#ifdef FEATURE_10840
+    if (!sdn::HelperTools::IsInterfaceValid(ifaceName.Buffer())) {
+#else
     if (!net_is_interface_valid(ifaceName.Buffer())) {
+#endif
         REPORT_ERROR(ErrorManagement::ParametersError, "Interface must be a valid identifier");
         ok = false;
     }
@@ -122,15 +142,17 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     // The topic name is used to generate UDP/IPv4 multicast mapping. Optionally, the mapping
     // to a destination '<address>:<port>' can be explicitly defined
     if (data.Read("Address", destAddr)) {
-
+#ifdef FEATURE_10840
+        if (!sdn::HelperTools::IsAddressValid(destAddr.Buffer())) {
+#else
         if (!sdn_is_address_valid(destAddr.Buffer())) {
+#endif
             REPORT_ERROR(ErrorManagement::ParametersError, "Address must be a valid identifier, i.e. '<IP_addr>:<port>'");
             ok = false;
         }
         else {
             REPORT_ERROR(ErrorManagement::Information, "Valid destination address '%s'", destAddr.Buffer());
         }
-
     }
 
     // Timeout parameter
@@ -194,6 +216,10 @@ bool SDNSubscriber::AllocateMemory() {
     bool ok = true;
     uint32 signalIndex;
 
+    payloadNumberOfBits = new uint16[nOfSignals];
+    payloadNumberOfElements = new uint32[nOfSignals];
+    payloadAddresses = new void *[nOfSignals];
+
     // Create one topic attribute for each signal
     for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
 
@@ -219,6 +245,12 @@ bool SDNSubscriber::AllocateMemory() {
             signalNOfElements *= signalNOfDimensions;
         }
 
+        //lint -e{613} payloadNumberOfBits and payloadNumberOfElements cannot be NULL otherwise ok would be false
+        if (ok) {
+            payloadNumberOfBits[signalIndex] = signalType.numberOfBits;
+            payloadNumberOfElements[signalIndex] = signalNOfElements;
+        }
+
         if (ok) {
             ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
         }
@@ -236,7 +268,9 @@ bool SDNSubscriber::AllocateMemory() {
 
     // Create sdn::Subscriber
     if (ok) {
-        subscriber = new sdn::Subscriber(*topic);
+        subscriber = new (std::nothrow) sdn::Subscriber(*topic);
+        //lint -e{948} std::nothrow => subscriber may be NULL
+        ok = (NULL_PTR(sdn::Subscriber *)!= subscriber);
     }
 
     if (ok) {
@@ -247,6 +281,16 @@ bool SDNSubscriber::AllocateMemory() {
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (subscriber->Configure() == STATUS_SUCCESS);
+    }
+
+    if (ok) {
+        for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
+            void *signalAddress;
+            ok = GetSignalMemoryBuffer(signalIndex, 0u, signalAddress);
+            if (ok) {
+                payloadAddresses[signalIndex] = signalAddress;
+            }
+        }
     }
 
     if (!ok) {
@@ -469,18 +513,46 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
         ok = (subscriber->Receive(100000000ul) == STATUS_SUCCESS);
 
         if (!ok) {
-	    //REPORT_ERROR(ErrorManagement::Timeout, "sdn::Subscriber failed to receive topic");
+            //REPORT_ERROR(ErrorManagement::Timeout, "sdn::Subscriber failed to receive topic");
             err.SetError(ErrorManagement::Timeout);
         }
+#ifdef FEATURE_10840
+        else {
+            if (!subscriber->IsPayloadOrdered()) {
+                // Convert payload from network byte order
+                uint32 signalIndex;
+                for (signalIndex = 0u; (signalIndex < nOfSignals); signalIndex++) {
+                    if (payloadNumberOfBits[signalIndex] == 16u) {
+                        uint32 elementIndex;
+                        for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
+                            Endianity::FromBigEndian(reinterpret_cast<uint16 *>(payloadAddresses[signalIndex])[elementIndex]);
+                        }
+                    }
+                    if (payloadNumberOfBits[signalIndex] == 32u) {
+                        uint32 elementIndex;
+                        for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
+                            Endianity::FromBigEndian(reinterpret_cast<uint32 *>(payloadAddresses[signalIndex])[elementIndex]);
+                        }
+                    }
+                    if (payloadNumberOfBits[signalIndex] == 64u) {
+                        uint32 elementIndex;
+                        for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
+                            Endianity::FromBigEndian(reinterpret_cast<uint64 *>(payloadAddresses[signalIndex])[elementIndex]);
+                        }
+                    }
+                }
+            }
+        }
+#endif
     }
 
     if (ok) {
         ok = synchronisingSem.Post();
 
-	if (!ok) {
-	    REPORT_ERROR(ErrorManagement::FatalError, "EventSem::Post failed");
-	    err.SetError(ErrorManagement::FatalError);
-	}
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::FatalError, "EventSem::Post failed");
+            err.SetError(ErrorManagement::FatalError);
+        }
     }
 
     if (err.Contains(ErrorManagement::Timeout)) {
@@ -490,7 +562,9 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
 
     return err;
 }
-
+#ifdef FEATURE_10840
+CLASS_REGISTER(SDNSubscriber, "1.2")
+#else
 CLASS_REGISTER(SDNSubscriber, "1.0.11")
-
+#endif
 } /* namespace MARTe */
