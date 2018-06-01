@@ -64,7 +64,7 @@ SDNSubscriber::SDNSubscriber() :
     if (!synchronisingSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem");
     }
-    payloadNumberOfBits = NULL_PTR(uint16);
+    payloadNumberOfBits = NULL_PTR(uint16 *);
     payloadNumberOfElements = NULL_PTR(uint32 *);
     payloadAddresses = NULL_PTR(void **);
 }
@@ -242,6 +242,7 @@ bool SDNSubscriber::AllocateMemory() {
             signalNOfElements *= signalNOfDimensions;
         }
 
+        //lint -e{613} payloadNumberOfBits and payloadNumberOfElements cannot be NULL otherwise ok would be false
         if (ok) {
             payloadNumberOfBits[signalIndex] = signalType.numberOfBits;
             payloadNumberOfElements[signalIndex] = signalNOfElements;
@@ -265,6 +266,7 @@ bool SDNSubscriber::AllocateMemory() {
     // Create sdn::Subscriber
     if (ok) {
         subscriber = new (std::nothrow) sdn::Subscriber(*topic);
+        //lint -e{948} std::nothrow => subscriber may be NULL
         ok = (NULL_PTR(sdn::Subscriber *)!= subscriber);
     }
 

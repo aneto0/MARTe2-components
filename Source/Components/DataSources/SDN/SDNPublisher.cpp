@@ -63,7 +63,7 @@ SDNPublisher::SDNPublisher() :
     networkByteOrder = false; // Assume host native byte order used for SDN payload
     topic = NULL_PTR(sdn::Topic *);
     publisher = NULL_PTR(sdn::Publisher *);
-    payloadNumberOfBits = NULL_PTR(uint16);
+    payloadNumberOfBits = NULL_PTR(uint16 *);
     payloadNumberOfElements = NULL_PTR(uint32 *);
     payloadAddresses = NULL_PTR(void **);
 }
@@ -238,6 +238,7 @@ bool SDNPublisher::AllocateMemory() {
             signalNOfElements *= signalNOfDimensions;
         }
 
+        //lint -e{613} payloadNumberOfBits and payloadNumberOfElements cannot be NULL otherwise ok would be false
         if (ok) {
             payloadNumberOfBits[signalIndex] = signalType.numberOfBits;
             payloadNumberOfElements[signalIndex] = signalNOfElements;
@@ -260,6 +261,7 @@ bool SDNPublisher::AllocateMemory() {
     // Create sdn::Publisher
     if (ok) {
         publisher = new (std::nothrow) sdn::Publisher(*topic);
+        //lint -e{948} std::nothrow => publisher may be NULL
         ok = (NULL_PTR(sdn::Publisher *)!= publisher);
     }
 
@@ -483,27 +485,29 @@ bool SDNPublisher::Synchronise() {
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "sdn::Publisher has not been initialised");
     }
-    if (ok)
-    if (networkByteOrder) {
-        // Convert payload to network byte order
-        uint32 signalIndex;
-        for (signalIndex = 0u; (signalIndex < nOfSignals); signalIndex++) {
-            if (payloadNumberOfBits[signalIndex] == 16u) {
-                uint32 elementIndex;
-                for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
-                    Endianity::ToBigEndian(*reinterpret_cast<uint16 *>(payloadAddresses[signalIndex]));
+    if (ok) {
+        if (networkByteOrder) {
+            // Convert payload to network byte order
+            uint32 signalIndex;
+            //lint -e{613} payloadNumberOfElements, payloadAddresses and payloadNumberOfBits should not be NULL as otherwise Synchronise would not be called
+            for (signalIndex = 0u; (signalIndex < nOfSignals); signalIndex++) {
+                if (payloadNumberOfBits[signalIndex] == 16u) {
+                    uint32 elementIndex;
+                    for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
+                        Endianity::ToBigEndian(*reinterpret_cast<uint16 *>(payloadAddresses[signalIndex]));
+                    }
                 }
-            }
-            if (payloadNumberOfBits[signalIndex] == 32u) {
-                uint32 elementIndex;
-                for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
-                    Endianity::ToBigEndian(*reinterpret_cast<uint32 *>(payloadAddresses[signalIndex]));
+                if (payloadNumberOfBits[signalIndex] == 32u) {
+                    uint32 elementIndex;
+                    for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
+                        Endianity::ToBigEndian(*reinterpret_cast<uint32 *>(payloadAddresses[signalIndex]));
+                    }
                 }
-            }
-            if (payloadNumberOfBits[signalIndex] == 64u) {
-                uint32 elementIndex;
-                for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
-                    Endianity::ToBigEndian(*reinterpret_cast<uint64 *>(payloadAddresses[signalIndex]));
+                if (payloadNumberOfBits[signalIndex] == 64u) {
+                    uint32 elementIndex;
+                    for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
+                        Endianity::ToBigEndian(*reinterpret_cast<uint64 *>(payloadAddresses[signalIndex]));
+                    }
                 }
             }
         }
