@@ -2025,95 +2025,106 @@ bool SDNPublisherTest::TestSynchronise_NetworkByteOrder_Topic_2() {
     using namespace MARTe;
     //Standard configuration for testing
     const MARTe::char8 * const config = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +Timer = {"
-            "            Class = SDNPublisherTestGAM"
-            "            OutputSignals = {"
-            "                Counter = {"
-            "                    DataSource = SDNPub"
-            "                    Type = uint64"
-            "                    Trigger = 1"
-            "                }"
-            "                Timestamp = {"
-            "                    DataSource = SDNPub"
-            "                    Type = uint64"
-            "                }"
-            "            }"
-            "        }"
-            "        +Arrays = {"
-            "            Class = SDNPublisherTestConstantGAM"
-            "            OutputSignals = {"
-            "                ArrayInt32_1D = {"
-            "                    DataSource = SDNPub"
-            "                    Type = uint32"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB1"
-            "        +SDNPub = {"
-            "            Class = SDNPublisher"
-            "            Topic = Default"
-            "            Interface = lo"
-            "            NetworkByteOrder = 1"
-            "            Signals = {"
-            "                Counter = {"
-            "                    Type = uint64"
-            "                }"
-            "                Timestamp = {"
-            "                    Type = uint64"
-            "                }"
-            "                ArrayInt32_1D = {"
-            "                    Type = uint32"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "                }"
-            "                ArrayInt32_2D = {"
-            "                    Type = uint32"
-            "                    NumberOfElements = 4"
-            "                    NumberOfDimensions = 2"
-            "                }"
-            "                ArrayFlt32_1D = {"
-            "                    Type = float32"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "                }"
-            "                ArrayFlt32_2D = {"
-            "                    Type = float32"
-            "                    NumberOfElements = 4"
-            "                    NumberOfDimensions = 2"
-            "                }"
-            "            }"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +Running = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Arrays Timer}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Timer = {"
+        "            Class = SDNPublisherTestGAM"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                    Trigger = 1"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +Arrays = {"
+        "            Class = SDNPublisherTestConstantGAM"
+        "            OutputSignals = {"
+        "                ArrayInt32_1D = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint32"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Arrays16 = {"
+        "            Class = SDNPublisherTestConstantGAM"
+        "            OutputSignals = {"
+        "                ArrayInt16_1D = {"
+        "                    DataSource = SDNPub"
+        "                    Type = uint16"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNPub = {"
+        "            Class = SDNPublisher"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            NetworkByteOrder = 1"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    Type = uint64"
+        "                }"
+        "                ArrayInt32_1D = {"
+        "                    Type = uint32"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                ArrayInt16_1D = {"
+        "                    Type = uint16"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                ArrayInt32_2D = {"
+        "                    Type = uint32"
+        "                    NumberOfElements = 4"
+        "                    NumberOfDimensions = 2"
+        "                }"
+        "                ArrayFlt32_2D = {"
+        "                    Type = float32"
+        "                    NumberOfElements = 4"
+        "                    NumberOfDimensions = 2"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Arrays Arrays16 Timer}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
 
     bool ok = ConfigureApplication(config);
 
@@ -2124,8 +2135,9 @@ bool SDNPublisherTest::TestSynchronise_NetworkByteOrder_Topic_2() {
         ReferenceT<SDNPublisher> publisher = application->Find("Data.SDNPub");
         ReferenceT<SDNPublisherTestGAM> timer = application->Find("Functions.Timer");
         ReferenceT<SDNPublisherTestConstantGAM> array = application->Find("Functions.Arrays");
+        ReferenceT<SDNPublisherTestConstantGAM> array16 = application->Find("Functions.Arrays16");
 
-        ok = ((publisher.IsValid()) && (timer.IsValid()) && (array.IsValid()));
+        ok = ((publisher.IsValid()) && (timer.IsValid()) && (array.IsValid()) && (array16.IsValid()));
 
         if (ok) {
             // Instantiate a sdn::Metadata structure to configure the topic (name, version and size)
@@ -2144,7 +2156,10 @@ bool SDNPublisherTest::TestSynchronise_NetworkByteOrder_Topic_2() {
                 ok = (topic->AddAttribute(2u, "ArrayInt32_1D", "uint32", 10) == STATUS_SUCCESS);
             }
             if (ok) {
-                ok = (topic->AddAttribute(3u, "Reserved", "uint8", 104) == STATUS_SUCCESS);
+                ok = (topic->AddAttribute(3u, "ArrayInt16_1D", "uint16", 10) == STATUS_SUCCESS);
+            }
+            if (ok) {
+                ok = (topic->AddAttribute(4u, "Reserved", "uint8", 84) == STATUS_SUCCESS);
             }
             if (ok) {
                 topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
@@ -2175,6 +2190,7 @@ bool SDNPublisherTest::TestSynchronise_NetworkByteOrder_Topic_2() {
             if (ok) {
                 timer->SetCounter((MARTe::uint64) 10ul);
                 array->SetDefault((MARTe::uint32) 24u);
+                array16->SetDefault((MARTe::uint16) 24u);
             }
             // Start Application
             if (ok) {
@@ -2193,20 +2209,28 @@ bool SDNPublisherTest::TestSynchronise_NetworkByteOrder_Topic_2() {
                 MARTe::uint64 counter = 0ul;
                 ok = (topic->GetAttribute(0u, &counter) == STATUS_SUCCESS);
                 log_info("Received counter '%lu'", counter);
-		if (sdn::HelperTools::IsLittleEndian()) {
-		    ok = (counter == (MARTe::uint64) 720575940379279360ul);
-		} 
-		else {
-		    ok = (counter == (MARTe::uint64) 10ul);
-		}
+                if (sdn::HelperTools::IsLittleEndian()) {
+                    ok = (counter == (MARTe::uint64) 720575940379279360ul);
+                } 
+                else {
+                    ok = (counter == (MARTe::uint64) 10ul);
+                }
                 MARTe::uint32 element = *((MARTe::uint32 *) topic->GetTypeDefinition()->GetAttributeReference(2u));
                 log_info("Received element '%u'", element);
-		if (sdn::HelperTools::IsLittleEndian()) {
-		    ok = (element == (MARTe::uint32) 402653184u);
-		} 
-		else {
-		    ok = (element == (MARTe::uint32) 24u);
-		}
+                if (sdn::HelperTools::IsLittleEndian()) {
+                    ok = (element == (MARTe::uint32) 402653184u);
+                } 
+                else {
+                    ok = (element == (MARTe::uint32) 24u);
+                }
+                MARTe::uint16 element = *((MARTe::uint16 *) topic->GetTypeDefinition()->GetAttributeReference(3u));
+                log_info("Received element '%u'", element);
+                if (sdn::HelperTools::IsLittleEndian()) {
+                    ok = (element == (MARTe::uint16) 6144u);
+                } 
+                else {
+                    ok = (element == (MARTe::uint16) 24u);
+                }
             }
         }
     }
