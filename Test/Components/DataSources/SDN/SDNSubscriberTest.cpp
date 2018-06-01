@@ -2405,63 +2405,63 @@ bool SDNSubscriberTest::TestSynchronise_NetworkByteOrder_Topic_1() {
     using namespace MARTe;
     //Standard configuration for testing
     const MARTe::char8 * const config = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +Sink = {"
-            "            Class = SDNSubscriberTestGAM"
-            "            InputSignals = {"
-            "                Counter = {"
-            "                    DataSource = SDNSub"
-            "                    Type = uint64"
-            "                }"
-            "                Timestamp = {"
-            "                    DataSource = SDNSub"
-            "                    Type = uint64"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB1"
-            "        +SDNSub = {"
-            "            Class = SDNSubscriber"
-            "            Topic = Default"
-            "            Interface = lo"
-            "            Timeout = 1000"
-            "            Signals = {"
-            "                Counter = {"
-            "                    Type = uint64"
-            "                }"
-            "                Timestamp = {"
-            "                    Type = uint64"
-            "                }"
-            "            }"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +Running = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Sink}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Sink = {"
+        "            Class = SDNSubscriberTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNSub"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNSub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNSub = {"
+        "            Class = SDNSubscriber"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            Timeout = 1000"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Sink}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
 
     // Instantiate a sdn::Metadata structure to configure the topic
     sdn::Metadata_t mdata; sdn::Topic_InitializeMetadata(mdata, "Default", 0);
@@ -2517,22 +2517,22 @@ bool SDNSubscriberTest::TestSynchronise_NetworkByteOrder_Topic_1() {
         // Prepare data
         MARTe::uint64 counter = 10ul;
         MARTe::uint64 timestamp = get_time();
-	// Convert to network byte order, if required
+        // Convert to network byte order, if required
         if (ok) {
-	    if (sdn::HelperTools::IsLittleEndian()) {
-	        ok = (topic->SetAttribute(0u, sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint64_t>(static_cast<sdn::types::uint64_t>(counter))) == STATUS_SUCCESS);
-	    }
-	    else {
-	        ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
-	    }
+            if (sdn::HelperTools::IsLittleEndian()) {
+                ok = (topic->SetAttribute(0u, sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint64_t>(static_cast<sdn::types::uint64_t>(counter))) == STATUS_SUCCESS);
+            }
+            else {
+                ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
+            }
         }
         if (ok) {
-	    if (sdn::HelperTools::IsLittleEndian()) {
-	        ok = (topic->SetAttribute(1u, sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint64_t>(static_cast<sdn::types::uint64_t>(timestamp))) == STATUS_SUCCESS);
-	    }
-	    else {
-	        ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
-	    }
+            if (sdn::HelperTools::IsLittleEndian()) {
+                ok = (topic->SetAttribute(1u, sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint64_t>(static_cast<sdn::types::uint64_t>(timestamp))) == STATUS_SUCCESS);
+            }
+            else {
+                ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
+            }
         }
         // Send data
         if (ok) {
@@ -2544,7 +2544,7 @@ bool SDNSubscriberTest::TestSynchronise_NetworkByteOrder_Topic_1() {
         }
         // Test reception
         if (ok) {
-	    ok = sink.IsValid();
+            ok = sink.IsValid();
         }
         if (ok) {
             ok = sink->TestCounter(counter);
@@ -2565,95 +2565,106 @@ bool SDNSubscriberTest::TestSynchronise_NetworkByteOrder_Topic_2() {
     using namespace MARTe;
     //Standard configuration for testing
     const MARTe::char8 * const config = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +Sink = {"
-            "            Class = SDNSubscriberTestGAM"
-            "            InputSignals = {"
-            "                Counter = {"
-            "                    DataSource = SDNSub"
-            "                    Type = uint64"
-            "                    Frequency = 1."
-            "                }"
-            "                Timestamp = {"
-            "                    DataSource = SDNSub"
-            "                    Type = uint64"
-            "                }"
-            "            }"
-            "        }"
-            "        +DAC = {"
-            "            Class = SDNSubscriberTestSinkGAM"
-            "            InputSignals = {"
-            "                ArrayInt32_1D = {"
-            "                    DataSource = SDNSub"
-            "                    Type = uint32"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB1"
-            "        +SDNSub = {"
-            "            Class = SDNSubscriber"
-            "            Topic = Default"
-            "            Interface = lo"
-            "            Timeout = 1000"
-            "            Signals = {"
-            "                Counter = {"
-            "                    Type = uint64"
-            "                }"
-            "                Timestamp = {"
-            "                    Type = uint64"
-            "                }"
-            "                ArrayInt32_1D = {"
-            "                    Type = uint32"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "                }"
-            "                ArrayInt32_2D = {"
-            "                    Type = uint32"
-            "                    NumberOfElements = 4"
-            "                    NumberOfDimensions = 2"
-            "                }"
-            "                ArrayFlt32_1D = {"
-            "                    Type = float32"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "                }"
-            "                ArrayFlt32_2D = {"
-            "                    Type = float32"
-            "                    NumberOfElements = 4"
-            "                    NumberOfDimensions = 2"
-            "                }"
-            "            }"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +Running = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Sink DAC}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +Sink = {"
+        "            Class = SDNSubscriberTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = SDNSub"
+        "                    Type = uint64"
+        "                    Frequency = 1."
+        "                }"
+        "                Timestamp = {"
+        "                    DataSource = SDNSub"
+        "                    Type = uint64"
+        "                }"
+        "            }"
+        "        }"
+        "        +DAC = {"
+        "            Class = SDNSubscriberTestSinkGAM"
+        "            InputSignals = {"
+        "                ArrayInt32_1D = {"
+        "                    DataSource = SDNSub"
+        "                    Type = uint32"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +DAC16 = {"
+        "            Class = SDNSubscriberTestSinkGAM"
+        "            InputSignals = {"
+        "                ArrayInt16_1D = {"
+        "                    DataSource = SDNSub"
+        "                    Type = uint16"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +SDNSub = {"
+        "            Class = SDNSubscriber"
+        "            Topic = Default"
+        "            Interface = lo"
+        "            Timeout = 1000"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "                Timestamp = {"
+        "                    Type = uint64"
+        "                }"
+        "                ArrayInt32_1D = {"
+        "                    Type = uint32"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                ArrayInt16_1D = {"
+        "                    Type = uint16"
+        "                    NumberOfElements = 10"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                ArrayInt32_2D = {"
+        "                    Type = uint32"
+        "                    NumberOfElements = 4"
+        "                    NumberOfDimensions = 2"
+        "                }"
+        "                ArrayFlt32_2D = {"
+        "                    Type = float32"
+        "                    NumberOfElements = 4"
+        "                    NumberOfDimensions = 2"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +Running = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {Sink DAC DAC16}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
 
     // Instantiate a sdn::Metadata structure to configure the topic
     sdn::Metadata_t mdata; sdn::Topic_InitializeMetadata(mdata, "Default", 0);
@@ -2670,10 +2681,13 @@ bool SDNSubscriberTest::TestSynchronise_NetworkByteOrder_Topic_2() {
         ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
     }
     if (ok) {
-        ok = (topic->AddAttribute(2u, "Array", "uint32", 10) == STATUS_SUCCESS);
+        ok = (topic->AddAttribute(2u, "ArrayInt32_1D", "uint32", 10) == STATUS_SUCCESS);
     }
     if (ok) {
-        ok = (topic->AddAttribute(3u, "Reserved", "uint8", 104) == STATUS_SUCCESS);
+        ok = (topic->AddAttribute(3u, "ArrayInt16_1D", "uint16", 10) == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = (topic->AddAttribute(4u, "Reserved", "uint8", 64) == STATUS_SUCCESS);
     }
     if (ok) {
         topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
@@ -2711,37 +2725,48 @@ bool SDNSubscriberTest::TestSynchronise_NetworkByteOrder_Topic_2() {
         ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
         ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
         ReferenceT<SDNSubscriberTestSinkGAM> dac = application->Find("Functions.DAC");
+        ReferenceT<SDNSubscriberTestSinkGAM> dac16 = application->Find("Functions.DAC16");
         ok = subscriber.IsValid();
 
         // Prepare data
         MARTe::uint64 counter = 10ul;
         MARTe::uint64 timestamp = get_time();
-	MARTe::uint32 element = 101u;
-	// Convert to network byte order, if required
+        MARTe::uint32 element = 101u;
+        MARTe::uint16 element16 = 24u;
+        // Convert to network byte order, if required
         if (ok) {
-	    if (sdn::HelperTools::IsLittleEndian()) {
-	        ok = (topic->SetAttribute(0u, sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint64_t>(static_cast<sdn::types::uint64_t>(counter))) == STATUS_SUCCESS);
-	    }
-	    else {
-	        ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
-	    }
+            if (sdn::HelperTools::IsLittleEndian()) {
+                ok = (topic->SetAttribute(0u, sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint64_t>(static_cast<sdn::types::uint64_t>(counter))) == STATUS_SUCCESS);
+            }
+            else {
+                ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
+            }
         }
         if (ok) {
-	    if (sdn::HelperTools::IsLittleEndian()) {
-	        ok = (topic->SetAttribute(1u, sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint64_t>(static_cast<sdn::types::uint64_t>(timestamp))) == STATUS_SUCCESS);
-	    }
-	    else {
-	        ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
-	    }
+            if (sdn::HelperTools::IsLittleEndian()) {
+                ok = (topic->SetAttribute(1u, sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint64_t>(static_cast<sdn::types::uint64_t>(timestamp))) == STATUS_SUCCESS);
+            }
+            else {
+                ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
+            }
         }
         if (ok) {
-	    MARTe::uint32* ref = static_cast<MARTe::uint32*>(topic->GetTypeDefinition()->GetAttributeReference(2u));
-	    if (sdn::HelperTools::IsLittleEndian()) {
-	        *ref = sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint32_t>(static_cast<sdn::types::uint32_t>(element));
-	    }
-	    else {
-	        *ref = element;
-	    }
+            MARTe::uint32* ref = static_cast<MARTe::uint32*>(topic->GetTypeDefinition()->GetAttributeReference(2u));
+            if (sdn::HelperTools::IsLittleEndian()) {
+                *ref = sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint32_t>(static_cast<sdn::types::uint32_t>(element));
+            }
+            else {
+                *ref = element;
+            }
+        }
+        if (ok) {
+            MARTe::uint16* ref = static_cast<MARTe::uint16*>(topic->GetTypeDefinition()->GetAttributeReference(3u));
+            if (sdn::HelperTools::IsLittleEndian()) {
+                *ref = sdn::HelperTools::ToNetworkByteOrder<sdn::types::uint16_t>(static_cast<sdn::types::uint16_t>(element16));
+            }
+            else {
+                *ref = element16;
+            }
         }
         // Send data
         if (ok) {
@@ -2753,7 +2778,7 @@ bool SDNSubscriberTest::TestSynchronise_NetworkByteOrder_Topic_2() {
         }
         // Test reception
         if (ok) {
-	    ok = sink.IsValid();
+            ok = sink.IsValid();
         }
         if (ok) {
             ok = sink->TestCounter(counter);
@@ -2762,11 +2787,15 @@ bool SDNSubscriberTest::TestSynchronise_NetworkByteOrder_Topic_2() {
             ok = sink->TestTimestamp(timestamp);
         }
         if (ok) {
-	    ok = dac.IsValid();
+            ok = dac.IsValid();
         }
         if (ok) {
             ok = dac->TestSignal(0u, (MARTe::uint32) 101u);
         }
+        if (ok) {
+            ok = dac16->TestSignal(0u, (MARTe::uint16) 24u);
+        }
+
     } 
 
     if (ok) {

@@ -2159,7 +2159,7 @@ bool SDNPublisherTest::TestSynchronise_NetworkByteOrder_Topic_2() {
                 ok = (topic->AddAttribute(3u, "ArrayInt16_1D", "uint16", 10) == STATUS_SUCCESS);
             }
             if (ok) {
-                ok = (topic->AddAttribute(4u, "Reserved", "uint8", 84) == STATUS_SUCCESS);
+                ok = (topic->AddAttribute(4u, "Reserved", "uint8", 64) == STATUS_SUCCESS);
             }
             if (ok) {
                 topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
@@ -2223,13 +2223,13 @@ bool SDNPublisherTest::TestSynchronise_NetworkByteOrder_Topic_2() {
                 else {
                     ok = (element == (MARTe::uint32) 24u);
                 }
-                MARTe::uint16 element = *((MARTe::uint16 *) topic->GetTypeDefinition()->GetAttributeReference(3u));
-                log_info("Received element '%u'", element);
+                MARTe::uint16 element16 = *((MARTe::uint16 *) topic->GetTypeDefinition()->GetAttributeReference(3u));
+                log_info("Received element '%u'", element16);
                 if (sdn::HelperTools::IsLittleEndian()) {
-                    ok = (element == (MARTe::uint16) 6144u);
+                    ok = (element16 == (MARTe::uint16) 6144u);
                 } 
                 else {
-                    ok = (element == (MARTe::uint16) 24u);
+                    ok = (element16 == (MARTe::uint16) 24u);
                 }
             }
         }
