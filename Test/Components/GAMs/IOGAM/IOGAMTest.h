@@ -53,32 +53,17 @@ public:
     /**
      * @brief Tests the Setup method with a different number of inputs and output signals.
      */
-    bool TestSetup_False_LessInputs();
-
-    /**
-     * @brief Tests the Setup method with a different number of inputs and output signals.
-     */
-    bool TestSetup_False_LessOutputs();
+    bool TestSetup_LessInputs();
 
     /**
      * @brief Tests the Setup method with different signal types.
      */
-    bool TestSetup_False_DifferentType_Input();
-
-    /**
-     * @brief Tests the Setup method with different signal types.
-     */
-    bool TestSetup_False_DifferentType_Output();
+    bool TestSetup_DifferentType();
 
     /**
      * @brief Tests the Setup method with different signal sizes.
      */
-    bool TestSetup_False_DifferentSize_Input();
-
-    /**
-     * @brief Tests the Setup method with different signal sizes.
-     */
-    bool TestSetup_False_DifferentSize_Output();
+    bool TestSetup_False_DifferentSize();
 
     /**
      * @brief Tests the Execute method.

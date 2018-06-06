@@ -40,8 +40,7 @@
 namespace MARTe {
 /**
  * @brief GAM which copies its inputs to its outputs. Allows to plug different DataSources (e.g. driver with a DDB).
- * @details This GAM copies its inputs to its outputs. The number of inputs shall
- *  be exactly the number of the outputs and, for each signal, the types shall also be the same.
+ * @details This GAM copies its inputs to its outputs. The total input and output memory sizes shall be the same (but the types and number of signals may be different).
  *  Given that the DataSources cannot interchange data directly between them the main scope of the IOGAM is to
  *  serve as a (direct) connector between DataSources.
  *
@@ -52,11 +51,7 @@ namespace MARTe {
  *     InputSignals = {
  *         Signal1 = {
  *             DataSource = "Drv1"
- *             Type = uint32
- *         }
- *         Signal2 = {
- *             DataSource = "Drv2"
- *             Type = int32
+ *             Type = uint64
  *         }
  *     }
  *     OutputSignals = {
@@ -94,7 +89,6 @@ public:
      * @pre
      *   SetConfiguredDatabase() &&
      *   GetNumberOfInputSignals() == GetNumberOfOutputSignals() &&
-     *   for each signal i: GetSignalType(InputSignals, i) == GetSignalType(OutputSignals, i) &&
      *   for each signal i: GetSignalByteSize(InputSignals, i) * GetSignalNumberOfSamples(InputSignals, i) == GetSignalByteSize(OutputSignals, i) * GetSignalNumberOfSamples(OutputSignals, i)
      */
     virtual bool Setup();

@@ -48,34 +48,19 @@ TEST(IOGAMGTest,TestSetup) {
     ASSERT_TRUE(test.TestSetup());
 }
 
-TEST(IOGAMGTest,TestSetup_False_DifferentType_Input) {
+TEST(IOGAMGTest,TestSetup_LessInputs) {
     IOGAMTest test;
-    ASSERT_TRUE(test.TestSetup_False_DifferentType_Input());
+    ASSERT_TRUE(test.TestSetup_LessInputs());
 }
 
-TEST(IOGAMGTest,TestSetup_False_DifferentType_Output) {
+TEST(IOGAMGTest,TestSetup_DifferentType) {
     IOGAMTest test;
-    ASSERT_TRUE(test.TestSetup_False_DifferentType_Output());
+    ASSERT_TRUE(test.TestSetup_DifferentType());
 }
 
-TEST(IOGAMGTest,TestSetup_False_LessInputs) {
+TEST(IOGAMGTest,TestSetup_False_DifferentSize) {
     IOGAMTest test;
-    ASSERT_TRUE(test.TestSetup_False_LessInputs());
-}
-
-TEST(IOGAMGTest,TestSetup_False_LessOutputs) {
-    IOGAMTest test;
-    ASSERT_TRUE(test.TestSetup_False_LessOutputs());
-}
-
-TEST(IOGAMGTest,TestSetup_False_DifferentSize_Input) {
-    IOGAMTest test;
-    ASSERT_TRUE(test.TestSetup_False_DifferentSize_Input());
-}
-
-TEST(IOGAMGTest,TestSetup_False_DifferentSize_Output) {
-    IOGAMTest test;
-    ASSERT_TRUE(test.TestSetup_False_DifferentSize_Output());
+    ASSERT_TRUE(test.TestSetup_False_DifferentSize());
 }
 
 TEST(IOGAMGTest,TestExecute) {

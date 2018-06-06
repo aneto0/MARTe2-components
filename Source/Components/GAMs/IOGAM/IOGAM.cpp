@@ -49,48 +49,44 @@ IOGAM::~IOGAM() {
 }
 
 bool IOGAM::Setup() {
-    bool ret = (GetNumberOfInputSignals() == GetNumberOfOutputSignals());
-    if (!ret) {
-        REPORT_ERROR(ErrorManagement::InitialisationError, "GetNumberOfInputSignals() != GetNumberOfOutputSignals()");
-    }
+    bool ret = true;
     uint32 n;
-    totalSignalsByteSize = 0u;
+    uint32 inTotalSignalsByteSize = 0u;
     for (n = 0u; (n < GetNumberOfInputSignals()) && (ret); n++) {
         uint32 inByteSize = 0u;
         uint32 inSamples = 1u;
+        ret = GetSignalByteSize(InputSignals, n, inByteSize);
+        if (ret) {
+            ret = GetSignalNumberOfSamples(InputSignals, n, inSamples);
+        }
+        if (ret) {
+            inByteSize *= inSamples;
+            inTotalSignalsByteSize += inByteSize;
+        }
+    }
+    uint32 outTotalSignalsByteSize = 0u;
+    for (n = 0u; (n < GetNumberOfOutputSignals()) && (ret); n++) {
         uint32 outByteSize = 0u;
         uint32 outSamples = 1u;
-        uint32 idx = n;
-        ret = GetSignalByteSize(InputSignals, idx, inByteSize);
+        ret = GetSignalByteSize(OutputSignals, n, outByteSize);
         if (ret) {
-            ret = GetSignalByteSize(OutputSignals, idx, outByteSize);
+            ret = GetSignalNumberOfSamples(OutputSignals, n, outSamples);
         }
         if (ret) {
-            ret = GetSignalNumberOfSamples(InputSignals, idx, inSamples);
-        }
-        if (ret) {
-            ret = GetSignalNumberOfSamples(OutputSignals, idx, outSamples);
-            inByteSize *= inSamples;
             outByteSize *= outSamples;
+            outTotalSignalsByteSize += outByteSize;
         }
-        if (ret) {
-            ret = (inByteSize == outByteSize);
-            if (!ret) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalByteSize(InputSignals, %d) != GetSignalByteSize(OutputSignals, %d)", idx, idx);
-            }
+    }
+    if (ret) {
+        ret = (inTotalSignalsByteSize == outTotalSignalsByteSize);
+        if (!ret) {
+            REPORT_ERROR(ErrorManagement::InitialisationError,
+                         "GetSignalByteSize(InputSignals): %d != GetSignalByteSize(OutputSignals): %d",
+                         inTotalSignalsByteSize, outTotalSignalsByteSize);
         }
-        if (ret) {
-            totalSignalsByteSize += inByteSize;
-        }
-
-        TypeDescriptor inType = GetSignalType(InputSignals, idx);
-        TypeDescriptor outType = GetSignalType(OutputSignals, idx);
-        if (ret) {
-            ret = (inType == outType);
-            if (!ret) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalType(InputSignals, %d) != GetSignalType(OutputSignals, %d)", idx, idx);
-            }
-        }
+    }
+    if (ret) {
+        totalSignalsByteSize = outTotalSignalsByteSize;
     }
 
     return ret;
