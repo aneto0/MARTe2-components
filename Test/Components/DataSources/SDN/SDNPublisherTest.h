@@ -139,9 +139,20 @@ public:
     bool TestAllocateMemory();
 
     /**
+     * @brief Tests the AllocateMemory method with an header.
+     */
+    bool TestAllocateMemory_Header();
+
+    /**
      * @brief Tests the AllocateMemory method.
      */
     bool TestAllocateMemory_False();
+
+    /**
+     * @brief Tests the AllocateMemory method with a wrong header size.
+     */
+    bool TestAllocateMemory_False_Header_Size();
+
 #ifdef FEATURE_10840
     /**
      * @brief Tests the AllocateMemory method.
@@ -197,6 +208,11 @@ public:
      * @brief Tests the GetInputBrokers method.
      */
     bool TestGetInputBrokers();
+
+    /**
+     * @brief Tests the GetInputBrokers method with an header.
+     */
+    bool TestGetInputBrokers_Header();
 
     /**
      * @brief Tests the GetOutputBrokers method.
@@ -264,6 +280,11 @@ public:
     bool TestSynchronise_MCAST_Topic_1();
 
     /**
+     * @brief Tests the Synchronise method with an header.
+     */
+    bool TestSynchronise_MCAST_Topic_1_Header();
+
+    /**
      * @brief Tests the Synchronise method.
      */
     bool TestSynchronise_MCAST_Topic_2();
@@ -287,6 +308,12 @@ public:
      * @brief Tests the Synchronise method.
      */
     bool TestSynchronise_NetworkByteOrder_Topic_1();
+
+    /**
+     * @brief Tests the Synchronise method with the header.
+     */
+    bool TestSynchronise_NetworkByteOrder_Topic_1_Header();
+
 
     /**
      * @brief Tests the Synchronise method.

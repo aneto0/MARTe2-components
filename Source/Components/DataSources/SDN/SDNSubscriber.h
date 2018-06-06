@@ -67,6 +67,10 @@ namespace MARTe {
  *     Timeout = timeout_in_ms // Optional - Used for synchronising mode semaphore
  *     CPUs = cpumask // Optional - Explicit affinity for the thread
  *     Signals = {
+ *         Header = { //Optional. If present (i.e. if there is a signal named header) the received packet header will be copied into this field (note that it can be later decomposed by GAMs using Ranges). It shall be the first signal.
+ *             Type = uint8
+ *             NumberOfElements = 48 //Must match the SDN header size
+ *         }
  *         Counter = {
  *             Type = uint64
  *         }
@@ -317,6 +321,11 @@ private:
      * Accelerator for signal memory address (to be used when translating to different endianness)
      */
     void **payloadAddresses;
+
+    /**
+     * Read the SDN header as a signal?
+    */
+    bool sdnHeaderAsSignal;
 
 };
 

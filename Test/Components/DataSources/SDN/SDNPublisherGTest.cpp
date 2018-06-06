@@ -149,6 +149,16 @@ TEST(SDNPublisherGTest,TestAllocateMemory) {
     ASSERT_TRUE(test.TestAllocateMemory());
 }
 
+TEST(SDNPublisherGTest,TestAllocateMemory_Header) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestAllocateMemory_Header());
+}
+
+TEST(SDNPublisherGTest,TestAllocateMemory_False_Header_Size) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestAllocateMemory_False_Header_Size());
+}
+
 TEST(SDNPublisherGTest,TestAllocateMemory_False) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestAllocateMemory_False());
@@ -192,6 +202,11 @@ TEST(SDNPublisherGTest,TestGetBrokerName_OutputSignals) {
 TEST(SDNPublisherGTest, TestGetInputBrokers) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestGetInputBrokers());
+}
+
+TEST(SDNPublisherGTest, TestGetInputBrokers_Header) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers_Header());
 }
 
 TEST(SDNPublisherGTest, TestGetOutputBrokers) {
@@ -259,6 +274,11 @@ TEST(SDNPublisherGTest, TestSynchronise_MCAST_Topic_1) {
     ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_1());
 }
 
+TEST(SDNPublisherGTest, TestSynchronise_MCAST_Topic_1_Header) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_1_Header());
+}
+
 TEST(SDNPublisherGTest, TestSynchronise_MCAST_Topic_2) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_2());
@@ -272,6 +292,11 @@ TEST(SDNPublisherGTest, TestSynchronise_UCAST_Topic_1) {
 TEST(SDNPublisherGTest, TestSynchronise_NetworkByteOrder_Topic_1) {
     SDNPublisherTest test;
     ASSERT_TRUE(test.TestSynchronise_NetworkByteOrder_Topic_1());
+}
+
+TEST(SDNPublisherGTest, TestSynchronise_NetworkByteOrder_Topic_1_Header) {
+    SDNPublisherTest test;
+    ASSERT_TRUE(test.TestSynchronise_NetworkByteOrder_Topic_1_Header());
 }
 
 TEST(SDNPublisherGTest, TestSynchronise_NetworkByteOrder_Topic_2) {

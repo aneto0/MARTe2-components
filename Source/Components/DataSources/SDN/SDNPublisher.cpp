@@ -39,11 +39,31 @@
 #include "ErrorManagement.h"
 #include "GlobalObjectsDatabase.h"
 #include "GAM.h"
+#include "MemoryMapInputBroker.h"
 #include "MemoryMapOutputBroker.h"
 #include "MemoryMapSynchronisedOutputBroker.h"
 #include "SDNPublisher.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
+/*Cannot include "sdn-header.h" otherwise lint gets lost in secondary includes.*/
+#ifdef LINT
+namespace sdn {
+/*lint -e{970} -estring(754, "sdn::Header_t::*") -estring(770, "*sdn::Header_t*") -estring(9109, "*sdn::Header_t*")*/
+typedef struct {
+  char     header_uid [4];
+  /*lint -e{970}*/
+  char     header_version [4];
+  uint32_t header_size;
+  uint32_t topic_uid;
+  uint32_t topic_version;
+  uint32_t topic_size;
+  uint64_t topic_counter;
+  uint64_t send_time;
+  uint64_t recv_time;
+
+} Header_t;
+}
+#endif
 /*lint -estring(843,"*crc.h*") ignore could be declared const warning from the crc.h header*/
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -66,6 +86,7 @@ SDNPublisher::SDNPublisher() :
     payloadNumberOfBits = NULL_PTR(uint16 *);
     payloadNumberOfElements = NULL_PTR(uint32 *);
     payloadAddresses = NULL_PTR(void **);
+    sdnHeaderAsSignal = false;
 }
 
 /*lint -e{1551} the destructor must guarantee that all the SDN objects are destroyed.*/
@@ -182,7 +203,15 @@ bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Missing trigger signal");
         }
         else {
-            REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with multiple synchronising signals");
+            REPORT_ERROR(ErrorManagement::ParametersError,
+                         "DataSource not compatible with multiple synchronising signals");
+        }
+    }
+    if (ok) {
+        StreamString firstSignalName;
+        ok = GetSignalName(0u, firstSignalName);
+        if (ok) {
+            sdnHeaderAsSignal = (firstSignalName == "Header");
         }
     }
 
@@ -206,14 +235,16 @@ bool SDNPublisher::AllocateMemory() {
     topic->SetMetadata(mdata);
 
     bool ok = true;
-    uint32 signalIndex;
-
     payloadNumberOfBits = new uint16[nOfSignals];
     payloadNumberOfElements = new uint32[nOfSignals];
     payloadAddresses = new void *[nOfSignals];
 
+    uint32 signalIndex = 0u;
+    if (sdnHeaderAsSignal) {
+        signalIndex = 1u;
+    }
     // Create one topic attribute for each signal
-    for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
+    for (; (signalIndex < nOfSignals) && (ok); signalIndex++) {
 
         TypeDescriptor signalType = GetSignalType(signalIndex);
         StreamString signalTypeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType);
@@ -244,7 +275,14 @@ bool SDNPublisher::AllocateMemory() {
             payloadNumberOfElements[signalIndex] = signalNOfElements;
         }
         if (ok) {
-            ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
+            if (sdnHeaderAsSignal) {
+                ok = (topic->AddAttribute(signalIndex - 1u, signalName.Buffer(), signalTypeName.Buffer(),
+                                          signalNOfElements) == STATUS_SUCCESS);
+            }
+            else {
+                ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements)
+                        == STATUS_SUCCESS);
+            }
         }
 
     }
@@ -304,7 +342,22 @@ bool SDNPublisher::AllocateMemory() {
             }
         }
     }
-
+    if (ok) {
+        if (sdnHeaderAsSignal) {
+            /*lint -e{613} header cannot be NULL in this portion of the code as otherwise ok would be false.*/
+            sdn::Header_t * header = static_cast<sdn::Header_t *>(publisher->GetTopicHeader());
+            uint32 expectedSdnHeaderSize = header->header_size;
+            uint32 sdnHeaderSignalSize;
+            ok = GetSignalByteSize(0u, sdnHeaderSignalSize);
+            if (ok) {
+                ok = (expectedSdnHeaderSize == sdnHeaderSignalSize);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Incompatible header size. Expected %d and read %d",
+                                 expectedSdnHeaderSize, sdnHeaderSignalSize);
+                }
+            }
+        }
+    }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to instantiate sdn::Publisher");
     }
@@ -332,7 +385,18 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bu
 
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
-        signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
+        if (sdnHeaderAsSignal) {
+            if (signalIdx > 0u) {
+                signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx - 1u);
+            }
+            else {
+                signalAddress = publisher->GetTopicHeader();
+            }
+        }
+        else {
+            signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
+        }
+
     }
 
     return ok;
@@ -361,19 +425,44 @@ const char8* SDNPublisher::GetBrokerName(StructuredDataI& data, const SignalDire
 
     }
     else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
+        StreamString aliasName;
+        bool ok = data.Read("Alias", aliasName);
+        if (ok) {
+            ok = (aliasName == "Header");
+        }
+        if (ok) {
+            brokerName = "MemoryMapInputBroker";
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
+        }
     }
 
     return brokerName;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
-bool SDNPublisher::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    return false;
+bool SDNPublisher::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName,
+                                   void* const gamMemPtr) {
+    bool ok = false;
+    if (sdnHeaderAsSignal) {
+        ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
+        ok = broker.IsValid();
+
+        if (ok) {
+            ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
+        }
+
+        if (ok) {
+            ok = inputBrokers.Insert(broker);
+        }
+    }
+    return ok;
 }
 
 // The method is called for each GAM connected to the DataSource
-bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName,
+                                    void* const gamMemPtr) {
 
     uint32 functionIdx = 0u;
     uint32 nOfFunctionSignals = 0u; // Number of signals associated to the function
@@ -397,7 +486,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers, const cha
 
     // Test if there is a multi-sample signal for this function.
     for (signalIndex = 0u; (signalIndex < nOfFunctionSignals) && (ok); signalIndex++) {
-        // This version does not support multi-sample signals
+// This version does not support multi-sample signals
         uint32 samples = 0u;
         ok = GetFunctionSignalSamples(OutputSignals, functionIdx, signalIndex, samples);
 
@@ -488,9 +577,12 @@ bool SDNPublisher::Synchronise() {
     if (ok) {
         if (networkByteOrder) {
             // Convert payload to network byte order
-            uint32 signalIndex;
+            uint32 signalIndex = 0u;
+            if (sdnHeaderAsSignal) {
+                signalIndex = 1u;
+            }
             //lint -e{613} payloadNumberOfElements, payloadAddresses and payloadNumberOfBits should not be NULL as otherwise Synchronise would not be called
-            for (signalIndex = 0u; (signalIndex < nOfSignals); signalIndex++) {
+            for (; (signalIndex < nOfSignals); signalIndex++) {
                 if (payloadNumberOfBits[signalIndex] == 16u) {
                     uint32 elementIndex;
                     for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
@@ -524,7 +616,8 @@ bool SDNPublisher::Synchronise() {
     return ok;
 }
 #ifdef FEATURE_10840
-CLASS_REGISTER(SDNPublisher, "1.2") // Or above
+CLASS_REGISTER(SDNPublisher, "1.2")
+// Or above
 #else
 CLASS_REGISTER(SDNPublisher, "1.0.12")
 #endif

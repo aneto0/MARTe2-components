@@ -71,6 +71,10 @@ namespace MARTe {
  *     NetworkByteOrder = 1 // Optional - Enforce On-the-wire network byte ordering
  * \b endif
  *     Signals = {
+ *         Header = { //Optional. If present (i.e. if there is a signal named header) the sent packet header will be copied into this field (note that it can be later decomposed by GAMs using Ranges). It shall be the first signal.
+ *             Type = uint8
+ *             NumberOfElements = 48 //Must match the SDN header size
+ *         }
  *         Counter = {
  *             Type = uint64
  *         }
@@ -189,15 +193,15 @@ SDNPublisher    ();
      * @brief See DataSourceI::GetBrokerName.
      * @details The implementation is associated to MemoryMapOutputBroker or
      * MemoryMapSynchronisedOutputBroker depending on the signal properties.
-     * @return MemoryMapOutputBroker or MemoryMapSynchronisedOutputBroker.
+     * @return MemoryMapOutputBroker or MemoryMapSynchronisedOutputBroker for OutputSignals and MemoryMapInputBroker if the signal name is Header and the direction is InputSignals.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
-     * @details The implementation does not provide InputBrokers.
-     * @return false.
+     * @details Adds a MemoryMapInputBroker if the SDN Header is to be read, NOOP otherwise.
+     * @return true if the SDN Header is to be read, false otherwise.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
             const char8* const functionName,
@@ -294,6 +298,11 @@ private:
      * Accelerator for signal memory address (to be used when translating to different endianness)
      */
     void **payloadAddresses;
+
+    /**
+     * Read the SDN header as a signal?
+    */
+    bool sdnHeaderAsSignal;
 };
 
 }

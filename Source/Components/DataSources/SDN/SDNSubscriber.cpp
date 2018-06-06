@@ -42,6 +42,25 @@
 #include "SDNSubscriber.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
+/*Cannot include "sdn-header.h" otherwise lint gets lost in secondary includes.*/
+#ifdef LINT
+namespace sdn {
+/*lint -e{970} -estring(754, "sdn::Header_t::*") -estring(770, "*sdn::Header_t*") -estring(9109, "*sdn::Header_t*")*/
+typedef struct {
+  char     header_uid [4];
+  /*lint -e{970}*/
+  char     header_version [4];
+  uint32_t header_size;
+  uint32_t topic_uid;
+  uint32_t topic_version;
+  uint32_t topic_size;
+  uint64_t topic_counter;
+  uint64_t send_time;
+  uint64_t recv_time;
+
+} Header_t;
+}
+#endif
 /*lint -estring(843,"*crc.h*") ignore could be declared const warning from the crc.h header*/
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -60,6 +79,7 @@ SDNSubscriber::SDNSubscriber() :
     synchronising = false;
     cpuMask = 0u;
     TTTimeout = TTInfiniteWait;
+    sdnHeaderAsSignal = false;
 
     topic = NULL_PTR(sdn::Topic *);
     subscriber = NULL_PTR(sdn::Subscriber *);
@@ -94,15 +114,15 @@ SDNSubscriber::~SDNSubscriber() {
     }
 
     if (payloadNumberOfBits != NULL_PTR(uint16 *)) {
-        delete [] payloadNumberOfBits;
+        delete[] payloadNumberOfBits;
     }
 
     if (payloadNumberOfElements != NULL_PTR(uint32 *)) {
-        delete [] payloadNumberOfElements;
+        delete[] payloadNumberOfElements;
     }
 
     if (payloadAddresses != NULL_PTR(void **)) {
-        delete [] payloadAddresses;
+        delete[] payloadAddresses;
     }
 }
 
@@ -177,22 +197,30 @@ bool SDNSubscriber::SetConfiguredDatabase(StructuredDataI& data) {
 
     if (ok) {
         ok = (nOfSignals > 0u);
-    }
-
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "nOfSignals must be > 0u");
-    }
-    else {
-        REPORT_ERROR(ErrorManagement::Information, "Number of signals '%u'", nOfSignals);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "nOfSignals must be > 0u");
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::Information, "Number of signals '%u'", nOfSignals);
+        }
     }
 
     if (ok) {
         ok = (nOfTriggers <= 1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with multiple synchronising signals");
+        }
     }
 
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with multiple synchronising signals");
+    if (ok) {
+        StreamString firstSignalName;
+        ok = GetSignalName(0u, firstSignalName);
+        if (ok) {
+            sdnHeaderAsSignal = (firstSignalName == "Header");
+        }
     }
+
+    //Check if someone is trying to read
 
     return ok;
 }
@@ -214,11 +242,12 @@ bool SDNSubscriber::AllocateMemory() {
     topic->SetMetadata(mdata);
 
     bool ok = true;
-    uint32 signalIndex;
 
     payloadNumberOfBits = new uint16[nOfSignals];
     payloadNumberOfElements = new uint32[nOfSignals];
     payloadAddresses = new void *[nOfSignals];
+
+    uint32 signalIndex;
 
     // Create one topic attribute for each signal
     for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
@@ -252,9 +281,15 @@ bool SDNSubscriber::AllocateMemory() {
         }
 
         if (ok) {
-            ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
+            if (sdnHeaderAsSignal) {
+                if (signalIndex > 0u) {
+                    ok = (topic->AddAttribute(signalIndex - 1u, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
+                }
+            }
+            else {
+                ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
+            }
         }
-
     }
 
     if (ok) {
@@ -283,12 +318,38 @@ bool SDNSubscriber::AllocateMemory() {
         ok = (subscriber->Configure() == STATUS_SUCCESS);
     }
 
+    sdn::Header_t *header = NULL_PTR(sdn::Header_t *);
     if (ok) {
-        for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
-            void *signalAddress;
-            ok = GetSignalMemoryBuffer(signalIndex, 0u, signalAddress);
+        /*lint -e{613} subscriber cannot be NULL in this portion of the code as otherwise ok would be false.*/
+        header = static_cast<sdn::Header_t *>(subscriber->GetTopicHeader());
+        ok = (header != NULL_PTR(sdn::Header_t *));
+    }
+    if (ok) {
+        if (sdnHeaderAsSignal) {
+            /*lint -e{613} header cannot be NULL in this portion of the code as otherwise ok would be false.*/
+            uint32 expectedSdnHeaderSize = header->header_size;
+            uint32 sdnHeaderSignalSize;
+            ok = GetSignalByteSize(0u, sdnHeaderSignalSize);
             if (ok) {
-                payloadAddresses[signalIndex] = signalAddress;
+                ok = (expectedSdnHeaderSize == sdnHeaderSignalSize);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Incompatible header size. Expected %d and read %d", expectedSdnHeaderSize, sdnHeaderSignalSize);
+                }
+            }
+        }
+
+        /*lint -e{613} payloadAddresses cannot be NULL in this portion of the code as otherwise ok would be false.*/
+        for (signalIndex = 0u; (signalIndex < nOfSignals) && (ok); signalIndex++) {
+            if (sdnHeaderAsSignal) {
+                if (signalIndex > 0u) {
+                    payloadAddresses[signalIndex] = topic->GetTypeDefinition()->GetAttributeReference(signalIndex - 1u);
+                }
+                else {
+                    payloadAddresses[signalIndex] = subscriber->GetTopicHeader();
+                }
+            }
+            else {
+                payloadAddresses[signalIndex] = topic->GetTypeDefinition()->GetAttributeReference(signalIndex);
             }
         }
     }
@@ -320,7 +381,7 @@ bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 b
 
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
-        signalAddress = topic->GetTypeDefinition()->GetAttributeReference(signalIdx);
+        signalAddress = payloadAddresses[signalIdx];
     }
 
     return ok;
@@ -520,8 +581,19 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
         else {
             if (!subscriber->IsPayloadOrdered()) {
                 // Convert payload from network byte order
-                uint32 signalIndex;
-                for (signalIndex = 0u; (signalIndex < nOfSignals); signalIndex++) {
+                uint32 signalIndex = 0u;
+                if (sdnHeaderAsSignal) {
+                    sdn::Header_t *header = static_cast<sdn::Header_t *>(payloadAddresses[0u]);
+                    Endianity::FromBigEndian(header->header_size);
+                    Endianity::FromBigEndian(reinterpret_cast<uint64 &>(header->recv_time));
+                    Endianity::FromBigEndian(reinterpret_cast<uint64 &>(header->send_time));
+                    Endianity::FromBigEndian(reinterpret_cast<uint64 &>(header->topic_counter));
+                    Endianity::FromBigEndian(header->topic_size);
+                    Endianity::FromBigEndian(header->topic_uid);
+                    Endianity::FromBigEndian(header->topic_version);
+                    signalIndex = 1u;
+                }
+                for (; (signalIndex < nOfSignals); signalIndex++) {
                     if (payloadNumberOfBits[signalIndex] == 16u) {
                         uint32 elementIndex;
                         for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {

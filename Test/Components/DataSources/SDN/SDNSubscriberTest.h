@@ -149,6 +149,11 @@ public:
     bool TestSetConfiguredDatabase();
 
     /**
+     * @brief Tests the SetConfiguredDatabase method asking for the header.
+     */
+    bool TestSetConfiguredDatabase_Header();
+
+    /**
      * @brief Tests the SetConfiguredDatabase method without signals.
      */
     bool TestSetConfiguredDatabase_False_NOfSignals_1();
@@ -162,6 +167,11 @@ public:
      * @brief Tests the AllocateMemory method.
      */
     bool TestAllocateMemory_False();
+
+    /**
+     * @brief Tests the AllocateMemory method with a wrong header size.
+     */
+    bool TestAllocateMemory_False_Header_Size();
 
     /**
      * @brief Tests the GetNumberOfMemoryBuffers method.
@@ -229,6 +239,11 @@ public:
     bool TestSynchronise_MCAST_Topic_1();
 
     /**
+     * @brief Tests the Synchronise method with Header.
+     */
+    bool TestSynchronise_MCAST_Topic_1_Header();
+
+    /**
      * @brief Tests the Synchronise method.
      */
     bool TestSynchronise_MCAST_Topic_2();
@@ -277,6 +292,11 @@ public:
      * @brief Tests the Synchronise method.
      */
     bool TestSynchronise_NetworkByteOrder_Topic_2();
+
+    /**
+     * @brief Tests the Synchronise method with the header.
+     */
+    bool TestSynchronise_NetworkByteOrder_Topic_1_Header();
 #endif
     /**
      * @brief Tests the Execute method.

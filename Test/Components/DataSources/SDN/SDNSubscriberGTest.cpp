@@ -144,6 +144,11 @@ TEST(SDNSubscriberGTest, TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
+TEST(SDNSubscriberGTest, TestSetConfiguredDatabase_Header) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Header());
+}
+
 TEST(SDNSubscriberGTest, TestSetConfiguredDatabase_False_NOfSignals_1) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NOfSignals_1());
@@ -162,6 +167,11 @@ TEST(SDNSubscriberGTest,TestAllocateMemory) {
 TEST(SDNSubscriberGTest,TestAllocateMemory_False) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestAllocateMemory_False());
+}
+
+TEST(SDNSubscriberGTest,TestAllocateMemory_False_Header_Size) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestAllocateMemory_False_Header_Size());
 }
 
 TEST(SDNSubscriberGTest,TestGetNumberOfMemoryBuffers) {
@@ -224,6 +234,11 @@ TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_1) {
     ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_1());
 }
 
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_1_Header) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_1_Header());
+}
+
 TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_2) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_2());
@@ -272,6 +287,11 @@ TEST(SDNSubscriberGTest, TestSynchronise_NetworkByteOrder_Topic_1) {
 TEST(SDNSubscriberGTest, TestSynchronise_NetworkByteOrder_Topic_2) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise_NetworkByteOrder_Topic_2());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_NetworkByteOrder_Topic_1_Header) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_NetworkByteOrder_Topic_1_Header());
 }
 #endif
 TEST(SDNSubscriberGTest, TestExecute_False) {
