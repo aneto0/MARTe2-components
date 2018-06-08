@@ -1,7 +1,7 @@
 #!/bin/bash
 OUTPUT_DIR=Build
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_DIR/Build/linux/Core
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_DIR/Build/x86-linux/Core
 
 #Build with coverage enabled
 make -f Makefile.cov clean
