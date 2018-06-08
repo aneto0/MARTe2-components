@@ -40,6 +40,25 @@
 #include "SingleThreadService.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
+/*Cannot include "sdn-header.h" otherwise lint gets lost in secondary includes.*/
+#if defined(LINT) || !defined(FEATURE_10840)
+namespace sdn {
+/*lint -e{970} -estring(754, "sdn::Header_t::*") -estring(770, "*sdn::Header_t*") -estring(9109, "*sdn::Header_t*")*/
+typedef struct {
+  char     header_uid [4];
+  /*lint -e{970}*/
+  char     header_version [4];
+  uint32_t header_size;
+  uint32_t topic_uid;
+  uint32_t topic_version;
+  uint32_t topic_size;
+  uint64_t topic_counter;
+  uint64_t send_time;
+  uint64_t recv_time;
+
+} Header_t;
+}
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
