@@ -35,6 +35,7 @@ ifdef CODAC_ROOT
 SPB    += NI6259.x
 SPB    += NI6368.x
 SPB    += DAN.x
+PVDATA = $(EPICS_BASE)
 endif
 
 ifdef MDSPLUS_DIR
@@ -44,6 +45,10 @@ endif
 
 ifdef EPICS_BASE
 SPB   += EPICSCA.x
+endif
+
+ifdef PVDATA
+SPB   += EPICSPVA.x
 endif
 
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
@@ -78,6 +83,10 @@ endif
 
 ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSCA/EPICSCA$(LIBEXT)
+endif
+
+ifdef PVDATA
+LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVA$(LIBEXT)
 endif
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
