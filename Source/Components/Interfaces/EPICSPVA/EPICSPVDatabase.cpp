@@ -1,6 +1,6 @@
 /**
- * @file EPICSRPCServer.cpp
- * @brief Source file for class EPICSRPCServer
+ * @file EPICSPVDatabase.cpp
+ * @brief Source file for class EPICSPVDatabase
  * @date 12/06/2018
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSRPCServer (public, protected, and private). Be aware that some
+ * the class EPICSPVDatabase (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -26,6 +26,7 @@
 /*---------------------------------------------------------------------------*/
 #include "pv/channelProviderLocal.h"
 #include "pv/pvAccess.h"
+#include "pv/pvaConstants.h"
 #include "pv/pvData.h"
 #include "pv/pvDatabase.h"
 
@@ -34,8 +35,8 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
-#include "EPICSObjectRegistryDatabaseService.h"
-#include "EPICSRPCServer.h"
+#include "EPICSPVDatabase.h"
+#include "EPICSPVRecord.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
@@ -47,7 +48,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-EPICSRPCServer::EPICSRPCServer() :
+EPICSPVDatabase::EPICSPVDatabase() :
         ReferenceContainer(),
         MessageI(),
         executor(*this) {
@@ -62,11 +63,11 @@ EPICSRPCServer::EPICSRPCServer() :
     }
 }
 
-EPICSRPCServer::~EPICSRPCServer() {
+EPICSPVDatabase::~EPICSPVDatabase() {
 
 }
 
-void EPICSRPCServer::Purge(ReferenceContainer &purgeList) {
+void EPICSPVDatabase::Purge(ReferenceContainer &purgeList) {
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
@@ -75,7 +76,7 @@ void EPICSRPCServer::Purge(ReferenceContainer &purgeList) {
     ReferenceContainer::Purge(purgeList);
 }
 
-bool EPICSRPCServer::Initialise(StructuredDataI & data) {
+bool EPICSPVDatabase::Initialise(StructuredDataI & data) {
     bool ok = ReferenceContainer::Initialise(data);
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
@@ -95,38 +96,41 @@ bool EPICSRPCServer::Initialise(StructuredDataI & data) {
     return ok;
 }
 
-ErrorManagement::ErrorType EPICSRPCServer::Start() {
+ErrorManagement::ErrorType EPICSPVDatabase::Start() {
     ErrorManagement::ErrorType err = executor.Start();
     return err;
 }
 
-ErrorManagement::ErrorType EPICSRPCServer::Execute(ExecutionInfo& info) {
+ErrorManagement::ErrorType EPICSPVDatabase::Execute(ExecutionInfo& info) {
 
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() == ExecutionInfo::StartupStage) {
         uint32 i;
-        uint32 nOfServices = Size();
+        uint32 nOfRecords = Size();
         bool ok = true;
-        for (i = 0u; (i < nOfServices) && (ok); i++) {
+        epics::pvDatabase::PVDatabasePtr master = epics::pvDatabase::PVDatabase::getMaster();
+        epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();
+        for (i = 0u; (i < nOfRecords) && (ok); i++) {
             // register our service as "helloService"
-            ReferenceT<Object> service = Get(i);
-            if (service.IsValid()) {
-                const char8 * const serviceName = service->GetName();
-                epics::pvAccess::RPCService *rpcService =
-                        dynamic_cast<epics::pvAccess::RPCService *>(service.operator ->());
-                ok = (rpcService != NULL_PTR(epics::pvAccess::RPCService *));
+            ReferenceT<EPICSPVRecord> record = Get(i);
+            if (record.IsValid()) {
+                epics::pvDatabase::PVRecordPtr pvRecordPtr;
+                ok = record->CreatePVRecord(pvRecordPtr);
                 if (ok) {
-                    REPORT_ERROR(ErrorManagement::Information, "Registered service with name %s", serviceName);
-                    rpcServer.registerService(serviceName, epics::pvAccess::RPCService::shared_pointer(rpcService));
+                    master->addRecord(pvRecordPtr);
+                    REPORT_ERROR(ErrorManagement::Information, "Registered record with name %s", record->GetName());
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::FatalError, "Service %s is not an epics::pvAccess::RPCService", serviceName);
+                    REPORT_ERROR(ErrorManagement::FatalError, "Record %s failed to CreatePVRecord", record->GetName());
                 }
+            }
+            else {
+                ReferenceT<Object> recordObj = Get(i);
+                REPORT_ERROR(ErrorManagement::FatalError, "Record %s is not an EPICSPVRecord", recordObj->GetName());
             }
         }
         if (ok) {
-            rpcServer.printInfo();
-            rpcServer.run();
+            serverContext = epics::pvAccess::startPVAServer(epics::pvAccess::PVACCESS_ALL_PROVIDERS, 0, false, true);
         }
         err = !ok;
     }
@@ -134,13 +138,13 @@ ErrorManagement::ErrorType EPICSRPCServer::Execute(ExecutionInfo& info) {
         Sleep::Sec(1.0);
     }
     else {
-        rpcServer.destroy();
+        serverContext->destroy();
     }
 
     return err;
 }
 
-CLASS_REGISTER(EPICSRPCServer, "")
-CLASS_METHOD_REGISTER(EPICSRPCServer, Start)
+CLASS_REGISTER(EPICSPVDatabase, "")
+CLASS_METHOD_REGISTER(EPICSPVDatabase, Start)
 
 }

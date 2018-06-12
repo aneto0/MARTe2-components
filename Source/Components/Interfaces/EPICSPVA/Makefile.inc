@@ -23,6 +23,8 @@
 #############################################################
 
 OBJSX=EPICSObjectRegistryDatabaseService.x \
+    EPICSPVDatabase.x \
+    EPICSPVRecord.x \
     EPICSRPCServer.x
 
 
