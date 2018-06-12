@@ -22,9 +22,11 @@
 #
 #############################################################
 
-OBJSX=EPICSPVAInput.x EPICSPVAOutput.x
+OBJSX=EPICSObjectRegistryDatabaseService.x \
+    EPICSRPCServer.x
 
-PACKAGE=Components/DataSources
+
+PACKAGE=Components/Interfaces
 
 ROOT_DIR=../../../../
 
@@ -32,11 +34,12 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+
 ifdef CODAC_ROOT
+PVDATA = $(EPICS_BASE)
 PVACCESS = $(EPICS_BASE)
 PVACLIENT = $(EPICS_BASE)
 PVCOMMON = $(EPICS_BASE)
-PVDATA = $(EPICS_BASE)
 PVDATABASE = $(EPICS_BASE)
 endif
 
@@ -44,6 +47,7 @@ INCLUDES += -I.
 INCLUDES += -I$(PVDATA)/include/
 INCLUDES += -I$(PVACCESS)/include/
 INCLUDES += -I$(PVCOMMON)/include/
+INCLUDES += -I$(PVDATABASE)/include/
 INCLUDES += -I$(EPICS_BASE)/include/
 INCLUDES += -I$(EPICS_BASE)/include/os/Linux/
 INCLUDES += -I$(EPICS_BASE)/include/compiler/gcc/

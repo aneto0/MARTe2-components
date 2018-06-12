@@ -22,46 +22,5 @@
 #
 #############################################################
 
-SPB=SysLogger.x
-
-ifdef EFDA_MARTe_DIR
-SPB+=BaseLib2Wrapper.x
-endif
-
-ifdef EPICS_BASE
-SPB   += EPICS.x
-endif
-
-ifdef CODAC_ROOT
-PVDATA = $(EPICS_BASE)
-endif
-
-ifdef PVDATA
-SPB   += EPICSPVA.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-LIBRARIES_STATIC=$(BUILD_DIR)/SysLogger/SysLogger$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2Wrapper$(LIBEXT)
-endif
-ifdef EPICS_BASE
-LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICS$(LIBEXT)
-endif
-ifdef PVDATA
-LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVA$(LIBEXT)
-endif
-
-all: $(OBJS)  $(SUBPROJ)  \
-    $(BUILD_DIR)/Interfaces$(LIBEXT) \
-    $(BUILD_DIR)/Interfaces$(DLLEXT)
-	echo  $(OBJS)
-
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
+include Makefile.inc
 
