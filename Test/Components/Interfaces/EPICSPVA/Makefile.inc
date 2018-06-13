@@ -20,23 +20,17 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-OBJSX=EPICSObjectRegistryDatabaseService.x \
-    EPICSPVDatabase.x \
-    EPICSPVRecord.x \
-    EPICSPVStructureDataI.x \
-    EPICSRPCServer.x
-
-
+OBJSX +=  EPICSPVStructureDataITest.x
+		
 PACKAGE=Components/Interfaces
-
-ROOT_DIR=../../../../
-
+ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
 
 ifdef CODAC_ROOT
 PVDATA = $(EPICS_BASE)
@@ -46,7 +40,6 @@ PVCOMMON = $(EPICS_BASE)
 PVDATABASE = $(EPICS_BASE)
 endif
 
-INCLUDES += -I.
 INCLUDES += -I$(PVDATA)/include/
 INCLUDES += -I$(PVACCESS)/include/
 INCLUDES += -I$(PVCOMMON)/include/
@@ -58,19 +51,22 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Logger
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4LoggerService
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 
-LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVDATA)/lib/$(EPICS_HOST_ARCH)/ -L$(PVACCESS)/lib/$(EPICS_HOST_ARCH)/ -L$(PVACLIENT)/lib/$(EPICS_HOST_ARCH)/ -L$(PVDATABASE)/lib/$(EPICS_HOST_ARCH)/ -lpvaClient -lpvAccess -lpvData -lpvDatabase
+INCLUDES += -I../../../../Source/Components/Interfaces/EPICSPVA
 
-all: $(OBJS)    \
-    $(BUILD_DIR)/EPICSPVA$(LIBEXT) \
-    $(BUILD_DIR)/EPICSPVA$(DLLEXT)
+all: $(OBJS) \
+                $(BUILD_DIR)/EPICSPVATest$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

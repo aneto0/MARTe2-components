@@ -34,6 +34,14 @@ ifdef EPICS_BASE
 SPB   += EPICS.x
 endif
 
+ifdef CODAC_ROOT
+PVDATA = $(EPICS_BASE)
+endif
+
+ifdef PVDATA
+SPB   += EPICSPVA.x
+endif
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -46,6 +54,9 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2WrapperTest$(LIBEXT)
 endif
 ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICSTest$(LIBEXT)
+endif
+ifdef PVDATA
+LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVATest$(LIBEXT)
 endif
 
 all: $(OBJS) $(SUBPROJ) \
