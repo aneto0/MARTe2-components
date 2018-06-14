@@ -31,6 +31,7 @@
 #include "AdvancedErrorManagement.h"
 #include "EPICSPVStructureDataI.h"
 #include "Reference.h"
+#include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -42,7 +43,7 @@
 
 namespace MARTe {
 EPICSPVStructureDataI::EPICSPVStructureDataI() {
-
+    structureFinalised = true;
 }
 
 EPICSPVStructureDataI::~EPICSPVStructureDataI() {
@@ -50,14 +51,145 @@ EPICSPVStructureDataI::~EPICSPVStructureDataI() {
 }
 
 bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value) {
-    bool ok = true;
+    bool ok = structureFinalised;
+    bool isScalar = true;
+    epics::pvData::PVScalarPtr scalarFieldPtr;
+    epics::pvData::PVScalarArrayPtr scalarArrayPtr;
+    AnyType storedType = GetType(name);
+    if (ok) {
+        ok = (storedType.GetTypeDescriptor() != VoidType);
+    }
+    if (ok) {
+        scalarFieldPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
+        ok = (scalarFieldPtr);
+        if (!ok) {
+            isScalar = false;
+            scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
+            ok = (scalarArrayPtr);
+        }
+    }
+    if (ok) {
+        if (isScalar) {
+            if (storedType.GetTypeDescriptor() == UnsignedInteger8Bit) {
+                *reinterpret_cast<uint8 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint8>();
+            }
+            else if (storedType.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                *reinterpret_cast<uint16 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint16>();
+            }
+            else if (storedType.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                *reinterpret_cast<uint32 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint32>();
+            }
+            else if (storedType.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                *reinterpret_cast<uint64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<long unsigned int>();
+            }
+            else if (storedType.GetTypeDescriptor() == SignedInteger8Bit) {
+                *reinterpret_cast<int8 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<int8>();
+            }
+            else if (storedType.GetTypeDescriptor() == SignedInteger16Bit) {
+                *reinterpret_cast<int16 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<int16>();
+            }
+            else if (storedType.GetTypeDescriptor() == SignedInteger32Bit) {
+                *reinterpret_cast<int32 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<int32>();
+            }
+            else if (storedType.GetTypeDescriptor() == SignedInteger64Bit) {
+                *reinterpret_cast<int64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<long int>();
+            }
+            else if (storedType.GetTypeDescriptor() == Float32Bit) {
+                *reinterpret_cast<float32 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<float32>();
+            }
+            else if (storedType.GetTypeDescriptor() == Float64Bit) {
+                *reinterpret_cast<float64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<float64>();
+            }
+            else if (storedType.GetTypeDescriptor() == CharString) {
+                std::string src = scalarFieldPtr->getAs<std::string>();
+                if (value.GetTypeDescriptor().type == SString) {
+                    StreamString *dst = static_cast<StreamString *>(value.GetDataPointer());
+                    if (dst != NULL_PTR(StreamString *)) {
+                        *dst = src.c_str();
+                    }
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Only StreamStrings and supported for the deserialisation of strings");
+                }
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
+            }
+        }
+        else {
+            ok = (storedType.GetNumberOfElements(0u) == value.GetNumberOfElements(0u));
+            if (ok) {
+                const void *src = NULL_PTR(void *);
+                if (storedType.GetTypeDescriptor() == UnsignedInteger8Bit) {
+                    ok = ReadArray<uint8>(scalarArrayPtr, storedType, value);
+                }
+                else if (storedType.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                    ok = ReadArray<uint16>(scalarArrayPtr, storedType, value);
+                }
+                else if (storedType.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                    ok = ReadArray<uint32>(scalarArrayPtr, storedType, value);
+                }
+                else if (storedType.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                    ok = ReadArray<unsigned long int>(scalarArrayPtr, storedType, value);
+                }
+                else if (storedType.GetTypeDescriptor() == SignedInteger8Bit) {
+                    ok = ReadArray<int8>(scalarArrayPtr, storedType, value);
+                }
+                else if (storedType.GetTypeDescriptor() == SignedInteger16Bit) {
+                    ok = ReadArray<int16>(scalarArrayPtr, storedType, value);
+                }
+                else if (storedType.GetTypeDescriptor() == SignedInteger32Bit) {
+                    ok = ReadArray<int32>(scalarArrayPtr, storedType, value);
+                }
+                else if (storedType.GetTypeDescriptor() == SignedInteger64Bit) {
+                    ok = ReadArray<long int>(scalarArrayPtr, storedType, value);
+                }
+                else if (storedType.GetTypeDescriptor() == Float32Bit) {
+                    epics::pvData::shared_vector<const float32> out;
+                    scalarArrayPtr->getAs<float32>(out);
+                    src = reinterpret_cast<const void *>(out.data());
+                }
+                else if (storedType.GetTypeDescriptor() == Float64Bit) {
+                    epics::pvData::shared_vector<const float64> out;
+                    scalarArrayPtr->getAs<float64>(out);
+                    src = reinterpret_cast<const void *>(out.data());
+                }
+                else if (storedType.GetTypeDescriptor() == CharString) {
+                    epics::pvData::shared_vector<const std::string> srcStr;
+                    scalarArrayPtr->getAs<std::string>(srcStr);
+                    if (value.GetTypeDescriptor().type == SString) {
+                        uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+                        uint32 i;
+                        Vector<StreamString> dst(static_cast<StreamString *>(value.GetDataPointer()), numberOfElements);
+                        for (i = 0; i < numberOfElements; i++) {
+                            dst[i] = srcStr[i].c_str();
+                        }
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                                     "Only StreamStrings and supported for the deserialisation of strings");
+                    }
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
+                }
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u),
+                             value.GetNumberOfElements(0u));
+            }
+        }
+    }
     return ok;
 }
 
 AnyType EPICSPVStructureDataI::GetType(const char8 * const name) {
-    AnyType at;
+    AnyType at = voidAnyType;
     epics::pvData::PVFieldPtr fieldPtr = currentStructPtr->getSubField(name);
-    bool ok = (fieldPtr);
+    bool ok = structureFinalised;
+    if (ok) {
+        ok = (fieldPtr);
+    }
     if (ok) {
         epics::pvData::Type epicsType = fieldPtr->getField()->getType();
         epics::pvData::ScalarType epicsScalarType;
@@ -72,11 +204,12 @@ AnyType EPICSPVStructureDataI::GetType(const char8 * const name) {
             }
         }
         else if (epicsType == epics::pvData::scalarArray) {
-            epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
+            epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(
+                    currentStructPtr->getSubField(name));
             ok = (scalarArrayPtr);
             if (ok) {
                 epicsScalarType = scalarArrayPtr->getScalarArray()->getElementType();
-                numberOfElements = scalarArrayPtr->getLength();
+                numberOfElements = scalarArrayPtr->getScalarArray()->getMaximumCapacity();
             }
         }
         else {
@@ -135,7 +268,146 @@ AnyType EPICSPVStructureDataI::GetType(const char8 * const name) {
 }
 
 bool EPICSPVStructureDataI::Write(const char8 * const name, const AnyType &value) {
-    bool ok = true;
+    bool ok = structureFinalised;
+    bool isScalar = true;
+    epics::pvData::PVScalarPtr scalarFieldPtr;
+    epics::pvData::PVScalarArrayPtr scalarArrayPtr;
+    AnyType storedType = GetType(name);
+    if (ok) {
+        ok = (storedType.GetTypeDescriptor() != VoidType);
+        if (!ok) {
+            if (structureFinalised) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "The field does not exist and the structure has already been finalised...");
+            }
+            else {
+                //TODO
+            }
+        }
+    }
+    if (ok) {
+        scalarFieldPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
+        ok = (scalarFieldPtr);
+        if (!ok) {
+            isScalar = false;
+            scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
+            ok = (scalarArrayPtr);
+        }
+    }
+    if (ok) {
+        if (isScalar) {
+            if (storedType.GetTypeDescriptor() == UnsignedInteger8Bit) {
+                scalarFieldPtr->putFrom<uint8>(*reinterpret_cast<uint8 *>(value.GetDataPointer()));
+            }
+            else if (storedType.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                scalarFieldPtr->putFrom<uint16>(*reinterpret_cast<uint16 *>(value.GetDataPointer()));
+            }
+            else if (storedType.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                scalarFieldPtr->putFrom<uint32>(*reinterpret_cast<uint32 *>(value.GetDataPointer()));
+            }
+            else if (storedType.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                scalarFieldPtr->putFrom<unsigned long int>(*reinterpret_cast<uint64 *>(value.GetDataPointer()));
+            }
+            else if (storedType.GetTypeDescriptor() == SignedInteger8Bit) {
+                scalarFieldPtr->putFrom<int8>(*reinterpret_cast<int8 *>(value.GetDataPointer()));
+            }
+            else if (storedType.GetTypeDescriptor() == SignedInteger16Bit) {
+                scalarFieldPtr->putFrom<int16>(*reinterpret_cast<int16 *>(value.GetDataPointer()));
+            }
+            else if (storedType.GetTypeDescriptor() == SignedInteger32Bit) {
+                scalarFieldPtr->putFrom<int32>(*reinterpret_cast<int32 *>(value.GetDataPointer()));
+            }
+            else if (storedType.GetTypeDescriptor() == SignedInteger64Bit) {
+                scalarFieldPtr->putFrom<long int>(*reinterpret_cast<int64 *>(value.GetDataPointer()));
+            }
+            else if (storedType.GetTypeDescriptor() == Float32Bit) {
+                scalarFieldPtr->putFrom<float32>(*reinterpret_cast<float32 *>(value.GetDataPointer()));
+            }
+            else if (storedType.GetTypeDescriptor() == Float64Bit) {
+                scalarFieldPtr->putFrom<float64>(*reinterpret_cast<float64 *>(value.GetDataPointer()));
+            }
+            else if (storedType.GetTypeDescriptor() == CharString) {
+                if (value.GetTypeDescriptor().type == SString) {
+                    StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
+                    scalarFieldPtr->putFrom<std::string>(src->Buffer());
+                }
+                else if (value.GetTypeDescriptor() == CharString) {
+                    char8 *src = static_cast<char8 *>(value.GetDataPointer());
+                    scalarFieldPtr->putFrom<std::string>(std::string(src));
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Only StreamStrings and char8 * are supported for the serialisation of strings");
+                }
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
+            }
+        }
+        else {
+            ok = (storedType.GetNumberOfElements(0u) == value.GetNumberOfElements(0u));
+            uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+            uint32 size = numberOfElements * storedType.GetTypeDescriptor().numberOfBits / 8u;
+            if (ok) {
+                if (storedType.GetTypeDescriptor() == UnsignedInteger8Bit) {
+
+                }
+                else if (storedType.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                }
+                else if (storedType.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                }
+                else if (storedType.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                }
+                else if (storedType.GetTypeDescriptor() == SignedInteger8Bit) {
+                }
+                else if (storedType.GetTypeDescriptor() == SignedInteger16Bit) {
+                }
+                else if (storedType.GetTypeDescriptor() == SignedInteger32Bit) {
+                }
+                else if (storedType.GetTypeDescriptor() == SignedInteger64Bit) {
+                }
+                else if (storedType.GetTypeDescriptor() == Float32Bit) {
+                }
+                else if (storedType.GetTypeDescriptor() == Float64Bit) {
+                    epics::pvData::shared_vector<const float64> out;
+                    out.resize(storedType.GetNumberOfElements(0u));
+                    ok = MemoryOperationsHelper::Copy(const_cast<void *>(reinterpret_cast<const void *>(out.data())),
+                                                      value.GetDataPointer(), size);
+                    scalarArrayPtr->putFrom<float64>(out);
+                }
+                else if (storedType.GetTypeDescriptor() == CharString) {
+                    epics::pvData::shared_vector<const std::string> out;
+                    out.resize(storedType.GetNumberOfElements(0u));
+                    if (value.GetTypeDescriptor().type == SString) {
+                        StreamString **src = static_cast<StreamString **>(value.GetDataPointer());
+                        uint32 i;
+                        for (i = 0; i < numberOfElements; i++) {
+                            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i]->Buffer();
+                        }
+                        scalarArrayPtr->putFrom<std::string>(out);
+                    }
+                    else if (value.GetTypeDescriptor() == CharString) {
+                        const char8 **src = static_cast<const char8 **>(value.GetDataPointer());
+                        uint32 i;
+                        for (i = 0; i < numberOfElements; i++) {
+                            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i];
+                        }
+                        scalarArrayPtr->putFrom<std::string>(out);
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                                     "Only StreamStrings and char8 * are supported for the serialisation of strings");
+                    }
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
+                }
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u),
+                             value.GetNumberOfElements(0u));
+            }
+        }
+    }
     return ok;
 }
 
@@ -182,7 +454,7 @@ bool EPICSPVStructureDataI::MoveAbsolute(const char8 * const path) {
     bool ok = MoveToRoot();
     if (ok) {
         movePtr = currentStructPtr->getSubField<epics::pvData::PVStructure>(path);
-        //shared_ptr operator bool verifies the validity of the underlying ptr.
+//shared_ptr operator bool verifies the validity of the underlying ptr.
         ok = (movePtr);
     }
     if (ok) {
@@ -266,16 +538,23 @@ uint32 EPICSPVStructureDataI::GetNumberOfChildren() {
 }
 
 void EPICSPVStructureDataI::SetStructure(epics::pvData::PVStructurePtr structPtrToSet) {
+    structureFinalised = true;
     currentStructPtr = structPtrToSet;
     rootStructPtr = structPtrToSet;
 }
 
 void EPICSPVStructureDataI::InitStructure() {
+    structureFinalised = false;
     epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
-    epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
+    fieldBuilder = fieldCreate->createFieldBuilder();
+}
+
+void EPICSPVStructureDataI::FinaliseStructure() {
+    structureFinalised = true;
     epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
     epics::pvData::PVDataCreatePtr pvDataCreate = epics::pvData::getPVDataCreate();
     currentStructPtr = pvDataCreate->createPVStructure(topStructure);
+    rootStructPtr = currentStructPtr;
 }
 
 CLASS_REGISTER(EPICSPVStructureDataI, "")

@@ -33,6 +33,7 @@
 #include "EPICSPVStructureDataITest.h"
 #include "ObjectRegistryDatabase.h"
 #include "StandardParser.h"
+#include "Vector.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -50,10 +51,11 @@ bool EPICSPVStructureDataITest::TestConstructor() {
      return (test.GetNumberOfChildren() == 0u);*/
     epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
-    fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->endNested()->addNestedStructure("OneP1")->endNested();
+    fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->addFixedArray("astringarr", epics::pvData::pvString, 5)->addFixedArray("adoublearr", epics::pvData::pvDouble, 5)->add("adouble", epics::pvData::pvDouble)->add("astring", epics::pvData::pvString)->endNested()->addNestedStructure("OneP1")->endNested();
     epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
     epics::pvData::PVDataCreatePtr pvDataCreate = epics::pvData::getPVDataCreate();
     epics::pvData::PVStructurePtr structPtr = pvDataCreate->createPVStructure(topStructure);
+
     structPtr->dumpValue(std::cout);
     test.SetStructure(structPtr);
     test.MoveAbsolute("One.Two");
@@ -61,6 +63,37 @@ bool EPICSPVStructureDataITest::TestConstructor() {
     test.MoveAbsolute("One.Two");
     test.MoveToAncestor(1u);
     test.MoveRelative("Two");
+    test.MoveToAncestor(1u);
+    double doubleOut = 3.1415;
+    double doubleIn;
+    test.Write("adouble", doubleOut);
+    test.Read("adouble", doubleIn);
+    std::cout << "Read " << doubleIn << std::endl;
+
+    const char8 *const strOut = "A string with space....";
+    StreamString strIn;
+    test.Write("astring", strOut);
+    test.Read("astring", strIn);
+    std::cout << "Read " << strIn.Buffer() << std::endl;
+
+    double arrIn[5];
+    double arrOut[] = {1.0, 2.0, 3.0, 4.0, 5.0};
+    test.Write("adoublearr", arrOut);
+    test.Read("adoublearr", arrIn);
+    std::cout << "Read " << arrIn << std::endl;
+
+    const char8 *strArrOut[] = {"A", "B", "CCC", "AAVASVA", "BASDDSA"};
+    StreamString *strArrIn = new StreamString[5];
+    Vector<StreamString> strArrInV(strArrIn, 5);
+    test.Write("astringarr", strArrOut);
+    test.Read("astringarr", strArrInV);
+    std::cout << "Read " << strArrIn[0].Buffer() << std::endl;
+    std::cout << "Read " << strArrIn[1].Buffer() << std::endl;
+    std::cout << "Read " << strArrIn[2].Buffer() << std::endl;
+    std::cout << "Read " << strArrIn[3].Buffer() << std::endl;
+    std::cout << "Read " << strArrIn[4].Buffer() << std::endl;
+    delete [] strArrIn;
+
     test.MoveToAncestor(10u);
     test.MoveToRoot();
     test.MoveAbsolute("Three");

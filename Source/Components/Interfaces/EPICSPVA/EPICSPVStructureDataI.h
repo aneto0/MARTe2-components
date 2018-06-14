@@ -51,7 +51,7 @@ public:
     /**
      * @brief TODO
      */
-    EPICSPVStructureDataI();
+EPICSPVStructureDataI    ();
 
     /**
      * @brief TODO
@@ -148,7 +148,18 @@ public:
      */
     void InitStructure();
 
+    /**
+     * @brief TODO
+     */
+    void FinaliseStructure();
+
 private:
+    template<typename T>
+    bool ReadValue(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value);
+
+    template<typename T>
+    bool ReadArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value);
+
     /**
      * @brief TODO
      */
@@ -158,6 +169,16 @@ private:
      * @brief TODO
      */
     epics::pvData::PVStructurePtr rootStructPtr;
+
+    /**
+     * @brief TODO
+     */
+    bool structureFinalised;
+
+    /**
+     * @brief TODO
+     */
+    epics::pvData::FieldBuilderPtr fieldBuilder;
 };
 
 }
@@ -165,5 +186,42 @@ private:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
+template<typename T>
+bool EPICSPVStructureDataI::ReadValue(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
+    bool ok = true;
+    epics::pvData::shared_vector<const T> out;
+    scalarArrayPtr->getAs < T > (out);
+    const void *src  = reinterpret_cast<const void *>(out.data());
+    if (src != NULL_PTR(void *)) {
+        uint32 size;
+        uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+        size = numberOfElements * storedType.GetTypeDescriptor().numberOfBits / 8u;
+        ok = MemoryOperationsHelper::Copy(value.GetDataPointer(), src, size);
+    }
+    return ok;
+}
 
+template<typename T>
+bool EPICSPVStructureDataI::ReadValue(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
+    bool ok = true;
+    epics::pvData::shared_vector<const T> out;
+    scalarArrayPtr->getAs < T > (out);
+    const void *src  = reinterpret_cast<const void *>(out.data());
+    if (src != NULL_PTR(void *)) {
+        uint32 size;
+        uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+        size = numberOfElements * storedType.GetTypeDescriptor().numberOfBits / 8u;
+        ok = MemoryOperationsHelper::Copy(value.GetDataPointer(), src, size);
+    }
+    epics::pvData::shared_vector<const uint8> out;
+                        out.resize(storedType.GetNumberOfElements(0u));
+                        ok = MemoryOperationsHelper::Copy(const_cast<void *>(reinterpret_cast<const void *>(out.data())),
+                                                          value.GetDataPointer(), size);
+                        scalarArrayPtr->putFrom<uint8>(out);
+    return ok;
+}
+
+
+}
 #endif /* EPICSPVSTRUCTUREDATAI_H_ */
