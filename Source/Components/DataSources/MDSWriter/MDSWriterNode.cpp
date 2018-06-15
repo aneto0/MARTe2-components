@@ -228,23 +228,31 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree * const tree) {
         if (node != NULL_PTR(MDSplus::TreeNode *)) {
             delete node;
         }
-        if (decimatedNode != NULL_PTR(MDSplus::TreeNode *)) {
-            delete decimatedNode;
-        }
 
         /*lint -e{613} tree cannot be NULL as otherwise ok = false*/
         if (ok) {
             node = tree->getNode(nodeName.Buffer());
             node->deleteData();
-            if (decimatedMinMax) {
-                decimatedNode = tree->getNode(decimatedNodeName.Buffer());
-                decimatedNode->deleteData();
-            }
         }
     }
     catch (const MDSplus::MdsException &exc) {
         REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", nodeName.Buffer(), exc.what());
         ok = false;
+    }
+    if (ok) {
+        if (decimatedNode != NULL_PTR(MDSplus::TreeNode *)) {
+            delete decimatedNode;
+        }
+        if (decimatedMinMax) {
+            try {
+                decimatedNode = tree->getNode(decimatedNodeName.Buffer());
+                decimatedNode->deleteData();
+            }
+            catch (const MDSplus::MdsException &exc) {
+                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", decimatedNodeName.Buffer(), exc.what());
+                ok = false;
+            }
+        }
     }
     start = static_cast<float64>(phaseShift) * period;
     return ok;

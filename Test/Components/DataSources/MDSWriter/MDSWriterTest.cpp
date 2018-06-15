@@ -31,7 +31,6 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "GAM.h"
-#include "MDSWriter.h"
 #include "MDSWriterTest.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
@@ -40,6 +39,57 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+
+class CreateTree {
+public:
+    CreateTree(MARTe::StreamString name) {
+        treeName = name;
+        CreateModel();
+    }
+    virtual ~CreateTree() {
+    }
+private:
+    void CreateModel() {
+        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), -1, "NEW");
+        tree->addNode("SIGUINT16F", "SIGNAL");
+        tree->addNode("SIGUINT16D", "SIGNAL");
+        tree->addNode("SIGUINT32F", "SIGNAL");
+        tree->addNode("SIGUINT32D", "SIGNAL");
+        tree->addNode("SIGUINT64F", "SIGNAL");
+        tree->addNode("SIGUINT64D", "SIGNAL");
+        tree->addNode("SIGINT16F", "SIGNAL");
+        tree->addNode("SIGINT16D", "SIGNAL");
+        tree->addNode("SIGINT32F", "SIGNAL");
+        tree->addNode("SIGINT32D", "SIGNAL");
+        tree->addNode("SIGINT64F", "SIGNAL");
+        tree->addNode("SIGINT64D", "SIGNAL");
+        tree->addNode("SIGFLT32F", "SIGNAL");
+        tree->addNode("SIGFLT32D", "SIGNAL");
+        tree->addNode("SIGFLT64F", "SIGNAL");
+        tree->addNode("SIGFLT64D", "SIGNAL");
+
+        tree->addNode("SIGUINT16", "SIGNAL");
+
+        tree->addNode("SIGUINT32", "SIGNAL");
+
+        tree->addNode("SIGUINT64", "SIGNAL");
+
+        tree->addNode("SIGINT16", "SIGNAL");
+
+        tree->addNode("SIGINT32", "SIGNAL");
+
+        tree->addNode("SIGINT64", "SIGNAL");
+
+        tree->addNode("SIGFLT32", "SIGNAL");
+
+        tree->addNode("SIGFLT64", "SIGNAL");
+
+        tree->write();
+        delete tree;
+    }
+    MARTe::StreamString treeName;
+};
+
 /**
  * Helper class that reacts to messages received from the MDSWriter class
  */
@@ -266,7 +316,8 @@ private:
 
 CLASS_REGISTER(MDSWriterSchedulerTestHelper, "1.0")
 
-static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool destroy) {
+static bool TestIntegratedInApplication(const MARTe::char8 * const config,
+                                        bool destroy) {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;
@@ -301,7 +352,10 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     return ok;
 }
 
-template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberOfSegments, MDSplus::TreeNode *node, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify) {
+template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberOfSegments,
+                                                            MDSplus::TreeNode *node,
+                                                            MARTe::uint32 *signalToVerify,
+                                                            MARTe::uint32 *timeToVerify) {
     using namespace MARTe;
     int32 i = 0u;
     int32 s;
@@ -352,10 +406,22 @@ template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberO
     return ok;
 }
 
-static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements, MARTe::uint8 *triggerToGenerate,
-                                    MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify, MARTe::uint32 toVerifyNumberOfElements, MARTe::uint32 numberOfBuffers,
-                                    MARTe::uint32 numberOfPreTriggers, MARTe::uint32 numberOfPostTriggers, MARTe::float32 period, const MARTe::char8 * const treeName, MARTe::uint32 pulseNumber,
-                                    MARTe::int32 numberOfSegments, bool needsFlush, MARTe::uint32 sleepMSec = 100) {
+static bool TestIntegratedExecution(const MARTe::char8 * const config,
+                                    MARTe::uint32 *signalToGenerate,
+                                    MARTe::uint32 toGenerateNumberOfElements,
+                                    MARTe::uint8 *triggerToGenerate,
+                                    MARTe::uint32 *signalToVerify,
+                                    MARTe::uint32 *timeToVerify,
+                                    MARTe::uint32 toVerifyNumberOfElements,
+                                    MARTe::uint32 numberOfBuffers,
+                                    MARTe::uint32 numberOfPreTriggers,
+                                    MARTe::uint32 numberOfPostTriggers,
+                                    MARTe::float32 period,
+                                    const MARTe::char8 * const treeName,
+                                    MARTe::uint32 pulseNumber,
+                                    MARTe::int32 numberOfSegments,
+                                    bool needsFlush,
+                                    MARTe::uint32 sleepMSec = 100) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config;
@@ -439,7 +505,8 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
             tree = new MDSplus::Tree(treeName, pulseNumber);
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse", treeName, pulseNumber);
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse", treeName,
+                                pulseNumber);
             delete tree;
             tree = NULL;
         }
@@ -3055,6 +3122,62 @@ static const MARTe::char8 * const config19 = ""
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+
+MDSWriterTest::MDSWriterTest() {
+    treeName = "mds_m2test";
+    char *home = getenv("HOME");
+    fullPath = treeName.Buffer();
+    fullPath += "_path=";
+    fullPath += home;
+    //Important detail: fullPath must exist in all places where the environment variables is needed.
+    //In other words, the scope of the environment variables is defined by the scope of the string (char *)
+    //given to putenv() function.
+    putenv((char *) (fullPath.Buffer()));
+    CreateTree myTreeCreated(treeName);
+}
+
+MDSWriterTest::~MDSWriterTest() {
+    MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), -1);
+    MARTe::uint32 shotNumber = tree->getCurrent(treeName.Buffer());
+    while (shotNumber > 0u) {
+        tree->deletePulse(shotNumber);
+        shotNumber--;
+        tree->setCurrent(treeName.Buffer(), shotNumber);
+    }
+    delete tree;
+    MARTe::StreamString strChar = getenv("HOME");
+    strChar += "/";
+    strChar += treeName.Buffer();
+    strChar += "_model.characteristics";
+    if (0 != remove(strChar.Buffer())) {
+        printf("Error while removing %s\n", strChar.Buffer());
+    }
+
+    MARTe::StreamString strData = getenv("HOME");
+    strData += "/";
+    strData += treeName.Buffer();
+    strData += "_model.datafile";
+    if (0 != remove(strData.Buffer())) {
+        printf("Error while removing %s\n", strData.Buffer());
+    }
+
+    MARTe::StreamString strTree = getenv("HOME");
+    strTree += "/";
+    strTree += treeName.Buffer();
+    strTree += "_model.tree";
+
+    if (0 != remove(strTree.Buffer())) {
+        printf("Error while removing %s\n", strTree.Buffer());
+    }
+    MARTe::StreamString strShot = getenv("HOME");
+    strShot += "/";
+    strShot += "shotid.sys";
+    /*
+    if (remove(strShot.Buffer()) != 0) {
+        printf("Error while removing %s\n", strShot.Buffer());
+    }
+    */
+}
 bool MDSWriterTest::TestConstructor() {
     using namespace MARTe;
     MDSWriter test;
@@ -3420,8 +3543,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger() {
     const uint32 writeAfterNSegments = 4;
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
-    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
-                                   numberOfSegments, false);
+    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0,
+                                   period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Flush() {
@@ -3435,8 +3558,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Flush() {
     const uint32 writeAfterNSegments = 4;
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
-    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
-                                   numberOfSegments, true);
+    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0,
+                                   period, treeName, pulseNumber, numberOfSegments, true);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger() {
@@ -3454,8 +3577,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger() {
     const uint32 pulseNumber = 3;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
-                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
+                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_Discontinuity() {
@@ -3473,8 +3596,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_Discontinuity() {
     const uint32 pulseNumber = 6;
     const uint32 numberOfSegments = 1;
     const float32 period = 2;
-    return TestIntegratedExecution(config13, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
-                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config13, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
+                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Elements() {
@@ -3490,8 +3613,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Elements() {
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
     const uint32 pulseNumber = 4;
-    return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, NULL, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
-                                   numberOfSegments, false);
+    return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, NULL, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers,
+                                   0, 0, period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_Elements() {
@@ -3509,8 +3632,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_Elements() {
     const uint32 pulseNumber = 5;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config5, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
-                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config5, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
+                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestOpenTree() {

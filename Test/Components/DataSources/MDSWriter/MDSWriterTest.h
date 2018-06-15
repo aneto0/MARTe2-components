@@ -27,10 +27,12 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-
+#include "mdsobjects.h"
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+
+#include "MDSWriter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -40,6 +42,9 @@
  */
 class MDSWriterTest {
 public:
+    MDSWriterTest();
+
+    ~MDSWriterTest();
     /**
      * @brief Tests the constructor.
      */
@@ -320,6 +325,9 @@ public:
      * @brief Tests that an Invalid message type is correctly captured.
      */
     bool TestInvalidMessageType();
+private:
+    MARTe::StreamString treeName;
+    MARTe::StreamString fullPath;
 };
 
 /*---------------------------------------------------------------------------*/
