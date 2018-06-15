@@ -349,30 +349,34 @@ bool EPICSPVStructureDataI::Write(const char8 * const name, const AnyType &value
             uint32 size = numberOfElements * storedType.GetTypeDescriptor().numberOfBits / 8u;
             if (ok) {
                 if (storedType.GetTypeDescriptor() == UnsignedInteger8Bit) {
-
+                    ok = WriteArray<uint8>(scalarArrayPtr, storedType, value, size);
                 }
                 else if (storedType.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                    ok = WriteArray<uint16>(scalarArrayPtr, storedType, value, size);
                 }
                 else if (storedType.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                    ok = WriteArray<uint32>(scalarArrayPtr, storedType, value, size);
                 }
                 else if (storedType.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                    ok = WriteArray<unsigned long int>(scalarArrayPtr, storedType, value, size);
                 }
                 else if (storedType.GetTypeDescriptor() == SignedInteger8Bit) {
+                    ok = WriteArray<int8>(scalarArrayPtr, storedType, value, size);
                 }
                 else if (storedType.GetTypeDescriptor() == SignedInteger16Bit) {
+                    ok = WriteArray<int16>(scalarArrayPtr, storedType, value, size);
                 }
                 else if (storedType.GetTypeDescriptor() == SignedInteger32Bit) {
+                    ok = WriteArray<int32>(scalarArrayPtr, storedType, value, size);
                 }
                 else if (storedType.GetTypeDescriptor() == SignedInteger64Bit) {
+                    ok = WriteArray<long int>(scalarArrayPtr, storedType, value, size);
                 }
                 else if (storedType.GetTypeDescriptor() == Float32Bit) {
+                    ok = WriteArray<float32>(scalarArrayPtr, storedType, value, size);
                 }
                 else if (storedType.GetTypeDescriptor() == Float64Bit) {
-                    epics::pvData::shared_vector<const float64> out;
-                    out.resize(storedType.GetNumberOfElements(0u));
-                    ok = MemoryOperationsHelper::Copy(const_cast<void *>(reinterpret_cast<const void *>(out.data())),
-                                                      value.GetDataPointer(), size);
-                    scalarArrayPtr->putFrom<float64>(out);
+                    ok = WriteArray<float64>(scalarArrayPtr, storedType, value, size);
                 }
                 else if (storedType.GetTypeDescriptor() == CharString) {
                     epics::pvData::shared_vector<const std::string> out;
@@ -422,16 +426,22 @@ bool EPICSPVStructureDataI::AddToCurrentNode(Reference node) {
 }
 
 bool EPICSPVStructureDataI::MoveToRoot() {
-    currentStructPtr = rootStructPtr;
     std::cout << "MoveToRoot>>>>>>>>>>>>>>>>" << std::endl;
+    /*bool ok = structureFinalised;
+    if (ok) {*/
+    rootStructPtr->dumpValue(std::cout);
+
+        currentStructPtr = rootStructPtr;
+    //}
     currentStructPtr->dumpValue(std::cout);
     std::cout << "MoveToRoot<<<<<<<<<<<<<<<<" << std::endl;
+    //return ok;
     return true;
 }
 
 bool EPICSPVStructureDataI::MoveToAncestor(uint32 generations) {
     uint32 i;
-    bool ok = true;
+    bool ok = structureFinalised;
     epics::pvData::PVStructurePtr startStructPtr = currentStructPtr;
     for (i = 0u; (i < generations) && (ok); i++) {
         ok = (currentStructPtr != rootStructPtr);
@@ -454,7 +464,7 @@ bool EPICSPVStructureDataI::MoveAbsolute(const char8 * const path) {
     bool ok = MoveToRoot();
     if (ok) {
         movePtr = currentStructPtr->getSubField<epics::pvData::PVStructure>(path);
-//shared_ptr operator bool verifies the validity of the underlying ptr.
+        //shared_ptr operator bool verifies the validity of the underlying ptr.
         ok = (movePtr);
     }
     if (ok) {
@@ -479,7 +489,6 @@ bool EPICSPVStructureDataI::MoveRelative(const char8 * const path) {
 }
 
 bool EPICSPVStructureDataI::MoveToChild(const uint32 childIdx) {
-
     const epics::pvData::PVFieldPtrArray & fields = currentStructPtr->getPVFields();
     epics::pvData::PVStructurePtr movePtr;
     bool ok = (childIdx < fields.size());
@@ -498,7 +507,63 @@ bool EPICSPVStructureDataI::MoveToChild(const uint32 childIdx) {
 }
 
 bool EPICSPVStructureDataI::CreateAbsolute(const char8 * const path) {
-    bool ok = true;
+    bool ok = !structureFinalised;
+    //fieldBuilder = fieldBuilder->addNestedStructure(path)->endNested();
+    //structBuild = fieldCreate->appendField(structBuild, path, fieldCreate->createStructure());
+    //structBuild->
+    std::cout << "CreateAbsolute>>>>>>>>>>>>>>>>" << std::endl;
+    epics::pvData::StructureConstPtr rawRootStruct;
+    epics::pvData::FieldConstPtr rawFieldStruct = rootStructPtr->getField();
+    StreamString pathStr = path;
+    ok = pathStr.Seek(0Lu);
+    if (ok) {
+        ok = (pathStr.Size() > 0u);
+    }
+    StreamString token;
+    char8 c;
+    bool created = false;
+    while ((pathStr.GetToken(token, ".", c)) && (ok)) {
+        ok = (token.Size() > 0u);
+        if (ok) {
+            //Check if a node with this name already exists
+            bool found = false;
+            Reference foundReference;
+            uint32 i;
+            rawRootStruct = (epics::pvData::Structure)rawFieldStruct->shared_from_this();
+            for (i = 0u; (i < rawRootStruct->getNumberFields()) && (!found); i++) {
+                std::string fieldName = rawRootStruct->getFieldName(i);
+                found = (fieldName == token.Buffer());
+            }
+
+            if (found) {
+                rawRootStruct = (rawRootStruct->getField(i)->shared_from_this());
+                ok = (rawRootStruct);
+            }
+            else {
+                rawRootStruct = fieldCreate->appendField(rawRootStruct, path, fieldCreate->createStructure());
+                //rawRootStruct = std::tr1::dynamic_pointer_cast<epics::pvData::StructureConstPtr>(rawRootStruct->getField(rawRootStruct->getNumberFields() - 1u));
+                created = true;
+            }
+        }
+        if (ok) {
+            ok = token.Seek(0Lu);
+            if (ok) {
+                ok = token.SetSize(0Lu);
+            }
+        }
+        if (ok) {
+            ok = created;
+        }
+
+    }
+    //rawRootStruct = fieldCreate->appendField(rawRootStruct, path, fieldCreate->createStructure());
+    rawRootStruct->dump(std::cout);
+    epics::pvData::PVDataCreatePtr pvDataCreate = epics::pvData::getPVDataCreate();
+    rootStructPtr = pvDataCreate->createPVStructure(rawRootStruct);
+    rootStructPtr->dumpValue(std::cout);
+    std::cout << "CreateAbsolute<<<<<<<<<<<<<<<<" << std::endl;
+    currentStructPtr = rootStructPtr;
+    ok = MoveAbsolute(path);
     return ok;
 }
 
@@ -545,16 +610,21 @@ void EPICSPVStructureDataI::SetStructure(epics::pvData::PVStructurePtr structPtr
 
 void EPICSPVStructureDataI::InitStructure() {
     structureFinalised = false;
-    epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
+    fieldCreate = epics::pvData::getFieldCreate();
     fieldBuilder = fieldCreate->createFieldBuilder();
+    structBuild = fieldCreate->createStructure();
+    epics::pvData::PVDataCreatePtr pvDataCreate = epics::pvData::getPVDataCreate();
+    currentStructPtr = pvDataCreate->createPVStructure(structBuild);
+    rootStructPtr = currentStructPtr;
 }
 
 void EPICSPVStructureDataI::FinaliseStructure() {
     structureFinalised = true;
-    epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
-    epics::pvData::PVDataCreatePtr pvDataCreate = epics::pvData::getPVDataCreate();
-    currentStructPtr = pvDataCreate->createPVStructure(topStructure);
-    rootStructPtr = currentStructPtr;
+    //epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
+    //epics::pvData::PVDataCreatePtr pvDataCreate = epics::pvData::getPVDataCreate();
+    //currentStructPtr = pvDataCreate->createPVStructure(topStructure);
+    //currentStructPtr = pvDataCreate->createPVStructure(structBuild);
+    //rootStructPtr = currentStructPtr;
 }
 
 CLASS_REGISTER(EPICSPVStructureDataI, "")

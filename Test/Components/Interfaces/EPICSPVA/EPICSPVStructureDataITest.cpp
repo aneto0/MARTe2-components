@@ -49,7 +49,7 @@ bool EPICSPVStructureDataITest::TestConstructor() {
      test.InitStructure();
      test.CreateRelative("TEST1");
      return (test.GetNumberOfChildren() == 0u);*/
-    epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
+    /*epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
     fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->addFixedArray("astringarr", epics::pvData::pvString, 5)->addFixedArray("adoublearr", epics::pvData::pvDouble, 5)->add("adouble", epics::pvData::pvDouble)->add("astring", epics::pvData::pvString)->endNested()->addNestedStructure("OneP1")->endNested();
     epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
@@ -105,7 +105,14 @@ bool EPICSPVStructureDataITest::TestConstructor() {
     test.MoveToRoot();
     test.MoveToChild(2);
     std::cout << "NAME" << std::endl;
-    std::cout << test.GetChildName(0) << std::endl;
+    std::cout << test.GetChildName(0) << std::endl;*/
+
+    test.InitStructure();
+    test.CreateAbsolute("A");
+    //test.CreateAbsolute("A");
+    test.FinaliseStructure();
+    test.MoveToRoot();
+
     /*test.MoveToAncestor(1u);
      structPtr->dumpValue(std::cout);
      test.MoveToAncestor(1u);
