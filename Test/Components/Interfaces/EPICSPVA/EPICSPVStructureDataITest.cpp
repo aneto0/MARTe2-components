@@ -45,18 +45,23 @@
 bool EPICSPVStructureDataITest::TestConstructor() {
     using namespace MARTe;
     EPICSPVStructureDataI test;
-    /*EPICSPVStructureDataI test;
-     test.InitStructure();
-     test.CreateRelative("TEST1");
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C.D");
+    test.CreateAbsolute("A.B.E");
+    test.CreateAbsolute("C.F");
+    uint32 please = 3;
+    test.Write("Please", please);
+    test.MoveAbsolute("A.B.C");
+    float32 pleaseFloat = 3;
+    test.Write("PleaseFloat", pleaseFloat);
+    test.FinaliseStructure();
+    /* test.CreateRelative("TEST1");
      return (test.GetNumberOfChildren() == 0u);*/
     /*epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
-    epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
-    fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->addFixedArray("astringarr", epics::pvData::pvString, 5)->addFixedArray("adoublearr", epics::pvData::pvDouble, 5)->add("adouble", epics::pvData::pvDouble)->add("astring", epics::pvData::pvString)->endNested()->addNestedStructure("OneP1")->endNested();
-    epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
-    epics::pvData::PVDataCreatePtr pvDataCreate = epics::pvData::getPVDataCreate();
-    epics::pvData::PVStructurePtr structPtr = pvDataCreate->createPVStructure(topStructure);
+    epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();*/
+    //fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->addFixedArray("astringarr", epics::pvData::pvString, 5)->addFixedArray("adoublearr", epics::pvData::pvDouble, 5)->add("adouble", epics::pvData::pvDouble)->add("astring", epics::pvData::pvString)->endNested()->addNestedStructure("OneP1")->endNested();
 
-    structPtr->dumpValue(std::cout);
+#if 0
     test.SetStructure(structPtr);
     test.MoveAbsolute("One.Two");
     test.MoveToRoot();
@@ -108,7 +113,8 @@ bool EPICSPVStructureDataITest::TestConstructor() {
     std::cout << test.GetChildName(0) << std::endl;*/
 
     test.InitStructure();
-    test.CreateAbsolute("A");
+    test.CreateAbsolute("A.B.C");
+    test.CreateAbsolute("A.B.D.E");
     //test.CreateAbsolute("A");
     test.FinaliseStructure();
     test.MoveToRoot();
@@ -117,5 +123,6 @@ bool EPICSPVStructureDataITest::TestConstructor() {
      structPtr->dumpValue(std::cout);
      test.MoveToAncestor(1u);
      structPtr->dumpValue(std::cout);*/
+#endif
     return true;
 }
