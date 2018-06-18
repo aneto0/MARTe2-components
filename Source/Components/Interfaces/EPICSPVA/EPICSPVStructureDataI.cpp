@@ -59,13 +59,15 @@ bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value)
     if (ok) {
         ok = (storedType.GetTypeDescriptor() != VoidType);
     }
+    else {
+        REPORT_ERROR(ErrorManagement::ParametersError, "FinaliseStructure must be called before Read().");
+    }
     if (ok) {
         scalarFieldPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
         ok = (scalarFieldPtr);
         if (!ok) {
             isScalar = false;
-            scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(
-                    currentStructPtr->getSubField(name));
+            scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
             ok = (scalarArrayPtr);
         }
     }
@@ -110,8 +112,7 @@ bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value)
                     }
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError,
-                                 "Only StreamStrings and supported for the deserialisation of strings");
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Only StreamStrings and supported for the deserialisation of strings");
                 }
             }
             else {
@@ -172,8 +173,8 @@ bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value)
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d",
-                             storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u),
+                             value.GetNumberOfElements(0u));
             }
         }
     }
@@ -182,10 +183,14 @@ bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value)
 
 AnyType EPICSPVStructureDataI::GetType(const char8 * const name) {
     AnyType at = voidAnyType;
-    epics::pvData::PVFieldPtr fieldPtr = currentStructPtr->getSubField(name);
+    epics::pvData::PVFieldPtr fieldPtr;
     bool ok = structureFinalised;
     if (ok) {
+        fieldPtr = currentStructPtr->getSubField(name);
         ok = (fieldPtr);
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::ParametersError, "FinaliseStructure must be called before GetType().");
     }
     if (ok) {
         epics::pvData::Type epicsType = fieldPtr->getField()->getType();
@@ -201,8 +206,8 @@ AnyType EPICSPVStructureDataI::GetType(const char8 * const name) {
             }
         }
         else if (epicsType == epics::pvData::scalarArray) {
-            epics::pvData::PVScalarArrayPtr scalarArrayPtr =
-                    std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
+            epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(
+                    currentStructPtr->getSubField(name));
             ok = (scalarArrayPtr);
             if (ok) {
                 epicsScalarType = scalarArrayPtr->getScalarArray()->getElementType();
@@ -326,17 +331,14 @@ bool EPICSPVStructureDataI::WriteStoredType(const char8 * const name, AnyType &s
         scalarFieldPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
         ok = (scalarFieldPtr);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError,
-                         "%s should be a scalar but the conversion to PVScalar failed", name);
+            REPORT_ERROR(ErrorManagement::ParametersError, "%s should be a scalar but the conversion to PVScalar failed", name);
         }
     }
     else {
-        scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(
-                currentStructPtr->getSubField(name));
+        scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
         ok = (scalarArrayPtr);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError,
-                         "%s should be an array but the conversion to PVScalarArray failed", name);
+            REPORT_ERROR(ErrorManagement::ParametersError, "%s should be an array but the conversion to PVScalarArray failed", name);
         }
     }
     if (ok) {
@@ -431,8 +433,7 @@ bool EPICSPVStructureDataI::WriteStoredType(const char8 * const name, AnyType &s
                         StreamString **src = static_cast<StreamString **>(value.GetDataPointer());
                         uint32 i;
                         for (i = 0; i < numberOfElements; i++) {
-                            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) =
-                                    src[i]->Buffer();
+                            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i]->Buffer();
                         }
                         scalarArrayPtr->putFrom<std::string>(out);
                     }
@@ -454,8 +455,8 @@ bool EPICSPVStructureDataI::WriteStoredType(const char8 * const name, AnyType &s
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d",
-                             storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u),
+                             value.GetNumberOfElements(0u));
             }
         }
     }
@@ -475,7 +476,54 @@ bool EPICSPVStructureDataI::Write(const char8 * const name, const AnyType &value
 }
 
 bool EPICSPVStructureDataI::Copy(StructuredDataI &destination) {
-    bool ok = true;
+    bool ok = structureFinalised;
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::ParametersError, "FinaliseStructure must be called before Copy().");
+    }
+    ReferenceT<ReferenceContainer> foundNode;
+    uint32 nOfChildren = GetNumberOfChildren();
+    for (uint32 i = 0u; (i < nOfChildren) && (ok); i++) {
+        const char8 * const childName = GetChildName(i);
+        std::cout << childName << std::endl;
+
+        if (MoveRelative(childName)) {
+            if (!destination.CreateRelative(childName)) {
+                ok = false;
+            }
+            if (ok) {
+                // go recursively !
+                ok = Copy(destination);
+            }
+            if (ok) {
+                ok = MoveToAncestor(1u);
+            }
+            if (ok) {
+                ok = destination.MoveToAncestor(1u);
+            }
+        }
+        else {
+            AnyType at = GetType(childName);
+            if (at.GetTypeDescriptor() != voidAnyType.GetTypeDescriptor()) {
+                uint32 nOfElements0 = at.GetNumberOfElements(0u);
+                uint32 nOfElements1 = at.GetNumberOfElements(1u);
+                if (nOfElements0 < 1u) {
+                    nOfElements0 = 1u;
+                }
+                if (nOfElements1 < 1u) {
+                    nOfElements1 = 1u;
+                }
+                uint32 memSize = nOfElements0 *nOfElements1 * at.GetTypeDescriptor().numberOfBits / 8u;
+                char8 *mem = new char8[memSize];
+                at.SetDataPointer(&mem[0]);
+                ok = Read(childName, at);
+                if (ok) {
+                    ok = destination.Write(childName, at);
+                }
+                delete mem;
+            }
+        }
+    }
+
     return ok;
 }
 
@@ -488,17 +536,13 @@ bool EPICSPVStructureDataI::AddToCurrentNode(Reference node) {
 }
 
 bool EPICSPVStructureDataI::MoveToRoot() {
-    std::cout << "MoveToRoot>>>>>>>>>>>>>>>>" << std::endl;
     bool ok = true;
     if (structureFinalised) {
-        rootStructPtr->dumpValue(std::cout);
         currentStructPtr = rootStructPtr;
-        currentStructPtr->dumpValue(std::cout);
     }
     else {
         ok = cachedCDB.MoveToRoot();
     }
-    std::cout << "MoveToRoot<<<<<<<<<<<<<<<<" << std::endl;
     return ok;
 }
 
@@ -517,9 +561,6 @@ bool EPICSPVStructureDataI::MoveToAncestor(uint32 generations) {
         if (!ok) {
             currentStructPtr = startStructPtr;
         }
-        std::cout << "MoveToAncestor>>>>>>>>>>>>>>>>" << std::endl;
-        currentStructPtr->dumpValue(std::cout);
-        std::cout << "MoveToAncestor<<<<<<<<<<<<<<<<" << std::endl;
     }
     else {
         ok = cachedCDB.MoveToAncestor(generations);
@@ -532,7 +573,6 @@ bool EPICSPVStructureDataI::MoveAbsolute(const char8 * const path) {
     bool ok = true;
     if (structureFinalised) {
         ok = MoveToRoot();
-
         if (ok) {
             movePtr = currentStructPtr->getSubField<epics::pvData::PVStructure>(path);
             //shared_ptr operator bool verifies the validity of the underlying ptr.
@@ -541,9 +581,6 @@ bool EPICSPVStructureDataI::MoveAbsolute(const char8 * const path) {
         if (ok) {
             currentStructPtr = movePtr;
         }
-        std::cout << "MoveAbsolute>>>>>>>>>>>>>>>>" << std::endl;
-        currentStructPtr->dumpValue(std::cout);
-        std::cout << "MoveAbsolute<<<<<<<<<<<<<<<<" << std::endl;
     }
     else {
         ok = cachedCDB.MoveAbsolute(path);
@@ -559,9 +596,6 @@ bool EPICSPVStructureDataI::MoveRelative(const char8 * const path) {
         if (ok) {
             currentStructPtr = movePtr;
         }
-        std::cout << "MoveRelative>>>>>>>>>>>>>>>>" << std::endl;
-        currentStructPtr->dumpValue(std::cout);
-        std::cout << "MoveRelative<<<<<<<<<<<<<<<<" << std::endl;
     }
     else {
         ok = cachedCDB.MoveRelative(path);
@@ -583,9 +617,6 @@ bool EPICSPVStructureDataI::MoveToChild(const uint32 childIdx) {
         if (ok) {
             currentStructPtr = movePtr;
         }
-        std::cout << "MoveToChild>>>>>>>>>>>>>>>>" << std::endl;
-        currentStructPtr->dumpValue(std::cout);
-        std::cout << "MoveToChild<<<<<<<<<<<<<<<<" << std::endl;
     }
     else {
         ok = cachedCDB.MoveToChild(childIdx);
@@ -667,11 +698,11 @@ const char8 *EPICSPVStructureDataI::GetName() {
 const char8 *EPICSPVStructureDataI::GetChildName(const uint32 index) {
     const char8 * ret = "";
     const epics::pvData::PVFieldPtrArray & fields = currentStructPtr->getPVFields();
-    epics::pvData::PVStructurePtr movePtr;
+    epics::pvData::PVFieldPtr movePtr;
     bool ok = (index < fields.size());
     if (ok) {
         epics::pvData::PVFieldPtr field = fields[index];
-        movePtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVStructure>(field->shared_from_this());
+        movePtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVField>(field->shared_from_this());
         ok = movePtr;
     }
     if (ok) {
@@ -681,7 +712,7 @@ const char8 *EPICSPVStructureDataI::GetChildName(const uint32 index) {
 }
 
 uint32 EPICSPVStructureDataI::GetNumberOfChildren() {
-    uint32 numberOfFields = currentStructPtr->getNumberFields();
+    uint32 numberOfFields = (currentStructPtr->getPVFields().size());
     return numberOfFields;
 }
 
@@ -698,21 +729,21 @@ void EPICSPVStructureDataI::InitStructure() {
 }
 
 void EPICSPVStructureDataI::FinaliseStructure() {
-    epics::pvData::PVDataCreatePtr pvDataCreate = epics::pvData::getPVDataCreate();
     bool ok = cachedCDB.MoveToRoot();
     ReferenceT<ReferenceContainer> rootNode = cachedCDB.GetCurrentNode();
     if (ok) {
         ok = ConfigurationDataBaseToPVStructurePtr(rootNode);
     }
     if (ok) {
-        currentStructPtr = pvDataCreate->createPVStructure(fieldBuilder->createStructure());
+        currentStructPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());
         rootStructPtr = currentStructPtr;
-        rootStructPtr->dumpValue(std::cout);
     }
     structureFinalised = ok;
     if (ok) {
         ok = ConfigurationDataBaseToPVStructurePtr(rootNode, false);
     }
+    rootStructPtr->dumpValue(std::cout);
+    cachedCDB.Purge();
 }
 
 CLASS_REGISTER(EPICSPVStructureDataI, "")

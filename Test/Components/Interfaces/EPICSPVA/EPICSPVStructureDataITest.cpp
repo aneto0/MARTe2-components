@@ -24,6 +24,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include <pv/rpcClient.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -31,6 +32,7 @@
 #include "ConfigurationDatabase.h"
 #include "EPICSPVStructureDataI.h"
 #include "EPICSPVStructureDataITest.h"
+#include "File.h"
 #include "ObjectRegistryDatabase.h"
 #include "StandardParser.h"
 #include "Vector.h"
@@ -55,12 +57,64 @@ bool EPICSPVStructureDataITest::TestConstructor() {
     float32 pleaseFloat = 3;
     test.Write("PleaseFloat", pleaseFloat);
     test.FinaliseStructure();
+
+    ConfigurationDatabase cdb;
+    test.Copy(cdb);
+    StreamString ss;
+    ss.Printf("%!", cdb);
+    std::cout << ss.Buffer() << std::endl;
+
+    epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
+    epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
+    /*fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->addFixedArray("astringarr", epics::pvData::pvString, 5)->addFixedArray(
+     "adoublearr", epics::pvData::pvDouble, 5)->add("adouble", epics::pvData::pvDouble)->add("astring", epics::pvData::pvString)->endNested()->addNestedStructure(
+     "OneP1")->endNested();*/
+    fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->add("adouble", epics::pvData::pvDouble)->add(
+            "astring", epics::pvData::pvString)->addFixedArray("adoublearr", epics::pvData::pvDouble, 5)->endNested()->addNestedStructure(
+            "OneP1")->endNested();
+    epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());
+    epics::pvData::shared_vector<double> out;
+    out.resize(5);
+    out[0] = -3;
+    out[1] = 3;
+    out[2] = -2;
+    out[3] = 2;
+    out[4] = -1;
+    epics::pvData::shared_vector<const double> outF = freeze(out);
+    epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(structPtr->getSubField("One.adoublearr"));
+    if (scalarArrayPtr) {
+        scalarArrayPtr->putFrom<double>(outF);
+    }
+
+    //std::string name = (argc > 1) ? argv[1] : "anonymous";
+    //arguments->getSubField<PVString>("personsname")->put(name);
+    // Create an RPC client to the "helloService" service
+    epics::pvAccess::RPCClient::shared_pointer client = epics::pvAccess::RPCClient::create("MARTe2App1EPICSConfigurationLoader");
+
+    // Create an RPC request and block until response is received. There is
+    // no need to explicitly wait for connection; this method takes care of it.
+    // In case of an error, an exception is thrown.
+    epics::pvData::PVStructurePtr response = client->request(structPtr, 3.0);
+    response->dumpValue(std::cout);
+
+#if 0
+    EPICSPVStructureDataI test2;
+    test2.InitStructure();
+    ConfigurationDatabase config;
+    File f;
+    f.Open("/home/aneto/Projects/tmp/RTApp-3T.cfg", BasicFile::ACCESS_MODE_R);
+    StandardParser parser(f, config);
+    parser.Parse();
+    config.MoveToRoot();
+    config.Copy(test2);
+    test2.FinaliseStructure();
+#endif
+
     /* test.CreateRelative("TEST1");
      return (test.GetNumberOfChildren() == 0u);*/
     /*epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
-    epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();*/
+     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();*/
     //fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->addFixedArray("astringarr", epics::pvData::pvString, 5)->addFixedArray("adoublearr", epics::pvData::pvDouble, 5)->add("adouble", epics::pvData::pvDouble)->add("astring", epics::pvData::pvString)->endNested()->addNestedStructure("OneP1")->endNested();
-
 #if 0
     test.SetStructure(structPtr);
     test.MoveAbsolute("One.Two");

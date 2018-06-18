@@ -55,14 +55,14 @@ void EPICSObjectRegistryDatabaseService::GetEPICSStructure(epics::pvData::FieldB
     uint32 i;
     uint32 nOfChildren = rc.Size();
     for (i = 0u; i < nOfChildren; i++) {
-        ReferenceT<Object> child = rc.Get(i);
+        ReferenceT < Object > child = rc.Get(i);
         StreamString id;
         //Not sure if this is conceptually correct. In theory this method should only return the meta about the structure.
         //By encoding the name of the object as the name of the structure I'm actually mixing data with metadata.
         id.Printf("%s", child->GetName());
         fieldBuilder = fieldBuilder->addNestedStructure(id.Buffer());
         fieldBuilder = fieldBuilder->add("class", epics::pvData::pvString);
-        ReferenceT<ReferenceContainer> childRC = child;
+        ReferenceT < ReferenceContainer > childRC = child;
         if (childRC.IsValid()) {
             GetEPICSStructure(fieldBuilder, *childRC.operator ->());
         }
@@ -70,25 +70,25 @@ void EPICSObjectRegistryDatabaseService::GetEPICSStructure(epics::pvData::FieldB
     }
 }
 
-void EPICSObjectRegistryDatabaseService::FillEPICSStructure(epics::pvData::PVStructurePtr & pvStructure, ReferenceContainer &rc, MARTe::StreamString fullName) {
+void EPICSObjectRegistryDatabaseService::FillEPICSStructure(epics::pvData::PVStructurePtr & pvStructure, ReferenceContainer &rc,
+                                                            MARTe::StreamString fullName) {
     uint32 i;
     uint32 nOfChildren = rc.Size();
     for (i = 0u; i < nOfChildren; i++) {
-        ReferenceT<Object> child = rc.Get(i);
+        ReferenceT < Object > child = rc.Get(i);
         StreamString id;
         if (fullName.Size() > 0u) {
             id.Printf("%s.", fullName.Buffer());
         }
         id.Printf("%s", child->GetName());
-        ReferenceT<ReferenceContainer> childRC = child;
+        ReferenceT < ReferenceContainer > childRC = child;
         if (childRC.IsValid()) {
             FillEPICSStructure(pvStructure, *childRC.operator ->(), id.Buffer());
         }
 
         StreamString fieldClassName;
         fieldClassName.Printf("%s.class", id.Buffer());
-        epics::pvData::PVStringPtr pvFieldClassName = pvStructure->getSubField<epics::pvData::PVString>(
-                fieldClassName.Buffer());
+        epics::pvData::PVStringPtr pvFieldClassName = pvStructure->getSubField < epics::pvData::PVString > (fieldClassName.Buffer());
         pvFieldClassName->put(child->GetClassProperties()->GetName());
     }
 }
@@ -98,7 +98,6 @@ epics::pvData::PVStructurePtr EPICSObjectRegistryDatabaseService::request(epics:
     ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
     epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
     GetEPICSStructure(fieldBuilder, *ord);
-    //fieldBuilder = fieldBuilder->add("name", epics::pvData::pvString);
     epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
     epics::pvData::PVStructurePtr result(epics::pvData::getPVDataCreate()->createPVStructure(topStructure));
     FillEPICSStructure(result, *ord, "");

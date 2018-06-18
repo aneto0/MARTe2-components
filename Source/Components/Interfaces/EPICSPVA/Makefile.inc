@@ -22,7 +22,8 @@
 #
 #############################################################
 
-OBJSX=EPICSObjectRegistryDatabaseService.x \
+OBJSX=EPICSConfigurationLoader.x \
+	EPICSObjectRegistryDatabaseService.x \
     EPICSPVDatabase.x \
     EPICSPVRecord.x \
     EPICSPVStructureDataI.x \

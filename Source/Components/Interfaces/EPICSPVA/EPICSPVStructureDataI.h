@@ -29,6 +29,7 @@
 /*---------------------------------------------------------------------------*/
 #include "pv/pvData.h"
 #include "pv/pvIntrospect.h"
+#include "pv/sharedVector.h"
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -221,27 +222,28 @@ private:
 namespace MARTe {
 template<typename T>
 bool EPICSPVStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
-bool ok = true;
-epics::pvData::shared_vector<const T> out;
-scalarArrayPtr->getAs<T>(out);
-const void *src = reinterpret_cast<const void *>(out.data());
-if (src != NULL_PTR(void *)) {
-    uint32 size;
-    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
-    size = numberOfElements * storedType.GetTypeDescriptor().numberOfBits / 8u;
-    ok = MemoryOperationsHelper::Copy(value.GetDataPointer(), src, size);
-}
-return ok;
+    bool ok = true;
+    epics::pvData::shared_vector<const T> out;
+    scalarArrayPtr->getAs<T>(out);
+    const void *src = reinterpret_cast<const void *>(out.data());
+    if (src != NULL_PTR(void *)) {
+        uint32 size;
+        uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+        size = numberOfElements * storedType.GetTypeDescriptor().numberOfBits / 8u;
+        ok = MemoryOperationsHelper::Copy(value.GetDataPointer(), src, size);
+    }
+    return ok;
 }
 
 template<typename T>
-bool EPICSPVStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value, const uint32 &size) {
-epics::pvData::shared_vector<const T> out;
-out.resize(storedType.GetNumberOfElements(0u));
-bool ok = MemoryOperationsHelper::Copy(const_cast<void *>(reinterpret_cast<const void *>(out.data())),
-                                       value.GetDataPointer(), size);
-scalarArrayPtr->putFrom<T>(out);
-return ok;
+bool EPICSPVStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value,
+                                       const uint32 &size) {
+    epics::pvData::shared_vector<T> out;
+    out.resize(storedType.GetNumberOfElements(0u));
+    bool ok = MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), value.GetDataPointer(), size);
+    epics::pvData::shared_vector<const T> outF = freeze(out);
+    scalarArrayPtr->putFrom<T>(outF);
+    return ok;
 }
 
 }

@@ -158,8 +158,7 @@ bool EPICSPVRecord::CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr) 
     if (ok) {
         epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
         topStructure->dump(std::cout);
-        epics::pvData::PVDataCreatePtr pvDataCreate = epics::pvData::getPVDataCreate();
-        epics::pvData::PVStructurePtr pvStructure = pvDataCreate->createPVStructure(topStructure);
+        epics::pvData::PVStructurePtr pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
         std::tr1::shared_ptr<MARTe2PVRecord> pvRecordWrapper = std::tr1::shared_ptr<MARTe2PVRecord>(new MARTe2PVRecord(GetName(), pvStructure));
         pvRecordWrapper->initPvt();
         pvRecordPtr = pvRecordWrapper;
