@@ -1,0 +1,26 @@
+#!/bin/bash
+/opt/FlexeLint/flint -i /opt/FlexeLint/supp/lnt \
+-i $MARTe2_DIR/MakeDefaults/Lint/ \
+-i Lint/ \
+-i $MARTe2_DIR/Source/Core/BareMetal/L0Types/ \
+-i $MARTe2_DIR/Source/Core/BareMetal/L0Types/Architecture/x86_gcc \
+-i $MARTe2_DIR/Source/Core/BareMetal/L1Portability/ \
+-i $MARTe2_DIR/Source/Core/BareMetal/L1Portability/Architecture/x86_gcc \
+-i $MARTe2_DIR/Source/Core/BareMetal/L1Portability/Environment/Linux \
+-i $MARTe2_DIR/Source/Core/BareMetal/L1Portability/Environment/Generic \
+-i $MARTe2_DIR/Source/Core/BareMetal/L2Objects/ \
+-i $MARTe2_DIR/Source/Core/BareMetal/L3Streams/ \
+-i $MARTe2_DIR/Source/Core/BareMetal/L4Configuration/ \
+-i $MARTe2_DIR/Source/Core/BareMetal/L4Messages/ \
+-i $MARTe2_DIR/Source/Core/BareMetal/L5GAMs/ \
+-i $MARTe2_DIR/Source/Core/Scheduler/L1Portability/ \
+-i $MARTe2_DIR/Source/Core/Scheduler/L1Portability/Environment/Linux \
+-i $MARTe2_DIR/Source/Core/Scheduler/L1Portability/Environment/Generic \
+-i $MARTe2_DIR/Source/Core/Scheduler/L3Services/ \
+-i $MARTe2_DIR/Source/Core/Scheduler/L4Messages/ \
+-i $MARTe2_DIR/Source/Core/Scheduler/L4StateMachine/ \
+-i $MARTe2_DIR/Source/Core/Scheduler/L5GAMs/ \
+-i $MARTe2_DIR/Source/Core/FileSystem/L1Portability/ \
+-i $MARTe2_DIR/Source/Core/FileSystem/L1Portability/Environment/Linux \
+-i $MARTe2_DIR/Source/Core/BareMetal/L5GAMs/ \
+-v marte_components_flint_eclipse.lnt | grep -v lint-linux.h
