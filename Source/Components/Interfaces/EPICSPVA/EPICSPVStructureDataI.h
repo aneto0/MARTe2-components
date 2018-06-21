@@ -155,6 +155,11 @@ EPICSPVStructureDataI    ();
      */
     void FinaliseStructure();
 
+    /**
+     * @brief TODO
+     */
+    epics::pvData::PVStructurePtr GetRootStruct();
+
 private:
     /**
      * @brief TODO

@@ -1,6 +1,6 @@
 /**
- * @file EPICSConfigurationLoader.h
- * @brief Header file for class EPICSConfigurationLoader
+ * @file EPICSPVAMessageI.h
+ * @brief Header file for class EPICSPVAMessageI
  * @date 18/06/2018
  * @author Andre Neto
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSConfigurationLoader
+ * @details This header file contains the declaration of the class EPICSPVAMessageI
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSCONFIGURATIONLOADER_H_
-#define EPICSCONFIGURATIONLOADER_H_
+#ifndef EPICSPVAMESSAGEI_H_
+#define EPICSPVAMESSAGEI_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -32,6 +32,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "MessageI.h"
 #include "Object.h"
 #include "ReferenceT.h"
 #include "StreamString.h"
@@ -43,19 +44,19 @@
  * @brief TODO
  */
 namespace MARTe {
-class epicsShareClass EPICSConfigurationLoader: public virtual epics::pvAccess::RPCService, public Object {
+class epicsShareClass EPICSPVAMessageI: public virtual epics::pvAccess::RPCService, public Object, public MessageI {
 public:
-    POINTER_DEFINITIONS(EPICSConfigurationLoader);
+    POINTER_DEFINITIONS(EPICSPVAMessageI);
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief TODO
      */
-    EPICSConfigurationLoader();
+    EPICSPVAMessageI();
 
     /**
      * @brief TODO
      */
-    virtual ~EPICSConfigurationLoader();
+    virtual ~EPICSPVAMessageI();
 
     /**
      * @brief TODO

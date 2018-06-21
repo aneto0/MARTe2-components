@@ -24,6 +24,7 @@
 
 OBJSX=EPICSConfigurationLoader.x \
 	EPICSObjectRegistryDatabaseService.x \
+	EPICSPVAMessageI.x \
     EPICSPVDatabase.x \
     EPICSPVRecord.x \
     EPICSPVStructureDataI.x \

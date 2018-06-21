@@ -42,7 +42,7 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-EPICSPVStructureDataI::EPICSPVStructureDataI() {
+EPICSPVStructureDataI::EPICSPVStructureDataI() : Object() {
     structureFinalised = true;
 }
 
@@ -103,7 +103,7 @@ bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value)
             else if (storedType.GetTypeDescriptor() == Float64Bit) {
                 *reinterpret_cast<float64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<float64>();
             }
-            else if (storedType.GetTypeDescriptor() == CharString) {
+            else if ((storedType.GetTypeDescriptor() == CharString) || (storedType.GetTypeDescriptor() == ConstCharString)) {
                 std::string src = scalarFieldPtr->getAs<std::string>();
                 if (value.GetTypeDescriptor().type == SString) {
                     StreamString *dst = static_cast<StreamString *>(value.GetDataPointer());
@@ -152,7 +152,7 @@ bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value)
                 else if (storedType.GetTypeDescriptor() == Float64Bit) {
                     ok = ReadArray<float64>(scalarArrayPtr, storedType, value);
                 }
-                else if (storedType.GetTypeDescriptor() == CharString) {
+                else if ((storedType.GetTypeDescriptor() == CharString) || (storedType.GetTypeDescriptor() == ConstCharString)) {
                     epics::pvData::shared_vector<const std::string> srcStr;
                     scalarArrayPtr->getAs<std::string>(srcStr);
                     if (value.GetTypeDescriptor().type == SString) {
@@ -305,8 +305,11 @@ bool EPICSPVStructureDataI::CreateFromStoredType(const char8 * const name, AnyTy
     else if (storedType.GetTypeDescriptor() == CharString) {
         epicsType = epics::pvData::pvString;
     }
+    else if (storedType.GetTypeDescriptor() == ConstCharString) {
+        epicsType = epics::pvData::pvString;
+    }
     else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
+        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type %s", TypeDescriptor::GetTypeNameFromTypeDescriptor(storedType.GetTypeDescriptor()));
         ok = false;
     }
     if (ok) {
@@ -373,18 +376,14 @@ bool EPICSPVStructureDataI::WriteStoredType(const char8 * const name, AnyType &s
             else if (storedType.GetTypeDescriptor() == Float64Bit) {
                 scalarFieldPtr->putFrom<float64>(*reinterpret_cast<float64 *>(value.GetDataPointer()));
             }
-            else if (storedType.GetTypeDescriptor() == CharString) {
+            else if ((storedType.GetTypeDescriptor() == CharString) || (storedType.GetTypeDescriptor() == ConstCharString)) {
                 if (value.GetTypeDescriptor().type == SString) {
                     StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
                     scalarFieldPtr->putFrom<std::string>(src->Buffer());
                 }
-                else if (value.GetTypeDescriptor() == CharString) {
+                else {
                     char8 *src = static_cast<char8 *>(value.GetDataPointer());
                     scalarFieldPtr->putFrom<std::string>(std::string(src));
-                }
-                else {
-                    REPORT_ERROR(ErrorManagement::ParametersError,
-                                 "Only StreamStrings and char8 * are supported for the serialisation of strings");
                 }
             }
             else {
@@ -426,7 +425,7 @@ bool EPICSPVStructureDataI::WriteStoredType(const char8 * const name, AnyType &s
                 else if (storedType.GetTypeDescriptor() == Float64Bit) {
                     ok = WriteArray<float64>(scalarArrayPtr, storedType, value, size);
                 }
-                else if (storedType.GetTypeDescriptor() == CharString) {
+                else if ((storedType.GetTypeDescriptor() == CharString) || (storedType.GetTypeDescriptor() == ConstCharString)) {
                     epics::pvData::shared_vector<const std::string> out;
                     out.resize(storedType.GetNumberOfElements(0u));
                     if (value.GetTypeDescriptor().type == SString) {
@@ -437,17 +436,13 @@ bool EPICSPVStructureDataI::WriteStoredType(const char8 * const name, AnyType &s
                         }
                         scalarArrayPtr->putFrom<std::string>(out);
                     }
-                    else if (value.GetTypeDescriptor() == CharString) {
+                    else {
                         const char8 **src = static_cast<const char8 **>(value.GetDataPointer());
                         uint32 i;
                         for (i = 0; i < numberOfElements; i++) {
                             *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i];
                         }
                         scalarArrayPtr->putFrom<std::string>(out);
-                    }
-                    else {
-                        REPORT_ERROR(ErrorManagement::ParametersError,
-                                     "Only StreamStrings and char8 * are supported for the serialisation of strings");
                     }
                 }
                 else {
@@ -692,7 +687,11 @@ bool EPICSPVStructureDataI::Delete(const char8 * const name) {
 }
 
 const char8 *EPICSPVStructureDataI::GetName() {
-    return currentStructPtr->getFieldName().c_str();
+    const char8 *name = "";
+    if (currentStructPtr) {
+        name = currentStructPtr->getFieldName().c_str();
+    }
+    return name;
 }
 
 const char8 *EPICSPVStructureDataI::GetChildName(const uint32 index) {
@@ -742,9 +741,16 @@ void EPICSPVStructureDataI::FinaliseStructure() {
     if (ok) {
         ok = ConfigurationDataBaseToPVStructurePtr(rootNode, false);
     }
-    rootStructPtr->dumpValue(std::cout);
+    if (ok) {
+        rootStructPtr->dumpValue(std::cout);
+    }
     cachedCDB.Purge();
 }
+
+epics::pvData::PVStructurePtr EPICSPVStructureDataI::GetRootStruct() {
+    return rootStructPtr;
+}
+
 
 CLASS_REGISTER(EPICSPVStructureDataI, "")
 }

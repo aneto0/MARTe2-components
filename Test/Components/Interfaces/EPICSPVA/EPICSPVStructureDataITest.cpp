@@ -48,32 +48,41 @@ bool EPICSPVStructureDataITest::TestConstructor() {
     using namespace MARTe;
     EPICSPVStructureDataI test;
     test.InitStructure();
-    test.CreateAbsolute("A.B.C.D");
+    /*test.CreateAbsolute("A.B.C.D");
     test.CreateAbsolute("A.B.E");
     test.CreateAbsolute("C.F");
     uint32 please = 3;
     test.Write("Please", please);
     test.MoveAbsolute("A.B.C");
     float32 pleaseFloat = 3;
-    test.Write("PleaseFloat", pleaseFloat);
+    test.Write("PleaseFloat", pleaseFloat);*/
+
+
+    test.CreateAbsolute("_Message");
+    test.Write("Class", "Message");
+    test.Write("Function", "purge");
+    test.CreateRelative("_Payload");
+    test.Write("Root", "TCPMessageProxy");
     test.FinaliseStructure();
 
-    ConfigurationDatabase cdb;
+    test.GetRootStruct()->dumpValue(std::cout);
+    /*ConfigurationDatabase cdb;
     test.Copy(cdb);
     StreamString ss;
     ss.Printf("%!", cdb);
-    std::cout << ss.Buffer() << std::endl;
+    std::cout << ss.Buffer() << std::endl;*/
 
     epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
     /*fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->addFixedArray("astringarr", epics::pvData::pvString, 5)->addFixedArray(
      "adoublearr", epics::pvData::pvDouble, 5)->add("adouble", epics::pvData::pvDouble)->add("astring", epics::pvData::pvString)->endNested()->addNestedStructure(
      "OneP1")->endNested();*/
-    fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->add("adouble", epics::pvData::pvDouble)->add(
+    /*fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->add("adouble", epics::pvData::pvDouble)->add(
             "astring", epics::pvData::pvString)->addFixedArray("adoublearr", epics::pvData::pvDouble, 5)->endNested()->addNestedStructure(
             "OneP1")->endNested();
-    epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());
-    epics::pvData::shared_vector<double> out;
+    epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());*/
+    epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(test.GetRootStruct());
+    /*epics::pvData::shared_vector<double> out;
     out.resize(5);
     out[0] = -3;
     out[1] = 3;
@@ -84,11 +93,12 @@ bool EPICSPVStructureDataITest::TestConstructor() {
     epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(structPtr->getSubField("One.adoublearr"));
     if (scalarArrayPtr) {
         scalarArrayPtr->putFrom<double>(outF);
-    }
+    }*/
 
     //std::string name = (argc > 1) ? argv[1] : "anonymous";
     //arguments->getSubField<PVString>("personsname")->put(name);
     // Create an RPC client to the "helloService" service
+    //epics::pvAccess::RPCClient::shared_pointer client = epics::pvAccess::RPCClient::create("MARTe2App1EPICSConfigurationLoader");
     epics::pvAccess::RPCClient::shared_pointer client = epics::pvAccess::RPCClient::create("MARTe2App1EPICSConfigurationLoader");
 
     // Create an RPC request and block until response is received. There is

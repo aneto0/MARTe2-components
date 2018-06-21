@@ -1,6 +1,6 @@
 /**
- * @file EPICSConfigurationLoader.cpp
- * @brief Source file for class EPICSConfigurationLoader
+ * @file EPICSPVAMessageI.cpp
+ * @brief Source file for class EPICSPVAMessageI
  * @date 18/06/2018
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSConfigurationLoader (public, protected, and private). Be aware that some
+ * the class EPICSPVAMessageI (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -30,8 +30,11 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "EPICSConfigurationLoader.h"
+#include "EPICSPVAMessageI.h"
+#include "EPICSPVStructureDataI.h"
+#include "Message.h"
 #include "ObjectRegistryDatabase.h"
+#include "RegisteredMethodsMessageFilter.h"
 #include "StreamString.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -42,26 +45,63 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-EPICSConfigurationLoader::EPICSConfigurationLoader() :
-        Object() {
+EPICSPVAMessageI::EPICSPVAMessageI() :
+        Object(), MessageI() {
+    ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(
+            GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    filter->SetDestination(this);
+    ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
+    if (!ret.ErrorsCleared()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
+    }
+    ReferenceContainer::AddBuildToken('_');
+}
+
+EPICSPVAMessageI::~EPICSPVAMessageI() {
 
 }
 
-EPICSConfigurationLoader::~EPICSConfigurationLoader() {
-
-}
-
-epics::pvData::PVStructurePtr EPICSConfigurationLoader::request(epics::pvData::PVStructure::shared_pointer const & args)
+epics::pvData::PVStructurePtr EPICSPVAMessageI::request(epics::pvData::PVStructure::shared_pointer const & args)
         throw (epics::pvAccess::RPCRequestException) {
-    //ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+
+    EPICSPVStructureDataI config;
+    config.InitStructure();
+    config.SetStructure(args);
+    ConfigurationDatabase cdbMsg;
+    ReferenceT<ReferenceContainer> rc;
+    ReferenceT<Message> msg;
+    bool ok = config.Copy(cdbMsg);
+    if (ok) {
+        //TODO
+        rc = ReferenceT<ReferenceContainer>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        //In theory I could pass the PVStructure config directly to the Initialise
+        ok = rc->Initialise(cdbMsg);
+    }
+    if (ok) {
+        msg = rc;
+        ok = rc.IsValid();
+    }
+    bool expectsReply = false;
+    if (ok) {
+        expectsReply = msg->ExpectsReply();
+        ErrorManagement::ErrorType err = SendMessage(msg);
+        ok = (err.ErrorsCleared());
+        if (!ok) {
+            REPORT_ERROR(err, "Could not send the message");
+        }
+    }
+
+    if (ok) {
+        if (expectsReply) {
+//...TODO serialise the reply
+        }
+    }
     epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
-    //GetEPICSStructure(fieldBuilder, *ord);
     epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
     epics::pvData::PVStructurePtr result(epics::pvData::getPVDataCreate()->createPVStructure(topStructure));
-    //FillEPICSStructure(result, *ord, "");
     args->dumpValue(std::cout);
     return result;
 }
 
-CLASS_REGISTER(EPICSConfigurationLoader, "1.0")
+CLASS_REGISTER(EPICSPVAMessageI, "1.0")
 }
