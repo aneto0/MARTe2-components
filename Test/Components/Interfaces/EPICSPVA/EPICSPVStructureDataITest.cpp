@@ -60,11 +60,12 @@ bool EPICSPVStructureDataITest::TestConstructor() {
 
     test.CreateAbsolute("_Message");
     test.Write("Class", "Message");
+    test.Write("Destination", "ConfigurationManager");
     test.Write("Function", "purge");
     test.CreateRelative("_Payload");
+    test.Write("Class", "ConfigurationDatabase");
     test.Write("Root", "TCPMessageProxy");
     test.FinaliseStructure();
-
     test.GetRootStruct()->dumpValue(std::cout);
     /*ConfigurationDatabase cdb;
     test.Copy(cdb);

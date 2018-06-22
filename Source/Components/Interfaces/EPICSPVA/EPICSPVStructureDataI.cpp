@@ -42,7 +42,8 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-EPICSPVStructureDataI::EPICSPVStructureDataI() : Object() {
+EPICSPVStructureDataI::EPICSPVStructureDataI() :
+        Object() {
     structureFinalised = true;
 }
 
@@ -103,7 +104,8 @@ bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value)
             else if (storedType.GetTypeDescriptor() == Float64Bit) {
                 *reinterpret_cast<float64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<float64>();
             }
-            else if ((storedType.GetTypeDescriptor() == CharString) || (storedType.GetTypeDescriptor() == ConstCharString)) {
+            else if ((storedType.GetTypeDescriptor().type == CArray) || (storedType.GetTypeDescriptor().type == BT_CCString)
+                    || (storedType.GetTypeDescriptor().type == PCString) || (storedType.GetTypeDescriptor().type == SString)) {
                 std::string src = scalarFieldPtr->getAs<std::string>();
                 if (value.GetTypeDescriptor().type == SString) {
                     StreamString *dst = static_cast<StreamString *>(value.GetDataPointer());
@@ -152,7 +154,8 @@ bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value)
                 else if (storedType.GetTypeDescriptor() == Float64Bit) {
                     ok = ReadArray<float64>(scalarArrayPtr, storedType, value);
                 }
-                else if ((storedType.GetTypeDescriptor() == CharString) || (storedType.GetTypeDescriptor() == ConstCharString)) {
+                else if ((storedType.GetTypeDescriptor().type == CArray) || (storedType.GetTypeDescriptor().type == BT_CCString)
+                        || (storedType.GetTypeDescriptor().type == PCString) || (storedType.GetTypeDescriptor().type == SString)) {
                     epics::pvData::shared_vector<const std::string> srcStr;
                     scalarArrayPtr->getAs<std::string>(srcStr);
                     if (value.GetTypeDescriptor().type == SString) {
@@ -302,14 +305,13 @@ bool EPICSPVStructureDataI::CreateFromStoredType(const char8 * const name, AnyTy
     else if (storedType.GetTypeDescriptor() == Float64Bit) {
         epicsType = epics::pvData::pvDouble;
     }
-    else if (storedType.GetTypeDescriptor() == CharString) {
-        epicsType = epics::pvData::pvString;
-    }
-    else if (storedType.GetTypeDescriptor() == ConstCharString) {
+    else if ((storedType.GetTypeDescriptor().type == CArray) || (storedType.GetTypeDescriptor().type == BT_CCString)
+            || (storedType.GetTypeDescriptor().type == PCString) || (storedType.GetTypeDescriptor().type == SString)) {
         epicsType = epics::pvData::pvString;
     }
     else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type %s", TypeDescriptor::GetTypeNameFromTypeDescriptor(storedType.GetTypeDescriptor()));
+        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type %s",
+                     TypeDescriptor::GetTypeNameFromTypeDescriptor(storedType.GetTypeDescriptor()));
         ok = false;
     }
     if (ok) {
@@ -376,7 +378,8 @@ bool EPICSPVStructureDataI::WriteStoredType(const char8 * const name, AnyType &s
             else if (storedType.GetTypeDescriptor() == Float64Bit) {
                 scalarFieldPtr->putFrom<float64>(*reinterpret_cast<float64 *>(value.GetDataPointer()));
             }
-            else if ((storedType.GetTypeDescriptor() == CharString) || (storedType.GetTypeDescriptor() == ConstCharString)) {
+            else if ((storedType.GetTypeDescriptor().type == CArray) || (storedType.GetTypeDescriptor().type == BT_CCString)
+                    || (storedType.GetTypeDescriptor().type == PCString) || (storedType.GetTypeDescriptor().type == SString)) {
                 if (value.GetTypeDescriptor().type == SString) {
                     StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
                     scalarFieldPtr->putFrom<std::string>(src->Buffer());
@@ -425,7 +428,8 @@ bool EPICSPVStructureDataI::WriteStoredType(const char8 * const name, AnyType &s
                 else if (storedType.GetTypeDescriptor() == Float64Bit) {
                     ok = WriteArray<float64>(scalarArrayPtr, storedType, value, size);
                 }
-                else if ((storedType.GetTypeDescriptor() == CharString) || (storedType.GetTypeDescriptor() == ConstCharString)) {
+                else if ((storedType.GetTypeDescriptor().type == CArray) || (storedType.GetTypeDescriptor().type == BT_CCString)
+                        || (storedType.GetTypeDescriptor().type == PCString) || (storedType.GetTypeDescriptor().type == SString)) {
                     epics::pvData::shared_vector<const std::string> out;
                     out.resize(storedType.GetNumberOfElements(0u));
                     if (value.GetTypeDescriptor().type == SString) {
@@ -499,22 +503,35 @@ bool EPICSPVStructureDataI::Copy(StructuredDataI &destination) {
         else {
             AnyType at = GetType(childName);
             if (at.GetTypeDescriptor() != voidAnyType.GetTypeDescriptor()) {
-                uint32 nOfElements0 = at.GetNumberOfElements(0u);
-                uint32 nOfElements1 = at.GetNumberOfElements(1u);
-                if (nOfElements0 < 1u) {
-                    nOfElements0 = 1u;
+                if ((at.GetTypeDescriptor().type == CArray) || (at.GetTypeDescriptor().type == BT_CCString)
+                                        || (at.GetTypeDescriptor().type == PCString) || (at.GetTypeDescriptor().type == SString)) {
+                    StreamString ss;
+                    ok = Read(childName, ss);
+                    if (ok) {
+                        ok = ss.Seek(0LLU);
+                    }
+                    if (ok) {
+                        ok = destination.Write(childName, ss);
+                    }
                 }
-                if (nOfElements1 < 1u) {
-                    nOfElements1 = 1u;
+                else {
+                    uint32 nOfElements0 = at.GetNumberOfElements(0u);
+                    uint32 nOfElements1 = at.GetNumberOfElements(1u);
+                    if (nOfElements0 < 1u) {
+                        nOfElements0 = 1u;
+                    }
+                    if (nOfElements1 < 1u) {
+                        nOfElements1 = 1u;
+                    }
+                    uint32 memSize = nOfElements0 * nOfElements1 * at.GetTypeDescriptor().numberOfBits / 8u;
+                    char8 *mem = new char8[memSize];
+                    at.SetDataPointer(&mem[0]);
+                    ok = Read(childName, at);
+                    if (ok) {
+                        ok = destination.Write(childName, at);
+                    }
+                    delete mem;
                 }
-                uint32 memSize = nOfElements0 *nOfElements1 * at.GetTypeDescriptor().numberOfBits / 8u;
-                char8 *mem = new char8[memSize];
-                at.SetDataPointer(&mem[0]);
-                ok = Read(childName, at);
-                if (ok) {
-                    ok = destination.Write(childName, at);
-                }
-                delete mem;
             }
         }
     }
@@ -750,7 +767,6 @@ void EPICSPVStructureDataI::FinaliseStructure() {
 epics::pvData::PVStructurePtr EPICSPVStructureDataI::GetRootStruct() {
     return rootStructPtr;
 }
-
 
 CLASS_REGISTER(EPICSPVStructureDataI, "")
 }

@@ -78,8 +78,11 @@ epics::pvData::PVStructurePtr EPICSPVAMessageI::request(epics::pvData::PVStructu
         ok = rc->Initialise(cdbMsg);
     }
     if (ok) {
-        msg = rc;
-        ok = rc.IsValid();
+        msg = rc->Get(0u);
+        ok = msg.IsValid();
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The request is not a valid MARTe message");
+        }
     }
     bool expectsReply = false;
     if (ok) {
