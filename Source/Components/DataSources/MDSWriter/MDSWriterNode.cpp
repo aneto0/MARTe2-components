@@ -44,6 +44,8 @@ MDSWriterNode::MDSWriterNode() {
     nodeName = "";
     nodeType = 0;
     numberOfElements = 0u;
+    numberOfSamples = 0u;
+    numberOfDimensions = 0u;
     period = 0.F;
     phaseShift = 0;
     node = NULL_PTR(MDSplus::TreeNode *);
@@ -157,6 +159,37 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         }
     }
     if (ok) {
+        ok = (data.Read("NumberOfSamples", numberOfSamples));
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NumberOfSamples shall be specified");
+        }
+    }
+    if (ok) {
+        ok = (numberOfSamples > 0u);
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NumberOfSamples shall be positive");
+        }
+    }
+    if (ok) {
+        ok = (data.Read("NumberOfDimensions", numberOfDimensions));
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NumberOfDimensions shall be specified");
+        }
+        if (ok) {
+            ok = (numberOfDimensions == 0) || (numberOfDimensions = 1);
+            if (!ok) {
+                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NumberOfDimensions shall be > 0");
+            }
+        }
+    }
+    if (ok) {
+        segmentDim[0] = numberOfSamples;
+        if (numberOfDimensions == 1) {
+            segmentDim[1] = numberOfElements;
+            segmentDim[2] = 1;
+        }
+    }
+    if (ok) {
         ok = (data.Read("Period", period));
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Period shall be specified");
@@ -210,14 +243,13 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         }
 
         uint32 bufferedDataSize = static_cast<uint32>(typeMultiplier);
-        bufferedDataSize *= numberOfElements * makeSegmentAfterNWrites;
+        bufferedDataSize *= numberOfElements * makeSegmentAfterNWrites * numberOfSamples;
 
         bufferedData = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufferedDataSize));
 
-        float64 executePeriodMicroSecondF = static_cast<float64>(numberOfElements) * period * 1e6;
+        float64 executePeriodMicroSecondF = static_cast<float64>(numberOfSamples) * period * 1e6;
         executePeriodMicroSecondF += 0.5F;
         executePeriodMicroSecond = static_cast<uint32>(executePeriodMicroSecondF);
-
     }
     return ok;
 }
@@ -330,11 +362,11 @@ bool MDSWriterNode::Execute() {
     //Sufficient data to make a segment
     if ((ok) && (storeNow)) {
         //Notice that currentBuffer is not incremented if a discontinuity is found
-        int32 numberOfElementsPerSegment = static_cast<int32>(numberOfElements) * static_cast<int32>(currentBuffer);
+        int32 numberOfSamplesPerSegment = static_cast<int32>(numberOfSamples) * static_cast<int32>(currentBuffer);
 
-        int32 numberOfElementsPerSegmentM1 = numberOfElementsPerSegment - 1;
-        float64 numberOfElementsPerSegmentF = static_cast<float64>(numberOfElementsPerSegmentM1);
-        float64 end = start + (numberOfElementsPerSegmentF * period);
+        int32 numberOfSamplesPerSegmentM1 = numberOfSamplesPerSegment - 1;
+        float64 numberOfSamplesPerSegmentF = static_cast<float64>(numberOfSamplesPerSegmentM1);
+        float64 end = start + (numberOfSamplesPerSegmentF * period);
         //lint -e{429} freed by MDSplus upon deletion of dimension
         MDSplus::Data *startD = new MDSplus::Float64(start);
         //lint -e{429} freed by MDSplus upon deletion of dimension
@@ -345,31 +377,31 @@ bool MDSWriterNode::Execute() {
         MDSplus::Array *array = NULL_PTR(MDSplus::Array *);
 
         if (!useTimeVector) {
-            start += static_cast<float64>(numberOfElementsPerSegment) * period;
+            start += static_cast<float64>(numberOfSamplesPerSegment) * period;
         }
         if (nodeType == DTYPE_W) {
-            array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), numberOfElementsPerSegment);
+            array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), 3, segmentDim);
         }
         else if (nodeType == DTYPE_WU) {
-            array = new MDSplus::Uint16Array(reinterpret_cast<uint16 *>(bufferedData), numberOfElementsPerSegment);
+            array = new MDSplus::Uint16Array(reinterpret_cast<uint16 *>(bufferedData), 3, segmentDim);
         }
         else if (nodeType == DTYPE_L) {
-            array = new MDSplus::Int32Array(reinterpret_cast<int32 *>(bufferedData), numberOfElementsPerSegment);
+            array = new MDSplus::Int32Array(reinterpret_cast<int32 *>(bufferedData), 3, segmentDim);
         }
         else if (nodeType == DTYPE_LU) {
-            array = new MDSplus::Uint32Array(reinterpret_cast<uint32 *>(bufferedData), numberOfElementsPerSegment);
+            array = new MDSplus::Uint32Array(reinterpret_cast<uint32 *>(bufferedData), 3, segmentDim);
         }
         else if (nodeType == DTYPE_Q) {
-            array = new MDSplus::Int64Array(reinterpret_cast<int64_t *>(bufferedData), numberOfElementsPerSegment);
+            array = new MDSplus::Int64Array(reinterpret_cast<int64_t *>(bufferedData), 3, segmentDim);
         }
         else if (nodeType == DTYPE_QU) {
-            array = new MDSplus::Uint64Array(reinterpret_cast<uint64_t *>(bufferedData), numberOfElementsPerSegment);
+            array = new MDSplus::Uint64Array(reinterpret_cast<uint64_t *>(bufferedData), 3, segmentDim);
         }
         else if (nodeType == DTYPE_FLOAT) {
-            array = new MDSplus::Float32Array(reinterpret_cast<float32*>(bufferedData), numberOfElementsPerSegment);
+            array = new MDSplus::Float32Array(reinterpret_cast<float32*>(bufferedData), 3, segmentDim);
         }
         else if (nodeType == DTYPE_DOUBLE) {
-            array = new MDSplus::Float64Array(reinterpret_cast<float64*>(bufferedData), numberOfElementsPerSegment);
+            array = new MDSplus::Float64Array(reinterpret_cast<float64*>(bufferedData), 3, segmentDim);
         }
         else {
             //An invalid nodeType is trapped before.

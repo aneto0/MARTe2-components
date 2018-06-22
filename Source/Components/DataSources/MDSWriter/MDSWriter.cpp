@@ -45,7 +45,8 @@ namespace MARTe {
 static const int32 MDS_UNDEFINED_PULSE_NUMBER = -2;
 
 MDSWriter::MDSWriter() :
-        DataSourceI(), MessageI() {
+        DataSourceI(),
+        MessageI() {
     storeOnTrigger = false;
     numberOfPreTriggers = 0u;
     numberOfPostTriggers = 0u;
@@ -105,7 +106,9 @@ uint32 MDSWriter::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool MDSWriter::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
+bool MDSWriter::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                      const uint32 bufferIdx,
+                                      void*& signalAddress) {
     bool ok = (dataSourceMemory != NULL_PTR(char8 *));
     if (ok) {
         /*lint -e{613} dataSourceMemory cannot be NULL here*/
@@ -116,7 +119,8 @@ bool MDSWriter::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction and on the storeOnTrigger property (which is load before).*/
-const char8* MDSWriter::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
+const char8* MDSWriter::GetBrokerName(StructuredDataI& data,
+                                      const SignalDirection direction) {
     const char8* brokerName = "";
     if (direction == OutputSignals) {
         if (storeOnTrigger) {
@@ -130,11 +134,15 @@ const char8* MDSWriter::GetBrokerName(StructuredDataI& data, const SignalDirecti
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: InputBrokers are not supported. Function returns false irrespectively of the parameters.*/
-bool MDSWriter::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool MDSWriter::GetInputBrokers(ReferenceContainer& inputBrokers,
+                                const char8* const functionName,
+                                void* const gamMemPtr) {
     return false;
 }
 
-bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers,
+                                 const char8* const functionName,
+                                 void* const gamMemPtr) {
     bool ok = true;
     if (storeOnTrigger) {
         ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
@@ -182,7 +190,8 @@ bool MDSWriter::Synchronise() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool MDSWriter::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool MDSWriter::PrepareNextState(const char8* const currentStateName,
+                                 const char8* const nextStateName) {
     return true;
 }
 
@@ -343,24 +352,48 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
         ok = data.MoveRelative("Signals");
     }
     //Check signal properties and compute memory
+    uint32 *signalSamples = NULL_PTR(uint32 *);
     uint32 totalSignalMemory = 0u;
     if (ok) {
-        //Do not allow samples
         uint32 functionNumberOfSignals = 0u;
         uint32 n;
         if (GetFunctionNumberOfSignals(OutputSignals, 0u, functionNumberOfSignals)) {
-            for (n = 0u; (n < functionNumberOfSignals) && (ok); n++) {
+            StreamString GAMSignalName;
+            uint32 dataSourceIdx = 0;
+            signalSamples = new uint32 [functionNumberOfSignals];
+            for (n = 0u; (n < functionNumberOfSignals) && (ok); n++) { //get samples and save in the dataSource order
                 uint32 nSamples;
                 ok = GetFunctionSignalSamples(OutputSignals, 0u, n, nSamples);
-                if (ok) {
-                    ok = (nSamples == 1u);
-                }
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples shall be exactly 1");
+                    uint32 auxIdx = n;
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error while getting GetFunctionSignalSamples(OutputSignals, 0u, %u, nSamples)", auxIdx);
+                }
+                if (ok) { //Verify value
+                    ok = (nSamples > 0u);
+                    if (!ok) {
+                        uint32 auxIdx = n;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Number of samples for GAM index = %u must be positive)", auxIdx);
+                    }
+                    if (ok) {
+                        ok = GetFunctionSignalAlias(OutputSignals, 0u, n, GAMSignalName);
+                        if (!ok) {
+                            uint32 auxIdx = n;
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Error while getting GetFunctionSignalAlias(OutputSignals, 0u, %u, GAMSignalName)",
+                                         auxIdx);
+                        }
+                        if (ok) {
+                            GetSignalIndex(dataSourceIdx, GAMSignalName.Buffer());
+                        }
+                        if (!ok) {
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Error while getting GetSignalIndex(dataSourceIdx, %s)", GAMSignalName.Buffer());
+                        }
+                        if (ok) {
+                            signalSamples[dataSourceIdx] = nSamples;
+                        }
+                    }
                 }
             }
         }
-
         offsets = new uint32[GetNumberOfSignals()];
         uint32 nOfSignals = GetNumberOfSignals();
         //Count the number of bytes
@@ -401,6 +434,28 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 ok = GetSignalNumberOfElements(n, nElements);
                 if (ok) {
                     ok = originalSignalInformation.Write("NumberOfElements", nElements);
+                }
+            }
+            if (ok) {
+                ok = originalSignalInformation.Write("NumberOfSamples", signalSamples[n]);
+            }
+            if (ok) {                //Read dimensions. Matrix not supported yet!
+                uint8 auxNumberOfDimensions = 32; //invalid number
+                ok = GetSignalNumberOfDimensions(n, auxNumberOfDimensions);
+                if (!ok) {
+                    uint32 auxIdx = n;
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Error while getting GetSignalNumberOfDimensions(%u, auxNumberOfDimensions)", auxIdx);
+                }
+                if (ok) {
+                    ok = (auxNumberOfDimensions == 0u) || (auxNumberOfDimensions == 1);
+                    if (!ok) {
+                        uint32 auxIdx = n;
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                                     "Dimensions must be 0 (scalar) or 1 (vector). current dimension = %u for signal index = %u", auxNumberOfDimensions, auxIdx);
+                    }
+                }
+                if(ok){
+                    ok = originalSignalInformation.Write("NumberOfDimensions", auxNumberOfDimensions);
                 }
             }
             if (originalSignalInformation.Read("NodeName", nodeName)) {
@@ -494,7 +549,10 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
     if (pulseNumber != MDS_UNDEFINED_PULSE_NUMBER) {
         ok = (OpenTree(pulseNumber) == ErrorManagement::NoError);
     }
-
+    if(signalSamples != NULL_PTR(uint32 *)){
+        delete[] signalSamples;
+        signalSamples = NULL_PTR(uint32 *);
+    }
     return ok;
 }
 

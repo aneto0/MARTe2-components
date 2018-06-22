@@ -234,9 +234,26 @@ private:
     int32 nodeType;
 
     /**
-     * Number of samples to be stored on each Execute operation
+     * Number of elements per sample
      */
     uint32 numberOfElements;
+
+    /**
+     * Number of samples to be stored (maybe 1 sample is an array or a matrix)
+     */
+    uint32 numberOfSamples;
+
+    /**
+     * Number of dimension of the current node
+     */
+    uint8 numberOfDimensions;
+
+    /**
+     * Segment dimensions. Indicates the dimensions of the data to be stored in the node.
+     * segmentDim[0] is number of samples. segmentDim[1] is the number of elements of a row,
+     * segmentDim[2] is the number of elements of a column (currently matrix not supported) then dim[2] = 1
+     */
+    int32 segmentDim[3];
 
     /**
      * Absolute start time of the next segment to be stored.
