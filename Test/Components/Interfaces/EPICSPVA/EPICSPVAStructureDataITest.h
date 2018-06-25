@@ -1,7 +1,7 @@
 /**
- * @file EPICSPVStructureDataIGTest.cpp
- * @brief Source file for class EPICSPVStructureDataIGTest
- * @date 27/03/2017
+ * @file EPICSPVStructureDataITest.h
+ * @brief Header file for class EPICSPVStructureDataITest
+ * @date 13/06/2018
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,31 +16,40 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This source file contains the definition of all the methods for
- * the class EPICSPVStructureDataIGTest (public, protected, and private). Be aware that some
- * methods, such as those inline could be defined on the header file, instead.
+ * @details This header file contains the declaration of the class EPICSPVStructureDataITest
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
  */
 
-/*---------------------------------------------------------------------------*/
-/*                         Standard header includes                          */
-/*---------------------------------------------------------------------------*/
-#include <limits.h>
-#include "gtest/gtest.h"
+#ifndef EPICSPVASTRUCTUREDATAI_H_
+#define EPICSPVASTRUCTUREDATAI_H_
 
 /*---------------------------------------------------------------------------*/
-/*                         Project header includes                           */
-/*---------------------------------------------------------------------------*/
-#include "EPICSPVStructureDataITest.h"
-
-/*---------------------------------------------------------------------------*/
-/*                           Static definitions                              */
+/*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
-/*                           Method definitions                              */
+/*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-TEST(EPICSPVStructureDataIGTest,TestConstructor) {
-    EPICSPVStructureDataITest test;
-    ASSERT_TRUE(test.TestConstructor());
-}
+
+/*---------------------------------------------------------------------------*/
+/*                           Class declaration                               */
+/*---------------------------------------------------------------------------*/
+/**
+ * @brief Tests the EPICSPVStructureDataI public methods.
+ */
+class EPICSPVAStructureDataITest {
+public:
+    /**
+     * @brief Tests the constructor.
+     */
+    bool TestConstructor();
+
+};
+
+/*---------------------------------------------------------------------------*/
+/*                        Inline method definitions                          */
+/*---------------------------------------------------------------------------*/
+
+#endif /* EPICSPVASTRUCTUREDATAI_H_ */
 

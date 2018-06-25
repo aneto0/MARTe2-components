@@ -1,6 +1,6 @@
 /**
- * @file EPICSPVStructureDataI.h
- * @brief Header file for class EPICSPVStructureDataI
+ * @file EPICSPVAStructureDataI.h
+ * @brief Header file for class EPICSPVAStructureDataI
  * @date 13/06/2018
  * @author Andre Neto
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSPVStructureDataI
+ * @details This header file contains the declaration of the class EPICSPVAStructureDataI
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSPVA_EPICSPVSTRUCTUREDATAI_H_
-#define EPICSPVA_EPICSPVSTRUCTUREDATAI_H_
+#ifndef EPICSPVA_EPICSPVASTRUCTUREDATAI_H_
+#define EPICSPVA_EPICSPVASTRUCTUREDATAI_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -47,18 +47,18 @@ namespace MARTe {
 /**
  * @brief TODO
  */
-class EPICSPVStructureDataI: public StructuredDataI, public Object {
+class EPICSPVAStructureDataI: public StructuredDataI, public Object {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief TODO
      */
-EPICSPVStructureDataI    ();
+EPICSPVAStructureDataI    ();
 
     /**
      * @brief TODO
      */
-    virtual ~EPICSPVStructureDataI();
+    virtual ~EPICSPVAStructureDataI();
 
     /**
      * @brief TODO
@@ -226,7 +226,7 @@ private:
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 template<typename T>
-bool EPICSPVStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
+bool EPICSPVAStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
     bool ok = true;
     epics::pvData::shared_vector<const T> out;
     scalarArrayPtr->getAs<T>(out);
@@ -241,7 +241,7 @@ bool EPICSPVStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArra
 }
 
 template<typename T>
-bool EPICSPVStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value,
+bool EPICSPVAStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value,
                                        const uint32 &size) {
     epics::pvData::shared_vector<T> out;
     out.resize(storedType.GetNumberOfElements(0u));
@@ -252,4 +252,4 @@ bool EPICSPVStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarArr
 }
 
 }
-#endif /* EPICSPVSTRUCTUREDATAI_H_ */
+#endif /* EPICSPVA_EPICSPVASTRUCTUREDATAI_H_ */

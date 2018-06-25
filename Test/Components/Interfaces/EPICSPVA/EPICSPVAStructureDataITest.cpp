@@ -30,12 +30,12 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "ConfigurationDatabase.h"
-#include "EPICSPVStructureDataI.h"
-#include "EPICSPVStructureDataITest.h"
+#include <EPICSPVAStructureDataI.h>
 #include "File.h"
 #include "ObjectRegistryDatabase.h"
 #include "StandardParser.h"
 #include "Vector.h"
+#include "EPICSPVAStructureDataITest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -44,9 +44,9 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-bool EPICSPVStructureDataITest::TestConstructor() {
+bool EPICSPVAStructureDataITest::TestConstructor() {
     using namespace MARTe;
-    EPICSPVStructureDataI test;
+    EPICSPVAStructureDataI test;
     test.InitStructure();
     /*test.CreateAbsolute("A.B.C.D");
     test.CreateAbsolute("A.B.E");
@@ -62,6 +62,7 @@ bool EPICSPVStructureDataITest::TestConstructor() {
     test.Write("Class", "Message");
     test.Write("Destination", "ConfigurationManager");
     test.Write("Function", "purge");
+    test.Write("Mode", "ExpectsReply");
     test.CreateRelative("_Payload");
     test.Write("Class", "ConfigurationDatabase");
     test.Write("Root", "TCPMessageProxy");
@@ -109,7 +110,7 @@ bool EPICSPVStructureDataITest::TestConstructor() {
     response->dumpValue(std::cout);
 
 #if 0
-    EPICSPVStructureDataI test2;
+    EPICSPVAStructureDataI test2;
     test2.InitStructure();
     ConfigurationDatabase config;
     File f;

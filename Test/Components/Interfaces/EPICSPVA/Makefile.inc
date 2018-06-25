@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  EPICSPVStructureDataITest.x
+OBJSX +=  EPICSPVAStructureDataITest.x
 		
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..

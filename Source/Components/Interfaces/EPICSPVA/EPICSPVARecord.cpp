@@ -1,6 +1,6 @@
 /**
- * @file EPICSPVRecord.cpp
- * @brief Source file for class EPICSPVRecord
+ * @file EPICSPVARecord.cpp
+ * @brief Source file for class EPICSPVARecord
  * @date 12/06/2018
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSPVRecord (public, protected, and private). Be aware that some
+ * the class EPICSPVARecord (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -31,7 +31,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "EPICSPVRecord.h"
+#include "EPICSPVARecord.h"
 #include "ObjectRegistryDatabase.h"
 #include "StreamString.h"
 /*---------------------------------------------------------------------------*/
@@ -39,10 +39,10 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 //The PVRecord has some protected members... that need to be exposed
-class epicsShareClass MARTe2PVRecord: public epics::pvDatabase::PVRecord {
+class epicsShareClass MARTe2PVARecord: public epics::pvDatabase::PVRecord {
 public:
-    POINTER_DEFINITIONS(MARTe2PVRecord);
-    MARTe2PVRecord(std::string const & recordName, epics::pvData::PVStructurePtr const & pvStructure) :
+    POINTER_DEFINITIONS(MARTe2PVARecord);
+    MARTe2PVARecord(std::string const & recordName, epics::pvData::PVStructurePtr const & pvStructure) :
     epics::pvDatabase::PVRecord(recordName, pvStructure) {
     }
 
@@ -57,16 +57,16 @@ public:
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-EPICSPVRecord::EPICSPVRecord() :
+EPICSPVARecord::EPICSPVARecord() :
     Object() {
 
 }
 
-EPICSPVRecord::~EPICSPVRecord() {
+EPICSPVARecord::~EPICSPVARecord() {
 
 }
 
-bool EPICSPVRecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuilder, ConfigurationDatabase &cdb) {
+bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuilder, ConfigurationDatabase &cdb) {
     uint32 i;
     uint32 nOfChildren = cdb.GetNumberOfChildren();
     bool ok = true;
@@ -136,7 +136,7 @@ bool EPICSPVRecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuild
     return ok;
 }
 
-bool EPICSPVRecord::Initialise(StructuredDataI &data) {
+bool EPICSPVARecord::Initialise(StructuredDataI &data) {
     bool ok = Object::Initialise(data);
     if (ok) {
         cdb = dynamic_cast<ConfigurationDatabase &>(data);
@@ -150,7 +150,7 @@ bool EPICSPVRecord::Initialise(StructuredDataI &data) {
     return ok;
 }
 
-bool EPICSPVRecord::CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr) {
+bool EPICSPVARecord::CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr) {
     epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
 
@@ -159,7 +159,7 @@ bool EPICSPVRecord::CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr) 
         epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
         topStructure->dump(std::cout);
         epics::pvData::PVStructurePtr pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
-        std::tr1::shared_ptr<MARTe2PVRecord> pvRecordWrapper = std::tr1::shared_ptr<MARTe2PVRecord>(new MARTe2PVRecord(GetName(), pvStructure));
+        std::tr1::shared_ptr<MARTe2PVARecord> pvRecordWrapper = std::tr1::shared_ptr<MARTe2PVARecord>(new MARTe2PVARecord(GetName(), pvStructure));
         pvRecordWrapper->initPvt();
         pvRecordPtr = pvRecordWrapper;
     }
@@ -167,5 +167,5 @@ bool EPICSPVRecord::CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr) 
 
 }
 
-CLASS_REGISTER(EPICSPVRecord, "1.0")
+CLASS_REGISTER(EPICSPVARecord, "1.0")
 }

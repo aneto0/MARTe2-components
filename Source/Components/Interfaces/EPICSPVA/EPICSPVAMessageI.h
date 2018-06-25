@@ -69,4 +69,4 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSCONFIGURATIONLOADER_H_ */
+#endif /* EPICSPVAMESSAGEI_H_ */

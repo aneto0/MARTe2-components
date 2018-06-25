@@ -24,6 +24,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include <EPICSPVAStructureDataI.h>
 #include "pv/pvData.h"
 
 /*---------------------------------------------------------------------------*/
@@ -31,7 +32,6 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "EPICSPVAMessageI.h"
-#include "EPICSPVStructureDataI.h"
 #include "Message.h"
 #include "ObjectRegistryDatabase.h"
 #include "RegisteredMethodsMessageFilter.h"
@@ -64,7 +64,7 @@ EPICSPVAMessageI::~EPICSPVAMessageI() {
 epics::pvData::PVStructurePtr EPICSPVAMessageI::request(epics::pvData::PVStructure::shared_pointer const & args)
         throw (epics::pvAccess::RPCRequestException) {
 
-    EPICSPVStructureDataI config;
+    EPICSPVAStructureDataI config;
     config.InitStructure();
     config.SetStructure(args);
     ConfigurationDatabase cdbMsg;
@@ -72,9 +72,8 @@ epics::pvData::PVStructurePtr EPICSPVAMessageI::request(epics::pvData::PVStructu
     ReferenceT<Message> msg;
     bool ok = config.Copy(cdbMsg);
     if (ok) {
-        //TODO
         rc = ReferenceT<ReferenceContainer>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-        //In theory I could pass the PVStructure config directly to the Initialise
+        //In theory I could have passed the PVStructure config directly to the Initialise
         ok = rc->Initialise(cdbMsg);
     }
     if (ok) {
@@ -84,26 +83,39 @@ epics::pvData::PVStructurePtr EPICSPVAMessageI::request(epics::pvData::PVStructu
             REPORT_ERROR(ErrorManagement::ParametersError, "The request is not a valid MARTe message");
         }
     }
+    ErrorManagement::ErrorType err;
     bool expectsReply = false;
     if (ok) {
         expectsReply = msg->ExpectsReply();
-        ErrorManagement::ErrorType err = SendMessage(msg);
+        err = SendMessage(msg, this);
+
         ok = (err.ErrorsCleared());
         if (!ok) {
             REPORT_ERROR(err, "Could not send the message");
         }
     }
 
-    if (ok) {
-        if (expectsReply) {
-//...TODO serialise the reply
+    epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
+    if (expectsReply) {
+        fieldBuilder->add("Reply", epics::pvData::pvString);
+    }
+    epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
+    epics::pvData::PVStructurePtr reply(epics::pvData::getPVDataCreate()->createPVStructure(topStructure));
+    if (expectsReply) {
+        epics::pvData::PVScalarPtr replyFieldPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalar>(reply->getSubField("Reply"));
+        if (replyFieldPtr) {
+            if (err.ErrorsCleared()) {
+                replyFieldPtr->putFrom<std::string>("OK");
+            }
+            else {
+                replyFieldPtr->putFrom<std::string>("ERROR");
+            }
         }
     }
-    epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
-    epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
-    epics::pvData::PVStructurePtr result(epics::pvData::getPVDataCreate()->createPVStructure(topStructure));
+
     args->dumpValue(std::cout);
-    return result;
+    reply->dumpValue(std::cout);
+    return reply;
 }
 
 CLASS_REGISTER(EPICSPVAMessageI, "1.0")

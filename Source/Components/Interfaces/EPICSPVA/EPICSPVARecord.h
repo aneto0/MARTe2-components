@@ -1,6 +1,6 @@
 /**
- * @file EPICSPVRecord.h
- * @brief Header file for class EPICSPVRecord
+ * @file EPICSPVARecord.h
+ * @brief Header file for class EPICSPVARecord
  * @date 12/06/2018
  * @author Andre Neto
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSPVRecord
+ * @details This header file contains the declaration of the class EPICSPVARecord
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSPVRECORD_H_
-#define EPICSPVRECORD_H_
+#ifndef EPICSPVARECORD_H_
+#define EPICSPVARECORD_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -44,18 +44,18 @@
  * @brief TODO
  */
 namespace MARTe {
-class EPICSPVRecord: public Object {
+class EPICSPVARecord: public Object {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief TODO
      */
-    EPICSPVRecord();
+    EPICSPVARecord();
 
     /**
      * @brief TODO
      */
-    virtual ~EPICSPVRecord();
+    virtual ~EPICSPVARecord();
 
     /**
      * @brief TODO
@@ -83,4 +83,4 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSPVRECORD_H_ */
+#endif /* EPICSPVARECORD_H_ */

@@ -1,6 +1,6 @@
 /**
- * @file EPICSPVDatabase.cpp
- * @brief Source file for class EPICSPVDatabase
+ * @file EPICSPVADatabase.cpp
+ * @brief Source file for class EPICSPVADatabase
  * @date 12/06/2018
  * @author Andre Neto
  *
@@ -17,13 +17,15 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSPVDatabase (public, protected, and private). Be aware that some
+ * the class EPICSPVADatabase (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include "EPICSPVADatabase.h"
+
 #include "pv/channelProviderLocal.h"
 #include "pv/pvAccess.h"
 #include "pv/pvaConstants.h"
@@ -35,8 +37,7 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
-#include "EPICSPVDatabase.h"
-#include "EPICSPVRecord.h"
+#include "EPICSPVARecord.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
@@ -48,7 +49,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-EPICSPVDatabase::EPICSPVDatabase() :
+EPICSPVADatabase::EPICSPVADatabase() :
         ReferenceContainer(),
         MessageI(),
         executor(*this) {
@@ -63,11 +64,11 @@ EPICSPVDatabase::EPICSPVDatabase() :
     }
 }
 
-EPICSPVDatabase::~EPICSPVDatabase() {
+EPICSPVADatabase::~EPICSPVADatabase() {
 
 }
 
-void EPICSPVDatabase::Purge(ReferenceContainer &purgeList) {
+void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
@@ -76,7 +77,7 @@ void EPICSPVDatabase::Purge(ReferenceContainer &purgeList) {
     ReferenceContainer::Purge(purgeList);
 }
 
-bool EPICSPVDatabase::Initialise(StructuredDataI & data) {
+bool EPICSPVADatabase::Initialise(StructuredDataI & data) {
     bool ok = ReferenceContainer::Initialise(data);
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
@@ -96,12 +97,12 @@ bool EPICSPVDatabase::Initialise(StructuredDataI & data) {
     return ok;
 }
 
-ErrorManagement::ErrorType EPICSPVDatabase::Start() {
+ErrorManagement::ErrorType EPICSPVADatabase::Start() {
     ErrorManagement::ErrorType err = executor.Start();
     return err;
 }
 
-ErrorManagement::ErrorType EPICSPVDatabase::Execute(ExecutionInfo& info) {
+ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
 
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() == ExecutionInfo::StartupStage) {
@@ -112,7 +113,7 @@ ErrorManagement::ErrorType EPICSPVDatabase::Execute(ExecutionInfo& info) {
         epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();
         for (i = 0u; (i < nOfRecords) && (ok); i++) {
             // register our service as "helloService"
-            ReferenceT<EPICSPVRecord> record = Get(i);
+            ReferenceT<EPICSPVARecord> record = Get(i);
             if (record.IsValid()) {
                 epics::pvDatabase::PVRecordPtr pvRecordPtr;
                 ok = record->CreatePVRecord(pvRecordPtr);
@@ -126,7 +127,7 @@ ErrorManagement::ErrorType EPICSPVDatabase::Execute(ExecutionInfo& info) {
             }
             else {
                 ReferenceT<Object> recordObj = Get(i);
-                REPORT_ERROR(ErrorManagement::FatalError, "Record %s is not an EPICSPVRecord", recordObj->GetName());
+                REPORT_ERROR(ErrorManagement::FatalError, "Record %s is not an EPICSPVARecord", recordObj->GetName());
             }
         }
         if (ok) {
@@ -144,7 +145,7 @@ ErrorManagement::ErrorType EPICSPVDatabase::Execute(ExecutionInfo& info) {
     return err;
 }
 
-CLASS_REGISTER(EPICSPVDatabase, "")
-CLASS_METHOD_REGISTER(EPICSPVDatabase, Start)
+CLASS_REGISTER(EPICSPVADatabase, "")
+CLASS_METHOD_REGISTER(EPICSPVADatabase, Start)
 
 }

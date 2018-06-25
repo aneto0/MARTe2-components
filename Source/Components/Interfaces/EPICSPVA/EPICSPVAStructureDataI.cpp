@@ -1,6 +1,6 @@
 /**
- * @file EPICSPVStructureDataI.cpp
- * @brief Source file for class EPICSPVStructureDataI
+ * @file EPICSPVAStructureDataI.cpp
+ * @brief Source file for class EPICSPVAStructureDataI
  * @date 13/06/2018
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSPVStructureDataI (public, protected, and private). Be aware that some 
+ * the class EPICSPVAStructureDataI (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -28,8 +28,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include <EPICSPVAStructureDataI.h>
 #include "AdvancedErrorManagement.h"
-#include "EPICSPVStructureDataI.h"
 #include "Reference.h"
 #include "StreamString.h"
 
@@ -42,16 +42,16 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-EPICSPVStructureDataI::EPICSPVStructureDataI() :
+EPICSPVAStructureDataI::EPICSPVAStructureDataI() :
         Object() {
     structureFinalised = true;
 }
 
-EPICSPVStructureDataI::~EPICSPVStructureDataI() {
+EPICSPVAStructureDataI::~EPICSPVAStructureDataI() {
 
 }
 
-bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value) {
+bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value) {
     bool ok = structureFinalised;
     bool isScalar = true;
     epics::pvData::PVScalarPtr scalarFieldPtr;
@@ -184,7 +184,7 @@ bool EPICSPVStructureDataI::Read(const char8 * const name, const AnyType &value)
     return ok;
 }
 
-AnyType EPICSPVStructureDataI::GetType(const char8 * const name) {
+AnyType EPICSPVAStructureDataI::GetType(const char8 * const name) {
     AnyType at = voidAnyType;
     epics::pvData::PVFieldPtr fieldPtr;
     bool ok = structureFinalised;
@@ -272,7 +272,7 @@ AnyType EPICSPVStructureDataI::GetType(const char8 * const name) {
     return at;
 }
 
-bool EPICSPVStructureDataI::CreateFromStoredType(const char8 * const name, AnyType &storedType) {
+bool EPICSPVAStructureDataI::CreateFromStoredType(const char8 * const name, AnyType &storedType) {
     bool ok = true;
     epics::pvData::ScalarType epicsType;
     if (storedType.GetTypeDescriptor() == UnsignedInteger8Bit) {
@@ -326,7 +326,7 @@ bool EPICSPVStructureDataI::CreateFromStoredType(const char8 * const name, AnyTy
     return ok;
 }
 
-bool EPICSPVStructureDataI::WriteStoredType(const char8 * const name, AnyType &storedType, const AnyType &value) {
+bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &storedType, const AnyType &value) {
     epics::pvData::PVScalarPtr scalarFieldPtr;
     epics::pvData::PVScalarArrayPtr scalarArrayPtr;
 
@@ -462,7 +462,7 @@ bool EPICSPVStructureDataI::WriteStoredType(const char8 * const name, AnyType &s
     return ok;
 }
 
-bool EPICSPVStructureDataI::Write(const char8 * const name, const AnyType &value) {
+bool EPICSPVAStructureDataI::Write(const char8 * const name, const AnyType &value) {
     bool ok = true;
     if (!structureFinalised) {
         ok = cachedCDB.Write(name, value);
@@ -474,7 +474,7 @@ bool EPICSPVStructureDataI::Write(const char8 * const name, const AnyType &value
     return ok;
 }
 
-bool EPICSPVStructureDataI::Copy(StructuredDataI &destination) {
+bool EPICSPVAStructureDataI::Copy(StructuredDataI &destination) {
     bool ok = structureFinalised;
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "FinaliseStructure must be called before Copy().");
@@ -539,7 +539,7 @@ bool EPICSPVStructureDataI::Copy(StructuredDataI &destination) {
     return ok;
 }
 
-bool EPICSPVStructureDataI::AddToCurrentNode(Reference node) {
+bool EPICSPVAStructureDataI::AddToCurrentNode(Reference node) {
     bool ok = !structureFinalised;
     if (ok) {
         ok = cachedCDB.AddToCurrentNode(node);
@@ -547,7 +547,7 @@ bool EPICSPVStructureDataI::AddToCurrentNode(Reference node) {
     return ok;
 }
 
-bool EPICSPVStructureDataI::MoveToRoot() {
+bool EPICSPVAStructureDataI::MoveToRoot() {
     bool ok = true;
     if (structureFinalised) {
         currentStructPtr = rootStructPtr;
@@ -558,7 +558,7 @@ bool EPICSPVStructureDataI::MoveToRoot() {
     return ok;
 }
 
-bool EPICSPVStructureDataI::MoveToAncestor(uint32 generations) {
+bool EPICSPVAStructureDataI::MoveToAncestor(uint32 generations) {
     uint32 i;
     bool ok = true;
     if (structureFinalised) {
@@ -580,7 +580,7 @@ bool EPICSPVStructureDataI::MoveToAncestor(uint32 generations) {
     return ok;
 }
 
-bool EPICSPVStructureDataI::MoveAbsolute(const char8 * const path) {
+bool EPICSPVAStructureDataI::MoveAbsolute(const char8 * const path) {
     epics::pvData::PVStructurePtr movePtr;
     bool ok = true;
     if (structureFinalised) {
@@ -600,7 +600,7 @@ bool EPICSPVStructureDataI::MoveAbsolute(const char8 * const path) {
     return ok;
 }
 
-bool EPICSPVStructureDataI::MoveRelative(const char8 * const path) {
+bool EPICSPVAStructureDataI::MoveRelative(const char8 * const path) {
     bool ok = true;
     if (structureFinalised) {
         epics::pvData::PVStructurePtr movePtr = currentStructPtr->getSubField<epics::pvData::PVStructure>(path);
@@ -615,7 +615,7 @@ bool EPICSPVStructureDataI::MoveRelative(const char8 * const path) {
     return ok;
 }
 
-bool EPICSPVStructureDataI::MoveToChild(const uint32 childIdx) {
+bool EPICSPVAStructureDataI::MoveToChild(const uint32 childIdx) {
     bool ok = true;
     if (structureFinalised) {
         const epics::pvData::PVFieldPtrArray & fields = currentStructPtr->getPVFields();
@@ -636,7 +636,7 @@ bool EPICSPVStructureDataI::MoveToChild(const uint32 childIdx) {
     return ok;
 }
 
-bool EPICSPVStructureDataI::ConfigurationDataBaseToPVStructurePtr(ReferenceT<ReferenceContainer> currentNode, bool create) {
+bool EPICSPVAStructureDataI::ConfigurationDataBaseToPVStructurePtr(ReferenceT<ReferenceContainer> currentNode, bool create) {
     bool ok = true;
     uint32 nOfChildren = currentNode->Size();
     ReferenceT<ReferenceContainer> foundNode;
@@ -679,7 +679,7 @@ bool EPICSPVStructureDataI::ConfigurationDataBaseToPVStructurePtr(ReferenceT<Ref
     return ok;
 }
 
-bool EPICSPVStructureDataI::CreateAbsolute(const char8 * const path) {
+bool EPICSPVAStructureDataI::CreateAbsolute(const char8 * const path) {
     bool ok = !structureFinalised;
     if (ok) {
         ok = cachedCDB.CreateAbsolute(path);
@@ -687,7 +687,7 @@ bool EPICSPVStructureDataI::CreateAbsolute(const char8 * const path) {
     return ok;
 }
 
-bool EPICSPVStructureDataI::CreateRelative(const char8 * const path) {
+bool EPICSPVAStructureDataI::CreateRelative(const char8 * const path) {
     bool ok = !structureFinalised;
     if (ok) {
         ok = cachedCDB.CreateRelative(path);
@@ -695,7 +695,7 @@ bool EPICSPVStructureDataI::CreateRelative(const char8 * const path) {
     return ok;
 }
 
-bool EPICSPVStructureDataI::Delete(const char8 * const name) {
+bool EPICSPVAStructureDataI::Delete(const char8 * const name) {
     bool ok = !structureFinalised;
     if (ok) {
         ok = cachedCDB.Delete(name);
@@ -703,7 +703,7 @@ bool EPICSPVStructureDataI::Delete(const char8 * const name) {
     return ok;
 }
 
-const char8 *EPICSPVStructureDataI::GetName() {
+const char8 *EPICSPVAStructureDataI::GetName() {
     const char8 *name = "";
     if (currentStructPtr) {
         name = currentStructPtr->getFieldName().c_str();
@@ -711,7 +711,7 @@ const char8 *EPICSPVStructureDataI::GetName() {
     return name;
 }
 
-const char8 *EPICSPVStructureDataI::GetChildName(const uint32 index) {
+const char8 *EPICSPVAStructureDataI::GetChildName(const uint32 index) {
     const char8 * ret = "";
     const epics::pvData::PVFieldPtrArray & fields = currentStructPtr->getPVFields();
     epics::pvData::PVFieldPtr movePtr;
@@ -727,24 +727,24 @@ const char8 *EPICSPVStructureDataI::GetChildName(const uint32 index) {
     return ret;
 }
 
-uint32 EPICSPVStructureDataI::GetNumberOfChildren() {
+uint32 EPICSPVAStructureDataI::GetNumberOfChildren() {
     uint32 numberOfFields = (currentStructPtr->getPVFields().size());
     return numberOfFields;
 }
 
-void EPICSPVStructureDataI::SetStructure(epics::pvData::PVStructurePtr structPtrToSet) {
+void EPICSPVAStructureDataI::SetStructure(epics::pvData::PVStructurePtr structPtrToSet) {
     structureFinalised = true;
     currentStructPtr = structPtrToSet;
     rootStructPtr = structPtrToSet;
 }
 
-void EPICSPVStructureDataI::InitStructure() {
+void EPICSPVAStructureDataI::InitStructure() {
     structureFinalised = false;
     fieldCreate = epics::pvData::getFieldCreate();
     fieldBuilder = fieldCreate->createFieldBuilder();
 }
 
-void EPICSPVStructureDataI::FinaliseStructure() {
+void EPICSPVAStructureDataI::FinaliseStructure() {
     bool ok = cachedCDB.MoveToRoot();
     ReferenceT<ReferenceContainer> rootNode = cachedCDB.GetCurrentNode();
     if (ok) {
@@ -764,9 +764,9 @@ void EPICSPVStructureDataI::FinaliseStructure() {
     cachedCDB.Purge();
 }
 
-epics::pvData::PVStructurePtr EPICSPVStructureDataI::GetRootStruct() {
+epics::pvData::PVStructurePtr EPICSPVAStructureDataI::GetRootStruct() {
     return rootStructPtr;
 }
 
-CLASS_REGISTER(EPICSPVStructureDataI, "")
+CLASS_REGISTER(EPICSPVAStructureDataI, "")
 }

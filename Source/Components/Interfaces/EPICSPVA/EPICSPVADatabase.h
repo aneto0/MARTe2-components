@@ -1,6 +1,6 @@
 /**
- * @file EPICSPVDatabase.h
- * @brief Header file for class EPICSPVDatabase
+ * @file EPICSPVADatabase.h
+ * @brief Header file for class EPICSPVADatabase
  * @date 12/06/2018
  * @author Andre Neto
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSPVDatabase
+ * @details This header file contains the declaration of the class EPICSPVADatabase
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSPVA_EPICSPVDATABASE_H_
-#define EPICSPVA_EPICSPVDATABASE_H_
+#ifndef EPICSPVA_EPICSPVADATABASE_H_
+#define EPICSPVA_EPICSPVADATABASE_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -45,18 +45,18 @@ namespace MARTe {
 /**
  * @brief TODO
  */
-class EPICSPVDatabase: public ReferenceContainer, public EmbeddedServiceMethodBinderI, public MessageI {
+class EPICSPVADatabase: public ReferenceContainer, public EmbeddedServiceMethodBinderI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief TODO
      */
-    EPICSPVDatabase();
+    EPICSPVADatabase();
 
     /**
      * @brief TODO
      */
-    virtual ~EPICSPVDatabase();
+    virtual ~EPICSPVADatabase();
 
     /**
      * @brief TODO
@@ -110,4 +110,4 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSPVA_EPICSPVDATABASE_H_ */
+#endif /* EPICSPVA_EPICSPVADATABASE_H_ */
