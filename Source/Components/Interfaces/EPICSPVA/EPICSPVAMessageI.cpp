@@ -24,7 +24,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <EPICSPVAStructureDataI.h>
 #include "pv/pvData.h"
 
 /*---------------------------------------------------------------------------*/
@@ -32,6 +31,7 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "EPICSPVAMessageI.h"
+#include "EPICSPVAStructureDataI.h"
 #include "Message.h"
 #include "ObjectRegistryDatabase.h"
 #include "RegisteredMethodsMessageFilter.h"

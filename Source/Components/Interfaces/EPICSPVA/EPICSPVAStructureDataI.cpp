@@ -28,8 +28,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include <EPICSPVAStructureDataI.h>
 #include "AdvancedErrorManagement.h"
+#include "EPICSPVAStructureDataI.h"
 #include "Reference.h"
 #include "StreamString.h"
 

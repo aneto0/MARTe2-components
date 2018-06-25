@@ -1,7 +1,7 @@
 /**
- * @file EPICSRPCServer.h
- * @brief Header file for class EPICSRPCServer
- * @date 12/06/2018
+ * @file EPICSRPCClient.h
+ * @brief Header file for class EPICSRPCClient
+ * @date 25/06/2018
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,93 +16,47 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSRPCServer
+ * @details This header file contains the declaration of the class EPICSRPCClient
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSPVA_EPICSRPCSERVER_H_
-#define EPICSPVA_EPICSRPCSERVER_H_
+#ifndef EPICSRPCCLIENT_H_
+#define EPICSRPCCLIENT_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "pv/rpcServer.h"
+#include "pv/rpcService.h"
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "EmbeddedServiceMethodBinderI.h"
-#include "MessageI.h"
-#include "ReferenceContainer.h"
-#include "SingleThreadService.h"
+#include "Object.h"
+#include "QueuedMessageI.h"
+#include "ReferenceT.h"
 #include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-namespace MARTe {
 /**
  * @brief TODO
  */
-class EPICSRPCServer: public ReferenceContainer, public EmbeddedServiceMethodBinderI, public MessageI {
+namespace MARTe {
+class EPICSRPCClient: public Object, public QueuedMessageI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief TODO
      */
-    EPICSRPCServer();
+    EPICSRPCClient();
 
     /**
      * @brief TODO
      */
-    virtual ~EPICSRPCServer();
+    virtual ~EPICSRPCClient();
 
-    /**
-     * @brief TODO
-     */
-    virtual bool Initialise(StructuredDataI &data);
-
-    /**
-     * @brief If the Stop was to be called from the destructor the Size() would already be == 0 and as consequence it would not
-     * be possible to clean the EPICS resources when the state is BadTerminationStage
-     * @details See ReferenceContainer::Purge
-     */
-    virtual void Purge(ReferenceContainer &purgeList);
-
-    /**
-     * @brief Provides the context to execute all the EPICS relevant calls
-     * TODO.
-     */
-    virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
-
-    /**
-     * @brief Start the embedded service it wasn't already started.
-     * @return ErrorManagement::NoError if the service wasn't already started.
-     */
-    ErrorManagement::ErrorType Start();
-
-private:
-
-    /**
-     * The EmbeddedThread where the ca_pend_event is executed.
-     */
-    SingleThreadService executor;
-
-    /**
-     * The CPU mask for the executor
-     */
-    uint32 cpuMask;
-
-    /**
-     * The stack size
-     */
-    uint32 stackSize;
-
-    /**
-     * The EPICS server context
-     */
-    epics::pvAccess::RPCServer rpcServer;
 
 };
 }
@@ -110,4 +64,4 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSPVA_EPICSRPCSERVER_H_ */
+#endif /* EPICSRPCCLIENT_H_ */

@@ -36,6 +36,7 @@
 #include "StandardParser.h"
 #include "Vector.h"
 #include "EPICSPVAStructureDataITest.h"
+#include "EPICSRPCClient.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -46,69 +47,93 @@
 /*---------------------------------------------------------------------------*/
 bool EPICSPVAStructureDataITest::TestConstructor() {
     using namespace MARTe;
-    EPICSPVAStructureDataI test;
-    test.InitStructure();
+    /*EPICSPVAStructureDataI test;
+     test.InitStructure();*/
     /*test.CreateAbsolute("A.B.C.D");
-    test.CreateAbsolute("A.B.E");
-    test.CreateAbsolute("C.F");
-    uint32 please = 3;
-    test.Write("Please", please);
-    test.MoveAbsolute("A.B.C");
-    float32 pleaseFloat = 3;
-    test.Write("PleaseFloat", pleaseFloat);*/
+     test.CreateAbsolute("A.B.E");
+     test.CreateAbsolute("C.F");
+     uint32 please = 3;
+     test.Write("Please", please);
+     test.MoveAbsolute("A.B.C");
+     float32 pleaseFloat = 3;
+     test.Write("PleaseFloat", pleaseFloat);*/
 
-
-    test.CreateAbsolute("_Message");
-    test.Write("Class", "Message");
-    test.Write("Destination", "ConfigurationManager");
-    test.Write("Function", "purge");
-    test.Write("Mode", "ExpectsReply");
-    test.CreateRelative("_Payload");
-    test.Write("Class", "ConfigurationDatabase");
-    test.Write("Root", "TCPMessageProxy");
-    test.FinaliseStructure();
-    test.GetRootStruct()->dumpValue(std::cout);
+    /*test.CreateAbsolute("_Message");
+     test.Write("Class", "Message");
+     test.Write("Destination", "ConfigurationManager");
+     test.Write("Function", "purge");
+     test.Write("Mode", "ExpectsReply");
+     test.CreateRelative("_Payload");
+     test.Write("Class", "ConfigurationDatabase");
+     test.Write("Root", "TCPMessageProxy");
+     test.FinaliseStructure();
+     test.GetRootStruct()->dumpValue(std::cout);*/
     /*ConfigurationDatabase cdb;
-    test.Copy(cdb);
-    StreamString ss;
-    ss.Printf("%!", cdb);
-    std::cout << ss.Buffer() << std::endl;*/
+     test.Copy(cdb);
+     StreamString ss;
+     ss.Printf("%!", cdb);
+     std::cout << ss.Buffer() << std::endl;*/
 
-    epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
-    epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
+    ReferenceT<EPICSRPCClient> rpcClient(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    rpcClient->SetName("EPICSRPCClient");
+    rpcClient->Start();
+    ObjectRegistryDatabase::Instance()->Insert(rpcClient);
+
+    ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ReferenceT<ConfigurationDatabase> payload(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+
+    ConfigurationDatabase msgConfig;
+    msg->SetName("MARTe2App1EPICSConfigurationLoader");
+    msgConfig.Write("Destination", "EPICSRPCClient");
+    msgConfig.Write("Function", "");
+    //msgConfig.Write("Mode", "ExpectsReply");
+    msg->Initialise(msgConfig);
+    payload->CreateAbsolute("_Message");
+    payload->Write("Class", "Message");
+    payload->Write("Destination", "ConfigurationManager");
+    payload->Write("Function", "purge");
+    payload->CreateRelative("_Payload");
+    payload->Write("Class", "ConfigurationDatabase");
+    payload->Write("Root", "TCPMessageProxy");
+    payload->MoveToRoot();
+    msg->Insert(payload);
+
+    MessageI::SendMessage(msg);
+
+    Sleep::Sec(10.0);
+    //epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
+    //epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
     /*fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->addFixedArray("astringarr", epics::pvData::pvString, 5)->addFixedArray(
      "adoublearr", epics::pvData::pvDouble, 5)->add("adouble", epics::pvData::pvDouble)->add("astring", epics::pvData::pvString)->endNested()->addNestedStructure(
      "OneP1")->endNested();*/
     /*fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->add("adouble", epics::pvData::pvDouble)->add(
-            "astring", epics::pvData::pvString)->addFixedArray("adoublearr", epics::pvData::pvDouble, 5)->endNested()->addNestedStructure(
-            "OneP1")->endNested();
-    epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());*/
-    epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(test.GetRootStruct());
+     "astring", epics::pvData::pvString)->addFixedArray("adoublearr", epics::pvData::pvDouble, 5)->endNested()->addNestedStructure(
+     "OneP1")->endNested();
+     epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());*/
+    //epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(test.GetRootStruct());
     /*epics::pvData::shared_vector<double> out;
-    out.resize(5);
-    out[0] = -3;
-    out[1] = 3;
-    out[2] = -2;
-    out[3] = 2;
-    out[4] = -1;
-    epics::pvData::shared_vector<const double> outF = freeze(out);
-    epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(structPtr->getSubField("One.adoublearr"));
-    if (scalarArrayPtr) {
-        scalarArrayPtr->putFrom<double>(outF);
-    }*/
+     out.resize(5);
+     out[0] = -3;
+     out[1] = 3;
+     out[2] = -2;
+     out[3] = 2;
+     out[4] = -1;
+     epics::pvData::shared_vector<const double> outF = freeze(out);
+     epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(structPtr->getSubField("One.adoublearr"));
+     if (scalarArrayPtr) {
+     scalarArrayPtr->putFrom<double>(outF);
+     }*/
 
     //std::string name = (argc > 1) ? argv[1] : "anonymous";
     //arguments->getSubField<PVString>("personsname")->put(name);
     // Create an RPC client to the "helloService" service
     //epics::pvAccess::RPCClient::shared_pointer client = epics::pvAccess::RPCClient::create("MARTe2App1EPICSConfigurationLoader");
-    epics::pvAccess::RPCClient::shared_pointer client = epics::pvAccess::RPCClient::create("MARTe2App1EPICSConfigurationLoader");
-
+    //epics::pvAccess::RPCClient::shared_pointer client = epics::pvAccess::RPCClient::create("MARTe2App1EPICSConfigurationLoader");
     // Create an RPC request and block until response is received. There is
     // no need to explicitly wait for connection; this method takes care of it.
     // In case of an error, an exception is thrown.
-    epics::pvData::PVStructurePtr response = client->request(structPtr, 3.0);
-    response->dumpValue(std::cout);
-
+    //epics::pvData::PVStructurePtr response = client->request(structPtr, 3.0);
+    //response->dumpValue(std::cout);
 #if 0
     EPICSPVAStructureDataI test2;
     test2.InitStructure();

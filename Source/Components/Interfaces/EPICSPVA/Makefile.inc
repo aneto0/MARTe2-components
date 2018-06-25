@@ -22,12 +22,13 @@
 #
 #############################################################
 
-OBJSX=EPICSConfigurationLoader.x \
-	EPICSObjectRegistryDatabaseService.x \
-	EPICSPVAMessageI.x \
+OBJSX=EPICSObjectRegistryDatabaseService.x \
     EPICSPVADatabase.x \
+    EPICSPVAMessageI.x \
     EPICSPVARecord.x \
     EPICSPVAStructureDataI.x \
+    EPICSRPCClient.x \
+	EPICSRPCClientMessageFilter.x \
     EPICSRPCServer.x
 
 
