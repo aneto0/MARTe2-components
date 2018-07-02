@@ -323,6 +323,10 @@ private:
     uint32 currentBuffer;
 
     /**
+     * Indicates the method to save data in MDSplus. automaticSegmentation = 1 --> putRow(), automaticSegmentation = 0 makeSegment()
+     */
+    bool automaticSegmentation;
+    /**
      * Only write the segment to MDS+ after the Execute method has been called makeSegmentAfterNWrites times.
      */
     uint32 makeSegmentAfterNWrites;
@@ -352,6 +356,21 @@ private:
      * not all the expected segments were written. Typically called when the experiment has ended.
      */
     bool flush;
+
+    /**
+     * @brief Save data in MDSplus using MDSplus::makeSegment() or MDSPlus::makeSegmentMaxMin()
+     * @details the number of different time values per segment depends on Samples and the makeSegmentAfterNWrites
+     * @return true if the data can be copied to the MDSplus database
+     */
+    bool ForceSegment();
+
+    /**
+     * @brief Save data in MDSplus tree using MDSplus::putRow()
+     * @details the number of different time values per segment is automatically adjusted by MDSplus engine, they are directly
+     * related with Samples.
+     * @return true if the data can be copied to the MDSplus database.
+     */
+    bool AddDataToSegment();
 };
 }
 

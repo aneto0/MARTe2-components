@@ -45,6 +45,7 @@ public:
     MDSWriterTest();
 
     ~MDSWriterTest();
+
     /**
      * @brief Tests the constructor.
      */
@@ -225,6 +226,11 @@ public:
      * @brief Tests the MDSWriter integrated in an application which asynchronously stores data, with NumberOfElements > 1, based on a trigger event.
      */
     bool TestIntegratedInApplication_Trigger_Elements();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data, with NumberOfElements > 1, based on a trigger event.
+     */
+    bool TestIntegratedInApplication_NoTrigger_AutomaticSegmentation();
 
     /**
      * @brief Tests the GetCPUMask method.

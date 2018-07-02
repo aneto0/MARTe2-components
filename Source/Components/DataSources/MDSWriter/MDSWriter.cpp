@@ -76,6 +76,7 @@ MDSWriter::MDSWriter() :
 
 /*lint -e{1551} -e{1579} the destructor must guarantee that the MDSplus are deleted and the shared memory freed. The brokerAsyncTrigger is freed by the ReferenceT */
 MDSWriter::~MDSWriter() {
+
     if (FlushSegments() != ErrorManagement::NoError) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
     }
@@ -95,6 +96,7 @@ MDSWriter::~MDSWriter() {
     if (tree != NULL_PTR(MDSplus::Tree *)) {
         delete tree;
     }
+
 }
 
 bool MDSWriter::AllocateMemory() {
@@ -358,10 +360,10 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
         uint32 functionNumberOfSignals = 0u;
         uint32 n;
         if (GetFunctionNumberOfSignals(OutputSignals, 0u, functionNumberOfSignals)) {
-            StreamString GAMSignalName;
             uint32 dataSourceIdx = 0;
-            signalSamples = new uint32 [functionNumberOfSignals];
+            signalSamples = new uint32[functionNumberOfSignals];
             for (n = 0u; (n < functionNumberOfSignals) && (ok); n++) { //get samples and save in the dataSource order
+                StreamString GAMSignalName;
                 uint32 nSamples;
                 ok = GetFunctionSignalSamples(OutputSignals, 0u, n, nSamples);
                 if (!ok) {
@@ -382,7 +384,7 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                                          auxIdx);
                         }
                         if (ok) {
-                            GetSignalIndex(dataSourceIdx, GAMSignalName.Buffer());
+                            ok = GetSignalIndex(dataSourceIdx, GAMSignalName.Buffer());
                         }
                         if (!ok) {
                             REPORT_ERROR(ErrorManagement::ParametersError, "Error while getting GetSignalIndex(dataSourceIdx, %s)", GAMSignalName.Buffer());
@@ -400,8 +402,10 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
             offsets[n] = totalSignalMemory;
             uint32 nBytes = 0u;
+            //GetSignalByteSize(n, nBytes) return the number of Bytes per signal and SAMPLE!
+            //It is done because one signal of the dataSource can supply different number of samples per two different GAMs
             ok = GetSignalByteSize(n, nBytes);
-            totalSignalMemory += nBytes;
+            totalSignalMemory += nBytes*signalSamples[n];
         }
     }
     //Allocate memory
@@ -437,7 +441,7 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 }
             }
             if (ok) {
-                ok = originalSignalInformation.Write("NumberOfSamples", signalSamples[n]);
+                ok = originalSignalInformation.Write("Samples", signalSamples[n]);
             }
             if (ok) {                //Read dimensions. Matrix not supported yet!
                 uint8 auxNumberOfDimensions = 32; //invalid number
@@ -451,10 +455,11 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                     if (!ok) {
                         uint32 auxIdx = n;
                         REPORT_ERROR(ErrorManagement::ParametersError,
-                                     "Dimensions must be 0 (scalar) or 1 (vector). current dimension = %u for signal index = %u", auxNumberOfDimensions, auxIdx);
+                                     "Dimensions must be 0 (scalar) or 1 (vector). Matrix not supported yet. current dimension = %u for signal index = %u", auxNumberOfDimensions,
+                                     auxIdx);
                     }
                 }
-                if(ok){
+                if (ok) {
                     ok = originalSignalInformation.Write("NumberOfDimensions", auxNumberOfDimensions);
                 }
             }
@@ -546,10 +551,12 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
     }
-    if (pulseNumber != MDS_UNDEFINED_PULSE_NUMBER) {
-        ok = (OpenTree(pulseNumber) == ErrorManagement::NoError);
+    if (ok) {
+        if (pulseNumber != MDS_UNDEFINED_PULSE_NUMBER) {
+            ok = (OpenTree(pulseNumber) == ErrorManagement::NoError);
+        }
     }
-    if(signalSamples != NULL_PTR(uint32 *)){
+    if (signalSamples != NULL_PTR(uint32 *)) {
         delete[] signalSamples;
         signalSamples = NULL_PTR(uint32 *);
     }
