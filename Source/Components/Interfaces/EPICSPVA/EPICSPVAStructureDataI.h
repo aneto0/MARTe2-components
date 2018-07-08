@@ -45,176 +45,227 @@
 namespace MARTe {
 
 /**
- * @brief TODO
+ * @brief Wraps an epics::pvData::PVStructure as a StructuredDataI.
+ * @details This class implements the StructuredDataI interface using an epics::pvData::PVStructure as the backend database.
+ *
+ * Given the way that the PVStructure has to be built (by recursively calling addNestedStructure on a FieldBuilderPtr), it is not
+ *  possible to dynamically change the structure once it has been finalised (see FinaliseStructure).
+ *
+ * The structure can be created either by calling InitStructure, followed by all the node creation methods (CreateAbsolute, CreateRelative), complemented by the Write;
+ *  or it can be directly initialised and finalised by passing an existent PVStructure (see SetStructure).
+ *
+ * The Read method cannot be called until the structure has been finalised.
+ *
+ * It is also possible to directly access to the underlying PVStructure with the GetRootStruct method.
  */
 class EPICSPVAStructureDataI: public StructuredDataI, public Object {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO
+     * @brief NOOP. InitStructure or SetStructure shall be called for this class to be useful.
      */
-EPICSPVAStructureDataI    ();
+    EPICSPVAStructureDataI ();
 
     /**
-     * @brief TODO
+     * @brief NOOP.
      */
     virtual ~EPICSPVAStructureDataI();
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::Read.
+     * @pre
+     *    FinaliseStructure OR SetStructure.
      */
     virtual bool Read(const char8 * const name, const AnyType &value);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::GetType.
+     * @pre
+     *    FinaliseStructure OR SetStructure.
      */
     virtual AnyType GetType(const char8 * const name);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::Write. Can be called before FinaliseStructure.
      */
     virtual bool Write(const char8 * const name, const AnyType &value);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::Copy.
+     * @pre
+     *    FinaliseStructure OR SetStructure.
      */
     virtual bool Copy(StructuredDataI &destination);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::AddToCurrentNode.
+     * @pre
+     *    !FinaliseStructure AND !SetStructure.
      */
     virtual bool AddToCurrentNode(Reference node);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::MoveToRoot.
      */
     virtual bool MoveToRoot();
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::MoveToAncestor.
      */
     virtual bool MoveToAncestor(uint32 generations);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::MoveAbsolute.
      */
     virtual bool MoveAbsolute(const char8 * const path);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::MoveRelative.
      */
     virtual bool MoveRelative(const char8 * const path);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::MoveToChild.
      */
     virtual bool MoveToChild(const uint32 childIdx);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::CreateAbsolute.
+     * @pre
+     *    !FinaliseStructure AND !SetStructure.
      */
     virtual bool CreateAbsolute(const char8 * const path);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::CreateRelative.
+     * @pre
+     *    !FinaliseStructure AND !SetStructure.
      */
     virtual bool CreateRelative(const char8 * const path);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::Delete.
+     * @pre
+     *    !FinaliseStructure AND !SetStructure.
      */
     virtual bool Delete(const char8 * const name);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::GetName.
+     * @pre
+     *    FinaliseStructure OR SetStructure.
      */
     virtual const char8 *GetName();
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::GetChildName.
+     * @pre
+     *    FinaliseStructure OR SetStructure.
      */
     virtual const char8 *GetChildName(const uint32 index);
 
     /**
-     * @brief TODO
+     * @brief See StructuredDataI::GetNumberOfChildren.
+     * @pre
+     *    FinaliseStructure OR SetStructure.
      */
     virtual uint32 GetNumberOfChildren();
 
     /**
-     * @brief TODO
+     * @brief Constructs the structure mapped by this StructuredDataI directly from an existent epics::pvData::PVStructure.
+     * @param[in] structPtrToSet the existent epics::pvData::PVStructure.
+     * @pre
+     *    !FinaliseStructure
+     * @post
+     *    FinaliseStructure.
      */
     void SetStructure(epics::pvData::PVStructurePtr structPtrToSet);
 
     /**
-     * @brief TODO
+     * @brief Setup of the class so that the methods that allow modifying the structure can be called.
      */
     void InitStructure();
 
     /**
-     * @brief TODO
+     * @brief Finalises the structure. Allows for the Read method to be used and disallows any further modification of the class structure.
      */
     void FinaliseStructure();
 
     /**
-     * @brief TODO
+     * @brief Returns the epics::pvData::PVStructure mapped by this StructuredDataI.
+     * @return the epics::pvData::PVStructure mapped by this StructuredDataI.
      */
     epics::pvData::PVStructurePtr GetRootStruct();
 
 private:
     /**
-     * @brief TODO
-     * @return
+     * @brief Helper method to read an array from an epics::pvData::PVScalarArray into an AnyType.
+     * @param[in] scalarArrayPtr the array where to read the data from.
+     * @param[in] storedType the type of data to be read (as stored in the backed)
+     * @param[out] value where to store the read array.
+     * @return true if the array can be successfully read.
      */
     template<typename T>
     bool ReadArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value);
 
     /**
-     * @brief TODO
-     * @return
+     * @brief Helper method to write an array from an AnyType into an epics::pvData::PVScalarArray.
+     * @param[out] scalarArrayPtr the array where to write the data into.
+     * @param[in] storedType the type of data to be written (as stored in the backed)
+     * @param[in] value where to read the array.
+     * @param[in] size number of elements in the array.
+     * @return true if the array can be successfully written.
      */
     template<typename T>
     bool WriteArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value, const uint32 &size);
 
     /**
-     * @brief TODO
-     * @return
+     * @brief Helper method that writes the value into the backend PVScalarPtr or PVScalarArrayPtr.
+     * @param[in] name the name of the parameter to write.
+     * @param[in] storedType the type of data to be written (as stored in the backend)
+     * @param[in] value the value to write.
+     * @return true if the value can be successfully written.
      */
     bool WriteStoredType(const char8 * const name, AnyType &storedType, const AnyType &value);
 
     /**
-     * @brief TODO
-     * @return
+     * @brief Helper method to add a typed leaf to the backend PVStructure.
+     * @param[in] name the name of the parameter to create.
+     * @param[in] storedType the type of data to be stored in the backend against this leaf.
+     * @return true if the leaf can be successfully created.
      */
     bool CreateFromStoredType(const char8 * const name, AnyType &storedType);
 
     /**
-     * @brief TODO
+     * @brief Helper method which transforms the cached ConfigurationDatabase into a PVStructure.
+     * @param[in] currentNode the node where to start from.
+     * @param[in] create if true the nodes are added to the PVStructure, otherwise only the values are written.
+     * @return true if the ConfigurationDatabase is successfully created.
      */
     bool ConfigurationDataBaseToPVStructurePtr(ReferenceT<ReferenceContainer> currentNode, bool create = true);
 
     /**
-     * @brief TODO
+     * Cached pointer to the current node.
      */
     epics::pvData::PVStructurePtr currentStructPtr;
 
     /**
-     * @brief TODO
+     * Cached pointer to the root node.
      */
     epics::pvData::PVStructurePtr rootStructPtr;
 
     /**
-     * @brief TODO
+     * True if the structure was finalised.
      */
     bool structureFinalised;
 
     /**
-     * @brief TODO
+     * The FieldBuilderPtr that is used to create the nested PVStructure.
      */
     epics::pvData::FieldBuilderPtr fieldBuilder;
-    epics::pvData::FieldCreatePtr fieldCreate;
 
     /**
-     * @brief TODO
+     * The cached ConfigurationDatabase that is used until the FinaliseStructure is called.
      */
     ConfigurationDatabase cachedCDB;
 };
@@ -229,7 +280,7 @@ template<typename T>
 bool EPICSPVAStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
     bool ok = true;
     epics::pvData::shared_vector<const T> out;
-    scalarArrayPtr->getAs<T>(out);
+    scalarArrayPtr->getAs < T > (out);
     const void *src = reinterpret_cast<const void *>(out.data());
     if (src != NULL_PTR(void *)) {
         uint32 size;
@@ -241,13 +292,12 @@ bool EPICSPVAStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArr
 }
 
 template<typename T>
-bool EPICSPVAStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value,
-                                       const uint32 &size) {
+bool EPICSPVAStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value, const uint32 &size) {
     epics::pvData::shared_vector<T> out;
     out.resize(storedType.GetNumberOfElements(0u));
     bool ok = MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), value.GetDataPointer(), size);
     epics::pvData::shared_vector<const T> outF = freeze(out);
-    scalarArrayPtr->putFrom<T>(outF);
+    scalarArrayPtr->putFrom < T > (outF);
     return ok;
 }
 
