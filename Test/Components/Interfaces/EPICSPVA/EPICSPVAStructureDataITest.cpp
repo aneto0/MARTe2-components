@@ -50,3 +50,16 @@ bool EPICSPVAStructureDataITest::TestConstructor() {
     EPICSPVAStructureDataI test;
     return test.IsStructureFinalised();
 }
+
+bool EPICSPVAStructureDataITest::TestRead_UInt8() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    test.InitStructure();
+    uint8 wvalue = 16;
+    test.Write("Test", wvalue);
+    test.FinaliseStructure();
+    uint8 rvalue = 0;
+    test.Write("Test", rvalue);
+
+    return (rvalue == wvalue);
+}

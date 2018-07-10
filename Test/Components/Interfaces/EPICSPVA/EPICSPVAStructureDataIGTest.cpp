@@ -44,3 +44,7 @@ TEST(EPICSPVAStructureDataIGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+TEST(EPICSPVAStructureDataIGTest,TestRead_UInt8) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_UInt8());
+}

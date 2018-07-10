@@ -45,6 +45,11 @@ public:
      */
     bool TestConstructor();
 
+    /**
+     * @brief Tests the read with an uint8.
+     */
+    bool TestRead_UInt8();
+
 };
 
 /*---------------------------------------------------------------------------*/
