@@ -46,7 +46,7 @@
  *
  * The name of the Message is expected to be the destination to be set on the epics::pvAccess::RPCClient.
  *
- * The first element of the Message is expected to be a StructuredDataI with the structure to be serialised a PVStructure.
+ * The first element of the Message is expected to be a StructuredDataI with the structure to be serialised as a PVStructure.
  *
  * The configuration syntax is (names are only given as an example):
  * <pre>
@@ -60,12 +60,12 @@ class EPICSRPCClient: public Object, public QueuedMessageI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO
+     * @brief Constructor. Installs the EPICSRPCClientMessageFilter.
      */
     EPICSRPCClient();
 
     /**
-     * @brief TODO
+     * @brief Destructor. NOOP.
      */
     virtual ~EPICSRPCClient();
 

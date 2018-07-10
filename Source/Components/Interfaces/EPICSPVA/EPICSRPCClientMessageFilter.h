@@ -39,24 +39,32 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * @brief TODO
+ * @brief MessageFilter for the EPICSRPCClient.
+ * @details Serialises the received Messages as PVStructures.
+ *
+ * The name of the Message is expected to be the destination to be set on the epics::pvAccess::RPCClient.
+ *
+ * The first element of the Message is expected to be a StructuredDataI with the structure to be serialised as a PVStructure.
  */
 namespace MARTe {
 class EPICSRPCClientMessageFilter: public Object, public MessageFilter {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO
+     * @brief Constructor. Sets this filter as a permanent filter.
      */
     EPICSRPCClientMessageFilter();
 
     /**
-     * @brief TODO
+     * @brief Destructor. NOOP.
      */
     virtual ~EPICSRPCClientMessageFilter();
 
     /**
-     * @brief TODO
+     * @brief Serialises the messageToTest as a PVStructure.
+     * @details The name of the messageToTest is expected to be the epics::pvAccess::RPCClient message destination.
+     * @param[in] messageToTest the Message to be serialised.
+     * @return ErrorManagement::NoError if the Message could be successfully serialised as a PVStructure and sent with the epics::pvAccess::RPCClient.
      */
     virtual ErrorManagement::ErrorType ConsumeMessage(ReferenceT<Message> &messageToTest);
 
