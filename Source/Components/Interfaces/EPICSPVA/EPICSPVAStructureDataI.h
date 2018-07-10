@@ -63,6 +63,8 @@ public:
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief NOOP. InitStructure or SetStructure shall be called for this class to be useful.
+     * @post
+     *    IsStructureFinalised()
      */
     EPICSPVAStructureDataI ();
 
@@ -74,14 +76,14 @@ public:
     /**
      * @brief See StructuredDataI::Read.
      * @pre
-     *    FinaliseStructure OR SetStructure.
+     *    IsStructureFinalised().
      */
     virtual bool Read(const char8 * const name, const AnyType &value);
 
     /**
      * @brief See StructuredDataI::GetType.
      * @pre
-     *    FinaliseStructure OR SetStructure.
+     *    IsStructureFinalised().
      */
     virtual AnyType GetType(const char8 * const name);
 
@@ -93,14 +95,14 @@ public:
     /**
      * @brief See StructuredDataI::Copy.
      * @pre
-     *    FinaliseStructure OR SetStructure.
+     *    IsStructureFinalised().
      */
     virtual bool Copy(StructuredDataI &destination);
 
     /**
      * @brief See StructuredDataI::AddToCurrentNode.
      * @pre
-     *    !FinaliseStructure AND !SetStructure.
+     *    !IsStructureFinalised().
      */
     virtual bool AddToCurrentNode(Reference node);
 
@@ -132,42 +134,42 @@ public:
     /**
      * @brief See StructuredDataI::CreateAbsolute.
      * @pre
-     *    !FinaliseStructure AND !SetStructure.
+     *    !IsStructureFinalised().
      */
     virtual bool CreateAbsolute(const char8 * const path);
 
     /**
      * @brief See StructuredDataI::CreateRelative.
      * @pre
-     *    !FinaliseStructure AND !SetStructure.
+     *    !IsStructureFinalised().
      */
     virtual bool CreateRelative(const char8 * const path);
 
     /**
      * @brief See StructuredDataI::Delete.
      * @pre
-     *    !FinaliseStructure AND !SetStructure.
+     *    !IsStructureFinalised().
      */
     virtual bool Delete(const char8 * const name);
 
     /**
      * @brief See StructuredDataI::GetName.
      * @pre
-     *    FinaliseStructure OR SetStructure.
+     *    IsStructureFinalised().
      */
     virtual const char8 *GetName();
 
     /**
      * @brief See StructuredDataI::GetChildName.
      * @pre
-     *    FinaliseStructure OR SetStructure.
+     *    IsStructureFinalised().
      */
     virtual const char8 *GetChildName(const uint32 index);
 
     /**
      * @brief See StructuredDataI::GetNumberOfChildren.
      * @pre
-     *    FinaliseStructure OR SetStructure.
+     *    IsStructureFinalised().
      */
     virtual uint32 GetNumberOfChildren();
 
@@ -175,9 +177,9 @@ public:
      * @brief Constructs the structure mapped by this StructuredDataI directly from an existent epics::pvData::PVStructure.
      * @param[in] structPtrToSet the existent epics::pvData::PVStructure.
      * @pre
-     *    !FinaliseStructure
+     *    !IsStructureFinalised()
      * @post
-     *    FinaliseStructure.
+     *    IsStructureFinalised().
      */
     void SetStructure(epics::pvData::PVStructurePtr structPtrToSet);
 
@@ -188,6 +190,8 @@ public:
 
     /**
      * @brief Finalises the structure. Allows for the Read method to be used and disallows any further modification of the class structure.
+     * @post
+     *     IsStructureFinalised()
      */
     void FinaliseStructure();
 
@@ -196,6 +200,12 @@ public:
      * @return the epics::pvData::PVStructure mapped by this StructuredDataI.
      */
     epics::pvData::PVStructurePtr GetRootStruct();
+
+    /**
+     * @brief Returns true if the structure has been finalised.
+     * @return true if the structure has been finalised.
+     */
+    bool IsStructureFinalised();
 
 private:
     /**

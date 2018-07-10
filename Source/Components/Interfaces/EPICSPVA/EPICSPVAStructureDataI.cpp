@@ -763,5 +763,9 @@ epics::pvData::PVStructurePtr EPICSPVAStructureDataI::GetRootStruct() {
     return rootStructPtr;
 }
 
+bool EPICSPVAStructureDataI::IsStructureFinalised() {
+    return structureFinalised;
+}
+
 CLASS_REGISTER(EPICSPVAStructureDataI, "")
 }
