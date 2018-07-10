@@ -34,7 +34,7 @@
 #include "EPICSPVAStructureDataI.h"
 #include "Message.h"
 #include "ObjectRegistryDatabase.h"
-#include "RegisteredMethodsMessageFilter.h"
+#include "ReplyMessageCatcherMessageFilter.h"
 #include "StreamString.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -47,13 +47,6 @@ namespace MARTe {
 
 EPICSPVAMessageI::EPICSPVAMessageI() :
         Object(), MessageI() {
-    ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(
-            GlobalObjectsDatabase::Instance()->GetStandardHeap());
-    filter->SetDestination(this);
-    ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
-    if (!ret.ErrorsCleared()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
-    }
     ReferenceContainer::AddBuildToken('_');
 }
 
@@ -68,17 +61,12 @@ epics::pvData::PVStructurePtr EPICSPVAMessageI::request(epics::pvData::PVStructu
     config.InitStructure();
     config.SetStructure(args);
     ConfigurationDatabase cdbMsg;
-    ReferenceT<ReferenceContainer> rc;
     ReferenceT<Message> msg;
     bool ok = config.Copy(cdbMsg);
     if (ok) {
-        rc = ReferenceT<ReferenceContainer>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        msg = ReferenceT<Message>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
         //In theory I could have passed the PVStructure config directly to the Initialise
-        ok = rc->Initialise(cdbMsg);
-    }
-    if (ok) {
-        msg = rc->Get(0u);
-        ok = msg.IsValid();
+        ok = msg->Initialise(cdbMsg);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The request is not a valid MARTe message");
         }
@@ -112,9 +100,6 @@ epics::pvData::PVStructurePtr EPICSPVAMessageI::request(epics::pvData::PVStructu
             }
         }
     }
-
-    args->dumpValue(std::cout);
-    reply->dumpValue(std::cout);
     return reply;
 }
 

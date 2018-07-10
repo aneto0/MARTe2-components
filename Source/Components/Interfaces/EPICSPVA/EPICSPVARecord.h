@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSPVARECORD_H_
-#define EPICSPVARECORD_H_
+#ifndef EPICSPVA_EPICSPVARECORD_H_
+#define EPICSPVA_EPICSPVARECORD_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -41,40 +41,74 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * @brief TODO
+ * @brief Serve a MARTe StructureDataI as an epics::pvDatabase::PVRecord.
+ * @details It shall be used with EPICSPVADatabase in order to register the PVRecord in a epics::pvDatabase::PVDatabase.
+ *
+ * The configuration syntax is  (names are only given as an example):
+ * <pre>
+ * +Record1 = {
+ *   Class = EPICSPVA::EPICSPVARecord
+ *   Structure = {
+ *     ElementsA = {
+ *       Element1 = {
+ *         Type = uint32
+ *         NumberOfElements = 10
+ *       }
+ *       Element2 = {
+ *         Type = float32
+ *       }
+ *       ElementsB = {
+ *         ElementB1 = {
+ *           Type = uint8
+ *           NumberOfElements = 100
+ *         }
+ *         ElementB2 = {
+ *           Type = float32
+ *           NumberOfElements = 5
+ *         }
+ *       }
+ *     }
+ *   }
+ * }
+ * </pre>
  */
 namespace MARTe {
 class EPICSPVARecord: public Object {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO
+     * @brief Constructor. NOOP.
      */
     EPICSPVARecord();
 
     /**
-     * @brief TODO
+     * @brief Destructor. NOOP.
      */
     virtual ~EPICSPVARecord();
 
     /**
-     * @brief TODO
+     * @brief Called by the EPICSPVADatabase in order to trigger the creation of the record from the Structure defined in the object configuration (see Initialise).
+     * @param[out] pvRecordPtr the PVRecord created from the structured data.
+     * @return true if the record was successfully created.
      */
     bool CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr);
 
     /**
-     * @brief TODO
+     * @brief Verifies if a node named Structure exits and if so makes a local copy of the configuration \a data.
+     * @return true if a node named Structure exists and if the copy is successful, false otherwise.
      */
     virtual bool Initialise(StructuredDataI &data);
 
 private:
     /**
-     * TODO
+     * @brief Recursively constructs the PVRecord from the configuration described in the "Structure" node of the configuration input (see Initialise).
+     * @param[in] fieldBuilder the epics::pvData::FieldBuilde that is used to build the epics::pvDatabase::PVRecord.
+     * @return true if all the fields are successfully (recursively) added to the epics::pvDatabase::PVRecord.
      */
-    bool GetEPICSStructure(epics::pvData::FieldBuilderPtr & fieldBuilder, ConfigurationDatabase &cdb);
+    bool GetEPICSStructure(epics::pvData::FieldBuilderPtr & fieldBuilder);
 
     /**
-     * TODO local copy of the ConfigurationDatabase
+     * Local copy of the ConfigurationDatabase.
      */
     ConfigurationDatabase cdb;
 };
@@ -83,4 +117,4 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSPVARECORD_H_ */
+#endif /* EPICSPVA_EPICSPVARECORD_H_ */

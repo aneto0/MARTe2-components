@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSRPCCLIENTMESSAGEFILTER_H_
-#define EPICSRPCCLIENTMESSAGEFILTER_H_
+#ifndef EPICSPVA_EPICSRPCCLIENTMESSAGEFILTER_H_
+#define EPICSPVA_EPICSRPCCLIENTMESSAGEFILTER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -66,4 +66,4 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSRPCCLIENTMESSAGEFILTER_H_ */
+#endif /* EPICSPVA_EPICSRPCCLIENTMESSAGEFILTER_H_ */

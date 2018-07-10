@@ -145,6 +145,17 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
     return err;
 }
 
+EmbeddedThreadI::States EPICSPVADatabase::GetStatus() {
+    return executor.GetStatus();
+}
+
+uint32 EPICSPVADatabase::GetStackSize() const {
+    return stackSize;
+}
+
+uint32 EPICSPVADatabase::GetCPUMask() const {
+    return cpuMask;
+}
 CLASS_REGISTER(EPICSPVADatabase, "")
 CLASS_METHOD_REGISTER(EPICSPVADatabase, Start)
 

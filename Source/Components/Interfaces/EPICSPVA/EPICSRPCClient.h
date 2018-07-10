@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSRPCCLIENT_H_
-#define EPICSRPCCLIENT_H_
+#ifndef EPICSPVA_EPICSRPCCLIENT_H_
+#define EPICSPVA_EPICSRPCCLIENT_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -64,4 +64,4 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSRPCCLIENT_H_ */
+#endif /* EPICSPVA_EPICSRPCCLIENT_H_ */

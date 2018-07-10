@@ -66,7 +66,7 @@ EPICSPVARecord::~EPICSPVARecord() {
 
 }
 
-bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuilder, ConfigurationDatabase &cdb) {
+bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuilder) {
     uint32 i;
     uint32 nOfChildren = cdb.GetNumberOfChildren();
     bool ok = true;
@@ -126,7 +126,7 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
             const char8 * const nodeName = cdb.GetChildName(i);
             if (cdb.MoveRelative(nodeName)) {
                 fieldBuilder = fieldBuilder->addNestedStructure(nodeName);
-                ok = GetEPICSStructure(fieldBuilder, cdb);
+                ok = GetEPICSStructure(fieldBuilder);
                 cdb.MoveToAncestor(1);
                 fieldBuilder = fieldBuilder->endNested();
             }
@@ -139,7 +139,7 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
 bool EPICSPVARecord::Initialise(StructuredDataI &data) {
     bool ok = Object::Initialise(data);
     if (ok) {
-        cdb = dynamic_cast<ConfigurationDatabase &>(data);
+        ok = data.Copy(cdb);
     }
     if (ok) {
         ok = cdb.MoveRelative("Structure");
@@ -154,10 +154,9 @@ bool EPICSPVARecord::CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr)
     epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
 
-    bool ok = GetEPICSStructure(fieldBuilder, cdb);
+    bool ok = GetEPICSStructure(fieldBuilder);
     if (ok) {
         epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
-        topStructure->dump(std::cout);
         epics::pvData::PVStructurePtr pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
         std::tr1::shared_ptr<MARTe2PVARecord> pvRecordWrapper = std::tr1::shared_ptr<MARTe2PVARecord>(new MARTe2PVARecord(GetName(), pvStructure));
         pvRecordWrapper->initPvt();

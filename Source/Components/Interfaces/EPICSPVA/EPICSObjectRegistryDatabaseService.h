@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSOBJECTREGISTRYDATABASESERVICE_H_
-#define EPICSOBJECTREGISTRYDATABASESERVICE_H_
+#ifndef EPICSPVA_EPICSOBJECTREGISTRYDATABASESERVICE_H_
+#define EPICSPVA_EPICSOBJECTREGISTRYDATABASESERVICE_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -40,7 +40,21 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * @brief TODO
+ * @brief Query the contents of the ObjectRegistryDatabase using an epics::pvAccess::RPCService that allows to q
+ * @details To be used with an EPICSRPCServer.
+ *
+ * The configuration syntax is  (names are only given as an example):
+ * <pre>
+ * +EPICSPVARPC = {
+ *   Class = EPICSPVA::EPICSRPCServer
+ *   StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
+ *   CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
+ *   AutoStart = 0 //Optional. Default = 1. If false the service will only be started after receiving a Start message (see Start method).
+ *   +Service1 = {
+ *      Class = EPICSPVA::EPICSObjectRegistryDatabaseService
+ *   }
+ * }
+ * </pre>
  */
 namespace MARTe {
 class epicsShareClass EPICSObjectRegistryDatabaseService: public virtual epics::pvAccess::RPCService, public Object {
@@ -48,28 +62,35 @@ public:
     POINTER_DEFINITIONS(EPICSObjectRegistryDatabaseService);
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO
+     * @brief Constructor. NOOP.
      */
     EPICSObjectRegistryDatabaseService();
 
     /**
-     * @brief TODO
+     * @brief Destructor. NOOP.
      */
     virtual ~EPICSObjectRegistryDatabaseService();
 
     /**
-     * @brief TODO
+     * @brief Returns the ObjectRegistryDatabase tree as a PVStructure.
+     * @param[in] args not used.
+     * @return a snapshot of the ObjectRegistryDatabase tree as a PVStructure.
      */
     epics::pvData::PVStructurePtr request(epics::pvData::PVStructure::shared_pointer const & args) throw (epics::pvAccess::RPCRequestException);
 
 private:
     /**
-     * TODO
+     * @brief Helper method which recursively creates an epics::pvData::PVStructure from the ObjectRegistryDatabase.
+     * @param[in] fieldBuilder the FieldBuilder that is used to populate the structure.
+     * @param[in] rc a reference to the node being currently populated (the ObjectRegistryDatabase root in the first call).
      */
     void GetEPICSStructure(epics::pvData::FieldBuilderPtr & fieldBuilder, ReferenceContainer &rc);
 
     /**
-     * TODO
+     * @brief Helper method which recursively populates an epics::pvData::PVStructure (generated with GetEPICSStructure) from the ObjectRegistryDatabase.
+     * @param[in] pvStructure the PVStructure created with GetEPICSStructure.
+     * @param[in] rc a reference to the node being currently populated (the ObjectRegistryDatabase root in the first call).
+     * @param[in] fullName the name, including the full path, to the current node.
      */
     void FillEPICSStructure(epics::pvData::PVStructurePtr & pvStructure, ReferenceContainer &rc, StreamString fullName);
 
@@ -79,4 +100,4 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSOBJECTREGISTRYDATABASESERVICE_H_ */
+#endif /* EPICSPVA_EPICSOBJECTREGISTRYDATABASESERVICE_H_ */

@@ -108,7 +108,6 @@ ErrorManagement::ErrorType EPICSRPCServer::Execute(ExecutionInfo& info) {
         uint32 nOfServices = Size();
         bool ok = true;
         for (i = 0u; (i < nOfServices) && (ok); i++) {
-            // register our service as "helloService"
             ReferenceT<Object> service = Get(i);
             if (service.IsValid()) {
                 const char8 * const serviceName = service->GetName();
@@ -138,6 +137,18 @@ ErrorManagement::ErrorType EPICSRPCServer::Execute(ExecutionInfo& info) {
     }
 
     return err;
+}
+
+EmbeddedThreadI::States EPICSRPCServer::GetStatus() {
+    return executor.GetStatus();
+}
+
+uint32 EPICSRPCServer::GetStackSize() const {
+    return stackSize;
+}
+
+uint32 EPICSRPCServer::GetCPUMask() const {
+    return cpuMask;
 }
 
 CLASS_REGISTER(EPICSRPCServer, "")

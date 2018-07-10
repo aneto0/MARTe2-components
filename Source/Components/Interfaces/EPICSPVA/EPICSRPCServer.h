@@ -43,36 +43,61 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 /**
- * @brief TODO
+ * @brief Register under the same threading context a list of epics::pvAccess::RPCService .
+ * @details A ReferenceContainer of MARTe Objects that also implement the epics::pvAccess::RPCService interface.
+ *
+ * The configuration syntax is  (names are only given as an example):
+ * <pre>
+ * +EPICSPVARPC = {
+ *   Class = EPICSPVA::EPICSRPCServer
+ *   StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
+ *   CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
+ *   AutoStart = 0 //Optional. Default = 1. If false the service will only be started after receiving a Start message (see Start method).
+ *   +Service1 = {
+ *      Class = EPICSPVA::EPICSObjectRegistryDatabaseService
+ *      ...
+ *   }
+ *   +PV_2 = {
+ *      Class = ...//Inherits from epics::pvAccess::RPCService
+ *      ...
+ *   }
+ * }
+ * </pre>
  */
 class EPICSRPCServer: public ReferenceContainer, public EmbeddedServiceMethodBinderI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO
+     * @brief Constructor. NOOP.
+     * @post
+     *    GetStackSize() = THREADS_DEFAULT_STACKSIZE * 4u;
+     *    GetCPUMask() = 0xff;
      */
     EPICSRPCServer();
 
     /**
-     * @brief TODO
+     * @brief Destructor. NOOP.
      */
     virtual ~EPICSRPCServer();
 
     /**
-     * @brief TODO
+     * @brief Initialises the ReferenceContainer and reads the thread parameters (see class documentation above).
+     * @details If the AutoStart parameter is set to 1 the Start() method is called.
+     * @return true if the ReferenceContainer and thread parameters are successfully initialised.
      */
     virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief If the Stop was to be called from the destructor the Size() would already be == 0 and as consequence it would not
-     * be possible to clean the EPICS resources when the state is BadTerminationStage
+     * be possible to clean the EPICSPVA resources when the state is BadTerminationStage
      * @details See ReferenceContainer::Purge
      */
     virtual void Purge(ReferenceContainer &purgeList);
 
     /**
-     * @brief Provides the context to execute all the EPICS relevant calls
-     * TODO.
+     * @brief Provides the context to execute all the EPICSPVA relevant calls
+     * @details Executes in the context of a spawned thread the EPICSPVA related to the epics::pvAccess::RPCServer (registerService, run, ...).
+     * @return ErrorManagement::NoError if all the EPICSPVA calls return without any error.
      */
     virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
@@ -81,6 +106,24 @@ public:
      * @return ErrorManagement::NoError if the service wasn't already started.
      */
     ErrorManagement::ErrorType Start();
+
+    /**
+     * @brief Gets the thread stack size.
+     * @return the thread stack size.
+     */
+    uint32 GetStackSize() const;
+
+    /**
+     * @brief Gets the thread affinity.
+     * @return the thread affinity.
+     */
+    uint32 GetCPUMask() const;
+
+    /**
+     * @brief Gets the embedded thread state.
+     * @return the embedded thread state.
+     */
+    EmbeddedThreadI::States GetStatus();
 
 private:
 

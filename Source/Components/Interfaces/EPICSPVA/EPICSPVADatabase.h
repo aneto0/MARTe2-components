@@ -43,23 +43,73 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 /**
- * @brief TODO
+ * @brief A server of EPICSPVARecord elements.
+ * @details A ReferenceContainer which offers the threading context to register any number EPICSPVARecord elements on an epics::pvDatabase::PVDatabase.
+ *
+ * The configuration syntax is  (names are only given as an example):
+ * <pre>
+ * +EPICSPVADatabase1 = {
+ *   Class = EPICSPVA::EPICSPVADatabase
+ *   StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
+ *   CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
+ *   AutoStart = 0 //Optional. Default = 1. If false the service will only be started after receiving a Start message (see Start method).
+ *   +Record1 = {
+ *     Class = EPICSPVA::EPICSPVARecord
+ *     Structure = {
+ *       ElementsA = {
+ *         Element1 = {
+ *           Type = uint32
+ *           NumberOfElements = 10
+ *         }
+ *         Element2 = {
+ *           Type = float32
+ *         }
+ *         ElementsB = {
+ *           ElementB1 = {
+ *             Type = uint8
+ *             NumberOfElements = 100
+ *           }
+ *           ElementB2 = {
+ *             Type = float32
+ *             NumberOfElements = 5
+ *           }
+ *         }
+ *       }
+ *     }
+ *   }
+ *   +Record2 = {
+ *     Class = EPICSPVA::EPICSPVARecord
+ *     Structure = {
+ *       Element1 = {
+ *         Type = float64
+ *         NumberOfElements = 1
+ *       }
+ *     }
+ *   }
+ * }
+ * </pre>
  */
 class EPICSPVADatabase: public ReferenceContainer, public EmbeddedServiceMethodBinderI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
-    /**
-     * @brief TODO
-     */
-    EPICSPVADatabase();
 
     /**
-     * @brief TODO
+     * @brief Constructor. NOOP.
+     * @post
+     *    GetStackSize() = THREADS_DEFAULT_STACKSIZE * 4u;
+     *    GetCPUMask() = 0xff;
+     */
+    EPICSPVADatabase ();
+
+    /**
+     * @brief Destructor. NOOP.
      */
     virtual ~EPICSPVADatabase();
 
     /**
-     * @brief TODO
+     * @brief Initialises the ReferenceContainer and reads the thread parameters (see class documentation above).
+     * @details If the AutoStart parameter is set to 1 the Start() method is called.
+     * @return true if the ReferenceContainer and thread parameters are successfully initialised.
      */
     virtual bool Initialise(StructuredDataI &data);
 
@@ -71,8 +121,8 @@ public:
     virtual void Purge(ReferenceContainer &purgeList);
 
     /**
-     * @brief Provides the context to execute all the EPICS relevant calls
-     * TODO.
+     * @brief Provides the context to execute all the EPICS relevant calls (epics::pvAccess::startPVAServer, epics::pvDatabase::PVDatabase::getMaster(), CreatePVRecord).
+     * @return ErrorManagement::NoError if all the EPICSPVA calls return without any error.
      */
     virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
@@ -82,6 +132,23 @@ public:
      */
     ErrorManagement::ErrorType Start();
 
+    /**
+     * @brief Gets the thread stack size.
+     * @return the thread stack size.
+     */
+    uint32 GetStackSize() const;
+
+    /**
+     * @brief Gets the thread affinity.
+     * @return the thread affinity.
+     */
+    uint32 GetCPUMask() const;
+
+    /**
+     * @brief Gets the embedded thread state.
+     * @return the embedded thread state.
+     */
+    EmbeddedThreadI::States GetStatus();
 private:
 
     /**

@@ -41,7 +41,25 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * @brief TODO
+ * @brief Message interface through an epics::pvAccess::RPCService.
+ * @details The PVStructure received from pvaccess shall encode a valid MARTe message configuration, which may contain any arbitrary payload.
+ * The message will be sent using the standard MARTe messaging mechanism. The + symbol in the configuration nodes should be replaced by the _ character (+ is not supporte in EPICSPVA).
+ *
+ * If a reply is requested (only directly reply currently supported), a PVStructure will be returned with a field "Reply" containing either the OK or the ERROR keyword.
+ *
+ * To be used with an EPICSRPCServer.
+ * The configuration syntax is  (names are only given as an example):
+ * <pre>
+ * +EPICSPVARPC = {
+ *   Class = EPICSPVA::EPICSRPCServer
+ *   StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
+ *   CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
+ *   AutoStart = 0 //Optional. Default = 1. If false the service will only be started after receiving a Start message (see Start method).
+ *   +Service1 = {
+ *      Class = EPICSPVA::EPICSPVAMessageI
+ *   }
+ * }
+ * </pre>
  */
 namespace MARTe {
 class epicsShareClass EPICSPVAMessageI: public virtual epics::pvAccess::RPCService, public Object, public MessageI {
@@ -49,17 +67,19 @@ public:
     POINTER_DEFINITIONS(EPICSPVAMessageI);
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief TODO
+     * @brief Constructor. NOOP.
      */
     EPICSPVAMessageI();
 
     /**
-     * @brief TODO
+     * @brief Destructor. NOOP.
      */
     virtual ~EPICSPVAMessageI();
 
     /**
-     * @brief TODO
+     * @brief Returns the ObjectRegistryDatabase tree as a PVStructure.
+     * @param[in] args the PVStructure that will be loaded as a MARTe Message.
+     * @return if reply is expected returns a structure with the field "Reply" containing either the word "OK" or "ERROR", otherwise an empty structure is returned.
      */
     epics::pvData::PVStructurePtr request(epics::pvData::PVStructure::shared_pointer const & args) throw (epics::pvAccess::RPCRequestException);
 
