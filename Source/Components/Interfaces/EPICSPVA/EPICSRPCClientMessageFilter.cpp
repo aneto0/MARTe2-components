@@ -79,7 +79,6 @@ ErrorManagement::ErrorType EPICSRPCClientMessageFilter::ConsumeMessage(Reference
         pvaStructureDataI.FinaliseStructure();
         epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
         epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(pvaStructureDataI.GetRootStruct());
-        structPtr->dumpValue(std::cout);
         epics::pvAccess::RPCClient::shared_pointer client = epics::pvAccess::RPCClient::create(destination.Buffer());
         epics::pvData::PVStructurePtr response;
         if (client) {

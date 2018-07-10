@@ -41,7 +41,19 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 /**
- * @brief TODO
+ * @brief EPICS PVA RPC client.
+ * @details Messages sent to this component are relayed as PVStructure through an epics::pvAccess::RPCClient.
+ *
+ * The name of the Message is expected to be the destination to be set on the epics::pvAccess::RPCClient.
+ *
+ * The first element of the Message is expected to be a StructuredDataI with the structure to be serialised a PVStructure.
+ *
+ * The configuration syntax is (names are only given as an example):
+ * <pre>
+ * +EPICSRPCClient = {
+ *   Class = EPICSPVA::EPICSRPCClient
+ * }
+ * </pre>
  */
 namespace MARTe {
 class EPICSRPCClient: public Object, public QueuedMessageI {
