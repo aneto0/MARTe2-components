@@ -517,54 +517,22 @@ bool MDSWriterNode::AddDataToSegment() {
         int64_t auxCurrentTime = static_cast<int64>(start);
         (void)auxCurrentTime;
         if (!useTimeVector) {
-
             start += period;
         }
-        /*
-         if (nodeType == DTYPE_W) {
-         array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), 3, segmentDim);
-         }
-         else if (nodeType == DTYPE_WU) {
-         array = new MDSplus::Uint16Array(reinterpret_cast<uint16 *>(bufferedData), 3, segmentDim);
-         }
-         else if (nodeType == DTYPE_L) {
-         array = new MDSplus::Int32Array(reinterpret_cast<int32 *>(bufferedData), 3, segmentDim);
-         }
-         else if (nodeType == DTYPE_LU) {
-         array = new MDSplus::Uint32Array(reinterpret_cast<uint32 *>(bufferedData), 3, segmentDim);
-         }
-         else if (nodeType == DTYPE_Q) {
-         array = new MDSplus::Int64Array(reinterpret_cast<int64_t *>(bufferedData), 3, segmentDim);
-         }
-         else if (nodeType == DTYPE_QU) {
-         array = new MDSplus::Uint64Array(reinterpret_cast<uint64_t *>(bufferedData), 3, segmentDim);
-         }
-         else if (nodeType == DTYPE_FLOAT) {
-         array = new MDSplus::Float32Array(reinterpret_cast<float32*>(bufferedData), 3, segmentDim);
-         }
-         else if (nodeType == DTYPE_DOUBLE) {
-         array = new MDSplus::Float64Array(reinterpret_cast<float64*>(bufferedData), 3, segmentDim);
-         }
-         else {
-         //An invalid nodeType is trapped before.
-         }
-         */
         if (nodeType == DTYPE_W) {
             MDSplus::Int16 *array = new MDSplus::Int16(reinterpret_cast<int16 *>(bufferedData)[i]);
             //lint -e{613} node is checked not to be null in the beginning of the function
             try {
-                (void)array;// node->putRow(array, &auxCurrentTime);
+                node->putRow(array, &auxCurrentTime);
             }
             catch (const MDSplus::MdsException &exc) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
                 ok = false;
             }
-            //MDSplus::deleteData(array);
+            MDSplus::deleteData(array);
         }
         else if (nodeType == DTYPE_WU) {
-            //MDSplus::Uint16 *array = new MDSplus::Uint16(reinterpret_cast<uint16 *>(bufferedData)[i]);
-
-           MDSplus::Data *array = new MDSplus::Uint16(15);
+            MDSplus::Uint16 *array = new MDSplus::Uint16(reinterpret_cast<uint16 *>(bufferedData)[i]);
             try {
                 node->putRow(array, &auxCurrentTime);
             }
@@ -577,68 +545,68 @@ bool MDSWriterNode::AddDataToSegment() {
         else if (nodeType == DTYPE_L) {
             MDSplus::Int32 *array = new MDSplus::Int32(reinterpret_cast<int32 *>(bufferedData)[i]);
             try {
-                (void)array;//node->putRow(array, &auxCurrentTime);
+                node->putRow(array, &auxCurrentTime);
             }
             catch (const MDSplus::MdsException &exc) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
                 ok = false;
             }
-            //MDSplus::deleteData(array);
+            MDSplus::deleteData(array);
         }
         else if (nodeType == DTYPE_LU) {
             MDSplus::Uint32 *array = new MDSplus::Uint32(reinterpret_cast<uint32 *>(bufferedData)[i]);
             try {
-                (void)array;//node->putRow(array, &auxCurrentTime);
+                node->putRow(array, &auxCurrentTime);
             }
             catch (const MDSplus::MdsException &exc) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
                 ok = false;
             }
-            //MDSplus::deleteData(array);
+            MDSplus::deleteData(array);
         }
         else if (nodeType == DTYPE_Q) {
             MDSplus::Int64 *array = new MDSplus::Int64(reinterpret_cast<int64_t *>(bufferedData)[i]);
             try {
-                (void)array;//node->putRow(array, &auxCurrentTime);
+                node->putRow(array, &auxCurrentTime);
             }
             catch (const MDSplus::MdsException &exc) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
                 ok = false;
             }
-            //MDSplus::deleteData(array);
+            MDSplus::deleteData(array);
         }
         else if (nodeType == DTYPE_QU) {
             MDSplus::Uint64 *array = new MDSplus::Uint64(reinterpret_cast<uint64_t *>(bufferedData)[i]);
             try {
-                (void)array;//node->putRow(array, &auxCurrentTime);
+                node->putRow(array, &auxCurrentTime);
             }
             catch (const MDSplus::MdsException &exc) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
                 ok = false;
             }
-            //MDSplus::deleteData(array);
+            MDSplus::deleteData(array);
         }
         else if (nodeType == DTYPE_FLOAT) {
             MDSplus::Float32 *array = new MDSplus::Float32(reinterpret_cast<float32*>(bufferedData)[i]);
             try {
-                (void)array;//node->putRow(array, &auxCurrentTime);
+                node->putRow(array, &auxCurrentTime);
             }
             catch (const MDSplus::MdsException &exc) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
                 ok = false;
             }
-            //MDSplus::deleteData(array);
+            MDSplus::deleteData(array);
         }
         else if (nodeType == DTYPE_DOUBLE) {
             MDSplus::Float64 *array = new MDSplus::Float64(reinterpret_cast<float64*>(bufferedData)[i]);
             try {
-                (void)array;//node->putRow(array, &auxCurrentTime);
+                node->putRow(array, &auxCurrentTime);
             }
             catch (const MDSplus::MdsException &exc) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
                 ok = false;
             }
-            //MDSplus::deleteData(array);
+            MDSplus::deleteData(array);
         }
         else {
             //An invalid nodeType is trapped before.
