@@ -24,7 +24,17 @@
 #
 #############################################################
 
-SPB=  IOGAM.x ConstantGAM.x ConversionGAM.x FilterGAM.x Interleaved2FlatGAM.x MuxGAM.x PIDGAM.x SSMGAM.x StatisticsGAM.x WaveformGAM.x
+SPB=  IOGAM.x\
+    ConstantGAM.x\
+    ConversionGAM.x\
+    FilterGAM.x\
+    Interleaved2FlatGAM.x\
+    MuxGAM.x\
+    PIDGAM.x\
+    SSMGAM.x\
+    StatisticsGAM.x\
+    TimeCorrectionGAM.x\
+    WaveformGAM.x
 
 ifdef EFDA_MARTe_DIR
 SPB += BaseLib2GAM.x
@@ -44,6 +54,7 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/Interleaved2FlatGAM/Interleaved2FlatGAMTest$(LIBE
 LIBRARIES_STATIC+=$(BUILD_DIR)/MuxGAM/MuxGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/PIDGAM/PIDGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/SSMGAM/SSMGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/TimeCorrectionGAM/TimeCorrectionGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/StatisticsGAM/StatisticsGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/WaveformGAM/WaveformGAMTest$(LIBEXT)
 ifdef EFDA_MARTe_DIR
