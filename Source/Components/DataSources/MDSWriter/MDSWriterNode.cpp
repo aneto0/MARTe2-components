@@ -71,6 +71,10 @@ MDSWriterNode::MDSWriterNode() {
 
     start = 0.F;
     flush = false;
+
+    segmentDim[0] = 0;
+    segmentDim[1] = 0;
+    segmentDim[2] = 0;
 }
 
 /*lint -e{1551} -e{1740} the destructor must guarantee that the MDSplus TreeNode is deleted and the shared memory freed. The signalMemory and the timeSignalMemory are freed by the framework */
@@ -100,14 +104,15 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
             REPORT_ERROR_STATIC(ErrorManagement::InitialisationError, "AutomaticSegmentation must be specified");
         }
         if (ok) {
-            if (auxBool == 1) {
+            if (auxBool == 1u) {
                 automaticSegmentation = true;
             }
-            else if (auxBool == 0) {
+            else if (auxBool == 0u) {
                 automaticSegmentation = false;
             }
             else {
-                REPORT_ERROR_STATIC(ErrorManagement::InitialisationError, "AutomaticSegmentation must be 0 (false) or 1 (true)");
+                REPORT_ERROR_STATIC(ErrorManagement::InitialisationError,
+                                    "AutomaticSegmentation must be 0 (false) or 1 (true)");
                 ok = false;
             }
         }
@@ -163,7 +168,8 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
             nodeType = DTYPE_DOUBLE;
         }
         else {
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NodeType %s not supported for node with name %s", signalType.Buffer(), nodeName.Buffer());
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NodeType %s not supported for node with name %s",
+                                signalType.Buffer(), nodeName.Buffer());
             ok = false;
         }
     }
@@ -198,7 +204,7 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
             REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NumberOfDimensions shall be specified");
         }
         if (ok) {
-            ok = (numberOfDimensions == 0) || (numberOfDimensions = 1);
+            ok = ((numberOfDimensions == 0u) || (numberOfDimensions == 1u));
             if (!ok) {
                 REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NumberOfDimensions shall be > 0");
             }
@@ -233,17 +239,18 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
             }
         }
         else {
-            makeSegmentAfterNWrites = 1;
+            makeSegmentAfterNWrites = 1u;
         }
     }
     if (ok) {
-        segmentDim[0] = numberOfSamples * makeSegmentAfterNWrites;
+        uint32 segmentDimU = numberOfSamples * makeSegmentAfterNWrites;
+        segmentDim[0] = static_cast<int32>(segmentDimU);
         if (numberOfDimensions == 0u) {
             segmentDim[1] = 1;
             segmentDim[2] = 1;
         }
         else if (numberOfDimensions == 1u) {
-            segmentDim[1] = numberOfElements;
+            segmentDim[1] = static_cast<int32>(numberOfElements);
             segmentDim[2] = 1;
         }
         else if (numberOfDimensions == 2u) {
@@ -279,7 +286,8 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         uint32 bufferedDataSize = static_cast<uint32>(typeMultiplier);
         bufferedDataSize *= numberOfElements * makeSegmentAfterNWrites * numberOfSamples;
 
-        bufferedData = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufferedDataSize));
+        bufferedData = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(
+                bufferedDataSize));
 
         float64 executePeriodMicroSecondF = static_cast<float64>(numberOfSamples) * period * 1e6;
         executePeriodMicroSecondF += 0.5F;
@@ -302,7 +310,8 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree * const tree) {
         }
     }
     catch (const MDSplus::MdsException &exc) {
-        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", nodeName.Buffer(), exc.what());
+        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", nodeName.Buffer(),
+                            exc.what());
         ok = false;
     }
     if (ok) {
@@ -315,7 +324,8 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree * const tree) {
                 decimatedNode->deleteData();
             }
             catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", decimatedNodeName.Buffer(), exc.what());
+                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s",
+                                    decimatedNodeName.Buffer(), exc.what());
                 ok = false;
             }
         }
@@ -366,10 +376,12 @@ bool MDSWriterNode::Execute() {
         if (!discontinuityFound) {
             if (currentBuffer < makeSegmentAfterNWrites) {
                 if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(void *))) {
-                    uint32 signalIdx = currentBuffer * numberOfSamples * numberOfElements * static_cast<uint32>(typeMultiplier);
+                    uint32 signalIdx = currentBuffer * numberOfSamples * numberOfElements
+                            * static_cast<uint32>(typeMultiplier);
                     char8 *bufferedDataC = reinterpret_cast<char8 *>(bufferedData);
-                    ok = MemoryOperationsHelper::Copy(&bufferedDataC[signalIdx], signalMemory,
-                                                      numberOfSamples * numberOfElements * static_cast<uint32>(typeMultiplier));
+                    ok = MemoryOperationsHelper::Copy(
+                            &bufferedDataC[signalIdx], signalMemory,
+                            numberOfSamples * numberOfElements * static_cast<uint32>(typeMultiplier));
                 }
                 else {
                     ok = false;
@@ -413,7 +425,8 @@ bool MDSWriterNode::Execute() {
             if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(void *))) {
                 //currentBuffer had already been incremented. Copy the last buffer to the beginning
                 char8 *bufferedDataC = reinterpret_cast<char8 *>(bufferedData);
-                ok = MemoryOperationsHelper::Copy(&bufferedDataC[0u], signalMemory, numberOfElements * static_cast<uint32>(typeMultiplier));
+                ok = MemoryOperationsHelper::Copy(&bufferedDataC[0u], signalMemory,
+                                                  numberOfElements * static_cast<uint32>(typeMultiplier));
             }
             if (ok) {
                 currentBuffer = 1u;
@@ -427,11 +440,11 @@ bool MDSWriterNode::Execute() {
         else {
             currentBuffer = 0u;
         }
-        //lint -e{429} startD, endD, dimension are freed by MDSplus upon deletion of dimension
     }
     return ok;
 }
 
+//lint -e{429} startD, endD, dimension are freed by MDSplus upon deletion of dimension
 bool MDSWriterNode::ForceSegment() {
     bool ok = true;
     //Notice that currentBuffer is not incremented if a discontinuity is found
@@ -453,28 +466,28 @@ bool MDSWriterNode::ForceSegment() {
         start += static_cast<float64>(numberOfSamplesPerSegment) * period;
     }
     if (nodeType == DTYPE_W) {
-        array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), 3, segmentDim);
+        array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), 3, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_WU) {
-        array = new MDSplus::Uint16Array(reinterpret_cast<uint16 *>(bufferedData), 3, segmentDim);
+        array = new MDSplus::Uint16Array(reinterpret_cast<uint16 *>(bufferedData), 3, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_L) {
-        array = new MDSplus::Int32Array(reinterpret_cast<int32 *>(bufferedData), 3, segmentDim);
+        array = new MDSplus::Int32Array(reinterpret_cast<int32 *>(bufferedData), 3, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_LU) {
-        array = new MDSplus::Uint32Array(reinterpret_cast<uint32 *>(bufferedData), 3, segmentDim);
+        array = new MDSplus::Uint32Array(reinterpret_cast<uint32 *>(bufferedData), 3, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_Q) {
-        array = new MDSplus::Int64Array(reinterpret_cast<int64_t *>(bufferedData), 3, segmentDim);
+        array = new MDSplus::Int64Array(reinterpret_cast<int64_t *>(bufferedData), 3, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_QU) {
-        array = new MDSplus::Uint64Array(reinterpret_cast<uint64_t *>(bufferedData), 3, segmentDim);
+        array = new MDSplus::Uint64Array(reinterpret_cast<uint64_t *>(bufferedData), 3, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_FLOAT) {
-        array = new MDSplus::Float32Array(reinterpret_cast<float32*>(bufferedData), 3, segmentDim);
+        array = new MDSplus::Float32Array(reinterpret_cast<float32*>(bufferedData), 3, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_DOUBLE) {
-        array = new MDSplus::Float64Array(reinterpret_cast<float64*>(bufferedData), 3, segmentDim);
+        array = new MDSplus::Float64Array(reinterpret_cast<float64*>(bufferedData), 3, &segmentDim[0]);
     }
     else {
         //An invalid nodeType is trapped before.
@@ -506,110 +519,58 @@ bool MDSWriterNode::ForceSegment() {
     return ok;
 }
 
+/*lint -e{613} function only called if bufferedData != NULL*/
 bool MDSWriterNode::AddDataToSegment() {
     bool ok = true;
 
     //Notice that currentBuffer is not incremented if a discontinuity is found
-    uint32 numberOfSamplesPerSegment = static_cast<int32>(numberOfSamples) * static_cast<int32>(currentBuffer);
+    uint32 numberOfSamplesPerSegment = numberOfSamples * currentBuffer;
     //MDSpluse::putRow() only save one sample at the time
     segmentDim[0] = 1;
     for (uint32 i = 0u; i < numberOfSamplesPerSegment; i++) {
         int64_t auxCurrentTime = static_cast<int64>(start);
-        (void)auxCurrentTime;
+        (void) auxCurrentTime;
         if (!useTimeVector) {
             start += period;
         }
+        MDSplus::Scalar *value = NULL_PTR(MDSplus::Scalar *);
         if (nodeType == DTYPE_W) {
-            MDSplus::Int16 *array = new MDSplus::Int16(reinterpret_cast<int16 *>(bufferedData)[i]);
-            //lint -e{613} node is checked not to be null in the beginning of the function
-            try {
-                node->putRow(array, &auxCurrentTime);
-            }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
-                ok = false;
-            }
-            MDSplus::deleteData(array);
+            value = new MDSplus::Int16(reinterpret_cast<int16 *>(bufferedData)[i]);
         }
         else if (nodeType == DTYPE_WU) {
-            MDSplus::Uint16 *array = new MDSplus::Uint16(reinterpret_cast<uint16 *>(bufferedData)[i]);
-            try {
-                node->putRow(array, &auxCurrentTime);
-            }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
-                ok = false;
-            }
-            MDSplus::deleteData(array);
+            value = new MDSplus::Uint16(reinterpret_cast<uint16 *>(bufferedData)[i]);
         }
         else if (nodeType == DTYPE_L) {
-            MDSplus::Int32 *array = new MDSplus::Int32(reinterpret_cast<int32 *>(bufferedData)[i]);
-            try {
-                node->putRow(array, &auxCurrentTime);
-            }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
-                ok = false;
-            }
-            MDSplus::deleteData(array);
+            value = new MDSplus::Int32(reinterpret_cast<int32 *>(bufferedData)[i]);
         }
         else if (nodeType == DTYPE_LU) {
-            MDSplus::Uint32 *array = new MDSplus::Uint32(reinterpret_cast<uint32 *>(bufferedData)[i]);
-            try {
-                node->putRow(array, &auxCurrentTime);
-            }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
-                ok = false;
-            }
-            MDSplus::deleteData(array);
+            value = new MDSplus::Uint32(reinterpret_cast<uint32 *>(bufferedData)[i]);
         }
         else if (nodeType == DTYPE_Q) {
-            MDSplus::Int64 *array = new MDSplus::Int64(reinterpret_cast<int64_t *>(bufferedData)[i]);
-            try {
-                node->putRow(array, &auxCurrentTime);
-            }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
-                ok = false;
-            }
-            MDSplus::deleteData(array);
+            value = new MDSplus::Int64(reinterpret_cast<int64_t *>(bufferedData)[i]);
         }
         else if (nodeType == DTYPE_QU) {
-            MDSplus::Uint64 *array = new MDSplus::Uint64(reinterpret_cast<uint64_t *>(bufferedData)[i]);
-            try {
-                node->putRow(array, &auxCurrentTime);
-            }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
-                ok = false;
-            }
-            MDSplus::deleteData(array);
+            value = new MDSplus::Uint64(reinterpret_cast<uint64_t *>(bufferedData)[i]);
         }
         else if (nodeType == DTYPE_FLOAT) {
-            MDSplus::Float32 *array = new MDSplus::Float32(reinterpret_cast<float32*>(bufferedData)[i]);
-            try {
-                node->putRow(array, &auxCurrentTime);
-            }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
-                ok = false;
-            }
-            MDSplus::deleteData(array);
+            value = new MDSplus::Float32(reinterpret_cast<float32*>(bufferedData)[i]);
         }
         else if (nodeType == DTYPE_DOUBLE) {
-            MDSplus::Float64 *array = new MDSplus::Float64(reinterpret_cast<float64*>(bufferedData)[i]);
-            try {
-                node->putRow(array, &auxCurrentTime);
-            }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
-                ok = false;
-            }
-            MDSplus::deleteData(array);
+            value = new MDSplus::Float64(reinterpret_cast<float64*>(bufferedData)[i]);
         }
         else {
             //An invalid nodeType is trapped before.
+        }
+        if (value != NULL_PTR(MDSplus::Scalar *)) {
+            //lint -e{613} node is checked not to be null in the beginning of the function
+            try {
+                node->putRow(value, &auxCurrentTime);
+            }
+            catch (const MDSplus::MdsException &exc) {
+                REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
+                ok = false;
+            }
+            MDSplus::deleteData (value);
         }
     }
     return ok;

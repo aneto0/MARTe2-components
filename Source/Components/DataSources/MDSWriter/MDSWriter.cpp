@@ -108,9 +108,7 @@ uint32 MDSWriter::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool MDSWriter::GetSignalMemoryBuffer(const uint32 signalIdx,
-                                      const uint32 bufferIdx,
-                                      void*& signalAddress) {
+bool MDSWriter::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
     bool ok = (dataSourceMemory != NULL_PTR(char8 *));
     if (ok) {
         /*lint -e{613} dataSourceMemory cannot be NULL here*/
@@ -121,8 +119,7 @@ bool MDSWriter::GetSignalMemoryBuffer(const uint32 signalIdx,
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction and on the storeOnTrigger property (which is load before).*/
-const char8* MDSWriter::GetBrokerName(StructuredDataI& data,
-                                      const SignalDirection direction) {
+const char8* MDSWriter::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
     const char8* brokerName = "";
     if (direction == OutputSignals) {
         if (storeOnTrigger) {
@@ -136,20 +133,17 @@ const char8* MDSWriter::GetBrokerName(StructuredDataI& data,
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: InputBrokers are not supported. Function returns false irrespectively of the parameters.*/
-bool MDSWriter::GetInputBrokers(ReferenceContainer& inputBrokers,
-                                const char8* const functionName,
-                                void* const gamMemPtr) {
+bool MDSWriter::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
     return false;
 }
 
-bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers,
-                                 const char8* const functionName,
-                                 void* const gamMemPtr) {
+bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
     bool ok = true;
     if (storeOnTrigger) {
         ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
         brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr,
+                                                              numberOfBuffers, numberOfPreTriggers,
                                                               numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTriggerNew);
@@ -157,7 +151,8 @@ bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers,
     }
     else {
         ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
-        ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
+        ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers,
+                                                   cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsync);
         }
@@ -177,8 +172,8 @@ bool MDSWriter::Synchronise() {
                     if (!MessageI::SendMessage(treeRuntimeErrorMsg, this)) {
                         StreamString destination = treeRuntimeErrorMsg->GetDestination();
                         StreamString function = treeRuntimeErrorMsg->GetFunction();
-                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(),
-                                     function.Buffer());
+                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]",
+                                     destination.Buffer(), function.Buffer());
                     }
                 }
             }
@@ -192,8 +187,7 @@ bool MDSWriter::Synchronise() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool MDSWriter::PrepareNextState(const char8* const currentStateName,
-                                 const char8* const nextStateName) {
+bool MDSWriter::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
     return true;
 }
 
@@ -332,12 +326,14 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
                             treeRuntimeErrorMsg = msg;
                         }
                         else {
-                            REPORT_ERROR(ErrorManagement::ParametersError, "Message %s is not supported.", msgName.Buffer());
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Message %s is not supported.",
+                                         msgName.Buffer());
                             ok = false;
                         }
                     }
                     else {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Found an invalid Message in container %s", msgContainer->GetName());
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Found an invalid Message in container %s",
+                                     msgContainer->GetName());
                         ok = false;
                     }
 
@@ -353,6 +349,15 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = data.MoveRelative("Signals");
     }
+    //Only one and one GAM allowed to interact with this DataSourceI
+    if (ok) {
+        ok = (GetNumberOfFunctions() == 1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError,
+                         "Exactly one Function allowed to interact with this DataSourceI");
+        }
+    }
+
     //Check signal properties and compute memory
     uint32 *signalSamples = NULL_PTR(uint32 *);
     uint32 totalSignalMemory = 0u;
@@ -360,34 +365,23 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
         uint32 functionNumberOfSignals = 0u;
         uint32 n;
         if (GetFunctionNumberOfSignals(OutputSignals, 0u, functionNumberOfSignals)) {
-            uint32 dataSourceIdx = 0;
+            uint32 dataSourceIdx = 0u;
             signalSamples = new uint32[functionNumberOfSignals];
             for (n = 0u; (n < functionNumberOfSignals) && (ok); n++) { //get samples and save in the dataSource order
                 StreamString GAMSignalName;
                 uint32 nSamples;
                 ok = GetFunctionSignalSamples(OutputSignals, 0u, n, nSamples);
-                if (!ok) {
-                    uint32 auxIdx = n;
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error while getting GetFunctionSignalSamples(OutputSignals, 0u, %u, nSamples)", auxIdx);
-                }
                 if (ok) { //Verify value
                     ok = (nSamples > 0u);
                     if (!ok) {
                         uint32 auxIdx = n;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Number of samples for GAM index = %u must be positive)", auxIdx);
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                                     "Number of samples for GAM index = %u must be > 0)", auxIdx);
                     }
                     if (ok) {
                         ok = GetFunctionSignalAlias(OutputSignals, 0u, n, GAMSignalName);
-                        if (!ok) {
-                            uint32 auxIdx = n;
-                            REPORT_ERROR(ErrorManagement::ParametersError, "Error while getting GetFunctionSignalAlias(OutputSignals, 0u, %u, GAMSignalName)",
-                                         auxIdx);
-                        }
                         if (ok) {
                             ok = GetSignalIndex(dataSourceIdx, GAMSignalName.Buffer());
-                        }
-                        if (!ok) {
-                            REPORT_ERROR(ErrorManagement::ParametersError, "Error while getting GetSignalIndex(dataSourceIdx, %s)", GAMSignalName.Buffer());
                         }
                         if (ok) {
                             signalSamples[dataSourceIdx] = nSamples;
@@ -405,12 +399,14 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
             //GetSignalByteSize(n, nBytes) return the number of Bytes per signal and SAMPLE!
             //It is done because one signal of the dataSource can supply different number of samples per two different GAMs
             ok = GetSignalByteSize(n, nBytes);
-            totalSignalMemory += nBytes*signalSamples[n];
+            /*lint -e{613} ok => signalSamples != NULL*/
+            totalSignalMemory += nBytes * signalSamples[n];
         }
     }
     //Allocate memory
     if (ok) {
-        dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalSignalMemory));
+        dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(
+                totalSignalMemory));
     }
 
     //Check the signal index of the timing signal.
@@ -441,22 +437,20 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 }
             }
             if (ok) {
+                /*lint -e{613} ok => signalSamples != NULL*/
                 ok = originalSignalInformation.Write("Samples", signalSamples[n]);
             }
             if (ok) {                //Read dimensions. Matrix not supported yet!
-                uint8 auxNumberOfDimensions = 32; //invalid number
+                uint8 auxNumberOfDimensions = 32u; //invalid number
                 ok = GetSignalNumberOfDimensions(n, auxNumberOfDimensions);
-                if (!ok) {
-                    uint32 auxIdx = n;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Error while getting GetSignalNumberOfDimensions(%u, auxNumberOfDimensions)", auxIdx);
-                }
                 if (ok) {
-                    ok = (auxNumberOfDimensions == 0u) || (auxNumberOfDimensions == 1);
+                    ok = (auxNumberOfDimensions == 0u) || (auxNumberOfDimensions == 1u);
                     if (!ok) {
                         uint32 auxIdx = n;
-                        REPORT_ERROR(ErrorManagement::ParametersError,
-                                     "Dimensions must be 0 (scalar) or 1 (vector). Matrix not supported yet. current dimension = %u for signal index = %u", auxNumberOfDimensions,
-                                     auxIdx);
+                        REPORT_ERROR(
+                                ErrorManagement::ParametersError,
+                                "Dimensions must be 0 (scalar) or 1 (vector). Matrix not supported yet. current dimension = %u for signal index = %u",
+                                auxNumberOfDimensions, auxIdx);
                     }
                 }
                 if (ok) {
@@ -477,8 +471,10 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 tempNodes[numberOfMDSSignals] = new MDSWriterNode();
                 ok = tempNodes[numberOfMDSSignals]->Initialise(originalSignalInformation);
                 if (ok) {
-                    if ((tempNodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *)) && (offsets != NULL_PTR(uint32 *))) {
-                        tempNodes[numberOfMDSSignals]->SetSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[n]]));
+                    if ((tempNodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *))
+                            && (offsets != NULL_PTR(uint32 *))) {
+                        tempNodes[numberOfMDSSignals]->SetSignalMemory(
+                                reinterpret_cast<void *>(&dataSourceMemory[offsets[n]]));
                     }
                 }
                 delete[] nodes;
@@ -514,21 +510,14 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The numberOfMDSSignals shall be > 0");
         }
     }
-    //Only one and one GAM allowed to interact with this DataSourceI
-    if (ok) {
-        ok = (GetNumberOfFunctions() == 1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one Function allowed to interact with this DataSourceI");
-        }
-    }
-
     //Check if a time signal was set
     bool useTimeSignal = (timeSignalIdx > -1);
     if (storeOnTrigger) {
         if (ok) {
             ok = (useTimeSignal);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger was specified but no TimeSignal was found");
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "StoreOnTrigger was specified but no TimeSignal was found");
             }
         }
     }
@@ -545,7 +534,8 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
         if (ok) {
             uint32 n;
             for (n = 0u; n < numberOfMDSSignals; n++) {
-                if ((nodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *)) && (offsets != NULL_PTR(uint32 *))) {
+                if ((nodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *))
+                        && (offsets != NULL_PTR(uint32 *))) {
                     nodes[n]->SetTimeSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[timeSignalIdx]]));
                 }
             }
@@ -573,7 +563,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             delete treeTemp;
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::Warning, "Tree %s is no longer valid. Error: %s", treeName.Buffer(), exc.what());
+            REPORT_ERROR(ErrorManagement::Warning, "Tree %s is no longer valid. Error: %s", treeName.Buffer(),
+                         exc.what());
             fatalTreeNodeError = true;
         }
         if (!fatalTreeNodeError) {
@@ -601,7 +592,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = NULL_PTR(MDSplus::Tree *);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s to get last pulse number. Error: %s", treeName.Buffer(), exc.what());
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s to get last pulse number. Error: %s",
+                         treeName.Buffer(), exc.what());
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;
             }
@@ -616,7 +608,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::Warning, "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s",
+            REPORT_ERROR(ErrorManagement::Warning,
+                         "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s",
                          treeName.Buffer(), pulseNumber, exc.what());
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;
@@ -630,8 +623,9 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
                 tree->createPulse(pulseNumber);
             }
             catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber,
-                             exc.what());
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(),
+                             pulseNumber, exc.what());
                 ok = false;
             }
         }
@@ -646,7 +640,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s",
+            REPORT_ERROR(ErrorManagement::ParametersError,
+                         "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s",
                          treeName.Buffer(), pulseNumber, exc.what());
             ok = false;
             if (tree != NULL_PTR(MDSplus::Tree *)) {
@@ -686,7 +681,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             if (!MessageI::SendMessage(treeOpenedOKMsg, this)) {
                 StreamString destination = treeOpenedOKMsg->GetDestination();
                 StreamString function = treeOpenedOKMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedOK message to %s [%s]", destination.Buffer(), function.Buffer());
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedOK message to %s [%s]",
+                             destination.Buffer(), function.Buffer());
             }
         }
     }
@@ -697,7 +693,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             if (!MessageI::SendMessage(treeOpenedFailMsg, this)) {
                 StreamString destination = treeOpenedFailMsg->GetDestination();
                 StreamString function = treeOpenedFailMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedFail message to %s [%s]", destination.Buffer(), function.Buffer());
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedFail message to %s [%s]",
+                             destination.Buffer(), function.Buffer());
             }
         }
     }
@@ -727,7 +724,8 @@ ErrorManagement::ErrorType MDSWriter::FlushSegments() {
             if (!MessageI::SendMessage(treeFlushedMsg, this)) {
                 StreamString destination = treeFlushedMsg->GetDestination();
                 StreamString function = treeFlushedMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeFlushed message to %s [%s]", destination.Buffer(), function.Buffer());
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeFlushed message to %s [%s]",
+                             destination.Buffer(), function.Buffer());
             }
         }
     }

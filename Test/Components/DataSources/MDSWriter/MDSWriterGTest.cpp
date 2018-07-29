@@ -158,6 +158,11 @@ TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NoTimeSignal) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoTimeSignal());
 }
 
+TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NumberOfDimensions) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NumberOfDimensions());
+}
+
 TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NumberOfSamples());

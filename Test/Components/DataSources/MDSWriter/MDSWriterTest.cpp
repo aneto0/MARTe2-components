@@ -40,64 +40,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-class CreateTree {
-public:
-    CreateTree(MARTe::StreamString name) {
-        treeName = name;
-        CreateModel();
-    }
-    virtual ~CreateTree() {
-    }
-private:
-    void CreateModel() {
-        MDSplus::Tree *tree = NULL;
-        try {
-            tree = new MDSplus::Tree(treeName.Buffer(), -1, "NEW");
-        }
-        catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR_STATIC(MARTe::ErrorManagement::Warning, "Error opening tree %s. Error: %s", treeName.Buffer(), exc.what());
-        }
-        if (tree != NULL) {
-            try {
-                tree->addNode(":SIGUINT16F", "SIGNAL");
-            }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(MARTe::ErrorManagement::Warning, "Error adding node: %s", treeName.Buffer(), exc.what());
-            }
-
-            tree->addNode(":SIGUINT16D", "SIGNAL");
-            tree->addNode(":SIGUINT32F", "SIGNAL");
-            tree->addNode(":SIGUINT32D", "SIGNAL");
-            tree->addNode(":SIGUINT64F", "SIGNAL");
-            tree->addNode(":SIGUINT64D", "SIGNAL");
-            tree->addNode(":SIGINT16F", "SIGNAL");
-            tree->addNode(":SIGINT16D", "SIGNAL");
-            tree->addNode(":SIGINT32F", "SIGNAL");
-            tree->addNode(":SIGINT32D", "SIGNAL");
-            tree->addNode(":SIGINT64F", "SIGNAL");
-            tree->addNode(":SIGINT64D", "SIGNAL");
-            tree->addNode(":SIGFLT32F", "SIGNAL");
-            tree->addNode(":SIGFLT32D", "SIGNAL");
-            tree->addNode(":SIGFLT64F", "SIGNAL");
-            tree->addNode(":SIGFLT64D", "SIGNAL");
-
-            tree->addNode(":SIGUINT16", "SIGNAL");
-            tree->addNode(":SIGUINT32", "SIGNAL");
-            tree->addNode(":SIGUINT64", "SIGNAL");
-            tree->addNode(":SIGINT16", "SIGNAL");
-            tree->addNode(":SIGINT32", "SIGNAL");
-            tree->addNode(":SIGINT64", "SIGNAL");
-            tree->addNode(":SIGFLT32", "SIGNAL");
-            tree->addNode(":SIGFLT64", "SIGNAL");
-
-            tree->write();
-            delete tree;
-        }
-
-    }
-    MARTe::StreamString treeName;
-};
-
 /**
  * Helper class that reacts to messages received from the MDSWriter class
  */
@@ -2184,7 +2126,7 @@ static const MARTe::char8 * const config6 = ""
         "    }"
         "}";
 
-//Configuration with Samples > 1
+//Configuration with Samples = 0
 static const MARTe::char8 * const config7 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
@@ -2208,6 +2150,89 @@ static const MARTe::char8 * const config7 = ""
         "                    DataSource = Drv1"
         "                    Samples = 0"
         "                    AutomaticSegmentation = 0"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            TreeName = \"mds_m2test\""
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    TimeSignal = 1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Configuration with Dimensions > 1
+static const MARTe::char8 * const config7d = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =   {8 1 2 3 4 5 6 7 }"
+        "            Trigger =  {0 1 0 1 0 1 0 1 }"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                    Samples = 1"
+        "                    AutomaticSegmentation = 0"
+        "                    NumberOfElements = 4"
+        "                    NumberOfDimensions = 2"
         "                }"
         "            }"
         "        }"
@@ -3594,60 +3619,11 @@ static const MARTe::char8 * const config19 = ""
 /*---------------------------------------------------------------------------*/
 
 MDSWriterTest::MDSWriterTest() {
-    treeName = "mds_m2test";
-    char *home = getenv("HOME");
-    fullPath = treeName.Buffer();
-    fullPath += "_path=";
-    fullPath += home;
-    //Important detail: fullPath must exist in all places where the environment variables is needed.
-    //In other words, the scope of the environment variables is defined by the scope of the string (char *)
-    //given to putenv() function.
-    putenv((char *) (fullPath.Buffer()));
-    CreateTree myTreeCreated(treeName);
+    treeTestHelper.Create("mds_m2test");
 }
 
 MDSWriterTest::~MDSWriterTest() {
-
-    MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), -1);
-    MARTe::uint32 shotNumber = tree->getCurrent(treeName.Buffer());
-
-    tree->deletePulse(shotNumber);
-
-    delete tree;
-    MARTe::StreamString strChar = getenv("HOME");
-    strChar += "/";
-    strChar += treeName.Buffer();
-    strChar += "_model.characteristics";
-    if (0 != remove(strChar.Buffer())) {
-        printf("Error while removing %s\n", strChar.Buffer());
-    }
-
-    MARTe::StreamString strData = getenv("HOME");
-    strData += "/";
-    strData += treeName.Buffer();
-    strData += "_model.datafile";
-    if (0 != remove(strData.Buffer())) {
-        printf("Error while removing %s\n", strData.Buffer());
-    }
-
-    MARTe::StreamString strTree = getenv("HOME");
-    strTree += "/";
-    strTree += treeName.Buffer();
-    strTree += "_model.tree";
-
-    if (0 != remove(strTree.Buffer())) {
-        printf("Error while removing %s\n", strTree.Buffer());
-    }
-    MARTe::StreamString strShot = getenv("HOME");
-    strShot += "/";
-    strShot += "shotid.sys";
-    remove(strShot.Buffer());
-
-    /*
-     if (remove(strShot.Buffer()) != 0) {
-     printf("Error while removing %s\n", strShot.Buffer());
-     }
-     */
+    treeTestHelper.Destroy();
 }
 bool MDSWriterTest::TestConstructor() {
     using namespace MARTe;
@@ -3981,6 +3957,10 @@ bool MDSWriterTest::TestSetConfiguredDatabase() {
 
 bool MDSWriterTest::TestSetConfiguredDatabase_False_NumberOfSamples() {
     return !TestIntegratedInApplication(config7, true);
+}
+
+bool MDSWriterTest::TestSetConfiguredDatabase_False_NumberOfDimensions() {
+    return !TestIntegratedInApplication(config7d, true);
 }
 
 bool MDSWriterTest::TestSetConfiguredDatabase_False_MoreThanOneTimeSignal() {

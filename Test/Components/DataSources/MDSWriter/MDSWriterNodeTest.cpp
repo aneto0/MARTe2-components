@@ -44,6 +44,14 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+MDSWriterNodeTest::MDSWriterNodeTest() {
+    treeTestHelper.Create("mds_m2test");
+}
+
+MDSWriterNodeTest::~MDSWriterNodeTest() {
+    treeTestHelper.Destroy();
+}
+
 bool MDSWriterNodeTest::TestConstructor() {
     using namespace MARTe;
     MDSWriterNode test;
@@ -266,6 +274,8 @@ bool MDSWriterNodeTest::TestInitialise_False_NoMakeSegmentAfterNWrites() {
     cdb.Write("Type", "uint16");
     cdb.Write("NumberOfElements", 4);
     cdb.Write("NumberOfDimensions", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
     cdb.Write("Period", 5e-7);
     MDSWriterNode test;
     return !test.Initialise(cdb);
@@ -316,6 +326,84 @@ bool MDSWriterNodeTest::TestInitialise_False_BadMinMaxResampleFactor() {
     cdb.Write("Samples", 1);
     cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 0);
+
+    MDSWriterNode test;
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_False_NoAutomaticSegmentation() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint16");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
+
+    MDSWriterNode test;
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_False_BadAutomaticSegmentation() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint16");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
+    cdb.Write("AutomaticSegmentation", 2);
+
+    MDSWriterNode test;
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_False_NoSamples() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint16");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("NumberOfDimensions", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+
+    MDSWriterNode test;
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_False_NoNumberOfDimensions() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint16");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("Samples", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+
+    MDSWriterNode test;
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_False_BadNumberOfDimensions() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint16");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("NumberOfDimensions", 3);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+
 
     MDSWriterNode test;
     return !test.Initialise(cdb);

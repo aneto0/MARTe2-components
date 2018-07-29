@@ -114,6 +114,31 @@ TEST(MDSWriterNodeGTest,TestInitialise_False_NoType) {
     ASSERT_TRUE(test.TestInitialise_False_NoType());
 }
 
+TEST(MDSWriterNodeGTest,TestInitialise_False_NoAutomaticSegmentation) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoAutomaticSegmentation());
+}
+
+TEST(MDSWriterNodeGTest,TestInitialise_False_BadAutomaticSegmentation) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadAutomaticSegmentation());
+}
+
+TEST(MDSWriterNodeGTest,TestInitialise_False_NoSamples) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoSamples());
+}
+
+TEST(MDSWriterNodeGTest,TestInitialise_False_NoNumberOfDimensions) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoNumberOfDimensions());
+}
+
+TEST(MDSWriterNodeGTest,TestInitialise_False_BadNumberOfDimensions) {
+    MDSWriterNodeTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadNumberOfDimensions());
+}
+
 TEST(MDSWriterNodeGTest,TestInitialise_Type_UInt16) {
     MDSWriterNodeTest test;
     ASSERT_TRUE(test.TestInitialise_Type_UInt16());

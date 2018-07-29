@@ -31,8 +31,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
 #include "MDSWriter.h"
+
+#include "MDSWriterTreeTestHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -160,6 +161,11 @@ public:
      * @brief Tests the SetConfiguredDatabase.
      */
     bool TestSetConfiguredDatabase();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase with dimensions > 1.
+     */
+    bool TestSetConfiguredDatabase_False_NumberOfDimensions();
 
     /**
      * @brief Tests the SetConfiguredDatabase with more than one samples.
@@ -332,8 +338,7 @@ public:
      */
     bool TestInvalidMessageType();
 private:
-    MARTe::StreamString treeName;
-    MARTe::StreamString fullPath;
+    MDSWriterTreeTestHelper treeTestHelper;
 };
 
 /*---------------------------------------------------------------------------*/
