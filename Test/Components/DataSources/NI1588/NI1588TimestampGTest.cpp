@@ -126,9 +126,19 @@ TEST(NI1588TimestampGTest,TestDriverRead) {
     ASSERT_TRUE(test.TestDriverRead());
 }
 
-TEST(NI1588TimestampGTest,TestDriverRead_AllSignals) {
+TEST(NI1588TimestampGTest,TestDriverRead_PFI0) {
     NI1588TimestampTest test;
-    ASSERT_TRUE(test.TestDriverRead_AllSignals(500000000, 6000, 0));
+    ASSERT_TRUE(test.TestDriverRead_PFI(500000000, 6000, 0));
+}
+
+TEST(NI1588TimestampGTest,TestDriverRead_PFI1) {
+    NI1588TimestampTest test;
+    ASSERT_TRUE(test.TestDriverRead_PFI(500000000, 6000, 1));
+}
+
+TEST(NI1588TimestampGTest,TestDriverRead_PFI2) {
+    NI1588TimestampTest test;
+    ASSERT_TRUE(test.TestDriverRead_PFI(500000000, 6000, 2));
 }
 
 TEST(NI1588TimestampGTest,TestDriverRead_MoreSamples) {

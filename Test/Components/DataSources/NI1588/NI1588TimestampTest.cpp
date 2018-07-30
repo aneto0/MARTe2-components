@@ -1520,8 +1520,10 @@ bool NI1588TimestampTest::TestSetConfiguredDatabase_False_CaptureEvent() {
     return !InitialiseMemoryMapInputBrokerEnviroment(config);
 }
 
-bool NI1588TimestampTest::TestDriverRead() {
-
+static bool threadDone = false;
+static bool threadTestResult = false;
+static const char8 *threadConfig = NULL;
+static void NI1588TimestampTestTestDriverRead(const void * const params) {
     static const char8 * const config = ""
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -1629,12 +1631,32 @@ bool NI1588TimestampTest::TestDriverRead() {
         }
         store = *mem;
     }
-
-    return ret;
+    threadTestResult = ret;
+    threadDone = true;
 }
 
-bool NI1588TimestampTest::TestDriverRead_AllSignals(uint64 expected, int64 tol, uint8 expectedTerminal) {
+bool NI1588TimestampTest::TestDriverRead() {
+    threadDone = false;
+    threadTestResult = false;
+    ThreadIdentifier tid = Threads::BeginThread(NI1588TimestampTestTestDriverRead);
+    uint32 timeout = 100;
+    while (!threadDone) {
+        Sleep::MSec(100);
+        timeout--;
+        if (timeout == 0u) {
+            ObjectRegistryDatabase::Instance()->Purge();
+            Threads::Kill(tid);
+            break;
+        }
+    }
+    return threadTestResult;
+}
 
+static void NI1588TimestampTestTestDriverRead_PFI(const void * const params) {
+    const uint64 * const paramsUInt64 = reinterpret_cast<const uint64 * const >(params);
+    uint64 expected = paramsUInt64[0];
+    int64 tol = paramsUInt64[1];
+    uint8 expectedTerminal = (paramsUInt64[2]);
     static const char8 * const config = ""
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -1706,7 +1728,7 @@ bool NI1588TimestampTest::TestDriverRead_AllSignals(uint64 expected, int64 tol, 
             "               }"
             "               TerminalPFI1 = {"
             "                   Type = uint64"
-            "                   CaptureEvent = NISYNC_EDGE_RISING"
+            "                   CaptureEvent = NISYNC_EDGE_FALLING"
             "               }"
             "               TerminalPFI2 = {"
             "                   Type = uint64"
@@ -1774,36 +1796,65 @@ bool NI1588TimestampTest::TestDriverRead_AllSignals(uint64 expected, int64 tol, 
         mem = (uint8 *) gam->GetInputMemoryBuffer();
     }
     uint32 nReads = 10;
-    uint64 store, storeIn;
+    uint64 store = 0;
+    uint64 storeIn = 0;
 
     for (uint32 i = 0u; i < nReads && (ret); i++) {
 
         brokerSync->Execute();
         broker->Execute();
         uint8 *omem = mem;
-        uint64 delta = *((uint64 *) (mem + 72)) - store;
-
+        //6 uint64 internal time stamps
         for (uint32 j = 0u; j < 6u; j++) {
             omem += 8;
         }
+        //6 uint32 error checks
         for (uint32 j = 0u; j < 6u; j++) {
             uint32 errorCheck = *(uint32*) omem;
             ret &= errorCheck == 0;
             omem += 4;
         }
+
+        //72 48 bytes internal time stamps + 24 bytes errors
+        uint64 delta = *((uint64 *) (mem + 72 + (8 * expectedTerminal))) - store;
         if (i > 0) {
             ret &= (((int64) (delta - expected)) < tol) || (((int64) (delta - expected)) > -tol);
-            uint8 *event = (omem + 24);
+            uint8 *event = (omem + 24 + expectedTerminal);
             ret &= (*event == 1);
         }
-        store = *((uint64*) (mem + 72));
+        store = *((uint64*) (mem + 72 + (8 * expectedTerminal)));
         storeIn = *((uint64*) mem);
     }
-
-    return ret;
+    threadTestResult = ret;
+    threadDone = true;
 }
 
-bool NI1588TimestampTest::TestDriverRead_MoreSamples(uint64 expected, int64 tol, uint8 expectedTerminal) {
+bool NI1588TimestampTest::TestDriverRead_PFI(uint64 expected, int64 tol, uint8 expectedTerminal) {
+    threadTestResult = false;
+    threadDone = false;
+    uint64 params[3];
+    params[0] = expected;
+    params[1] = tol;
+    params[2] = expectedTerminal;
+    ThreadIdentifier tid = Threads::BeginThread(NI1588TimestampTestTestDriverRead_PFI, &params[0]);
+    uint32 timeout = 100;
+    while (!threadDone) {
+        Sleep::MSec(100);
+        timeout--;
+        if (timeout == 0u) {
+            ObjectRegistryDatabase::Instance()->Purge();
+            Threads::Kill(tid);
+            break;
+        }
+    }
+    ObjectRegistryDatabase::Instance()->Purge();
+    return threadTestResult;
+}
+
+static void NI1588TimestampTestTestDriverRead_MoreSamples(const void * const params) {
+    const uint64 * const paramsUInt64 = reinterpret_cast<const uint64 * const >(params);
+    uint64 expected = paramsUInt64[0];
+    int64 tol = paramsUInt64[1];
 
     static const char8 * const config = ""
             "$Application1 = {"
@@ -1817,16 +1868,18 @@ bool NI1588TimestampTest::TestDriverRead_MoreSamples(uint64 expected, int64 tol,
             "                   DataSource = Drv1"
             "                   Type = uint64"
             "                   Samples = 1"
+            "                   NumberOfElements = 1"
             "               }"
             "               ErrorCheck = {"
             "                   DataSource = Drv1"
             "                   Type = uint32"
             "                   Samples = 1"
+            "                   NumberOfElements = 1"
             "               }"
             "               TerminalPFI0 = {"
             "                   DataSource = Drv1"
             "                   Type = uint64"
-            "                   Samples = 5"
+            "                   Samples = 1"
             "                   Frequency = 0"
             "               }"
             "            }"
@@ -1840,6 +1893,12 @@ bool NI1588TimestampTest::TestDriverRead_MoreSamples(uint64 expected, int64 tol,
             "            CpuMask = 1"
             "            ReceiverThreadPriority = 31"
             "            PollMsecTimeout = -1"
+            "            Signals = {"
+            "               TerminalPFI0 = {"
+            "                   Type = uint64"
+            "                   CaptureEvent = NISYNC_EDGE_RISING"
+            "               }"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1904,10 +1963,9 @@ bool NI1588TimestampTest::TestDriverRead_MoreSamples(uint64 expected, int64 tol,
         brokerSync->Execute();
         broker->Execute();
         uint8 *omem = mem;
-
         omem += 8;
-        uint32 errorCheck = *(uint32*) omem;
-        ret &= errorCheck == 0;
+        uint32 errorCheck = *((uint32*) omem);
+        ret &= (errorCheck == 0);
         omem += 4;
         for (uint32 j = 0u; j < 5u; j++) {
             uint64 delta = *((uint64 *) (omem)) - store;
@@ -1920,12 +1978,35 @@ bool NI1588TimestampTest::TestDriverRead_MoreSamples(uint64 expected, int64 tol,
 
         storeIn = *((uint64*) mem);
     }
-
-    return ret;
+    threadTestResult = ret;
+    threadDone = true;
+}
+bool NI1588TimestampTest::TestDriverRead_MoreSamples(uint64 expected, int64 tol, uint8 expectedTerminal) {
+    threadTestResult = false;
+    threadDone = false;
+    uint64 params[3];
+    params[0] = expected;
+    params[1] = tol;
+    params[2] = expectedTerminal;
+    ThreadIdentifier tid = Threads::BeginThread(NI1588TimestampTestTestDriverRead_MoreSamples, &params[0]);
+    uint32 timeout = 100;
+    while (!threadDone) {
+        Sleep::MSec(100);
+        timeout--;
+        if (timeout == 0u) {
+            ObjectRegistryDatabase::Instance()->Purge();
+            Threads::Kill(tid);
+            break;
+        }
+    }
+    ObjectRegistryDatabase::Instance()->Purge();
+    return threadTestResult;
 }
 
-bool NI1588TimestampTest::TestDriverRead_NoSync(uint32 expected, int32 tol) {
-
+static void NI1588TimestampTestTestDriverRead_NoSync(const void * const params) {
+    const uint64 * const paramsUInt64 = reinterpret_cast<const uint64 * const >(params);
+    uint64 expected = paramsUInt64[0];
+    int64 tol = paramsUInt64[1];
     static const char8 * const config = ""
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -2036,7 +2117,7 @@ bool NI1588TimestampTest::TestDriverRead_NoSync(uint32 expected, int32 tol) {
     uint64 tic = HighResolutionTimer::Counter();
 
     uint32 cnt = 0;
-    while (cnt < 10u) {
+    while ((cnt < 10u) && (ret)) {
 
         broker->Execute();
         uint8 *omem = mem;
@@ -2064,13 +2145,37 @@ bool NI1588TimestampTest::TestDriverRead_NoSync(uint32 expected, int32 tol) {
         storeIn = *((uint64*) mem);
         Sleep::MSec(1);
     }
-
-    return ret;
+    threadTestResult = ret;
+    threadDone = true;
 }
 
-bool NI1588TimestampTest::TestDriverRead_TimeoutExpired(const char8* config, uint64 expected, int64 tol, uint8 expectedTerminal, uint32 nErrorSamples) {
+bool NI1588TimestampTest::TestDriverRead_NoSync(uint32 expected, int32 tol) {
+    threadTestResult = false;
+    threadDone = false;
+    uint64 params[3];
+    params[0] = expected;
+    params[1] = tol;
+    ThreadIdentifier tid = Threads::BeginThread(NI1588TimestampTestTestDriverRead_NoSync, &params[0], 4 * 1024 * 1024);
+    uint32 timeout = 100;
+    while (!threadDone) {
+        Sleep::MSec(100);
+        timeout--;
+        if (timeout == 0u) {
+            ObjectRegistryDatabase::Instance()->Purge();
+            Threads::Kill(tid);
+            break;
+        }
+    }
+    ObjectRegistryDatabase::Instance()->Purge();
+    return threadTestResult;
+}
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+static void NI1588TimestampTestTestDriverRead_TimeoutExpired(const void * const params) {
+    const uint64 * const paramsUInt64 = reinterpret_cast<const uint64 * const >(params);
+    uint64 expected = paramsUInt64[0];
+    int64 tol = paramsUInt64[1];
+    uint32 nErrorSamples = paramsUInt64[3];
+    bool ret = InitialiseMemoryMapInputBrokerEnviroment(threadConfig);
     ReferenceT<NI1588TimestampTestDS> dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
@@ -2104,7 +2209,7 @@ bool NI1588TimestampTest::TestDriverRead_TimeoutExpired(const char8* config, uin
         ret = dataSource->PrepareNextState("State1", "State1");
         mem = (uint8 *) gam->GetInputMemoryBuffer();
     }
-    uint32 nReads = 10;
+    uint32 nReads = 5;
     uint64 store, storeIn;
     for (uint32 i = 0u; i < nReads && (ret); i++) {
 
@@ -2114,16 +2219,17 @@ bool NI1588TimestampTest::TestDriverRead_TimeoutExpired(const char8* config, uin
         uint64 delta = *((uint64 *) (mem + 28)) - store;
 
         omem += 8;
-        for (uint32 n = 0u; n < nErrorSamples; n++) {
+        for (uint32 n = 0u; (n < nErrorSamples) && (ret); n++) {
             uint32 errorCheck = *(uint32*) omem;
             omem += 4;
             if ((n < (nErrorSamples - 1))) {
                 //timeout expired error
-                ret &= errorCheck == 4;
+                ret &= (errorCheck == 4);
             }
             else {
-                ret &= errorCheck == 0;
+                ret &= (errorCheck == 0);
             }
+
         }
         if (i > 0) {
             ret &= (((int64) (delta - expected)) < tol) || (((int64) (delta - expected)) > -tol);
@@ -2132,12 +2238,41 @@ bool NI1588TimestampTest::TestDriverRead_TimeoutExpired(const char8* config, uin
         storeIn = *((uint64*) mem);
     }
 
-    return ret;
+    threadTestResult = ret;
+    threadDone = true;
 }
 
-bool NI1588TimestampTest::TestDriverRead_Pattern(const char8* config, uint64 *expectedDeltas, int64 tolerance, uint32 numberOfCycles) {
+bool NI1588TimestampTest::TestDriverRead_TimeoutExpired(const char8* config, uint64 expected, int64 tol, uint8 expectedTerminal, uint32 nErrorSamples) {
+    threadTestResult = false;
+    threadDone = false;
+    uint64 params[3];
+    params[0] = expected;
+    params[1] = tol;
+    params[2] = expectedTerminal;
+    params[3] = nErrorSamples;
+    threadConfig = config;
+    ThreadIdentifier tid = Threads::BeginThread(NI1588TimestampTestTestDriverRead_TimeoutExpired, &params[0], 4 * 1024 * 1024);
+    uint32 timeout = 100;
+    while (!threadDone) {
+        Sleep::MSec(100);
+        timeout--;
+        if (timeout == 0u) {
+            ObjectRegistryDatabase::Instance()->Purge();
+            Threads::Kill(tid);
+            break;
+        }
+    }
+    ObjectRegistryDatabase::Instance()->Purge();
+    return threadTestResult;
+}
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+static uint64 *threadExpectedDeltas = NULL;
+static void NI1588TimestampTestTestDriverRead_Pattern(const void * const params) {
+    const uint64 * const paramsUInt64 = reinterpret_cast<const uint64 * const >(params);
+    int64 tolerance = paramsUInt64[0];
+    uint32 numberOfCycles = paramsUInt64[1];
+
+    bool ret = InitialiseMemoryMapInputBrokerEnviroment(threadConfig);
     ReferenceT<NI1588TimestampTestDS> dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
@@ -2150,7 +2285,6 @@ bool NI1588TimestampTest::TestDriverRead_Pattern(const char8* config, uint64 *ex
         ret = gam.IsValid();
     }
     ReferenceT<MemoryMapSynchronisedMultiBufferInputBroker> brokerSync;
-    //ReferenceT < MemoryMapMultiBufferInputBroker > broker;
     if (ret) {
         ReferenceContainer inputBrokers;
         ret = gam->GetInputBrokers(inputBrokers);
@@ -2159,11 +2293,7 @@ bool NI1588TimestampTest::TestDriverRead_Pattern(const char8* config, uint64 *ex
             brokerSync = inputBrokers.Get(0);
             ret = (brokerSync.IsValid());
         }
-        /*
-         if (ret) {
-         broker = inputBrokers.Get(1);
-         ret = (broker.IsValid());
-         }*/
+
     }
 
     uint8* mem = NULL;
@@ -2181,14 +2311,38 @@ bool NI1588TimestampTest::TestDriverRead_Pattern(const char8* config, uint64 *ex
 
         if (i > 0) {
             uint64 delta = *(uint64*) (omem) - store;
-            ret = (((int64) (delta - expectedDeltas[i])) < tolerance) || ((int64) ((delta - expectedDeltas[i])) > -tolerance);
+            ret = (((int64) (delta - threadExpectedDeltas[i])) < tolerance) || ((int64) ((delta - threadExpectedDeltas[i])) > -tolerance);
             if (!ret) {
                 printf("Exit 1\n");
             }
         }
         store = *(uint64*) (mem);
     }
+    threadTestResult = ret;
+    threadDone = true;
+}
 
-    return ret;
+bool NI1588TimestampTest::TestDriverRead_Pattern(const char8* config, uint64 *expectedDeltas, int64 tolerance, uint32 numberOfCycles) {
+    threadTestResult = false;
+    threadDone = false;
+    uint64 params[3];
+    threadConfig = config;
+    params[0] = tolerance;
+    params[1] = numberOfCycles;
+    threadExpectedDeltas = expectedDeltas;
+    threadConfig = config;
+    ThreadIdentifier tid = Threads::BeginThread(NI1588TimestampTestTestDriverRead_Pattern, &params[0]);
+    uint32 timeout = 100;
+    while (!threadDone) {
+        Sleep::MSec(100);
+        timeout--;
+        if (timeout == 0u) {
+            ObjectRegistryDatabase::Instance()->Purge();
+            Threads::Kill(tid);
+            break;
+        }
+    }
+    ObjectRegistryDatabase::Instance()->Purge();
+    return threadTestResult;
 }
 

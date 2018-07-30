@@ -35,6 +35,7 @@
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
+#include "ThreadInformation.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -719,6 +720,14 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config,
     //return true;
     godb->Purge();
 
+    uint32 nThreads = Threads::NumberOfThreads();
+    while(nThreads > 0) {
+        ThreadInformation tinfo;
+        if (Threads::GetThreadInfoCopy(tinfo, 0u)) {
+            Threads::Kill(tinfo.GetThreadIdentifier());
+        }
+        nThreads = Threads::NumberOfThreads();
+    }
     return ok;
 }
 
@@ -1067,7 +1076,7 @@ static const MARTe::char8 * const config1_B = ""
         "            Class = MDSWriter"
         "            NumberOfBuffers = 10"
         "            CPUMask = 15"
-        "            StackSize = 10000000"
+        "            StackSize = 20000000"
         "            TreeName = \"mds_m2test\""
         "            PulseNumber = 1"
         "            StoreOnTrigger = 0"
@@ -3619,6 +3628,7 @@ static const MARTe::char8 * const config19 = ""
 /*---------------------------------------------------------------------------*/
 
 MDSWriterTest::MDSWriterTest() {
+    using namespace MARTe;
     treeTestHelper.Create("mds_m2test");
 }
 

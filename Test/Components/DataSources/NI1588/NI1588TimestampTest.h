@@ -148,9 +148,9 @@ public:
     bool TestDriverRead();
 
     /**
-     * @brief Tests the DriverRead method with all the allowed signals.
+     * @brief Tests the DriverRead method with the expectedTerminal PFI0 (requires a signal to be connected to the expected terminal).
      */
-    bool TestDriverRead_AllSignals(uint64 expected, int64 tol, uint8 expectedTerminal);
+    bool TestDriverRead_PFI(uint64 expected, int64 tol, uint8 expectedTerminal);
 
     /**
      * @brief Tests the DriverRead method with a number of samples greater than one
