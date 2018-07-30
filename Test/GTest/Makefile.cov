@@ -38,6 +38,7 @@ LIBRARIES   += -L$(MARTe2_DIR)/Build/x86-linux/Core/ -lMARTe2
 LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a 
 
 ifdef CODAC_ROOT
+LIBRARIES += -L$(CODAC_ROOT)/lib/ -lnisync
 LIBRARIES += -L$(CODAC_ROOT)/lib/ -lnixseries
 LIBRARIES += -L$(CODAC_ROOT)/lib/ -lpxi6259
 endif
