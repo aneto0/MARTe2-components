@@ -27,10 +27,13 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-
+#include "mdsobjects.h"
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "MDSWriter.h"
+
+#include "MDSWriterTreeTestHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -40,6 +43,10 @@
  */
 class MDSWriterTest {
 public:
+    MDSWriterTest();
+
+    ~MDSWriterTest();
+
     /**
      * @brief Tests the constructor.
      */
@@ -156,6 +163,11 @@ public:
     bool TestSetConfiguredDatabase();
 
     /**
+     * @brief Tests the SetConfiguredDatabase with dimensions > 1.
+     */
+    bool TestSetConfiguredDatabase_False_NumberOfDimensions();
+
+    /**
      * @brief Tests the SetConfiguredDatabase with more than one samples.
      */
     bool TestSetConfiguredDatabase_False_NumberOfSamples();
@@ -220,6 +232,11 @@ public:
      * @brief Tests the MDSWriter integrated in an application which asynchronously stores data, with NumberOfElements > 1, based on a trigger event.
      */
     bool TestIntegratedInApplication_Trigger_Elements();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data, with NumberOfElements > 1, based on a trigger event.
+     */
+    bool TestIntegratedInApplication_NoTrigger_AutomaticSegmentation();
 
     /**
      * @brief Tests the GetCPUMask method.
@@ -320,6 +337,8 @@ public:
      * @brief Tests that an Invalid message type is correctly captured.
      */
     bool TestInvalidMessageType();
+private:
+    MDSWriterTreeTestHelper treeTestHelper;
 };
 
 /*---------------------------------------------------------------------------*/
