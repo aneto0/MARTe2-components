@@ -253,8 +253,8 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
             segmentDim[1] = static_cast<int32>(numberOfElements);
             segmentDim[2] = 1;
         }
-        else if (numberOfDimensions == 2u) {
-            //TBD currently matrix are not supported.
+        else  {
+            //numberOfDimensions == 2u. TODO currently matrix are not supported.
         }
     }
     if (ok) {
@@ -320,6 +320,7 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree * const tree) {
         }
         if (decimatedMinMax) {
             try {
+                /*lint -e{613} ok => tree != NULL*/
                 decimatedNode = tree->getNode(decimatedNodeName.Buffer());
                 decimatedNode->deleteData();
             }
@@ -519,7 +520,7 @@ bool MDSWriterNode::ForceSegment() {
     return ok;
 }
 
-/*lint -e{613} function only called if bufferedData != NULL*/
+/*lint -e{613} -e{429} function only called if bufferedData != NULL. Custodial pointer value freed by mds+*/
 bool MDSWriterNode::AddDataToSegment() {
     bool ok = true;
 

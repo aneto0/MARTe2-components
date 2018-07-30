@@ -548,7 +548,6 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
     }
     if (signalSamples != NULL_PTR(uint32 *)) {
         delete[] signalSamples;
-        signalSamples = NULL_PTR(uint32 *);
     }
     return ok;
 }
