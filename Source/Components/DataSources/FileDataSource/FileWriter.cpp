@@ -372,8 +372,8 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
         }
 
         uint32 nOfSignals = GetNumberOfSignals();
-        ok = (nOfSignals > 0u);
         if (ok) {
+            ok = (nOfSignals > 0u);
             offsets = new uint32[nOfSignals];
         }
 

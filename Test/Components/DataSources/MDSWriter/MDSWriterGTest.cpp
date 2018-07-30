@@ -133,6 +133,16 @@ TEST(MDSWriterGTest,TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
+TEST(MDSWriterGTest,TestIntegratedInApplication_NoTrigger_AutomaticSegmentation) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger_AutomaticSegmentation());
+}
+
+TEST(MDSWriterGTest,TestIntegratedInApplication_NoTrigger_AutomaticSegmentation1) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger_AutomaticSegmentation());
+}
+
 TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_MoreThanOneTimeSignal) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneTimeSignal());
@@ -146,6 +156,11 @@ TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NoMDSSignals) {
 TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NoTimeSignal) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoTimeSignal());
+}
+
+TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NumberOfDimensions) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NumberOfDimensions());
 }
 
 TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
