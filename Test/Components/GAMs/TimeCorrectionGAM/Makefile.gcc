@@ -20,25 +20,12 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+# $Id: Makefile.inc 3 2015-01-15 16:26:07Z aneto $
 #
 #############################################################
 
-TARGET=cov
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = TimeCorrectionGAMGTest.x
 
 include Makefile.inc
-
-LIBRARIES_STATIC=IOGAM/cov/IOGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=ConstantGAM/cov/ConstantGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=ConversionGAM/cov/ConversionGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=FilterGAM/cov/FilterGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=Interleaved2FlatGAM/cov/Interleaved2FlatGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=MuxGAM/cov/MuxGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=PIDGAM/cov/PIDGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=SSMGAM/cov/SSMGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=StatisticsGAM/cov/StatisticsGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=TimeCorrectionGAM/cov/TimeCorrectionGAMTest$(LIBEXT)
-LIBRARIES_STATIC+=WaveformGAM/cov/WaveformGAMTest$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=BaseLib2GAM/cov/BaseLib2GAMTest$(LIBEXT)
-endif
