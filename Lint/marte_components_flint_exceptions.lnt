@@ -80,3 +80,4 @@
 -estring(1960,*epicsEvent::*)
 -estring(1960,*ccs::*)
 -estring(1960,*sdn::*)
+-estring(451,*NiFpga.h*)

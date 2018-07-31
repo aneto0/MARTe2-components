@@ -24,6 +24,10 @@
 
 SPB=SysLogger.x
 
+ifdef CODAC_ROOT
+SPB+=NI9157Device.x
+endif
+
 ifdef EFDA_MARTe_DIR
 SPB+=BaseLib2Wrapper.x
 endif
@@ -39,6 +43,11 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 LIBRARIES_STATIC=$(BUILD_DIR)/SysLogger/SysLogger$(LIBEXT)
+
+ifdef CODAC_ROOT
+LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157Device/NI9157Device$(LIBEXT)
+endif
+
 ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2Wrapper$(LIBEXT)
 endif

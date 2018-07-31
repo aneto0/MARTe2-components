@@ -37,9 +37,11 @@ LIBRARIES   += -L$(MARTe2_DIR)/Build/$(TARGET)/Core/ -lMARTe2
 LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a
 
 ifdef CODAC_ROOT
-LIBRARIES += -L$(CODAC_ROOT)/lib/ -lnisync
-LIBRARIES += -L$(CODAC_ROOT)/lib/ -lnixseries
-LIBRARIES += -L$(CODAC_ROOT)/lib/ -lpxi6259
+LIBRARIES += -L$(CODAC_ROOT)/lib/
+LIBRARIES += -lnisync
+LIBRARIES += -lnixseries
+LIBRARIES += -lpxi6259
+LIBRARIES += -lNiFpga
 endif
 
 ifdef EFDA_MARTe_DIR
