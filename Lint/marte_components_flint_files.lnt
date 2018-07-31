@@ -15,6 +15,7 @@
 -i./Source/Components/DataSources/NI1588/
 -i./Source/Components/DataSources/NI6259/
 -i./Source/Components/DataSources/NI6368/
+-i./Source/Components/DataSources/NI9157/
 -i./Source/Components/DataSources/RealTimeThreadAsyncBridge/
 -i./Source/Components/DataSources/RealTimeThreadSynchronisation/
 -i./Source/Components/DataSources/SDN/
@@ -74,9 +75,11 @@ NI6368ADCInputBroker.cpp
 NI6368DAC.cpp
 NI6368DIO.cpp
 NI9157Device.cpp
+NI9157CircularFifoReader.cpp
 NI9157DeviceOperatorDatabase.cpp
 NI9157DeviceOperatorT.cpp
 NI9157DeviceOperatorTI.cpp
+NI9157MxiDataSource.cpp
 Platform.cpp
 PIDGAM.cpp
 RealTimeThreadAsyncBridge.cpp
