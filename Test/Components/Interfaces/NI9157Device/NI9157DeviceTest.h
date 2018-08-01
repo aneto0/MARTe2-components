@@ -144,6 +144,12 @@ public:
 
     bool TestNiWrite();
 
+    bool TestNiConfigureFifo();
+
+    bool TestNiStartFifo();
+
+    bool TestNiStopFifo();
+
 };
 
 /*---------------------------------------------------------------------------*/

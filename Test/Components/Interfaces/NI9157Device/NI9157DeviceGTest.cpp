@@ -138,3 +138,17 @@ TEST(NI9157DeviceGTest,TestNiWrite) {
     ASSERT_TRUE(test.TestNiWrite());
 }
 
+TEST(NI9157DeviceGTest,TestNiConfigureFifo) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiConfigureFifo());
+}
+
+TEST(NI9157DeviceGTest,TestNiStartFifo) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiStartFifo());
+}
+
+TEST(NI9157DeviceGTest,TestNiStopFifo) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiStopFifo());
+}

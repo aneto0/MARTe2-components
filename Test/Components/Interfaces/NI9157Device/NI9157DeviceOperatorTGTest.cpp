@@ -247,3 +247,130 @@ TEST(NI9157DeviceOperatorTGTest,TestCopy_I64) {
     NI9157DeviceOperatorTTest<int64> test;
     ASSERT_TRUE(test.TestCopy(0x7fffffffffffffff));
 }
+
+TEST(NI9157DeviceOperatorTGTest,TestFindResource_U8) {
+    NI9157DeviceOperatorTTest<uint8> test;
+    ASSERT_TRUE(test.TestFindResource("IndU8"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestFindResource_I8) {
+    NI9157DeviceOperatorTTest<int8> test;
+    ASSERT_TRUE(test.TestFindResource("IndI8"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestFindResource_U16) {
+    NI9157DeviceOperatorTTest<uint16> test;
+    ASSERT_TRUE(test.TestFindResource("IndU16"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestFindResource_I16) {
+    NI9157DeviceOperatorTTest<int16> test;
+    ASSERT_TRUE(test.TestFindResource("IndI16"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestFindResource_U32) {
+    NI9157DeviceOperatorTTest<uint32> test;
+    ASSERT_TRUE(test.TestFindResource("IndU32"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestFindResource_I32) {
+    NI9157DeviceOperatorTTest<int32> test;
+    ASSERT_TRUE(test.TestFindResource("IndI32"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestFindResource_U64) {
+    NI9157DeviceOperatorTTest<uint64> test;
+    ASSERT_TRUE(test.TestFindResource("IndU64"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestFindResource_I64) {
+    NI9157DeviceOperatorTTest<int64> test;
+    ASSERT_TRUE(test.TestFindResource("IndI64"));
+}
+
+
+TEST(NI9157DeviceOperatorTGTest,TestNiRead_U8) {
+    NI9157DeviceOperatorTTest<uint8> test;
+    ASSERT_TRUE(test.TestNiRead("IndU8", "ContU8"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiWrite_U8) {
+    NI9157DeviceOperatorTTest<uint8> test;
+    ASSERT_TRUE(test.TestNiWrite("IndU8", "ContU8"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiRead_U16) {
+    NI9157DeviceOperatorTTest<uint16> test;
+    ASSERT_TRUE(test.TestNiRead("IndU16", "ContU16"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiWrite_U16) {
+    NI9157DeviceOperatorTTest<uint16> test;
+    ASSERT_TRUE(test.TestNiWrite("IndU16", "ContU16"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiRead_U32) {
+    NI9157DeviceOperatorTTest<uint32> test;
+    ASSERT_TRUE(test.TestNiRead("IndU32", "ContU32"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiWrite_U32) {
+    NI9157DeviceOperatorTTest<uint32> test;
+    ASSERT_TRUE(test.TestNiWrite("IndU32", "ContU32"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiRead_U64) {
+    NI9157DeviceOperatorTTest<uint64> test;
+    ASSERT_TRUE(test.TestNiRead("IndU64", "ContU64"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiWrite_U64) {
+    NI9157DeviceOperatorTTest<uint64> test;
+    ASSERT_TRUE(test.TestNiWrite("IndU64", "ContU64"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiRead_I8) {
+    NI9157DeviceOperatorTTest<int8> test;
+    ASSERT_TRUE(test.TestNiRead("IndI8", "ContI8"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiWrite_I8) {
+    NI9157DeviceOperatorTTest<int8> test;
+    ASSERT_TRUE(test.TestNiWrite("IndI8", "ContI8"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiRead_I16) {
+    NI9157DeviceOperatorTTest<int16> test;
+    ASSERT_TRUE(test.TestNiRead("IndI16", "ContI16"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiWrite_I16) {
+    NI9157DeviceOperatorTTest<int16> test;
+    ASSERT_TRUE(test.TestNiWrite("IndI16", "ContI16"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiRead_I32) {
+    NI9157DeviceOperatorTTest<int32> test;
+    ASSERT_TRUE(test.TestNiRead("IndI32", "ContI32"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiWrite_I32) {
+    NI9157DeviceOperatorTTest<int32> test;
+    ASSERT_TRUE(test.TestNiWrite("IndI32", "ContI32"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiRead_I64) {
+    NI9157DeviceOperatorTTest<int64> test;
+    ASSERT_TRUE(test.TestNiRead("IndI64", "ContI64"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiWrite_I64) {
+    NI9157DeviceOperatorTTest<int64> test;
+    ASSERT_TRUE(test.TestNiWrite("IndI64", "ContI64"));
+}
+
+
+TEST(NI9157DeviceOperatorTGTest,TestGetNI9157Device) {
+    NI9157DeviceOperatorTTest<int64> test;
+    ASSERT_TRUE(test.TestGetNI9157Device());
+}

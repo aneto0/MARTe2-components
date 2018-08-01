@@ -102,7 +102,7 @@ bool NI9157DeviceTest::TestInitialise() {
             "    Class = NI9157DeviceTestIF"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options = 2"
             "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
@@ -147,7 +147,7 @@ bool NI9157DeviceTest::TestInitialise() {
         ret = interface->IsOpened() == 0;
         ret &= interface->IsRunning() == 0;
         ret &= StringHelper::Compare(interface->GetNiRioGenFile(), "Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx") == 0;
-        ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), "6275BF517CD273AA4FDA8E4E3B0D7378") == 0;
+        ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), "056FA65581781B17399E48BA851E9F28") == 0;
         ret &= StringHelper::Compare(interface->GetNiRioDeviceName(), "RIO0") == 0;
     }
     return ret;
@@ -161,7 +161,7 @@ bool NI9157DeviceTest::TestInitialiseIsOpened() {
             "    Class = NI9157DeviceTestIF"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Open = 1"
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options = 2"
@@ -207,7 +207,7 @@ bool NI9157DeviceTest::TestInitialiseIsOpened() {
         ret = interface->IsOpened() == 1;
         ret &= interface->IsRunning() == 0;
         ret &= StringHelper::Compare(interface->GetNiRioGenFile(), "Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx") == 0;
-        ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), "6275BF517CD273AA4FDA8E4E3B0D7378") == 0;
+        ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), "056FA65581781B17399E48BA851E9F28") == 0;
         ret &= StringHelper::Compare(interface->GetNiRioDeviceName(), "RIO0") == 0;
     }
     return ret;
@@ -220,7 +220,7 @@ bool NI9157DeviceTest::TestInitialiseRandomConfig() {
             "    Class = NI9157DeviceTestIF"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options = 2"
             "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
@@ -265,7 +265,7 @@ bool NI9157DeviceTest::TestInitialiseRandomConfig() {
         ret = interface->IsOpened() == 0;
         ret &= interface->IsRunning() == 0;
         ret &= StringHelper::Compare(interface->GetNiRioGenFile(), "Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx") == 0;
-        ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), "6275BF517CD273AA4FDA8E4E3B0D7378") == 0;
+        ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), "056FA65581781B17399E48BA851E9F28") == 0;
         ret &= StringHelper::Compare(interface->GetNiRioDeviceName(), "RIO0") == 0;
     }
     return ret;
@@ -277,7 +277,7 @@ bool NI9157DeviceTest::TestInitialise_FalseNoDeviceName() {
             "+NiDevice = {"
             "    Class = NI9157DeviceTestIF"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options = 2"
             "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
@@ -318,7 +318,7 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenFile() {
             "+NiDevice = {"
             "    Class = NI9157DeviceTestIF"
             "    NiRioDeviceName = RIO0"
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options = 2"
             "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
@@ -402,7 +402,7 @@ bool NI9157DeviceTest::TestInitialise_FalseNoType() {
             "    NiRioDeviceName = RIO0"
             "    Open = 1"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_Control_options = 2"
             "    }"
@@ -432,7 +432,7 @@ bool NI9157DeviceTest::TestInitialise_FalseVariableNotFound() {
             "    NiRioDeviceName = RIO0"
             "    Open = 1"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options_boh = 2"
             "    }"
@@ -461,7 +461,7 @@ bool NI9157DeviceTest::TestOpen() {
             "    Class = NI9157DeviceTestIF"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options = 2"
             "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
@@ -521,7 +521,7 @@ bool NI9157DeviceTest::TestRun() {
             "    Class = NI9157DeviceTestIF"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options = 2"
             "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
@@ -592,7 +592,7 @@ bool NI9157DeviceTest::TestGetSession() {
             "    Class = NI9157DeviceTestIF"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options = 2"
             "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
@@ -673,7 +673,7 @@ bool NI9157DeviceTest::TestFindResource() {
             "    Class = NI9157DeviceTestIF"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options = 2"
             "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
@@ -727,9 +727,9 @@ bool NI9157DeviceTest::TestFindResource() {
 
     if (ret) {
 
-        //uint8 typeU8 = 0;
+        uint8 typeU8 = 0;
         uint32 varDescriptor;
-        //ret &= (interface->FindResource("IndU8IndU8", typeU8, varDescriptor) == 0);
+        ret &= (interface->FindResource("IndU8", typeU8, varDescriptor) == 0);
 
         uint16 typeU16 = 0;
         ret &= (interface->FindResource("IndU16", typeU16, varDescriptor) == 0);
@@ -763,7 +763,7 @@ bool NI9157DeviceTest::TestNiRead() {
             "    Class = NI9157DeviceTestIF"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"6275BF517CD273AA4FDA8E4E3B0D7378\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
             "    Configuration = {"
             "        NiFpga_TestGTD0001_ControlU8_options = 2"
             "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
@@ -824,26 +824,32 @@ bool NI9157DeviceTest::TestNiRead() {
 
     if (ret) {
 
-        //uint8 typeU8 = 0;
-
         uint32 contrDescriptor;
         uint32 varDescriptor;
-        //ret &= (interface->FindResource("IndU8IndU8", typeU8, varDescriptor) == 0);
+
+        uint8 typeU8 = 0;
+        ret &= (interface->FindResource("IndU8", typeU8, varDescriptor) == 0);
+        ret &= (interface->FindResource("ContU8", typeU8, contrDescriptor) == 0);
+
+        ret &= (interface->NiWrite(contrDescriptor, (uint8) 1) == 0);
+        uint8 valueU8;
+        ret &= (interface->NiRead(varDescriptor, valueU8) == 0);
+        ret &= (valueU8 == 1);
 
         uint16 typeU16 = 0;
         ret &= (interface->FindResource("IndU16", typeU16, varDescriptor) == 0);
         ret &= (interface->FindResource("ContU16", typeU16, contrDescriptor) == 0);
 
-        ret &= (interface->NiWrite(contrDescriptor, 2) == 0);
+        ret &= (interface->NiWrite(contrDescriptor, (uint16) 2) == 0);
         uint16 valueU16;
         ret &= (interface->NiRead(varDescriptor, valueU16) == 0);
         ret &= (valueU16 == 2);
 
         uint32 typeU32 = 0;
-        ret &= (interface->FindResource("IndU32", typeU32, contrDescriptor) == 0);
-        ret &= (interface->FindResource("ContU32", typeU32, varDescriptor) == 0);
+        ret &= (interface->FindResource("IndU32", typeU32, varDescriptor) == 0);
+        ret &= (interface->FindResource("ContU32", typeU32, contrDescriptor) == 0);
 
-        ret &= (interface->NiWrite(contrDescriptor, 3) == 0);
+        ret &= (interface->NiWrite(contrDescriptor, (uint32) 3) == 0);
         uint32 valueU32;
         ret &= (interface->NiRead(varDescriptor, valueU32) == 0);
         ret &= valueU32 == 3;
@@ -852,27 +858,25 @@ bool NI9157DeviceTest::TestNiRead() {
         ret &= (interface->FindResource("IndU64", typeU64, varDescriptor) == 0);
         ret &= (interface->FindResource("ContU64", typeU64, contrDescriptor) == 0);
 
-        ret &= (interface->NiWrite(contrDescriptor, 4) == 0);
+        ret &= (interface->NiWrite(contrDescriptor, (uint64) 4) == 0);
         uint64 valueU64;
         ret &= (interface->NiRead(varDescriptor, valueU64) == 0);
         ret &= valueU64 == 4;
 
-        /*
          int8 typeI8 = 0;
          ret &= (interface->FindResource("IndI8", typeI8, varDescriptor) == 0);
-         ret &= (interface->FindResource("ContrI8", typeU16, varDescriptor) == 0);
+         ret &= (interface->FindResource("ContI8", typeI8, varDescriptor) == 0);
 
-         ret&=(interface->NiWrite(varDescriptor, -1)==0);
+         ret&=(interface->NiWrite(varDescriptor, (int8)-1)==0);
          int8 valueI8;
          ret&=(interface->NiRead(varDescriptor, valueI8)==0);
          ret&=valueI8==-1;
-         */
 
         int16 typeI16 = 0;
         ret &= (interface->FindResource("IndI16", typeI16, varDescriptor) == 0);
-        ret &= (interface->FindResource("ContI16", typeU16, contrDescriptor) == 0);
+        ret &= (interface->FindResource("ContI16", typeI16, contrDescriptor) == 0);
 
-        ret &= (interface->NiWrite(contrDescriptor, -2) == 0);
+        ret &= (interface->NiWrite(contrDescriptor, (int16) - 2) == 0);
         int8 valueI16;
         ret &= (interface->NiRead(varDescriptor, valueI16) == 0);
         ret &= valueI16 == -2;
@@ -881,17 +885,17 @@ bool NI9157DeviceTest::TestNiRead() {
         ret &= (interface->FindResource("IndI32", typeI32, varDescriptor) == 0);
         ret &= (interface->FindResource("ContI32", typeI32, contrDescriptor) == 0);
 
-        ret &= (interface->NiWrite(contrDescriptor, -3) == 0);
-        int8 valueI32;
+        ret &= (interface->NiWrite(contrDescriptor, (int32) - 3) == 0);
+        int32 valueI32;
         ret &= (interface->NiRead(varDescriptor, valueI32) == 0);
         ret &= valueI32 == -3;
 
         int64 typeI64 = 0;
         ret &= (interface->FindResource("IndI64", typeI64, varDescriptor) == 0);
-        ret &= (interface->FindResource("ContU64", typeI64, contrDescriptor) == 0);
+        ret &= (interface->FindResource("ContI64", typeI64, contrDescriptor) == 0);
 
-        ret &= (interface->NiWrite(contrDescriptor, -4) == 0);
-        int8 valueI64;
+        ret &= (interface->NiWrite(contrDescriptor, (int64) - 4) == 0);
+        int64 valueI64;
         ret &= (interface->NiRead(varDescriptor, valueI64) == 0);
         ret &= valueI64 == -4;
 
@@ -906,5 +910,158 @@ bool NI9157DeviceTest::TestNiRead() {
 
 bool NI9157DeviceTest::TestNiWrite() {
     return TestNiRead();
+}
+
+bool NI9157DeviceTest::TestNiConfigureFifo() {
+
+    static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157DeviceTestIF"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
+            "    Configuration = {"
+            "        NiFpga_TestGTD0001_ControlU8_options = 2"
+            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
+            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
+            "        NiFpga_TestGTD0001_ControlBool_stop2 = 0"
+            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
+            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
+            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
+            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
+            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
+            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
+            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
+            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
+            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
+            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
+            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
+            "    }"
+            "}";
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    if (ret) {
+        ret = interface->IsOpened() == 0;
+    }
+
+    if (ret) {
+        ret = interface->Open() == 0;
+    }
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+
+    if (ret) {
+        uint64 typeU64 = 0;
+        uint32 varDescriptor;
+        ret &= (interface->FindResource("FIFO", typeU64, varDescriptor) == 0);
+        uint32 oldSize = 0;
+        uint32 hostFifoSize = 20000;
+        ret = (interface->NiConfigureFifo(varDescriptor, hostFifoSize, oldSize) == 0);
+    }
+
+    return ret;
+
+}
+
+bool NI9157DeviceTest::TestNiStartFifo() {
+
+    static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157DeviceTestIF"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
+            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
+            "    Configuration = {"
+            "        NiFpga_TestGTD0001_ControlU8_options = 2"
+            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
+            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
+            "        NiFpga_TestGTD0001_ControlBool_stop2 = 0"
+            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
+            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
+            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
+            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
+            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
+            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
+            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
+            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
+            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
+            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
+            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
+            "    }"
+            "}";
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+
+    if (ret) {
+        ret = interface->IsOpened() == 0;
+    }
+
+    if (ret) {
+        ret = interface->Open() == 0;
+    }
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+
+    if (ret) {
+        uint64 typeU64 = 0;
+        uint32 varDescriptor;
+        ret &= (interface->FindResource("FIFO", typeU64, varDescriptor) == 0);
+        ret &= (interface->NiStartFifo(varDescriptor) == 0);
+        if(ret){
+            ret = (interface->NiStopFifo(varDescriptor) == 0);
+        }
+
+    }
+
+
+
+
+    return ret;
+}
+
+bool NI9157DeviceTest::TestNiStopFifo() {
+    return TestNiStartFifo();
 }
 

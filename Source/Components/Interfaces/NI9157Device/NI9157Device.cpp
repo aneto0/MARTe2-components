@@ -330,7 +330,7 @@ NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const int3
 NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const uint64 type, uint32 &varDescriptor) {
 
 //try all the types
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU8, &varDescriptor);
+    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU64, &varDescriptor);
     if (status != 0) {
         status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorU64, &varDescriptor);
     }
