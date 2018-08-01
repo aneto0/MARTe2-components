@@ -123,3 +123,18 @@ TEST(NI9157DeviceGTest,TestClose) {
     ASSERT_TRUE(test.TestClose());
 }
 
+TEST(NI9157DeviceGTest,TestFindResource) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestFindResource());
+}
+
+TEST(NI9157DeviceGTest,TestNiRead) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiRead());
+}
+
+TEST(NI9157DeviceGTest,TestNiWrite) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiWrite());
+}
+

@@ -138,6 +138,12 @@ public:
     bool TestClose();
 
 
+    bool TestFindResource();
+
+    bool TestNiRead();
+
+    bool TestNiWrite();
+
 };
 
 /*---------------------------------------------------------------------------*/
