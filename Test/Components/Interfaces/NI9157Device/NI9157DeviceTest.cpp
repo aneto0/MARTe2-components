@@ -863,14 +863,14 @@ bool NI9157DeviceTest::TestNiRead() {
         ret &= (interface->NiRead(varDescriptor, valueU64) == 0);
         ret &= valueU64 == 4;
 
-         int8 typeI8 = 0;
-         ret &= (interface->FindResource("IndI8", typeI8, varDescriptor) == 0);
-         ret &= (interface->FindResource("ContI8", typeI8, varDescriptor) == 0);
+        int8 typeI8 = 0;
+        ret &= (interface->FindResource("IndI8", typeI8, varDescriptor) == 0);
+        ret &= (interface->FindResource("ContI8", typeI8, varDescriptor) == 0);
 
-         ret&=(interface->NiWrite(varDescriptor, (int8)-1)==0);
-         int8 valueI8;
-         ret&=(interface->NiRead(varDescriptor, valueI8)==0);
-         ret&=valueI8==-1;
+        ret &= (interface->NiWrite(varDescriptor, (int8) - 1) == 0);
+        int8 valueI8;
+        ret &= (interface->NiRead(varDescriptor, valueI8) == 0);
+        ret &= valueI8 == -1;
 
         int16 typeI16 = 0;
         ret &= (interface->FindResource("IndI16", typeI16, varDescriptor) == 0);
@@ -1032,7 +1032,6 @@ bool NI9157DeviceTest::TestNiStartFifo() {
         ret = interface.IsValid();
     }
 
-
     if (ret) {
         ret = interface->IsOpened() == 0;
     }
@@ -1049,14 +1048,11 @@ bool NI9157DeviceTest::TestNiStartFifo() {
         uint32 varDescriptor;
         ret &= (interface->FindResource("FIFO", typeU64, varDescriptor) == 0);
         ret &= (interface->NiStartFifo(varDescriptor) == 0);
-        if(ret){
+        if (ret) {
             ret = (interface->NiStopFifo(varDescriptor) == 0);
         }
 
     }
-
-
-
 
     return ret;
 }
@@ -1065,3 +1061,720 @@ bool NI9157DeviceTest::TestNiStopFifo() {
     return TestNiStartFifo();
 }
 
+bool NI9157DeviceTest::TestNiReadFifo_U8() {
+
+    static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157DeviceTestIF"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled1.lvbitx\""
+            "    NiRioGenSignature = \"163FA42D62F2477BF29AE83EC1BFAD97\""
+            "    Open = 1"
+            "    Configuration = {"
+            "        NiFpga_Untitled1_ControlU32_period = 40000"
+            "    }"
+            "}";
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+
+    if (ret) {
+
+        uint8 typeU8 = 0;
+        uint32 fifoU8w;
+        uint32 fifoU8r;
+        ret &= (interface->FindResource("FIFOU8", typeU8, fifoU8w) == 0);
+        ret &= (interface->FindResource("FIFOU8r", typeU8, fifoU8r) == 0);
+
+        const uint32 numberOfElements = 1000;
+
+        uint32 oldSize = 0u;
+        ret &= (interface->NiConfigureFifo(fifoU8w, numberOfElements, oldSize) == 0);
+        ret &= (interface->NiConfigureFifo(fifoU8r, numberOfElements, oldSize) == 0);
+        uint8 dataw[numberOfElements];
+        uint8 datar[numberOfElements];
+        for (uint32 i = 0u; i < numberOfElements; i++) {
+            dataw[i] = (i % 256);
+        }
+
+        if (ret) {
+            if (ret) {
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            uint32 emptyElementsRemaining = 0u;
+            ret = (interface->NiWriteFifo(fifoU8w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+
+            if (ret) {
+                uint32 elementsRemaining = 0u;
+                ret = (interface->NiReadFifo(fifoU8r, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
+
+                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
+                    ret = datar[i] == (i % 256);
+                    printf("datar[%d]=%d\n", i, datar[i]);
+                }
+            }
+        }
+
+    }
+
+    return ret;
+
+}
+
+bool NI9157DeviceTest::TestNiWriteFifo_U8() {
+    return TestNiReadFifo_U8();
+}
+
+bool NI9157DeviceTest::TestNiReadFifo_U16() {
+
+    static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157DeviceTestIF"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled2.lvbitx\""
+            "    NiRioGenSignature = \"25AFBDC09C72D8241C9EF82DD05F7615\""
+            "    Open = 1"
+            "    Configuration = {"
+            "        NiFpga_Untitled1_ControlU32_period = 40000"
+            "    }"
+            "}";
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+
+    if (ret) {
+
+        uint16 typeU16 = 0;
+        uint32 fifoU16w;
+        uint32 fifoU16r;
+        ret &= (interface->FindResource("FIFOU16", typeU16, fifoU16w) == 0);
+        ret &= (interface->FindResource("FIFOU16r", typeU16, fifoU16r) == 0);
+
+        const uint32 numberOfElements = 1000;
+
+        uint32 oldSize = 0u;
+        ret &= (interface->NiConfigureFifo(fifoU16w, numberOfElements, oldSize) == 0);
+        ret &= (interface->NiConfigureFifo(fifoU16r, numberOfElements, oldSize) == 0);
+        uint16 dataw[numberOfElements];
+        uint16 datar[numberOfElements];
+        for (uint32 i = 0u; i < numberOfElements; i++) {
+            dataw[i] = i;
+        }
+
+        if (ret) {
+            if (ret) {
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            uint32 emptyElementsRemaining = 0u;
+            ret = (interface->NiWriteFifo(fifoU16w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+
+            if (ret) {
+                uint32 elementsRemaining = 0u;
+                ret = (interface->NiReadFifo(fifoU16r, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
+
+                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
+                    ret = datar[i] == i ;
+                    printf("datar[%d]=%d\n", i, datar[i]);
+                }
+            }
+        }
+
+    }
+
+    return ret;
+
+}
+
+bool NI9157DeviceTest::TestNiWriteFifo_U16() {
+    return TestNiReadFifo_U8();
+
+}
+
+bool NI9157DeviceTest::TestNiReadFifo_U32() {
+
+    static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157DeviceTestIF"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled5.lvbitx\""
+            "    NiRioGenSignature = \"A10D94348BA197A47B9DFAD8F96D9407\""
+            "    Open = 1"
+            "    Configuration = {"
+            "        NiFpga_Untitled1_ControlU32_period = 40000"
+            "    }"
+            "}";
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+
+    if (ret) {
+
+        uint32 typeU32 = 0;
+        uint32 fifoU32w;
+        uint32 fifoU32r;
+        ret &= (interface->FindResource("FIFOU32", typeU32, fifoU32w) == 0);
+        ret &= (interface->FindResource("FIFOU32r", typeU32, fifoU32r) == 0);
+
+        const uint32 numberOfElements = 1000;
+
+        uint32 oldSize = 0u;
+        ret &= (interface->NiConfigureFifo(fifoU32w, numberOfElements, oldSize) == 0);
+        ret &= (interface->NiConfigureFifo(fifoU32r, numberOfElements, oldSize) == 0);
+        uint32 dataw[numberOfElements];
+        uint32 datar[numberOfElements];
+        for (uint32 i = 0u; i < numberOfElements; i++) {
+            dataw[i] = i;
+        }
+
+        if (ret) {
+            if (ret) {
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            uint32 emptyElementsRemaining = 0u;
+            ret = (interface->NiWriteFifo(fifoU32w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+
+            if (ret) {
+                uint32 elementsRemaining = 0u;
+                ret = (interface->NiReadFifo(fifoU32r, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
+
+                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
+                    ret = datar[i] == i;
+                    printf("datar[%d]=%d\n", i, datar[i]);
+                }
+            }
+        }
+
+    }
+
+    return ret;
+
+}
+
+bool NI9157DeviceTest::TestNiWriteFifo_U32() {
+    return TestNiReadFifo_U8();
+
+}
+
+bool NI9157DeviceTest::TestNiReadFifo_U64() {
+
+    static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157DeviceTestIF"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled7.lvbitx\""
+            "    NiRioGenSignature = \"42F3FE182496C099A79BB886A7E8C9CE\""
+            "    Open = 1"
+            "    Configuration = {"
+            "        NiFpga_Untitled1_ControlU32_period = 40000"
+            "    }"
+            "}";
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+
+    if (ret) {
+
+        uint64 typeU64 = 0;
+        uint32 fifoU64w;
+        uint32 fifoU64r;
+        ret &= (interface->FindResource("FIFOU64", typeU64, fifoU64w) == 0);
+        ret &= (interface->FindResource("FIFOU64r", typeU64, fifoU64r) == 0);
+
+        const uint32 numberOfElements = 1000;
+
+        uint32 oldSize = 0u;
+        ret &= (interface->NiConfigureFifo(fifoU64w, numberOfElements, oldSize) == 0);
+        ret &= (interface->NiConfigureFifo(fifoU64r, numberOfElements, oldSize) == 0);
+        uint64 dataw[numberOfElements];
+        uint64 datar[numberOfElements];
+        for (uint32 i = 0u; i < numberOfElements; i++) {
+            dataw[i] = i;
+        }
+
+        if (ret) {
+            if (ret) {
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            uint32 emptyElementsRemaining = 0u;
+            ret = (interface->NiWriteFifo(fifoU64w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+
+            if (ret) {
+                uint32 elementsRemaining = 0u;
+                ret = (interface->NiReadFifo(fifoU64r, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
+
+                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
+                    ret = datar[i] == i ;
+                    printf("datar[%d]=%lld\n", i, datar[i]);
+                }
+            }
+        }
+
+    }
+
+    return ret;
+
+}
+
+bool NI9157DeviceTest::TestNiWriteFifo_U64() {
+    return TestNiReadFifo_U8();
+
+}
+
+bool NI9157DeviceTest::TestNiReadFifo_I8() {
+
+    static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157DeviceTestIF"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled3.lvbitx\""
+            "    NiRioGenSignature = \"02D4F908CF0AAC78918C46663966129D\""
+            "    Open = 1"
+            "    Configuration = {"
+            "        NiFpga_Untitled1_ControlU32_period = 40000"
+            "    }"
+            "}";
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+
+    if (ret) {
+
+        int8 typeI8 = 0;
+        uint32 fifoI8w;
+        uint32 fifoI8r;
+        ret &= (interface->FindResource("FIFOI8", typeI8, fifoI8w) == 0);
+        ret &= (interface->FindResource("FIFOI8r", typeI8, fifoI8r) == 0);
+
+        const uint32 numberOfElements = 1000;
+
+        uint32 oldSize = 0u;
+        ret &= (interface->NiConfigureFifo(fifoI8w, numberOfElements, oldSize) == 0);
+        ret &= (interface->NiConfigureFifo(fifoI8r, numberOfElements, oldSize) == 0);
+        int8 dataw[numberOfElements];
+        int8 datar[numberOfElements];
+        for (uint32 i = 0u; i < numberOfElements; i++) {
+            dataw[i] = (i % 256)-128;
+        }
+
+        if (ret) {
+            if (ret) {
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            uint32 emptyElementsRemaining = 0u;
+            ret = (interface->NiWriteFifo(fifoI8w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+
+            if (ret) {
+                uint32 elementsRemaining = 0u;
+                ret = (interface->NiReadFifo(fifoI8r, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
+
+                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
+                    ret = datar[i] == ((int32)i % 256)-128;
+                    printf("datar[%d]=%d\n", i, datar[i]);
+                }
+            }
+        }
+
+    }
+
+    return ret;
+
+}
+
+bool NI9157DeviceTest::TestNiWriteFifo_I8() {
+    return TestNiReadFifo_U8();
+
+}
+
+bool NI9157DeviceTest::TestNiReadFifo_I16() {
+
+    static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157DeviceTestIF"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled4.lvbitx\""
+            "    NiRioGenSignature = \"06B03A0C60FA1ADF8039AC6E7412CDEF\""
+            "    Open = 1"
+            "    Configuration = {"
+            "        NiFpga_Untitled1_ControlU32_period = 40000"
+            "    }"
+            "}";
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+
+    if (ret) {
+
+        int16 typeI16 = 0;
+        uint32 fifoI16w;
+        uint32 fifoI16r;
+        ret &= (interface->FindResource("FIFOI16", typeI16, fifoI16w) == 0);
+        ret &= (interface->FindResource("FIFOI16r", typeI16, fifoI16r) == 0);
+
+        const uint32 numberOfElements = 1000;
+
+        uint32 oldSize = 0u;
+        ret &= (interface->NiConfigureFifo(fifoI16w, numberOfElements, oldSize) == 0);
+        ret &= (interface->NiConfigureFifo(fifoI16r, numberOfElements, oldSize) == 0);
+        int16 dataw[numberOfElements];
+        int16 datar[numberOfElements];
+        for (uint32 i = 0u; i < numberOfElements; i++) {
+            dataw[i] = i;
+        }
+
+        if (ret) {
+            if (ret) {
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            uint32 emptyElementsRemaining = 0u;
+            ret = (interface->NiWriteFifo(fifoI16w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+
+            if (ret) {
+                uint32 elementsRemaining = 0u;
+                ret = (interface->NiReadFifo(fifoI16r, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
+
+                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
+                    ret = datar[i] == (int16)i;
+                    printf("datar[%d]=%d\n", i, datar[i]);
+                }
+            }
+        }
+
+    }
+
+    return ret;
+
+}
+
+bool NI9157DeviceTest::TestNiWriteFifo_I16() {
+    return TestNiReadFifo_U8();
+
+}
+
+bool NI9157DeviceTest::TestNiReadFifo_I32() {
+
+    static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157DeviceTestIF"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled6.lvbitx\""
+            "    NiRioGenSignature = \"AB9D6324810F78B956217CEDC7DDDC19\""
+            "    Open = 1"
+            "    Configuration = {"
+            "        NiFpga_Untitled1_ControlU32_period = 40000"
+            "    }"
+            "}";
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+
+    if (ret) {
+
+        int32 typeI32 = 0;
+        uint32 fifoI32w;
+        uint32 fifoI32r;
+        ret &= (interface->FindResource("FIFOI32", typeI32, fifoI32w) == 0);
+        ret &= (interface->FindResource("FIFOI32r", typeI32, fifoI32r) == 0);
+
+        const uint32 numberOfElements = 1000;
+
+        uint32 oldSize = 0u;
+        ret &= (interface->NiConfigureFifo(fifoI32w, numberOfElements, oldSize) == 0);
+        ret &= (interface->NiConfigureFifo(fifoI32r, numberOfElements, oldSize) == 0);
+        int32 dataw[numberOfElements];
+        int32 datar[numberOfElements];
+        for (uint32 i = 0u; i < numberOfElements; i++) {
+            dataw[i] = i ;
+        }
+
+        if (ret) {
+            if (ret) {
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            uint32 emptyElementsRemaining = 0u;
+            ret = (interface->NiWriteFifo(fifoI32w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+
+            if (ret) {
+                uint32 elementsRemaining = 0u;
+                ret = (interface->NiReadFifo(fifoI32r, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
+
+                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
+                    ret = datar[i] == (int32)i;
+                    printf("datar[%d]=%d\n", i, datar[i]);
+                }
+            }
+        }
+
+    }
+
+    return ret;
+
+}
+
+bool NI9157DeviceTest::TestNiWriteFifo_I32() {
+    return TestNiReadFifo_U8();
+
+}
+
+bool NI9157DeviceTest::TestNiReadFifo_I64() {
+
+    static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157DeviceTestIF"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled8.lvbitx\""
+            "    NiRioGenSignature = \"1D84C3D47F5F61DC9C9BFB4778048DBF\""
+            "    Open = 1"
+            "    Configuration = {"
+            "        NiFpga_Untitled1_ControlU32_period = 40000"
+            "    }"
+            "}";
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+
+    if (ret) {
+
+        int64 typeI64 = 0;
+        uint32 fifoI64w;
+        uint32 fifoI64r;
+        ret &= (interface->FindResource("FIFOI64", typeI64, fifoI64w) == 0);
+        ret &= (interface->FindResource("FIFOI64r", typeI64, fifoI64r) == 0);
+
+        const uint32 numberOfElements = 1000;
+
+        uint32 oldSize = 0u;
+        ret &= (interface->NiConfigureFifo(fifoI64w, numberOfElements, oldSize) == 0);
+        ret &= (interface->NiConfigureFifo(fifoI64r, numberOfElements, oldSize) == 0);
+        int64 dataw[numberOfElements];
+        int64 datar[numberOfElements];
+        for (uint32 i = 0u; i < numberOfElements; i++) {
+            dataw[i] = i;
+        }
+
+        if (ret) {
+            if (ret) {
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            uint32 emptyElementsRemaining = 0u;
+            ret = (interface->NiWriteFifo(fifoI64w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+
+            if (ret) {
+                uint32 elementsRemaining = 0u;
+                ret = (interface->NiReadFifo(fifoI64r, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
+
+                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
+                    ret = datar[i] == (int32)i;
+                    printf("datar[%d]=%lld\n", i, datar[i]);
+                }
+            }
+        }
+
+    }
+
+    return ret;
+
+}
+
+bool NI9157DeviceTest::TestNiWriteFifo_I64() {
+    return TestNiReadFifo_U8();
+}

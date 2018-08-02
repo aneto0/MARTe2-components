@@ -152,3 +152,85 @@ TEST(NI9157DeviceGTest,TestNiStopFifo) {
     NI9157DeviceTest test;
     ASSERT_TRUE(test.TestNiStopFifo());
 }
+
+TEST(NI9157DeviceGTest,TestNiReadFifo_U8) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiReadFifo_U8());
+}
+
+TEST(NI9157DeviceGTest,TestNiWriteFifo_U8) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiWriteFifo_U8());
+}
+
+
+TEST(NI9157DeviceGTest,TestNiReadFifo_U16) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiReadFifo_U16());
+}
+
+TEST(NI9157DeviceGTest,TestNiWriteFifo_U16) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiWriteFifo_U16());
+}
+
+TEST(NI9157DeviceGTest,TestNiReadFifo_U32) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiReadFifo_U32());
+}
+
+TEST(NI9157DeviceGTest,TestNiWriteFifo_U32) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiWriteFifo_U32());
+}
+
+TEST(NI9157DeviceGTest,TestNiReadFifo_U64) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiReadFifo_U64());
+}
+
+TEST(NI9157DeviceGTest,TestNiWriteFifo_U64) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiWriteFifo_U64());
+}
+
+TEST(NI9157DeviceGTest,TestNiReadFifo_I8) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiReadFifo_I8());
+}
+
+TEST(NI9157DeviceGTest,TestNiWriteFifo_I8) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiWriteFifo_I8());
+}
+
+TEST(NI9157DeviceGTest,TestNiReadFifo_I16) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiReadFifo_I16());
+}
+
+TEST(NI9157DeviceGTest,TestNiWriteFifo_I16) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiWriteFifo_I16());
+}
+
+TEST(NI9157DeviceGTest,TestNiReadFifo_I32) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiReadFifo_I32());
+}
+
+TEST(NI9157DeviceGTest,TestNiWriteFifo_I32) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiWriteFifo_I32());
+}
+
+TEST(NI9157DeviceGTest,TestNiReadFifo_I64) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiReadFifo_I64());
+}
+
+TEST(NI9157DeviceGTest,TestNiWriteFifo_I64) {
+    NI9157DeviceTest test;
+    ASSERT_TRUE(test.TestNiWriteFifo_I64());
+}
+

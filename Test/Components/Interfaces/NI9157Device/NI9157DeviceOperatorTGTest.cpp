@@ -115,7 +115,6 @@ TEST(NI9157DeviceOperatorTGTest,TestCompare_Greater_I8) {
     ASSERT_TRUE(test.TestCompare(2, -1));
 }
 
-
 TEST(NI9157DeviceOperatorTGTest,TestCompare_U16) {
     NI9157DeviceOperatorTTest<uint16> test;
     ASSERT_TRUE(test.TestCompare(0xffff, 0xffff));
@@ -126,12 +125,10 @@ TEST(NI9157DeviceOperatorTGTest,TestCompare_Minor_U16) {
     ASSERT_TRUE(test.TestCompare(1, 2));
 }
 
-
 TEST(NI9157DeviceOperatorTGTest,TestCompare_Greater_U16) {
     NI9157DeviceOperatorTTest<uint16> test;
     ASSERT_TRUE(test.TestCompare(2, 1));
 }
-
 
 TEST(NI9157DeviceOperatorTGTest,TestCompare_I16) {
     NI9157DeviceOperatorTTest<int16> test;
@@ -288,7 +285,6 @@ TEST(NI9157DeviceOperatorTGTest,TestFindResource_I64) {
     ASSERT_TRUE(test.TestFindResource("IndI64"));
 }
 
-
 TEST(NI9157DeviceOperatorTGTest,TestNiRead_U8) {
     NI9157DeviceOperatorTTest<uint8> test;
     ASSERT_TRUE(test.TestNiRead("IndU8", "ContU8"));
@@ -367,6 +363,46 @@ TEST(NI9157DeviceOperatorTGTest,TestNiRead_I64) {
 TEST(NI9157DeviceOperatorTGTest,TestNiWrite_I64) {
     NI9157DeviceOperatorTTest<int64> test;
     ASSERT_TRUE(test.TestNiWrite("IndI64", "ContI64"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiReadFifo_U8) {
+    NI9157DeviceOperatorTTest<uint8> test;
+    ASSERT_TRUE(test.TestNiReadFifo("Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled1.lvbitx","163FA42D62F2477BF29AE83EC1BFAD97","FIFOU8r","FIFOU8"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiReadFifo_I8) {
+    NI9157DeviceOperatorTTest<int8> test;
+    ASSERT_TRUE(test.TestNiReadFifo("Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled3.lvbitx","02D4F908CF0AAC78918C46663966129D","FIFOI8r","FIFOI8"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiReadFifo_U16) {
+    NI9157DeviceOperatorTTest<uint16> test;
+    ASSERT_TRUE(test.TestNiReadFifo("Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled2.lvbitx","25AFBDC09C72D8241C9EF82DD05F7615","FIFOU16r","FIFOU16"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiReadFifo_I16) {
+    NI9157DeviceOperatorTTest<int16> test;
+    ASSERT_TRUE(test.TestNiReadFifo("Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled4.lvbitx","06B03A0C60FA1ADF8039AC6E7412CDEF","FIFOI16r","FIFOI16"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiReadFifo_U32) {
+    NI9157DeviceOperatorTTest<uint32> test;
+    ASSERT_TRUE(test.TestNiReadFifo("Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled5.lvbitx","A10D94348BA197A47B9DFAD8F96D9407","FIFOU32r","FIFOU32"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiReadFifo_I32) {
+    NI9157DeviceOperatorTTest<int32> test;
+    ASSERT_TRUE(test.TestNiReadFifo("Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled6.lvbitx","AB9D6324810F78B956217CEDC7DDDC19","FIFOI32r","FIFOI32"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiReadFifo_U64) {
+    NI9157DeviceOperatorTTest<uint64> test;
+    ASSERT_TRUE(test.TestNiReadFifo("Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled7.lvbitx","42F3FE182496C099A79BB886A7E8C9CE","FIFOU64r","FIFOU64"));
+}
+
+TEST(NI9157DeviceOperatorTGTest,TestNiReadFifo_I64) {
+    NI9157DeviceOperatorTTest<int64> test;
+    ASSERT_TRUE(test.TestNiReadFifo("Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled8.lvbitx","1D84C3D47F5F61DC9C9BFB4778048DBF","FIFOI64r","FIFOI64"));
 }
 
 

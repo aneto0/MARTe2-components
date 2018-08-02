@@ -883,7 +883,7 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase() {
     }
 
     if (ret) {
-        uint32 descriptors[] = { 1, 0x810C, 0x815A, 0x812A };
+        uint32 descriptors[] = { 1, 0x810C, 0x819A, 0x816A };
         uint32 nElementsTest[] = { 10000, 1, 1, 1 };
         uint32 * ids = dataSource->GetVarId();
         uint32 * nElements = dataSource->GetNumberOfElements();
@@ -894,9 +894,17 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase() {
             ret = ids[i] == descriptors[i];
             if (ret) {
                 ret = (nElements[i] == nElementsTest[i]);
+                if(!ret){
+                    printf("Failed1 at %d, %d %d\n", i, nElements[i], nElementsTest[i]);
+                }
+
             }
             if (ret) {
                 ret = (signalFlags[i] == 0);
+                if(!ret){
+                    printf("Failed2 at %d, %d\n", i, signalFlags[i]);
+                }
+
             }
         }
     }
@@ -1198,7 +1206,7 @@ bool NI9157MxiDataSourceTest::TestPrepareNextState() {
     }
 
     if (ret) {
-        uint32 descriptors[] = { 1, 0x810C, 0x815A, 0x812A };
+        uint32 descriptors[] = { 1, 0x810C, 0x819A, 0x816A };
         uint32 nElementsTest[] = { 10000, 1, 1, 1 };
         uint32 * ids = dataSource->GetVarId();
         uint32 * nElements = dataSource->GetNumberOfElements();

@@ -137,19 +137,116 @@ public:
      */
     bool TestClose();
 
-
+    /**
+     * @brief Tests the NI9157Device::FindResource method
+     */
     bool TestFindResource();
 
+    /**
+     * @brief Tests the NI9157Device::NiRead method
+     */
     bool TestNiRead();
 
+    /**
+     * @brief Tests the NI9157Device::NiWrite method
+     */
     bool TestNiWrite();
 
+    /**
+     * @brief Tests the NI9157Device::NiConfigureFifo method
+     */
     bool TestNiConfigureFifo();
 
+    /**
+     * @brief Tests the NI9157Device::TestNiStartFifo method
+     */
     bool TestNiStartFifo();
 
+    /**
+     * @brief Tests the NI9157Device::NiStopFifo method
+     */
     bool TestNiStopFifo();
 
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with uint8 input type
+     */
+    bool TestNiReadFifo_U8();
+
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with uint8 input type
+     */
+    bool TestNiWriteFifo_U8();
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with uint16 input type
+     */
+    bool TestNiReadFifo_U16();
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with uint16 input type
+     */
+    bool TestNiWriteFifo_U16();
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with uint32 input type
+     */
+    bool TestNiReadFifo_U32();
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with uint32 input type
+     */
+    bool TestNiWriteFifo_U32();
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with uint64 input type
+     */
+    bool TestNiReadFifo_U64();
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with uint64 input type
+     */
+    bool TestNiWriteFifo_U64();
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with int8 input type
+     */
+    bool TestNiReadFifo_I8();
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with int8 input type
+     */
+    bool TestNiWriteFifo_I8();
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with int16 input type
+     */
+    bool TestNiReadFifo_I16();
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with int16 input type
+     */
+    bool TestNiWriteFifo_I16();
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with int32 input type
+     */
+    bool TestNiReadFifo_I32();
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with int32 input type
+     */
+    bool TestNiWriteFifo_I32();
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with int64 input type
+     */
+    bool TestNiReadFifo_I64();
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with int64 input type
+     */
+    bool TestNiWriteFifo_I64();
 };
 
 /*---------------------------------------------------------------------------*/
