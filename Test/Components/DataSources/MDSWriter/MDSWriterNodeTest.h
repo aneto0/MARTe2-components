@@ -252,9 +252,9 @@ public:
     bool TestGetDecimatedNodeName();
 
     /**
-     * @brief Test the GetExecutePeriodMicroSecond method
+     * @brief Test the GetExecutePeriod method
      */
-    bool TestGetExecutePeriodMicroSecond();
+    bool TestGetExecutePeriod();
 
     /**
      * @brief Test the GetMakeSegmentAfterNWrites method

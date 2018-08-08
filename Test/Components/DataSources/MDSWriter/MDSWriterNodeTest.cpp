@@ -57,7 +57,7 @@ bool MDSWriterNodeTest::TestConstructor() {
     MDSWriterNode test;
     bool ok = !test.IsDecimatedMinMax();
     ok &= (test.GetDecimatedNodeName() == "");
-    ok &= (test.GetExecutePeriodMicroSecond() == 0);
+    ok &= (test.GetExecutePeriod() == 0);
     ok &= (test.GetMakeSegmentAfterNWrites() == 0);
     ok &= (test.GetMinMaxResampleFactor() == 0);
     ok &= (test.GetNodeName() == "");
@@ -87,7 +87,7 @@ bool MDSWriterNodeTest::TestInitialise_NoDecimatedNodeName() {
     bool ok = test.Initialise(cdb);
     ok &= !test.IsDecimatedMinMax();
     ok &= (test.GetDecimatedNodeName() == "");
-    ok &= (test.GetExecutePeriodMicroSecond() == (100 * (5e-7 * 1e6)));
+    ok &= (test.GetExecutePeriod() == 0);
     ok &= (test.GetMakeSegmentAfterNWrites() == 4);
     ok &= (test.GetMinMaxResampleFactor() == 0);
     ok &= (test.GetNodeName() == "AAA");
@@ -120,7 +120,7 @@ bool MDSWriterNodeTest::TestInitialise_DecimatedNodeName() {
     bool ok = test.Initialise(cdb);
     ok &= (test.IsDecimatedMinMax());
     ok &= (test.GetDecimatedNodeName() == "BBB");
-    ok &= (test.GetExecutePeriodMicroSecond() == (100 * (5e-7 * 1e6)));
+    ok &= (test.GetExecutePeriod() == 0);
     ok &= (test.GetMakeSegmentAfterNWrites() == 4);
     ok &= (test.GetMinMaxResampleFactor() == 5);
     ok &= (test.GetNodeName() == "AAA");
@@ -151,7 +151,7 @@ bool MDSWriterNodeTest::TestInitialise_SamplePhase() {
     bool ok = test.Initialise(cdb);
     ok &= !test.IsDecimatedMinMax();
     ok &= (test.GetDecimatedNodeName() == "");
-    ok &= (test.GetExecutePeriodMicroSecond() == (100 * (5e-7 * 1e6)));
+    ok &= (test.GetExecutePeriod() == 0);
     ok &= (test.GetMakeSegmentAfterNWrites() == 4);
     ok &= (test.GetMinMaxResampleFactor() == 0);
     ok &= (test.GetNodeName() == "AAA");
@@ -1145,7 +1145,7 @@ bool MDSWriterNodeTest::TestSetTimeSignalMemory() {
         test.SetSignalMemory(&signal);
     }
     if (ok) {
-        test.SetTimeSignalMemory(&timeSignal);
+        test.SetTimeSignalMemory(&timeSignal, UnsignedInteger32Bit, 1e6);
     }
     if (ok) {
         ok = test.Execute();
@@ -1216,7 +1216,7 @@ bool MDSWriterNodeTest::TestGetDecimatedNodeName() {
     return (test.GetDecimatedNodeName() == "BBB");
 }
 
-bool MDSWriterNodeTest::TestGetExecutePeriodMicroSecond() {
+bool MDSWriterNodeTest::TestGetExecutePeriod() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     cdb.Write("NodeName", "AAA");
@@ -1228,7 +1228,9 @@ bool MDSWriterNodeTest::TestGetExecutePeriodMicroSecond() {
     cdb.Write("Samples", 1);
     cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
-    return (test.GetExecutePeriodMicroSecond() == (100 * (5e-7 * 1e6)));
+    void *time = NULL;
+    test.SetTimeSignalMemory(time, UnsignedInteger32Bit, 1e6);
+    return (test.GetExecutePeriod() == (100 * (5e-7 * 1e6)));
 }
 
 bool MDSWriterNodeTest::TestGetMakeSegmentAfterNWrites() {
@@ -1455,7 +1457,7 @@ bool MDSWriterNodeTest::TestIsUseTimeVector() {
     test.Initialise(cdb);
     bool ok = !test.IsUseTimeVector();
     uint32 signalTime;
-    test.SetTimeSignalMemory(&signalTime);
+    test.SetTimeSignalMemory(&signalTime, UnsignedInteger32Bit, 1e6);
     ok &= test.IsUseTimeVector();
     return ok;
 }

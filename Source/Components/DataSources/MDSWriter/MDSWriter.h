@@ -75,6 +75,7 @@ namespace MARTe {
  *         Time = { //Compulsory when StoreOnTrigger = 1. Can be store in any index, but TimeSignal must be set = 1
  *             Type = "uint32" //Type must be uint32 or int32
  *             TimeSignal = 1 //When set, this signal will be considered as the time source against which all signals will be stored.
+ *             TimeSignalMultiplier = 1e-9 //Default = 1e-6. Multiplier to convert the time signal units into seconds,
  *         }
  *         SignalUInt16F = { //As many as required.
  *             NodeName = "SIGUINT16F" //Compulsory. MDSplus node name

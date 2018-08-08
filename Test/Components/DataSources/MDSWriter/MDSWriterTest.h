@@ -188,9 +188,9 @@ public:
     bool TestSetConfiguredDatabase_False_NoTimeSignal();
 
     /**
-     * @brief Tests the SetConfiguredDatabase with TimeSignal defined as not uint32.
+     * @brief Tests the SetConfiguredDatabase with TimeSignal defined as not integer.
      */
-    bool TestSetConfiguredDatabase_False_TimeSignal_NotUInt32();
+    bool TestSetConfiguredDatabase_False_TimeSignal_NotInteger();
 
     /**
      * @brief Tests the SetConfiguredDatabase with more than one function interacting with the MDSWriter.
@@ -217,6 +217,36 @@ public:
      * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event.
      */
     bool TestIntegratedInApplication_Trigger();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 8 bit time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_Time8();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 16 bit time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_Time16();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 64 bit time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_Time64();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 8 bit signed time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_TimeS8();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 16 bit signed time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_TimeS16();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 64 bit signed time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_TimeS64();
 
     /**
      * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event forcing discontinuities.

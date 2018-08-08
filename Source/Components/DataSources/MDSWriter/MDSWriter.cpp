@@ -409,6 +409,7 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 totalSignalMemory));
     }
 
+    float64 timeSignalMultiplier = 0.F;
     //Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
     if (ok) {
@@ -490,6 +491,10 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 }
                 if (timeSignal > 0u) {
                     timeSignalIdx = static_cast<int32>(n);
+                    if (!originalSignalInformation.Read("TimeSignalMultiplier", timeSignalMultiplier)) {
+                        timeSignalMultiplier = 1e-6;
+                        REPORT_ERROR(ErrorManagement::Warning, "No TimeSignalMultiplier was defined. Using default = %f", timeSignalMultiplier);
+                    }
                 }
             }
             if (ok) {
@@ -522,13 +527,14 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (useTimeSignal) {
+        TypeDescriptor timeSignalType = GetSignalType(static_cast<uint32>(timeSignalIdx));
         if (ok) {
-            ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == UnsignedInteger32Bit);
+            ok = (timeSignalType.type == SignedInteger);
             if (!ok) {
-                ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == SignedInteger32Bit);
+                ok = (timeSignalType.type == UnsignedInteger);
             }
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall have type uint32 or int32");
+                REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall be an integer (signed or unsigned) from 8 to 64 bits");
             }
         }
         if (ok) {
@@ -536,7 +542,7 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
             for (n = 0u; n < numberOfMDSSignals; n++) {
                 if ((nodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *))
                         && (offsets != NULL_PTR(uint32 *))) {
-                    nodes[n]->SetTimeSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[timeSignalIdx]]));
+                    nodes[n]->SetTimeSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[timeSignalIdx]]), timeSignalType, timeSignalMultiplier);
                 }
             }
         }
