@@ -409,6 +409,40 @@ bool MDSWriterNodeTest::TestInitialise_False_BadNumberOfDimensions() {
     return !test.Initialise(cdb);
 }
 
+bool MDSWriterNodeTest::TestInitialise_Type_UInt8() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint8");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
+    MDSWriterNode test;
+    bool ok = test.Initialise(cdb);
+    ok &= (test.GetNodeType() == DTYPE_BU);
+    return ok;
+}
+
+bool MDSWriterNodeTest::TestInitialise_Type_Int8() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "int8");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
+    MDSWriterNode test;
+    bool ok = test.Initialise(cdb);
+    ok &= (test.GetNodeType() == DTYPE_B);
+    return ok;
+}
+
 bool MDSWriterNodeTest::TestInitialise_Type_UInt16() {
     using namespace MARTe;
     ConfigurationDatabase cdb;

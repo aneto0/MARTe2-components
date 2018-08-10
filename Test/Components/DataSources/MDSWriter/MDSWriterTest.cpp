@@ -184,6 +184,20 @@ public:
                         signalOut[e] = static_cast<uint16>(signalToGenerate[counter]);
                     }
                 }
+                else if (signalType == UnsignedInteger8Bit) {
+                    uint8 *signalOut = reinterpret_cast<uint8 *>(GetOutputSignalMemory(n));
+                    uint32 e;
+                    for (e=0; e<samples[n]; e++) {
+                        signalOut[e] = static_cast<uint8>(signalToGenerate[counter]);
+                    }
+                }
+                else if (signalType == SignedInteger8Bit) {
+                    int8 *signalOut = reinterpret_cast<int8 *>(GetOutputSignalMemory(n));
+                    uint32 e;
+                    for (e=0; e<samples[n]; e++) {
+                        signalOut[e] = static_cast<int8>(signalToGenerate[counter]);
+                    }
+                }
                 else if (signalType == UnsignedInteger32Bit) {
                     uint32 *signalOut = reinterpret_cast<uint32 *>(GetOutputSignalMemory(n));
                     uint32 e;
@@ -332,8 +346,7 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     return ok;
 }
 
-template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberOfSegments, MDSplus::TreeNode *node, MARTe::uint32 *signalToVerify,
-                                                            MARTe::uint32 *timeToVerify) {
+template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberOfSegments, MDSplus::TreeNode *node, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify) {
     using namespace MARTe;
     int32 i = 0u;
     int32 s;
@@ -368,6 +381,12 @@ template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberO
         else if (typeDiscover.GetTypeDescriptor() == SignedInteger64Bit) {
             data = reinterpret_cast<typeToCheck *>(segment->getLongArray(&numberOfElements));
         }
+        else if (typeDiscover.GetTypeDescriptor() == SignedInteger8Bit) {
+            data = reinterpret_cast<typeToCheck *>(segment->getByteArray(&numberOfElements));
+        }
+        else if (typeDiscover.GetTypeDescriptor() == UnsignedInteger8Bit) {
+            data = reinterpret_cast<typeToCheck *>(segment->getByteUnsignedArray(&numberOfElements));
+        }
         else if (typeDiscover.GetTypeDescriptor() == Float32Bit) {
             data = reinterpret_cast<typeToCheck *>(segment->getFloatArray(&numberOfElements));
         }
@@ -386,12 +405,10 @@ template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberO
     return ok;
 }
 
-static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements,
-                                    MARTe::uint8 *triggerToGenerate, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify,
-                                    MARTe::uint32 toVerifyNumberOfElements, MARTe::uint32 numberOfBuffers, MARTe::uint32 numberOfPreTriggers,
-                                    MARTe::uint32 numberOfPostTriggers, MARTe::float32 period, const MARTe::char8 * const treeName, MARTe::uint32 pulseNumber,
-                                    MARTe::int32 numberOfSegments, bool needsFlush, MARTe::uint32 sleepMSec = 100, bool automaticSegmentation = false,
-                                    MARTe::float64 periodMultiplier = 1e6) {
+static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements, MARTe::uint8 *triggerToGenerate,
+                                    MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerify, MARTe::uint32 toVerifyNumberOfElements, MARTe::uint32 numberOfBuffers,
+                                    MARTe::uint32 numberOfPreTriggers, MARTe::uint32 numberOfPostTriggers, MARTe::float32 period, const MARTe::char8 * const treeName, MARTe::uint32 pulseNumber,
+                                    MARTe::int32 numberOfSegments, bool needsFlush, MARTe::uint32 sleepMSec = 100, bool automaticSegmentation = false, MARTe::float64 periodMultiplier = 1e6) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config;
@@ -477,8 +494,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
             tree = new MDSplus::Tree(treeName, pulseNumber);
         }
         catch (MDSplus::MdsException &exc) {
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse", treeName,
-                                pulseNumber);
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse", treeName, pulseNumber);
             delete tree;
             tree = NULL;
         }
@@ -486,6 +502,8 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     if (ok) {
         ok = (tree != NULL);
     }
+    MDSplus::TreeNode *sigUInt8;
+    MDSplus::TreeNode *sigInt8;
     MDSplus::TreeNode *sigUInt16;
     MDSplus::TreeNode *sigInt16;
     MDSplus::TreeNode *sigUInt32;
@@ -495,6 +513,10 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     MDSplus::TreeNode *sigFloat32;
     MDSplus::TreeNode *sigFloat64;
 
+    MDSplus::TreeNode *sigUInt8D;
+    MDSplus::TreeNode *sigUInt8F;
+    MDSplus::TreeNode *sigInt8D;
+    MDSplus::TreeNode *sigInt8F;
     MDSplus::TreeNode *sigUInt16D;
     MDSplus::TreeNode *sigUInt16F;
     MDSplus::TreeNode *sigInt16D;
@@ -513,6 +535,8 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     MDSplus::TreeNode *sigFloat64F;
     if (ok) {
         try {
+            sigUInt8 = tree->getNode("SIGUINT8");
+            sigInt8 = tree->getNode("SIGINT8");
             sigUInt16 = tree->getNode("SIGUINT16");
             sigInt16 = tree->getNode("SIGINT16");
             sigUInt32 = tree->getNode("SIGUINT32");
@@ -530,6 +554,10 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
             sigFloat32->deleteData();
             sigFloat64->deleteData();
 
+            sigUInt8D = tree->getNode("SIGUINT8D");
+            sigUInt8F = tree->getNode("SIGUINT8F");
+            sigInt8D = tree->getNode("SIGINT8D");
+            sigInt8F = tree->getNode("SIGINT8F");
             sigUInt16D = tree->getNode("SIGUINT16D");
             sigUInt16F = tree->getNode("SIGUINT16F");
             sigInt16D = tree->getNode("SIGINT16D");
@@ -546,6 +574,10 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
             sigFloat32F = tree->getNode("SIGFLT32F");
             sigFloat64D = tree->getNode("SIGFLT64D");
             sigFloat64F = tree->getNode("SIGFLT64F");
+            sigUInt8D->deleteData();
+            sigUInt8F->deleteData();
+            sigInt8D->deleteData();
+            sigInt8F->deleteData();
             sigUInt16D->deleteData();
             sigUInt16F->deleteData();
             sigInt16D->deleteData();
@@ -757,6 +789,14 @@ static const MARTe::char8 * const config1 = ""
         "                    Type = uint32"
         "                    DataSource = Drv1"
         "                }"
+        "                SignalUInt8F = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8F = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
         "                SignalUInt16F = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
@@ -789,6 +829,10 @@ static const MARTe::char8 * const config1 = ""
         "                    Type = float64"
         "                    DataSource = Drv1"
         "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
         "                SignalUInt16 = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
@@ -799,6 +843,10 @@ static const MARTe::char8 * const config1 = ""
         "                }"
         "                SignalUInt64 = {"
         "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
         "                    DataSource = Drv1"
         "                }"
         "                SignalInt16 = {"
@@ -846,6 +894,22 @@ static const MARTe::char8 * const config1 = ""
         "                }"
         "                Time = {"
         "                    Type = uint32"
+        "                }"
+        "                SignalUInt8F = {"
+        "                    NodeName = \"SIGUINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT8D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
+        "                SignalInt8F = {"
+        "                    NodeName = \"SIGINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT8D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 0"
         "                }"
         "                SignalUInt16F = {"
         "                    NodeName = \"SIGUINT16F\""
@@ -911,6 +975,12 @@ static const MARTe::char8 * const config1 = ""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
         "                }"
+        "                SignalUInt8 = {"
+        "                    NodeName = \"SIGUINT8\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
         "                SignalUInt16 = {"
         "                    NodeName = \"SIGUINT16\""
         "                    Period = 2"
@@ -925,6 +995,12 @@ static const MARTe::char8 * const config1 = ""
         "                }"
         "                SignalUInt64 = {"
         "                    NodeName = \"SIGUINT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
+        "                SignalInt8 = {"
+        "                    NodeName = \"SIGINT8\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 4"
         "                    AutomaticSegmentation = 0"
@@ -1007,6 +1083,10 @@ static const MARTe::char8 * const config1_B = ""
         "                    Type = uint32"
         "                    DataSource = Drv1"
         "                }"
+        "                SignalUInt8F = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
         "                SignalUInt16F = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
@@ -1017,6 +1097,10 @@ static const MARTe::char8 * const config1_B = ""
         "                }"
         "                SignalUInt64F = {"
         "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8F = {"
+        "                    Type = int8"
         "                    DataSource = Drv1"
         "                }"
         "                SignalInt16F = {"
@@ -1039,6 +1123,10 @@ static const MARTe::char8 * const config1_B = ""
         "                    Type = float64"
         "                    DataSource = Drv1"
         "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
         "                SignalUInt16 = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
@@ -1049,6 +1137,10 @@ static const MARTe::char8 * const config1_B = ""
         "                }"
         "                SignalUInt64 = {"
         "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
         "                    DataSource = Drv1"
         "                }"
         "                SignalInt16 = {"
@@ -1097,6 +1189,14 @@ static const MARTe::char8 * const config1_B = ""
         "                Time = {"
         "                    Type = uint32"
         "                }"
+        "                SignalUInt8F = {"
+        "                    NodeName = \"SIGUINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
         "                SignalUInt16F = {"
         "                    NodeName = \"SIGUINT16F\""
         "                    Period = 2"
@@ -1118,6 +1218,14 @@ static const MARTe::char8 * const config1_B = ""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 4"
         "                    DecimatedNodeName = \"SIGUINT64D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalInt8F = {"
+        "                    NodeName = \"SIGINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT8D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 1"
         "                }"
@@ -1161,6 +1269,12 @@ static const MARTe::char8 * const config1_B = ""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 1"
         "                }"
+        "                SignalUInt8 = {"
+        "                    NodeName = \"SIGUINT8\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
         "                SignalUInt16 = {"
         "                    NodeName = \"SIGUINT16\""
         "                    Period = 2"
@@ -1175,6 +1289,12 @@ static const MARTe::char8 * const config1_B = ""
         "                }"
         "                SignalUInt64 = {"
         "                    NodeName = \"SIGUINT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    NodeName = \"SIGINT8\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 4"
         "                    AutomaticSegmentation = 1"
@@ -1258,6 +1378,10 @@ static const MARTe::char8 * const config2 = ""
         "                    Type = int32"
         "                    DataSource = Drv1"
         "                }"
+        "                SignalUInt8F = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
         "                SignalUInt16F = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
@@ -1268,6 +1392,10 @@ static const MARTe::char8 * const config2 = ""
         "                }"
         "                SignalUInt64F = {"
         "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8F = {"
+        "                    Type = int8"
         "                    DataSource = Drv1"
         "                }"
         "                SignalInt16F = {"
@@ -1290,6 +1418,10 @@ static const MARTe::char8 * const config2 = ""
         "                    Type = float64"
         "                    DataSource = Drv1"
         "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
         "                SignalUInt16 = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
@@ -1300,6 +1432,10 @@ static const MARTe::char8 * const config2 = ""
         "                }"
         "                SignalUInt64 = {"
         "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
         "                    DataSource = Drv1"
         "                }"
         "                SignalInt16 = {"
@@ -1351,6 +1487,14 @@ static const MARTe::char8 * const config2 = ""
         "                    Type = int32"
         "                    TimeSignal = 1"
         "                }"
+        "                SignalUInt8F = {"
+        "                    NodeName = \"SIGUINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT8D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
         "                SignalUInt16F = {"
         "                    NodeName = \"SIGUINT16F\""
         "                    Period = 2"
@@ -1372,6 +1516,14 @@ static const MARTe::char8 * const config2 = ""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 4"
         "                    DecimatedNodeName = \"SIGUINT64D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
+        "                SignalInt8F = {"
+        "                    NodeName = \"SIGINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT8D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
         "                }"
@@ -1415,6 +1567,12 @@ static const MARTe::char8 * const config2 = ""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
         "                }"
+        "                SignalUInt8 = {"
+        "                    NodeName = \"SIGUINT8\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
         "                SignalUInt16 = {"
         "                    NodeName = \"SIGUINT16\""
         "                    Period = 2"
@@ -1429,6 +1587,12 @@ static const MARTe::char8 * const config2 = ""
         "                }"
         "                SignalUInt64 = {"
         "                    NodeName = \"SIGUINT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
+        "                SignalInt8 = {"
+        "                    NodeName = \"SIGINT8\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 4"
         "                    AutomaticSegmentation = 0"
@@ -1512,6 +1676,10 @@ static const MARTe::char8 * const config2_T8 = ""
         "                    Type = uint8"
         "                    DataSource = Drv1"
         "                }"
+        "                SignalUInt8F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
         "                SignalUInt16F = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
@@ -1522,6 +1690,10 @@ static const MARTe::char8 * const config2_T8 = ""
         "                }"
         "                SignalUInt64F = {"
         "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8F = {"
+        "                    Type = int8"
         "                    DataSource = Drv1"
         "                }"
         "                SignalInt16F = {"
@@ -1544,6 +1716,10 @@ static const MARTe::char8 * const config2_T8 = ""
         "                    Type = float64"
         "                    DataSource = Drv1"
         "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
         "                SignalUInt16 = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
@@ -1554,6 +1730,10 @@ static const MARTe::char8 * const config2_T8 = ""
         "                }"
         "                SignalUInt64 = {"
         "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
         "                    DataSource = Drv1"
         "                }"
         "                SignalInt16 = {"
@@ -1606,6 +1786,14 @@ static const MARTe::char8 * const config2_T8 = ""
         "                    TimeSignal = 1"
         "                    TimeSignalMultiplier = 1"
         "                }"
+        "                SignalUInt8F = {"
+        "                    NodeName = \"SIGUINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT8D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
         "                SignalUInt16F = {"
         "                    NodeName = \"SIGUINT16F\""
         "                    Period = 2"
@@ -1627,6 +1815,14 @@ static const MARTe::char8 * const config2_T8 = ""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 4"
         "                    DecimatedNodeName = \"SIGUINT64D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
+        "                SignalInt8F = {"
+        "                    NodeName = \"SIGINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT8D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
         "                }"
@@ -1670,6 +1866,12 @@ static const MARTe::char8 * const config2_T8 = ""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
         "                }"
+        "                SignalUInt8 = {"
+        "                    NodeName = \"SIGUINT8\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
         "                SignalUInt16 = {"
         "                    NodeName = \"SIGUINT16\""
         "                    Period = 2"
@@ -1684,6 +1886,12 @@ static const MARTe::char8 * const config2_T8 = ""
         "                }"
         "                SignalUInt64 = {"
         "                    NodeName = \"SIGUINT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
+        "                SignalInt8 = {"
+        "                    NodeName = \"SIGINT8\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 4"
         "                    AutomaticSegmentation = 0"
@@ -1767,6 +1975,10 @@ static const MARTe::char8 * const config2_T16 = ""
         "                    Type = uint16"
         "                    DataSource = Drv1"
         "                }"
+        "                SignalUInt8F = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
         "                SignalUInt16F = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
@@ -1777,6 +1989,10 @@ static const MARTe::char8 * const config2_T16 = ""
         "                }"
         "                SignalUInt64F = {"
         "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8F = {"
+        "                    Type = int8"
         "                    DataSource = Drv1"
         "                }"
         "                SignalInt16F = {"
@@ -1799,6 +2015,10 @@ static const MARTe::char8 * const config2_T16 = ""
         "                    Type = float64"
         "                    DataSource = Drv1"
         "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
         "                SignalUInt16 = {"
         "                    Type = uint16"
         "                    DataSource = Drv1"
@@ -1809,6 +2029,10 @@ static const MARTe::char8 * const config2_T16 = ""
         "                }"
         "                SignalUInt64 = {"
         "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
         "                    DataSource = Drv1"
         "                }"
         "                SignalInt16 = {"
@@ -1861,6 +2085,14 @@ static const MARTe::char8 * const config2_T16 = ""
         "                    TimeSignal = 1"
         "                    TimeSignalMultiplier = 1e-1"
         "                }"
+        "                SignalUInt8F = {"
+        "                    NodeName = \"SIGUINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT8D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
         "                SignalUInt16F = {"
         "                    NodeName = \"SIGUINT16F\""
         "                    Period = 2"
@@ -1882,6 +2114,14 @@ static const MARTe::char8 * const config2_T16 = ""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 4"
         "                    DecimatedNodeName = \"SIGUINT64D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
+        "                SignalInt8F = {"
+        "                    NodeName = \"SIGINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT8D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
         "                }"
@@ -1925,6 +2165,12 @@ static const MARTe::char8 * const config2_T16 = ""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
         "                }"
+        "                SignalUInt8 = {"
+        "                    NodeName = \"SIGUINT8\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
         "                SignalUInt16 = {"
         "                    NodeName = \"SIGUINT16\""
         "                    Period = 2"
@@ -1939,6 +2185,12 @@ static const MARTe::char8 * const config2_T16 = ""
         "                }"
         "                SignalUInt64 = {"
         "                    NodeName = \"SIGUINT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 0"
+        "                }"
+        "                SignalInt8 = {"
+        "                    NodeName = \"SIGINT8\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 4"
         "                    AutomaticSegmentation = 0"
@@ -2257,7 +2509,6 @@ static const MARTe::char8 * const config2_T64 = ""
         "        Function = FlushSegments"
         "    }"
         "}";
-
 
 //Standard configuration with trigger source and a int8 time signal
 static const MARTe::char8 * const config2_TS8 = ""
@@ -5543,8 +5794,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger() {
     const uint32 writeAfterNSegments = 4;
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
-    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0,
-                                   period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
+                                   numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Flush() {
@@ -5558,8 +5809,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Flush() {
     const uint32 writeAfterNSegments = 4;
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
-    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0,
-                                   period, treeName, pulseNumber, numberOfSegments, true);
+    return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
+                                   numberOfSegments, true);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger() {
@@ -5577,8 +5828,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger() {
     const uint32 pulseNumber = 3;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_Time8() {
@@ -5596,8 +5847,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_Time8() {
     const uint32 pulseNumber = 3;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config2_T8, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 1);
+    return TestIntegratedExecution(config2_T8, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 1);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_Time16() {
@@ -5615,8 +5866,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_Time16() {
     const uint32 pulseNumber = 3;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config2_T16, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 10);
+    return TestIntegratedExecution(config2_T16, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 10);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_Time64() {
@@ -5634,10 +5885,9 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_Time64() {
     const uint32 pulseNumber = 3;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config2_T64, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 1e9);
+    return TestIntegratedExecution(config2_T64, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 1e9);
 }
-
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_TimeS8() {
     using namespace MARTe;
@@ -5654,8 +5904,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_TimeS8() {
     const uint32 pulseNumber = 3;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config2_TS8, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 1);
+    return TestIntegratedExecution(config2_TS8, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 1);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_TimeS16() {
@@ -5673,8 +5923,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_TimeS16() {
     const uint32 pulseNumber = 3;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config2_TS16, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 1);
+    return TestIntegratedExecution(config2_TS16, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 1);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_TimeS64() {
@@ -5692,8 +5942,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_TimeS64() {
     const uint32 pulseNumber = 3;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config2_TS64, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 1e9);
+    return TestIntegratedExecution(config2_TS64, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false, 100, false, 1e9);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_Discontinuity() {
@@ -5711,8 +5961,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_Discontinuity() {
     const uint32 pulseNumber = 6;
     const uint32 numberOfSegments = 1;
     const float32 period = 2;
-    return TestIntegratedExecution(config13, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config13, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Elements() {
@@ -5728,8 +5978,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_Elements() {
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
     const uint32 pulseNumber = 4;
-    return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, NULL, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers,
-                                   0, 0, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, NULL, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
+                                   numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_Trigger_Elements() {
@@ -5747,8 +5997,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_Elements() {
     const uint32 pulseNumber = 5;
     const uint32 numberOfSegments = 2;
     const float32 period = 2;
-    return TestIntegratedExecution(config5, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify,
-                                   numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
+    return TestIntegratedExecution(config5, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerify, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers,
+                                   numberOfPostTriggers, period, treeName, pulseNumber, numberOfSegments, false);
 }
 
 bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_AutomaticSegmentation() {
@@ -5763,8 +6013,8 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_AutomaticSegmentation(
     const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
     const float32 period = 2;
     bool automaticSegmentation = true;
-    return TestIntegratedExecution(config1_B, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0,
-                                   period, treeName, pulseNumber, numberOfSegments, false, 100, automaticSegmentation);
+    return TestIntegratedExecution(config1_B, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
+                                   numberOfSegments, false, 100, automaticSegmentation);
 }
 
 bool MDSWriterTest::TestOpenTree() {

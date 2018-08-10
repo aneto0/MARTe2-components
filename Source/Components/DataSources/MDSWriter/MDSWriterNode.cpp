@@ -144,7 +144,10 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         signalTypeDescriptor = TypeDescriptor::GetTypeDescriptorFromTypeName(signalType.Buffer());
     }
     if (ok) {
-        if (signalTypeDescriptor == SignedInteger16Bit) {
+        if (signalTypeDescriptor == SignedInteger8Bit) {
+            nodeType = DTYPE_B;
+        }
+        else if (signalTypeDescriptor == SignedInteger16Bit) {
             nodeType = DTYPE_W;
         }
         else if (signalTypeDescriptor == SignedInteger32Bit) {
@@ -152,6 +155,9 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         }
         else if (signalTypeDescriptor == SignedInteger64Bit) {
             nodeType = DTYPE_Q;
+        }
+        else if (signalTypeDescriptor == UnsignedInteger8Bit) {
+            nodeType = DTYPE_BU;
         }
         else if (signalTypeDescriptor == UnsignedInteger16Bit) {
             nodeType = DTYPE_WU;
@@ -264,7 +270,10 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         }
     }
     if (ok) {
-        if ((nodeType == DTYPE_W) || (nodeType == DTYPE_WU)) {
+        if ((nodeType == DTYPE_B) || (nodeType == DTYPE_BU)) {
+            typeMultiplier = sizeof(uint8);
+        }
+        else if ((nodeType == DTYPE_W) || (nodeType == DTYPE_WU)) {
             typeMultiplier = sizeof(uint16);
         }
         else if ((nodeType == DTYPE_L) || (nodeType == DTYPE_LU)) {
@@ -374,8 +383,7 @@ bool MDSWriterNode::Execute() {
                 if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(void *))) {
                     uint32 signalIdx = currentBuffer * numberOfSamples * numberOfElements * static_cast<uint32>(typeMultiplier);
                     char8 *bufferedDataC = reinterpret_cast<char8 *>(bufferedData);
-                    ok = MemoryOperationsHelper::Copy(&bufferedDataC[signalIdx], signalMemory,
-                                                      numberOfSamples * numberOfElements * static_cast<uint32>(typeMultiplier));
+                    ok = MemoryOperationsHelper::Copy(&bufferedDataC[signalIdx], signalMemory, numberOfSamples * numberOfElements * static_cast<uint32>(typeMultiplier));
                 }
                 else {
                     ok = false;
@@ -458,7 +466,13 @@ bool MDSWriterNode::ForceSegment() {
     if (!useTimeVector) {
         start += static_cast<float64>(numberOfSamplesPerSegment) * period;
     }
-    if (nodeType == DTYPE_W) {
+    if (nodeType == DTYPE_B) {
+        array = new MDSplus::Int8Array(reinterpret_cast<char8 *>(bufferedData), 3, &segmentDim[0]);
+    }
+    else if (nodeType == DTYPE_BU) {
+        array = new MDSplus::Uint8Array(reinterpret_cast<uint8 *>(bufferedData), 3, &segmentDim[0]);
+    }
+    else if (nodeType == DTYPE_W) {
         array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), 3, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_WU) {
@@ -522,12 +536,17 @@ bool MDSWriterNode::AddDataToSegment() {
     segmentDim[0] = 1;
     for (uint32 i = 0u; i < numberOfSamplesPerSegment; i++) {
         int64_t auxCurrentTime = static_cast<int64>(start);
-        (void) auxCurrentTime;
         if (!useTimeVector) {
             start += period;
         }
         MDSplus::Scalar *value = NULL_PTR(MDSplus::Scalar *);
-        if (nodeType == DTYPE_W) {
+        if (nodeType == DTYPE_B) {
+            value = new MDSplus::Int8(reinterpret_cast<int8 *>(bufferedData)[i]);
+        }
+        else if (nodeType == DTYPE_BU) {
+            value = new MDSplus::Uint8(reinterpret_cast<uint8 *>(bufferedData)[i]);
+        }
+        else if (nodeType == DTYPE_W) {
             value = new MDSplus::Int16(reinterpret_cast<int16 *>(bufferedData)[i]);
         }
         else if (nodeType == DTYPE_WU) {

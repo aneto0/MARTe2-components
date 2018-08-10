@@ -78,12 +78,15 @@ void MDSWriterTreeTestHelper::Create(MARTe::StreamString treeNameIn) {
                                 exc.what());
         }
 
+        tree->addNode(":SIGUINT8D", "SIGNAL");
         tree->addNode(":SIGUINT16D", "SIGNAL");
         tree->addNode(":SIGUINT32F", "SIGNAL");
         tree->addNode(":SIGUINT32D", "SIGNAL");
         tree->addNode(":SIGUINT64F", "SIGNAL");
         tree->addNode(":SIGUINT64D", "SIGNAL");
+        tree->addNode(":SIGINT8F", "SIGNAL");
         tree->addNode(":SIGINT16F", "SIGNAL");
+        tree->addNode(":SIGINT8D", "SIGNAL");
         tree->addNode(":SIGINT16D", "SIGNAL");
         tree->addNode(":SIGINT32F", "SIGNAL");
         tree->addNode(":SIGINT32D", "SIGNAL");
@@ -94,6 +97,8 @@ void MDSWriterTreeTestHelper::Create(MARTe::StreamString treeNameIn) {
         tree->addNode(":SIGFLT64F", "SIGNAL");
         tree->addNode(":SIGFLT64D", "SIGNAL");
 
+        tree->addNode(":SIGINT8", "SIGNAL");
+        tree->addNode(":SIGUINT8", "SIGNAL");
         tree->addNode(":SIGUINT16", "SIGNAL");
         tree->addNode(":SIGUINT32", "SIGNAL");
         tree->addNode(":SIGUINT64", "SIGNAL");

@@ -152,6 +152,16 @@ public:
     bool TestInitialise_False_BadNumberOfDimensions();
 
     /**
+     * @brief Test the Initialise with a uint8 type.
+     */
+    bool TestInitialise_Type_UInt8();
+
+    /**
+     * @brief Test the Initialise with a int8 type.
+     */
+    bool TestInitialise_Type_Int8();
+
+    /**
      * @brief Test the Initialise with a uint16 type.
      */
     bool TestInitialise_Type_UInt16();
