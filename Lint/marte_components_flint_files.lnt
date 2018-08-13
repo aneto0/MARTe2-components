@@ -30,6 +30,7 @@
 -i./Source/Components/GAMs/WaveformGAM/
 -i./Source/Components/GAMs/StatisticsGAM/
 -i./Source/Components/GAMs/TimeCorrectionGAM/
+-i./Source/Components/GAMs/TriggerOnChangeGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 -i./Source/Components/Interfaces/EPICS/
 -i./Source/Components/Interfaces/SysLogger/
@@ -49,6 +50,7 @@ EPICSPV.cpp
 EPICSCAClient.cpp
 EPICSCAInput.cpp
 EPICSCAOutput.cpp
+EventConditionTrigger.cpp
 FileReader.cpp
 FileWriter.cpp
 FilterGAM.cpp
@@ -88,6 +90,7 @@ StatisticsGAM.cpp
 StatisticsHelperT.h
 SysLogger.cpp
 TimeCorrectionGAM.cpp
+TriggerOnChangeGAM.cpp
 Types.h
 Waveform.cpp
 Waveform.h
