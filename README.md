@@ -53,6 +53,7 @@ These include general purpose GAMs, support to off-the-shelf hardware and interf
 | --------- | ------------- |
 | [BaseLib2Wrapper](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/Interfaces/BaseLib2Wrapper) | [Load BaseLib2 objects into a BaseLib2 GlobalObjectDatabase.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1BaseLib2Wrapper.html)|
 | [EPICSCAClient](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/Interfaces/EPICS) | [Trigger Messages as a response to an EPICS PV value change.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1EPICSCAClient.html)|
+| [MemoryGate](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/Interfaces/MemoryGate) | [Allows asynchronous communication between any MARTe components.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1MemoryGate.html)|
 | [SysLogger](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/Interfaces/SysLogger) | [LoggerConsumerI which outputs the log messages to a syslog.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1SysLogger.html)|
 
 # Other information

@@ -33,6 +33,7 @@
 -i./Source/Components/GAMs/TriggerOnChangeGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 -i./Source/Components/Interfaces/EPICS/
+-i./Source/Components/Interfaces/MemoryGate/
 -i./Source/Components/Interfaces/SysLogger/
 
 Atomic2.h
@@ -62,6 +63,7 @@ LoggerBroker.cpp
 MDSReader.cpp
 MDSWriter.cpp
 MDSWriterNode.cpp
+MemoryGate.cpp
 MuxGAM.cpp
 MuxGAM.h
 NI1588Timestamp.cpp

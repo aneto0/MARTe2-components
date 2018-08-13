@@ -20,41 +20,40 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
-#
 #############################################################
 
-SPB=MemoryGate.x\
-	SysLogger.x
+OBJSX=MemoryGate.x
 
-ifdef EFDA_MARTe_DIR
-SPB += BaseLib2Wrapper.x
-endif
+PACKAGE=Components/Interfaces
 
-ifdef EPICS_BASE
-SPB   += EPICS.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
+ROOT_DIR=../../../../
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC=$(BUILD_DIR)/MemoryGate/MemoryGateTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/SysLogger/SysLoggerTest$(LIBEXT)
+INCLUDES += -I.
+INCLUDES += -I$(EPICS_BASE)/include/
+INCLUDES += -I$(EPICS_BASE)/include/os/Linux/
+INCLUDES += -I$(EPICS_BASE)/include/compiler/gcc/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2WrapperTest$(LIBEXT)
-endif
-ifdef EPICS_BASE
-LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICSTest$(LIBEXT)
-endif
 
-all: $(OBJS) $(SUBPROJ) \
-                $(BUILD_DIR)/InterfacesTests$(LIBEXT)
+all: $(OBJS)    \
+    $(BUILD_DIR)/MemoryGate$(LIBEXT) \
+    $(BUILD_DIR)/MemoryGate$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+

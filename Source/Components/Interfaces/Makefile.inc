@@ -22,7 +22,8 @@
 #
 #############################################################
 
-SPB=SysLogger.x
+SPB=MemoryGate.x \
+	SysLogger.x 
 
 ifdef EFDA_MARTe_DIR
 SPB+=BaseLib2Wrapper.x
@@ -38,7 +39,9 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC=$(BUILD_DIR)/SysLogger/SysLogger$(LIBEXT)
+LIBRARIES_STATIC=$(BUILD_DIR)/MemoryGate/MemoryGate$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/SysLogger/SysLogger$(LIBEXT)
+
 ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2Wrapper$(LIBEXT)
 endif
