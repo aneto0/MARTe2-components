@@ -305,8 +305,6 @@ bool MemoryGateTestInterface::MemoryWrite1(const uint8 * const bufferToFlush){
 
 }
 
-
-
 void MemoryGateTestInterface::SetCounters(uint32 globCounter) {
     uint32 initCounter = globCounter - numberOfBuffers + 1;
     for (uint32 i = 0u; i < numberOfBuffers; i++) {
@@ -330,6 +328,7 @@ MemoryGateTest::MemoryGateTest() {
 }
 
 MemoryGateTest::~MemoryGateTest() {
+    ObjectRegistryDatabase::Instance()->Purge();
 }
 
 bool MemoryGateTest::TestConstructor() {

@@ -298,7 +298,7 @@ bool TriggerOnChangeGAM::Execute() {
             /*lint -e{613} NULL pointer checked.*/
             (void) MemoryOperationsHelper::Copy(&previousValue[packetConfig[commandIndex[i]].offset], &currentValue[packetConfig[commandIndex[i]].offset],
                                                 (static_cast<uint32>(packetConfig[commandIndex[i]].type.numberOfBits) / 8u));
-            REPORT_ERROR(ErrorManagement::Information, "ERROR[%d]", i);
+            //REPORT_ERROR(ErrorManagement::Information, "ERROR[%d]", i);
         }
 
         //communication channel state machine
@@ -329,7 +329,7 @@ bool TriggerOnChangeGAM::Execute() {
             /*lint -e{613} NULL pointer checked.*/
             (void) MemoryOperationsHelper::Copy(&previousValue[packetConfig[commandIndex[i]].offset], &currentValue[packetConfig[commandIndex[i]].offset],
                                                 (static_cast<uint32>(packetConfig[commandIndex[i]].type.numberOfBits) / 8u));
-            REPORT_ERROR(ErrorManagement::Information, "READY[%d]", i);
+            //REPORT_ERROR(ErrorManagement::Information, "READY[%d]", i);
         }
         /*lint -e{613} NULL pointer checked.*/
         if (state[i] == SENDING) {
@@ -359,7 +359,7 @@ bool TriggerOnChangeGAM::Execute() {
             }
             (void) MemoryOperationsHelper::Copy(&previousValue[packetConfig[commandIndex[i]].offset], &currentValue[packetConfig[commandIndex[i]].offset],
                                                 (static_cast<uint32>(packetConfig[commandIndex[i]].type.numberOfBits) / 8u));
-            REPORT_ERROR(ErrorManagement::Information, "SENDING[%d]", i);
+            //REPORT_ERROR(ErrorManagement::Information, "SENDING[%d]", i);
         }
         /*lint -e{613} NULL pointer checked.*/
         if (state[i] == DONE) {

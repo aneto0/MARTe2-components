@@ -377,13 +377,10 @@ static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config)
 }
 
 EventConditionTriggerTest::EventConditionTriggerTest() {
-    // Auto-generated constructor stub for EventConditionTriggerTest
-    // TODO Verify if manual additions are needed
 }
 
 EventConditionTriggerTest::~EventConditionTriggerTest() {
-    // Auto-generated destructor stub for EventConditionTriggerTest
-    // TODO Verify if manual additions are needed
+    ObjectRegistryDatabase::Instance()->Purge();
 }
 
 bool EventConditionTriggerTest::TestConstructor() {

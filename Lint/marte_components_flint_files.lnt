@@ -8,6 +8,7 @@
 -i./Source/Components/DataSources/EPICSCA/
 -i./Source/Components/DataSources/EpicsDataSource/
 -i./Source/Components/DataSources/FileDataSource/
+-i./Source/Components/DataSources/LinkDataSource/
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
 -i./Source/Components/DataSources/MDSReader/
@@ -57,6 +58,7 @@ FileWriter.cpp
 FilterGAM.cpp
 Interleaved2FlatGAM.cpp
 IOGAM.cpp
+LinkDataSource.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp

@@ -331,13 +331,10 @@ static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config)
 /*---------------------------------------------------------------------------*/
 
 TriggerOnChangeGAMTest::TriggerOnChangeGAMTest() {
-    // Auto-generated constructor stub for TriggerOnChangeGAMTest
-    // TODO Verify if manual additions are needed
 }
 
 TriggerOnChangeGAMTest::~TriggerOnChangeGAMTest() {
-    // Auto-generated destructor stub for TriggerOnChangeGAMTest
-    // TODO Verify if manual additions are needed
+    ObjectRegistryDatabase::Instance()->Purge();
 }
 
 bool TriggerOnChangeGAMTest::TestConstructor() {

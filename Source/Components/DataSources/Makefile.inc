@@ -27,6 +27,7 @@ OBJSX=
 SPB    = EpicsDataSource.x \
     FileDataSource.x \
     LinuxTimer.x \
+    LinkDataSource.x \
     LoggerDataSource.x \
     RealTimeThreadAsyncBridge.x \
     RealTimeThreadSynchronisation.x
@@ -62,6 +63,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC+=$(BUILD_DIR)/EpicsDataSource/EpicsDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/FileDataSource/FileDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimer$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/LinkDataSource/LinkDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadAsyncBridge/RealTimeThreadAsyncBridge$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadSynchronisation/RealTimeThreadSynchronisation$(LIBEXT)
