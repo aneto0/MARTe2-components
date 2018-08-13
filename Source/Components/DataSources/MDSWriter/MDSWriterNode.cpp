@@ -541,7 +541,7 @@ bool MDSWriterNode::AddDataToSegment() {
         }
         MDSplus::Scalar *value = NULL_PTR(MDSplus::Scalar *);
         if (nodeType == DTYPE_B) {
-            value = new MDSplus::Int8(reinterpret_cast<int8 *>(bufferedData)[i]);
+            value = new MDSplus::Int8(reinterpret_cast<char8 *>(bufferedData)[i]);
         }
         else if (nodeType == DTYPE_BU) {
             value = new MDSplus::Uint8(reinterpret_cast<uint8 *>(bufferedData)[i]);
