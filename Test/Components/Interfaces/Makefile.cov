@@ -28,7 +28,8 @@ TARGET=cov
 
 include Makefile.inc
 
-LIBRARIES_STATIC=SysLogger/cov/SysLoggerTest$(LIBEXT)
+LIBRARIES_STATIC=MemoryGate/cov/MemoryGateTest$(LIBEXT)
+LIBRARIES_STATIC+=SysLogger/cov/SysLoggerTest$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=NI9157Device/cov/NI9157DeviceTest$(LIBEXT)

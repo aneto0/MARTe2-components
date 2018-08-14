@@ -22,7 +22,8 @@
 #
 #############################################################
 
-SPB=SysLogger.x
+SPB=MemoryGate.x \
+	SysLogger.x 
 
 ifdef CODAC_ROOT
 SPB+=NI9157Device.x
@@ -42,7 +43,9 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC=$(BUILD_DIR)/SysLogger/SysLogger$(LIBEXT)
+LIBRARIES_STATIC=$(BUILD_DIR)/MemoryGate/MemoryGate$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/SysLogger/SysLogger$(LIBEXT)
+
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157Device/NI9157Device$(LIBEXT)

@@ -8,6 +8,7 @@
 -i./Source/Components/DataSources/EPICSCA/
 -i./Source/Components/DataSources/EpicsDataSource/
 -i./Source/Components/DataSources/FileDataSource/
+-i./Source/Components/DataSources/LinkDataSource/
 -i./Source/Components/DataSources/LinuxTimer/
 -i./Source/Components/DataSources/LoggerDataSource/
 -i./Source/Components/DataSources/MDSReader/
@@ -30,8 +31,11 @@
 -i./Source/Components/GAMs/SSMGAM/
 -i./Source/Components/GAMs/WaveformGAM/
 -i./Source/Components/GAMs/StatisticsGAM/
+-i./Source/Components/GAMs/TimeCorrectionGAM/
+-i./Source/Components/GAMs/TriggerOnChangeGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 -i./Source/Components/Interfaces/EPICS/
+-i./Source/Components/Interfaces/MemoryGate/
 -i./Source/Components/Interfaces/NI9157Device/
 -i./Source/Components/Interfaces/SysLogger/
 
@@ -52,17 +56,20 @@ EPICSPV.cpp
 EPICSCAClient.cpp
 EPICSCAInput.cpp
 EPICSCAOutput.cpp
+EventConditionTrigger.cpp
 FileReader.cpp
 FileWriter.cpp
 FilterGAM.cpp
 Interleaved2FlatGAM.cpp
 IOGAM.cpp
+LinkDataSource.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
 MDSReader.cpp
 MDSWriter.cpp
 MDSWriterNode.cpp
+MemoryGate.cpp
 MuxGAM.cpp
 MuxGAM.h
 NI1588Timestamp.cpp
@@ -96,6 +103,8 @@ SSMGAM.h
 StatisticsGAM.cpp
 StatisticsHelperT.h
 SysLogger.cpp
+TimeCorrectionGAM.cpp
+TriggerOnChangeGAM.cpp
 Types.h
 Waveform.cpp
 Waveform.h

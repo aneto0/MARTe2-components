@@ -208,8 +208,8 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
 
         float64 periodUsec = (1e6 / frequency);
         timerPeriodUsecTime = static_cast<uint32>(periodUsec);
-        uint64 sleepTimeTicks64 = HighResolutionTimer::Frequency() / static_cast<uint64>(frequency);
-        sleepTimeTicks = static_cast<uint32>(sleepTimeTicks64);
+        float64 sleepTimeT = (static_cast<float64>(HighResolutionTimer::Frequency()) / frequency);
+        sleepTimeTicks = static_cast<uint64>(sleepTimeT);
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "No frequency > 0 was set (i.e. no signal synchronises on this LinuxTimer).");
@@ -258,60 +258,6 @@ const char8* LinuxTimer::GetBrokerName(StructuredDataI& data, const SignalDirect
     return brokerName;
 }
 
-bool LinuxTimer::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
-//Check if this function has a synchronisation point (i.e. a signal which has Frequency > 0)
-    uint32 functionIdx = 0u;
-    bool ok = GetFunctionIndex(functionIdx, functionName);
-
-    if ((synchronising) && (synchronisingFunctionIdx == functionIdx)) {
-        ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");
-        if (ok) {
-            ok = brokerSync.IsValid();
-        }
-        if (ok) {
-            //This call will only add the Synchronous signal (given that GetBrokerName returned MemoryMapSynchronisedInputBroker at most for one signal)
-            ok = brokerSync->Init(InputSignals, *this, functionName, gamMemPtr);
-        }
-        if (ok) {
-            ok = inputBrokers.Insert(brokerSync);
-        }
-        uint32 nOfFunctionSignals = 0u;
-        if (ok) {
-            ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunctionSignals);
-        }
-//Must also add the signals which are not synchronous but that belong to the same GAM...
-        if (ok) {
-            if (nOfFunctionSignals > 1u) {
-                ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
-                ok = brokerNotSync.IsValid();
-                if (ok) {
-                    ok = brokerNotSync->Init(InputSignals, *this, functionName, gamMemPtr);
-                }
-                if (ok) {
-                    ok = inputBrokers.Insert(brokerNotSync);
-                }
-            }
-        }
-    }
-    else {
-        ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
-        ok = broker.IsValid();
-        if (ok) {
-            ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
-        }
-        if (ok) {
-            ok = inputBrokers.Insert(broker);
-        }
-    }
-
-    return ok;
-}
-
-/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
-bool LinuxTimer::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    return false;
-}
-
 bool LinuxTimer::Synchronise() {
     ErrorManagement::ErrorType err;
     if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
@@ -345,25 +291,34 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     }
 
     float64 sleepTime = 0.F;
-    uint64 sleepTicksCorrection = (HighResolutionTimer::Counter() - lastTimeTicks);
-    if (sleepTicksCorrection < sleepTimeTicks) {
-        uint64 deltaTicks = sleepTimeTicks - sleepTicksCorrection;
-        sleepTime = static_cast<float64>(deltaTicks) * HighResolutionTimer::Period();
+    uint64 startTicks = HighResolutionTimer::Counter();
+    //If we lose cycle, rephase to a multiple of the period.
+    uint32 nCycles = 0u;
+    while (lastTimeTicks < startTicks) {
+        lastTimeTicks += sleepTimeTicks;
+        nCycles++;
     }
-    else {
-        sleepTime = static_cast<float64>(sleepTimeTicks) * HighResolutionTimer::Period();
-    }
+    lastTimeTicks -= sleepTimeTicks;
+
+    //Sleep until the next period. Cannot be < 0 due to while(lastTimeTicks < startTicks) above
+    uint64 sleepTicksCorrection = (startTicks - lastTimeTicks);
+    uint64 deltaTicks = sleepTimeTicks - sleepTicksCorrection;
 
     if (sleepNature == Busy) {
-        Sleep::Busy(sleepTime);
+        while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
+        }
     }
     else {
+        sleepTime = static_cast<float64>(deltaTicks) * HighResolutionTimer::Period();
         Sleep::NoMore(sleepTime);
     }
     lastTimeTicks = HighResolutionTimer::Counter();
 
-    ErrorManagement::ErrorType err(synchSem.Post());
-    counterAndTimer[0]++;
+    ErrorManagement::ErrorType err;
+    if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
+        err = !(synchSem.Post());
+    }
+    counterAndTimer[0] += nCycles;
     counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTime;
 
     return err;

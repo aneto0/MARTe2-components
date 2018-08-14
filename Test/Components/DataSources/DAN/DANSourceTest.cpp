@@ -228,13 +228,14 @@ DANSourceSchedulerTestHelper    () : MARTe::GAMSchedulerI() {
 
     void ExecuteThreadCycle(MARTe::uint32 threadId) {
         using namespace MARTe;
-        ExecuteSingleCycle(scheduledStates[RealTimeApplication::GetIndex()]->threads[threadId].executables,
-                scheduledStates[RealTimeApplication::GetIndex()]->threads[threadId].numberOfExecutables);
+        ReferenceT<RealTimeApplication> rtAppT = realTimeApp;
+        ExecuteSingleCycle(scheduledStates[rtAppT->GetIndex()]->threads[threadId].executables,
+                scheduledStates[rtAppT->GetIndex()]->threads[threadId].numberOfExecutables);
     }
 
-    virtual bool ConfigureScheduler() {
+    virtual bool ConfigureScheduler(MARTe::Reference realTimeApp) {
 
-        bool ret = GAMSchedulerI::ConfigureScheduler();
+        bool ret = GAMSchedulerI::ConfigureScheduler(realTimeApp);
         if (ret) {
             scheduledStates = GetSchedulableStates();
         }

@@ -25,6 +25,7 @@
 #############################################################
 
 OBJSX=NI9157CircularFifoReader.x NI9157MxiDataSource.x
+SPB=Optim.x
 
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
@@ -52,6 +53,8 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L4LoggerService
 INCLUDES += -I../../Interfaces/NI9157Device
 INCLUDES += -I$(CODAC_ROOT)/include
+
+LIBRARIES_STATIC=$(BUILD_DIR)/Optim/NI9157MemoryOperationsHelper$(OBJEXT)
 
 all: $(OBJS) $(SUBPROJ) $(SUBPROJCUST)\
 	$(BUILD_DIR)/NI9157$(LIBEXT)\

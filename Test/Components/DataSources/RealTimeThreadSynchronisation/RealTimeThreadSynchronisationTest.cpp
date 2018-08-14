@@ -166,13 +166,13 @@ RealTimeThreadSynchronisationSchedulerTestHelper    () : MARTe::GAMSchedulerI() 
 
     void ExecuteThreadCycle(MARTe::uint32 threadId) {
         using namespace MARTe;
-        ExecuteSingleCycle(scheduledStates[RealTimeApplication::GetIndex()]->threads[threadId].executables,
-                scheduledStates[RealTimeApplication::GetIndex()]->threads[threadId].numberOfExecutables);
+        ReferenceT<RealTimeApplication> realTimeAppT = realTimeApp;
+        ExecuteSingleCycle(scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].executables,
+                scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].numberOfExecutables);
     }
 
-    virtual bool ConfigureScheduler() {
-
-        bool ret = GAMSchedulerI::ConfigureScheduler();
+    virtual bool ConfigureScheduler(MARTe::Reference realTimeApp) {
+        bool ret = GAMSchedulerI::ConfigureScheduler(realTimeApp);
         if (ret) {
             scheduledStates = GetSchedulableStates();
         }

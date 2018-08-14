@@ -122,12 +122,13 @@ BaseLib2GAMTestScheduler    () : MARTe::GAMSchedulerI() {
     }
 
     void ExecuteThreadCycle(MARTe::uint32 threadId) {
-        ExecuteSingleCycle(scheduledStates[MARTe::RealTimeApplication::GetIndex()]->threads[threadId].executables,
-                scheduledStates[MARTe::RealTimeApplication::GetIndex()]->threads[threadId].numberOfExecutables);
+        MARTe::ReferenceT<MARTe::RealTimeApplication> realTimeAppT = realTimeApp;
+        ExecuteSingleCycle(scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].executables,
+                scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].numberOfExecutables);
     }
 
-    virtual bool ConfigureScheduler() {
-        bool ret = GAMSchedulerI::ConfigureScheduler();
+    virtual bool ConfigureScheduler(MARTe::Reference realTimeApp) {
+        bool ret = GAMSchedulerI::ConfigureScheduler(realTimeApp);
         if (ret) {
             scheduledStates = GetSchedulableStates();
         }

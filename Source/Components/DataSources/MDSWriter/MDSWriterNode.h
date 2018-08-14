@@ -49,7 +49,7 @@ namespace MARTe {
  * stored inside this segment.
  * A segment will be created when GetNumberOfExecuteCalls() == GetMakeSegmentAfterNWrites() or, in case
  * IsUseTimeVector() == true, when a discontinuity on the time signal is detected, i.e., when the distance between
- *  two time samples is greater than GetExecutePeriodMicroSecond.
+ *  two time samples is greater than GetExecutePeriod.
  */
 class MDSWriterNode {
 public:
@@ -58,7 +58,7 @@ public:
      * @post
      *   IsDecimatedMinMax() == false &&
      *   GetDecimatedNodeName() == "" &&
-     *   GetExecutePeriodMicroSecond() == 0 &&
+     *   GetExecutePeriod() == 0 &&
      *   IsFlush() == false &&
      *   GetMakeSegmentAfterNWrites() == 0 &&
      *   GetMinMaxResampleFactor() == 0 &&
@@ -100,7 +100,7 @@ public:
      * @details Copies the current signal data (see SetSignalMemory) into the shared memory buffer.
      * * A segment will be created when GetNumberOfExecuteCalls() == GetMakeSegmentAfterNWrites() or, in case
      * IsUseTimeVector() == true, when a discontinuity on the time signal is detected, i.e., when the distance between
-     *  two time samples is greater than the GetExecutePeriodMicroSecond.
+     *  two time samples is greater than the GetExecutePeriod.
      * @return if the data can be successfully copied.
      * @pre
      *   SetSignalMemory() &&
@@ -118,8 +118,10 @@ public:
     /**
      * @brief Sets the source signal memory.
      * @param[in] timeSignalMemoryIn pointer to the time vector to be stored in MDS+.
+     * @param[in] timeSignalTypeIn the type of the timeSignalMemoryIn.
+     * @param[in] timeSignalMultiplierIn multiplier to convert from the units of the time signal into seconds (e.g. from micro-seconds to seconds).
      */
-    void SetTimeSignalMemory(void *timeSignalMemoryIn);
+    void SetTimeSignalMemory(void *timeSignalMemoryIn, const TypeDescriptor & timeSignalTypeIn, float64 timeSignalMultiplierIn);
 
     /**
      * @brief Opens the MDSplus::TreeNode.
@@ -151,9 +153,9 @@ public:
 
     /**
      * @brief Returns the period of a segment.
-     * @return GetNumberOfElements()  * (GetPeriod() * 1e6);
+     * @return GetNumberOfElements()  * (GetPeriod() * GetMultiplier(see SetTimeSignalMemory));
      */
-    uint32 GetExecutePeriodMicroSecond() const;
+    uint32 GetExecutePeriod() const;
 
     /**
      * @brief A segment will be created after the Execute has been called GetMakeSegmentAfterNWrites()
@@ -223,6 +225,13 @@ public:
     uint64 GetNumberOfExecuteCalls() const;
 
 private:
+
+    /**
+     * @brief Gets the time from the TimeSignalMemory.
+     * @return  the time from the TimeSignalMemory.
+     */
+    uint64 GetTimeSignalMemoryTime() const;
+
     /**
      * The name of the MDSplus node
      */
@@ -271,9 +280,9 @@ private:
     size_t typeMultiplier;
 
     /**
-     * Period at which the Execute gets called in micro-seconds
+     * Period at which the Execute gets called
      */
-    uint32 executePeriodMicroSecond;
+    uint32 executePeriod;
 
     /**
      * True if the time vector is to be fed through an external signal.
@@ -344,12 +353,22 @@ private:
     /**
      * Address of the signal which provides the time information (only used when useTimeVector == true).
      */
-    uint32 *timeSignalMemory;
+    void *timeSignalMemory;
+
+    /**
+     * Multiplier to convert from the time signal units to seconds.
+     */
+    float64 timeSignalMultiplier;
+
+    /**
+     * Type of the time signal  (only used when useTimeVector == true).
+     */
+    TypeDescriptor timeSignalType;
 
     /**
      * Time at which the time signal was read for the last time.
      */
-    uint32 lastWriteTimeSignal;
+    uint64 lastWriteTimeSignal;
 
     /**
      * Set to true when all the data shall be flushed into MDSPlus, irrespectively of the fact that

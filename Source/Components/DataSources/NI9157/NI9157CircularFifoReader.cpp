@@ -33,6 +33,7 @@
 #include "MemoryOperationsHelper.h"
 #include "NI9157CircularFifoReader.h"
 #include "NI9157DeviceOperatorDatabase.h"
+#include "Optim/NI9157MemoryOperationsHelper.h"
 #include "ObjectRegistryDatabase.h"
 
 /*---------------------------------------------------------------------------*/
@@ -404,8 +405,8 @@ bool NI9157CircularFifoReader::DriverRead(char8 * const bufferToFill, uint32 &si
             }
 
             /*lint -e{613} NULL pointer checked*/
-            MemoryOperationsHelper::InterleavedToFlat(&(middleBuffer[0]), reinterpret_cast<uint8*>(bufferToFill), cnt, &interleavedPacketMemberByteSize[0], interleavedSignalByteSize[signalIdx], numberOfInterleavedSignalMembers[signalIdx],
-                                                      numberOfInterleavedSamples[signalIdx]);
+            NI9157MemoryOperationsHelper::InterleavedToFlat(&(middleBuffer[0]), reinterpret_cast<uint8*>(bufferToFill), cnt, &interleavedPacketMemberByteSize[0], interleavedSignalByteSize[signalIdx],
+                                                            numberOfInterleavedSignalMembers[signalIdx], numberOfInterleavedSamples[signalIdx]);
 
         }
     }

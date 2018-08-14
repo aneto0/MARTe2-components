@@ -47,6 +47,8 @@ namespace MARTe {
  * either be: 1) the name of the Function to be called; 2) or an ID of a Function to be called (see FunctionMap);
  *  3) or the input parameter of a pre-defined Function to be called; or 4) or a pre-defined Function is to be called with no parameters (i.e. the PV value is to be ignored).
  * The configuration syntax is (names are only given as an example):
+ *
+ * <pre>
  * +PV_1 = {
  *   Class = EPICSInterface::EPICSPV
  *   PVName = PV_ONE //Compulsory. Name of the EPICS PV.
@@ -63,6 +65,7 @@ namespace MARTe {
  *     FunctionMap = {{"1", "RUN"}, {"0", "STOP"}} //Optional Nx2 matrix. Only allowed if PVValue == Function. If defined then the PV value (first column of the matrix) will be used to map the Function name (second column of the matrix).
  *   }
  * }
+ * </pre>
  *
  * The CAPut and CAGet class methods are registered as call-backs. The parameter to put/get shall be encoded as "param1" in a StructuredDataI attached to the message.
  *

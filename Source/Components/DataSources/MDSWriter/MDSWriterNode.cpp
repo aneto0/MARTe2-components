@@ -63,9 +63,11 @@ MDSWriterNode::MDSWriterNode() {
     minMaxResampleFactor = 0;
 
     signalMemory = NULL_PTR(void *);
-    timeSignalMemory = NULL_PTR(uint32 *);
+    timeSignalMemory = NULL_PTR(void *);
+    timeSignalType = UnsignedInteger32Bit;
+    timeSignalMultiplier = 1e-6;
     lastWriteTimeSignal = 0u;
-    executePeriodMicroSecond = 0u;
+    executePeriod = 0u;
     useTimeVector = false;
     automaticSegmentation = false;
 
@@ -111,8 +113,7 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
                 automaticSegmentation = false;
             }
             else {
-                REPORT_ERROR_STATIC(ErrorManagement::InitialisationError,
-                                    "AutomaticSegmentation must be 0 (false) or 1 (true)");
+                REPORT_ERROR_STATIC(ErrorManagement::InitialisationError, "AutomaticSegmentation must be 0 (false) or 1 (true)");
                 ok = false;
             }
         }
@@ -143,7 +144,10 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         signalTypeDescriptor = TypeDescriptor::GetTypeDescriptorFromTypeName(signalType.Buffer());
     }
     if (ok) {
-        if (signalTypeDescriptor == SignedInteger16Bit) {
+        if (signalTypeDescriptor == SignedInteger8Bit) {
+            nodeType = DTYPE_B;
+        }
+        else if (signalTypeDescriptor == SignedInteger16Bit) {
             nodeType = DTYPE_W;
         }
         else if (signalTypeDescriptor == SignedInteger32Bit) {
@@ -151,6 +155,9 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         }
         else if (signalTypeDescriptor == SignedInteger64Bit) {
             nodeType = DTYPE_Q;
+        }
+        else if (signalTypeDescriptor == UnsignedInteger8Bit) {
+            nodeType = DTYPE_BU;
         }
         else if (signalTypeDescriptor == UnsignedInteger16Bit) {
             nodeType = DTYPE_WU;
@@ -168,8 +175,7 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
             nodeType = DTYPE_DOUBLE;
         }
         else {
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NodeType %s not supported for node with name %s",
-                                signalType.Buffer(), nodeName.Buffer());
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NodeType %s not supported for node with name %s", signalType.Buffer(), nodeName.Buffer());
             ok = false;
         }
     }
@@ -253,7 +259,7 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
             segmentDim[1] = static_cast<int32>(numberOfElements);
             segmentDim[2] = 1;
         }
-        else  {
+        else {
             //numberOfDimensions == 2u. TODO currently matrix are not supported.
         }
     }
@@ -264,7 +270,10 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         }
     }
     if (ok) {
-        if ((nodeType == DTYPE_W) || (nodeType == DTYPE_WU)) {
+        if ((nodeType == DTYPE_B) || (nodeType == DTYPE_BU)) {
+            typeMultiplier = sizeof(uint8);
+        }
+        else if ((nodeType == DTYPE_W) || (nodeType == DTYPE_WU)) {
             typeMultiplier = sizeof(uint16);
         }
         else if ((nodeType == DTYPE_L) || (nodeType == DTYPE_LU)) {
@@ -286,12 +295,7 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         uint32 bufferedDataSize = static_cast<uint32>(typeMultiplier);
         bufferedDataSize *= numberOfElements * makeSegmentAfterNWrites * numberOfSamples;
 
-        bufferedData = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(
-                bufferedDataSize));
-
-        float64 executePeriodMicroSecondF = static_cast<float64>(numberOfSamples) * period * 1e6;
-        executePeriodMicroSecondF += 0.5F;
-        executePeriodMicroSecond = static_cast<uint32>(executePeriodMicroSecondF);
+        bufferedData = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(bufferedDataSize));
     }
     return ok;
 }
@@ -310,8 +314,7 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree * const tree) {
         }
     }
     catch (const MDSplus::MdsException &exc) {
-        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", nodeName.Buffer(),
-                            exc.what());
+        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", nodeName.Buffer(), exc.what());
         ok = false;
     }
     if (ok) {
@@ -325,8 +328,7 @@ bool MDSWriterNode::AllocateTreeNode(MDSplus::Tree * const tree) {
                 decimatedNode->deleteData();
             }
             catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s",
-                                    decimatedNodeName.Buffer(), exc.what());
+                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed opening node with name %s: %s", decimatedNodeName.Buffer(), exc.what());
                 ok = false;
             }
         }
@@ -346,12 +348,14 @@ bool MDSWriterNode::Execute() {
     //discontinuityFound only meaningful when useTimeVector = true and tracks event that might not be continuous but that would
     //otherwise fit inside the same segment.
     bool discontinuityFound = false;
+    uint64 timeSignalTime = 0u;
     if ((ok) && (!flush)) {
         //If we are using a triggering source get the signal from a time source, as samples might not be continuous
         if (useTimeVector) {
+            timeSignalTime = GetTimeSignalMemoryTime();
             if (currentBuffer == 0u) {
                 if (timeSignalMemory != NULL_PTR(uint32 *)) {
-                    start = static_cast<float64>(*timeSignalMemory) * 1e-6;
+                    start = static_cast<float64>(timeSignalTime) * timeSignalMultiplier;
                     start += static_cast<float64>(phaseShift) * period;
                 }
             }
@@ -360,7 +364,7 @@ bool MDSWriterNode::Execute() {
             else {
                 if (makeSegmentAfterNWrites > 1u) {
                     if (timeSignalMemory != NULL_PTR(uint32 *)) {
-                        if ((*timeSignalMemory - lastWriteTimeSignal) != executePeriodMicroSecond) {
+                        if ((timeSignalTime - lastWriteTimeSignal) != executePeriod) {
                             if (lastWriteTimeSignal > 0u) {
                                 discontinuityFound = true;
                             }
@@ -369,7 +373,7 @@ bool MDSWriterNode::Execute() {
                 }
             }
             if (timeSignalMemory != NULL_PTR(uint32 *)) {
-                lastWriteTimeSignal = *timeSignalMemory;
+                lastWriteTimeSignal = timeSignalTime;
             }
         }
         //If data is continuous store in the shared buffer that will be flushed as part of the next segment.
@@ -377,12 +381,9 @@ bool MDSWriterNode::Execute() {
         if (!discontinuityFound) {
             if (currentBuffer < makeSegmentAfterNWrites) {
                 if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(void *))) {
-                    uint32 signalIdx = currentBuffer * numberOfSamples * numberOfElements
-                            * static_cast<uint32>(typeMultiplier);
+                    uint32 signalIdx = currentBuffer * numberOfSamples * numberOfElements * static_cast<uint32>(typeMultiplier);
                     char8 *bufferedDataC = reinterpret_cast<char8 *>(bufferedData);
-                    ok = MemoryOperationsHelper::Copy(
-                            &bufferedDataC[signalIdx], signalMemory,
-                            numberOfSamples * numberOfElements * static_cast<uint32>(typeMultiplier));
+                    ok = MemoryOperationsHelper::Copy(&bufferedDataC[signalIdx], signalMemory, numberOfSamples * numberOfElements * static_cast<uint32>(typeMultiplier));
                 }
                 else {
                     ok = false;
@@ -426,15 +427,14 @@ bool MDSWriterNode::Execute() {
             if ((signalMemory != NULL_PTR(uint32 *)) && (bufferedData != NULL_PTR(void *))) {
                 //currentBuffer had already been incremented. Copy the last buffer to the beginning
                 char8 *bufferedDataC = reinterpret_cast<char8 *>(bufferedData);
-                ok = MemoryOperationsHelper::Copy(&bufferedDataC[0u], signalMemory,
-                                                  numberOfElements * static_cast<uint32>(typeMultiplier));
+                ok = MemoryOperationsHelper::Copy(&bufferedDataC[0u], signalMemory, numberOfElements * static_cast<uint32>(typeMultiplier));
             }
             if (ok) {
                 currentBuffer = 1u;
             }
             if (timeSignalMemory != NULL_PTR(uint32 *)) {
                 //Update the start
-                start = static_cast<float64>(*timeSignalMemory) * 1e-6;
+                start = static_cast<float64>(timeSignalTime) * timeSignalMultiplier;
                 start += static_cast<float64>(phaseShift) * period;
             }
         }
@@ -466,7 +466,13 @@ bool MDSWriterNode::ForceSegment() {
     if (!useTimeVector) {
         start += static_cast<float64>(numberOfSamplesPerSegment) * period;
     }
-    if (nodeType == DTYPE_W) {
+    if (nodeType == DTYPE_B) {
+        array = new MDSplus::Int8Array(reinterpret_cast<char8 *>(bufferedData), 3, &segmentDim[0]);
+    }
+    else if (nodeType == DTYPE_BU) {
+        array = new MDSplus::Uint8Array(reinterpret_cast<uint8 *>(bufferedData), 3, &segmentDim[0]);
+    }
+    else if (nodeType == DTYPE_W) {
         array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), 3, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_WU) {
@@ -530,12 +536,17 @@ bool MDSWriterNode::AddDataToSegment() {
     segmentDim[0] = 1;
     for (uint32 i = 0u; i < numberOfSamplesPerSegment; i++) {
         int64_t auxCurrentTime = static_cast<int64>(start);
-        (void) auxCurrentTime;
         if (!useTimeVector) {
             start += period;
         }
         MDSplus::Scalar *value = NULL_PTR(MDSplus::Scalar *);
-        if (nodeType == DTYPE_W) {
+        if (nodeType == DTYPE_B) {
+            value = new MDSplus::Int8(reinterpret_cast<char8 *>(bufferedData)[i]);
+        }
+        else if (nodeType == DTYPE_BU) {
+            value = new MDSplus::Uint8(reinterpret_cast<uint8 *>(bufferedData)[i]);
+        }
+        else if (nodeType == DTYPE_W) {
             value = new MDSplus::Int16(reinterpret_cast<int16 *>(bufferedData)[i]);
         }
         else if (nodeType == DTYPE_WU) {
@@ -571,19 +582,62 @@ bool MDSWriterNode::AddDataToSegment() {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
                 ok = false;
             }
-            MDSplus::deleteData (value);
+            MDSplus::deleteData(value);
         }
     }
     return ok;
+}
+
+uint64 MDSWriterNode::GetTimeSignalMemoryTime() const {
+    uint64 ret = 0u;
+    if (timeSignalMemory != NULL_PTR(void *)) {
+        if (timeSignalType == UnsignedInteger32Bit) {
+            ret = *(reinterpret_cast<uint32 *>(timeSignalMemory));
+        }
+        else if (timeSignalType == UnsignedInteger64Bit) {
+            ret = *(reinterpret_cast<uint64 *>(timeSignalMemory));
+        }
+        else if (timeSignalType == SignedInteger32Bit) {
+            ret = static_cast<uint64>(*(reinterpret_cast<int32 *>(timeSignalMemory)));
+        }
+        else if (timeSignalType == SignedInteger64Bit) {
+            ret = static_cast<uint64>(*(reinterpret_cast<int64 *>(timeSignalMemory)));
+        }
+        else if (timeSignalType == UnsignedInteger16Bit) {
+            ret = *(reinterpret_cast<uint16 *>(timeSignalMemory));
+        }
+        else if (timeSignalType == UnsignedInteger8Bit) {
+            ret = static_cast<uint64>(*(reinterpret_cast<uint8 *>(timeSignalMemory)));
+        }
+        else if (timeSignalType == SignedInteger16Bit) {
+            ret = static_cast<uint64>(*(reinterpret_cast<int16 *>(timeSignalMemory)));
+        }
+        else if (timeSignalType == SignedInteger8Bit) {
+            ret = static_cast<uint64>(*(reinterpret_cast<int8 *>(timeSignalMemory)));
+        }
+        else {
+            //Should not be reachable
+        }
+    }
+
+    return ret;
 }
 
 void MDSWriterNode::SetSignalMemory(void * const signalMemoryIn) {
     signalMemory = signalMemoryIn;
 }
 
-void MDSWriterNode::SetTimeSignalMemory(void * const timeSignalMemoryIn) {
-    timeSignalMemory = reinterpret_cast<uint32 *>(timeSignalMemoryIn);
-    useTimeVector = (timeSignalMemory != NULL_PTR(uint32 *));
+void MDSWriterNode::SetTimeSignalMemory(void * const timeSignalMemoryIn, const TypeDescriptor & timeSignalTypeIn, const float64 timeSignalMultiplierIn) {
+    timeSignalMemory = timeSignalMemoryIn;
+    timeSignalType = timeSignalTypeIn;
+    useTimeVector = (timeSignalMemory != NULL_PTR(void *));
+    float64 executePeriodF = static_cast<float64>(numberOfSamples) * period;
+    if (timeSignalMultiplierIn > 0.F) {
+        timeSignalMultiplier = timeSignalMultiplierIn;
+        executePeriodF /= timeSignalMultiplierIn;
+    }
+    executePeriodF += 0.5F;
+    executePeriod = static_cast<uint32>(executePeriodF);
 
 }
 
@@ -599,8 +653,8 @@ const StreamString& MDSWriterNode::GetDecimatedNodeName() const {
     return decimatedNodeName;
 }
 
-uint32 MDSWriterNode::GetExecutePeriodMicroSecond() const {
-    return executePeriodMicroSecond;
+uint32 MDSWriterNode::GetExecutePeriod() const {
+    return executePeriod;
 }
 
 uint32 MDSWriterNode::GetMakeSegmentAfterNWrites() const {

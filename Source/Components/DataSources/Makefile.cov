@@ -28,6 +28,7 @@ include Makefile.inc
 
 LIBRARIES_STATIC=EpicsDataSource/cov/EpicsDataSource$(LIBEXT)
 LIBRARIES_STATIC+=FileDataSource/cov/FileDataSource$(LIBEXT)
+LIBRARIES_STATIC+=LinkDataSource/cov/LinkDataSource$(LIBEXT)
 LIBRARIES_STATIC+=LinuxTimer/cov/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=RealTimeThreadAsyncBridge/cov/RealTimeThreadAsyncBridge$(LIBEXT)
