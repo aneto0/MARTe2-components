@@ -752,7 +752,9 @@ uint32 MDSReader::LinearInterpolationCopyTemplate(uint32 nodeNumber,
 
     T* data = NULL_PTR(T *);
     for (uint32 currentSegment = minSeg; (currentSegment < maxNumberOfSegments[nodeNumber]) && (samplesToCopy != 0); currentSegment++) {
-        nodes[nodeNumber]->getSegmentAndDimension(currentSegment, dataD, timeNodeD);
+        //nodes[nodeNumber]->getSegmentAndDimension(currentSegment, dataD, timeNodeD);
+        dataD = nodes[nodeNumber]->getSegment(currentSegment);
+        timeNodeD = nodes[nodeNumber]->getSegmentDim(currentSegment);
         if (type[nodeNumber] == UnsignedInteger8Bit) {
             data = reinterpret_cast<T *>(dataD->getByteUnsignedArray(&nElements));
         }
@@ -851,7 +853,9 @@ uint32 MDSReader::HoldCopyTemplate(uint32 nodeNumber,
 
     T* data = NULL_PTR(T *);
     for (uint32 currentSegment = minSeg; (currentSegment < maxNumberOfSegments[nodeNumber]) && (samplesToCopy != 0); currentSegment++) {
-        nodes[nodeNumber]->getSegmentAndDimension(currentSegment, dataD, timeNodeD);
+        //nodes[nodeNumber]->getSegmentAndDimension(currentSegment, dataD, timeNodeD);
+        dataD = nodes[nodeNumber]->getSegment(currentSegment);
+        timeNodeD = nodes[nodeNumber]->getSegmentDim(currentSegment);
         if (type[nodeNumber] == UnsignedInteger8Bit) {
             data = reinterpret_cast<T *>(dataD->getByteUnsignedArray(&nElements));
         }
