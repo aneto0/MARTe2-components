@@ -75,13 +75,15 @@ namespace MARTe {
  *         Time = { //Compulsory when StoreOnTrigger = 1. Can be store in any index, but TimeSignal must be set = 1
  *             Type = "uint32" //Type must be uint32 or int32
  *             TimeSignal = 1 //When set, this signal will be considered as the time source against which all signals will be stored.
+ *             TimeSignalMultiplier = 1e-9 //Default = 1e-6. Multiplier to convert the time signal units into seconds,
  *         }
  *         SignalUInt16F = { //As many as required.
  *             NodeName = "SIGUINT16F" //Compulsory. MDSplus node name
  *             Period = 2 //Compulsory. Period between signal samples.
- *             MakeSegmentAfterNWrites = 4 //Compulsory. Forces the creation of a segment after N MARTe cycles.
- *             DecimatedNodeName = "SIGUINT16D" //Optional. The node where MDSplus stores the automatically computed decimated signal.
- *             MinMaxResampleFactor = 4 //Compulsory if DecimatedNodeName is set. Decimation factor that MDSplus applies to the decimated version of the signal.
+ *             AutomaticSegmentation = 1 || 0. When set to 1 MDSplus::putRow() is used instead of MDSplus::makeSegment()
+ *             MakeSegmentAfterNWrites = 4 //Compulsory if AutomaticSegmentation = 0. Forces the creation of a segment after N MARTe cycles. If AutomaticSegmentation = 0 then MakeSegmentAfterNWrites = 1.
+ *             DecimatedNodeName = "SIGUINT16D" //Optional. The node where MDSplus stores the automatically computed decimated signal. When AutomaticSegmentation = 1 this field is ignored.
+ *             MinMaxResampleFactor = 4 //Compulsory if DecimatedNodeName is set. Decimation factor that MDSplus applies to the decimated version of the signal. AutomaticSegmentation = 1 this field is ignored.
  *             SamplePhase = 0 //Optional. Shift the time vector by SamplePhase * Period
  *         }
  *         ...

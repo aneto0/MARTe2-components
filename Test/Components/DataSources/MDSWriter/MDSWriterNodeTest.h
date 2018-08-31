@@ -31,6 +31,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "MDSWriterTreeTestHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -40,6 +41,16 @@
  */
 class MDSWriterNodeTest {
 public:
+    /**
+     * @brief Creates the tree for the tests.
+     */
+    MDSWriterNodeTest();
+
+    /**
+     * @brief Destroys the tree that was used for the tests.
+     */
+    ~MDSWriterNodeTest();
+
     /**
      * @brief Tests the constructor.
      */
@@ -114,6 +125,41 @@ public:
      * @brief Test the Initialise specifying an invalid MinMaxResampleFactor
      */
     bool TestInitialise_False_BadMinMaxResampleFactor();
+
+    /**
+     * @brief Test the Initialise without specifying AutomaticSegmentation
+     */
+    bool TestInitialise_False_NoAutomaticSegmentation();
+
+    /**
+     * @brief Test the Initialise specifying an invalid AutomaticSegmentation
+     */
+    bool TestInitialise_False_BadAutomaticSegmentation();
+
+    /**
+     * @brief Test the Initialise without specifying the number of samples
+     */
+    bool TestInitialise_False_NoSamples();
+
+    /**
+     * @brief Test the Initialise without specifying the number of dimensions
+     */
+    bool TestInitialise_False_NoNumberOfDimensions();
+
+    /**
+     * @brief Test the Initialise specifying an invalid number of dimensions
+     */
+    bool TestInitialise_False_BadNumberOfDimensions();
+
+    /**
+     * @brief Test the Initialise with a uint8 type.
+     */
+    bool TestInitialise_Type_UInt8();
+
+    /**
+     * @brief Test the Initialise with a int8 type.
+     */
+    bool TestInitialise_Type_Int8();
 
     /**
      * @brief Test the Initialise with a uint16 type.
@@ -216,9 +262,9 @@ public:
     bool TestGetDecimatedNodeName();
 
     /**
-     * @brief Test the GetExecutePeriodMicroSecond method
+     * @brief Test the GetExecutePeriod method
      */
-    bool TestGetExecutePeriodMicroSecond();
+    bool TestGetExecutePeriod();
 
     /**
      * @brief Test the GetMakeSegmentAfterNWrites method
@@ -274,6 +320,9 @@ public:
      * @brief Test the GetNumberOfExecuteCalls method
      */
     bool TestGetNumberOfExecuteCalls();
+
+private:
+    MDSWriterTreeTestHelper treeTestHelper;
 };
 
 /*---------------------------------------------------------------------------*/

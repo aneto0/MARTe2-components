@@ -44,12 +44,20 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+MDSWriterNodeTest::MDSWriterNodeTest() {
+    treeTestHelper.Create("mds_m2test");
+}
+
+MDSWriterNodeTest::~MDSWriterNodeTest() {
+    treeTestHelper.Destroy();
+}
+
 bool MDSWriterNodeTest::TestConstructor() {
     using namespace MARTe;
     MDSWriterNode test;
     bool ok = !test.IsDecimatedMinMax();
     ok &= (test.GetDecimatedNodeName() == "");
-    ok &= (test.GetExecutePeriodMicroSecond() == 0);
+    ok &= (test.GetExecutePeriod() == 0);
     ok &= (test.GetMakeSegmentAfterNWrites() == 0);
     ok &= (test.GetMinMaxResampleFactor() == 0);
     ok &= (test.GetNodeName() == "");
@@ -69,19 +77,22 @@ bool MDSWriterNodeTest::TestInitialise_NoDecimatedNodeName() {
     ConfigurationDatabase cdb;
     cdb.Write("NodeName", "AAA");
     cdb.Write("Type", "uint16");
-    cdb.Write("NumberOfElements", 100);
+    cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 100);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= !test.IsDecimatedMinMax();
     ok &= (test.GetDecimatedNodeName() == "");
-    ok &= (test.GetExecutePeriodMicroSecond() == (100 * (5e-7 * 1e6)));
+    ok &= (test.GetExecutePeriod() == 0);
     ok &= (test.GetMakeSegmentAfterNWrites() == 4);
     ok &= (test.GetMinMaxResampleFactor() == 0);
     ok &= (test.GetNodeName() == "AAA");
     ok &= (test.GetNodeType() == DTYPE_WU);
-    ok &= (test.GetNumberOfElements() == 100);
+    ok &= (test.GetNumberOfElements() == 1);
     ok &= (test.GetPeriod() == 5e-7);
     ok &= (test.GetPhaseShift() == 0);
     ok &= (test.GetStart() == 0);
@@ -97,21 +108,24 @@ bool MDSWriterNodeTest::TestInitialise_DecimatedNodeName() {
     cdb.Write("NodeName", "AAA");
     cdb.Write("DecimatedNodeName", "BBB");
     cdb.Write("Type", "uint16");
-    cdb.Write("NumberOfElements", 100);
+    cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 100);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
 
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= (test.IsDecimatedMinMax());
     ok &= (test.GetDecimatedNodeName() == "BBB");
-    ok &= (test.GetExecutePeriodMicroSecond() == (100 * (5e-7 * 1e6)));
+    ok &= (test.GetExecutePeriod() == 0);
     ok &= (test.GetMakeSegmentAfterNWrites() == 4);
     ok &= (test.GetMinMaxResampleFactor() == 5);
     ok &= (test.GetNodeName() == "AAA");
     ok &= (test.GetNodeType() == DTYPE_WU);
-    ok &= (test.GetNumberOfElements() == 100);
+    ok &= (test.GetNumberOfElements() == 1);
     ok &= (test.GetPeriod() == 5e-7);
     ok &= (test.GetPhaseShift() == 0);
     ok &= (test.GetStart() == 0);
@@ -126,20 +140,23 @@ bool MDSWriterNodeTest::TestInitialise_SamplePhase() {
     ConfigurationDatabase cdb;
     cdb.Write("NodeName", "AAA");
     cdb.Write("Type", "uint16");
-    cdb.Write("NumberOfElements", 100);
+    cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 100);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("SamplePhase", 3);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= !test.IsDecimatedMinMax();
     ok &= (test.GetDecimatedNodeName() == "");
-    ok &= (test.GetExecutePeriodMicroSecond() == (100 * (5e-7 * 1e6)));
+    ok &= (test.GetExecutePeriod() == 0);
     ok &= (test.GetMakeSegmentAfterNWrites() == 4);
     ok &= (test.GetMinMaxResampleFactor() == 0);
     ok &= (test.GetNodeName() == "AAA");
     ok &= (test.GetNodeType() == DTYPE_WU);
-    ok &= (test.GetNumberOfElements() == 100);
+    ok &= (test.GetNumberOfElements() == 1);
     ok &= (test.GetPeriod() == 5e-7);
     ok &= (test.GetPhaseShift() == 3);
     ok &= (test.GetStart() == 0);
@@ -156,6 +173,9 @@ bool MDSWriterNodeTest::TestInitialise_False_NoNodeName() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     return !test.Initialise(cdb);
 }
@@ -167,6 +187,9 @@ bool MDSWriterNodeTest::TestInitialise_False_NoType() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     return !test.Initialise(cdb);
 }
@@ -179,6 +202,9 @@ bool MDSWriterNodeTest::TestInitialise_False_BadType() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     return !test.Initialise(cdb);
 }
@@ -190,6 +216,9 @@ bool MDSWriterNodeTest::TestInitialise_False_NoPeriod() {
     cdb.Write("Type", "uint16");
     cdb.Write("NumberOfElements", 100);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     return !test.Initialise(cdb);
 }
@@ -202,6 +231,9 @@ bool MDSWriterNodeTest::TestInitialise_False_BadPeriod() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 0.0F);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     return !test.Initialise(cdb);
 }
@@ -213,6 +245,9 @@ bool MDSWriterNodeTest::TestInitialise_False_NoNumberOfElements() {
     cdb.Write("Type", "uint16");
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     MDSWriterNode test;
     return !test.Initialise(cdb);
 }
@@ -225,6 +260,9 @@ bool MDSWriterNodeTest::TestInitialise_False_BadNumberOfElements() {
     cdb.Write("NumberOfElements", 0);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     MDSWriterNode test;
     return !test.Initialise(cdb);
 }
@@ -235,6 +273,9 @@ bool MDSWriterNodeTest::TestInitialise_False_NoMakeSegmentAfterNWrites() {
     cdb.Write("NodeName", "AAA");
     cdb.Write("Type", "uint16");
     cdb.Write("NumberOfElements", 4);
+    cdb.Write("NumberOfDimensions", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
     cdb.Write("Period", 5e-7);
     MDSWriterNode test;
     return !test.Initialise(cdb);
@@ -248,6 +289,9 @@ bool MDSWriterNodeTest::TestInitialise_False_BadMakeSegmentAfterNWrites() {
     cdb.Write("NumberOfElements", 10);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 0);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     return !test.Initialise(cdb);
 }
@@ -261,6 +305,9 @@ bool MDSWriterNodeTest::TestInitialise_False_NoMinMaxResampleFactor() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
 
     MDSWriterNode test;
     return !test.Initialise(cdb);
@@ -275,10 +322,125 @@ bool MDSWriterNodeTest::TestInitialise_False_BadMinMaxResampleFactor() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 0);
 
     MDSWriterNode test;
     return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_False_NoAutomaticSegmentation() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint16");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
+
+    MDSWriterNode test;
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_False_BadAutomaticSegmentation() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint16");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
+    cdb.Write("AutomaticSegmentation", 2);
+
+    MDSWriterNode test;
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_False_NoSamples() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint16");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("NumberOfDimensions", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+
+    MDSWriterNode test;
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_False_NoNumberOfDimensions() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint16");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("Samples", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+
+    MDSWriterNode test;
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_False_BadNumberOfDimensions() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint16");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("NumberOfDimensions", 3);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+
+
+    MDSWriterNode test;
+    return !test.Initialise(cdb);
+}
+
+bool MDSWriterNodeTest::TestInitialise_Type_UInt8() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "uint8");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
+    MDSWriterNode test;
+    bool ok = test.Initialise(cdb);
+    ok &= (test.GetNodeType() == DTYPE_BU);
+    return ok;
+}
+
+bool MDSWriterNodeTest::TestInitialise_Type_Int8() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.Write("NodeName", "AAA");
+    cdb.Write("Type", "int8");
+    cdb.Write("NumberOfElements", 100);
+    cdb.Write("Period", 5e-7);
+    cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
+    MDSWriterNode test;
+    bool ok = test.Initialise(cdb);
+    ok &= (test.GetNodeType() == DTYPE_B);
+    return ok;
 }
 
 bool MDSWriterNodeTest::TestInitialise_Type_UInt16() {
@@ -289,6 +451,9 @@ bool MDSWriterNodeTest::TestInitialise_Type_UInt16() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= (test.GetNodeType() == DTYPE_WU);
@@ -303,6 +468,9 @@ bool MDSWriterNodeTest::TestInitialise_Type_Int16() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= (test.GetNodeType() == DTYPE_W);
@@ -317,6 +485,9 @@ bool MDSWriterNodeTest::TestInitialise_Type_UInt32() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= (test.GetNodeType() == DTYPE_LU);
@@ -331,6 +502,9 @@ bool MDSWriterNodeTest::TestInitialise_Type_Int32() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= (test.GetNodeType() == DTYPE_L);
@@ -345,6 +519,9 @@ bool MDSWriterNodeTest::TestInitialise_Type_UInt64() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= (test.GetNodeType() == DTYPE_QU);
@@ -359,6 +536,9 @@ bool MDSWriterNodeTest::TestInitialise_Type_Int64() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= (test.GetNodeType() == DTYPE_Q);
@@ -373,6 +553,9 @@ bool MDSWriterNodeTest::TestInitialise_Type_Float32() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= (test.GetNodeType() == DTYPE_FLOAT);
@@ -387,6 +570,9 @@ bool MDSWriterNodeTest::TestInitialise_Type_Float64() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     ok &= (test.GetNodeType() == DTYPE_DOUBLE);
@@ -401,6 +587,9 @@ bool MDSWriterNodeTest::TestExecute() {
     cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     StreamString treeName = "mds_m2test";
@@ -477,6 +666,9 @@ bool MDSWriterNodeTest::TestExecute_Decimated() {
     cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     cdb.Write("MinMaxResampleFactor", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
@@ -553,6 +745,9 @@ bool MDSWriterNodeTest::TestExecute_False_NoTree() {
     cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     StreamString treeName = "mds_m2test";
@@ -616,6 +811,9 @@ bool MDSWriterNodeTest::TestExecute_False_NoInitialise() {
     cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     MDSWriterNode test;
     bool ok = true;
     StreamString treeName = "mds_m2test";
@@ -679,6 +877,9 @@ bool MDSWriterNodeTest::TestExecute_False_NoSignalSet() {
     cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     cdb.Write("MinMaxResampleFactor", 1);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
@@ -742,6 +943,9 @@ bool MDSWriterNodeTest::TestAllocateTreeNode() {
     cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     StreamString treeName = "mds_m2test";
@@ -788,6 +992,9 @@ bool MDSWriterNodeTest::TestAllocateTreeNode_BadNodeName() {
     cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     StreamString treeName = "mds_m2test";
@@ -834,6 +1041,9 @@ bool MDSWriterNodeTest::TestFlush() {
     cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 2);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     StreamString treeName = "mds_m2test";
@@ -916,6 +1126,9 @@ bool MDSWriterNodeTest::TestSetTimeSignalMemory() {
     cdb.Write("NumberOfElements", 1);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 1);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
     MDSWriterNode test;
     bool ok = test.Initialise(cdb);
     StreamString treeName = "mds_m2test";
@@ -966,7 +1179,7 @@ bool MDSWriterNodeTest::TestSetTimeSignalMemory() {
         test.SetSignalMemory(&signal);
     }
     if (ok) {
-        test.SetTimeSignalMemory(&timeSignal);
+        test.SetTimeSignalMemory(&timeSignal, UnsignedInteger32Bit, 1e6);
     }
     if (ok) {
         ok = test.Execute();
@@ -995,6 +1208,9 @@ bool MDSWriterNodeTest::TestIsDecimatedMinMax() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
 
     MDSWriterNode test;
     test.Initialise(cdb);
@@ -1006,6 +1222,10 @@ bool MDSWriterNodeTest::TestIsDecimatedMinMax() {
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
     cdb.Write("MinMaxResampleFactor", 5);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 0);
+    cdb.Write("NumberOfElements", 1);
     test.Initialise(cdb);
     ok &= (test.IsDecimatedMinMax());
     return ok;
@@ -1022,12 +1242,15 @@ bool MDSWriterNodeTest::TestGetDecimatedNodeName() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     return (test.GetDecimatedNodeName() == "BBB");
 }
 
-bool MDSWriterNodeTest::TestGetExecutePeriodMicroSecond() {
+bool MDSWriterNodeTest::TestGetExecutePeriod() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     cdb.Write("NodeName", "AAA");
@@ -1035,8 +1258,13 @@ bool MDSWriterNodeTest::TestGetExecutePeriodMicroSecond() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     MDSWriterNode test;
-    return (test.GetExecutePeriodMicroSecond() == (100 * (5e-7 * 1e6)));
+    void *time = NULL;
+    test.SetTimeSignalMemory(time, UnsignedInteger32Bit, 1e6);
+    return (test.GetExecutePeriod() == (100 * (5e-7 * 1e6)));
 }
 
 bool MDSWriterNodeTest::TestGetMakeSegmentAfterNWrites() {
@@ -1050,6 +1278,9 @@ bool MDSWriterNodeTest::TestGetMakeSegmentAfterNWrites() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     return (test.GetMakeSegmentAfterNWrites() == 4);
@@ -1066,6 +1297,9 @@ bool MDSWriterNodeTest::TestGetMinMaxResampleFactor() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     return (test.GetMinMaxResampleFactor() == 5);
@@ -1082,6 +1316,9 @@ bool MDSWriterNodeTest::TestGetNodeName() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     return (test.GetNodeName() == "AAA");
@@ -1098,6 +1335,9 @@ bool MDSWriterNodeTest::TestGetNodeType() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     return (test.GetNodeType() == DTYPE_WU);
@@ -1114,6 +1354,9 @@ bool MDSWriterNodeTest::TestGetNumberOfElements() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 5e-7);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     return (test.GetNumberOfElements() == 100);
@@ -1130,6 +1373,9 @@ bool MDSWriterNodeTest::TestGetPeriod() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 2);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     return (test.GetPeriod() == 2);
@@ -1147,6 +1393,9 @@ bool MDSWriterNodeTest::TestGetPhaseShift() {
     cdb.Write("Period", 2);
     cdb.Write("SamplePhase", 20);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     return (test.GetPhaseShift() == 20);
@@ -1163,6 +1412,9 @@ bool MDSWriterNodeTest::TestGetStart() {
     cdb.Write("Period", 2);
     cdb.Write("SamplePhase", 20);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     test.Initialise(cdb);
 
     MDSplus::Tree *tree = NULL;
@@ -1213,6 +1465,9 @@ bool MDSWriterNodeTest::TestGetTypeMultiplier() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 2);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     return (test.GetTypeMultiplier() == sizeof(uint16));
@@ -1229,11 +1484,14 @@ bool MDSWriterNodeTest::TestIsUseTimeVector() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 2);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     bool ok = !test.IsUseTimeVector();
     uint32 signalTime;
-    test.SetTimeSignalMemory(&signalTime);
+    test.SetTimeSignalMemory(&signalTime, UnsignedInteger32Bit, 1e6);
     ok &= test.IsUseTimeVector();
     return ok;
 }
@@ -1249,6 +1507,9 @@ bool MDSWriterNodeTest::TestGetNumberOfExecuteCalls() {
     cdb.Write("NumberOfElements", 100);
     cdb.Write("Period", 2);
     cdb.Write("MakeSegmentAfterNWrites", 4);
+    cdb.Write("AutomaticSegmentation", 0);
+    cdb.Write("Samples", 1);
+    cdb.Write("NumberOfDimensions", 1);
     cdb.Write("MinMaxResampleFactor", 5);
     test.Initialise(cdb);
     return (test.GetNumberOfExecuteCalls() == 0);

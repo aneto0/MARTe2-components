@@ -43,9 +43,9 @@
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 /*Cannot include "sdn-header.h" otherwise lint gets lost in secondary includes.*/
-#if defined(LINT) || !defined(FEATURE_10840)
+#if ((defined(LINT)) || (!defined(FEATURE_10840)))
 namespace sdn {
-/*lint -e{970} -estring(754, "sdn::Header_t::*") -estring(770, "*sdn::Header_t*") -estring(9109, "*sdn::Header_t*")*/
+/*lint -estring(768, "sdn::Header_t::*") -e{970} -estring(754, "sdn::Header_t::*") -estring(770, "*sdn::Header_t*") -estring(9109, "*sdn::Header_t*")*/
 typedef struct {
   char     header_uid [4];
   /*lint -e{970}*/

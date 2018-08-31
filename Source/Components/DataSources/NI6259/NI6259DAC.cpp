@@ -484,7 +484,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI& data) {
 
     if (ok) {
         //Required to wait for devices to be available in /dev!
-        Sleep::Sec(1.0);
+        Sleep::Sec(1.0F);
         for (i = 0u; (i < NI6259DAC_MAX_CHANNELS) && (ok); i++) {
             if (dacEnabled[i]) {
                 StreamString channelDeviceName;

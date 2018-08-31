@@ -115,7 +115,7 @@ LoggerBrokerTestScheduler    ();
 
     void ExecuteThreadCycle(MARTe::uint32 threadId);
 
-    virtual bool ConfigureScheduler();
+    virtual bool ConfigureScheduler(MARTe::Reference realTimeApp);
 
     virtual void CustomPrepareNextState();
 
@@ -132,8 +132,8 @@ MARTe::ErrorManagement::ErrorType LoggerBrokerTestScheduler::StartNextStateExecu
     return MARTe::ErrorManagement::NoError;
 }
 
-bool LoggerBrokerTestScheduler::ConfigureScheduler() {
-    bool ret = GAMSchedulerI::ConfigureScheduler();
+bool LoggerBrokerTestScheduler::ConfigureScheduler(MARTe::Reference realTimeApp) {
+    bool ret = GAMSchedulerI::ConfigureScheduler(realTimeApp);
     if (ret) {
         scheduledStates = GetSchedulableStates();
     }
@@ -141,9 +141,10 @@ bool LoggerBrokerTestScheduler::ConfigureScheduler() {
 }
 
 void LoggerBrokerTestScheduler::ExecuteThreadCycle(MARTe::uint32 threadId) {
+    MARTe::ReferenceT<MARTe::RealTimeApplication> realTimeAppT = realTimeApp;
 
-    ExecuteSingleCycle(scheduledStates[MARTe::RealTimeApplication::GetIndex()]->threads[threadId].executables,
-                       scheduledStates[MARTe::RealTimeApplication::GetIndex()]->threads[threadId].numberOfExecutables);
+    ExecuteSingleCycle(scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].executables,
+                       scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].numberOfExecutables);
 
 }
 MARTe::ErrorManagement::ErrorType LoggerBrokerTestScheduler::StopCurrentStateExecution() {

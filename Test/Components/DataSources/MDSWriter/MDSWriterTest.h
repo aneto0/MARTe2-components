@@ -27,10 +27,13 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-
+#include "mdsobjects.h"
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "MDSWriter.h"
+
+#include "MDSWriterTreeTestHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -40,6 +43,10 @@
  */
 class MDSWriterTest {
 public:
+    MDSWriterTest();
+
+    ~MDSWriterTest();
+
     /**
      * @brief Tests the constructor.
      */
@@ -156,6 +163,11 @@ public:
     bool TestSetConfiguredDatabase();
 
     /**
+     * @brief Tests the SetConfiguredDatabase with dimensions > 1.
+     */
+    bool TestSetConfiguredDatabase_False_NumberOfDimensions();
+
+    /**
      * @brief Tests the SetConfiguredDatabase with more than one samples.
      */
     bool TestSetConfiguredDatabase_False_NumberOfSamples();
@@ -176,9 +188,9 @@ public:
     bool TestSetConfiguredDatabase_False_NoTimeSignal();
 
     /**
-     * @brief Tests the SetConfiguredDatabase with TimeSignal defined as not uint32.
+     * @brief Tests the SetConfiguredDatabase with TimeSignal defined as not integer.
      */
-    bool TestSetConfiguredDatabase_False_TimeSignal_NotUInt32();
+    bool TestSetConfiguredDatabase_False_TimeSignal_NotInteger();
 
     /**
      * @brief Tests the SetConfiguredDatabase with more than one function interacting with the MDSWriter.
@@ -207,6 +219,36 @@ public:
     bool TestIntegratedInApplication_Trigger();
 
     /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 8 bit time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_Time8();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 16 bit time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_Time16();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 64 bit time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_Time64();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 8 bit signed time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_TimeS8();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 16 bit signed time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_TimeS16();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 64 bit signed time signal.
+     */
+    bool TestIntegratedInApplication_Trigger_TimeS64();
+
+    /**
      * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event forcing discontinuities.
      */
     bool TestIntegratedInApplication_Trigger_Discontinuity();
@@ -220,6 +262,11 @@ public:
      * @brief Tests the MDSWriter integrated in an application which asynchronously stores data, with NumberOfElements > 1, based on a trigger event.
      */
     bool TestIntegratedInApplication_Trigger_Elements();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data, with NumberOfElements > 1, based on a trigger event.
+     */
+    bool TestIntegratedInApplication_NoTrigger_AutomaticSegmentation();
 
     /**
      * @brief Tests the GetCPUMask method.
@@ -320,6 +367,8 @@ public:
      * @brief Tests that an Invalid message type is correctly captured.
      */
     bool TestInvalidMessageType();
+private:
+    MDSWriterTreeTestHelper treeTestHelper;
 };
 
 /*---------------------------------------------------------------------------*/

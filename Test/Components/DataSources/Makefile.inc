@@ -27,12 +27,17 @@
 SPB    = EpicsDataSource.x \
         FileDataSource.x \
         LinuxTimer.x \
+        LinkDataSource.x \
         LoggerDataSource.x \
         RealTimeThreadAsyncBridge.x \
         RealTimeThreadSynchronisation.x
 
 ifdef CODAC_ROOT
-SPB+=NI6259.x NI6368.x DAN.x
+SPB+=DAN.x
+SPB+=NI1588.x
+SPB+=NI6259.x
+SPB+=NI6368.x
+SPB+=NI9157.x
 endif
 
 ifdef MDSPLUS_DIR
@@ -59,14 +64,17 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC=$(BUILD_DIR)/EpicsDataSource/EpicsDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/FileDataSource/FileDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/LinkDataSource/LinkDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadAsyncBridge/RealTimeThreadAsyncBridgeTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadSynchronisation/RealTimeThreadSynchronisationTest$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/DAN/DANTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/NI1588/NI1588Test$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259Test$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI6368/NI6368Test$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157/NI9157Test$(LIBEXT)
 endif
 
 ifdef MDSPLUS_DIR

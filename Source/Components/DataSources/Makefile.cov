@@ -28,6 +28,7 @@ include Makefile.inc
 
 LIBRARIES_STATIC=EpicsDataSource/cov/EpicsDataSource$(LIBEXT)
 LIBRARIES_STATIC+=FileDataSource/cov/FileDataSource$(LIBEXT)
+LIBRARIES_STATIC+=LinkDataSource/cov/LinkDataSource$(LIBEXT)
 LIBRARIES_STATIC+=LinuxTimer/cov/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=RealTimeThreadAsyncBridge/cov/RealTimeThreadAsyncBridge$(LIBEXT)
@@ -35,8 +36,10 @@ LIBRARIES_STATIC+=RealTimeThreadSynchronisation/cov/RealTimeThreadSynchronisatio
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=DAN/cov/DAN$(LIBEXT)
+LIBRARIES_STATIC+=NI1588/cov/NI1588$(LIBEXT)
 LIBRARIES_STATIC+=NI6259/cov/NI6259$(LIBEXT)
 LIBRARIES_STATIC+=NI6368/cov/NI6368$(LIBEXT)
+LIBRARIES_STATIC+=NI9157/cov/NI9157$(LIBEXT)
 endif
 
 ifdef EPICS_BASE

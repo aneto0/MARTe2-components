@@ -114,6 +114,36 @@ TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger) {
     ASSERT_TRUE(test.TestIntegratedInApplication_Trigger());
 }
 
+TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_Time8) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Time8());
+}
+
+TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_Time16) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Time16());
+}
+
+TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_Time64) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Time64());
+}
+
+TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_TimeS8) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_TimeS8());
+}
+
+TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_TimeS16) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_TimeS16());
+}
+
+TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_TimeS64) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_TimeS64());
+}
+
 TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_Discontinuity) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Discontinuity());
@@ -133,6 +163,11 @@ TEST(MDSWriterGTest,TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
+TEST(MDSWriterGTest,TestIntegratedInApplication_NoTrigger_AutomaticSegmentation) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger_AutomaticSegmentation());
+}
+
 TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_MoreThanOneTimeSignal) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneTimeSignal());
@@ -148,14 +183,19 @@ TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NoTimeSignal) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoTimeSignal());
 }
 
+TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NumberOfDimensions) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NumberOfDimensions());
+}
+
 TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NumberOfSamples());
 }
 
-TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_TimeSignal_NotUInt32) {
+TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_TimeSignal_NotInteger) {
     MDSWriterTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimeSignal_NotUInt32());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_TimeSignal_NotInteger());
 }
 
 TEST(MDSWriterGTest,TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction) {

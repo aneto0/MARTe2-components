@@ -113,27 +113,6 @@ LinuxTimer    ();
             const SignalDirection direction);
 
     /**
-     * @brief See DataSourceI::GetInputBrokers.
-     * @details If the functionName is the one synchronising it adds a MemoryMapSynchronisedInputBroker instance to
-     *  the inputBrokers, otherwise it adds a MemoryMapInputBroker instance to the inputBrokers.
-     * @param[out] inputBrokers where the BrokerI instances have to be added to.
-     * @param[in] functionName name of the function being queried.
-     * @param[in] gamMemPtr the GAM memory where the signals will be read from.
-     * @return true if the inputBrokers can be successfully configured.
-     */
-    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
-
-    /**
-     * @brief See DataSourceI::GetInputBrokers.
-     * @return false.
-     */
-    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
-
-    /**
      * @brief Waits on an EventSem for the period given by 1/Frequency to elapse on Execute.
      * @return true if the semaphore is successfully posted.
      */

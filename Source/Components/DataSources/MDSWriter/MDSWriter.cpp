@@ -45,7 +45,8 @@ namespace MARTe {
 static const int32 MDS_UNDEFINED_PULSE_NUMBER = -2;
 
 MDSWriter::MDSWriter() :
-        DataSourceI(), MessageI() {
+        DataSourceI(),
+        MessageI() {
     storeOnTrigger = false;
     numberOfPreTriggers = 0u;
     numberOfPostTriggers = 0u;
@@ -75,6 +76,7 @@ MDSWriter::MDSWriter() :
 
 /*lint -e{1551} -e{1579} the destructor must guarantee that the MDSplus are deleted and the shared memory freed. The brokerAsyncTrigger is freed by the ReferenceT */
 MDSWriter::~MDSWriter() {
+
     if (FlushSegments() != ErrorManagement::NoError) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the MDSWriterNodes");
     }
@@ -94,6 +96,7 @@ MDSWriter::~MDSWriter() {
     if (tree != NULL_PTR(MDSplus::Tree *)) {
         delete tree;
     }
+
 }
 
 bool MDSWriter::AllocateMemory() {
@@ -139,7 +142,8 @@ bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     if (storeOnTrigger) {
         ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
         brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr,
+                                                              numberOfBuffers, numberOfPreTriggers,
                                                               numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTriggerNew);
@@ -147,7 +151,8 @@ bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     }
     else {
         ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
-        ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
+        ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers,
+                                                   cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsync);
         }
@@ -167,8 +172,8 @@ bool MDSWriter::Synchronise() {
                     if (!MessageI::SendMessage(treeRuntimeErrorMsg, this)) {
                         StreamString destination = treeRuntimeErrorMsg->GetDestination();
                         StreamString function = treeRuntimeErrorMsg->GetFunction();
-                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(),
-                                     function.Buffer());
+                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]",
+                                     destination.Buffer(), function.Buffer());
                     }
                 }
             }
@@ -321,12 +326,14 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
                             treeRuntimeErrorMsg = msg;
                         }
                         else {
-                            REPORT_ERROR(ErrorManagement::ParametersError, "Message %s is not supported.", msgName.Buffer());
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Message %s is not supported.",
+                                         msgName.Buffer());
                             ok = false;
                         }
                     }
                     else {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Found an invalid Message in container %s", msgContainer->GetName());
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Found an invalid Message in container %s",
+                                     msgContainer->GetName());
                         ok = false;
                     }
 
@@ -342,40 +349,67 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = data.MoveRelative("Signals");
     }
+    //Only one and one GAM allowed to interact with this DataSourceI
+    if (ok) {
+        ok = (GetNumberOfFunctions() == 1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError,
+                         "Exactly one Function allowed to interact with this DataSourceI");
+        }
+    }
+
     //Check signal properties and compute memory
+    uint32 *signalSamples = NULL_PTR(uint32 *);
     uint32 totalSignalMemory = 0u;
     if (ok) {
-        //Do not allow samples
         uint32 functionNumberOfSignals = 0u;
         uint32 n;
         if (GetFunctionNumberOfSignals(OutputSignals, 0u, functionNumberOfSignals)) {
-            for (n = 0u; (n < functionNumberOfSignals) && (ok); n++) {
+            uint32 dataSourceIdx = 0u;
+            signalSamples = new uint32[functionNumberOfSignals];
+            for (n = 0u; (n < functionNumberOfSignals) && (ok); n++) { //get samples and save in the dataSource order
+                StreamString GAMSignalName;
                 uint32 nSamples;
                 ok = GetFunctionSignalSamples(OutputSignals, 0u, n, nSamples);
-                if (ok) {
-                    ok = (nSamples == 1u);
-                }
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples shall be exactly 1");
+                if (ok) { //Verify value
+                    ok = (nSamples > 0u);
+                    if (!ok) {
+                        uint32 auxIdx = n;
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                                     "Number of samples for GAM index = %u must be > 0)", auxIdx);
+                    }
+                    if (ok) {
+                        ok = GetFunctionSignalAlias(OutputSignals, 0u, n, GAMSignalName);
+                        if (ok) {
+                            ok = GetSignalIndex(dataSourceIdx, GAMSignalName.Buffer());
+                        }
+                        if (ok) {
+                            signalSamples[dataSourceIdx] = nSamples;
+                        }
+                    }
                 }
             }
         }
-
         offsets = new uint32[GetNumberOfSignals()];
         uint32 nOfSignals = GetNumberOfSignals();
         //Count the number of bytes
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
             offsets[n] = totalSignalMemory;
             uint32 nBytes = 0u;
+            //GetSignalByteSize(n, nBytes) return the number of Bytes per signal and SAMPLE!
+            //It is done because one signal of the dataSource can supply different number of samples per two different GAMs
             ok = GetSignalByteSize(n, nBytes);
-            totalSignalMemory += nBytes;
+            /*lint -e{613} ok => signalSamples != NULL*/
+            totalSignalMemory += nBytes * signalSamples[n];
         }
     }
     //Allocate memory
     if (ok) {
-        dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalSignalMemory));
+        dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(
+                totalSignalMemory));
     }
 
+    float64 timeSignalMultiplier = 0.F;
     //Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
     if (ok) {
@@ -403,6 +437,27 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                     ok = originalSignalInformation.Write("NumberOfElements", nElements);
                 }
             }
+            if (ok) {
+                /*lint -e{613} ok => signalSamples != NULL*/
+                ok = originalSignalInformation.Write("Samples", signalSamples[n]);
+            }
+            if (ok) {                //Read dimensions. Matrix not supported yet!
+                uint8 auxNumberOfDimensions = 32u; //invalid number
+                ok = GetSignalNumberOfDimensions(n, auxNumberOfDimensions);
+                if (ok) {
+                    ok = (auxNumberOfDimensions == 0u) || (auxNumberOfDimensions == 1u);
+                    if (!ok) {
+                        uint32 auxIdx = n;
+                        REPORT_ERROR(
+                                ErrorManagement::ParametersError,
+                                "Dimensions must be 0 (scalar) or 1 (vector). Matrix not supported yet. current dimension = %u for signal index = %u",
+                                auxNumberOfDimensions, auxIdx);
+                    }
+                }
+                if (ok) {
+                    ok = originalSignalInformation.Write("NumberOfDimensions", auxNumberOfDimensions);
+                }
+            }
             if (originalSignalInformation.Read("NodeName", nodeName)) {
 
                 //Dynamically add MDSWriteNodes to the list
@@ -417,8 +472,10 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 tempNodes[numberOfMDSSignals] = new MDSWriterNode();
                 ok = tempNodes[numberOfMDSSignals]->Initialise(originalSignalInformation);
                 if (ok) {
-                    if ((tempNodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *)) && (offsets != NULL_PTR(uint32 *))) {
-                        tempNodes[numberOfMDSSignals]->SetSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[n]]));
+                    if ((tempNodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *))
+                            && (offsets != NULL_PTR(uint32 *))) {
+                        tempNodes[numberOfMDSSignals]->SetSignalMemory(
+                                reinterpret_cast<void *>(&dataSourceMemory[offsets[n]]));
                     }
                 }
                 delete[] nodes;
@@ -434,6 +491,10 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 }
                 if (timeSignal > 0u) {
                     timeSignalIdx = static_cast<int32>(n);
+                    if (!originalSignalInformation.Read("TimeSignalMultiplier", timeSignalMultiplier)) {
+                        timeSignalMultiplier = 1e-6;
+                        REPORT_ERROR(ErrorManagement::Warning, "No TimeSignalMultiplier was defined. Using default = %f", timeSignalMultiplier);
+                    }
                 }
             }
             if (ok) {
@@ -454,47 +515,46 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The numberOfMDSSignals shall be > 0");
         }
     }
-    //Only one and one GAM allowed to interact with this DataSourceI
-    if (ok) {
-        ok = (GetNumberOfFunctions() == 1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one Function allowed to interact with this DataSourceI");
-        }
-    }
-
     //Check if a time signal was set
     bool useTimeSignal = (timeSignalIdx > -1);
     if (storeOnTrigger) {
         if (ok) {
             ok = (useTimeSignal);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "StoreOnTrigger was specified but no TimeSignal was found");
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "StoreOnTrigger was specified but no TimeSignal was found");
             }
         }
     }
     if (useTimeSignal) {
+        TypeDescriptor timeSignalType = GetSignalType(static_cast<uint32>(timeSignalIdx));
         if (ok) {
-            ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == UnsignedInteger32Bit);
+            ok = (timeSignalType.type == SignedInteger);
             if (!ok) {
-                ok = (GetSignalType(static_cast<uint32>(timeSignalIdx)) == SignedInteger32Bit);
+                ok = (timeSignalType.type == UnsignedInteger);
             }
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall have type uint32 or int32");
+                REPORT_ERROR(ErrorManagement::ParametersError, "TimeSignal shall be an integer (signed or unsigned) from 8 to 64 bits");
             }
         }
         if (ok) {
             uint32 n;
             for (n = 0u; n < numberOfMDSSignals; n++) {
-                if ((nodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *)) && (offsets != NULL_PTR(uint32 *))) {
-                    nodes[n]->SetTimeSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[timeSignalIdx]]));
+                if ((nodes != NULL_PTR(MDSWriterNode **)) && (dataSourceMemory != NULL_PTR(char8 *))
+                        && (offsets != NULL_PTR(uint32 *))) {
+                    nodes[n]->SetTimeSignalMemory(reinterpret_cast<void *>(&dataSourceMemory[offsets[timeSignalIdx]]), timeSignalType, timeSignalMultiplier);
                 }
             }
         }
     }
-    if (pulseNumber != MDS_UNDEFINED_PULSE_NUMBER) {
-        ok = (OpenTree(pulseNumber) == ErrorManagement::NoError);
+    if (ok) {
+        if (pulseNumber != MDS_UNDEFINED_PULSE_NUMBER) {
+            ok = (OpenTree(pulseNumber) == ErrorManagement::NoError);
+        }
     }
-
+    if (signalSamples != NULL_PTR(uint32 *)) {
+        delete[] signalSamples;
+    }
     return ok;
 }
 
@@ -508,7 +568,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             delete treeTemp;
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::Warning, "Tree %s is no longer valid. Error: %s", treeName.Buffer(), exc.what());
+            REPORT_ERROR(ErrorManagement::Warning, "Tree %s is no longer valid. Error: %s", treeName.Buffer(),
+                         exc.what());
             fatalTreeNodeError = true;
         }
         if (!fatalTreeNodeError) {
@@ -536,7 +597,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = NULL_PTR(MDSplus::Tree *);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s to get last pulse number. Error: %s", treeName.Buffer(), exc.what());
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s to get last pulse number. Error: %s",
+                         treeName.Buffer(), exc.what());
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;
             }
@@ -551,7 +613,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::Warning, "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s",
+            REPORT_ERROR(ErrorManagement::Warning,
+                         "Failed opening tree %s with the pulseNumber = %d. Going to try to create pulse. Error: %s",
                          treeName.Buffer(), pulseNumber, exc.what());
             if (tree != NULL_PTR(MDSplus::Tree *)) {
                 delete tree;
@@ -565,8 +628,9 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
                 tree->createPulse(pulseNumber);
             }
             catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(), pulseNumber,
-                             exc.what());
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "Failed creating tree %s with the pulseNUmber = %d. Error: %s", treeName.Buffer(),
+                             pulseNumber, exc.what());
                 ok = false;
             }
         }
@@ -581,7 +645,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
         }
         catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s",
+            REPORT_ERROR(ErrorManagement::ParametersError,
+                         "Failed opening tree %s with the pulseNUmber = %d. Trying to create pulse. Error: %s",
                          treeName.Buffer(), pulseNumber, exc.what());
             ok = false;
             if (tree != NULL_PTR(MDSplus::Tree *)) {
@@ -621,7 +686,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             if (!MessageI::SendMessage(treeOpenedOKMsg, this)) {
                 StreamString destination = treeOpenedOKMsg->GetDestination();
                 StreamString function = treeOpenedOKMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedOK message to %s [%s]", destination.Buffer(), function.Buffer());
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedOK message to %s [%s]",
+                             destination.Buffer(), function.Buffer());
             }
         }
     }
@@ -632,7 +698,8 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
             if (!MessageI::SendMessage(treeOpenedFailMsg, this)) {
                 StreamString destination = treeOpenedFailMsg->GetDestination();
                 StreamString function = treeOpenedFailMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedFail message to %s [%s]", destination.Buffer(), function.Buffer());
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeOpenedFail message to %s [%s]",
+                             destination.Buffer(), function.Buffer());
             }
         }
     }
@@ -662,7 +729,8 @@ ErrorManagement::ErrorType MDSWriter::FlushSegments() {
             if (!MessageI::SendMessage(treeFlushedMsg, this)) {
                 StreamString destination = treeFlushedMsg->GetDestination();
                 StreamString function = treeFlushedMsg->GetFunction();
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeFlushed message to %s [%s]", destination.Buffer(), function.Buffer());
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeFlushed message to %s [%s]",
+                             destination.Buffer(), function.Buffer());
             }
         }
     }
