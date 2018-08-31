@@ -349,7 +349,7 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
 
     if (ok) {
         //Required to wait for devices to be available in /dev!
-        Sleep::Sec(1.0);
+        Sleep::Sec(1.0F);
         for (i = 0u; (i < PXI6259_NUMBER_OF_PORTS_) && (ok); i++) {
             if (portEnabled[i]) {
                 StreamString portDeviceName;

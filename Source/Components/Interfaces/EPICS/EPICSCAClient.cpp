@@ -172,7 +172,7 @@ ErrorManagement::ErrorType EPICSCAClient::Execute(ExecutionInfo& info) {
         eventCallbackFastMux.FastUnLock();
     }
     else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        Sleep::Sec(1.0);
+        Sleep::Sec(1.0F);
     }
     else {
         (void) eventCallbackFastMux.FastLock();

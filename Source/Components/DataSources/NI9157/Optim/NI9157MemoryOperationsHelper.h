@@ -39,6 +39,7 @@
 /**
  * @brief Proxy class to MemoryOperationsHelper that can be compiled and optimised separately.
  */
+/*lint -estring(19, "*NI9157MemoryOperationsHelper*") -estring(757,"*NI9157MemoryOperationsHelper*") -estring(526, "*NI9157MemoryOperationsHelper*") functions defined, used and required for optimisation.*/
 namespace NI9157MemoryOperationsHelper {
     /**
      * @see MemoryOperationsHelper::InterleavedToFlat
@@ -51,7 +52,7 @@ namespace NI9157MemoryOperationsHelper {
      */
     void FlatToInterleaved(MARTe::uint8 * const originSource, MARTe::uint8 * const originDest, const MARTe::uint32 beginIndex, const MARTe::uint32 * const packetMemberSize, const MARTe::uint32 packetByteSize,
                            const MARTe::uint32 numberOfPacketMembers, const MARTe::uint32 numberOfSamples);
-};
+}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

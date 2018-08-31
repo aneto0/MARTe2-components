@@ -69,7 +69,7 @@ NI6259ADC::NI6259ADC() :
 
     currentBufferOffset = 0u;
     lastTimeValue = 0u;
-    fastMuxSleepTime = 1e-3;
+    fastMuxSleepTime = 1e-3F;
 
     counterValue = NULL_PTR(uint32 *);
     timeValue = NULL_PTR(uint32 *);
@@ -851,7 +851,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
 
     if (ok) {
         //Required to wait for devices to be available in /dev!
-        Sleep::Sec(1.0);
+        Sleep::Sec(1.0F);
         for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
             if (adcEnabled[i]) {
                 StreamString channelDeviceName;

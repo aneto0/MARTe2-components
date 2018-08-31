@@ -371,7 +371,9 @@ ErrorManagement::ErrorType NI9157MxiDataSource::AsyncWrite(StreamString varName,
 }
 
 CLASS_REGISTER(NI9157MxiDataSource, "1.0")
+/*lint -e{1023} There is no ambiguity on the function to be called as the compiler can distinguish between both template definitions.*/
 CLASS_METHOD_REGISTER(NI9157MxiDataSource, AsyncRead)
+/*lint -e{1023} There is no ambiguity on the function to be called as the compiler can distinguish between both template definitions.*/
 CLASS_METHOD_REGISTER(NI9157MxiDataSource, AsyncWrite)
 
 }

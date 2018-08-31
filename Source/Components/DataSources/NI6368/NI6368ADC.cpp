@@ -71,7 +71,7 @@ NI6368ADC::NI6368ADC() :
     dmaOffset = 0u;
     dmaChannel = 0u;
     lastTimeValue = 0u;
-    fastMuxSleepTime = 1e-3;
+    fastMuxSleepTime = 1e-3F;
     executionMode = NI6368ADC_EXEC_SPAWNED;
     dma = NULL_PTR(struct xseries_dma *);
 
@@ -852,10 +852,10 @@ bool NI6368ADC::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::Information, "No RealTimeMode defined");
         }
         if (realTimeModeUInt == 1u) {
-            fastMuxSleepTime = 0.0;
+            fastMuxSleepTime = 0.0F;
         }
         else {
-            fastMuxSleepTime = 1e-3;
+            fastMuxSleepTime = 1e-3F;
         }
     }
     //Get individual signal parameters
@@ -1156,7 +1156,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI& data) {
                         channelsFileDescriptors[i] = open(channelDeviceName.Buffer(), O_RDWR);
                         ok = (channelsFileDescriptors[i] > -1);
                         if (!ok) {
-                            Sleep::Sec(0.1);
+                            Sleep::Sec(0.1F);
                             retry++;
                         }
                     }
