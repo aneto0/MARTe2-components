@@ -37,6 +37,10 @@ ifdef EPICS_BASE
 SPB   += EPICS.x
 endif
 
+ifdef MDSPLUS_DIR
+SPB    += MDSStructuredDataI.x
+endif
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -57,6 +61,11 @@ endif
 ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICS$(LIBEXT)
 endif
+
+ifdef MDSPLUS_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/MDSStructuredDataI/MDSStructuredDataI$(LIBEXT)
+endif
+
 
 all: $(OBJS)  $(SUBPROJ)  \
     $(BUILD_DIR)/Interfaces$(LIBEXT) \

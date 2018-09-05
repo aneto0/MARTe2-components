@@ -20,59 +20,41 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
-#
 #############################################################
 
-SPB=MemoryGate.x\
-	SysLogger.x
+OBJSX=MDSStructuredDataI.x
 
-ifdef CODAC_ROOT
-SPB+=NI9157Device.x
-endif
+PACKAGE=Components/Interfaces
 
-ifdef EFDA_MARTe_DIR
-SPB += BaseLib2Wrapper.x
-endif
+ROOT_DIR=../../../../
 
-ifdef EPICS_BASE
-SPB   += EPICS.x
-endif
-
-ifdef MDSPLUS_DIR
-SPB += MDSStructuredDataI.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC=$(BUILD_DIR)/MemoryGate/MemoryGateTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/SysLogger/SysLoggerTest$(LIBEXT)
+INCLUDES += -I.
+INCLUDES += -I$(MDSPLUS_DIR)/include/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
+#TODO Temporary to fix problem in mdsplus include
+CPPFLAGS += -Wno-error=sign-compare
 
-ifdef CODAC_ROOT
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157Device/NI9157DeviceTest$(LIBEXT)
-endif
-
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2WrapperTest$(LIBEXT)
-endif
-
-ifdef EPICS_BASE
-LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICSTest$(LIBEXT)
-endif
-
-ifdef MDSPLUS_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/MDSStructuredDataI/MDSStructuredDataITest$(LIBEXT)
-endif
-
-all: $(OBJS) $(SUBPROJ) \
-                $(BUILD_DIR)/InterfacesTests$(LIBEXT)
+all: $(OBJS)    \
+    $(BUILD_DIR)/MDSStructuredDataI$(LIBEXT) \
+    $(BUILD_DIR)/MDSStructuredDataI$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+

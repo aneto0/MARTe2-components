@@ -43,3 +43,6 @@ ifdef EPICS_BASE
 LIBRARIES_STATIC+=EPICS/cov/EPICS$(LIBEXT)
 endif
 
+ifdef MDSPLUS_DIR
+LIBRARIES_STATIC+=MDSStructuredDataI/cov/MDSStructuredDataI$(LIBEXT)
+endif
