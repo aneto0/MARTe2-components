@@ -2,7 +2,8 @@
  * @file MDSStructuredDataI.h
  * @brief Header file for class MDSStructuredDataI
  * @date 04/09/2018
- * @author aneto
+ * @author Andre Neto
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -138,6 +139,20 @@ MDSStructuredDataI    ();
      */
     void SetTree(MDSplus::Tree *treeIn);
 
+    /**
+     * TODO
+     */
+    void SetEditMode(bool edit);
+
+    /**
+     * TODO
+     */
+    bool OpenTree(const char8 *const treeName, uint32 pulseNumber);
+
+    /**
+     * TODO
+     */
+    bool CreateTree(const char8 *const treeName);
 
 private:
     /**
@@ -154,6 +169,11 @@ private:
      * The current MDSplus tree node.
      */
     MDSplus::TreeNode *currentNode;
+
+    /**
+     * True if the tree can be edited.
+     */
+    bool editModeSet;
 
 };
 }

@@ -3,6 +3,7 @@
  * @brief Source file for class MDSStructuredDataI
  * @date 04/09/2018
  * @author Andre Neto
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -45,6 +46,7 @@ MDSStructuredDataI::MDSStructuredDataI() {
     currentNode = NULL_PTR(MDSplus::TreeNode *);
     rootNode = NULL_PTR(MDSplus::TreeNode *);
     tree = NULL_PTR(MDSplus::Tree *);
+    editModeSet = false;
 }
 
 MDSStructuredDataI::~MDSStructuredDataI() {
@@ -55,16 +57,20 @@ bool MDSStructuredDataI::Read(const char8* const name, const AnyType& value) {
 }
 
 bool MDSStructuredDataI::Write(const char8 * const name, const AnyType &value) {
+    bool ok = true;
     MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
     try {
         node = currentNode->getNode(name);
     }
     catch (const MDSplus::MdsException &exc) {
+        ok = false;
     }
     if (node == NULL_PTR(MDSplus::TreeNode *)) {
         node = currentNode->addNode(name, "ANY");
     }
-    bool ok = (node != NULL_PTR(MDSplus::TreeNode *));
+    if (ok) {
+        ok = (node != NULL_PTR(MDSplus::TreeNode *));
+    }
     if (ok) {
         MDSplus::Data *data;
         TypeDescriptor mdsType = value.GetTypeDescriptor();
@@ -173,21 +179,33 @@ bool MDSStructuredDataI::MoveToRoot() {
 }
 
 bool MDSStructuredDataI::MoveToAncestor(uint32 generations) {
+    bool ok = true;
     MDSplus::TreeNode *node = currentNode;
     uint32 i = 0u;
     while ((i < generations) && (node != NULL_PTR(MDSplus::TreeNode *))) {
-        node = node->getParent();
+        try {
+            node = node->getParent();
+        }
+        catch (const MDSplus::MdsException &exc) {
+            ok = false;
+        }
         i++;
     }
-    bool ok = (node != NULL_PTR(MDSplus::TreeNode *));
     if (ok) {
+        ok = (node != NULL_PTR(MDSplus::TreeNode *));
         currentNode = node;
     }
     return ok;
 }
 
 bool MDSStructuredDataI::MoveAbsolute(const char8* const path) {
-    MDSplus::TreeNode *node = tree->getNode(path);
+    MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
+    try {
+        node = tree->getNode(path);
+    }
+    catch (const MDSplus::MdsException &exc) {
+        node = NULL_PTR(MDSplus::TreeNode *);
+    }
     bool ok = (node != NULL_PTR(MDSplus::TreeNode *));
     if (ok) {
         currentNode = node;
@@ -196,7 +214,13 @@ bool MDSStructuredDataI::MoveAbsolute(const char8* const path) {
 }
 
 bool MDSStructuredDataI::MoveRelative(const char8* const path) {
-    MDSplus::TreeNode *node = currentNode->getNode(path);
+    MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
+    try {
+        node = currentNode->getNode(path);
+    }
+    catch (const MDSplus::MdsException &exc) {
+        node = NULL_PTR(MDSplus::TreeNode *);
+    }
     bool ok = (node != NULL_PTR(MDSplus::TreeNode *));
     if (ok) {
         currentNode = node;
@@ -205,10 +229,21 @@ bool MDSStructuredDataI::MoveRelative(const char8* const path) {
 }
 
 bool MDSStructuredDataI::MoveToChild(const uint32 childIdx) {
-    MDSplus::TreeNode *node = currentNode->getChild();
+    MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
+    try {
+        node = currentNode->getChild();
+    }
+    catch (const MDSplus::MdsException &exc) {
+        node = NULL_PTR(MDSplus::TreeNode *);
+    }
     uint32 i = 0u;
     while ((i < childIdx) && (node != NULL_PTR(MDSplus::TreeNode *))) {
-        node = node->getBrother();
+        try {
+            node = node->getBrother();
+        }
+        catch (const MDSplus::MdsException &exc) {
+            node = NULL_PTR(MDSplus::TreeNode *);
+        }
         i++;
     }
     bool ok = (node != NULL_PTR(MDSplus::TreeNode *));
@@ -219,25 +254,45 @@ bool MDSStructuredDataI::MoveToChild(const uint32 childIdx) {
 }
 
 bool MDSStructuredDataI::CreateAbsolute(const char8* const path) {
-    MDSplus::TreeNode *node = rootNode->addNode(path, "STRUCTURE");
-    bool ok = (node != NULL_PTR(MDSplus::TreeNode *));
+    bool ok = editModeSet;
     if (ok) {
-        currentNode = node;
+        MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
+        try {
+            node = rootNode->addNode(path, "STRUCTURE");
+        }
+        catch (const MDSplus::MdsException &exc) {
+            node = NULL_PTR(MDSplus::TreeNode *);
+        }
+        ok = (node != NULL_PTR(MDSplus::TreeNode *));
+        if (ok) {
+            currentNode = node;
+        }
     }
     return ok;
 }
 
 bool MDSStructuredDataI::CreateRelative(const char8* const path) {
-    MDSplus::TreeNode *node = currentNode->addNode(path, "STRUCTURE");
-    bool ok = (node != NULL_PTR(MDSplus::TreeNode *));
+    bool ok = editModeSet;
     if (ok) {
-        currentNode = node;
+        MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
+        try {
+            node = currentNode->addNode(path, "STRUCTURE");
+        }
+        catch (const MDSplus::MdsException &exc) {
+            node = NULL_PTR(MDSplus::TreeNode *);
+        }
+        ok = (node != NULL_PTR(MDSplus::TreeNode *));
+        if (ok) {
+            currentNode = node;
+        }
     }
     return ok;
 }
 
 bool MDSStructuredDataI::Delete(const char8* const name) {
-    return false;
+    bool ok = editModeSet;
+    //TODO
+    return ok;
 }
 
 const char8* MDSStructuredDataI::GetName() {
@@ -249,17 +304,33 @@ const char8* MDSStructuredDataI::GetChildName(const uint32 index) {
     MDSplus::TreeNode *node = currentNode->getChild();
     uint32 i = 0u;
     while ((i < index) && (node != NULL_PTR(MDSplus::TreeNode *))) {
-        node = node->getBrother();
+        try {
+            node = node->getBrother();
+        }
+        catch (const MDSplus::MdsException &exc) {
+            node = NULL_PTR(MDSplus::TreeNode *);
+        }
         i++;
     }
     if (node != NULL_PTR(MDSplus::TreeNode *)) {
-        ret = node->getNodeName();
+        try {
+            ret = node->getNodeName();
+        }
+        catch (const MDSplus::MdsException &exc) {
+        }
     }
     return ret;
 }
 
 uint32 MDSStructuredDataI::GetNumberOfChildren() {
-    return currentNode->getNumChildren();
+    uint32 ret = 0u;
+    try {
+        ret = currentNode->getNumChildren();
+    }
+    catch (const MDSplus::MdsException &exc) {
+        ret = 0u;
+    }
+    return ret;
 }
 
 void MDSStructuredDataI::SetTree(MDSplus::Tree *treeIn) {
@@ -268,7 +339,17 @@ void MDSStructuredDataI::SetTree(MDSplus::Tree *treeIn) {
     currentNode = rootNode;
 }
 
+void MDSStructuredDataI::SetEditMode(bool edit) {
+    editModeSet = edit;
+}
 
+bool MDSStructuredDataI::OpenTree(const char8 * const treeName, uint32 pulseNumber) {
+    return false;
+}
+
+bool MDSStructuredDataI::CreateTree(const char8 * const treeName) {
+    return false;
+}
 
 CLASS_REGISTER(MDSStructuredDataI, "1.0")
 }

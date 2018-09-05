@@ -3,6 +3,7 @@
  * @brief Source file for class MDSStructuredDataIGTest
  * @date 04/09/2018
  * @author Andre Neto
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

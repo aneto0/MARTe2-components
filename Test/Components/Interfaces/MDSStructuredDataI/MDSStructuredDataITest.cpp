@@ -1,8 +1,9 @@
 /**
  * @file MDSStructuredDataITest.cpp
  * @brief Source file for class MDSStructuredDataITest
- * @date Sep 4, 2018
- * @author aneto
+ * @date 04/09/2018
+ * @author Andre Neto
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -55,7 +56,8 @@ bool MDSStructuredDataITest::TestConstructor() {
     }
     MDSStructuredDataI mdsStructuredDataI;
     mdsStructuredDataI.SetTree(tree);
-    /*
+    mdsStructuredDataI.SetEditMode(true);
+
      mdsStructuredDataI.CreateAbsolute("A");
      mdsStructuredDataI.CreateAbsolute("A.B");
      mdsStructuredDataI.CreateAbsolute("A.B.C");
@@ -65,7 +67,7 @@ bool MDSStructuredDataITest::TestConstructor() {
      mdsStructuredDataI.CreateAbsolute("A.B.D");
      StreamString b = "HELLO!";
      mdsStructuredDataI.Write("AString", b.Buffer());
-     */
+    /*
     const char* config = "Test = {"
             "    Class = RealTimeApplication"
             "    Functions = {"
@@ -168,7 +170,7 @@ bool MDSStructuredDataITest::TestConstructor() {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "%s", err.Buffer());
     }
     cdb.MoveToRoot();
-    cdb.Copy(mdsStructuredDataI);
+    cdb.Copy(mdsStructuredDataI);*/
 
     tree->write();
     delete tree;

@@ -1,8 +1,9 @@
 /**
  * @file MDSStructuredDataITest.h
  * @brief Header file for class MDSStructuredDataITest
- * @date Sep 4, 2018
- * @author aneto
+ * @date 04/09/2018
+ * @author Andre Neto
+ * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -21,8 +22,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-		#ifndef TEST_COMPONENTS_INTERFACES_MDSSTRUCTUREDDATAI_MDSSTRUCTUREDDATAITEST_H_
-		#define 		TEST_COMPONENTS_INTERFACES_MDSSTRUCTUREDDATAI_MDSSTRUCTUREDDATAITEST_H_
+#ifndef MDSSTRUCTUREDDATAITEST_H_
+#define MDSSTRUCTUREDDATAITEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -54,5 +55,4 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-		#endif /* TEST_COMPONENTS_INTERFACES_MDSSTRUCTUREDDATAI_MDSSTRUCTUREDDATAITEST_H_ */
-	
+#endif /* MDSSTRUCTUREDDATAITEST_H_ */
