@@ -48,3 +48,108 @@ TEST(EPICSPVAStructureDataIGTest,TestRead_UInt8) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestRead_UInt8());
 }
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_UInt16) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_UInt16());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_UInt32) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_UInt32());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_UInt64) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_UInt64());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Int8) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Int8());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Int16) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Int16());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Int32) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Int32());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Int64) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Int64());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Float32) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Int32());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Float64) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Int64());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_StreamString) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_StreamString());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_UInt8_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_UInt8_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_UInt16_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_UInt16_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_UInt32_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_UInt32_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_UInt64_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_UInt64_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Int8_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Int8_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Int16_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Int16_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Int32_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Int32_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Int64_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Int64_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Float32_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Float32_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Float64_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Float64_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_StreamString_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_StreamString_Array());
+}
