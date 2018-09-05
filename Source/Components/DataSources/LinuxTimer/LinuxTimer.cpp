@@ -61,6 +61,7 @@ LinuxTimer::LinuxTimer() :
     counterAndTimer[0] = 0u;
     counterAndTimer[1] = 0u;
     sleepNature = Busy;
+    sleepPercentage = 0u;
     synchronising = false;
     executionMode = 0u;
     if (!synchSem.Create()) {
@@ -96,6 +97,13 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
     }
     else if (sleepNatureStr == "Busy") {
         sleepNature = Busy;
+        if (!data.Read("SleepPercentage", sleepPercentage)) {
+            sleepPercentage = 0u;
+            REPORT_ERROR(ErrorManagement::Information, "SleepPercentage was not set. Using Default %d.", sleepPercentage);
+        }
+        if (sleepPercentage > 100u) {
+            sleepPercentage = 100u;
+        }
     }
     else {
         REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported SleepNature.");
@@ -109,8 +117,12 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
     if (executionModeStr == "IndependentThread") {
         executionMode = LINUX_TIMER_EXEC_MODE_SPAWNED;
     }
-    else {
+    else if (executionModeStr == "RealTimeThread") {
         executionMode = LINUX_TIMER_EXEC_MODE_RTTHREAD;
+    }
+    else {
+        ok = false;
+        REPORT_ERROR(ErrorManagement::InitialisationError, "The Execution mode must be \"IndependentThread\" or \"RealTimeThread\"");
     }
 
     if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
@@ -290,7 +302,6 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
         lastTimeTicks = HighResolutionTimer::Counter();
     }
 
-    float64 sleepTime = 0.F;
     uint64 startTicks = HighResolutionTimer::Counter();
     //If we lose cycle, rephase to a multiple of the period.
     uint32 nCycles = 0u;
@@ -305,11 +316,19 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     uint64 deltaTicks = sleepTimeTicks - sleepTicksCorrection;
 
     if (sleepNature == Busy) {
-        while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
+        if (sleepPercentage == 0u) {
+            while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
+            }
+        }
+        else {
+            float32 totalSleepTime = static_cast<float32>(static_cast<float64>(deltaTicks) * HighResolutionTimer::Period());
+            uint32 busyPercentage = (100u - sleepPercentage);
+            float32 busyTime = totalSleepTime * (static_cast<float32>(busyPercentage) / 100.F);
+            Sleep::SemiBusy(totalSleepTime, busyTime);
         }
     }
     else {
-        sleepTime = static_cast<float64>(deltaTicks) * HighResolutionTimer::Period();
+        float32 sleepTime = static_cast<float32>(static_cast<float64>(deltaTicks) * HighResolutionTimer::Period());
         Sleep::NoMore(sleepTime);
     }
     lastTimeTicks = HighResolutionTimer::Counter();
@@ -330,6 +349,10 @@ const ProcessorType& LinuxTimer::GetCPUMask() const {
 
 uint32 LinuxTimer::GetStackSize() const {
     return stackSize;
+}
+
+uint32 LinuxTimer::GetSleepPercentage() const {
+    return sleepPercentage;
 }
 
 CLASS_REGISTER(LinuxTimer, "1.0")

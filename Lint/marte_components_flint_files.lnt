@@ -24,6 +24,7 @@
 -i./Source/Components/GAMs/ConstantGAM/
 -i./Source/Components/GAMs/ConversionGAM/
 -i./Source/Components/GAMs/FilterGAM/
+-i./Source/Components/GAMs/HistogramGAM/
 -i./Source/Components/GAMs/Interleaved2FlatGAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/GAMs/PIDGAM/
@@ -60,6 +61,9 @@ EventConditionTrigger.cpp
 FileReader.cpp
 FileWriter.cpp
 FilterGAM.cpp
+HistogramComparator.cpp
+HistogramComparatorT.h
+HistogramGAM.cpp
 Interleaved2FlatGAM.cpp
 IOGAM.cpp
 LinkDataSource.cpp

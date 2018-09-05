@@ -77,6 +77,8 @@
 -estring(1960,*MARTe::BufferedStreamIOBuffer::SetTimeout*)
 -estring(1960,*MARTe::IOBuffer::Empty*)
 -estring(1960,*MARTe::TimeStamp::SetMicroseconds*)
+-estring(1960,*MARTe::Sleep::Busy*)
+-estring(1960,*MARTe::Sleep::MicroSeconds*)
 -estring(1960,*epicsEvent::*)
 -estring(1960,*ccs::*)
 -estring(1960,*sdn::*)
