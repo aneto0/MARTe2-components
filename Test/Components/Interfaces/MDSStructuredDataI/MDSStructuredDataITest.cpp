@@ -58,7 +58,7 @@ bool MDSStructuredDataITest::TestConstructor() {
     mdsStructuredDataI.SetTree(tree);
     mdsStructuredDataI.SetEditMode(true);
 
-     mdsStructuredDataI.CreateAbsolute("A");
+     /*mdsStructuredDataI.CreateAbsolute("A");
      mdsStructuredDataI.CreateAbsolute("A.B");
      mdsStructuredDataI.CreateAbsolute("A.B.C");
      float32 f = 9;
@@ -66,8 +66,8 @@ bool MDSStructuredDataITest::TestConstructor() {
 
      mdsStructuredDataI.CreateAbsolute("A.B.D");
      StreamString b = "HELLO!";
-     mdsStructuredDataI.Write("AString", b.Buffer());
-    /*
+     mdsStructuredDataI.Write("AString", b.Buffer());*/
+
     const char* config = "Test = {"
             "    Class = RealTimeApplication"
             "    Functions = {"
@@ -170,7 +170,7 @@ bool MDSStructuredDataITest::TestConstructor() {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "%s", err.Buffer());
     }
     cdb.MoveToRoot();
-    cdb.Copy(mdsStructuredDataI);*/
+    cdb.Copy(mdsStructuredDataI);
 
     tree->write();
     delete tree;

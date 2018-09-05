@@ -63,7 +63,7 @@ bool MDSStructuredDataI::Write(const char8 * const name, const AnyType &value) {
         node = currentNode->getNode(name);
     }
     catch (const MDSplus::MdsException &exc) {
-        ok = false;
+        node = NULL_PTR(MDSplus::TreeNode *);
     }
     if (node == NULL_PTR(MDSplus::TreeNode *)) {
         node = currentNode->addNode(name, "ANY");
