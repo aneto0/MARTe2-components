@@ -46,7 +46,7 @@ namespace MARTe {
  *
  * @details For each input signal the following parameters can be defined:\n
  *   MinLim = [the minimum value of the signal]\n
- *   MaxLim = [the maximum value of the signal]\m
+ *   MaxLim = [the maximum value of the signal]\n
  * All the signals in input must be scalar and the number of samples per cycle must be one.\n
  * Each output signal represents the histogram of the relative input signal, so the number of input and output
  * signals must coincide. The output signal must be an array of at least three elements and the number of elements

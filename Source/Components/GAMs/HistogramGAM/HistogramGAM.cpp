@@ -43,9 +43,24 @@ namespace MARTe {
  */
 class HistogramComparatorCreator {
 public:
+    /**
+     * @brief Constructor.
+     */
     HistogramComparatorCreator();
+    /**
+     * @brief Destructor.
+     */
     virtual ~HistogramComparatorCreator();
+    /**
+     * @return a new instance of an HistogramComparator.
+     */
     virtual HistogramComparator *Create() const=0;
+
+    /**
+     * @brief Checks if the instance is compatible with the \a tdIn.
+     * @param[in] tdIn the type to check.
+     * @return true if the instance is compatible with the \a tdIn.
+     */
     virtual bool IsMe(const TypeDescriptor &tdIn) const=0;
 };
 
@@ -57,13 +72,32 @@ HistogramComparatorCreator::~HistogramComparatorCreator() {
 
 }
 
+/**
+ * @brief See HistogramComparatorCreator.
+ */
 template<typename T>
 class HistogramComparatorCreatorT: public HistogramComparatorCreator {
 public:
+    /**
+     * @brief Constructor.
+     */
     HistogramComparatorCreatorT();
+    /**
+     * @brief See HistogramComparatorCreator.
+     * @param[in] typeNameIn the type of histogram to create.
+     */
     HistogramComparatorCreatorT(const char8 * const typeNameIn);
+    /**
+     * @brief Destructor.
+     */
     virtual ~HistogramComparatorCreatorT();
+    /**
+     * @brief See HistogramComparatorCreator.
+     */
     virtual HistogramComparator *Create() const;
+    /**
+     * @brief See HistogramComparatorCreator.
+     */
     virtual bool IsMe(const TypeDescriptor &tdIn) const;
 
 private:
@@ -98,16 +132,47 @@ bool HistogramComparatorCreatorT<T>::IsMe(const TypeDescriptor &tdIn) const {
     return (tdIn == TypeDescriptor::GetTypeDescriptorFromTypeName(typeName));
 }
 
+/**
+ * HistogramComparator int8 instance.
+ */
 HistogramComparatorCreatorT<int8> compCreateI8("int8");
+/**
+ * HistogramComparator uint8 instance.
+ */
 HistogramComparatorCreatorT<uint8> compCreateU8("uint8");
+/**
+ * HistogramComparator int16 instance.
+ */
 HistogramComparatorCreatorT<int16> compCreateI16("int16");
+/**
+ * HistogramComparator uint16 instance.
+ */
 HistogramComparatorCreatorT<uint16> compCreateU16("uint16");
+/**
+ * HistogramComparator int32 instance.
+ */
 HistogramComparatorCreatorT<int32> compCreateI32("int32");
+/**
+ * HistogramComparator uint32 instance.
+ */
 HistogramComparatorCreatorT<uint32> compCreateU32("uint32");
+/**
+ * HistogramComparator int64 instance.
+ */
 HistogramComparatorCreatorT<int64> compCreateI64("int64");
+/**
+ * HistogramComparator uint64 instance.
+ */
 HistogramComparatorCreatorT<uint64> compCreateU64("uint64");
+/**
+ * HistogramComparator float32 instance.
+ */
 HistogramComparatorCreatorT<float32> compCreateF32("float32");
+/**
+ * HistogramComparator float64 instance.
+ */
 HistogramComparatorCreatorT<float64> compCreateF64("float64");
+
 
 static HistogramComparatorCreator *compCreator[] = { &compCreateI8, &compCreateU8, &compCreateI16, &compCreateU16, &compCreateI32, &compCreateU32,
         &compCreateI64, &compCreateU64, &compCreateF32, &compCreateF64 };
