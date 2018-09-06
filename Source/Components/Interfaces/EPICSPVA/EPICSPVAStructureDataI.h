@@ -190,10 +190,11 @@ public:
 
     /**
      * @brief Finalises the structure. Allows for the Read method to be used and disallows any further modification of the class structure.
+     * @return true if the structure could be successfully created.
      * @post
      *     IsStructureFinalised()
      */
-    void FinaliseStructure();
+    bool FinaliseStructure();
 
     /**
      * @brief Returns the epics::pvData::PVStructure mapped by this StructuredDataI.
@@ -209,7 +210,7 @@ public:
 
 private:
     /**
-     * @brief Helper method to read an array from an epics::pvData::PVScalarArray into an AnyType.
+     * @brief Helper method to read an array from an epics::pvData::PVScalarArray into an AnyType. Should allow to convert from any numeric type to any numeric type.
      * @param[in] scalarArrayPtr the array where to read the data from.
      * @param[in] storedType the type of data to be read (as stored in the backed)
      * @param[out] value where to store the read array.
@@ -291,13 +292,15 @@ bool EPICSPVAStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArr
     bool ok = true;
     epics::pvData::shared_vector<const T> out;
     scalarArrayPtr->getAs < T > (out);
-    const void *src = reinterpret_cast<const void *>(out.data());
-    if (src != NULL_PTR(void *)) {
-        uint32 size;
-        uint32 numberOfElements = storedType.GetNumberOfElements(0u);
-        size = numberOfElements * storedType.GetTypeDescriptor().numberOfBits / 8u;
-        ok = MemoryOperationsHelper::Copy(value.GetDataPointer(), src, size);
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    uint32 i;
+    //Should allow to convert from numeric anytype to anytype. Note that this is called with the T of the value.
+    Vector<T> readVec (reinterpret_cast<T *>(value.GetDataPointer()), numberOfElements);
+    Vector<T> srcVec (const_cast<T *>(reinterpret_cast<const T *>(out.data())), numberOfElements);
+    for (i = 0u; i<numberOfElements; i++) {
+        readVec[i] = srcVec[i];
     }
+
     return ok;
 }
 
