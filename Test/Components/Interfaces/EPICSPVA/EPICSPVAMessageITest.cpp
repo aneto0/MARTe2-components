@@ -1,6 +1,6 @@
 /**
- * @file EPICSObjectRegistryDatabaseServiceTest.cpp
- * @brief Source file for class EPICSObjectRegistryDatabaseServiceTest
+ * @file EPICSPVAMessageITest.cpp
+ * @brief Source file for class EPICSPVAMessageITest
  * @date 07/09/2018
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSObjectRegistryDatabaseServiceTest (public, protected, and private). Be aware that some 
+ * the class EPICSPVAMessageITest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -113,3 +113,6 @@ bool EPICSObjectRegistryDatabaseServiceTest::Testrequest() {
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
+
+
+	
