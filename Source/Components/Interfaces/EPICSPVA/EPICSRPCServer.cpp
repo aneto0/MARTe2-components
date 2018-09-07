@@ -48,18 +48,19 @@
 namespace MARTe {
 
 EPICSRPCServer::EPICSRPCServer() :
-        ReferenceContainer(),
-        MessageI(),
-        executor(*this) {
+        ReferenceContainer(), MessageI(), executor(*this) {
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
-    ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(
-            GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
     }
+
+    //This is required in order to be able to call rpcServer->destroy() in the destructor.
+    std::tr1::shared_ptr<epics::pvAccess::RPCServer> rpcServerShared(new epics::pvAccess::RPCServer());
+    rpcServer = rpcServerShared;
 }
 
 EPICSRPCServer::~EPICSRPCServer() {
@@ -67,6 +68,9 @@ EPICSRPCServer::~EPICSRPCServer() {
 }
 
 void EPICSRPCServer::Purge(ReferenceContainer &purgeList) {
+    if (rpcServer) {
+        rpcServer->destroy();
+    }
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
@@ -101,7 +105,6 @@ ErrorManagement::ErrorType EPICSRPCServer::Start() {
 }
 
 ErrorManagement::ErrorType EPICSRPCServer::Execute(ExecutionInfo& info) {
-
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() == ExecutionInfo::StartupStage) {
         uint32 i;
@@ -111,12 +114,11 @@ ErrorManagement::ErrorType EPICSRPCServer::Execute(ExecutionInfo& info) {
             ReferenceT<Object> service = Get(i);
             if (service.IsValid()) {
                 const char8 * const serviceName = service->GetName();
-                epics::pvAccess::RPCService *rpcService =
-                        dynamic_cast<epics::pvAccess::RPCService *>(service.operator ->());
+                epics::pvAccess::RPCService *rpcService = dynamic_cast<epics::pvAccess::RPCService *>(service.operator ->());
                 ok = (rpcService != NULL_PTR(epics::pvAccess::RPCService *));
                 if (ok) {
                     REPORT_ERROR(ErrorManagement::Information, "Registered service with name %s", serviceName);
-                    rpcServer.registerService(serviceName, epics::pvAccess::RPCService::shared_pointer(rpcService));
+                    rpcServer->registerService(serviceName, epics::pvAccess::RPCService::shared_pointer(rpcService));
                 }
                 else {
                     REPORT_ERROR(ErrorManagement::FatalError, "Service %s is not an epics::pvAccess::RPCService", serviceName);
@@ -124,16 +126,19 @@ ErrorManagement::ErrorType EPICSRPCServer::Execute(ExecutionInfo& info) {
             }
         }
         if (ok) {
-            rpcServer.printInfo();
-            rpcServer.run();
+            rpcServer->printInfo();
         }
         err = !ok;
     }
-    else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        Sleep::Sec(1.0);
+    else if (info.GetStage() == ExecutionInfo::MainStage) {
+        //This is a blocking call and it will run forever!
+        try {
+            rpcServer->run();
+        }
+        catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {
+        }
     }
     else {
-        rpcServer.destroy();
     }
 
     return err;

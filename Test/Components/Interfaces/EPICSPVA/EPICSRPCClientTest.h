@@ -1,7 +1,7 @@
 /**
- * @file EPICSRPCClient.h
- * @brief Header file for class EPICSRPCClient
- * @date 25/06/2018
+ * @file EPICSRPCClientTest.h
+ * @brief Header file for class EPICSRPCClientTest
+ * @date 07/09/2018
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,63 +16,40 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSRPCClient
+ * @details This header file contains the declaration of the class EPICSRPCClientTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSPVA_EPICSRPCCLIENT_H_
-#define EPICSPVA_EPICSRPCCLIENT_H_
+#ifndef EPICSPVA_EPICSRPCCLIENTTEST_H_
+#define EPICSPVA_EPICSRPCCLIENTTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "pv/rpcService.h"
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "Object.h"
-#include "QueuedMessageI.h"
-#include "ReferenceT.h"
-#include "StreamString.h"
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+
 /**
- * @brief EPICS PVA RPC client.
- * @details Messages sent to this component are relayed as a PVStructure through an epics::pvAccess::RPCClient.
- *
- * The name of the Message is expected to be the destination to be set on the epics::pvAccess::RPCClient.
- *
- * The first element of the Message is expected to be a StructuredDataI with the structure to be serialised as a PVStructure.
- *
- * The configuration syntax is (names are only given as an example):
- * <pre>
- * +EPICSRPCClient = {
- *   Class = EPICSPVA::EPICSRPCClient
- * }
- * </pre>
+ * @brief Tests the EPICSRPCClient public methods.
  */
-namespace MARTe {
-class EPICSRPCClient: public Object, public QueuedMessageI {
+class EPICSRPCClientTest {
 public:
-    CLASS_REGISTER_DECLARATION()
     /**
-     * @brief Constructor. Installs the EPICSRPCClientMessageFilter.
+     * @brief Tests the constructor.
      */
-    EPICSRPCClient();
-
-    /**
-     * @brief Destructor. NOOP.
-     */
-    virtual ~EPICSRPCClient();
-
+    bool TestConstructor();
 };
-}
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSPVA_EPICSRPCCLIENT_H_ */
+#endif /* EPICSPVA_EPICSRPCCLIENTTEST_H_ */

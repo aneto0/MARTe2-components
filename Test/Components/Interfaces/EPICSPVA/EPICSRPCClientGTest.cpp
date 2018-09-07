@@ -1,7 +1,7 @@
 /**
- * @file EPICSRPCClient.cpp
- * @brief Source file for class EPICSRPCClient
- * @date 18/06/2018
+ * @file EPICSRPCClientGTest.cpp
+ * @brief Source file for class EPICSRPCClientGTest
+ * @date 27/03/2017
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -17,23 +17,20 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSRPCClient (public, protected, and private). Be aware that some
+ * the class EPICSRPCClientGTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include <limits.h>
+#include "gtest/gtest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "AdvancedErrorManagement.h"
-#include "CLASSMETHODREGISTER.h"
-#include "EPICSRPCClient.h"
-#include "EPICSRPCClientMessageFilter.h"
-#include "Message.h"
-#include "RegisteredMethodsMessageFilter.h"
+#include "EPICSRPCClientTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -42,34 +39,8 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-namespace MARTe {
-
-EPICSRPCClient::EPICSRPCClient() :
-        Object(), QueuedMessageI() {
-
-    ReferenceT<RegisteredMethodsMessageFilter> filterRPC = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-    filterRPC->SetDestination(this);
-    ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filterRPC);
-    if (!ret.ErrorsCleared()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install RPC message filter");
-    }
-    if (ret.ErrorsCleared()) {
-        ReferenceT<EPICSRPCClientMessageFilter> filter = ReferenceT<EPICSRPCClientMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-        ErrorManagement::ErrorType ret = QueuedMessageI::InstallMessageFilter(filter);
-        if (!ret.ErrorsCleared()) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
-        }
-
-    }
+TEST(EPICSRPCClientGTest,TestConstructor) {
+    EPICSRPCClientTest test;
+    ASSERT_TRUE(test.TestConstructor());
 }
 
-EPICSRPCClient::~EPICSRPCClient() {
-    if (!Stop()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not Stop the QueuedMessageI");
-    }
-}
-
-CLASS_REGISTER(EPICSRPCClient, "1.0")
-CLASS_METHOD_REGISTER(EPICSRPCClient, Start)
-
-}

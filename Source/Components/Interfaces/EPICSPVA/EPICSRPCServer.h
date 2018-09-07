@@ -145,8 +145,7 @@ private:
     /**
      * The EPICS server context
      */
-    epics::pvAccess::RPCServer rpcServer;
-
+    std::tr1::shared_ptr<epics::pvAccess::RPCServer> rpcServer;
 };
 }
 /*---------------------------------------------------------------------------*/

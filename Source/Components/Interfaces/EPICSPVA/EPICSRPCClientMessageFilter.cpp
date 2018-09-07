@@ -56,17 +56,16 @@ EPICSRPCClientMessageFilter::~EPICSRPCClientMessageFilter() {
 ErrorManagement::ErrorType EPICSRPCClientMessageFilter::ConsumeMessage(ReferenceT<Message> &messageToTest) {
     StreamString destination = messageToTest->GetName();
     ErrorManagement::ErrorType err;
+    err.parametersError = (destination.Size() == 0u);
+    if (!err.ErrorsCleared()) {
+        REPORT_ERROR(err, "No message destination (name of the message) set");
+    }
     ReferenceT<StructuredDataI> config = messageToTest->Get(0u);
-    err.parametersError = !config.IsValid();
-    if (err.ErrorsCleared()) {
-        err.parametersError = (destination.Size() == 0u);
-        if (!err.ErrorsCleared()) {
-            REPORT_ERROR(err, "No message destination (name of the message) set");
-        }
+    if (!config.IsValid()) {
+        ReferenceT<ConfigurationDatabase> configRef(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        config = configRef;
     }
-    else {
-        REPORT_ERROR(err, "No payload received in the message");
-    }
+
     EPICSPVAStructureDataI pvaStructureDataI;
     if (err.ErrorsCleared()) {
         pvaStructureDataI.InitStructure();
@@ -82,25 +81,30 @@ ErrorManagement::ErrorType EPICSRPCClientMessageFilter::ConsumeMessage(Reference
         epics::pvAccess::RPCClient::shared_pointer client = epics::pvAccess::RPCClient::create(destination.Buffer());
         epics::pvData::PVStructurePtr response;
         if (client) {
-            response = client->request(structPtr, 3.0);
+            try {
+                response = client->request(structPtr, 3.0);
+            }
+            catch (epics::pvAccess::RPCRequestException &rpce) {
+                REPORT_ERROR(ErrorManagement::Warning, "Exception while trying to access service @ %s", destination.Buffer());
+            }
         }
-        if (response) {
-            EPICSPVAStructureDataI pvaStructureDataIReply;
-            pvaStructureDataIReply.SetStructure(response);
-            if (messageToTest->ExpectsReply()) {
+        if (messageToTest->ExpectsReply()) {
+            if (response) {
+                EPICSPVAStructureDataI pvaStructureDataIReply;
+                pvaStructureDataIReply.SetStructure(response);
                 //In theory I could have put the reply directly here...
                 ReferenceT<ConfigurationDatabase> replyCopy(GlobalObjectsDatabase::Instance()->GetStandardHeap());
                 err.parametersError = !pvaStructureDataIReply.Copy(*replyCopy.operator ->());
                 if (err.ErrorsCleared()) {
                     err.parametersError = !messageToTest->Insert(replyCopy);
                 }
-                messageToTest->SetAsReply(true);
             }
+            messageToTest->SetAsReply(true);
+
         }
     }
     return err;
 }
-
 
 CLASS_REGISTER(EPICSRPCClientMessageFilter, "1.0")
 }

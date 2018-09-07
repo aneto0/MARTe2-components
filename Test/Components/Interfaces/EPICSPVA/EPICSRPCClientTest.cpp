@@ -30,12 +30,11 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "ConfigurationDatabase.h"
-#include <EPICSPVAStructureDataI.h>
 #include "File.h"
 #include "ObjectRegistryDatabase.h"
 #include "StandardParser.h"
 #include "Vector.h"
-#include "EPICSPVAStructureDataITest.h"
+#include "EPICSRPCClientTest.h"
 #include "EPICSRPCClient.h"
 
 /*---------------------------------------------------------------------------*/
@@ -45,8 +44,12 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-bool EPICSPVAStructureDataITest::TestConstructor() {
+bool EPICSRPCClientTest::TestConstructor() {
     using namespace MARTe;
+    //TODO DELETE
+#if 0
+    //EPICSRPCClient rpcClient;
+    //rpcClient.Get
     /*EPICSPVAStructureDataI test;
      test.InitStructure();*/
     /*test.CreateAbsolute("A.B.C.D");
@@ -134,7 +137,6 @@ bool EPICSPVAStructureDataITest::TestConstructor() {
     // In case of an error, an exception is thrown.
     //epics::pvData::PVStructurePtr response = client->request(structPtr, 3.0);
     //response->dumpValue(std::cout);
-#if 0
     EPICSPVAStructureDataI test2;
     test2.InitStructure();
     ConfigurationDatabase config;
@@ -145,14 +147,12 @@ bool EPICSPVAStructureDataITest::TestConstructor() {
     config.MoveToRoot();
     config.Copy(test2);
     test2.FinaliseStructure();
-#endif
 
     /* test.CreateRelative("TEST1");
      return (test.GetNumberOfChildren() == 0u);*/
     /*epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
      epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();*/
     //fieldBuilder->addNestedStructure("One")->addNestedStructure("Two")->endNested()->addFixedArray("astringarr", epics::pvData::pvString, 5)->addFixedArray("adoublearr", epics::pvData::pvDouble, 5)->add("adouble", epics::pvData::pvDouble)->add("astring", epics::pvData::pvString)->endNested()->addNestedStructure("OneP1")->endNested();
-#if 0
     test.SetStructure(structPtr);
     test.MoveAbsolute("One.Two");
     test.MoveToRoot();
