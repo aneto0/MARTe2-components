@@ -176,8 +176,6 @@ public:
     /**
      * @brief Constructs the structure mapped by this StructuredDataI directly from an existent epics::pvData::PVStructure.
      * @param[in] structPtrToSet the existent epics::pvData::PVStructure.
-     * @pre
-     *    !IsStructureFinalised()
      * @post
      *    IsStructureFinalised().
      */

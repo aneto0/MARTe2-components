@@ -739,11 +739,9 @@ uint32 EPICSPVAStructureDataI::GetNumberOfChildren() {
 }
 
 void EPICSPVAStructureDataI::SetStructure(epics::pvData::PVStructurePtr structPtrToSet) {
-    if (!structureFinalised) {
-        structureFinalised = true;
-        currentStructPtr = structPtrToSet;
-        rootStructPtr = structPtrToSet;
-    }
+    structureFinalised = true;
+    currentStructPtr = structPtrToSet;
+    rootStructPtr = structPtrToSet;
 }
 
 void EPICSPVAStructureDataI::InitStructure() {

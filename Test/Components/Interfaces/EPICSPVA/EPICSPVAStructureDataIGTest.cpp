@@ -1,6 +1,6 @@
 /**
- * @file EPICSPVStructureDataIGTest.cpp
- * @brief Source file for class EPICSPVStructureDataIGTest
+ * @file EPICSPVAStructureDataIGTest.cpp
+ * @brief Source file for class EPICSPVAStructureDataIGTest
  * @date 27/03/2017
  * @author Andre Neto
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSPVStructureDataIGTest (public, protected, and private). Be aware that some
+ * the class EPICSPVAStructureDataIGTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -512,4 +512,94 @@ TEST(EPICSPVAStructureDataIGTest,TestMoveToAncestor) {
 TEST(EPICSPVAStructureDataIGTest,TestMoveToRoot) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestMoveToRoot());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestMoveToChild) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestMoveToChild());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestCreateAbsolute) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestCreateAbsolute());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestCreateAbsolute_False_FinaliseStructure) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestCreateAbsolute_False_FinaliseStructure());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestCreateRelative) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestCreateRelative());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestCreateRelative_False_FinaliseStructure) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestCreateRelative_False_FinaliseStructure());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestDelete) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestDelete());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestDelete_False_FinaliseStructure) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestDelete_False_FinaliseStructure());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestGetName) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestGetName());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestGetName_False_FinaliseStructure) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestGetName_False_FinaliseStructure());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestGetChildName) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestGetChildName());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestGetChildName_False_FinaliseStructure) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestGetChildName_False_FinaliseStructure());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestGetNumberOfChildren) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestGetNumberOfChildren());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestGetNumberOfChildren_False_FinaliseStructure) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestGetNumberOfChildren_False_FinaliseStructure());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestSetStructure) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestSetStructure());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestInitStructure) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestInitStructure());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestFinaliseStructure) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestFinaliseStructure());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestGetRootStruct) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestGetRootStruct());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestIsStructureFinalised) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestIsStructureFinalised());
 }

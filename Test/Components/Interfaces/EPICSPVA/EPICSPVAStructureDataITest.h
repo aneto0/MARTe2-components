@@ -504,24 +504,114 @@ public:
     bool TestAddToCurrentNode();
 
     /**
-     * @brief Tests The MoveToRoot method.
+     * @brief Tests the MoveToRoot method.
      */
     bool TestMoveToRoot();
 
     /**
-     * @brief Tests The MoveToAncestor method.
+     * @brief Tests the MoveToAncestor method.
      */
     bool TestMoveToAncestor();
 
     /**
-     * @brief Tests The MoveAbsolute method.
+     * @brief Tests the MoveAbsolute method.
      */
     bool TestMoveAbsolute();
 
     /**
-     * @brief Tests The MoveRelative method.
+     * @brief Tests the MoveRelative method.
      */
     bool TestMoveRelative();
+
+    /**
+     * @brief Tests the MoveRelative method.
+     */
+    bool TestMoveToChild();
+
+    /**
+     * @brief Tests the CreateAbsolute method.
+     */
+    bool TestCreateAbsolute();
+
+    /**
+     * @brief Tests the CreateAbsolute method returns false if called after FinaliseStructure.
+     */
+    bool TestCreateAbsolute_False_FinaliseStructure();
+
+    /**
+     * @brief Tests the CreateRelative method.
+     */
+    bool TestCreateRelative();
+
+    /**
+     * @brief Tests that the CreateRelative method returns false if called after FinaliseStructure.
+     */
+    bool TestCreateRelative_False_FinaliseStructure();
+
+    /**
+     * @brief Tests the Delete method.
+     */
+    bool TestDelete();
+
+    /**
+     * @brief Tests that the Delete method returns false if called after FinaliseStructure.
+     */
+    bool TestDelete_False_FinaliseStructure();
+
+    /**
+     * @brief Tests the GetName method.
+     */
+    bool TestGetName();
+
+    /**
+     * @brief Tests that the GetName method returns an empty string if called before FinaliseStructure..
+     */
+    bool TestGetName_False_FinaliseStructure();
+
+    /**
+     * @brief Tests the GetChildName method.
+     */
+    bool TestGetChildName();
+
+    /**
+     * @brief Tests that the GetChildName method returns an empty string if called before FinaliseStructure..
+     */
+    bool TestGetChildName_False_FinaliseStructure();
+
+    /**
+     * @brief Tests the GetNumberOfChildren method.
+     */
+    bool TestGetNumberOfChildren();
+
+    /**
+     * @brief Tests that the GetNumberOfChildren method returns an empty string if called before FinaliseStructure..
+     */
+    bool TestGetNumberOfChildren_False_FinaliseStructure();
+
+    /**
+     * @brief Tests the SetStructure method.
+     */
+    bool TestSetStructure();
+
+    /**
+     * @brief Tests the InitStructure method.
+     */
+    bool TestInitStructure();
+
+    /**
+     * @brief Tests the FinaliseStructure method.
+     */
+    bool TestFinaliseStructure();
+
+    /**
+     * @brief Tests the GetRootStruct method.
+     */
+    bool TestGetRootStruct();
+
+    /**
+     * @brief Tests the IsStructureFinalised method.
+     */
+    bool TestIsStructureFinalised();
 
 private:
     /**

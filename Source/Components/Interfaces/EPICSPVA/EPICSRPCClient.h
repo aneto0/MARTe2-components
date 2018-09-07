@@ -42,7 +42,7 @@
 /*---------------------------------------------------------------------------*/
 /**
  * @brief EPICS PVA RPC client.
- * @details Messages sent to this component are relayed as PVStructure through an epics::pvAccess::RPCClient.
+ * @details Messages sent to this component are relayed as a PVStructure through an epics::pvAccess::RPCClient.
  *
  * The name of the Message is expected to be the destination to be set on the epics::pvAccess::RPCClient.
  *

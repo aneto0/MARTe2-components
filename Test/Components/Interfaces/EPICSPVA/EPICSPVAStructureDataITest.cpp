@@ -1248,3 +1248,376 @@ bool EPICSPVAStructureDataITest::TestMoveRelative() {
     }
     return ok;
 }
+
+bool EPICSPVAStructureDataITest::TestMoveToChild() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C");
+    test.CreateAbsolute("A.B.E");
+    test.CreateAbsolute("A.B.D");
+    test.CreateAbsolute("F.G.C");
+    test.CreateAbsolute("F.G.E");
+    test.CreateAbsolute("F.G.D");
+    bool ok = test.MoveToRoot();
+    if (ok) {
+        ok = test.FinaliseStructure();
+    }
+    if (ok) {
+        ok = test.MoveToChild(1u);
+    }
+    if (ok) {
+        ok = test.MoveRelative("G.D");
+    }
+    if (ok) {
+        ok = test.MoveToRoot();
+    }
+    if (ok) {
+        ok = test.MoveToChild(0u);
+    }
+    if (ok) {
+        ok = test.MoveRelative("B.E");
+    }
+    if (ok) {
+        ok = test.MoveToRoot();
+    }
+    if (ok) {
+        ok = test.MoveToChild(5u);
+    }
+    if (ok) {
+        ok = test.MoveToChild(1u);
+    }
+    if (ok) {
+        ok = test.MoveRelative("G.D");
+    }
+    if (ok) {
+        ok = test.MoveToRoot();
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestCreateAbsolute() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C");
+    test.CreateAbsolute("F.G.E");
+    bool ok = test.MoveToRoot();
+    if (ok) {
+        ok = test.FinaliseStructure();
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("F.G.E");
+    }
+    if (ok) {
+        ok = !test.MoveAbsolute("C.D");
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("A.B.C");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestCreateAbsolute_False_FinaliseStructure() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    bool ok = test.MoveToRoot();
+    if (ok) {
+        ok = test.FinaliseStructure();
+    }
+    if (ok) {
+        ok = !test.CreateAbsolute("F.G.E");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestCreateRelative() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A");
+    test.CreateRelative("B.E");
+    test.CreateAbsolute("C");
+    test.CreateRelative("F.G");
+    bool ok = test.MoveToRoot();
+    if (ok) {
+        ok = test.FinaliseStructure();
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("A.B.E");
+    }
+    if (ok) {
+        ok = test.MoveToRoot();
+    }
+    if (ok) {
+        ok = test.MoveRelative("C.F.G");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestCreateRelative_False_FinaliseStructure() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A");
+    bool ok = test.MoveToRoot();
+    if (ok) {
+        ok = test.FinaliseStructure();
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("A");
+    }
+    if (ok) {
+        ok = !test.CreateRelative("F.G.E");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestDelete() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C");
+    test.CreateAbsolute("F.G.E");
+    test.MoveToRoot();
+    bool ok = test.Delete("A");
+    if (ok) {
+        ok = test.FinaliseStructure();
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("F.G.E");
+    }
+    if (ok) {
+        ok = !test.MoveAbsolute("A");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestDelete_False_FinaliseStructure() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C");
+    test.CreateAbsolute("F.G.E");
+    bool ok = test.FinaliseStructure();
+    if (ok) {
+        ok = !test.Delete("A");
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("F.G.E");
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("A");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestGetName() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C.D");
+
+    bool ok = test.FinaliseStructure();
+    if (ok) {
+        ok = test.MoveAbsolute("A.B.C");
+        StreamString tname = test.GetName();
+        ok = (tname == "C");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestGetName_False_FinaliseStructure() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C.D");
+    test.MoveAbsolute("A.B.C");
+    StreamString tname = test.GetName();
+    bool ok = (tname == "");
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestGetChildName() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C.D");
+    test.CreateAbsolute("A.B.C.E");
+    test.CreateAbsolute("A.B.C.F");
+
+    bool ok = test.FinaliseStructure();
+    if (ok) {
+        ok = test.MoveAbsolute("A.B.C");
+        StreamString tname = test.GetChildName(1u);
+        ok = (tname == "E");
+    }
+    if (ok) {
+        StreamString tname = test.GetChildName(5u);
+        ok = (tname == "");
+    }
+    if (ok) {
+        StreamString tname = test.GetChildName(2u);
+        ok = (tname == "F");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestGetChildName_False_FinaliseStructure() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C.D");
+    test.CreateAbsolute("A.B.C.E");
+    test.CreateAbsolute("A.B.C.F");
+    test.MoveAbsolute("A.B.C");
+    StreamString tname = test.GetChildName(1u);
+    bool ok = (tname == "");
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestGetNumberOfChildren() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C.D");
+    test.CreateAbsolute("A.B.C.E");
+    test.CreateAbsolute("A.B.C.F");
+    test.FinaliseStructure();
+    test.MoveAbsolute("A.B.C");
+    bool ok = (test.GetNumberOfChildren() == 3u);
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestGetNumberOfChildren_False_FinaliseStructure() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C.D");
+    test.CreateAbsolute("A.B.C.E");
+    test.CreateAbsolute("A.B.C.F");
+    test.MoveAbsolute("A.B.C");
+    bool ok = (test.GetNumberOfChildren() == 0u);
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestSetStructure() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C.D");
+    test.CreateAbsolute("A.B.C.E");
+    test.CreateAbsolute("A.B.C.F");
+    test.FinaliseStructure();
+    epics::pvData::PVStructurePtr pvStruct = test.GetRootStruct();
+    epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(pvStruct);
+    EPICSPVAStructureDataI test2;
+    test2.InitStructure();
+    test2.SetStructure(structPtr);
+    bool ok = test2.IsStructureFinalised();
+    if (ok) {
+        test2.MoveAbsolute("A.B.C.E");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestInitStructure() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    bool ok = !test.IsStructureFinalised();
+    test.CreateAbsolute("A");
+    test.CreateRelative("B.E");
+    test.CreateAbsolute("C");
+    test.CreateRelative("F.G");
+    if (ok) {
+        ok = test.FinaliseStructure();
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("A.B.E");
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("C.F.G");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestFinaliseStructure() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    bool ok = !test.IsStructureFinalised();
+    test.CreateAbsolute("A");
+    test.CreateRelative("B.E");
+    test.CreateAbsolute("C");
+    test.CreateRelative("F.G");
+    if (ok) {
+        ok = test.FinaliseStructure();
+    }
+    if (ok) {
+        ok = test.IsStructureFinalised();
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("A.B.E");
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("C.F.G");
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestGetRootStruct() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    test.CreateAbsolute("A.B.C.D");
+    test.CreateAbsolute("A.B.C.E");
+    test.CreateAbsolute("A.B.C.F");
+    test.FinaliseStructure();
+    epics::pvData::PVStructurePtr pvStruct = test.GetRootStruct();
+    bool ok = (pvStruct);
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestIsStructureFinalised() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    test.InitStructure();
+    bool ok = !test.IsStructureFinalised();
+    test.CreateAbsolute("A");
+    test.CreateRelative("B.E");
+    test.CreateAbsolute("C");
+    test.CreateRelative("F.G");
+    if (ok) {
+        ok = test.FinaliseStructure();
+    }
+    if (ok) {
+        ok = test.IsStructureFinalised();
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("A.B.E");
+    }
+    if (ok) {
+        ok = test.MoveAbsolute("C.F.G");
+    }
+    return ok;
+}
