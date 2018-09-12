@@ -44,3 +44,7 @@ TEST(EPICSRPCClientGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+TEST(EPICSRPCClientGTest,TestInitialise) {
+    EPICSRPCClientTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}

@@ -47,6 +47,7 @@ namespace MARTe {
 EPICSRPCClientMessageFilter::EPICSRPCClientMessageFilter() :
         Object(), MessageFilter(true) {
     SetName("EPICSRPCClientMessageFilter");
+    timeout = 10u;
 }
 
 EPICSRPCClientMessageFilter::~EPICSRPCClientMessageFilter() {
@@ -82,7 +83,7 @@ ErrorManagement::ErrorType EPICSRPCClientMessageFilter::ConsumeMessage(Reference
         epics::pvData::PVStructurePtr response;
         if (client) {
             try {
-                response = client->request(structPtr, 3.0);
+                response = client->request(structPtr, timeout);
             }
             catch (epics::pvAccess::RPCRequestException &rpce) {
                 REPORT_ERROR(ErrorManagement::Warning, "Exception while trying to access service @ %s", destination.Buffer());
@@ -106,5 +107,14 @@ ErrorManagement::ErrorType EPICSRPCClientMessageFilter::ConsumeMessage(Reference
     return err;
 }
 
+void EPICSRPCClientMessageFilter::SetTimeout(float64 timeoutIn) {
+    timeout = timeoutIn;
+}
+
+uint32 EPICSRPCClientMessageFilter::GetTimeout() {
+    return timeout;
+}
+
 CLASS_REGISTER(EPICSRPCClientMessageFilter, "1.0")
 }
+

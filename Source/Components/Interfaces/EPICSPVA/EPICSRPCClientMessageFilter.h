@@ -68,6 +68,23 @@ public:
      */
     virtual ErrorManagement::ErrorType ConsumeMessage(ReferenceT<Message> &messageToTest);
 
+    /**
+     * @brief Sets the RPCClient::request timeout.
+     * @param[in] timeoutIn the timeout to set.
+     */
+    void SetTimeout(float64 timeoutIn);
+
+    /**
+     * @brief Gets the RPCClient::request timeout.
+     * @return the RPCClient::request timeout.
+     */
+    uint32 GetTimeout();
+
+private:
+    /**
+     * The timeout for the RPCClient::request.
+    */
+    float64 timeout;
 };
 }
 /*---------------------------------------------------------------------------*/

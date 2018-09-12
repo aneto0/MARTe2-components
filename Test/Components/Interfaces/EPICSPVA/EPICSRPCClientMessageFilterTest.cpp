@@ -114,3 +114,16 @@ bool EPICSRPCClientMessageFilterTest::TestConsumeMessage() {
     return ok;
 }
 
+bool EPICSRPCClientMessageFilterTest::TestSetTimeout() {
+    using namespace MARTe;
+    EPICSRPCClientMessageFilter test;
+    float64 timeout = 120.0;
+    test.SetTimeout(timeout);
+    return (test.GetTimeout() == timeout);
+
+}
+
+bool EPICSRPCClientMessageFilterTest::TestGetTimeout() {
+    return TestSetTimeout();
+}
+

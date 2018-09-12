@@ -54,7 +54,7 @@ EPICSRPCClient::EPICSRPCClient() :
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to install RPC message filter");
     }
     if (ret.ErrorsCleared()) {
-        ReferenceT<EPICSRPCClientMessageFilter> filter = ReferenceT<EPICSRPCClientMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        filter = ReferenceT<EPICSRPCClientMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
         ErrorManagement::ErrorType ret = QueuedMessageI::InstallMessageFilter(filter);
         if (!ret.ErrorsCleared()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
@@ -68,6 +68,20 @@ EPICSRPCClient::~EPICSRPCClient() {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not Stop the QueuedMessageI");
     }
 }
+
+bool EPICSRPCClient::Initialise(StructuredDataI &data) {
+    bool ok = Object::Initialise(data);
+    if (ok) {
+        float64 timeout = 10.0;
+        if (data.Read("Timeout", timeout)) {
+            if (filter.IsValid()) {
+                filter->SetTimeout(timeout);
+            }
+        }
+    }
+    return ok;
+}
+
 
 CLASS_REGISTER(EPICSRPCClient, "1.0")
 CLASS_METHOD_REGISTER(EPICSRPCClient, Start)

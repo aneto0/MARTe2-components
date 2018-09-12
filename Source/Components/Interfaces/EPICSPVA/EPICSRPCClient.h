@@ -32,6 +32,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "EPICSRPCClientMessageFilter.h"
 #include "Object.h"
 #include "QueuedMessageI.h"
 #include "ReferenceT.h"
@@ -52,6 +53,7 @@
  * <pre>
  * +EPICSRPCClient = {
  *   Class = EPICSPVA::EPICSRPCClient
+ *   Timeout = 10 //Optional, the timeout to set in the EPICSRPCClientMessageFilter message filter
  * }
  * </pre>
  */
@@ -68,6 +70,17 @@ public:
      * @brief Destructor. NOOP.
      */
     virtual ~EPICSRPCClient();
+
+    /**
+     * @brief Reads the optional timeout.
+     * @return true if Object::Initialise returns true.
+     */
+    virtual bool Initialise(StructuredDataI &data);
+private:
+    /**
+     * The EPICSRPCClientMessageFilter filter.
+     */
+    ReferenceT<EPICSRPCClientMessageFilter> filter;
 
 };
 }

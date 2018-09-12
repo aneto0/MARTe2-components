@@ -50,6 +50,16 @@ public:
      * @brief Tests the ConsumeMessage method.
      */
     bool TestConsumeMessage();
+
+    /**
+     * @brief Tests the SetTimeout method.
+     */
+    bool TestSetTimeout();
+
+    /**
+     * @brief Tests the GetTimeout method.
+     */
+    bool TestGetTimeout();
 };
 
 

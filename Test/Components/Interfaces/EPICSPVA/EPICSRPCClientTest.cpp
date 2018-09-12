@@ -217,3 +217,12 @@ bool EPICSRPCClientTest::TestConstructor() {
 #endif
     return true;
 }
+
+bool EPICSRPCClientTest::TestInitialise() {
+    using namespace MARTe;
+    EPICSRPCClient rpcClient;
+    ConfigurationDatabase cdb;
+    cdb.Write("Timeout", 15);
+    bool ok = rpcClient.Initialise(cdb);
+    return ok;
+}

@@ -84,20 +84,17 @@ epics::pvData::PVStructurePtr EPICSPVAMessageI::request(epics::pvData::PVStructu
     }
 
     epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
-    if (expectsReply) {
-        fieldBuilder->add("Reply", epics::pvData::pvString);
-    }
     epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
     epics::pvData::PVStructurePtr reply(epics::pvData::getPVDataCreate()->createPVStructure(topStructure));
     if (expectsReply) {
-        epics::pvData::PVScalarPtr replyFieldPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalar>(reply->getSubField("Reply"));
-        if (replyFieldPtr) {
-            if (err.ErrorsCleared()) {
-                replyFieldPtr->putFrom<std::string>("OK");
-            }
-            else {
-                replyFieldPtr->putFrom<std::string>("ERROR");
-            }
+        EPICSPVAStructureDataI replyStructuredDataI;
+        replyStructuredDataI.InitStructure();
+        ReferenceT<StructuredDataI> replyMsg = msg->Get(0u);
+        if (replyMsg.IsValid()) {
+            replyMsg->Copy(replyStructuredDataI);
+        }
+        if (replyStructuredDataI.FinaliseStructure()) {
+            reply = replyStructuredDataI.GetRootStruct();
         }
     }
     return reply;

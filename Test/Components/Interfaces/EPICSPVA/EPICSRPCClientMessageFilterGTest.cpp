@@ -48,3 +48,14 @@ TEST(EPICSRPCClientMessageFilterGTest,TestConsumeMessage) {
     EPICSRPCClientMessageFilterTest test;
     ASSERT_TRUE(test.TestConsumeMessage());
 }
+
+TEST(EPICSRPCClientMessageFilterGTest,TestSetTimeout) {
+    EPICSRPCClientMessageFilterTest test;
+    ASSERT_TRUE(test.TestSetTimeout());
+}
+
+TEST(EPICSRPCClientMessageFilterGTest,TestGetTimeout) {
+    EPICSRPCClientMessageFilterTest test;
+    ASSERT_TRUE(test.TestGetTimeout());
+}
+

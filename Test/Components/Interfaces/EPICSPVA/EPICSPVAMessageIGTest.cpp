@@ -40,7 +40,14 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+TEST(EPICSPVAMessageIGTest,TestConstructor) {
+    EPICSPVAMessageITest test;
+    ASSERT_TRUE(test.TestConstructor());
+}
 
-
+TEST(EPICSPVAMessageIGTest,TestConsumeMessage) {
+    EPICSPVAMessageITest test;
+    ASSERT_TRUE(test.Testrequest());
+}
 
 	

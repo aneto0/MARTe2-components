@@ -45,7 +45,7 @@
  * @details The PVStructure received from pvaccess shall encode a valid MARTe message configuration, which may contain any arbitrary payload.
  * The message will be sent using the standard MARTe messaging mechanism. The + symbol in the configuration nodes should be replaced by the _ character (+ is not supporte in EPICSPVA).
  *
- * If a reply is requested (only directly reply currently supported), a PVStructure will be returned with a field "Reply" containing either the OK or the ERROR keyword.
+ * If a reply is requested (only directly reply currently supported), a PVStructure will be returned with the contents of the StructuredDataI provided by Message::Get(0).
  *
  * To be used with an EPICSRPCServer.
  * The configuration syntax is  (names are only given as an example):

@@ -28,36 +28,67 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
+#include "CLASSMETHODREGISTER.h"
 #include "EPICSRPCClient.h"
-#include "EPICSObjectRegistryDatabaseService.h"
-#include "EPICSObjectRegistryDatabaseServiceTest.h"
+#include "EPICSPVAMessageI.h"
+#include "EPICSPVAMessageITest.h"
 #include "EPICSRPCServer.h"
 #include "ObjectRegistryDatabase.h"
+#include "RegisteredMethodsMessageFilter.h"
 #include "MessageI.h"
 #include "StandardParser.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+class EPICSPVAMessageITestObject: public MARTe::Object, public MARTe::MessageI {
+public:
+    CLASS_REGISTER_DECLARATION()
+    EPICSPVAMessageITestObject() : Object(), MessageI() {
+        using namespace MARTe;
+        ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        filter->SetDestination(this);
+        ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
+        if (!ret.ErrorsCleared()) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
+        }
+    }
+
+    virtual ~EPICSPVAMessageITestObject() {
+
+    }
+
+    MARTe::ErrorManagement::ErrorType HandleMessage(MARTe::uint32 &value) {
+        value *= 10;
+        return MARTe::ErrorManagement::NoError;
+    }
+};
+CLASS_REGISTER(EPICSPVAMessageITestObject, "")
+CLASS_METHOD_REGISTER(EPICSPVAMessageITestObject, HandleMessage)
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-bool EPICSObjectRegistryDatabaseServiceTest::TestConstructor() {
+bool EPICSPVAMessageITest::TestConstructor() {
     using namespace MARTe;
-    EPICSObjectRegistryDatabaseService test;
+    EPICSPVAMessageI test;
     return (test.NumberOfReferences() == 0);
 }
 
-bool EPICSObjectRegistryDatabaseServiceTest::Testrequest() {
+bool EPICSPVAMessageITest::Testrequest() {
     using namespace MARTe;
     StreamString config = ""
+            "+EPICSPVAMessageITestObject = {"
+            "    Class = EPICSPVAMessageITestObject"
+            "}"
             "+EPICSRPCServer = {"
             "    Class = EPICSPVA::EPICSRPCServer"
-            "    +EPICSObjectRegistryDatabaseService = {"
-            "        Class = EPICSPVA::EPICSObjectRegistryDatabaseService"
+            "    +EPICSPVAMessageI = {"
+            "        Class = EPICSPVA::EPICSPVAMessageI"
             "    }"
             "}"
             "+EPICSRPCClient = {"
@@ -92,27 +123,39 @@ bool EPICSObjectRegistryDatabaseServiceTest::Testrequest() {
         MessageI::SendMessage(msgStart);
     }
     ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ReferenceT<ConfigurationDatabase> payload(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     if (ok) {
         ConfigurationDatabase msgConfig;
-        msg->SetName("EPICSObjectRegistryDatabaseService");
+        msg->SetName("EPICSPVAMessageI");
         msgConfig.Write("Destination", "EPICSRPCClient");
         msgConfig.Write("Function", "");
         msg->Initialise(msgConfig);
+        payload->Write("Destination", "EPICSPVAMessageITestObject");
+        payload->Write("Function", "HandleMessage");
+        payload->Write("Mode", "ExpectsReply");
+        payload->CreateAbsolute("_Parameters");
+        payload->Write("Class", "ConfigurationDatabase");
+        payload->Write("param1", 5);
+        payload->MoveToRoot();
+
         msg->SetExpectsReply(true);
+        msg->Insert(payload);
         Object notReallyUsed;
         ok = MessageI::SendMessageAndWaitReply(msg, &notReallyUsed);
     }
-    ReferenceT<StructuredDataI> replyStruct;
+    ReferenceT<ConfigurationDatabase> payloadReply;
     if (ok) {
-        replyStruct = msg->Get(0u);
-        ok = replyStruct.IsValid();
+        payloadReply = msg->Get(1);
+        ok = payloadReply.IsValid();
+    }
+    uint32 val;
+    if (ok) {
+        ok = payloadReply->Read("param1", val);
     }
     if (ok) {
-        ok = replyStruct->MoveAbsolute("EPICSRPCServer.EPICSObjectRegistryDatabaseService");
+        ok = (val == 50);
     }
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
 
-
-	
