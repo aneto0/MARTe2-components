@@ -23,12 +23,13 @@
 #############################################################
 
 OBJSX=EPICSObjectRegistryDatabaseService.x \
+    EPICSPVA2V3Service.x \
     EPICSPVADatabase.x \
     EPICSPVAMessageI.x \
     EPICSPVARecord.x \
     EPICSPVAStructureDataI.x \
     EPICSRPCClient.x \
-	EPICSRPCClientMessageFilter.x \
+    EPICSRPCClientMessageFilter.x \
     EPICSRPCServer.x
 
 
@@ -50,6 +51,7 @@ PVDATABASE = $(EPICS_BASE)
 endif
 
 INCLUDES += -I.
+INCLUDES += -I../EPICS/
 INCLUDES += -I$(PVDATA)/include/
 INCLUDES += -I$(PVACCESS)/include/
 INCLUDES += -I$(PVCOMMON)/include/
@@ -69,7 +71,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
-LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVDATA)/lib/$(EPICS_HOST_ARCH)/ -L$(PVACCESS)/lib/$(EPICS_HOST_ARCH)/ -L$(PVACLIENT)/lib/$(EPICS_HOST_ARCH)/ -L$(PVDATABASE)/lib/$(EPICS_HOST_ARCH)/ -lpvaClient -lpvAccess -lpvData -lpvDatabase
+LIBRARIES += $(BUILD_DIR)/../EPICS/EPICS$(LIBEXT) -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVDATA)/lib/$(EPICS_HOST_ARCH)/ -L$(PVACCESS)/lib/$(EPICS_HOST_ARCH)/ -L$(PVACLIENT)/lib/$(EPICS_HOST_ARCH)/ -L$(PVDATABASE)/lib/$(EPICS_HOST_ARCH)/ -lpvaClient -lpvAccess -lpvData -lpvDatabase
 
 all: $(OBJS)    \
     $(BUILD_DIR)/EPICSPVA$(LIBEXT) \

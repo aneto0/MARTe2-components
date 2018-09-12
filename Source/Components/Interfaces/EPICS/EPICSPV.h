@@ -52,7 +52,8 @@ namespace MARTe {
  * +PV_1 = {
  *   Class = EPICSInterface::EPICSPV
  *   PVName = PV_ONE //Compulsory. Name of the EPICS PV.
- *   PVType = uint32 //Compulsory. The PV type. Supported types are uint32, int32, float32, float64 and string.
+ *   PVType = uint32 //Compulsory. The PV type. Supported types are uint16, int16, uint32, int32, float32, float64 and string.
+ *   NumberOfElements = 1 //Optional. Number of elements
  *   Timeout = 5.0 //Optional but if set shall be > 0. The timeout for the ca_pend_io operations in seconds. Default value is 5.0 s.
  *   Event = { //Optional. Information about the message to be triggered every-time the EPICS PV value changes.
  *     Destination = StateMachine //Compulsory. Destination of the message.
@@ -239,6 +240,26 @@ EPICSPV    ();
      */
     ErrorManagement::ErrorType CAGet(StructuredDataI &data);
 
+    /**
+     * @brief TODO.
+     */
+    ErrorManagement::ErrorType CAPutRaw();
+
+    /**
+     * @brief TODO.
+     */
+    TypeDescriptor GetType() const;
+
+    /**
+     * @brief TODO.
+     */
+    void * GetMemory() const;
+
+    /**
+     * @brief TODO.
+     */
+    uint32 GetNumberOfElements() const;
+
 private:
     /**
      * @brief Triggers the sending of a Message with the rules defined in the class description.
@@ -316,6 +337,10 @@ private:
      */
     void *pvMemory;
 
+    /**
+     * The number of elements to set
+     */
+    uint32 numberOfElements;
 };
 
 }

@@ -621,7 +621,7 @@ bool EPICSPVAStructureDataI::MoveToChild(const uint32 childIdx) {
     if (structureFinalised) {
         const epics::pvData::PVFieldPtrArray & fields = currentStructPtr->getPVFields();
         epics::pvData::PVStructurePtr movePtr;
-        bool ok = (childIdx < fields.size());
+        ok = (childIdx < fields.size());
         if (ok) {
             epics::pvData::PVFieldPtr field = fields[childIdx];
             movePtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVStructure>(field->shared_from_this());

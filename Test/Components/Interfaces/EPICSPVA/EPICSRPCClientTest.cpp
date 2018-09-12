@@ -46,6 +46,35 @@
 /*---------------------------------------------------------------------------*/
 bool EPICSRPCClientTest::TestConstructor() {
     using namespace MARTe;
+
+    ReferenceT<EPICSRPCClient> rpcClient(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    rpcClient->SetName("EPICSRPCClient");
+    rpcClient->Start();
+    ObjectRegistryDatabase::Instance()->Insert(rpcClient);
+
+    ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ReferenceT<ConfigurationDatabase> payload(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+
+    ConfigurationDatabase msgConfig;
+    msg->SetName("EPICSPVA2V3");
+    msgConfig.Write("Destination", "EPICSRPCClient");
+    msgConfig.Write("Function", "");
+    //msgConfig.Write("Mode", "ExpectsReply");
+    msg->Initialise(msgConfig);
+    payload->CreateAbsolute("A1");
+    payload->Write("A11", 1.1f);
+    payload->Write("A12", 1.2f);
+    payload->Write("A13", 13);
+    payload->CreateAbsolute("A2");
+    payload->Write("A21", 21);
+    payload->Write("A22", 2.2f);
+    payload->Write("A23", 23);
+    payload->MoveToRoot();
+    msg->Insert(payload);
+
+    MessageI::SendMessage(msg);
+
+    Sleep::Sec(10.0);
     //TODO DELETE
 #if 0
     //EPICSRPCClient rpcClient;

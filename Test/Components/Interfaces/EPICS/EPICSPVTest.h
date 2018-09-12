@@ -47,6 +47,16 @@ public:
     bool TestConstructor();
 
     /**
+     * @brief Tests the Initialise method with no event and uint16 PVType.
+     */
+    bool TestInitialise_NoEvent_UInt16();
+
+    /**
+     * @brief Tests the Initialise method with no event and int16 PVType.
+     */
+    bool TestInitialise_NoEvent_Int16();
+
+    /**
      * @brief Tests the Initialise method with no event and uint32 PVType.
      */
     bool TestInitialise_NoEvent_UInt32();
@@ -202,14 +212,24 @@ public:
     bool TestHandlePVEvent_FunctionMap_NoKey();
 
     /**
-     * @brief Tests the HandlePVEvent method calling a function with an int parameter.
+     * @brief Tests the HandlePVEvent method calling a function with an int16 parameter.
      */
-    bool TestHandlePVEvent_Function_Parameter_Int();
+    bool TestHandlePVEvent_Function_Parameter_Int16();
 
     /**
-     * @brief Tests the HandlePVEvent method calling a function with an uint parameter.
+     * @brief Tests the HandlePVEvent method calling a function with an uint16 parameter.
      */
-    bool TestHandlePVEvent_Function_Parameter_UInt();
+    bool TestHandlePVEvent_Function_Parameter_UInt16();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function with an int32 parameter.
+     */
+    bool TestHandlePVEvent_Function_Parameter_Int32();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function with an uint32 parameter.
+     */
+    bool TestHandlePVEvent_Function_Parameter_UInt32();
 
     /**
      * @brief Tests the HandlePVEvent method calling a function with a float32 parameter.
@@ -290,6 +310,16 @@ public:
      * @brief Tests the GetFunctionFromMap method.
      */
     bool TestGetFunctionFromMap();
+
+    /**
+     * @brief Tests the CAPut (and CAGet) method with an int16.
+     */
+    bool TestCAPut_Int16();
+
+    /**
+     * @brief Tests the CAPut (and CAGet) method with an uint16.
+     */
+    bool TestCAPut_UInt16();
 
     /**
      * @brief Tests the CAPut (and CAGet) method with an int32.
