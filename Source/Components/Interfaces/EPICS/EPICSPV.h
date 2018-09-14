@@ -241,31 +241,24 @@ EPICSPV    ();
     ErrorManagement::ErrorType CAGet(StructuredDataI &data);
 
     /**
-     * @brief TODO.
+     * @brief Updates the value of the PV by calling an EPICS caput using the value currently held in the memory of GetAnyType.
+     * @return ErrorManagement::NoError if the value can be successfully caput (which implies that the low-level EPICS function return no Error).
      */
     ErrorManagement::ErrorType CAPutRaw();
 
     /**
-     * @brief TODO.
+     * @brief Gets the AnyType which represents the variable wrapped by this EPICSPV.
+     * @return the AnyType which represents the variable wrapped by this EPICSPV.
      */
-    TypeDescriptor GetType() const;
+    AnyType GetAnyType() const;
 
-    /**
-     * @brief TODO.
-     */
-    void * GetMemory() const;
-
-    /**
-     * @brief TODO.
-     */
-    uint32 GetNumberOfElements() const;
 
 private:
     /**
      * @brief Triggers the sending of a Message with the rules defined in the class description.
      * @param[in] newValue the value to be sent (either as the Function name or the Function parameter).
      */
-    void TriggerEventMessage(StreamString &newValue);
+    void TriggerEventMessage();
 
     /**
      * The EPICS client context.
@@ -328,19 +321,24 @@ private:
     EventMode eventMode;
 
     /**
-     * The PV value is stored using the StreamString memory.
-     */
-    StreamString pvMemoryStr;
-
-    /**
      * The memory of the PV (stored using the internal buffer of the pvMemoryStr StreamString)
      */
     void *pvMemory;
 
     /**
+     * The total memory size
+     */
+    uint32 memorySize;
+
+    /**
      * The number of elements to set
      */
     uint32 numberOfElements;
+
+    /**
+     * The EPICS PV AnyType representation
+     */
+    AnyType pvAnyType;
 };
 
 }

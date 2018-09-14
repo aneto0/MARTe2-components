@@ -134,20 +134,36 @@ bool EPICSPVA2V3Service::CAPutAll(StructuredDataI &pvStruct, StreamString curren
             ok = pvNode.IsValid();
             if (ok) {
                 //Check if the type matches
-                AnyType at = pvStruct.GetType(pvStruct.GetChildName(n));
-                ok = (at.GetTypeDescriptor() == pvNode->GetType());
+                AnyType pvaAnyType = pvStruct.GetType(pvStruct.GetChildName(n));
+                AnyType pv3AnyType = pvNode->GetAnyType();
+
+                ok = (pvaAnyType.GetTypeDescriptor() == pv3AnyType.GetTypeDescriptor());
                 if (!ok) {
-                    StreamString advertisedType = TypeDescriptor::GetTypeNameFromTypeDescriptor(pvNode->GetType());
-                    StreamString receivedType = TypeDescriptor::GetTypeNameFromTypeDescriptor(at.GetTypeDescriptor());
-                    REPORT_ERROR(ErrorManagement::CommunicationError, "Type mismatch between the advertised structure (%s) and the received type (%s)", advertisedType.Buffer(), receivedType.Buffer());
-                }
-                //TODO implement array support
-                if (ok) {
-                //    ok = at.GetNumberOfDimensions() == pvNode->Get
+                    StreamString advertisedType = TypeDescriptor::GetTypeNameFromTypeDescriptor(pv3AnyType.GetTypeDescriptor());
+                    StreamString receivedType = TypeDescriptor::GetTypeNameFromTypeDescriptor(pvaAnyType.GetTypeDescriptor());
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Type mismatch between the advertised type (%s) and the received type (%s)", advertisedType.Buffer(), receivedType.Buffer());
                 }
                 if (ok) {
-                    at.SetDataPointer(pvNode->GetMemory());
-                    ok = pvStruct.Read(pvStruct.GetChildName(n), at);
+                    ok = (pvaAnyType.GetNumberOfDimensions() == pv3AnyType.GetNumberOfDimensions());
+                    if (!ok) {
+                        uint32 advertisedDims = pv3AnyType.GetNumberOfDimensions();
+                        uint32 receivedDims = pvaAnyType.GetNumberOfDimensions();
+                        REPORT_ERROR(ErrorManagement::CommunicationError, "Dimensions mismatch between the advertised number (%d) and the received number (%d)", advertisedDims, receivedDims);
+                    }
+                }
+                if (ok) {
+                    uint32 j;
+                    for (j = 0u; (j < pvaAnyType.GetNumberOfDimensions()) && (ok); j++) {
+                        ok = (pvaAnyType.GetNumberOfElements(j) == pv3AnyType.GetNumberOfElements(j));
+                        if (!ok) {
+                            uint32 advertisedElements = pv3AnyType.GetNumberOfElements(j);
+                            uint32 receivedElements = pvaAnyType.GetNumberOfElements(j);
+                            REPORT_ERROR(ErrorManagement::CommunicationError, "Number of elements mismatch in direction %d between the advertised number (%d) and the received number (%d)", advertisedElements, receivedElements);
+                        }
+                    }
+                }
+                if (ok) {
+                    ok = pvStruct.Read(pvStruct.GetChildName(n), pv3AnyType);
                 }
                 if (ok) {
                     ok = (pvNode->CAPutRaw() == ErrorManagement::NoError);
