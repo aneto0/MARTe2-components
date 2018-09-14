@@ -69,7 +69,7 @@ EPICSPV::EPICSPV() :
     }
 }
 
-/*lint -e{1551} -e{1540} functionMap memory is freed in the destructor. The context, pvChid and pvMemory variables are managed (and thus freed) by the EPICS framework.*/
+/*lint -e{1551} -e{1540} -e{1740} functionMap memory is freed in the destructor. The context, pvChid and pvMemory variables are managed (and thus freed) by the EPICS framework.*/
 EPICSPV::~EPICSPV() {
     if (functionMap[0u] != NULL_PTR(StreamString *)) {
         delete[] functionMap[0u];
@@ -81,11 +81,6 @@ EPICSPV::~EPICSPV() {
         if (pvAnyType.GetTypeDescriptor().type == SString) {
             if (numberOfElements > 1u) {
                 StreamString *str = static_cast<StreamString *>(pvMemory);
-                /*uint32 n;
-                 for (n = 0u; n < numberOfElements; n++) {
-                 delete str[n];
-                 }
-                 delete str;*/
                 delete[] str;
             }
             else {
@@ -155,6 +150,7 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
                     if (numberOfElements > 1u) {
                         StreamString *str = new StreamString[numberOfElements];
                         pvMemory = static_cast<void *>(&str[0u]);
+                        //lint -e{429} str is freed in the destructor
                     }
                     else {
                         StreamString *str = new StreamString();
@@ -293,7 +289,6 @@ ErrorManagement::ErrorType EPICSPV::CAPut(StructuredDataI & data) {
             }
         }
         else {
-            StreamString *str = static_cast<StreamString *>(pvAnyType.GetDataPointer());
             *str = "";
         }
     }
@@ -319,16 +314,19 @@ ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
         if (pvAnyType.GetTypeDescriptor().type == SString) {
             StreamString *str = static_cast<StreamString *>(pvAnyType.GetDataPointer());
             if (numberOfElements > 1u) {
-                strArrayTemp = new char8[MAX_STRING_SIZE * numberOfElements];
+                uint32 idx = static_cast<uint32>(MAX_STRING_SIZE) * numberOfElements;
+                strArrayTemp = new char8[idx];
                 //Arrays of strings are encoded as a single buffer of length 40 chars x numberOfDimensions
                 uint32 n;
                 bool ok = true;
                 for (n = 0u; (n < numberOfElements) && (ok); n++) {
-                    uint32 copySize = str[n].Size();
-                    if (copySize > MAX_STRING_SIZE) {
-                        copySize = MAX_STRING_SIZE;
+                    uint32 copySize = static_cast<uint32>(str[n].Size());
+                    if (copySize > static_cast<uint32>(MAX_STRING_SIZE)) {
+                        copySize = static_cast<uint32>(MAX_STRING_SIZE);
                     }
-                    ok = MemoryOperationsHelper::Copy(&strArrayTemp[n * MAX_STRING_SIZE], str[n].Buffer(), copySize);
+                    idx = n * static_cast<uint32>(MAX_STRING_SIZE);
+                    void *dest = &strArrayTemp[idx];
+                    ok = MemoryOperationsHelper::Copy(dest, str[n].Buffer(), copySize);
                 }
                 err = !ok;
                 mem = static_cast<void *>(&strArrayTemp[0u]);
@@ -365,7 +363,8 @@ void EPICSPV::HandlePVEvent(const void * const dbr) {
                     const char8 * tempStr = reinterpret_cast<const char8 *>(dbr);
                     uint32 n;
                     for (n = 0u; n < numberOfElements; n++) {
-                        str[n] = &tempStr[MAX_STRING_SIZE * n];
+                        uint32 idx = static_cast<uint32>(MAX_STRING_SIZE) * n;
+                        str[n] = &tempStr[idx];
                     }
                 }
                 else {
@@ -373,7 +372,7 @@ void EPICSPV::HandlePVEvent(const void * const dbr) {
                 }
             }
             else {
-                MemoryOperationsHelper::Copy(pvMemory, dbr, memorySize);
+                (void) MemoryOperationsHelper::Copy(pvMemory, dbr, memorySize);
             }
             if (!(eventMode.notSet.operator bool())) {
                 TriggerEventMessage();
@@ -464,7 +463,7 @@ void EPICSPV::TriggerEventMessage() {
             if (ok) {
                 if (MessageI::SendMessage(message, this) != ErrorManagement::NoError) {
                     StreamString val;
-                    val.Printf("%!", pvAnyType);
+                    (void) val.Printf("%!", pvAnyType);
                     REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", destination.Buffer(), val.Buffer());
                 }
             }

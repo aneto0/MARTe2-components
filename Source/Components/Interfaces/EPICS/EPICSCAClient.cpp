@@ -157,8 +157,8 @@ ErrorManagement::ErrorType EPICSCAClient::Execute(ExecutionInfo& info) {
 
                     child->SetPVChid(pvChid);
                     evid pvEvid;
-                    /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
                     uint32 numberOfElements = child->GetAnyType().GetNumberOfElements(0u);
+                    /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
                     if (ca_create_subscription(child->GetPVType(), numberOfElements, pvChid, DBE_VALUE, &EPICSCAClientEventCallback, this, &pvEvid) != ECA_NORMAL) {
                         err = ErrorManagement::FatalError;
                         REPORT_ERROR(err, "ca_create_subscription failed for PV %s", pvName.Buffer());

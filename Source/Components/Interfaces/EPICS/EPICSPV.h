@@ -291,11 +291,6 @@ private:
     chtype pvType;
 
     /**
-     * The PV TypeDescriptor.
-     */
-    TypeDescriptor pvTypeDesc;
-
-    /**
      * The name of the event message destination object.
      */
     StreamString destination;
