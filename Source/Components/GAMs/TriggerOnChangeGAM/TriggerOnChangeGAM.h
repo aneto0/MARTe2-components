@@ -74,7 +74,7 @@ namespace MARTe {
  * @details Follows an example of configuration:
  * <pre>
  *   +GAM1 = {
- *       Class = TriggerOnChangeGAMTestGAM
+ *       Class = TriggerOnChangeGAM
  *       +Events = {
  *           Class = ReferenceContainer
  *           +Event1 = {
