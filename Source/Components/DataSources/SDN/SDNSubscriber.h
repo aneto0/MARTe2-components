@@ -29,6 +29,11 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
+
+#if UNIT_VERSION > UNIT_VERSION_UID(1,1,0)
+#define FEATURE_10840
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -39,7 +44,6 @@
 #include "EventSem.h"
 #include "SingleThreadService.h"
 
-#include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 /*Cannot include "sdn-header.h" otherwise lint gets lost in secondary includes.*/
 #if ((defined(LINT)) || (!defined(FEATURE_10840)))
 namespace sdn {

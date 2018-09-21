@@ -34,6 +34,9 @@
 #include "ErrorInformation.h"
 
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
+#if UNIT_VERSION > UNIT_VERSION_UID(1,1,0)
+#define FEATURE_10840
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

@@ -41,7 +41,6 @@
 #include "StandardParser.h"
 #include "GAM.h"
 #include "SDNPublisher.h"
-
 #include "SDNPublisherTest.h"
 
 /*---------------------------------------------------------------------------*/
