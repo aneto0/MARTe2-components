@@ -50,13 +50,10 @@
 namespace MARTe {
 
 EPICSPVADatabase::EPICSPVADatabase() :
-        ReferenceContainer(),
-        MessageI(),
-        executor(*this) {
+        ReferenceContainer(), MessageI(), executor(*this) {
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
-    ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(
-            GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
     if (!ret.ErrorsCleared()) {
@@ -69,6 +66,9 @@ EPICSPVADatabase::~EPICSPVADatabase() {
 }
 
 void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
+    if (serverContext) {
+        serverContext->destroy();
+    }
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
@@ -131,7 +131,17 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
             }
         }
         if (ok) {
-            serverContext = epics::pvAccess::startPVAServer(epics::pvAccess::PVACCESS_ALL_PROVIDERS, 0, false, true);
+            //This is a blocking call and it will run forever!
+            try {
+                //serverContext = epics::pvAccess::startPVAServer(epics::pvAccess::PVACCESS_ALL_PROVIDERS, 0, false, true);
+                serverContext = epics::pvAccess::ServerContextImpl::create();
+                epics::pvAccess::ChannelProviderRegistry::shared_pointer channelProviderRegistry = epics::pvAccess::getChannelProviderRegistry();
+                serverContext->initialize(channelProviderRegistry);
+                serverContext->printInfo();
+                serverContext->run(0);
+            }
+            catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {
+            }
         }
         err = !ok;
     }
@@ -139,7 +149,6 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
         Sleep::Sec(1.0);
     }
     else {
-        serverContext->destroy();
     }
 
     return err;
@@ -156,6 +165,11 @@ uint32 EPICSPVADatabase::GetStackSize() const {
 uint32 EPICSPVADatabase::GetCPUMask() const {
     return cpuMask;
 }
+
+epics::pvAccess::ServerContext::shared_pointer EPICSPVADatabase::GetServerContext() const {
+    return serverContext;
+}
+
 CLASS_REGISTER(EPICSPVADatabase, "")
 CLASS_METHOD_REGISTER(EPICSPVADatabase, Start)
 

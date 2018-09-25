@@ -25,7 +25,8 @@
 #############################################################
 
 OBJSX +=  EPICSObjectRegistryDatabaseServiceTest.x \
-	EPICSPVAMessageITest.x \
+    EPICSPVADatabaseTest.x \
+    EPICSPVAMessageITest.x \
     EPICSPVAStructureDataITest.x \
     EPICSRPCClientTest.x \
     EPICSRPCClientMessageFilterTest.x

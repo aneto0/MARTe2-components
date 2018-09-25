@@ -149,6 +149,12 @@ public:
      * @return the embedded thread state.
      */
     EmbeddedThreadI::States GetStatus();
+
+    /**
+     * @brief Gets the pva server. This is required for the tests.
+     * @return the pva server;
+     */
+    epics::pvAccess::ServerContext::shared_pointer GetServerContext() const;
 private:
 
     /**
@@ -170,6 +176,7 @@ private:
      * The EPICS server context
      */
     epics::pvAccess::ServerContext::shared_pointer serverContext;
+
 
 };
 }
