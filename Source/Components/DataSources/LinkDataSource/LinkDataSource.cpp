@@ -83,11 +83,11 @@ const char8 *LinkDataSource::GetBrokerName(StructuredDataI &data, const SignalDi
     const char8* brokerName = NULL_PTR(const char8 *);
 
     if (direction == InputSignals) {
-        brokerName = "MemoryMapSynchronisedMultiBufferInputBroker";
+        brokerName = "MemoryMapSynchronisedInputBroker";
     }
 
     if (direction == OutputSignals) {
-        brokerName = "MemoryMapSynchronisedMultiBufferOutputBroker";
+        brokerName = "MemoryMapSynchronisedOutputBroker";
     }
 
     return brokerName;

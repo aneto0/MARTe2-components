@@ -46,12 +46,12 @@ namespace MARTe {
  *
  * @details The user has to specify in the configuration the field "Link" containing the absolute path of
  * the MemoryGate object to be linked with. Moreover the user has to specify in the configuration the flag
- * "IsWriter" that defines if this data source has to write or reads its signals memory form/to the linked
+ * "IsWriter" that defines if this data source has to write or reads its signals memory from/to the linked
  * MemoryGate within the Synchronise() function.
  *
  * @details Follows an example of configuration.
  * <pre>
- *  +InputGAM1 = {
+ *  +InputDataSource1 = {
  *      Class = LinkDataSource
  *      Link = ExternalComponent1
  *      IsWriter = 0
