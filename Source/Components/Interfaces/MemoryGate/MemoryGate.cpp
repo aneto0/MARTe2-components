@@ -209,7 +209,7 @@ bool MemoryGate::MemoryRead(uint8 * const bufferToFill) {
     if (ok) {
         /*lint -e{613} NULL pointer checked.*/
         Atomic::Decrement(&spinlocksRead[bufferIdx]);
-        REPORT_ERROR(ErrorManagement::Information, "buffer read=%d", bufferIdx);
+        //REPORT_ERROR(ErrorManagement::Information, "buffer read=%d", bufferIdx);
 
     }
 
@@ -259,7 +259,7 @@ bool MemoryGate::MemoryWrite(const uint8 * const bufferToFlush) {
     }
 
     if (ok) {
-        REPORT_ERROR(ErrorManagement::Information, "buffer write=%d", bufferIdx);
+        //REPORT_ERROR(ErrorManagement::Information, "buffer write=%d", bufferIdx);
 
         whatIsNewestGlobCounter++;
         /*lint -e{613} NULL pointer checked.*/
