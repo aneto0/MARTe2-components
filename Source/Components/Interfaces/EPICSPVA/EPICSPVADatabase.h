@@ -114,13 +114,6 @@ public:
     virtual bool Initialise(StructuredDataI &data);
 
     /**
-     * @brief If the Stop was to be called from the destructor the Size() would already be == 0 and as consequence it would not
-     * be possible to clean the EPICS resources when the state is BadTerminationStage
-     * @details See ReferenceContainer::Purge
-     */
-    virtual void Purge(ReferenceContainer &purgeList);
-
-    /**
      * @brief Provides the context to execute all the EPICS relevant calls (epics::pvAccess::startPVAServer, epics::pvDatabase::PVDatabase::getMaster(), CreatePVRecord).
      * @return ErrorManagement::NoError if all the EPICSPVA calls return without any error.
      */
@@ -155,6 +148,14 @@ public:
      * @return the pva server;
      */
     epics::pvAccess::ServerContext::shared_pointer GetServerContext() const;
+
+    /**
+     * @brief If the Stop was to be called from the destructor the Size() would already be == 0 and as consequence it would not
+     * be possible to clean the EPICS resources when the state is BadTerminationStage
+     * @details See ReferenceContainer::Purge
+     */
+    virtual void Purge(ReferenceContainer &purgeList);
+
 private:
 
     /**

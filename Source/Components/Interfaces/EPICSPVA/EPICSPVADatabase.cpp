@@ -110,9 +110,8 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
         uint32 nOfRecords = Size();
         bool ok = true;
         epics::pvDatabase::PVDatabasePtr master = epics::pvDatabase::PVDatabase::getMaster();
-        epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();
+        epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();        
         for (i = 0u; (i < nOfRecords) && (ok); i++) {
-            // register our service as "helloService"
             ReferenceT<EPICSPVARecord> record = Get(i);
             if (record.IsValid()) {
                 epics::pvDatabase::PVRecordPtr pvRecordPtr;

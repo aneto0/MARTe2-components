@@ -56,6 +56,36 @@ public:
      * @brief Tests the Initialise method without the default parameters.
      */
     bool TestInitialise_NoDefaults();
+
+    /**
+     * @brief Tests the Execute method (which shows that the component functionaly works).
+     */
+    bool TestExecute();
+
+    /**
+     * @brief Tests the Start method.
+     */
+    bool TestStart();
+
+    /**
+     * @brief Tests the GetStackSize method.
+     */
+    bool TestGetStackSize();
+
+    /**
+     * @brief Tests the GetCPUMask method.
+     */
+    bool TestGetCPUMask();
+
+    /**
+     * @brief Tests the GetStatus method.
+     */
+    bool TestGetStatus();
+
+    /**
+     * @brief Tests the GetServerContext method.
+     */
+    bool TestGetServerContext();
 };
 
 

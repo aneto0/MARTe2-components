@@ -49,3 +49,37 @@ TEST(EPICSPVADatabaseGTest,TestInitialise_Defaults) {
     ASSERT_TRUE(test.TestInitialise_Defaults());
 }
 	
+TEST(EPICSPVADatabaseGTest,TestInitialise_NoDefaults) {
+    EPICSPVADatabaseTest test;
+    ASSERT_TRUE(test.TestInitialise_NoDefaults());
+}
+
+TEST(EPICSPVADatabaseGTest,TestExecute) {
+    EPICSPVADatabaseTest test;
+    ASSERT_TRUE(test.TestExecute());
+}
+
+TEST(EPICSPVADatabaseGTest,TestStart) {
+    EPICSPVADatabaseTest test;
+    ASSERT_TRUE(test.TestStart());
+}
+
+TEST(EPICSPVADatabaseGTest,TestGetStackSize) {
+    EPICSPVADatabaseTest test;
+    ASSERT_TRUE(test.TestGetStackSize());
+}
+
+TEST(EPICSPVADatabaseGTest,TestGetCPUMask) {
+    EPICSPVADatabaseTest test;
+    ASSERT_TRUE(test.TestGetCPUMask());
+}
+
+TEST(EPICSPVADatabaseGTest,TestGetStatus) {
+    EPICSPVADatabaseTest test;
+    ASSERT_TRUE(test.TestGetStatus());
+}
+
+TEST(EPICSPVADatabaseGTest,TestGetServerContext) {
+    EPICSPVADatabaseTest test;
+    ASSERT_TRUE(test.TestGetServerContext());
+}

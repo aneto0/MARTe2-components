@@ -29,6 +29,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "ConfigurationDatabase.h"
+#include "EPICSRPCClient.h"
 #include "EPICSPVADatabase.h"
 #include "EPICSPVADatabaseTest.h"
 #include "ObjectRegistryDatabase.h"
@@ -124,26 +125,49 @@ bool EPICSPVADatabaseTest::TestInitialise_Defaults() {
     return ok;
 }
 
-#if 0
-bool EPICSCAClientTest::TestInitialise_NoDefaults() {
+bool EPICSPVADatabaseTest::TestInitialise_NoDefaults() {
     using namespace MARTe;
-    EPICSPV pv;
+
     StreamString config = ""
-    "+EPICSCA = {"
-    "    Class = EPICSCAClient"
-    "    CPUs = 0x1"
-    "    StackSize = 327680"
-    "    +PV_1 = {"
-    "        Class = EPICSPV"
-    "        PVName = \"MARTe2::EPICSCA::Test::String\""
-    "        PVType = string"
-    "    }"
-    "    +PV_2 = {"
-    "        Class = EPICSPV"
-    "        PVName = \"MARTe2::EPICSCA::Test::Int32\""
-    "        PVType = int32"
-    "    }"
-    "}";
+            "+EPICSPVADatabase1 = {"
+            "    Class = EPICSPVADatabase"
+            "    CPUs = 0x1"
+            "    StackSize = 2000000"
+            "    AutoStart = 0"
+            "    +Record1 = {"
+            "        Class = EPICSPVA::EPICSPVARecord"
+            "        Structure = {"
+            "            ElementsA = {"
+            "                Element1 = {"
+            "                   Type = uint32"
+            "                   NumberOfElements = 10"
+            "               }"
+            "               Element2 = {"
+            "                   Type = float32"
+            "               }"
+            "               ElementsB = {"
+            "                   ElementB1 = {"
+            "                       Type = uint8"
+            "                       NumberOfElements = 100"
+            "                   }"
+            "                   ElementB2 = {"
+            "                       Type = float32"
+            "                       NumberOfElements = 5"
+            "                   }"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Record2 = {"
+            "        Class = EPICSPVA::EPICSPVARecord"
+            "        Structure = {"
+            "            Element1 = {"
+            "                Type = float64"
+            "                NumberOfElements = 1"
+            "            }"
+            "       }"
+            "    }"
+            "}";
 
     config.Seek(0LLU);
     ConfigurationDatabase cdb;
@@ -151,32 +175,124 @@ bool EPICSCAClientTest::TestInitialise_NoDefaults() {
     bool ok = parser.Parse();
     cdb.MoveToRoot();
     ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
-    ReferenceT<EPICSPV> sPV;
-    ReferenceT<EPICSPV> iPV;
-    ReferenceT<EPICSCAClient> client;
-
+    ReferenceT<EPICSPVADatabase> pvDatabase;
     if (ok) {
         ok = ord->Initialise(cdb);
     }
     if (ok) {
-        sPV = ord->Find("EPICSCA.PV_1");
-        ok = sPV.IsValid();
+        pvDatabase = ord->Find("EPICSPVADatabase1");
+        ok = pvDatabase.IsValid();
     }
     if (ok) {
-        iPV = ord->Find("EPICSCA.PV_2");
-        ok = iPV.IsValid();
+        ok = (pvDatabase->GetCPUMask() == 0x1);
     }
     if (ok) {
-        client = ord->Find("EPICSCA");
-        ok = client.IsValid();
+        ok = (pvDatabase->GetStackSize() == (2000000));
     }
     if (ok) {
-        ok = (client->GetCPUMask() == 0x1);
+        ok = (pvDatabase->GetStatus() == EmbeddedThreadI::OffState);
     }
     if (ok) {
-        ok = (client->GetStackSize() == 327680);
+        ok = (!pvDatabase->GetServerContext());
     }
     ord->Purge();
     return ok;
 }
-#endif
+
+bool EPICSPVADatabaseTest::TestExecute() {
+    using namespace MARTe;
+
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {"
+            "    Class = EPICSPVADatabase"
+            "    +Record1 = {"
+            "        Class = EPICSPVA::EPICSPVARecord"
+            "        Structure = {"
+            "            ElementsA = {"
+            "                Element1 = {"
+            "                   Type = uint32"
+            "                   NumberOfElements = 10"
+            "               }"
+            "               Element2 = {"
+            "                   Type = float32"
+            "               }"
+            "               ElementsB = {"
+            "                   ElementB1 = {"
+            "                       Type = uint8"
+            "                       NumberOfElements = 100"
+            "                   }"
+            "                   ElementB2 = {"
+            "                       Type = float32"
+            "                       NumberOfElements = 5"
+            "                   }"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Record2 = {"
+            "        Class = EPICSPVA::EPICSPVARecord"
+            "        Structure = {"
+            "            Element1 = {"
+            "                Type = float64"
+            "                NumberOfElements = 1"
+            "            }"
+            "       }"
+            "    }"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPVADatabase> pvDatabase;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        pvDatabase = ord->Find("EPICSPVADatabase1");
+        ok = pvDatabase.IsValid();
+    }
+    if (ok) {
+        ok = (pvDatabase->GetCPUMask() == 0xFF);
+    }
+    if (ok) {
+        ok = (pvDatabase->GetStackSize() == (THREADS_DEFAULT_STACKSIZE * 4u));
+    }
+    if (ok) {
+        uint32 timeout = 50;
+        while (!pvDatabase->GetServerContext()) {
+            Sleep::Sec(0.1);
+            timeout--;
+            if (timeout == 0) {
+                break;
+            }
+        }
+        ok = (pvDatabase->GetServerContext());
+    }
+    ord->Purge();
+
+    //TODO FINISH
+    return false;
+}
+
+bool EPICSPVADatabaseTest::TestStart() {
+    return TestInitialise_NoDefaults();
+}
+
+bool EPICSPVADatabaseTest::TestGetStackSize() {
+    return TestInitialise_NoDefaults();
+}
+
+bool EPICSPVADatabaseTest::TestGetCPUMask() {
+    return TestInitialise_NoDefaults();
+}
+
+bool EPICSPVADatabaseTest::TestGetStatus() {
+    return TestInitialise_NoDefaults();
+}
+
+bool EPICSPVADatabaseTest::TestGetServerContext() {
+    return TestInitialise_NoDefaults();
+}
