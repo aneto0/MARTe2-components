@@ -31,12 +31,13 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "ReferenceContainer.h"
-#include "EmbeddedServiceMethodBinderI.h"
-#include "MessageI.h"
-#include "SingleThreadService.h"
 #include "ConfigurationDatabase.h"
+#include "EmbeddedServiceMethodBinderI.h"
+#include "EventSem.h"
 #include "FastPollingMutexSem.h"
+#include "MessageI.h"
+#include "ReferenceContainer.h"
+#include "SingleThreadService.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -177,7 +178,7 @@ public:
      * @brief Returns the number of replies and reset the counter.
      * @return the number of replies to the sent messages.
      */
-    uint32 Replied();
+    uint32 Replied(const PacketField * const packetFieldIn);
 
     /**
      * @brief Consumes the queue of the messages to be sent. If the Message is declared with
@@ -266,6 +267,11 @@ protected:
      * The affinity of the SingleThreadService.
      */
     ProcessorType cpuMask;
+
+    /**
+     * Event semaphore to wait for messages to be available.
+     */
+    EventSem eventSem;
 
 };
 
