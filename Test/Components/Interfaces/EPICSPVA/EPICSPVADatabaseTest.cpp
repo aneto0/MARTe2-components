@@ -25,6 +25,7 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #include <pv/pvaClient.h>
+#include <pva/client.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -272,6 +273,79 @@ bool EPICSPVADatabaseTest::TestExecute() {
         }
         ok = (pvDatabase->GetServerContext());
     }
+    pvac::ClientProvider provider("pva");
+    {
+        pvac::ClientChannel channel(provider.connect("Record2"));
+        float32 value = 9;
+
+        channel.put().set("Element1.value", value).exec();
+        epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();
+        std::tr1::shared_ptr<const epics::pvData::PVDouble> rvalue = getStruct->getSubField<epics::pvData::PVDouble>("Element1.value");
+        ok = (rvalue);
+        if (ok) {
+            ok = (rvalue->get() == value);
+        }
+    }
+    {
+        pvac::ClientChannel channel(provider.connect("Record1"));
+
+        uint32 numberOfElements = 10u;
+        uint32 n;
+        epics::pvData::shared_vector<uint32> out;
+        out.resize(numberOfElements);
+        for (n = 0u; n < numberOfElements; n++) {
+            out[n] = n + 1;
+        }
+        epics::pvData::shared_vector<const uint32> outF = freeze(out);
+        channel.put().set("value.Element1.value", outF).exec();
+        if (ok) {
+            epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();
+            std::tr1::shared_ptr<const epics::pvData::PVUIntArray> rvalue = getStruct->getSubField<epics::pvData::PVUIntArray>("value.Element1.value");
+            epics::pvData::shared_vector<const uint32> out;
+            out.resize(numberOfElements);
+            rvalue->getAs<uint32>(out);
+            for (n = 0u; (n < numberOfElements) && (ok); n++) {
+                ok = (out[n] == (n + 1));
+            }
+        }
+
+#if 0
+        if (ok) {
+            epics::pvData::PVStructurePtr putStruct = putData->getPVStructure();
+            std::tr1::shared_ptr<epics::pvData::PVUIntArray> pvalue = putStruct->getSubFieldT<epics::pvData::PVUIntArray>("value.Element1.value");
+            ok = (pvalue);
+            if (ok) {
+                uint32 n;
+                epics::pvData::shared_vector<uint32> out;
+                out.resize(numberOfElements);
+                for (n = 0u; n < numberOfElements; n++) {
+                    out[n] = n + 1;
+                }
+                epics::pvData::shared_vector<const uint32> outF = freeze(out);
+                pvalue->putFrom(outF);
+            }
+            std::cout << putStruct << std::endl;
+            putGetClient->putGet();
+        }
+        epics::pvaClient::PvaClientGetDataPtr getData;
+        if (ok) {
+            getData = putGetClient->getGetData();
+            epics::pvData::PVStructurePtr getStruct = getData->getPVStructure();
+            std::tr1::shared_ptr<epics::pvData::PVUIntArray> rvalue = getStruct->getSubFieldT<epics::pvData::PVUIntArray>("value.Element1.value");
+            ok = (rvalue);
+            if (ok) {
+                epics::pvData::shared_vector<const uint32> out;
+                out.resize(numberOfElements);
+                rvalue->getAs<uint32>(out);
+                uint32 n;
+                for (n = 0u; (n < numberOfElements) && (ok); n++) {
+                    ok = (out[n] == (n + 1));
+                }
+            }
+        }
+#endif
+    }
+#if 0
     {
         epics::pvaClient::PvaClientPtr pva = epics::pvaClient::PvaClient::get("pva");
         epics::pvaClient::PvaClientChannelPtr channel = pva->channel("Record2", "pva");
@@ -354,6 +428,8 @@ bool EPICSPVADatabaseTest::TestExecute() {
             }
         }
     }
+#endif
+
     ord->Purge();
     return ok;
 }

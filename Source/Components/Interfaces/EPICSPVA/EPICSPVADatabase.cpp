@@ -68,6 +68,7 @@ void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
     if (serverContext) {
         serverContext->shutdown();
     }
+
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
@@ -134,8 +135,6 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
                 //serverContext = epics::pvAccess::startPVAServer(epics::pvAccess::PVACCESS_ALL_PROVIDERS, 0, false, true);
                 serverContext = epics::pvAccess::ServerContext::create();
                 epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();
-                //epics::pvAccess::ChannelProviderRegistry::shared_pointer channelProviderRegistry = epics::pvAccess::getChannelProviderRegistry();
-                //serverContext->initialize(channelProviderRegistry);
                 serverContext->printInfo();
                 serverContext->run(0);
             }

@@ -179,6 +179,9 @@ private:
      */
     epics::pvAccess::ServerContext::shared_pointer serverContext;
 
+    /**
+     * The PVDatabase
+     */
     epics::pvDatabase::PVDatabasePtr master;
 
 
