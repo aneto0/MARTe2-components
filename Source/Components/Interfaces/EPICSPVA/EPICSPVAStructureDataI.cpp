@@ -310,7 +310,7 @@ bool EPICSPVAStructureDataI::CreateFromStoredType(const char8 * const name, AnyT
             fieldBuilder = fieldBuilder->add(name, epicsType);
         }
         else {
-            fieldBuilder = fieldBuilder->addFixedArray(name, epicsType, storedType.GetNumberOfElements(0u));
+            fieldBuilder = fieldBuilder->addBoundedArray(name, epicsType, storedType.GetNumberOfElements(0u));
         }
     }
     return ok;

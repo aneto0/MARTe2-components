@@ -108,6 +108,25 @@ private:
     bool GetEPICSStructure(epics::pvData::FieldBuilderPtr & fieldBuilder);
 
     /**
+     * @brief Initialises all the members in the PVStructure (in particular the arrays).
+     * @param[in] pvaDB the structure to initialise.
+     * @return true if the structure is correctly initialised.
+     */
+    bool InitEPICSStructure(StructuredDataI &pvaDB);
+
+
+    /**
+     * @brief Helper method to initialise an array.
+     * @param[in] data the database holding the array.
+     * @param[in] name the name of the parameter.
+     * @param[in] size number of elements in the array.
+     * @return true if the array can be successfully initialised.
+     */
+    template<typename T>
+    void InitArray(StructuredDataI &data, const char8 * const name, const uint32 &size);
+
+
+    /**
      * Local copy of the ConfigurationDatabase.
      */
     ConfigurationDatabase cdb;
@@ -116,5 +135,19 @@ private:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+
+namespace MARTe {
+template<typename T>
+void EPICSPVARecord::InitArray(StructuredDataI &data, const char8 * const name, const uint32 &size) {
+    Vector<T> vec(size);
+    uint32 n;
+    for (n = 0u; n<size; n++) {
+        vec[n] = static_cast<T>(0u);
+    }
+    data.Write(name, vec);
+}
+
+}
+
 
 #endif /* EPICSPVA_EPICSPVARECORD_H_ */

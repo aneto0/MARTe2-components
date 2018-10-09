@@ -43,7 +43,7 @@ ifdef CODAC_ROOT
 PVDATA = $(EPICS_BASE)
 endif
 
-ifdef PVDATA
+ifdef PVADIR
 SPB   += EPICSPVA.x
 endif
 
@@ -68,7 +68,7 @@ endif
 ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICSTest$(LIBEXT)
 endif
-ifdef PVDATA
+ifdef PVADIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVATest$(LIBEXT)
 endif
 

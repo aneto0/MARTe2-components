@@ -32,6 +32,7 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "EPICSPVARecord.h"
+#include "EPICSPVAStructureDataI.h"
 #include "ObjectRegistryDatabase.h"
 #include "StreamString.h"
 /*---------------------------------------------------------------------------*/
@@ -43,7 +44,7 @@ class epicsShareClass MARTe2PVARecord: public epics::pvDatabase::PVRecord {
 public:
     POINTER_DEFINITIONS(MARTe2PVARecord);
     MARTe2PVARecord(std::string const & recordName, epics::pvData::PVStructurePtr const & pvStructure) :
-    epics::pvDatabase::PVRecord(recordName, pvStructure) {
+        epics::pvDatabase::PVRecord(recordName, pvStructure) {
     }
 
     void initPvt() {
@@ -58,12 +59,81 @@ public:
 namespace MARTe {
 
 EPICSPVARecord::EPICSPVARecord() :
-    Object() {
+            Object() {
 
 }
 
 EPICSPVARecord::~EPICSPVARecord() {
 
+}
+
+bool EPICSPVARecord::InitEPICSStructure(StructuredDataI &pvaDB) {
+    bool ok = true;
+    uint32 nChildren = pvaDB.GetNumberOfChildren();
+    uint32 n;
+    for (n = 0u; (n < nChildren) && (ok); n++) {
+        if (pvaDB.MoveToChild(n)) {
+            ok = InitEPICSStructure(pvaDB);
+            if (ok) {
+                ok = pvaDB.MoveToAncestor(1u);
+            }
+        }
+        else {
+            const char8 * const name = pvaDB.GetChildName(n);
+            AnyType type = pvaDB.GetType(name);
+            bool isArray = (type.GetNumberOfDimensions() > 0u);
+            if (isArray) {
+                isArray = (type.GetNumberOfElements(0u) > 1u);
+            }
+            if (isArray) {
+                uint32 numberOfElements = type.GetNumberOfElements(0u);
+                if (type.GetTypeDescriptor() == UnsignedInteger8Bit) {
+                    InitArray<uint8>(pvaDB, name, numberOfElements);
+                }
+                else if (type.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                    InitArray<uint16>(pvaDB, name, numberOfElements);
+                }
+                else if (type.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                    InitArray<uint32>(pvaDB, name, numberOfElements);
+                }
+                else if (type.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                    InitArray<uint64>(pvaDB, name, numberOfElements);
+                }
+                else if (type.GetTypeDescriptor() == SignedInteger8Bit) {
+                    InitArray<int8>(pvaDB, name, numberOfElements);
+                }
+                else if (type.GetTypeDescriptor() == SignedInteger16Bit) {
+                    InitArray<int16>(pvaDB, name, numberOfElements);
+                }
+                else if (type.GetTypeDescriptor() == SignedInteger32Bit) {
+                    InitArray<int32>(pvaDB, name, numberOfElements);
+                }
+                else if (type.GetTypeDescriptor() == SignedInteger64Bit) {
+                    InitArray<int64>(pvaDB, name, numberOfElements);
+                }
+                else if (type.GetTypeDescriptor() == Float32Bit) {
+                    InitArray<float32>(pvaDB, name, numberOfElements);
+                }
+                else if (type.GetTypeDescriptor() == Float64Bit) {
+                    InitArray<float64>(pvaDB, name, numberOfElements);
+                }
+                else if ((type.GetTypeDescriptor().type == CArray) || (type.GetTypeDescriptor().type == BT_CCString) || (type.GetTypeDescriptor().type == PCString)
+                        || (type.GetTypeDescriptor().type == SString)) {
+                    Vector<StreamString> vec(numberOfElements);
+                    uint32 n;
+                    for (n = 0u; n < numberOfElements; n++) {
+                        vec[n] = "";
+                    }
+                    ok = pvaDB.Write(name, vec);
+
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
+                }
+            }
+        }
+    }
+    return ok;
 }
 
 bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuilder) {
@@ -115,13 +185,14 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
             uint32 numberOfElements = 1u;
             (void) cdb.Read("NumberOfElements", numberOfElements);
             if (numberOfElements > 1u) {
-                fieldBuilder = fieldBuilder->addFixedArray("value", epicsType, numberOfElements);
+                fieldBuilder = fieldBuilder->addBoundedArray("value", epicsType, numberOfElements);
             }
             else {
                 fieldBuilder = fieldBuilder->add("value", epicsType);
             }
         }
-
+    }
+    else {
         for (i = 0u; (i < nOfChildren) && (ok); i++) {
             const char8 * const nodeName = cdb.GetChildName(i);
             if (cdb.MoveRelative(nodeName)) {
@@ -153,15 +224,24 @@ bool EPICSPVARecord::Initialise(StructuredDataI &data) {
 bool EPICSPVARecord::CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr) {
     epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
-
+    epics::pvData::PVStructurePtr pvStructure;
     bool ok = GetEPICSStructure(fieldBuilder);
     if (ok) {
         epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
-        epics::pvData::PVStructurePtr pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
+        pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
         std::tr1::shared_ptr<MARTe2PVARecord> pvRecordWrapper = std::tr1::shared_ptr<MARTe2PVARecord>(new MARTe2PVARecord(GetName(), pvStructure));
         pvRecordWrapper->initPvt();
         pvRecordPtr = pvRecordWrapper;
     }
+    if (ok) {
+        EPICSPVAStructureDataI cdb;
+        cdb.SetStructure(pvStructure);
+        ok = cdb.MoveToRoot();
+        if (ok) {
+            ok = InitEPICSStructure(cdb);
+        }
+    }
+    std::cout << pvStructure << std::endl;
     return ok;
 
 }

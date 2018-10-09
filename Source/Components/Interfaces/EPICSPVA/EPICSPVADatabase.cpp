@@ -30,7 +30,6 @@
 #include "pv/pvAccess.h"
 #include "pv/pvaConstants.h"
 #include "pv/pvData.h"
-#include "pv/pvDatabase.h"
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -67,7 +66,7 @@ EPICSPVADatabase::~EPICSPVADatabase() {
 
 void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
     if (serverContext) {
-        serverContext->destroy();
+        serverContext->shutdown();
     }
     if (!executor.Stop()) {
         if (!executor.Stop()) {
@@ -109,8 +108,8 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
         uint32 i;
         uint32 nOfRecords = Size();
         bool ok = true;
-        epics::pvDatabase::PVDatabasePtr master = epics::pvDatabase::PVDatabase::getMaster();
-        epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();        
+        master = epics::pvDatabase::PVDatabase::getMaster();
+        epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();
         for (i = 0u; (i < nOfRecords) && (ok); i++) {
             ReferenceT<EPICSPVARecord> record = Get(i);
             if (record.IsValid()) {
@@ -133,9 +132,10 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
             //This is a blocking call and it will run forever!
             try {
                 //serverContext = epics::pvAccess::startPVAServer(epics::pvAccess::PVACCESS_ALL_PROVIDERS, 0, false, true);
-                serverContext = epics::pvAccess::ServerContextImpl::create();
-                epics::pvAccess::ChannelProviderRegistry::shared_pointer channelProviderRegistry = epics::pvAccess::getChannelProviderRegistry();
-                serverContext->initialize(channelProviderRegistry);
+                serverContext = epics::pvAccess::ServerContext::create();
+                epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();
+                //epics::pvAccess::ChannelProviderRegistry::shared_pointer channelProviderRegistry = epics::pvAccess::getChannelProviderRegistry();
+                //serverContext->initialize(channelProviderRegistry);
                 serverContext->printInfo();
                 serverContext->run(0);
             }

@@ -309,6 +309,7 @@ bool EPICSPVAStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarAr
     bool ok = MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), value.GetDataPointer(), size);
     epics::pvData::shared_vector<const T> outF = freeze(out);
     scalarArrayPtr->putFrom < T > (outF);
+    std::cout << "[" << outF << "]\n";
     return ok;
 }
 

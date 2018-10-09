@@ -27,6 +27,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "pv/pvDatabase.h"
 #include "pv/serverContext.h"
 
 /*---------------------------------------------------------------------------*/
@@ -177,6 +178,8 @@ private:
      * The EPICS server context
      */
     epics::pvAccess::ServerContext::shared_pointer serverContext;
+
+    epics::pvDatabase::PVDatabasePtr master;
 
 
 };
