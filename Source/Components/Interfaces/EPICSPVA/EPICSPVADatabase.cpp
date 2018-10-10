@@ -65,10 +65,20 @@ EPICSPVADatabase::~EPICSPVADatabase() {
 }
 
 void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
+    //Not sure if the thing below is needed.
+    /*uint32 n;
+    uint32 nElements = Size();
+    for (n = 0u; n<nElements; n++) {
+        ReferenceT<EPICSPVARecord> pvaRecord = Get(n);
+        if (pvaRecord.IsValid()) {
+            epics::pvDatabase::PVRecordPtr pvRecord = master->findRecord(pvaRecord->GetName());
+            REPORT_ERROR(ErrorManagement::FatalError, "Removing record %s", pvaRecord->GetName());
+            master->removeRecord(pvRecord);
+        }
+    }*/
     if (serverContext) {
         serverContext->shutdown();
     }
-
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");

@@ -58,9 +58,14 @@ public:
     bool TestInitialise_NoDefaults();
 
     /**
-     * @brief Tests the Execute method (which shows that the component functionaly works).
+     * @brief Tests the Execute method (which shows that the component functionality works).
      */
     bool TestExecute();
+
+    /**
+     * @brief Tests the Execute method writing in an array.
+     */
+    bool TestExecute_Array();
 
     /**
      * @brief Tests the Start method.

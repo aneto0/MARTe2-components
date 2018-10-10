@@ -286,7 +286,87 @@ bool EPICSPVADatabaseTest::TestExecute() {
             ok = (rvalue->get() == value);
         }
     }
-    {
+    ord->Purge();
+    return ok;
+}
+
+
+bool EPICSPVADatabaseTest::TestExecute_Array() {
+    using namespace MARTe;
+
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {"
+            "    Class = EPICSPVADatabase"
+            "    +Record1 = {"
+            "        Class = EPICSPVA::EPICSPVARecord"
+            "        Structure = {"
+            "            value = {"
+            "               Element1 = {"
+            "                   Type = uint32"
+            "                   NumberOfElements = 10"
+            "               }"
+            "               Element2 = {"
+            "                   Type = float32"
+            "               }"
+            "               ElementsB = {"
+            "                   ElementB1 = {"
+            "                       Type = uint32"
+            "                       NumberOfElements = 8"
+            "                   }"
+            "                   ElementB2 = {"
+            "                       Type = float32"
+            "                       NumberOfElements = 10"
+            "                   }"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Record2 = {"
+            "        Class = EPICSPVA::EPICSPVARecord"
+            "        Structure = {"
+            "            Element1 = {"
+            "                Type = float64"
+            "                NumberOfElements = 1"
+            "            }"
+            "       }"
+            "    }"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPVADatabase> pvDatabase;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        pvDatabase = ord->Find("EPICSPVADatabase1");
+        ok = pvDatabase.IsValid();
+    }
+    if (ok) {
+        ok = (pvDatabase->GetCPUMask() == 0xFF);
+    }
+    if (ok) {
+        ok = (pvDatabase->GetStackSize() == (THREADS_DEFAULT_STACKSIZE * 4u));
+    }
+    if (ok) {
+        uint32 timeout = 50;
+        while (!pvDatabase->GetServerContext()) {
+            Sleep::Sec(0.1);
+            timeout--;
+            if (timeout == 0) {
+                break;
+            }
+        }
+        ok = (pvDatabase->GetServerContext());
+    }
+    pvac::ClientProvider provider("pva");
+    ok = false;
+    //If I do this, it will not allow me to restart the EPICSPVADatabase on the same GTest context.
+    /*{
         pvac::ClientChannel channel(provider.connect("Record1"));
 
         uint32 numberOfElements = 10u;
@@ -308,128 +388,7 @@ bool EPICSPVADatabaseTest::TestExecute() {
                 ok = (out[n] == (n + 1));
             }
         }
-
-#if 0
-        if (ok) {
-            epics::pvData::PVStructurePtr putStruct = putData->getPVStructure();
-            std::tr1::shared_ptr<epics::pvData::PVUIntArray> pvalue = putStruct->getSubFieldT<epics::pvData::PVUIntArray>("value.Element1.value");
-            ok = (pvalue);
-            if (ok) {
-                uint32 n;
-                epics::pvData::shared_vector<uint32> out;
-                out.resize(numberOfElements);
-                for (n = 0u; n < numberOfElements; n++) {
-                    out[n] = n + 1;
-                }
-                epics::pvData::shared_vector<const uint32> outF = freeze(out);
-                pvalue->putFrom(outF);
-            }
-            std::cout << putStruct << std::endl;
-            putGetClient->putGet();
-        }
-        epics::pvaClient::PvaClientGetDataPtr getData;
-        if (ok) {
-            getData = putGetClient->getGetData();
-            epics::pvData::PVStructurePtr getStruct = getData->getPVStructure();
-            std::tr1::shared_ptr<epics::pvData::PVUIntArray> rvalue = getStruct->getSubFieldT<epics::pvData::PVUIntArray>("value.Element1.value");
-            ok = (rvalue);
-            if (ok) {
-                epics::pvData::shared_vector<const uint32> out;
-                out.resize(numberOfElements);
-                rvalue->getAs<uint32>(out);
-                uint32 n;
-                for (n = 0u; (n < numberOfElements) && (ok); n++) {
-                    ok = (out[n] == (n + 1));
-                }
-            }
-        }
-#endif
-    }
-#if 0
-    {
-        epics::pvaClient::PvaClientPtr pva = epics::pvaClient::PvaClient::get("pva");
-        epics::pvaClient::PvaClientChannelPtr channel = pva->channel("Record2", "pva");
-        ok = (channel);
-        epics::pvaClient::PvaClientPutGetPtr putGetClient;
-        if (ok) {
-            putGetClient = channel->createPutGet("putField(Element1.value)getField()");
-            ok = (putGetClient);
-        }
-        if (ok) {
-            channel->issueConnect();
-            epics::pvData::Status status = channel->waitConnect();
-            ok = (status.isOK());
-        }
-        if (ok) {
-            epics::pvaClient::PvaClientPutDataPtr putData = putGetClient->getPutData();
-            epics::pvData::PVStructurePtr putStruct = putData->getPVStructure();
-            std::tr1::shared_ptr<epics::pvData::PVDouble> pvalue = putStruct->getSubFieldT<epics::pvData::PVDouble>("Element1.value");
-            ok = (pvalue);
-            if (ok) {
-                pvalue->put(10);
-            }
-            putGetClient->putGet();
-            epics::pvaClient::PvaClientGetDataPtr getData = putGetClient->getGetData();
-            epics::pvData::PVStructurePtr getStruct = getData->getPVStructure();
-            std::tr1::shared_ptr<epics::pvData::PVDouble> rvalue = getStruct->getSubFieldT<epics::pvData::PVDouble>("Element1.value");
-            ok = (rvalue);
-            if (ok) {
-                ok = (rvalue->get() == 10);
-            }
-
-        }
-    }
-    {
-        epics::pvaClient::PvaClientPtr pva = epics::pvaClient::PvaClient::get("pva");
-        epics::pvaClient::PvaClientChannelPtr channel = pva->channel("Record1", "pva");
-        ok = (channel);
-        if (ok) {
-            epics::pvaClient::PvaClientPutGetPtr putGetClient = channel->createPutGet("putField(value.Element1.value)getField()");
-            ok = (putGetClient);
-
-            epics::pvaClient::PvaClientPutDataPtr putData;
-            if (ok) {
-                putData = putGetClient->getPutData();
-                ok = (putData);
-            }
-            uint32 numberOfElements = 10u;
-            if (ok) {
-                epics::pvData::PVStructurePtr putStruct = putData->getPVStructure();
-                std::tr1::shared_ptr<epics::pvData::PVUIntArray> pvalue = putStruct->getSubFieldT<epics::pvData::PVUIntArray>("value.Element1.value");
-                ok = (pvalue);
-                if (ok) {
-                    uint32 n;
-                    epics::pvData::shared_vector<uint32> out;
-                    out.resize(numberOfElements);
-                    for (n = 0u; n < numberOfElements; n++) {
-                        out[n] = n + 1;
-                    }
-                    epics::pvData::shared_vector<const uint32> outF = freeze(out);
-                    pvalue->putFrom(outF);
-                }
-                std::cout << putStruct << std::endl;
-                putGetClient->putGet();
-            }
-            epics::pvaClient::PvaClientGetDataPtr getData;
-            if (ok) {
-                getData = putGetClient->getGetData();
-                epics::pvData::PVStructurePtr getStruct = getData->getPVStructure();
-                std::tr1::shared_ptr<epics::pvData::PVUIntArray> rvalue = getStruct->getSubFieldT<epics::pvData::PVUIntArray>("value.Element1.value");
-                ok = (rvalue);
-                if (ok) {
-                    epics::pvData::shared_vector<const uint32> out;
-                    out.resize(numberOfElements);
-                    rvalue->getAs<uint32>(out);
-                    uint32 n;
-                    for (n = 0u; (n < numberOfElements) && (ok); n++) {
-                        ok = (out[n] == (n + 1));
-                    }
-                }
-            }
-        }
-    }
-#endif
-
+    }*/
     ord->Purge();
     return ok;
 }

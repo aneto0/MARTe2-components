@@ -59,6 +59,11 @@ TEST(EPICSPVADatabaseGTest,TestExecute) {
     ASSERT_TRUE(test.TestExecute());
 }
 
+TEST(EPICSPVADatabaseGTest,TestExecute_Array) {
+    EPICSPVADatabaseTest test;
+    ASSERT_TRUE(test.TestExecute_Array());
+}
+
 TEST(EPICSPVADatabaseGTest,TestStart) {
     EPICSPVADatabaseTest test;
     ASSERT_TRUE(test.TestStart());

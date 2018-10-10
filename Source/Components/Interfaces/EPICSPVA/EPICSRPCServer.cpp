@@ -127,16 +127,20 @@ ErrorManagement::ErrorType EPICSRPCServer::Execute(ExecutionInfo& info) {
         }
         if (ok) {
             rpcServer->printInfo();
+            //This is a blocking call and it will run forever!
+            try {
+                REPORT_ERROR(ErrorManagement::Debug, "Running the rpcServer");
+                rpcServer->run();
+                REPORT_ERROR(ErrorManagement::Debug, "Stopped the rpcServer");
+            }
+            catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {
+                std::cout << ignored.show() << std::endl;
+            }
         }
         err = !ok;
     }
     else if (info.GetStage() == ExecutionInfo::MainStage) {
-        //This is a blocking call and it will run forever!
-        try {
-            rpcServer->run();
-        }
-        catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {
-        }
+        Sleep::Sec(1.0);
     }
     else {
     }
