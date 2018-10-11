@@ -550,6 +550,11 @@ StreamString EPICSPV::GetFunctionFromMap(const StreamString &key) const {
     return value;
 }
 
+uint32 EPICSPV::GetMemorySize() const {
+    return memorySize;
+}
+
+
 CLASS_REGISTER(EPICSPV, "1.0")
 /*lint -e{1023} There is no ambiguity on the function to be called as the compiler can distinguish between both template definitions.*/
 CLASS_METHOD_REGISTER(EPICSPV, CAPut)

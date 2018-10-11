@@ -46,7 +46,7 @@
 namespace MARTe {
 
 EPICSPVAMessageI::EPICSPVAMessageI() :
-        Object(), MessageI() {
+        EPICSRPCService(), Object(), MessageI() {
     ReferenceContainer::AddBuildToken('_');
 }
 
@@ -54,8 +54,7 @@ EPICSPVAMessageI::~EPICSPVAMessageI() {
 
 }
 
-epics::pvData::PVStructurePtr EPICSPVAMessageI::request(epics::pvData::PVStructure::shared_pointer const & args)
-        throw (epics::pvAccess::RPCRequestException) {
+epics::pvData::PVStructurePtr EPICSPVAMessageI::request(epics::pvData::PVStructure::shared_pointer const & args) {
 
     EPICSPVAStructureDataI config;
     config.InitStructure();

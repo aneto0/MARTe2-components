@@ -64,12 +64,12 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
         REPORT_ERROR(ErrorManagement::ParametersError, "FinaliseStructure must be called before Read().");
     }
     if (ok) {
-        scalarFieldPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
-        ok = (scalarFieldPtr);
+        scalarFieldPtr = std::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
+        ok = (scalarFieldPtr ? true : false);
         if (!ok) {
             isScalar = false;
-            scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
-            ok = (scalarArrayPtr);
+            scalarArrayPtr = std::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
+            ok = (scalarArrayPtr ? true : false);
         }
     }
     if (ok) {
@@ -179,7 +179,7 @@ AnyType EPICSPVAStructureDataI::GetType(const char8 * const name) {
     bool ok = structureFinalised;
     if (ok) {
         fieldPtr = currentStructPtr->getSubField(name);
-        ok = (fieldPtr);
+        ok = (fieldPtr ? true : false);
     }
     else {
         REPORT_ERROR(ErrorManagement::ParametersError, "FinaliseStructure must be called before GetType().");
@@ -190,15 +190,15 @@ AnyType EPICSPVAStructureDataI::GetType(const char8 * const name) {
         TypeDescriptor marte2Type;
         uint32 numberOfElements = 1u;
         if (epicsType == epics::pvData::scalar) {
-            epics::pvData::PVScalarPtr scalarFieldPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
-            ok = (scalarFieldPtr);
+            epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
+            ok = (scalarFieldPtr ? true : false);
             if (ok) {
                 epicsScalarType = scalarFieldPtr->getScalar()->getScalarType();
             }
         }
         else if (epicsType == epics::pvData::scalarArray) {
-            epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
-            ok = (scalarArrayPtr);
+            epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
+            ok = (scalarArrayPtr ? true : false);
             if (ok) {
                 epicsScalarType = scalarArrayPtr->getScalarArray()->getElementType();
                 numberOfElements = scalarArrayPtr->getScalarArray()->getMaximumCapacity();
@@ -240,6 +240,9 @@ AnyType EPICSPVAStructureDataI::GetType(const char8 * const name) {
             }
             else if (epicsScalarType == epics::pvData::pvString) {
                 marte2Type = CharString;
+            }
+            else if (epicsScalarType == epics::pvData::pvBoolean) {
+                marte2Type = UnsignedInteger32Bit;
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported EPICS type");
@@ -326,15 +329,15 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
     bool ok = (isScalar == storedTypeIsScalar);
     if (ok) {
         if (storedTypeIsScalar) {
-            scalarFieldPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
-            ok = (scalarFieldPtr);
+            scalarFieldPtr = std::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
+            ok = (scalarFieldPtr ? true : false);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "%s should be a scalar but the conversion to PVScalar failed", name);
             }
         }
         else {
-            scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
-            ok = (scalarArrayPtr);
+            scalarArrayPtr = std::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
+            ok = (scalarArrayPtr ? true : false);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "%s should be an array but the conversion to PVScalarArray failed", name);
             }
@@ -568,7 +571,7 @@ bool EPICSPVAStructureDataI::MoveToAncestor(uint32 generations) {
         for (i = 0u; (i < generations) && (ok); i++) {
             ok = (currentStructPtr != rootStructPtr);
             if (ok) {
-                currentStructPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVStructure>(currentStructPtr->getParent()->shared_from_this());
+                currentStructPtr = std::dynamic_pointer_cast<epics::pvData::PVStructure>(currentStructPtr->getParent()->shared_from_this());
             }
         }
         if (!ok) {
@@ -589,7 +592,7 @@ bool EPICSPVAStructureDataI::MoveAbsolute(const char8 * const path) {
         if (ok) {
             movePtr = currentStructPtr->getSubField<epics::pvData::PVStructure>(path);
             //shared_ptr operator bool verifies the validity of the underlying ptr.
-            ok = (movePtr);
+            ok = (movePtr ? true : false);
         }
         if (ok) {
             currentStructPtr = movePtr;
@@ -605,7 +608,7 @@ bool EPICSPVAStructureDataI::MoveRelative(const char8 * const path) {
     bool ok = true;
     if (structureFinalised) {
         epics::pvData::PVStructurePtr movePtr = currentStructPtr->getSubField<epics::pvData::PVStructure>(path);
-        ok = (movePtr);
+        ok = (movePtr ? true : false);
         if (ok) {
             currentStructPtr = movePtr;
         }
@@ -624,8 +627,8 @@ bool EPICSPVAStructureDataI::MoveToChild(const uint32 childIdx) {
         ok = (childIdx < fields.size());
         if (ok) {
             epics::pvData::PVFieldPtr field = fields[childIdx];
-            movePtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVStructure>(field->shared_from_this());
-            ok = movePtr;
+            movePtr = std::dynamic_pointer_cast<epics::pvData::PVStructure>(field->shared_from_this());
+            ok = (movePtr ? true : false);
         }
         if (ok) {
             currentStructPtr = movePtr;
@@ -720,8 +723,8 @@ const char8 *EPICSPVAStructureDataI::GetChildName(const uint32 index) {
         bool ok = (index < fields.size());
         if (ok) {
             epics::pvData::PVFieldPtr field = fields[index];
-            movePtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVField>(field->shared_from_this());
-            ok = movePtr;
+            movePtr = std::dynamic_pointer_cast<epics::pvData::PVField>(field->shared_from_this());
+            ok = (movePtr ? true : false);
         }
         if (ok) {
             ret = movePtr->getFieldName().c_str();

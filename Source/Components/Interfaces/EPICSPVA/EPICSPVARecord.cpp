@@ -42,7 +42,7 @@ namespace MARTe {
 //The PVRecord has some protected members... that need to be exposed
 class epicsShareClass MARTe2PVARecord: public epics::pvDatabase::PVRecord {
 public:
-    POINTER_DEFINITIONS(MARTe2PVARecord);
+    //POINTER_DEFINITIONS(MARTe2PVARecord);
     MARTe2PVARecord(std::string const & recordName, epics::pvData::PVStructurePtr const & pvStructure) :
         epics::pvDatabase::PVRecord(recordName, pvStructure) {
     }
@@ -221,17 +221,17 @@ bool EPICSPVARecord::Initialise(StructuredDataI &data) {
     return ok;
 }
 
-bool EPICSPVARecord::CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr) {
+epics::pvDatabase::PVRecordPtr EPICSPVARecord::CreatePVRecord() {
     epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
     epics::pvData::PVStructurePtr pvStructure;
+    std::shared_ptr<MARTe2PVARecord> pvRecordWrapper;
     bool ok = GetEPICSStructure(fieldBuilder);
     if (ok) {
         epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
         pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
-        std::tr1::shared_ptr<MARTe2PVARecord> pvRecordWrapper = std::tr1::shared_ptr<MARTe2PVARecord>(new MARTe2PVARecord(GetName(), pvStructure));
+        pvRecordWrapper = std::shared_ptr<MARTe2PVARecord>(new MARTe2PVARecord(GetName(), pvStructure));
         pvRecordWrapper->initPvt();
-        pvRecordPtr = pvRecordWrapper;
     }
     if (ok) {
         EPICSPVAStructureDataI cdb;
@@ -242,7 +242,7 @@ bool EPICSPVARecord::CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr)
         }
     }
     std::cout << pvStructure << std::endl;
-    return ok;
+    return pvRecordWrapper;
 
 }
 

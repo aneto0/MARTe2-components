@@ -32,6 +32,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "EPICSRPCService.h"
 #include "Object.h"
 #include "ReferenceT.h"
 #include "StreamString.h"
@@ -57,9 +58,8 @@
  * </pre>
  */
 namespace MARTe {
-class epicsShareClass EPICSObjectRegistryDatabaseService: public virtual epics::pvAccess::RPCService, public Object {
+class  EPICSObjectRegistryDatabaseService: public EPICSRPCService, public Object {
 public:
-    POINTER_DEFINITIONS(EPICSObjectRegistryDatabaseService);
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief Constructor. NOOP.
@@ -76,7 +76,7 @@ public:
      * @param[in] args not used.
      * @return a snapshot of the ObjectRegistryDatabase tree as a PVStructure.
      */
-    epics::pvData::PVStructurePtr request(epics::pvData::PVStructure::shared_pointer const & args) throw (epics::pvAccess::RPCRequestException);
+    virtual epics::pvData::PVStructurePtr request(epics::pvData::PVStructure::shared_pointer const & args);
 
 private:
     /**

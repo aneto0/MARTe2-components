@@ -64,6 +64,9 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
 INCLUDES += -I../../../../Source/Components/Interfaces/EPICSPVA
 
+#Force c++11
+CPPFLAGS = -fPIC -frtti -Wall -Werror -Wno-invalid-offsetof -std=c++11 -DARCHITECTURE=x86_gcc -DENVIRONMENT=Linux -DUSE_PTHREAD -pthread -g -ggdb
+
 all: $(OBJS) \
                 $(BUILD_DIR)/EPICSPVATest$(LIBEXT)
 	echo  $(OBJS)

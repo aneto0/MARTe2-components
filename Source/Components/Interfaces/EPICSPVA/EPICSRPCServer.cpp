@@ -36,6 +36,8 @@
 #include "CLASSMETHODREGISTER.h"
 #include "EPICSObjectRegistryDatabaseService.h"
 #include "EPICSRPCServer.h"
+#include "EPICSRPCService.h"
+#include "EPICSRPCServiceAdapter.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
@@ -59,7 +61,7 @@ EPICSRPCServer::EPICSRPCServer() :
     }
 
     //This is required in order to be able to call rpcServer->destroy() in the destructor.
-    std::tr1::shared_ptr<epics::pvAccess::RPCServer> rpcServerShared(new epics::pvAccess::RPCServer());
+    std::shared_ptr<epics::pvAccess::RPCServer> rpcServerShared(new epics::pvAccess::RPCServer());
     rpcServer = rpcServerShared;
 }
 
@@ -111,14 +113,20 @@ ErrorManagement::ErrorType EPICSRPCServer::Execute(ExecutionInfo& info) {
         uint32 nOfServices = Size();
         bool ok = true;
         for (i = 0u; (i < nOfServices) && (ok); i++) {
-            ReferenceT<Object> service = Get(i);
-            if (service.IsValid()) {
-                const char8 * const serviceName = service->GetName();
-                epics::pvAccess::RPCService *rpcService = dynamic_cast<epics::pvAccess::RPCService *>(service.operator ->());
-                ok = (rpcService != NULL_PTR(epics::pvAccess::RPCService *));
+            ReferenceT<EPICSRPCService> service = Get(i);
+            ReferenceT<Object> serviceObj = Get(i);
+            ok = service.IsValid();
+            if (ok) {
+                ok = serviceObj.IsValid();
+            }
+            if (ok) {
+                const char8 * const serviceName = serviceObj->GetName();
+                std::shared_ptr<EPICSRPCServiceAdapter> rpcService(new EPICSRPCServiceAdapter());
+                ok = (rpcService ? true : false);
                 if (ok) {
+                    rpcService->SetHandler(service);
                     REPORT_ERROR(ErrorManagement::Information, "Registered service with name %s", serviceName);
-                    rpcServer->registerService(serviceName, epics::pvAccess::RPCService::shared_pointer(rpcService));
+                    rpcServer->registerService(serviceName, rpcService);
                 }
                 else {
                     REPORT_ERROR(ErrorManagement::FatalError, "Service %s is not an epics::pvAccess::RPCService", serviceName);
@@ -140,7 +148,7 @@ ErrorManagement::ErrorType EPICSRPCServer::Execute(ExecutionInfo& info) {
         err = !ok;
     }
     else if (info.GetStage() == ExecutionInfo::MainStage) {
-        Sleep::Sec(1.0);
+        Sleep::Sec(0.1);
     }
     else {
     }

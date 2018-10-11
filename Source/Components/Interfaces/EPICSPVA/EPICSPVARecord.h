@@ -91,7 +91,7 @@ public:
      * @param[out] pvRecordPtr the PVRecord created from the structured data.
      * @return true if the record was successfully created.
      */
-    bool CreatePVRecord(epics::pvDatabase::PVRecordPtr &pvRecordPtr);
+    epics::pvDatabase::PVRecordPtr CreatePVRecord();
 
     /**
      * @brief Verifies if a node named Structure exits and if so makes a local copy of the configuration \a data.

@@ -101,7 +101,6 @@ ErrorManagement::ErrorType EPICSRPCClientMessageFilter::ConsumeMessage(Reference
                 }
             }
             messageToTest->SetAsReply(true);
-
         }
     }
     return err;

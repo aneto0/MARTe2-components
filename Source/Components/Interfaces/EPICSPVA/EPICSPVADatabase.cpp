@@ -65,17 +65,28 @@ EPICSPVADatabase::~EPICSPVADatabase() {
 }
 
 void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
-    //Not sure if the thing below is needed.
-    /*uint32 n;
-    uint32 nElements = Size();
-    for (n = 0u; n<nElements; n++) {
-        ReferenceT<EPICSPVARecord> pvaRecord = Get(n);
-        if (pvaRecord.IsValid()) {
-            epics::pvDatabase::PVRecordPtr pvRecord = master->findRecord(pvaRecord->GetName());
-            REPORT_ERROR(ErrorManagement::FatalError, "Removing record %s", pvaRecord->GetName());
-            master->removeRecord(pvRecord);
+    //Not sure if this is needed.
+#if 0
+    if (master) {
+        uint32 n;
+        uint32 nElements = Size();
+        for (n = 0u; n < nElements; n++) {
+            ReferenceT<EPICSPVARecord> pvaRecord = Get(n);
+            if (pvaRecord.IsValid()) {
+                epics::pvDatabase::PVRecordPtr pvRecord = master->findRecord(pvaRecord->GetName());
+                REPORT_ERROR(ErrorManagement::Information, "Removing record %s", pvaRecord->GetName());
+                if (pvRecord) {
+                    if(master->removeRecord(pvRecord)) {
+                        REPORT_ERROR(ErrorManagement::Information, "Removed record %s", pvaRecord->GetName());
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::FatalError, "Failed to remove record %s", pvaRecord->GetName());
+                    }
+                }
+            }
         }
-    }*/
+    }
+#endif
     if (serverContext) {
         serverContext->shutdown();
     }
@@ -119,13 +130,13 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
         uint32 i;
         uint32 nOfRecords = Size();
         bool ok = true;
-        master = epics::pvDatabase::PVDatabase::getMaster();
         epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();
+        master = epics::pvDatabase::PVDatabase::getMaster();
         for (i = 0u; (i < nOfRecords) && (ok); i++) {
             ReferenceT<EPICSPVARecord> record = Get(i);
             if (record.IsValid()) {
-                epics::pvDatabase::PVRecordPtr pvRecordPtr;
-                ok = record->CreatePVRecord(pvRecordPtr);
+                epics::pvDatabase::PVRecordPtr pvRecordPtr = record->CreatePVRecord();
+                ok = (pvRecordPtr ? true : false);
                 if (ok) {
                     master->addRecord(pvRecordPtr);
                     REPORT_ERROR(ErrorManagement::Information, "Registered record with name %s", record->GetName());
@@ -144,7 +155,6 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
             try {
                 //serverContext = epics::pvAccess::startPVAServer(epics::pvAccess::PVACCESS_ALL_PROVIDERS, 0, false, true);
                 serverContext = epics::pvAccess::ServerContext::create();
-                epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();
                 serverContext->printInfo();
                 serverContext->run(0);
             }

@@ -252,6 +252,12 @@ EPICSPV    ();
      */
     AnyType GetAnyType() const;
 
+    /**
+     * @brief Gets the memory size to hold this PV.
+     * @return the memory size to hold this PV.
+     * TODO test function!
+     */
+    uint32 GetMemorySize() const;
 
 private:
     /**

@@ -1593,7 +1593,7 @@ bool EPICSPVAStructureDataITest::TestGetRootStruct() {
     test.CreateAbsolute("A.B.C.F");
     test.FinaliseStructure();
     epics::pvData::PVStructurePtr pvStruct = test.GetRootStruct();
-    bool ok = (pvStruct);
+    bool ok = (pvStruct ? true : false);
     return ok;
 }
 

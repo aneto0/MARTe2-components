@@ -58,7 +58,7 @@ namespace MARTe {
  *      ...
  *   }
  *   +PV_2 = {
- *      Class = ...//Inherits from epics::pvAccess::RPCService
+ *      Class = ...//Inherits from EPICSRPCService
  *      ...
  *   }
  * }
@@ -145,7 +145,7 @@ private:
     /**
      * The EPICS server context
      */
-    std::tr1::shared_ptr<epics::pvAccess::RPCServer> rpcServer;
+    std::shared_ptr<epics::pvAccess::RPCServer> rpcServer;
 };
 }
 /*---------------------------------------------------------------------------*/

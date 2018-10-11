@@ -43,12 +43,11 @@
 namespace MARTe {
 
 EPICSObjectRegistryDatabaseService::EPICSObjectRegistryDatabaseService() :
-        Object() {
+        EPICSRPCService(), Object() {
 
 }
 
 EPICSObjectRegistryDatabaseService::~EPICSObjectRegistryDatabaseService() {
-
 }
 
 void EPICSObjectRegistryDatabaseService::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuilder, ReferenceContainer &rc) {
@@ -93,8 +92,7 @@ void EPICSObjectRegistryDatabaseService::FillEPICSStructure(epics::pvData::PVStr
     }
 }
 
-epics::pvData::PVStructurePtr EPICSObjectRegistryDatabaseService::request(epics::pvData::PVStructure::shared_pointer const & args)
-        throw (epics::pvAccess::RPCRequestException) {
+epics::pvData::PVStructurePtr EPICSObjectRegistryDatabaseService::request(epics::pvData::PVStructure::shared_pointer const & args) {
     ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
     epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
     GetEPICSStructure(fieldBuilder, *ord);
@@ -105,4 +103,5 @@ epics::pvData::PVStructurePtr EPICSObjectRegistryDatabaseService::request(epics:
 }
 
 CLASS_REGISTER(EPICSObjectRegistryDatabaseService, "1.0")
+
 }

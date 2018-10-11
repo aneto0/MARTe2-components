@@ -33,6 +33,8 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "EPICSCAClient.h"
+#include "EPICSPVAStructureDataI.h"
+#include "EPICSRPCService.h"
 #include "MessageI.h"
 #include "Object.h"
 #include "StreamString.h"
@@ -58,9 +60,8 @@
  * </pre>
  */
 namespace MARTe {
-class epicsShareClass EPICSPVA2V3Service: public virtual epics::pvAccess::RPCService, public ReferenceContainer, public MessageI {
+class EPICSPVA2V3Service: public EPICSRPCService, public ReferenceContainer, public MessageI {
 public:
-    POINTER_DEFINITIONS(EPICSPVA2V3Service);
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief Constructor. NOOP.
@@ -80,8 +81,7 @@ public:
     /**
      * @brief TODO
      */
-    epics::pvData::PVStructurePtr request(epics::pvData::PVStructure::shared_pointer const & args) throw (epics::pvAccess::RPCRequestException);
-
+    epics::pvData::PVStructurePtr request(epics::pvData::PVStructure::shared_pointer const & args);
 private:
 
     /**
@@ -92,12 +92,27 @@ private:
     /**
      * @brief TODO
      */
-    bool CAPutAll(StructuredDataI &pvStruct, StreamString currentNodeName);
+    bool CAPutAll(StructuredDataI &pvStruct, StreamString currentNodeName, bool ignoreRootName = false);
+
+    /**
+     * @brief TODO
+     */
+    bool ComputeCRC(StructuredDataI &pvStruct, StreamString currentNodeName, uint32 &chksum, bool ignoreRootName = false);
 
     /**
      * @brief TODO
      */
     ReferenceT<ReferenceContainer> structureContainer;
+
+    /**
+     * @brief TODO
+     */
+    ReferenceT<EPICSPVAStructureDataI> epicsPVAStructure;
+
+    /**
+     * @brief TODO
+     */
+    uint32 seed;
 };
 }
 /*---------------------------------------------------------------------------*/

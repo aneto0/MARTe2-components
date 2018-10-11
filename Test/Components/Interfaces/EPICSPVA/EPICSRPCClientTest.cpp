@@ -29,7 +29,9 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
+#include "EPICSPVAStructureDataI.h"
 #include "File.h"
 #include "ObjectRegistryDatabase.h"
 #include "StandardParser.h"
@@ -41,40 +43,47 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+class EPICSRPCClientTestDeleteMe: public MARTe::Object {
+public:
+    CLASS_REGISTER_DECLARATION()
+
+void    Do() {
+        using namespace MARTe;
+        ReferenceT<EPICSRPCClient> rpcClient(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        rpcClient->SetName("EPICSRPCClient");
+        rpcClient->Start();
+        ObjectRegistryDatabase::Instance()->Insert(rpcClient);
+
+        ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        ReferenceT<ConfigurationDatabase> payload(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+
+        ConfigurationDatabase msgConfig;
+        msg->SetName("PVA2V3Service");
+        msgConfig.Write("Destination", "EPICSRPCClient");
+        msgConfig.Write("Function", "");
+        msgConfig.Write("Mode", "ExpectsReply");
+        msg->Initialise(msgConfig);
+        payload->Write("value1", 1u);
+        payload->Write("value2", 2u);
+        payload->Write("hash", 3u);
+        msg->Insert(payload);
+
+        ErrorManagement::ErrorType err = MessageI::SendMessageAndWaitReply(msg, this);
+        REPORT_ERROR(err, "Whaveer");
+        ReferenceT<EPICSPVAStructureDataI> reply = msg->Get(0);
+        REPORT_ERROR(ErrorManagement::Information, "Replied %d", reply.IsValid());
+    }
+};
+CLASS_REGISTER(EPICSRPCClientTestDeleteMe, "1.0")
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 bool EPICSRPCClientTest::TestConstructor() {
     using namespace MARTe;
-
-    ReferenceT<EPICSRPCClient> rpcClient(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-    rpcClient->SetName("EPICSRPCClient");
-    rpcClient->Start();
-    ObjectRegistryDatabase::Instance()->Insert(rpcClient);
-
-    ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-    ReferenceT<ConfigurationDatabase> payload(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-
-    ConfigurationDatabase msgConfig;
-    msg->SetName("EPICSPVA2V3");
-    msgConfig.Write("Destination", "EPICSRPCClient");
-    msgConfig.Write("Function", "");
-    //msgConfig.Write("Mode", "ExpectsReply");
-    msg->Initialise(msgConfig);
-    payload->CreateAbsolute("A1");
-    payload->Write("A11", 1.1f);
-    payload->Write("A12", 1.2f);
-    payload->Write("A13", 13);
-    payload->CreateAbsolute("A2");
-    payload->Write("A21", 21);
-    payload->Write("A22", 2.2f);
-    payload->Write("A23", 23);
-    payload->MoveToRoot();
-    msg->Insert(payload);
-
-    MessageI::SendMessage(msg);
-
-    Sleep::Sec(10.0);
+    ReferenceT<EPICSRPCClientTestDeleteMe> rpcClient(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    rpcClient->Do();
+    Sleep::Sec(1000.0);
     //TODO DELETE
 #if 0
     //EPICSRPCClient rpcClient;
@@ -151,7 +160,7 @@ bool EPICSRPCClientTest::TestConstructor() {
      out[3] = 2;
      out[4] = -1;
      epics::pvData::shared_vector<const double> outF = freeze(out);
-     epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::tr1::dynamic_pointer_cast<epics::pvData::PVScalarArray>(structPtr->getSubField("One.adoublearr"));
+     epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast<epics::pvData::PVScalarArray>(structPtr->getSubField("One.adoublearr"));
      if (scalarArrayPtr) {
      scalarArrayPtr->putFrom<double>(outF);
      }*/
