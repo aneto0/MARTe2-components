@@ -1,7 +1,7 @@
 /**
- * @file EPICSRPCClientTest.cpp
- * @brief Source file for class EPICSRPCClientTest
- * @date 13/06/2018
+ * @file EPICSPVARecordTest.cpp
+ * @brief Source file for class EPICSPVARecordTest
+ * @date 13/10/2018
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -17,27 +17,25 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSRPCClientTest (public, protected, and private). Be aware that some
+ * the class EPICSPVARecordTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <pv/rpcClient.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
-#include "EPICSPVAStructureDataI.h"
-#include "File.h"
+#include "EPICSPVARecord.h"
+#include "EPICSPVARecordTest.h"
 #include "ObjectRegistryDatabase.h"
+#include "RegisteredMethodsMessageFilter.h"
+#include "MessageI.h"
 #include "StandardParser.h"
-#include "Vector.h"
-#include "EPICSRPCClientTest.h"
-#include "EPICSRPCClient.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -46,19 +44,62 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-bool EPICSRPCClientTest::TestConstructor() {
-    using namespace MARTe;
-    EPICSRPCClient rpcClient;
 
-    return (rpcClient.NumberOfReferences() == 0u);
+bool EPICSPVARecordTest::TestConstructor() {
+    using namespace MARTe;
+    EPICSPVARecord pvaRecord;
+    return (pvaRecord.NumberOfReferences() == 0u);
 }
 
-bool EPICSRPCClientTest::TestInitialise() {
+bool EPICSPVARecordTest::TestCreatePVRecord() {
     using namespace MARTe;
-    EPICSRPCClient rpcClient;
     ConfigurationDatabase cdb;
-    cdb.Write("Timeout", 15);
-    bool ok = rpcClient.Initialise(cdb);
-    ObjectRegistryDatabase::Instance()->Purge();
+    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.B");
+    cdb.Write("Type", "uint32");
+    cdb.Write("NumberOfElements", 1);
+    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.C");
+    cdb.Write("Type", "uint32");
+    cdb.Write("NumberOfElements", 10);
+    cdb.MoveToRoot();
+    EPICSPVARecord pvaRecord;
+    pvaRecord.SetName("EPICSPVARecordTestTestCreatePVRecord");
+    bool ok = pvaRecord.Initialise(cdb);
+    if (ok) {
+        ok = (pvaRecord.CreatePVRecord() ? true : false);
+    }
     return ok;
 }
+
+bool EPICSPVARecordTest::TestInitialise() {
+    return TestCreatePVRecord();
+}
+
+bool EPICSPVARecordTest::TestInitialise_False_NoStructure() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.CreateAbsolute("EPICSPVARecordTest.B");
+    cdb.Write("Type", "uint32");
+    cdb.Write("NumberOfElements", 1);
+    cdb.MoveToRoot();
+    EPICSPVARecord pvaRecord;
+    pvaRecord.SetName("EPICSPVARecordTestTestInitialise_False_NoStructure");
+    bool ok = !pvaRecord.Initialise(cdb);
+    return ok;
+}
+
+bool EPICSPVARecordTest::TestInitialise_False_InvalidType() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.C");
+    cdb.Write("Type", "uint4");
+    cdb.Write("NumberOfElements", 1);
+    cdb.MoveToRoot();
+    EPICSPVARecord pvaRecord;
+    pvaRecord.SetName("EPICSPVARecordTestTestInitialise_False_InvalidType");
+    bool ok = pvaRecord.Initialise(cdb);
+    if (ok) {
+        ok = (pvaRecord.CreatePVRecord() ? false : true);
+    }
+    return ok;
+}
+

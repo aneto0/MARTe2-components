@@ -227,6 +227,9 @@ bool EPICSPVADatabaseTest::TestExecute() {
             "                       Type = float32"
             "                       NumberOfElements = 10"
             "                   }"
+            "                   ElementB3 = {"
+            "                       Type = uint32"
+            "                   }"
             "               }"
             "            }"
             "        }"
@@ -278,19 +281,29 @@ bool EPICSPVADatabaseTest::TestExecute() {
         pvac::ClientChannel channel(provider.connect("Record2"));
         float32 value = 9;
 
-        channel.put().set("Element1.value", value).exec();
+        channel.put().set("Element1", value).exec();
         epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();
-        std::shared_ptr<const epics::pvData::PVDouble> rvalue = getStruct->getSubField<epics::pvData::PVDouble>("Element1.value");
+        std::shared_ptr<const epics::pvData::PVDouble> rvalue = getStruct->getSubField<epics::pvData::PVDouble>("Element1");
         ok = (rvalue ? true : false);
         if (ok) {
             ok = (rvalue->get() == value);
         }
-        //provider.disconnect("Record2");
+    }
+    if (ok) {
+        pvac::ClientChannel channel(provider.connect("Record1"));
+        uint32 value = 99;
+
+        channel.put().set("value.ElementsB.ElementB3", value).exec();
+        epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();
+        std::shared_ptr<const epics::pvData::PVUInt> rvalue = getStruct->getSubField<epics::pvData::PVUInt>("value.ElementsB.ElementB3");
+        ok = (rvalue ? true : false);
+        if (ok) {
+            ok = (rvalue->get() == value);
+        }
     }
     ord->Purge();
     return ok;
 }
-
 
 bool EPICSPVADatabaseTest::TestExecute_Array() {
     using namespace MARTe;
@@ -365,9 +378,6 @@ bool EPICSPVADatabaseTest::TestExecute_Array() {
         ok = (pvDatabase->GetServerContext() ? true : false);
     }
     pvac::ClientProvider provider("pva");
-    ok = false;
-    //If I do this, it will not allow me to restart the EPICSPVADatabase on the same GTest context.
-#if 0
     {
         pvac::ClientChannel channel(provider.connect("Record1"));
 
@@ -379,10 +389,10 @@ bool EPICSPVADatabaseTest::TestExecute_Array() {
             out[n] = n + 1;
         }
         epics::pvData::shared_vector<const uint32> outF = freeze(out);
-        channel.put().set("value.Element1.value", outF).exec();
+        channel.put().set("value.Element1", outF).exec();
         if (ok) {
             epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();
-            std::shared_ptr<const epics::pvData::PVUIntArray> rvalue = getStruct->getSubField<epics::pvData::PVUIntArray>("value.Element1.value");
+            std::shared_ptr<const epics::pvData::PVUIntArray> rvalue = getStruct->getSubField<epics::pvData::PVUIntArray>("value.Element1");
             epics::pvData::shared_vector<const uint32> out;
             out.resize(numberOfElements);
             rvalue->getAs<uint32>(out);
@@ -391,8 +401,6 @@ bool EPICSPVADatabaseTest::TestExecute_Array() {
             }
         }
     }
-#endif
-
     ord->Purge();
     return ok;
 }

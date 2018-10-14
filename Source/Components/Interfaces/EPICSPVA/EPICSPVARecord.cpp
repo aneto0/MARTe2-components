@@ -44,7 +44,7 @@ class epicsShareClass MARTe2PVARecord: public epics::pvDatabase::PVRecord {
 public:
     //POINTER_DEFINITIONS(MARTe2PVARecord);
     MARTe2PVARecord(std::string const & recordName, epics::pvData::PVStructurePtr const & pvStructure) :
-        epics::pvDatabase::PVRecord(recordName, pvStructure) {
+            epics::pvDatabase::PVRecord(recordName, pvStructure) {
     }
 
     void initPvt() {
@@ -59,7 +59,7 @@ public:
 namespace MARTe {
 
 EPICSPVARecord::EPICSPVARecord() :
-            Object() {
+        Object() {
 
 }
 
@@ -185,10 +185,10 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
             uint32 numberOfElements = 1u;
             (void) cdb.Read("NumberOfElements", numberOfElements);
             if (numberOfElements > 1u) {
-                fieldBuilder = fieldBuilder->addBoundedArray("value", epicsType, numberOfElements);
+                fieldBuilder = fieldBuilder->addBoundedArray(cdb.GetName(), epicsType, numberOfElements);
             }
             else {
-                fieldBuilder = fieldBuilder->add("value", epicsType);
+                fieldBuilder = fieldBuilder->add(cdb.GetName(), epicsType);
             }
         }
     }
@@ -196,10 +196,16 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
         for (i = 0u; (i < nOfChildren) && (ok); i++) {
             const char8 * const nodeName = cdb.GetChildName(i);
             if (cdb.MoveRelative(nodeName)) {
-                fieldBuilder = fieldBuilder->addNestedStructure(nodeName);
+                StreamString typeStr;
+                bool hasType = (cdb.Read("Type", typeStr));
+                if (!hasType) {
+                    fieldBuilder = fieldBuilder->addNestedStructure(nodeName);
+                }
                 ok = GetEPICSStructure(fieldBuilder);
                 cdb.MoveToAncestor(1);
-                fieldBuilder = fieldBuilder->endNested();
+                if (!hasType) {
+                    fieldBuilder = fieldBuilder->endNested();
+                }
             }
         }
     }
@@ -230,7 +236,7 @@ epics::pvDatabase::PVRecordPtr EPICSPVARecord::CreatePVRecord() {
     if (ok) {
         epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
         pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
-        pvRecordWrapper = std::shared_ptr<MARTe2PVARecord>(new MARTe2PVARecord(GetName(), pvStructure));
+        pvRecordWrapper = std::shared_ptr < MARTe2PVARecord > (new MARTe2PVARecord(GetName(), pvStructure));
         pvRecordWrapper->initPvt();
     }
     if (ok) {
@@ -241,7 +247,6 @@ epics::pvDatabase::PVRecordPtr EPICSPVARecord::CreatePVRecord() {
             ok = InitEPICSStructure(cdb);
         }
     }
-    std::cout << pvStructure << std::endl;
     return pvRecordWrapper;
 
 }

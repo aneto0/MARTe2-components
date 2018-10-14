@@ -1,7 +1,7 @@
 /**
- * @file EPICSPVAMessageIGTest.cpp
- * @brief Source file for class EPICSPVAMessageIGTest
- * @date 07/09/2018
+ * @file EPICSPVARecordGTest.cpp
+ * @brief Source file for class EPICSPVARecordGTest
+ * @date 13/10/2018
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class EPICSPVAMessageIGTest (public, protected, and private). Be aware that some 
+ * the class EPICSPVARecordGTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -30,7 +30,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "EPICSPVAMessageITest.h"
+#include "EPICSPVARecordTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -39,14 +39,27 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-TEST(EPICSPVAMessageIGTest,TestConstructor) {
-    EPICSPVAMessageITest test;
+TEST(EPICSPVARecordGTest,TestConstructor) {
+    EPICSPVARecordTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(EPICSPVAMessageIGTest,TestConsumeMessage) {
-    EPICSPVAMessageITest test;
-    ASSERT_TRUE(test.Testrequest());
+TEST(EPICSPVARecordGTest,TestCreatePVRecord) {
+    EPICSPVARecordTest test;
+    ASSERT_TRUE(test.TestCreatePVRecord());
 }
 
-	
+TEST(EPICSPVARecordGTest,TestInitialise) {
+    EPICSPVARecordTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(EPICSPVARecordGTest,TestInitialise_False_NoStructure) {
+    EPICSPVARecordTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoStructure());
+}
+
+TEST(EPICSPVARecordGTest,TestInitialise_False_InvalidType) {
+    EPICSPVARecordTest test;
+    ASSERT_TRUE(test.TestInitialise_False_InvalidType());
+}

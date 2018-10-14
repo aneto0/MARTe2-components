@@ -41,55 +41,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-//TODO PORT INTO core!
-namespace ccs {
-
-namespace HelperTools {
-
-// Global variables
-
-static MARTe::uint32 __table[256];
-static bool __table_init = false;
-
-// Function declaration
-
-/**
- * @brief CRC operation
- * @detail This method implements a cyclic redundancy check on a sized byte array.
- * @return The CRC over the sized array.
- */
-
-template<typename Type> inline void CyclicRedundancyCheck(const MARTe::uint8* buffer, const MARTe::uint32 size, Type &chksum);
-
-// Function definition
-
-template<> inline void CyclicRedundancyCheck(const MARTe::uint8* buffer, const MARTe::uint32 size, MARTe::uint32 &chksum) {
-    using namespace MARTe;
-    if (__builtin_expect((__table_init == false), 0)) {
-        for (uint32 table_index = 0u; table_index < 256u; table_index += 1u) {
-            uint32 seed = (uint32) table_index;
-
-            for (uint32 bit_index = 0u; bit_index < 8u; bit_index += 1u) {
-                if (seed & 1)
-                    seed = 0xedb88320L ^ (seed >> 1);
-                else
-                    seed = seed >> 1;
-            }
-
-            __table[table_index] = seed;
-        }
-
-        __table_init = true;
-    }
-
-    for (uint32 index = 0u; index < size; index += 1u) {
-        chksum = __table[(chksum ^ buffer[index]) & 0xff] ^ (chksum >> 8);
-    }
-}
-
-} // namespace HelperTools
-
-} // namespace ccs
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -100,6 +51,9 @@ EPICSPVA2V3Service::EPICSPVA2V3Service() :
         EPICSRPCService(), ReferenceContainer(), MessageI() {
     ReferenceContainer::AddBuildToken('_');
     seed = 0LLU;
+    polynomial = 0x0u;
+    crcInitialValue = 0x0u;
+    crcFinalXOR = 0x0u;
 }
 
 EPICSPVA2V3Service::~EPICSPVA2V3Service() {
@@ -113,7 +67,34 @@ bool EPICSPVA2V3Service::Initialise(StructuredDataI &data) {
         caClient = ReferenceT<EPICSCAClient>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
         ok = Insert(caClient);
     }
-
+    if (ok) {
+        ok = data.Read("Polynomial", polynomial);
+        if (ok) {
+            REPORT_ERROR(ErrorManagement::Information, "Going to use polynomial 0x%x for CRC computations", polynomial);
+            crc.ComputeTable(polynomial);
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The CRC Polynomial shall be specified");
+        }
+    }
+    if (ok) {
+        ok = data.Read("CRCInitialValue", crcInitialValue);
+        if (ok) {
+            REPORT_ERROR(ErrorManagement::Information, "Going to use the following CRC initial value 0x%x", crcInitialValue);
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The CRCInitialValue shall be specified");
+        }
+    }
+    if (ok) {
+        ok = data.Read("CRCFinalXOR", crcFinalXOR);
+        if (ok) {
+            REPORT_ERROR(ErrorManagement::Information, "Going to use the following CRC final value 0x%x", crcFinalXOR);
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The CRCFinalXOR shall be specified");
+        }
+    }
     //Add all the PVs to the caClient
     if (ok) {
         structureContainer = Find("Structure");
@@ -302,8 +283,7 @@ bool EPICSPVA2V3Service::ComputeCRC(StructuredDataI &pvStruct, StreamString curr
                     ok = pvStruct.Read(pvStruct.GetChildName(n), pv3AnyType);
                 }
                 if (ok) {
-                    ccs::HelperTools::CyclicRedundancyCheck(reinterpret_cast<uint8 *>(pv3AnyType.GetDataPointer()), pvNode->GetMemorySize(), chksum);
-                    //ok = (pvNode->CAPutRaw() == ErrorManagement::NoError);
+                    chksum = crc.Compute(reinterpret_cast<uint8 *>(pv3AnyType.GetDataPointer()), pvNode->GetMemorySize(), chksum, false);
                 }
             }
             else {
@@ -339,13 +319,12 @@ epics::pvData::PVStructurePtr EPICSPVA2V3Service::request(epics::pvData::PVStruc
             uint32 clientHash;
             ok = config.Read("hash", clientHash);
             if (ok) {
-                uint32 hash = 0xfffffffful;
-                ccs::HelperTools::CyclicRedundancyCheck(reinterpret_cast<uint8 *>(&seed), sizeof(uint32), hash);
+                uint32 hash = crc.Compute(reinterpret_cast<uint8 *>(&seed), sizeof(uint32), crcInitialValue, false);
                 ok = config.MoveRelative("value");
                 if (ok) {
                     ok = ComputeCRC(config, "", hash, true);
                     if (ok) {
-                        hash = hash ^ 0xfffffffful;
+                        hash = hash ^ crcFinalXOR;
                         REPORT_ERROR(ErrorManagement::Debug, "Computed hash: %d", hash);
                     }
                 }

@@ -1283,7 +1283,7 @@ bool EPICSPVAStructureDataITest::TestMoveToChild() {
         ok = test.MoveToRoot();
     }
     if (ok) {
-        ok = test.MoveToChild(5u);
+        ok = !test.MoveToChild(5u);
     }
     if (ok) {
         ok = test.MoveToChild(1u);

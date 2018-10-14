@@ -32,6 +32,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "CRC.h"
 #include "EPICSCAClient.h"
 #include "EPICSPVAStructureDataI.h"
 #include "EPICSRPCService.h"
@@ -66,7 +67,7 @@ public:
     /**
      * @brief Constructor. NOOP.
      */
-    EPICSPVA2V3Service();
+EPICSPVA2V3Service    ();
 
     /**
      * @brief Destructor. NOOP.
@@ -113,6 +114,26 @@ private:
      * @brief TODO
      */
     uint32 seed;
+
+    /**
+     * @brief CRC calculator
+     */
+    CRC<uint32> crc;
+
+    /**
+     * The CRC polynomial
+     */
+    uint32 polynomial;
+
+    /**
+     * The CRC initial value
+     */
+    uint32 crcInitialValue;
+
+    /**
+     * The final XOR value.
+     */
+    uint32 crcFinalXOR;
 };
 }
 /*---------------------------------------------------------------------------*/

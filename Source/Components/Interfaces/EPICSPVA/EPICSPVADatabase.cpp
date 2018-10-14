@@ -65,8 +65,6 @@ EPICSPVADatabase::~EPICSPVADatabase() {
 }
 
 void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
-    //Not sure if this is needed.
-#if 0
     if (master) {
         uint32 n;
         uint32 nElements = Size();
@@ -86,7 +84,6 @@ void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
             }
         }
     }
-#endif
     if (serverContext) {
         serverContext->shutdown();
     }
