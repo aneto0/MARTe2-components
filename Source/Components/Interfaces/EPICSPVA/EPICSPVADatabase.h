@@ -154,6 +154,7 @@ public:
      * @brief If the Stop was to be called from the destructor the Size() would already be == 0 and as consequence it would not
      * be possible to clean the EPICS resources when the state is BadTerminationStage
      * @details See ReferenceContainer::Purge
+     * @param[in] purgeList See ReferenceContainer::Purge
      */
     virtual void Purge(ReferenceContainer &purgeList);
 

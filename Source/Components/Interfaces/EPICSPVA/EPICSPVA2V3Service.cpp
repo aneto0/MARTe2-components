@@ -149,6 +149,50 @@ bool EPICSPVA2V3Service::RegisterPVs(ReferenceT<ReferenceContainer> rc, Referenc
     return ok;
 }
 
+bool EPICSPVA2V3Service::HandleLeaf(StreamString leafName, StructuredDataI &pvStruct, uint32 n, ReferenceT<EPICSPV> &pvNode, AnyType &pv3AnyType) {
+    //Check if there was a node defined with this name in the configured structure
+    pvNode = structureContainer->Find(leafName.Buffer());
+    bool ok = pvNode.IsValid();
+    if (ok) {
+        //Check if the type matches
+        AnyType pvaAnyType = pvStruct.GetType(pvStruct.GetChildName(n));
+        ok = (pvaAnyType.GetTypeDescriptor() == pv3AnyType.GetTypeDescriptor());
+        if (!ok) {
+            StreamString advertisedType = TypeDescriptor::GetTypeNameFromTypeDescriptor(pv3AnyType.GetTypeDescriptor());
+            StreamString receivedType = TypeDescriptor::GetTypeNameFromTypeDescriptor(pvaAnyType.GetTypeDescriptor());
+            REPORT_ERROR(ErrorManagement::CommunicationError, "Type mismatch between the advertised type (%s) and the received type (%s)", advertisedType.Buffer(), receivedType.Buffer());
+        }
+        if (ok) {
+            ok = (pvaAnyType.GetNumberOfDimensions() == pv3AnyType.GetNumberOfDimensions());
+            if (!ok) {
+                uint32 advertisedDims = pv3AnyType.GetNumberOfDimensions();
+                uint32 receivedDims = pvaAnyType.GetNumberOfDimensions();
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Dimensions mismatch between the advertised number (%d) and the received number (%d)", advertisedDims, receivedDims);
+            }
+        }
+        if (ok) {
+            uint32 j;
+            for (j = 0u; (j < pvaAnyType.GetNumberOfDimensions()) && (ok); j++) {
+                ok = (pvaAnyType.GetNumberOfElements(j) == pv3AnyType.GetNumberOfElements(j));
+                if (!ok) {
+                    uint32 advertisedElements = pv3AnyType.GetNumberOfElements(j);
+                    uint32 receivedElements = pvaAnyType.GetNumberOfElements(j);
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Number of elements mismatch in direction %d between the advertised number (%d) and the received number (%d)", advertisedElements,
+                                 receivedElements);
+                }
+            }
+        }
+        if (ok) {
+            ok = pvStruct.Read(pvStruct.GetChildName(n), pv3AnyType);
+        }
+
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::CommunicationError, "Node with name %s not found in the advertised structure", leafName.Buffer());
+    }
+    return ok;
+}
+
 bool EPICSPVA2V3Service::CAPutAll(StructuredDataI &pvStruct, StreamString currentNodeName, bool ignoreRootName) {
     bool ok = true;
     uint32 nChilds = pvStruct.GetNumberOfChildren();
@@ -172,49 +216,11 @@ bool EPICSPVA2V3Service::CAPutAll(StructuredDataI &pvStruct, StreamString curren
             StreamString leafName = currentNodeName;
             leafName += ".";
             leafName += pvStruct.GetChildName(n);
-            //Check if there was a node defined with this name in the configured structure
-            ReferenceT<EPICSPV> pvNode = structureContainer->Find(leafName.Buffer());
-            ok = pvNode.IsValid();
+            ReferenceT<EPICSPV> pvNode;
+            AnyType pv3AnyType;
+            ok = HandleLeaf(leafName, pvStruct, n, pvNode, pv3AnyType);
             if (ok) {
-                //Check if the type matches
-                AnyType pvaAnyType = pvStruct.GetType(pvStruct.GetChildName(n));
-                AnyType pv3AnyType = pvNode->GetAnyType();
-
-                ok = (pvaAnyType.GetTypeDescriptor() == pv3AnyType.GetTypeDescriptor());
-                if (!ok) {
-                    StreamString advertisedType = TypeDescriptor::GetTypeNameFromTypeDescriptor(pv3AnyType.GetTypeDescriptor());
-                    StreamString receivedType = TypeDescriptor::GetTypeNameFromTypeDescriptor(pvaAnyType.GetTypeDescriptor());
-                    REPORT_ERROR(ErrorManagement::CommunicationError, "Type mismatch between the advertised type (%s) and the received type (%s)", advertisedType.Buffer(), receivedType.Buffer());
-                }
-                if (ok) {
-                    ok = (pvaAnyType.GetNumberOfDimensions() == pv3AnyType.GetNumberOfDimensions());
-                    if (!ok) {
-                        uint32 advertisedDims = pv3AnyType.GetNumberOfDimensions();
-                        uint32 receivedDims = pvaAnyType.GetNumberOfDimensions();
-                        REPORT_ERROR(ErrorManagement::CommunicationError, "Dimensions mismatch between the advertised number (%d) and the received number (%d)", advertisedDims, receivedDims);
-                    }
-                }
-                if (ok) {
-                    uint32 j;
-                    for (j = 0u; (j < pvaAnyType.GetNumberOfDimensions()) && (ok); j++) {
-                        ok = (pvaAnyType.GetNumberOfElements(j) == pv3AnyType.GetNumberOfElements(j));
-                        if (!ok) {
-                            uint32 advertisedElements = pv3AnyType.GetNumberOfElements(j);
-                            uint32 receivedElements = pvaAnyType.GetNumberOfElements(j);
-                            REPORT_ERROR(ErrorManagement::CommunicationError, "Number of elements mismatch in direction %d between the advertised number (%d) and the received number (%d)",
-                                         advertisedElements, receivedElements);
-                        }
-                    }
-                }
-                if (ok) {
-                    ok = pvStruct.Read(pvStruct.GetChildName(n), pv3AnyType);
-                }
-                if (ok) {
-                    ok = (pvNode->CAPutRaw() == ErrorManagement::NoError);
-                }
-            }
-            else {
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Node with name %s not found in the advertised structure", leafName.Buffer());
+                ok = (pvNode->CAPutRaw() == ErrorManagement::NoError);
             }
         }
     }
@@ -245,49 +251,11 @@ bool EPICSPVA2V3Service::ComputeCRC(StructuredDataI &pvStruct, StreamString curr
             StreamString leafName = currentNodeName;
             leafName += ".";
             leafName += pvStruct.GetChildName(n);
-            //Check if there was a node defined with this name in the configured structure
-            ReferenceT<EPICSPV> pvNode = structureContainer->Find(leafName.Buffer());
-            ok = pvNode.IsValid();
+            ReferenceT<EPICSPV> pvNode;
+            AnyType pv3AnyType;
+            ok = HandleLeaf(leafName, pvStruct, n, pvNode, pv3AnyType);
             if (ok) {
-                //Check if the type matches
-                AnyType pvaAnyType = pvStruct.GetType(pvStruct.GetChildName(n));
-                AnyType pv3AnyType = pvNode->GetAnyType();
-
-                ok = (pvaAnyType.GetTypeDescriptor() == pv3AnyType.GetTypeDescriptor());
-                if (!ok) {
-                    StreamString advertisedType = TypeDescriptor::GetTypeNameFromTypeDescriptor(pv3AnyType.GetTypeDescriptor());
-                    StreamString receivedType = TypeDescriptor::GetTypeNameFromTypeDescriptor(pvaAnyType.GetTypeDescriptor());
-                    REPORT_ERROR(ErrorManagement::CommunicationError, "Type mismatch between the advertised type (%s) and the received type (%s)", advertisedType.Buffer(), receivedType.Buffer());
-                }
-                if (ok) {
-                    ok = (pvaAnyType.GetNumberOfDimensions() == pv3AnyType.GetNumberOfDimensions());
-                    if (!ok) {
-                        uint32 advertisedDims = pv3AnyType.GetNumberOfDimensions();
-                        uint32 receivedDims = pvaAnyType.GetNumberOfDimensions();
-                        REPORT_ERROR(ErrorManagement::CommunicationError, "Dimensions mismatch between the advertised number (%d) and the received number (%d)", advertisedDims, receivedDims);
-                    }
-                }
-                if (ok) {
-                    uint32 j;
-                    for (j = 0u; (j < pvaAnyType.GetNumberOfDimensions()) && (ok); j++) {
-                        ok = (pvaAnyType.GetNumberOfElements(j) == pv3AnyType.GetNumberOfElements(j));
-                        if (!ok) {
-                            uint32 advertisedElements = pv3AnyType.GetNumberOfElements(j);
-                            uint32 receivedElements = pvaAnyType.GetNumberOfElements(j);
-                            REPORT_ERROR(ErrorManagement::CommunicationError, "Number of elements mismatch in direction %d between the advertised number (%d) and the received number (%d)",
-                                         advertisedElements, receivedElements);
-                        }
-                    }
-                }
-                if (ok) {
-                    ok = pvStruct.Read(pvStruct.GetChildName(n), pv3AnyType);
-                }
-                if (ok) {
-                    chksum = crc.Compute(reinterpret_cast<uint8 *>(pv3AnyType.GetDataPointer()), pvNode->GetMemorySize(), chksum, false);
-                }
-            }
-            else {
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Node with name %s not found in the advertised structure", leafName.Buffer());
+                chksum = crc.Compute(reinterpret_cast<uint8 *>(pv3AnyType.GetDataPointer()), pvNode->GetMemorySize(), chksum, false);
             }
         }
     }
@@ -361,8 +329,14 @@ epics::pvData::PVStructurePtr EPICSPVA2V3Service::request(epics::pvData::PVStruc
     replyStructuredDataI.FinaliseStructure();
     reply = replyStructuredDataI.GetRootStruct();
 
-    std::cout << reply << std::endl;
     return reply;
 }
+
+void EPICSPVA2V3Service::Purge(ReferenceContainer &purgeList) {
+    structureContainer = ReferenceT<ReferenceContainer>();
+    ReferenceContainer::Purge(purgeList);
+}
+
+
 CLASS_REGISTER(EPICSPVA2V3Service, "1.0")
 }

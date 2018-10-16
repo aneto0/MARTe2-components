@@ -42,6 +42,7 @@
 /*---------------------------------------------------------------------------*/
 /**
  * @brief Query the contents of the ObjectRegistryDatabase using an epics::pvAccess::RPCService.
+ *
  * @details To be used with an EPICSRPCServer.
  *
  * The configuration syntax is  (names are only given as an example):
