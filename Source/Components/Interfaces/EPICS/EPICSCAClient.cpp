@@ -60,7 +60,7 @@ void EPICSCAClientEventCallback(struct event_handler_args const args) {
                 if (pvEvent.IsValid()) {
                     found = (pvEvent->GetPVChid() == args.chid);
                     if (found) {
-                        pvEvent->HandlePVEvent(args.dbr);
+                        pvEvent->HandlePVEvent(args);
                     }
                 }
             }

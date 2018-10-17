@@ -1,0 +1,21 @@
+record( ai, "MARTE2::EPICSPVA2V3::TEST::VALUE1")
+{
+   field(DTYP, "Soft Channel")
+}
+
+record( ai, "MARTE2::EPICSPVA2V3::TEST::VALUE2")
+{
+   field(DTYP, "Soft Channel")
+}
+
+record( ai, "MARTE2::EPICSPVA2V3::TEST::VALUE3")
+{
+   field(DTYP, "Soft Channel")
+}
+
+record( waveform, "MARTE2::EPICSPVA2V3::TEST::VALUE4ARR")
+{
+   field(DTYP, "Soft Channel")
+   field(NELM, 5)
+   field(FTVL, "LONG")
+}

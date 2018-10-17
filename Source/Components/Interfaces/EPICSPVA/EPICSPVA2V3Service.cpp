@@ -149,11 +149,12 @@ bool EPICSPVA2V3Service::RegisterPVs(ReferenceT<ReferenceContainer> rc, Referenc
     return ok;
 }
 
-bool EPICSPVA2V3Service::HandleLeaf(StreamString leafName, StructuredDataI &pvStruct, uint32 n, ReferenceT<EPICSPV> &pvNode, AnyType &pv3AnyType) {
+bool EPICSPVA2V3Service::HandleLeaf(StreamString leafName, StructuredDataI &pvStruct, uint32 n, ReferenceT<EPICSPV> &pvNode) {
     //Check if there was a node defined with this name in the configured structure
     pvNode = structureContainer->Find(leafName.Buffer());
     bool ok = pvNode.IsValid();
     if (ok) {
+        AnyType pv3AnyType = pvNode->GetAnyType();
         //Check if the type matches
         AnyType pvaAnyType = pvStruct.GetType(pvStruct.GetChildName(n));
         ok = (pvaAnyType.GetTypeDescriptor() == pv3AnyType.GetTypeDescriptor());
@@ -214,11 +215,12 @@ bool EPICSPVA2V3Service::CAPutAll(StructuredDataI &pvStruct, StreamString curren
         else {
             //We are at a leaf!
             StreamString leafName = currentNodeName;
-            leafName += ".";
+            if (leafName.Size() > 0u) {
+                leafName += ".";
+            }
             leafName += pvStruct.GetChildName(n);
             ReferenceT<EPICSPV> pvNode;
-            AnyType pv3AnyType;
-            ok = HandleLeaf(leafName, pvStruct, n, pvNode, pv3AnyType);
+            ok = HandleLeaf(leafName, pvStruct, n, pvNode);
             if (ok) {
                 ok = (pvNode->CAPutRaw() == ErrorManagement::NoError);
             }
@@ -249,12 +251,14 @@ bool EPICSPVA2V3Service::ComputeCRC(StructuredDataI &pvStruct, StreamString curr
         else {
             //We are at a leaf!
             StreamString leafName = currentNodeName;
-            leafName += ".";
+            if (leafName.Size() > 0u) {
+                leafName += ".";
+            }
             leafName += pvStruct.GetChildName(n);
             ReferenceT<EPICSPV> pvNode;
-            AnyType pv3AnyType;
-            ok = HandleLeaf(leafName, pvStruct, n, pvNode, pv3AnyType);
+            ok = HandleLeaf(leafName, pvStruct, n, pvNode);
             if (ok) {
+                AnyType pv3AnyType = pvNode->GetAnyType();
                 chksum = crc.Compute(reinterpret_cast<uint8 *>(pv3AnyType.GetDataPointer()), pvNode->GetMemorySize(), chksum, false);
             }
         }
@@ -328,7 +332,7 @@ epics::pvData::PVStructurePtr EPICSPVA2V3Service::request(epics::pvData::PVStruc
     replyStructuredDataI.Write("status", ok);
     replyStructuredDataI.FinaliseStructure();
     reply = replyStructuredDataI.GetRootStruct();
-
+    std::cout << "Replying << " << reply << std::endl;
     return reply;
 }
 

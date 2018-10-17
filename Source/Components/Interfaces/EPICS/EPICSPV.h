@@ -111,9 +111,9 @@ EPICSPV    ();
      * @brief Triggered when this PV value changes.
      * @details The value of the PV will set to the \a dbr value. If the Event section (see class description) was defined
      * it will trigger the sending of a Message.
-     * @param[in] dbr the new PV value.
+     * @param[in] args the new PV value.
      */
-    void HandlePVEvent(const void *dbr);
+    void HandlePVEvent(struct event_handler_args const args);
 
     /**
      * @brief Gets the name of the PV.
@@ -330,6 +330,11 @@ private:
      * The total memory size
      */
     uint32 memorySize;
+
+    /**
+     * The type size
+     */
+    uint32 typeSize;
 
     /**
      * The number of elements to set

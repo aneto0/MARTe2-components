@@ -58,7 +58,7 @@ record( waveform, "MARTe2::EPICSCA::Test::uint32Arr")
 {
    field(DTYP, "Soft Channel")
    field(NELM, 10)
-   field(FTVL, "LONG")
+   field(FTVL, "ULONG")
 }
 
 record( waveform, "MARTe2::EPICSCA::Test::float32Arr")

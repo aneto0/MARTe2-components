@@ -708,9 +708,12 @@ bool EPICSPVTest::TestHandlePVEvent_Function_NoParameter() {
     }
     if (ok) {
         const char8 * const value = "HandleNoParameter";
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(value));
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(value);
+        args.count = 1;
+        aPV->HandlePVEvent(args);
         //Call twice to trigger change
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(value));
+        aPV->HandlePVEvent(args);
         ok = (anObject->noParameterFunctionCalled);
     }
     ord->Purge();
@@ -755,9 +758,12 @@ bool EPICSPVTest::TestHandlePVEvent_Function_NoParameter_False() {
     }
     if (ok) {
         const char8 * const value = "HandleNoParameter";
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(value));
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(value);
+        args.count = 1;
+        aPV->HandlePVEvent(args);
         //Call twice to trigger change
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(value));
+        aPV->HandlePVEvent(args);
         ok = !(anObject->noParameterFunctionCalled);
     }
     ord->Purge();
@@ -803,9 +809,12 @@ bool EPICSPVTest::TestHandlePVEvent_FunctionMap() {
     }
     if (ok) {
         uint32 value = 7;
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&value));
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(&value);
+        args.count = 1;
+        aPV->HandlePVEvent(args);
         //Call twice to trigger change
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&value));
+        aPV->HandlePVEvent(args);
         ok = (anObject->noParameterFunctionCalled);
     }
     ord->Purge();
@@ -852,9 +861,12 @@ bool EPICSPVTest::TestHandlePVEvent_FunctionMap_NoKey() {
     }
     if (ok) {
         uint32 value = 6;
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&value));
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(&value);
+        args.count = 1;
+        aPV->HandlePVEvent(args);
         //Call twice to trigger change
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&value));
+        aPV->HandlePVEvent(args);
         ok = !(anObject->noParameterFunctionCalled);
     }
     ord->Purge();
@@ -943,9 +955,12 @@ bool EPICSPVTest::TestHandlePVEvent_Function_Parameter_String() {
     }
     if (ok) {
         StreamString value = "OK!";
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(value.Buffer()));
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(value.Buffer());
+        args.count = 1;
+        aPV->HandlePVEvent(args);
         //Call twice to trigger change
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(value.Buffer()));
+        aPV->HandlePVEvent(args);
         ok = (anObject->stringValue == value);
     }
     ord->Purge();
@@ -996,9 +1011,12 @@ bool EPICSPVTest::TestHandlePVEvent_Function_Parameter_Array() {
         for (n = 0u; n < 10; n++) {
             vec[n] = n;
         }
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&vec[0]));
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(&vec[0]);
+        args.count = 10;
+        aPV->HandlePVEvent(args);
         //Call twice to trigger change
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&vec[0]));
+        aPV->HandlePVEvent(args);
         for (n = 0u; (n < 10) && (ok); n++) {
             ok = (anObject->int32Arr[n] == vec[n]);
         }
@@ -1054,12 +1072,17 @@ bool EPICSPVTest::TestHandlePVEvent_Function_Parameter_String_Array() {
             vec[n * 40u] = ('0' + n);
             vec[n * 40u + 1] = '\0';
         }
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&vec[0]));
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(&vec[0]);
+        args.count = 10;
+        aPV->HandlePVEvent(args);
+
         //Call twice to trigger change
         for (n = 0u; n < 10; n++) {
             anObject->strArr[n] = "";
         }
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&vec[0]));
+        //Call twice to trigger change
+        aPV->HandlePVEvent(args);
         for (n = 0u; (n < 10) && (ok); n++) {
             StreamString test;
             test.Printf("%d", n);
@@ -1110,9 +1133,12 @@ bool EPICSPVTest::TestHandlePVEvent_Function_ParameterName_Int() {
     }
     if (ok) {
         int32 value = 7;
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&value));
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(&value);
+        args.count = 1;
+        aPV->HandlePVEvent(args);
         //Call twice to trigger change
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&value));
+        aPV->HandlePVEvent(args);
         ok = (anObject->int32Value == value);
         if (ok) {
             ok = (anObject->parameterName == "PV_1");
@@ -1161,9 +1187,12 @@ bool EPICSPVTest::TestHandlePVEvent_Function_Ignore() {
     }
     if (ok) {
         int32 value = 7;
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&value));
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(&value);
+        args.count = 1;
+        aPV->HandlePVEvent(args);
         //Call twice to trigger change
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&value));
+        aPV->HandlePVEvent(args);
         ok = (anObject->noParameterFunctionCalled);
     }
     ord->Purge();

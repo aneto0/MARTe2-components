@@ -908,9 +908,12 @@ bool EPICSPVTest::TestHandlePVEvent_Function_Parameter(T testValue) {
         ok = anObject.IsValid();
     }
     if (ok) {
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&testValue));
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(&testValue);
+        args.count = 1;
+        aPV->HandlePVEvent(args);
         //Call twice to trigger change
-        aPV->HandlePVEvent(reinterpret_cast<const void *>(&testValue));
+        aPV->HandlePVEvent(args);
         ok = (anObject->TestValue(testValue));
     }
     ord->Purge();

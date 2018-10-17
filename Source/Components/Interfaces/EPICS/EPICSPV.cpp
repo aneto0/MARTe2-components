@@ -60,6 +60,7 @@ EPICSPV::EPICSPV() :
     functionMap[1u] = NULL_PTR(StreamString *);
     pvMemory = NULL_PTR(void *);
     memorySize = 0u;
+    typeSize = 0u;
 
     ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -117,8 +118,8 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
         }
         if (ok) {
             pvTypeDesc = TypeDescriptor::GetTypeDescriptorFromTypeName(pvTypeStr.Buffer());
-            memorySize = (static_cast<uint32>(pvTypeDesc.numberOfBits) / 8u);
-            memorySize *= numberOfElements;
+            typeSize = (static_cast<uint32>(pvTypeDesc.numberOfBits) / 8u);
+            memorySize = (typeSize * numberOfElements);
             if (pvTypeDesc == SignedInteger16Bit) {
                 pvType = DBR_SHORT;
             }
@@ -353,7 +354,8 @@ ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
     return err;
 }
 
-void EPICSPV::HandlePVEvent(const void * const dbr) {
+void EPICSPV::HandlePVEvent(struct event_handler_args const args) {
+    const void * const dbr = args.dbr;
     if (dbr != NULL_PTR(const void *)) {
         if (pvMemory != NULL_PTR(char8 *)) {
             if (pvAnyType.GetTypeDescriptor().type == SString) {
@@ -362,7 +364,7 @@ void EPICSPV::HandlePVEvent(const void * const dbr) {
                     //Arrays of strings are encoded as a single buffer of length 40 chars x numberOfDimensions
                     const char8 * tempStr = reinterpret_cast<const char8 *>(dbr);
                     uint32 n;
-                    for (n = 0u; n < numberOfElements; n++) {
+                    for (n = 0u; n < args.count; n++) {
                         uint32 idx = static_cast<uint32>(MAX_STRING_SIZE) * n;
                         str[n] = &tempStr[idx];
                     }
@@ -372,7 +374,8 @@ void EPICSPV::HandlePVEvent(const void * const dbr) {
                 }
             }
             else {
-                (void) MemoryOperationsHelper::Copy(pvMemory, dbr, memorySize);
+                uint32 copySize = (args.count * typeSize);
+                (void) MemoryOperationsHelper::Copy(pvMemory, dbr, copySize);
             }
             if (!(eventMode.notSet.operator bool())) {
                 TriggerEventMessage();

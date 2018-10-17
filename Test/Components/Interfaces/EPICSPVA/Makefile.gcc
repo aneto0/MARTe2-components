@@ -28,6 +28,7 @@
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
 OBJSX = EPICSObjectRegistryDatabaseServiceGTest.x \
+	EPICSPVA2V3ServiceGTest.x \
 	EPICSPVADatabaseGTest.x \
 	EPICSPVAMessageIGTest.x \
 	EPICSPVARecordGTest.x \

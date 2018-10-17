@@ -34,6 +34,7 @@
 /*---------------------------------------------------------------------------*/
 #include "CRC.h"
 #include "EPICSCAClient.h"
+#include "EPICSPV.h"
 #include "EPICSPVAStructureDataI.h"
 #include "EPICSRPCService.h"
 #include "MessageI.h"
@@ -155,10 +156,9 @@ private:
      * @param[in] pvStruct the Structure.
      * @param[in] n the child index of the node currently being handled.
      * @param[out] the pvNode assigned to the leaf.
-     * @param[out] the AnyType assigned to the leaf.
      * @return true if the pvNode and the AnyType were successfully queried.
      */
-    bool HandleLeaf(StreamString leafName, StructuredDataI &pvStruct, uint32 n, ReferenceT<EPICSPV> &pvNode, AnyType &pv3AnyType);
+    bool HandleLeaf(StreamString leafName, StructuredDataI &pvStruct, uint32 n, ReferenceT<EPICSPV> &pvNode);
 
     /**
      * The structure constructed during the initialisation.
