@@ -1797,7 +1797,7 @@ static void NI1588TimestampTestTestDriverRead_PFI(const void * const params) {
     }
     uint32 nReads = 10;
     uint64 store = 0;
-    uint64 storeIn = 0;
+    //uint64 storeIn = 0;
 
     for (uint32 i = 0u; i < nReads && (ret); i++) {
 
@@ -1823,7 +1823,7 @@ static void NI1588TimestampTestTestDriverRead_PFI(const void * const params) {
             ret &= (*event == 1);
         }
         store = *((uint64*) (mem + 72 + (8 * expectedTerminal)));
-        storeIn = *((uint64*) mem);
+        //storeIn = *((uint64*) mem);
     }
     threadTestResult = ret;
     threadDone = true;
@@ -1957,7 +1957,8 @@ static void NI1588TimestampTestTestDriverRead_MoreSamples(const void * const par
     }
     const uint32 nReads = 3;
 
-    uint64 store, storeIn;
+    uint64 store;
+    //uint64 storeIn;
     for (uint32 i = 0u; i < nReads && (ret); i++) {
 
         brokerSync->Execute();
@@ -1976,7 +1977,7 @@ static void NI1588TimestampTestTestDriverRead_MoreSamples(const void * const par
             omem += 8;
         }
 
-        storeIn = *((uint64*) mem);
+        //storeIn = *((uint64*) mem);
     }
     threadTestResult = ret;
     threadDone = true;
@@ -2112,7 +2113,8 @@ static void NI1588TimestampTestTestDriverRead_NoSync(const void * const params) 
         mem = (uint8 *) gam->GetInputMemoryBuffer();
     }
     //uint32 nReads = 50;
-    uint64 store, storeIn;
+    uint64 store;
+    //uint64 storeIn;
 
     uint64 tic = HighResolutionTimer::Counter();
 
@@ -2142,7 +2144,7 @@ static void NI1588TimestampTestTestDriverRead_NoSync(const void * const params) 
             cnt++;
         }
         store = *((uint64*) (mem + 36));
-        storeIn = *((uint64*) mem);
+        //storeIn = *((uint64*) mem);
         Sleep::MSec(1);
     }
     threadTestResult = ret;
@@ -2210,7 +2212,8 @@ static void NI1588TimestampTestTestDriverRead_TimeoutExpired(const void * const 
         mem = (uint8 *) gam->GetInputMemoryBuffer();
     }
     uint32 nReads = 5;
-    uint64 store, storeIn;
+    uint64 store; 
+    //uint64 storeIn;
     for (uint32 i = 0u; i < nReads && (ret); i++) {
 
         brokerSync->Execute();
@@ -2235,7 +2238,7 @@ static void NI1588TimestampTestTestDriverRead_TimeoutExpired(const void * const 
             ret &= (((int64) (delta - expected)) < tol) || (((int64) (delta - expected)) > -tol);
         }
         store = *((uint64*) (mem + 28));
-        storeIn = *((uint64*) mem);
+        //storeIn = *((uint64*) mem);
     }
 
     threadTestResult = ret;
