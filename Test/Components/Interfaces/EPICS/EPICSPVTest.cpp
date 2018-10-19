@@ -61,7 +61,7 @@ bool EPICSPVTest::TestConstructor() {
     ok &= (pv.GetMode().asUint8 == 0u);
     ok &= (pv.GetPVName() == "");
     ok &= (pv.GetPVChid() == 0u);
-    ok &= (pv.GetPVType() == DBR_INT);
+    ok &= (pv.GetPVType() == DBR_LONG);
     ok &= (pv.GetTimeout() == 5.0);
     return ok;
 }
@@ -125,7 +125,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_UInt32() {
     ok &= (pv.GetMode().notSet);
     ok &= (pv.GetPVName() == "PVONEU");
     ok &= (pv.GetPVChid() == 0u);
-    ok &= (pv.GetPVType() == DBR_INT);
+    ok &= (pv.GetPVType() == DBR_LONG);
     ok &= (pv.GetTimeout() == 5.0);
     ok &= (pv.GetAnyType().GetTypeDescriptor() == UnsignedInteger32Bit);
     return ok;
@@ -146,7 +146,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_Int32() {
     ok &= (pv.GetMode().notSet);
     ok &= (pv.GetPVName() == "PVONE");
     ok &= (pv.GetPVChid() == 0u);
-    ok &= (pv.GetPVType() == DBR_INT);
+    ok &= (pv.GetPVType() == DBR_LONG);
     ok &= (pv.GetTimeout() == 5.0);
     ok &= (pv.GetAnyType().GetTypeDescriptor() == SignedInteger32Bit);
     return ok;

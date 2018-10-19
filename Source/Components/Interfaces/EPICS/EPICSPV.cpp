@@ -28,10 +28,10 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "EPICSPV.h"
 
 #include "ConfigurationDatabase.h"
 #include "CLASSMETHODREGISTER.h"
+#include "EPICSPV.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
@@ -50,7 +50,7 @@ EPICSPV::EPICSPV() :
     timeout = 5.0F;
     pvName = "";
     pvChid = NULL_PTR(chid);
-    pvType = DBR_INT;
+    pvType = DBR_LONG;
 
     eventMode.asUint8 = 0u;
     nOfFunctionMaps = 0u;
@@ -127,10 +127,10 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
                 pvType = DBR_SHORT;
             }
             else if (pvTypeDesc == SignedInteger32Bit) {
-                pvType = DBR_INT;
+                pvType = DBR_LONG;
             }
             else if (pvTypeDesc == UnsignedInteger32Bit) {
-                pvType = DBR_INT;
+                pvType = DBR_LONG;
             }
             else if (pvTypeDesc == Float32Bit) {
                 pvType = DBR_FLOAT;

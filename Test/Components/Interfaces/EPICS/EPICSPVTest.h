@@ -594,7 +594,7 @@ public:
             ok = MessageI::SendMessage(msgReply, this);
             if (ok) {
                 ReferenceT<ConfigurationDatabase> replyCDB = msgReply->Get(0);
-                Vector<int16> vecReplyValue(nElements);
+                Vector<T> vecReplyValue(nElements);
                 ok = replyCDB->Read("param1", vecReplyValue);
                 for (n=0u; (n<nElements) && (ok); n++) {
                     ok = (vecReplyValue[n] == testValue[n]);
