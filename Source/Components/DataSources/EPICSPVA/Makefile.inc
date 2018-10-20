@@ -33,15 +33,11 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 ifdef CODAC_ROOT
-PVACCESS = $(EPICS_BASE)
-PVACLIENT = $(EPICS_BASE)
-PVCOMMON = $(EPICS_BASE)
-PVDATA = $(EPICS_BASE)
-PVDATABASE = $(EPICS_BASE)
+PVADIR = $(EPICS_BASE)
 endif
 
 INCLUDES += -I.
-INCLUDES += -I$(PVDATA)/include/
+INCLUDES += -I$(PVADIR)/include/
 INCLUDES += -I$(PVACCESS)/include/
 INCLUDES += -I$(PVCOMMON)/include/
 INCLUDES += -I$(EPICS_BASE)/include/
@@ -59,7 +55,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
-LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVDATA)/lib/$(EPICS_HOST_ARCH)/ -L$(PVACCESS)/lib/$(EPICS_HOST_ARCH)/ -L$(PVACLIENT)/lib/$(EPICS_HOST_ARCH)/ -L$(PVDATABASE)/lib/$(EPICS_HOST_ARCH)/ -lpvaClient -lpvAccess -lpvData -lpvDatabase
+LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVADIR)/lib/$(EPICS_HOST_ARCH)/ -lpvaClient -lpvAccess -lpvData -lpvDatabase
 
 all: $(OBJS)    \
     $(BUILD_DIR)/EPICSPVA$(LIBEXT) \

@@ -38,7 +38,7 @@ SPB    += NI6259.x
 SPB    += NI6368.x
 SPB    += NI9157.x
 SPB    += DAN.x
-PVDATA = $(EPICS_BASE)
+PVADIR = $(EPICS_BASE)
 endif
 
 ifdef MDSPLUS_DIR
@@ -50,7 +50,7 @@ ifdef EPICS_BASE
 SPB   += EPICSCA.x
 endif
 
-ifdef PVDATA
+ifdef PVADIR
 SPB   += EPICSPVA.x
 endif
 
@@ -91,7 +91,7 @@ ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSCA/EPICSCA$(LIBEXT)
 endif
 
-ifdef PVDATA
+ifdef PVADIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVA$(LIBEXT)
 endif
 

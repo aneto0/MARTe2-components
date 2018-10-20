@@ -40,7 +40,7 @@ SPB   += EPICS.x
 endif
 
 ifdef CODAC_ROOT
-PVDATA = $(EPICS_BASE)
+PVADIR = $(EPICS_BASE)
 endif
 
 ifdef PVADIR
