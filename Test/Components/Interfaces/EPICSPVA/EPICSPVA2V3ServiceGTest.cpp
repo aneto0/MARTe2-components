@@ -68,4 +68,23 @@ TEST(EPICSPVA2V3ServiceGTest,Testrequest) {
     EPICSPVA2V3ServiceTest test;
     ASSERT_TRUE(test.Testrequest());
 }
-	
+
+TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_qualifier) {
+    EPICSPVA2V3ServiceTest test;
+    ASSERT_TRUE(test.Testrequest_False_qualifier());
+}
+
+TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_hash) {
+    EPICSPVA2V3ServiceTest test;
+    ASSERT_TRUE(test.Testrequest_False_hash());
+}
+
+TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_value) {
+    EPICSPVA2V3ServiceTest test;
+    ASSERT_TRUE(test.Testrequest_False_value());
+}
+
+TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_hash_mismatch) {
+    EPICSPVA2V3ServiceTest test;
+    ASSERT_TRUE(test.Testrequest_False_hash_mismatch());
+}

@@ -76,6 +76,27 @@ public:
      * @brief Tests the request method.
      */
     bool Testrequest();
+
+    /**
+     * @brief Tests that the request method fails if no qualifier is set.
+     */
+    bool Testrequest_False_qualifier();
+
+    /**
+     * @brief Tests that the request method fails if no hash is set when loading.
+     */
+    bool Testrequest_False_hash();
+
+    /**
+     * @brief Tests that the request method fails if no value is set when loading.
+     */
+    bool Testrequest_False_value();
+
+    /**
+     * @brief Tests that the request method fails if there is an hash mismatch when loading.
+     */
+    bool Testrequest_False_hash_mismatch();
+
 };
 
 
