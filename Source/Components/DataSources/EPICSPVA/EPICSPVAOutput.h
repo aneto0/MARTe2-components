@@ -27,17 +27,17 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include <cadef.h>
+
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
 #include "EmbeddedServiceMethodBinderI.h"
+#include "EPICSPVAChannelWrapper.h"
 #include "EventSem.h"
 #include "SingleThreadService.h"
 
-#include "EPICSPVAInput.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -46,6 +46,7 @@ namespace MARTe {
 //Maximum size that a PV name may have
 
 /**
+ * TODO
  * @brief A DataSource which allows to output data into any number of PVs using the EPICS channel access client protocol.
  * Data is asynchronously ca_put in the context of a different thread (w.r.t. to the real-time thread).
  *
@@ -114,23 +115,6 @@ EPICSPVAOutput    ();
             const SignalDirection direction);
 
     /**
-     * @brief See DataSourceI::GetInputBrokers.
-     * @return false.
-     */
-    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
-
-    /**
-     * @brief See DataSourceI::GetOutputBrokers.
-     * @details adds a memory MemoryMapOutputBroker instance to the outputBrokers
-     * @return true.
-     */
-    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
-
-    /**
      * @brief See DataSourceI::PrepareNextState. NOOP.
      * @return true.
      */
@@ -182,22 +166,31 @@ EPICSPVAOutput    ();
     virtual bool Synchronise();
 
     /**
+     * @brief See DataSourceI::GetOutputBrokers.
+     * @details adds a memory MemoryMapOutputBroker instance to the outputBrokers
+     * @return true.
+     */
+    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
+            const char8* const functionName,
+            void * const gamMemPtr);
+
+    /**
      * @brief Gets if buffer overruns is being ignored (i.e. the consumer thread which writes into EPICS is not consuming the data fast enough).
      * @return if true no error is to be triggered when there is a buffer overrun.
      */
     bool IsIgnoringBufferOverrun() const;
 
-    /**
-     * @brief Registered as the ca_create_subscription callback function.
-     * It calls updates the memory of the corresponding PV variable.
-     */
-    friend void EPICSPVAOutputEventCallback(struct event_handler_args args);
-
 private:
+
     /**
-     * List of PVs.
+     * TODO
      */
-    PVWrapper *pvs;
+    EPICSPVAChannelWrapper *channelList;
+
+    /**
+     * TODO
+     */
+    uint32 numberOfChannels;
 
     /**
      * The CPU mask for the executor
@@ -210,19 +203,9 @@ private:
     uint32 stackSize;
 
     /**
-     * Stores the configuration information received at Initialise.
-     */
-    ConfigurationDatabase originalSignalInformation;
-
-    /**
      * The number of buffers for the circular buffer that flushes data into EPICS
      */
     uint32 numberOfBuffers;
-
-    /**
-     * True once the epics thread context is set
-     */
-    bool threadContextSet;
 
     /**
      * If true no error will be triggered when the data cannot be consumed by the thread doing the caputs.

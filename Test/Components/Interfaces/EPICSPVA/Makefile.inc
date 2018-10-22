@@ -68,7 +68,9 @@ INCLUDES += -I../../../../Source/Components/Interfaces/EPICS/
 INCLUDES += -I../../../../Source/Components/Interfaces/EPICSPVA
 
 #Force c++11
+ifdef PVACPP11
 CPPFLAGS = -fPIC -frtti -Wall -Werror -Wno-invalid-offsetof -std=c++11 -DARCHITECTURE=x86_gcc -DENVIRONMENT=Linux -DUSE_PTHREAD -pthread -g -ggdb
+endif
 
 all: $(OBJS) \
                 $(BUILD_DIR)/EPICSPVATest$(LIBEXT)

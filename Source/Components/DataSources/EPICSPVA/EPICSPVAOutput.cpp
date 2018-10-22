@@ -38,28 +38,17 @@
 namespace MARTe {
 EPICSPVAOutput::EPICSPVAOutput() :
         DataSourceI() {
-    pvs = NULL_PTR(PVWrapper *);
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
     numberOfBuffers = 0u;
+    numberOfChannels = 0u;
     ignoreBufferOverrun = 1u;
-    threadContextSet = false;
+    channelList = NULL_PTR(EPICSPVAChannelWrapper *);
 }
 
-/*lint -e{1551} must free the memory allocated to the different PVs.*/
 EPICSPVAOutput::~EPICSPVAOutput() {
-    uint32 nOfSignals = GetNumberOfSignals();
-    if (pvs != NULL_PTR(PVWrapper *)) {
-        uint32 n;
-        for (n = 0u; (n < nOfSignals); n++) {
-            if (pvs[n].pvChid != NULL_PTR(chid)) {
-                (void) ca_clear_channel(pvs[n].pvChid);
-            }
-            if (pvs[n].memory != NULL_PTR(void *)) {
-                GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(pvs[n].memory);
-            }
-        }
-        delete[] pvs;
+    if (channelList != NULL_PTR(EPICSPVAChannelWrapper *)) {
+        delete[] channelList;
     }
 }
 
@@ -90,21 +79,31 @@ bool EPICSPVAOutput::Initialise(StructuredDataI & data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
         if (ok) {
-            ok = data.Copy(originalSignalInformation);
-        }
-        if (ok) {
-            ok = originalSignalInformation.MoveToRoot();
+            ok = signalsDatabase.MoveAbsolute("Signals");
         }
         //Do not allow to add signals in run-time
         if (ok) {
-            ok = signalsDatabase.MoveRelative("Signals");
-        }
-        if (ok) {
+            numberOfChannels = signalsDatabase.GetNumberOfChildren();
+            REPORT_ERROR(ErrorManagement::Information, "Found %d channels", numberOfChannels);
             ok = signalsDatabase.Write("Locked", 1u);
         }
+        //Create the channel wrapper list.
         if (ok) {
-            ok = signalsDatabase.MoveToAncestor(1u);
+            channelList = new EPICSPVAChannelWrapper[numberOfChannels];
         }
+        uint32 n;
+        for (n = 0u; (n < numberOfChannels) && (ok); n++) {
+            ok = signalsDatabase.MoveToChild(n);
+            if (ok) {
+                ok = channelList[n].Setup(signalsDatabase);
+            }
+            if (ok) {
+                ok = signalsDatabase.MoveToAncestor(1u);
+            }
+        }
+    }
+    if (ok) {
+        ok = signalsDatabase.MoveToRoot();
     }
     if (ok) {
         ok = data.MoveToAncestor(1u);
@@ -114,7 +113,7 @@ bool EPICSPVAOutput::Initialise(StructuredDataI & data) {
 
 bool EPICSPVAOutput::SetConfiguredDatabase(StructuredDataI & data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
-    //Check the signal index of the timing signal.
+//Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
     if (ok) {
         ok = (nOfSignals > 0u);
@@ -139,7 +138,7 @@ bool EPICSPVAOutput::SetConfiguredDatabase(StructuredDataI & data) {
             }
         }
     }
-    //Only one and one GAM allowed to interact with this DataSourceI
+//Only one and one GAM allowed to interact with this DataSourceI
     if (ok) {
         ok = (GetNumberOfFunctions() == 1u);
         if (!ok) {
@@ -147,73 +146,6 @@ bool EPICSPVAOutput::SetConfiguredDatabase(StructuredDataI & data) {
         }
     }
 
-    if (ok) {
-        pvs = new PVWrapper[nOfSignals];
-        uint32 n;
-        for (n = 0u; (n < nOfSignals); n++) {
-            pvs[n].memory = NULL_PTR(void *);
-            pvs[n].pvChid = NULL_PTR(chid);
-        }
-        for (n = 0u; (n < nOfSignals) && (ok); n++) {
-            //Note that the RealTimeApplicationConfigurationBuilder is allowed to change the order of the signals w.r.t. to the originalSignalInformation
-            StreamString orderedSignalName;
-            ok = GetSignalName(n, orderedSignalName);
-            if (ok) {
-                //Have to mix and match between the original setting of the DataSource signal
-                //and the ones which are later added by the RealTimeApplicationConfigurationBuilder
-                ok = originalSignalInformation.MoveRelative(orderedSignalName.Buffer());
-            }
-            StreamString pvName;
-            if (ok) {
-                ok = originalSignalInformation.Read("PVName", pvName);
-                if (!ok) {
-                    uint32 nn = n;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "No PVName specified for signal at index %d", nn);
-                }
-            }
-            TypeDescriptor td = GetSignalType(n);
-
-            if (ok) {
-                (void) StringHelper::CopyN(&pvs[n].pvName[0], pvName.Buffer(), PV_NAME_MAX_SIZE);
-                if (td == SignedInteger16Bit) {
-                    pvs[n].pvType = DBR_SHORT;
-                }
-                else if (td == UnsignedInteger16Bit) {
-                    pvs[n].pvType = DBR_SHORT;
-                }
-                else if (td == SignedInteger32Bit) {
-                    pvs[n].pvType = DBR_LONG;
-                }
-                else if (td == UnsignedInteger32Bit) {
-                    pvs[n].pvType = DBR_LONG;
-                }
-                else if (td == Float32Bit) {
-                    pvs[n].pvType = DBR_FLOAT;
-                }
-                else if (td == Float64Bit) {
-                    pvs[n].pvType = DBR_DOUBLE;
-                }
-                else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Type %s is not supported", TypeDescriptor::GetTypeNameFromTypeDescriptor(td));
-                    ok = false;
-                }
-            }
-            uint32 numberOfElements = 1u;
-            if (ok) {
-                ok = GetSignalNumberOfElements(n, numberOfElements);
-            }
-            if (ok) {
-                pvs[n].numberOfElements = numberOfElements;
-            }
-            if (ok) {
-                pvs[n].memorySize = td.numberOfBits;
-                pvs[n].memorySize /= 8u;
-                pvs[n].memorySize *= numberOfElements;
-                pvs[n].memory = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(pvs[n].memorySize);
-                ok = originalSignalInformation.MoveToAncestor(1u);
-            }
-        }
-    }
     return ok;
 }
 
@@ -227,13 +159,32 @@ uint32 EPICSPVAOutput::GetNumberOfMemoryBuffers() {
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
 bool EPICSPVAOutput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    bool ok = (pvs != NULL_PTR(PVWrapper *));
+    StreamString fullQualifiedName;
+    bool ok = (GetSignalName(signalIdx, fullQualifiedName));
+    REPORT_ERROR(ErrorManagement::Information, "Searching for signal [%s]", fullQualifiedName.Buffer());
+
     if (ok) {
-        ok = (signalIdx < GetNumberOfSignals());
+        ok = fullQualifiedName.Seek(0LLU);
+    }
+    StreamString channelName;
+    if (ok) {
+        char8 ignore;
+        ok = fullQualifiedName.GetToken(channelName, ".", ignore);
+    }
+    bool found = false;
+    uint32 n;
+    for (n = 0u; (n < numberOfChannels) && (ok) && (!found); n++) {
+        found = (channelName == channelList[n].GetChannelName());
+        if (found) {
+            const char8 *fullQualifiedNameBuffer = fullQualifiedName.Buffer();
+            channelList[n].GetSignalMemory(&fullQualifiedNameBuffer[channelName.Size() + 1u], signalAddress);
+        }
     }
     if (ok) {
-        //lint -e{613} pvs cannot as otherwise ok would be false
-        signalAddress = pvs[signalIdx].memory;
+        ok = found;
+    }
+    if (ok) {
+        REPORT_ERROR(ErrorManagement::Information, "Signal [%s] was found in the declared structure", fullQualifiedName.Buffer());
     }
     return ok;
 }
@@ -245,11 +196,6 @@ const char8* EPICSPVAOutput::GetBrokerName(StructuredDataI& data, const SignalDi
         brokerName = "MemoryMapAsyncOutputBroker";
     }
     return brokerName;
-}
-
-/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: InputBrokers are not supported. Function returns false irrespectively of the parameters.*/
-bool EPICSPVAOutput::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    return false;
 }
 
 bool EPICSPVAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
@@ -283,46 +229,15 @@ uint32 EPICSPVAOutput::GetNumberOfBuffers() const {
 bool EPICSPVAOutput::Synchronise() {
     bool ok = true;
     uint32 n;
-    uint32 nOfSignals = GetNumberOfSignals();
-    if (!threadContextSet) {
-        /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-        ok = (ca_context_create(ca_enable_preemptive_callback) == ECA_NORMAL);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::FatalError, "ca_enable_preemptive_callback failed");
-        }
-        threadContextSet = ok;
-        if (pvs != NULL_PTR(PVWrapper *)) {
-            for (n = 0u; (n < nOfSignals); n++) {
-                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                ok = (ca_create_channel(&pvs[n].pvName[0], NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvs[n].pvChid) == ECA_NORMAL);
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::FatalError, "ca_create_channel failed for PV with name %s", pvs[n].pvName);
-                }
-            }
-        }
+    for (n = 0u; (n < numberOfChannels) && (ok); n++) {
+        ok = channelList[n].Put();
     }
-
-    //Allow to write event at the first time!
-    if (threadContextSet) {
-        if (pvs != NULL_PTR(PVWrapper *)) {
-            for (n = 0u; (n < nOfSignals); n++) {
-                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                ok = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::FatalError, "ca_put failed for PV: %s", pvs[n].pvName);
-                }
-                (void) ca_pend_io(0.1);
-            }
-        }
-    }
-
     return ok;
 }
 
 bool EPICSPVAOutput::IsIgnoringBufferOverrun() const {
     return (ignoreBufferOverrun == 1u);
 }
-
 
 CLASS_REGISTER(EPICSPVAOutput, "1.0")
 

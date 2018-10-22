@@ -67,7 +67,9 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 LIBRARIES += $(BUILD_DIR)/../EPICS/EPICS$(LIBEXT) -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVADIR)/lib/$(EPICS_HOST_ARCH)/ -Wl,-rpath,$(PVADIR)/lib/$(EPICS_HOST_ARCH)/ -lpvaClient -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom
 
 #Force c++11
+ifdef PVACPP11
 CPPFLAGS = -fPIC -frtti -Wall -Werror -Wno-invalid-offsetof -std=c++11 -DARCHITECTURE=x86_gcc -DENVIRONMENT=Linux -DUSE_PTHREAD -pthread -g -ggdb
+endif
 
 all: $(OBJS)    \
     $(BUILD_DIR)/EPICSPVA$(LIBEXT) \

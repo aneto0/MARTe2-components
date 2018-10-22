@@ -49,6 +49,10 @@ ifdef EPICS_BASE
 SPB+=EPICSCA.x
 endif
 
+ifdef PVADIR
+SPB   += EPICSPVA.x
+endif
+
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 # Current assumption is prior installation of CODAC Core System on the build node
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
@@ -89,6 +93,10 @@ endif
 
 ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSCA/EPICSCATest$(LIBEXT)
+endif
+
+ifdef PVADIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVATest$(LIBEXT)
 endif
 
 all: $(OBJS) $(SUBPROJ) \

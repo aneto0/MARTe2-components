@@ -20,14 +20,14 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-OBJSX=EPICSPVAChannelWrapper.x EPICSPVAInput.x EPICSPVAOutput.x
-
+OBJSX +=  EPICSPVAOutputTest.x
+		
 PACKAGE=Components/DataSources
-
-ROOT_DIR=../../../../
-
+ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
@@ -36,34 +36,37 @@ ifdef CODAC_ROOT
 PVADIR = $(EPICS_BASE)
 endif
 
-INCLUDES += -I.
 INCLUDES += -I$(PVADIR)/include/
 INCLUDES += -I$(EPICS_BASE)/include/
 INCLUDES += -I$(EPICS_BASE)/include/os/Linux/
 INCLUDES += -I$(EPICS_BASE)/include/compiler/gcc/
-INCLUDES += ../../Interfaces/EPICSPVA/
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Logger
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4LoggerService
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
+
+INCLUDES += -I../../../../Source/Components/DataSources/EPICS/
+INCLUDES += -I../../../../Source/Components/DataSources/EPICSPVA
 
 #Force c++11
 ifdef PVACPP11
 CPPFLAGS = -fPIC -frtti -Wall -Werror -Wno-invalid-offsetof -std=c++11 -DARCHITECTURE=x86_gcc -DENVIRONMENT=Linux -DUSE_PTHREAD -pthread -g -ggdb
 endif
 
-LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVADIR)/lib/$(EPICS_HOST_ARCH)/ -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom -lpvaClient
-
-all: $(OBJS)    \
-    $(BUILD_DIR)/EPICSPVA$(LIBEXT) \
-    $(BUILD_DIR)/EPICSPVA$(DLLEXT)
+all: $(OBJS) \
+                $(BUILD_DIR)/EPICSPVATest$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

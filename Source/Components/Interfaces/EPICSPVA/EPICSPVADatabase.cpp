@@ -80,12 +80,14 @@ void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
                     else {
                         REPORT_ERROR(ErrorManagement::FatalError, "Failed to remove record %s", pvaRecord->GetName());
                     }
+                    pvRecord->destroy();
                 }
             }
         }
     }
     if (serverContext) {
         serverContext->shutdown();
+        serverContext = epics::pvAccess::ServerContext::shared_pointer();
     }
     if (!executor.Stop()) {
         if (!executor.Stop()) {
