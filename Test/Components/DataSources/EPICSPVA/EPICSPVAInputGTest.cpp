@@ -64,16 +64,6 @@ TEST(EPICSPVAInputGTest,TestGetBrokerName_OutputSignals) {
     ASSERT_TRUE(test.TestGetBrokerName_OutputSignals());
 }
 
-TEST(EPICSPVAInputGTest,TestGetInputBrokers) {
-    EPICSPVAInputTest test;
-    ASSERT_TRUE(test.TestGetInputBrokers());
-}
-
-TEST(EPICSPVAInputGTest,TestGetOutputBrokers) {
-    EPICSPVAInputTest test;
-    ASSERT_TRUE(test.TestGetOutputBrokers());
-}
-
 TEST(EPICSPVAInputGTest,TestInitialise) {
     EPICSPVAInputTest test;
     ASSERT_TRUE(test.TestInitialise());
