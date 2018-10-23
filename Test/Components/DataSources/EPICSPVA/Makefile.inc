@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  EPICSPVAOutputTest.x
+OBJSX +=  EPICSPVAInputTest.x EPICSPVAOutputTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..

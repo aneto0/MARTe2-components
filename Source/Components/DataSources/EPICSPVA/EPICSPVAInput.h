@@ -27,78 +27,77 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include <cadef.h>
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
 #include "EmbeddedServiceMethodBinderI.h"
+#include "EPICSPVAChannelWrapper.h"
 #include "EventSem.h"
-#include "SingleThreadService.h"
+#include "MultiThreadService.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-/**
- * Maximum size that a PV name may have
- */
-/*lint -esym(551, MARTe::PV_NAME_MAX_SIZE) the symbol is used to define the size of PVWrapper below*/
-const uint32 PV_NAME_MAX_SIZE = 64u;
 
 /**
- * Wraps a PV
- */
-struct PVWrapper {
-    /**
-     * The channel identifier
-     */
-    chid pvChid;
-    /**
-     * The event identifier
-     */
-    evid pvEvid;
-    /**
-     * The PV type
-     */
-    chtype pvType;
-    /**
-     * The memory of the signal associated to this channel
-     */
-    void *memory;
-    /**
-     * The number of elements > 0
-     */
-    uint32 numberOfElements;
-    /**
-     * The memory size
-     */
-    uint32 memorySize;
-    /**
-     * The PV name
-     */
-    char8 pvName[PV_NAME_MAX_SIZE];
-};
-
-/**
- * @brief A DataSource which allows to retrieved data from any number of PVs using the EPICS channel access client protocol.
- * Data is asynchronously retrieved using ca_create_subscriptions in the context of a different thread (w.r.t. to the real-time thread).
+ * @brief A DataSource which allows to retrieved data from any number of records using the EPICS PVA protocol.
+ * Data is asynchronously retrieved using pvac::MonitorSync (see EPICAPVAChannelWrapper::Monitor).
  *
+ * One thread will be created for each record being monitored (using a MultiThreadService)
+ *
+ * Each signal root name defines the name of the record (signal).
  * The configuration syntax is (names are only given as an example):
  *
  * <pre>
  * +EPICSPVAInput_1 = {
  *     Class = EPICSPVA::EPICSPVAInput
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
- *     CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
+ *     CPUs = 0xff //Optional the affinity of the EmbeddedThread which actually performs the PVA monitoring.
  *     Signals = {
- *          PV1 = { //At least one shall be defined
- *             PVName = My::PV1 //Compulsory. Name of the PV.
- *             Type = uint32 //Compulsory. Supported types are uint16, int16, int32, uint32, uint64, int64, float32 and float64
- *             NumberOfElements = 1 //Arrays also supported
- *          }
- *          ...
+ "         RecordOut1 = {"
+ "             UnsignedIntegers = {"
+ "                 UInt8 = {"
+ "                     Type = uint8"
+ "                     NumberOfElements = 8"
+ "                 }"
+ "                 UInt16 = {"
+ "                     Type = uint16"
+ "                     NumberOfElements = 1"
+ "                 }"
+ "                 UInt32 = {"
+ "                     Type = uint32"
+ "                     NumberOfElements = 1"
+ "                 }"
+ "                 UInt64 = {"
+ "                     Type = uint64"
+ "                     NumberOfElements = 1"
+ "                 }"
+ "             }"
+ "         }"
+ "         RecordOut2 = {"
+ "             SignedIntegers = {"
+ "                 Int8 = {"
+ "                     Type = int8"
+ "                     NumberOfElements = 2"
+ "                 }"
+ "                 Int16 = {"
+ "                     Type = int16"
+ "                     NumberOfElements = 4"
+ "                 }"
+ "                 Int32 = {"
+ "                     Type = int32"
+ "                     NumberOfElements = 1"
+ "                 }"
+ "                 Int64 = {"
+ "                     Type = int64"
+ "                     NumberOfElements = 1"
+ "                 }"
+ "             }"
+ "         }"
+ *         ...
  *     }
  * }
  *
@@ -149,23 +148,6 @@ EPICSPVAInput    ();
             const SignalDirection direction);
 
     /**
-     * @brief See DataSourceI::GetInputBrokers.
-     * @details adds a memory MemoryMapInputBroker instance to the inputBrokers
-     * @return true.
-     */
-    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
-
-    /**
-     * @brief See DataSourceI::GetOutputBrokers.
-     * @return false.
-     */
-    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
-
-    /**
      * @brief See DataSourceI::PrepareNextState. NOOP.
      * @return true.
      */
@@ -183,30 +165,26 @@ EPICSPVAInput    ();
      * @details This method verifies that all the parameters requested by the GAMs interacting with this DataSource
      *  are valid and consistent with the parameters set during the initialisation phase.
      * In particular the following conditions shall be met:
-     * - All the signals have the PVName defined
-     * - All the signals have one of the following types: uint32, int32, float32 or float64.
+     * - All the signals have one and only one sample.
      * @return true if all the parameters are valid and the conditions above are met.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @brief Gets the affinity of the thread which is going to be used to asynchronously read data from the ca_create_subscription.
-     * @return the the affinity of the thread which is going to be used to asynchronously read data from the ca_create_subscription.
+     * @brief Gets the affinity of the thread which is going to be used to asynchronously read data from the pvac::MonitorSync.
+     * @return the the affinity of the thread which is going to be used to asynchronously read data from the pvac::MonitorSync.
      */
     uint32 GetCPUMask() const;
 
     /**
-     * @brief Gets the stack size of the thread which is going to be used to asynchronously read data from the ca_create_subscription.
-     * @return the stack size of the thread which is going to be used to asynchronously read data from the ca_create_subscription.
+     * @brief Gets the stack size of the thread which is going to be used to asynchronously read data from the pvac::MonitorSync.
+     * @return the stack size of the thread which is going to be used to asynchronously read data from the pvac::MonitorSync.
      */
     uint32 GetStackSize() const;
 
     /**
-     * @brief Provides the context to execute all the EPICS relevant calls.
-     * @details Executes in the context of a spawned thread the following EPICS calls:
-     * ca_context_create, ca_create_channel, ca_create_subscription, ca_clear_subscription,
-     * ca_clear_event, ca_clear_channel, ca_detach_context and ca_context_destroy
-     * @return ErrorManagement::NoError if all the EPICS calls return without any error.
+     * @brief Provides the context to execute pvac::MonitorSync::wait.
+     * @return ErrorManagement::NoError if the pvac::MonitorSync::wait and pvac::MonitorSync::poll calls return without any error.
      */
     virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
@@ -216,18 +194,17 @@ EPICSPVAInput    ();
      */
     virtual bool Synchronise();
 
-    /**
-     * @brief Registered as the ca_create_subscription callback function.
-     * It calls updates the memory of the corresponding PV variable.
-     */
-    friend void EPICSPVAInputEventCallback(struct event_handler_args args);
-
 private:
 
     /**
-     * List of PVs.
+     * One channel per signal at the root level.
      */
-    PVWrapper *pvs;
+    EPICSPVAChannelWrapper *channelList;
+
+    /**
+     * Number of records (channels).
+     */
+    uint32 numberOfChannels;
 
     /**
      * The CPU mask for the executor
@@ -240,14 +217,10 @@ private:
     uint32 stackSize;
 
     /**
-     * The EmbeddedThread where the ca_pend_event is executed.
+     * The EmbeddedThread where the monitor is executed (one thread per record).
      */
-    SingleThreadService executor;
+    MultiThreadService executor;
 
-    /**
-     * Stores the configuration information received at Initialise.
-     */
-    ConfigurationDatabase originalSignalInformation;
 };
 }
 

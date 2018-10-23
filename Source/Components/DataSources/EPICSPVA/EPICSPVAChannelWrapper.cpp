@@ -25,6 +25,7 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #include <pva/client.h>
+#include <pv/pvData.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -53,6 +54,7 @@ EPICSPVAChannelWrapper::~EPICSPVAChannelWrapper() {
         delete[] cachedSignals;
     }
     channel = pvac::ClientChannel();
+    monitor = pvac::MonitorSync();
 }
 
 bool EPICSPVAChannelWrapper::Setup(StructuredDataI &data) {
@@ -268,6 +270,123 @@ bool EPICSPVAChannelWrapper::Put() {
                 }
             }
             putBuilder.exec();
+        }
+    }
+    catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {
+        REPORT_ERROR_STATIC(ErrorManagement::Information, "Failed to connect to channel %s [s]", channelName.Buffer(), ignored.what());
+        ok = false;
+    }
+    return ok;
+}
+
+bool EPICSPVAChannelWrapper::Monitor() {
+    bool ok = false;
+    try {
+        if (!channel.valid()) {
+            provider = pvac::ClientProvider("pva");
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Connected to channel %s", channelName.Buffer());
+            channel = pvac::ClientChannel(provider.connect(channelName.Buffer()));
+        }
+        ok = channel.valid();
+        if (ok) {
+            if(!monitor.valid()) {
+                monitor = pvac::MonitorSync(channel.monitor());
+            }
+            ok = monitor.valid();
+        }
+        if (ok) {
+            if (monitor.wait(1.0)) {
+                if (monitor.event.event == pvac::MonitorEvent::Data) {
+                    while (monitor.poll()) {
+                        uint32 n;
+                        for (n = 0u; (n < numberOfRequestedSignals) && (ok); n++) {
+                            epics::pvData::PVStructure::const_shared_pointer readStruct = monitor.root;
+                            epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr;
+                            epics::pvData::PVScalarArray::const_shared_pointer  scalarArrayPtr;
+                            if ((cachedSignals[n].numberOfElements) == 1u) {
+                                scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(readStruct->getSubField(cachedSignals[n].qualifiedName.Buffer()));
+                                ok = (scalarFieldPtr ? true : false);
+                                if (ok) {
+                                    if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
+                                        *reinterpret_cast<uint8 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<uint8>();
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger16Bit) {
+                                        *reinterpret_cast<uint16 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<uint16>();
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger32Bit) {
+                                        *reinterpret_cast<uint32 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<uint32>();
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger64Bit) {
+                                        *reinterpret_cast<uint64 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<long unsigned int>();
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == SignedInteger8Bit) {
+                                        *reinterpret_cast<int8 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<int8>();
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == SignedInteger16Bit) {
+                                        *reinterpret_cast<int16 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<int16>();
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == SignedInteger32Bit) {
+                                        *reinterpret_cast<int32 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<int32>();
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == SignedInteger64Bit) {
+                                        *reinterpret_cast<int64 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<long int>();
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == Float32Bit) {
+                                        *reinterpret_cast<float32 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<float32>();
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == Float64Bit) {
+                                        *reinterpret_cast<float64 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<float64>();
+                                    }
+                                    else {
+                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read type");
+                                        ok = false;
+                                    }
+                                }
+                            }
+                            else {
+                                scalarArrayPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalarArray>(readStruct->getSubField(cachedSignals[n].qualifiedName.Buffer()));
+                                ok = (scalarArrayPtr ? true : false);
+                                if (ok) {
+                                    if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
+                                        ok = GetArrayHelper<uint8>(scalarArrayPtr, n);
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger16Bit) {
+                                        ok = GetArrayHelper<uint16>(scalarArrayPtr, n);
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger32Bit) {
+                                        ok = GetArrayHelper<uint32>(scalarArrayPtr, n);
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger64Bit) {
+                                        ok = GetArrayHelper<unsigned long int>(scalarArrayPtr, n);
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == SignedInteger8Bit) {
+                                        ok = GetArrayHelper<int8>(scalarArrayPtr, n);
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == SignedInteger16Bit) {
+                                        ok = GetArrayHelper<uint16>(scalarArrayPtr, n);
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == SignedInteger32Bit) {
+                                        ok = GetArrayHelper<int32>(scalarArrayPtr, n);
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == SignedInteger64Bit) {
+                                        ok = GetArrayHelper<long int>(scalarArrayPtr, n);
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == Float32Bit) {
+                                        ok = GetArrayHelper<float32>(scalarArrayPtr, n);
+                                    }
+                                    else if (cachedSignals[n].typeDescriptor == Float64Bit) {
+                                        ok = GetArrayHelper<float64>(scalarArrayPtr, n);
+                                    }
+                                    else {
+                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read array type");
+                                        ok = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {

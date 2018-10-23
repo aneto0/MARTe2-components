@@ -28,7 +28,6 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -38,33 +37,66 @@
 #include "EventSem.h"
 #include "SingleThreadService.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-//Maximum size that a PV name may have
-
 /**
- * TODO
- * @brief A DataSource which allows to output data into any number of PVs using the EPICS channel access client protocol.
- * Data is asynchronously ca_put in the context of a different thread (w.r.t. to the real-time thread).
+ * @brief A DataSource which allows to output data into any number of records using the EPICS PVA client protocol.
+ * Data is asynchronously written in the PVA in the context of a different thread (w.r.t. to the real-time thread).
  *
+ * Each signal root name defines the name of the record (signal).
  * The configuration syntax is (names are only given as an example):
  *
  * <pre>
  * +EPICSPVAOutput_1 = {
  *     Class = EPICSPVA::EPICSPVAOutput
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
- *     CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
+ *     CPUs = 0xff //Optional the affinity of the EmbeddedThread which actually performs the PVA puts.
  *     IgnoreBufferOverrun = 1 //Optional. If true no error will be triggered when the thread that writes into EPICS does not consume the data fast enough.
- *     NumberOfBuffers = 10 //Compulsory. Number of buffers in a circular buffer that asynchronously writes the PV values. Each buffer is capable of holding a copy of all the DataSourceI signals.
+ *     NumberOfBuffers = 10 //Compulsory. Number of buffers in a circular buffer that asynchronously writes the values. Each buffer is capable of holding a copy of all the DataSourceI signals.
  *     Signals = {
- *          PV1 = { //At least one shall be defined
- *             PVName = My::PV1 //Compulsory. Name of the PV.
- *             Type = uint32 //Compulsory. Supported types are int32, uint32, float32 and float64
- *          }
- *          ...
+ "         RecordOut1 = {"
+ "             UnsignedIntegers = {"
+ "                 UInt8 = {"
+ "                     Type = uint8"
+ "                     NumberOfElements = 8"
+ "                 }"
+ "                 UInt16 = {"
+ "                     Type = uint16"
+ "                     NumberOfElements = 1"
+ "                 }"
+ "                 UInt32 = {"
+ "                     Type = uint32"
+ "                     NumberOfElements = 1"
+ "                 }"
+ "                 UInt64 = {"
+ "                     Type = uint64"
+ "                     NumberOfElements = 1"
+ "                 }"
+ "             }"
+ "         }"
+ "         RecordOut2 = {"
+ "             SignedIntegers = {"
+ "                 Int8 = {"
+ "                     Type = int8"
+ "                     NumberOfElements = 2"
+ "                 }"
+ "                 Int16 = {"
+ "                     Type = int16"
+ "                     NumberOfElements = 4"
+ "                 }"
+ "                 Int32 = {"
+ "                     Type = int32"
+ "                     NumberOfElements = 1"
+ "                 }"
+ "                 Int64 = {"
+ "                     Type = int64"
+ "                     NumberOfElements = 1"
+ "                 }"
+ "             }"
+ "         }"
+ *         ...
  *     }
  * }
  *
@@ -132,36 +164,33 @@ EPICSPVAOutput    ();
      * @details This method verifies that all the parameters requested by the GAMs interacting with this DataSource
      *  are valid and consistent with the parameters set during the initialisation phase.
      * In particular the following conditions shall be met:
-     * - All the signals have the PVName defined
-     * - All the signals have one of the following types: uint32, int32, float32 or float64.
+     * - All the signals have NumberOfSamples = 1
+     * - Only one Function writes into this DataSourceI
      * @return true if all the parameters are valid and the conditions above are met.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @brief Gets the affinity of the thread which is going to be used to asynchronously write data with ca_put.
-     * @return the affinity of the thread which is going to be used to asynchronously write data with ca_put.
+     * @brief Gets the affinity of the thread which is going to be used to asynchronously write data with pva::put.
+     * @return the affinity of the thread which is going to be used to asynchronously write data with pva::put.
      */
     uint32 GetCPUMask() const;
 
     /**
-     * @brief Gets the stack size of the thread which is going to be used to asynchronously write data with ca_put.
-     * @return the stack size of the thread which is going to be used to asynchronously write data with ca_put.
+     * @brief Gets the stack size of the thread which is going to be used to asynchronously write data with pva::put.
+     * @return the stack size of the thread which is going to be used to asynchronously write data with pva::put.
      */
     uint32 GetStackSize() const;
 
     /**
-     * @brief Gets the number of buffers in the circular buffer that asynchronously writes the PV values.
-     * @return the number of buffers in the circular buffer that asynchronously writes the PV values.
+     * @brief Gets the number of buffers in the circular buffer that asynchronously writes the pva values.
+     * @return the number of buffers in the circular buffer that asynchronously writes the pva values.
      */
     uint32 GetNumberOfBuffers() const;
 
     /**
-     * @brief Provides the context to execute all the EPICS ca_put calls.
-     * @details Executes in the context of the MemoryMapAsyncOutputBroker thread the following EPICS calls:
-     * ca_context_create, ca_create_channel, ca_create_subscription, ca_clear_subscription,
-     * ca_clear_event, ca_clear_channel, ca_detach_context and ca_context_destroy
-     * @return true if all the EPICS calls return without any error.
+     * @brief Provides the context to execute all the EPICS calls.
+     * @return true if all the all the variables can be successfully set and exec.
      */
     virtual bool Synchronise();
 
@@ -183,12 +212,12 @@ EPICSPVAOutput    ();
 private:
 
     /**
-     * TODO
+     * One channel per signal at the root level.
      */
     EPICSPVAChannelWrapper *channelList;
 
     /**
-     * TODO
+     * Number of channels (records).
      */
     uint32 numberOfChannels;
 
@@ -208,7 +237,7 @@ private:
     uint32 numberOfBuffers;
 
     /**
-     * If true no error will be triggered when the data cannot be consumed by the thread doing the caputs.
+     * If true no error will be triggered when the data cannot be consumed by the thread doing the pva::set/exec.
      */
     uint32 ignoreBufferOverrun;
 };
@@ -218,5 +247,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSPVADATASOURCE_H_ */
+#endif /* EPICSPVAOUTPUT_H_ */
 

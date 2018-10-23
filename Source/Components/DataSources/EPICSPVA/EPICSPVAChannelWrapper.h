@@ -42,67 +42,117 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+/**
+ * Wraps a record signal memory
+ */
 struct EPICSPVAChannelWrapperCachedSignal {
+    /**
+     * Number of elements in the record signal.
+     */
     uint32 numberOfElements;
+    /**
+     * Full qualified name of the signal inside the record (dot separated).
+     */
     StreamString qualifiedName;
+    /**
+     * The signal type.
+     */
     TypeDescriptor typeDescriptor;
+    /**
+     * Allocate memory with sufficient space to hold a copy of the signal.
+     */
     void *memory;
 };
 
 /**
- * @brief TODO
+ * @brief Helper class which encapsulates a PVA signal (record) and allows to put/monitor.
  */
 class EPICSPVAChannelWrapper {
 public:
     /**
-     * @brief TODO
+     * @brief Constructor. NOOP.
      */
     EPICSPVAChannelWrapper();
 
     /**
-     * @brief TODO
+     * @brief Destructor. NOOP.
      */
     ~EPICSPVAChannelWrapper();
 
     /**
-     * @brief TODO
+     * @brief Registers the channel with a name given by data.GetName().
+     * @param[in] data the structure to be registered against the channel with a name given by data.GetName().
      */
     bool Setup(StructuredDataI &data);
 
     /**
-     * @brief TODO
+     * @brief Gets the memory associated to the signal with the provided \a qualifiedName (that shall exist in the structure provide in Setup).
+     * @param[in] qualifiedName the full signal name inside the structure (dot separated).
+     * @param[out] mem the signal memory or NULL if the signal cannot be found.
      */
     void GetSignalMemory(const char8 * const qualifiedName, void *&mem);
 
     /**
-     * @brief TODO
+     * @brief Copies from each signal memory (see GetSignalMemory) into the relevant PVA structure fields and commit the changes.
+     * @return true if all the signals have been successfully committed into the network.
      */
     bool Put();
 
     /**
-     * @brief TODO
+     * @brief Copies from relevant PVA structure fields into each signal memory.
+     * @details This method has a fixed timeout of 1 second.
+     * @return true if all the record and the monitor are valid.
+     */
+    bool Monitor();
+
+    /**
+     * @brief Gets this channel name (see Setup).
+     * @return this channel name .
      */
     const char8 * const GetChannelName();
 
 private:
 
     /**
-     * @brief TODO
+     * @brief Helper method which set signal at index \a in the \a putBuilder.
+     * @param[in] putBuilder a valid builder which will be updated with the signal[n] value.
+     * @param[in] n the index of the signal to write.
      */
     template<typename T>
     void PutHelper(pvac::detail::PutBuilder &putBuilder, uint32 n);
 
     /**
-     * @brief Recursively load the signal structures into an array of EPICSPVAStructureDataI.
-     * TODO
+     * @brief Helper method which gets the value of the signal at index \a from the relevant field in the \a scalarArrayPtr.
+     * @param[in] scalarArrayPtr valid PVScalarArray from where to read the array values.
+     * @param[in] n the index of the signal to be updated with the read array values.
+     * @return true if the array was successfully read.
+     */
+    template<typename T>
+    bool GetArrayHelper(epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr, uint32 n);
+
+    /**
+     * @brief Recursively loads the signal structures into a ConfigurationDatabase (which is used as a memory backend).
+     * @param[in] cdbSignalStructure the signals to be loaded (see Setup).
+     * @param[in] fullNodeName the full name of the node currently being queried.
+     * @param[in] relativeNodeName the name of the node currently being queried.
+     * @return true if all the ConfigurationDatabase read/write operations are successful.
      */
     bool LoadSignalStructure(StructuredDataI &cdbSignalStructure, StreamString fullNodeName, StreamString relativeNodeName);
 
     /**
-     * The EPICSPVA channel
+     * The EPICS PVA channel
      */
     pvac::ClientChannel channel;
+
+    /**
+     * The EPICS PVA provider. pvac::ClientProvider("pva") is currently hardcoded.
+     */
     pvac::ClientProvider provider;
+
+    /**
+     * The MonitorSync that is used to asynchronously update the signal values.
+     */
+    pvac::MonitorSync monitor;
 
     /**
      * The EPICSPVA channelName
@@ -125,7 +175,7 @@ private:
     uint32 numberOfRequestedSignals;
 
     /**
-     * The cached signals/
+     * The cached signals (flat list of the structure identified with the qualifiedName).
      */
     EPICSPVAChannelWrapperCachedSignal *cachedSignals;
 };
@@ -145,6 +195,22 @@ void EPICSPVAChannelWrapper::PutHelper(pvac::detail::PutBuilder &putBuilder, uin
         putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), vec);
     }
 }
+
+template<typename T>
+bool EPICSPVAChannelWrapper::GetArrayHelper(epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr, uint32 n) {
+    bool ok = true;
+    epics::pvData::shared_vector<const T> out;
+    scalarArrayPtr->getAs < T > (out);
+    uint32 i;
+    Vector<T> readVec (reinterpret_cast<T *>(cachedSignals[n].memory), cachedSignals[n].numberOfElements);
+    Vector<T> srcVec (const_cast<T *>(reinterpret_cast<const T *>(out.data())), cachedSignals[n].numberOfElements);
+    for (i = 0u; i<cachedSignals[n].numberOfElements; i++) {
+        readVec[i] = srcVec[i];
+    }
+
+    return ok;
+}
+
 }
 
 #endif /* EPICSPVA_EPICSPVACHANNELWRAPPER_H_ */
