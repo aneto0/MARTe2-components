@@ -230,7 +230,9 @@ protected:
      */
     uint32 numberOfPacketsInFIFO;
 
-
+    /**
+     * The name of the fifo to be used in the MXI interface.
+     */
     StreamString fifoName;
 };
 }

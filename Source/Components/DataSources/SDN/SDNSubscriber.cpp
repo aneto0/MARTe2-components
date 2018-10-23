@@ -547,7 +547,7 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initiaised");
         err.SetError(ErrorManagement::FatalError);
-        Sleep::MSec(100);
+        Sleep::MSec(100u);
     }
 
     if (ok) {

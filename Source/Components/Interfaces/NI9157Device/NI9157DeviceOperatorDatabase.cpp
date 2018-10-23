@@ -40,14 +40,41 @@
 namespace MARTe {
 namespace NI9157DeviceOperatorDatabase {
 
+/**
+ * bool implementation.
+ */
 CreateNI9157DeviceOperator<uint8> CreateNI9157DeviceOperatorIBool("NI9157DeviceBool");
+/**
+ * uint8 implementation.
+ */
 CreateNI9157DeviceOperator<uint8> CreateNI9157DeviceOperatorIU8("NI9157DeviceU8");
+/**
+ * int8 implementation.
+ */
 CreateNI9157DeviceOperator<int8> CreateNI9157DeviceOperatorII8("NI9157DeviceI8");
+/**
+ * uint16 implementation.
+ */
 CreateNI9157DeviceOperator<uint16> CreateNI9157DeviceOperatorIU16("NI9157DeviceU16");
+/**
+ * int16 implementation.
+ */
 CreateNI9157DeviceOperator<int16> CreateNI9157DeviceOperatorII16("NI9157DeviceI16");
+/**
+ * uint32 implementation.
+ */
 CreateNI9157DeviceOperator<uint32> CreateNI9157DeviceOperatorIU32("NI9157DeviceU32");
+/**
+ * int32 implementation.
+ */
 CreateNI9157DeviceOperator<int32> CreateNI9157DeviceOperatorII32("NI9157DeviceI32");
+/**
+ * uint64 implementation.
+ */
 CreateNI9157DeviceOperator<uint64> CreateNI9157DeviceOperatorIU64("NI9157DeviceU64");
+/**
+ * int64 implementation.
+ */
 CreateNI9157DeviceOperator<int64> CreateNI9157DeviceOperatorII64("NI9157DeviceI64");
 
 static CreateNI9157DeviceOperatorI *createNI9157DeviceOperatorIList[] = { &CreateNI9157DeviceOperatorIBool, &CreateNI9157DeviceOperatorIU8,

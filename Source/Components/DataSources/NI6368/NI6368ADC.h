@@ -421,7 +421,7 @@ private:
     /**
      * Sleep for the fastMux. Default if RealTimeMode == 0 or 0 if RealTimeMode == 1
      */
-    float64 fastMuxSleepTime;
+    float32 fastMuxSleepTime;
 
     /**
      * Semaphore to guarantee synchronous reset of the counter.

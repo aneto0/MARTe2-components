@@ -1,8 +1,8 @@
 /**
- * @file NI9157MemoryOperationsHelper.h
- * @brief Header file for class NI9157MemoryOperationsHelper
- * @date 14/08/2018
- * @author Andre Neto
+ * @file HistogramComparator.h
+ * @brief Header file for class HistogramComparator
+ * @date 30/08/2018
+ * @author Giuseppe Ferro
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class NI9157MemoryOperationsHelper
+ * @details This header file contains the declaration of the class HistogramComparator
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef NI9157_NI9157MEMORYOPERATIONSHELPER_H_
-#define NI9157_NI9157MEMORYOPERATIONSHELPER_H_
+#ifndef HISTOGRAM_COMPARATOR_H_
+#define HISTOGRAM_COMPARATOR_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -31,32 +31,60 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
+#include "GeneralDefinitions.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
 
 /**
- * @brief Proxy class to MemoryOperationsHelper that can be compiled and optimised separately.
+ * @brief An interface to be used in HistogramGAM to compute
+ * to which bin of the histogram belongs a given occurrence.
  */
-/*lint -estring(19, "*NI9157MemoryOperationsHelper*") -estring(757,"*NI9157MemoryOperationsHelper*") -estring(526, "*NI9157MemoryOperationsHelper*") functions defined, used and required for optimisation.*/
-namespace NI9157MemoryOperationsHelper {
-    /**
-     * @see MemoryOperationsHelper::InterleavedToFlat
-     */
-    void InterleavedToFlat(MARTe::uint8 * const originSource, MARTe::uint8 * const originDest, const MARTe::uint32 beginIndex, const MARTe::uint32 * const packetMemberSize, const MARTe::uint32 packetByteSize,
-                           const MARTe::uint32 numberOfPacketMembers, const MARTe::uint32 numberOfSamples);
+class HistogramComparator {
+public:
 
     /**
-     * @see MemoryOperationsHelper::FlatToInterleaved
+     * @brief Constructor
      */
-    void FlatToInterleaved(MARTe::uint8 * const originSource, MARTe::uint8 * const originDest, const MARTe::uint32 beginIndex, const MARTe::uint32 * const packetMemberSize, const MARTe::uint32 packetByteSize,
-                           const MARTe::uint32 numberOfPacketMembers, const MARTe::uint32 numberOfSamples);
+    HistogramComparator();
+
+    /**
+     * @brief Destructor
+     */
+    virtual ~HistogramComparator();
+
+    /**
+     * @brief Sets the lower bound of the allowed range.
+     * @param[in] min contains the lower bound.
+     */
+    virtual void SetMin(const void * const min)=0;
+
+    /**
+     * @brief Sets the upper bound of the allowed range.
+     * @param[in] max contains the upper bound.
+     */
+    virtual void SetMax(const void * const max)=0;
+
+    /**
+     * @brief Sets the number of bins in the histogram.
+     * @param[in] nBinsIn is the number of bins.
+     */
+    virtual void SetNumberOfBins(const uint32 nBinsIn)=0;
+
+    /**
+     * @brief Returns at which bin belongs the value hold in \a mem.
+     * @param[in] mem holds the occurrence value.
+     */
+    virtual uint32 InRange(const void * const mem)=0;
+
+};
+
 }
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* NI9157_NI9157MEMORYOPERATIONSHELPER_H_ */
+#endif /* HISTOGRAM_COMPARATOR_H_ */
 

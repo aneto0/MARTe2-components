@@ -418,7 +418,7 @@ private:
     /**
      * Sleep for the fastMux. Default if RealTimeMode == 0 or 0 if RealTimeMode == 1
      */
-    float64 fastMuxSleepTime;
+    float32 fastMuxSleepTime;
 
     /**
      * The sampling frequency of the single ADC.
