@@ -44,6 +44,86 @@ TEST(EPICSPVAInputGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+TEST(EPICSPVAInputGTest,TestGetNumberOfMemoryBuffers) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
+}
+
+TEST(EPICSPVAInputGTest,TestGetSignalMemoryBuffer) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+}
+
+TEST(EPICSPVAInputGTest,TestGetBrokerName) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestGetBrokerName());
+}
+
+TEST(EPICSPVAInputGTest,TestGetBrokerName_OutputSignals) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestGetBrokerName_OutputSignals());
+}
+
+TEST(EPICSPVAInputGTest,TestGetInputBrokers) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestGetInputBrokers());
+}
+
+TEST(EPICSPVAInputGTest,TestGetOutputBrokers) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers());
+}
+
+TEST(EPICSPVAInputGTest,TestInitialise) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(EPICSPVAInputGTest,TestInitialise_Defaults) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestInitialise_Defaults());
+}
+
+TEST(EPICSPVAInputGTest,TestInitialise_False_Signals) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Signals());
+}
+
+TEST(EPICSPVAInputGTest,TestGetCPUMask) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestGetCPUMask());
+}
+
+TEST(EPICSPVAInputGTest,TestGetStackSize) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestGetStackSize());
+}
+
+TEST(EPICSPVAInputGTest,TestSetConfiguredDatabase) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase());
+}
+
+TEST(EPICSPVAInputGTest,TestSetConfiguredDatabase_False_NoSignals) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoSignals());
+}
+
+TEST(EPICSPVAInputGTest,TestSetConfiguredDatabase_False_Samples) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_Samples());
+}
+
+TEST(EPICSPVAInputGTest,TestPrepareNextState) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
+}
+
+TEST(EPICSPVAInputGTest,TestSynchronise) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestSynchronise());
+}
+
 TEST(EPICSPVAInputGTest,TestExecute) {
     EPICSPVAInputTest test;
     ASSERT_TRUE(test.TestExecute());
@@ -54,4 +134,3 @@ TEST(EPICSPVAInputGTest,TestExecute_Arrays) {
     ASSERT_TRUE(test.TestExecute_Arrays());
 }
 
-	

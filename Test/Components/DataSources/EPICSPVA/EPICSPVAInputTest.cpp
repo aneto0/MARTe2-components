@@ -211,7 +211,9 @@ CLASS_REGISTER(EPICSPVAInputSchedulerTestHelper, "1.0")
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 bool EPICSPVAInputTest::TestConstructor() {
-    return true;
+    using namespace MARTe;
+    EPICSPVAInput test;
+    return (test.NumberOfReferences() == 0);
 }
 
 bool EPICSPVAInputTest::TestExecute() {
@@ -866,3 +868,91 @@ bool EPICSPVAInputTest::TestExecute_Arrays() {
     return ok;
 }
 
+bool EPICSPVAInputTest::TestAllocateMemory() {
+    using namespace MARTe;
+    EPICSPVAInput test;
+    return test.AllocateMemory();
+}
+
+bool EPICSPVAInputTest::TestGetNumberOfMemoryBuffers() {
+    using namespace MARTe;
+    EPICSPVAInput test;
+    return (test.GetNumberOfMemoryBuffers() == 1);
+}
+
+bool EPICSPVAInputTest::TestGetSignalMemoryBuffer() {
+}
+
+bool EPICSPVAInputTest::TestGetBrokerName() {
+}
+
+bool EPICSPVAInputTest::TestGetBrokerName_OutputSignals() {
+}
+
+bool EPICSPVAInputTest::TestInitialise() {
+    using namespace MARTe;
+    EPICSPVAInput test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUs", 1);
+    cdb.Write("StackSize", 100000);
+    cdb.CreateAbsolute("Signals");
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = (test.GetCPUMask() == 1);
+        ok &= (test.GetStackSize() == 100000);
+    }
+    return ok;
+}
+
+bool EPICSPVAInputTest::TestInitialise_Defaults() {
+    using namespace MARTe;
+    EPICSPVAInput test;
+    ConfigurationDatabase cdb;
+    cdb.CreateAbsolute("Signals");
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = (test.GetCPUMask() == 0xff);
+        ok &= (test.GetStackSize() == (THREADS_DEFAULT_STACKSIZE * 4u));
+    }
+    return ok;
+}
+
+bool EPICSPVAInputTest::TestInitialise_False_Signals() {
+    using namespace MARTe;
+    EPICSPVAInput test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUs", 1);
+    cdb.Write("StackSize", 100000);
+    return !test.Initialise(cdb);
+}
+
+bool EPICSPVAInputTest::TestGetCPUMask() {
+    return TestInitialise();
+}
+
+bool EPICSPVAInputTest::TestGetStackSize() {
+    return TestInitialise();
+}
+
+bool EPICSPVAInputTest::TestSetConfiguredDatabase() {
+}
+
+bool EPICSPVAInputTest::TestSetConfiguredDatabase_False_NoSignals() {
+}
+
+bool EPICSPVAInputTest::TestSetConfiguredDatabase_False_Samples() {
+}
+
+bool EPICSPVAInputTest::TestSynchronise() {
+    using namespace MARTe;
+    EPICSPVAInput test;
+    return (!test.Synchronise());
+}
+
+bool EPICSPVAInputTest::TestPrepareNextState() {
+    using namespace MARTe;
+    EPICSPVAInput test;
+    return (test.PrepareNextState("", ""));
+}

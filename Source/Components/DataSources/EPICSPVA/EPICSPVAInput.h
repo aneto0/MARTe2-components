@@ -113,8 +113,7 @@ public:
 EPICSPVAInput    ();
 
     /**
-     * @brief Destructor.
-     * @details TODO.
+     * @brief Destructor. NOOP.
      */
     virtual ~EPICSPVAInput();
 

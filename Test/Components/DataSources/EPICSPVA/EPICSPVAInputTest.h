@@ -57,7 +57,80 @@ public:
      */
     bool TestExecute_Arrays();
 
+    /**
+     * @brief Tests the AllocateMemory method
+     */
+    bool TestAllocateMemory();
 
+    /**
+     * @brief Tests the GetNumberOfMemoryBuffers method
+     */
+    bool TestGetNumberOfMemoryBuffers();
+
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method
+     */
+    bool TestGetSignalMemoryBuffer();
+
+    /**
+     * @brief Tests that the GetBrokerName method correctly returns a MemoryMapInputBroker.
+     */
+    bool TestGetBrokerName();
+
+    /**
+     * @brief Tests that the GetBrokerName method correctly returns an empty string for OutputSignals.
+     */
+    bool TestGetBrokerName_OutputSignals();
+
+    /**
+     * @brief Tests the Initialise method
+     */
+    bool TestInitialise();
+
+    /**
+     * @brief Tests the Initialise method with defaults
+     */
+    bool TestInitialise_Defaults();
+
+    /**
+     * @brief Tests the Initialise method without specifying the Signals
+     */
+    bool TestInitialise_False_Signals();
+
+    /**
+     * @brief Tests the GetCPUMask method.
+     */
+    bool TestGetCPUMask();
+
+    /**
+     * @brief Tests the GetStackSize method.
+     */
+    bool TestGetStackSize();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method.
+     */
+    bool TestSetConfiguredDatabase();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method without specifying any signals.
+     */
+    bool TestSetConfiguredDatabase_False_NoSignals();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method specifying more than one sample.
+     */
+    bool TestSetConfiguredDatabase_False_Samples();
+
+    /**
+     * @brief Tests that the Synchronise method returns false.
+     */
+    bool TestSynchronise();
+
+    /**
+     * @brief Tests that the PrepareNextState method returns true.
+     */
+    bool TestPrepareNextState();
 };
 
 /*---------------------------------------------------------------------------*/
