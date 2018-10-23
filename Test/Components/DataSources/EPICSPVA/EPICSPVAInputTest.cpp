@@ -793,26 +793,59 @@ bool EPICSPVAInputTest::TestExecute_Arrays() {
             outFloat32[n] = 32 * n;
             outFloat64[n] = 64 * n;
         }
+        epics::pvData::shared_vector<const uint8> outUInt8F = freeze(outUInt8);
+        epics::pvData::shared_vector<const uint16> outUInt16F = freeze(outUInt16);
+        epics::pvData::shared_vector<const uint32> outUInt32F = freeze(outUInt32);
+        epics::pvData::shared_vector<const unsigned long int> outUInt64F = freeze(outUInt64);
+        epics::pvData::shared_vector<const int8> outInt8F = freeze(outInt8);
+        epics::pvData::shared_vector<const int16> outInt16F = freeze(outInt16);
+        epics::pvData::shared_vector<const int32> outInt32F = freeze(outInt32);
+        epics::pvData::shared_vector<const long int> outInt64F = freeze(outInt64);
+        epics::pvData::shared_vector<const float32> outFloat32F = freeze(outFloat32);
+        epics::pvData::shared_vector<const float64> outFloat64F = freeze(outFloat64);
 
         pvac::ClientProvider provider("pva");
         uint32 timeOutCounts = 50;
         ok = false;
         while ((!ok) && (timeOutCounts != 0u)) {
             pvac::ClientChannel record1(provider.connect("RecordIn1Arr"));
-            record1.put().set("UnsignedIntegers.UInt8", freeze(outUInt8)).exec();
-            record1.put().set("UnsignedIntegers.UInt16", freeze(outUInt16)).exec();
-            record1.put().set("UnsignedIntegers.UInt32", freeze(outUInt32)).exec();
-            record1.put().set("UnsignedIntegers.UInt64", freeze(outUInt64)).exec();
+            record1.put().set("UnsignedIntegers.UInt8", outUInt8F).exec();
+            record1.put().set("UnsignedIntegers.UInt16", outUInt16F).exec();
+            record1.put().set("UnsignedIntegers.UInt32", outUInt32F).exec();
+            record1.put().set("UnsignedIntegers.UInt64", outUInt64F).exec();
             pvac::ClientChannel record2(provider.connect("RecordIn2Arr"));
-            record2.put().set("SignedIntegers.Int8", freeze(outInt8)).exec();
-            record2.put().set("SignedIntegers.Int16", freeze(outInt16)).exec();
-            record2.put().set("SignedIntegers.Int32", freeze(outInt32)).exec();
-            record2.put().set("SignedIntegers.Int64", freeze(outInt64)).exec();
+            record2.put().set("SignedIntegers.Int8", outInt8F).exec();
+            record2.put().set("SignedIntegers.Int16", outInt16F).exec();
+            record2.put().set("SignedIntegers.Int32", outInt32F).exec();
+            record2.put().set("SignedIntegers.Int64", outInt64F).exec();
             pvac::ClientChannel record3(provider.connect("RecordIn3Arr"));
-            record3.put().set("Element1", freeze(outFloat32)).exec();
+            record3.put().set("Element1", outFloat32F).exec();
             pvac::ClientChannel record4(provider.connect("RecordIn4Arr"));
-            record4.put().set("Element1", freeze(outFloat64)).exec();
+            record4.put().set("Element1", outFloat64F).exec();
             scheduler->ExecuteThreadCycle(0u);
+            outUInt8.resize(nOfElements);
+            outUInt16.resize(nOfElements);
+            outUInt32.resize(nOfElements);
+            outUInt64.resize(nOfElements);
+            outInt8.resize(nOfElements);
+            outInt16.resize(nOfElements);
+            outInt32.resize(nOfElements);
+            outInt64.resize(nOfElements);
+            outFloat32.resize(nOfElements);
+            outFloat64.resize(nOfElements);
+
+            for (n = 0u; n < nOfElements; n++) {
+                outUInt8[n] = n;
+                outUInt16[n] = 2 * n;
+                outUInt32[n] = 3 * n;
+                outUInt64[n] = 4 * n;
+                outInt8[n] = -1 * n;
+                outInt16[n] = -2 * n;
+                outInt32[n] = -3 * n;
+                outInt64[n] = -4 * n;
+                outFloat32[n] = 32 * n;
+                outFloat64[n] = 64 * n;
+            }
             for (n = 0u; (n < nOfElements); n++) {
                 ok = (outUInt8[n] == gam1->uint8Signal[n]);
                 ok &= (outUInt16[n] == gam1->uint16Signal[n]);

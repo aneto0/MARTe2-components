@@ -27,6 +27,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "pv/channelProviderLocal.h"
 #include "pv/pvDatabase.h"
 #include "pv/serverContext.h"
 
@@ -185,6 +186,10 @@ private:
      */
     epics::pvDatabase::PVDatabasePtr master;
 
+    /**
+     * The channel provider
+     */
+    epics::pvDatabase::ChannelProviderLocalPtr channelProvider;
 
 };
 }

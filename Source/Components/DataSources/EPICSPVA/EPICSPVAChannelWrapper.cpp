@@ -50,7 +50,7 @@ EPICSPVAChannelWrapper::EPICSPVAChannelWrapper() {
 }
 
 EPICSPVAChannelWrapper::~EPICSPVAChannelWrapper() {
-    if (cachedSignals == NULL_PTR(EPICSPVAChannelWrapperCachedSignal *)) {
+    if (cachedSignals != NULL_PTR(EPICSPVAChannelWrapperCachedSignal *)) {
         delete[] cachedSignals;
     }
     channel = pvac::ClientChannel();
@@ -295,7 +295,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
             ok = monitor.valid();
         }
         if (ok) {
-            if (monitor.wait(1.0)) {
+            if (monitor.wait(0.2)) {
                 if (monitor.event.event == pvac::MonitorEvent::Data) {
                     while (monitor.poll()) {
                         uint32 n;

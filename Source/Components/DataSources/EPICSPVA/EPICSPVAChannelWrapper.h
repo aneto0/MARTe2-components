@@ -100,7 +100,7 @@ public:
 
     /**
      * @brief Copies from relevant PVA structure fields into each signal memory.
-     * @details This method has a fixed timeout of 1 second.
+     * @details This method has a fixed timeout of 0.2 second.
      * @return true if all the record and the monitor are valid.
      */
     bool Monitor();
@@ -120,6 +120,7 @@ private:
      */
     template<typename T>
     void PutHelper(pvac::detail::PutBuilder &putBuilder, uint32 n);
+    //void PutHelper(uint32 n);
 
     /**
      * @brief Helper method which gets the value of the signal at index \a from the relevant field in the \a scalarArrayPtr.
@@ -191,8 +192,11 @@ void EPICSPVAChannelWrapper::PutHelper(pvac::detail::PutBuilder &putBuilder, uin
         putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), *static_cast<T *>(cachedSignals[n].memory));
     }
     else {
-        epics::pvData::shared_vector<const T> vec = epics::pvData::shared_vector<const T>(reinterpret_cast<T *>(cachedSignals[n].memory), 0u, cachedSignals[n].numberOfElements);
-        putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), vec);
+        epics::pvData::shared_vector<T> out;
+        out.resize(cachedSignals[n].numberOfElements);
+        (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory, cachedSignals[n].numberOfElements * sizeof(T));
+        epics::pvData::shared_vector<const T> outF = freeze(out);
+        putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), outF);
     }
 }
 
@@ -200,11 +204,11 @@ template<typename T>
 bool EPICSPVAChannelWrapper::GetArrayHelper(epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr, uint32 n) {
     bool ok = true;
     epics::pvData::shared_vector<const T> out;
-    scalarArrayPtr->getAs < T > (out);
+    scalarArrayPtr->getAs<T>(out);
     uint32 i;
-    Vector<T> readVec (reinterpret_cast<T *>(cachedSignals[n].memory), cachedSignals[n].numberOfElements);
-    Vector<T> srcVec (const_cast<T *>(reinterpret_cast<const T *>(out.data())), cachedSignals[n].numberOfElements);
-    for (i = 0u; i<cachedSignals[n].numberOfElements; i++) {
+    Vector<T> readVec(reinterpret_cast<T *>(cachedSignals[n].memory), cachedSignals[n].numberOfElements);
+    Vector<T> srcVec(const_cast<T *>(reinterpret_cast<const T *>(out.data())), cachedSignals[n].numberOfElements);
+    for (i = 0u; i < cachedSignals[n].numberOfElements; i++) {
         readVec[i] = srcVec[i];
     }
 

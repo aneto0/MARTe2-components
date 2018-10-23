@@ -24,9 +24,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "EPICSPVADatabase.h"
-
-#include "pv/channelProviderLocal.h"
 #include "pv/pvAccess.h"
 #include "pv/pvaConstants.h"
 #include "pv/pvData.h"
@@ -36,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
+#include "EPICSPVADatabase.h"
 #include "EPICSPVARecord.h"
 #include "RegisteredMethodsMessageFilter.h"
 
@@ -61,7 +59,7 @@ EPICSPVADatabase::EPICSPVADatabase() :
 }
 
 EPICSPVADatabase::~EPICSPVADatabase() {
-
+    channelProvider = epics::pvDatabase::ChannelProviderLocalPtr();
 }
 
 void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
@@ -129,7 +127,7 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
         uint32 i;
         uint32 nOfRecords = Size();
         bool ok = true;
-        epics::pvDatabase::ChannelProviderLocalPtr channelProvider = epics::pvDatabase::getChannelProviderLocal();
+        channelProvider = epics::pvDatabase::getChannelProviderLocal();
         master = epics::pvDatabase::PVDatabase::getMaster();
         for (i = 0u; (i < nOfRecords) && (ok); i++) {
             ReferenceT<EPICSPVARecord> record = Get(i);
