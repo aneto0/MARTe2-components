@@ -30,6 +30,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -efile(766,EPICSRPCClientMessageFilter.cpp) EPICSRPCClientMessageFilter.h and Message.h are used in this file.*/
 #include "AdvancedErrorManagement.h"
 #include "EPICSPVAStructureDataI.h"
 #include "EPICSRPCClientMessageFilter.h"

@@ -32,9 +32,9 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -efile(766,EPICSRPCServer.cpp) EPICSRPCService.h, EPICSRPCServiceAdapter.h and RegisteredMethodsMessageFilter.h are used in this file.*/
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
-#include "EPICSObjectRegistryDatabaseService.h"
 #include "EPICSRPCServer.h"
 #include "EPICSRPCService.h"
 #include "EPICSRPCServiceAdapter.h"

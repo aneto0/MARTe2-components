@@ -28,6 +28,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -efile(766,EPICSRPCClient.cpp) RegisteredMethodsMessageFilter.h is used in this file.*/
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
 #include "EPICSRPCClient.h"

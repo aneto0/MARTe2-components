@@ -62,4 +62,5 @@ PVADIR = $(EPICS_BASE)
 endif
 
 ifdef PVADIR
-LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVADIR)/lib/$(EPICS_HOST_ARCH)/  -lpvaClient -lpvAccess -lpvData -lpvDatabaseendif 
+LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVADIR)/lib/$(EPICS_HOST_ARCH)/  -lpvaClient -lpvAccess -lpvData -lpvDatabase
+endif 

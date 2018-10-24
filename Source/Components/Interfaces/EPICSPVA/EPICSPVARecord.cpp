@@ -33,8 +33,7 @@
 #include "AdvancedErrorManagement.h"
 #include "EPICSPVARecord.h"
 #include "EPICSPVAStructureDataI.h"
-#include "ObjectRegistryDatabase.h"
-#include "StreamString.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/

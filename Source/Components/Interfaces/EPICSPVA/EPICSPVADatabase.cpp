@@ -25,12 +25,12 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #include "pv/pvAccess.h"
-#include "pv/pvaConstants.h"
 #include "pv/pvData.h"
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -efile(766,EPICSPVADatabase.cpp) RegisteredMethodsMessageFilter.h and EPICSPVARecord.h are used in this file.*/
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
 #include "EPICSPVADatabase.h"

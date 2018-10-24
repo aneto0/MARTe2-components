@@ -24,10 +24,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "EPICSPVAInput.h"
-
 #include "AdvancedErrorManagement.h"
-#include "MemoryMapInputBroker.h"
+#include "EPICSPVAInput.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

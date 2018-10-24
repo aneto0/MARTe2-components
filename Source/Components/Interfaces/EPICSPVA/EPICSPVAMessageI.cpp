@@ -33,9 +33,6 @@
 #include "EPICSPVAMessageI.h"
 #include "EPICSPVAStructureDataI.h"
 #include "Message.h"
-#include "ObjectRegistryDatabase.h"
-#include "ReplyMessageCatcherMessageFilter.h"
-#include "StreamString.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/

@@ -30,8 +30,6 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "EPICSPVAStructureDataI.h"
-#include "Reference.h"
-#include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -155,7 +153,7 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
                     uint32 numberOfElements = storedType.GetNumberOfElements(0u);
                     uint32 i;
                     Vector<StreamString> dst(static_cast<StreamString *>(value.GetDataPointer()), numberOfElements);
-                    for (i = 0; i < numberOfElements; i++) {
+                    for (i = 0u; i < numberOfElements; i++) {
                         dst[i] = srcStr[i].c_str();
                     }
                 }

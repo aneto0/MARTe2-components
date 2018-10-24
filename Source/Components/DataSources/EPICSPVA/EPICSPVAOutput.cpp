@@ -24,10 +24,9 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "EPICSPVAOutput.h"
-
 #include "AdvancedErrorManagement.h"
 #include "MemoryMapAsyncOutputBroker.h"
+#include "EPICSPVAOutput.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

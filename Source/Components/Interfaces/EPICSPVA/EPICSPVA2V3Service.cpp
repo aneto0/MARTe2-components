@@ -29,15 +29,13 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -efile(766,EPICSPVA2V3Service.cpp) Message.h and EPICSPVARecord.h is used in this file.*/
 #include "AdvancedErrorManagement.h"
 #include "EPICSCAClient.h"
 #include "EPICSPV.h"
 #include "EPICSPVA2V3Service.h"
 #include "EPICSPVAStructureDataI.h"
 #include "Message.h"
-#include "ObjectRegistryDatabase.h"
-#include "ReplyMessageCatcherMessageFilter.h"
-#include "StreamString.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/

@@ -29,10 +29,10 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -efile(766,EPICSObjectRegistryDatabaseService.cpp) Message.h and ObjectRegistryDatabase.h is used in this file.*/
 #include "AdvancedErrorManagement.h"
 #include "EPICSObjectRegistryDatabaseService.h"
 #include "ObjectRegistryDatabase.h"
-#include "StreamString.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
