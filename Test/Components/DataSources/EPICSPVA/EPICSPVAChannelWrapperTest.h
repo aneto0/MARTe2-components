@@ -57,6 +57,11 @@ public:
     bool TestSetup_False_Dimensions();
 
     /**
+     * @brief Tests that the Setup method fails with an invalid leaf.
+     */
+    bool TestSetup_False_InvalidLeaf();
+
+    /**
      * @brief Tests the GetSignalMemory method.
      */
     bool TestGetSignalMemory();

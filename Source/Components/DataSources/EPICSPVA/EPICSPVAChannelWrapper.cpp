@@ -117,7 +117,7 @@ bool EPICSPVAChannelWrapper::LoadSignalStructure(StructuredDataI &data, StreamSt
     else {
         //If it is not a signal, must be a node
         uint32 nOfChildren = data.GetNumberOfChildren();
-        bool ok = (nOfChildren > 0u);
+        ok = (nOfChildren > 0u);
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Found an invalid leaf which is not a signal");
         }

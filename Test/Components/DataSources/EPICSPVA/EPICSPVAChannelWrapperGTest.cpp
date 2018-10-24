@@ -54,6 +54,11 @@ TEST(EPICSPVAChannelWrapperGTest,TestSetup_False_Dimensions) {
     ASSERT_TRUE(test.TestSetup_False_Dimensions());
 }
 
+TEST(EPICSPVAChannelWrapperGTest,TestSetup_False_InvalidLeaf) {
+    EPICSPVAChannelWrapperTest test;
+    ASSERT_TRUE(test.TestSetup_False_InvalidLeaf());
+}
+
 TEST(EPICSPVAChannelWrapperGTest,TestGetChannelName) {
     EPICSPVAChannelWrapperTest test;
     ASSERT_TRUE(test.TestGetChannelName());

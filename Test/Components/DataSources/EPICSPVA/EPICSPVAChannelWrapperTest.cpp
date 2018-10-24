@@ -95,6 +95,21 @@ bool EPICSPVAChannelWrapperTest::TestSetup_False_Dimensions() {
     cdb.Write("Type", "uint32");
     cdb.Write("NumberOfElements", 10);
     cdb.Write("NumberOfDimensions", 2);
+    cdb.MoveAbsolute("Record1");
+    bool ok = !test.Setup(cdb);
+    return ok;
+}
+
+bool EPICSPVAChannelWrapperTest::TestSetup_False_InvalidLeaf() {
+    using namespace MARTe;
+    EPICSPVAChannelWrapper test;
+    ConfigurationDatabase cdb;
+    cdb.CreateAbsolute("Record1.value");
+    cdb.Write("Type", "uint32");
+    cdb.Write("NumberOfElements", 10);
+    cdb.Write("NumberOfDimensions", 1);
+    cdb.CreateAbsolute("Record1.value2");
+    cdb.MoveAbsolute("Record1");
     bool ok = !test.Setup(cdb);
     return ok;
 }
