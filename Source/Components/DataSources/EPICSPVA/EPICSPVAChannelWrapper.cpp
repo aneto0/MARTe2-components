@@ -58,9 +58,18 @@ EPICSPVAChannelWrapper::~EPICSPVAChannelWrapper() {
 }
 
 bool EPICSPVAChannelWrapper::Setup(StructuredDataI &data) {
-    channelName = data.GetName();
+    bool ok = true;
+    unliasedChannelName = data.GetName();
+    if (data.Read("Alias", channelName)) {
+        ok = data.Delete("Alias");
+    }
+    else {
+        channelName = unliasedChannelName.Buffer();
+    }
     REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering channel %s", channelName.Buffer());
-    bool ok = LoadSignalStructure(data, "", "");
+    if (ok) {
+        ok = LoadSignalStructure(data, "", "");
+    }
     return ok;
 }
 
@@ -68,6 +77,7 @@ bool EPICSPVAChannelWrapper::LoadSignalStructure(StructuredDataI &data, StreamSt
     bool ok = true;
 
     StreamString typeName;
+    StreamString ignore;
     //If it is already a signal it shall have the type defined
     bool isSignal = data.Read("Type", typeName);
     if (isSignal) {
@@ -88,7 +98,7 @@ bool EPICSPVAChannelWrapper::LoadSignalStructure(StructuredDataI &data, StreamSt
 
             memorySize *= numberOfElements;
             memorySize /= 8u;
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Registering signal %s of type %s [%d bytes]", fullNodeName.Buffer(), typeName.Buffer(), memorySize);
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s of type %s [%d bytes]", fullNodeName.Buffer(), typeName.Buffer(), memorySize);
             void *mem = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize);
             AnyType at(td, 0u, mem);
             at.SetNumberOfElements(0u, numberOfElements);
@@ -398,6 +408,10 @@ bool EPICSPVAChannelWrapper::Monitor() {
 
 const char8 * const EPICSPVAChannelWrapper::GetChannelName() {
     return channelName.Buffer();
+}
+
+const char8 * const EPICSPVAChannelWrapper::GetChannelUnaliasedName() {
+    return unliasedChannelName.Buffer();
 }
 
 }

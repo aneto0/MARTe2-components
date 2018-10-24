@@ -223,6 +223,7 @@ bool EPICSPVAInputTest::TestExecute() {
             "    Class = EPICSPVADatabase\n"
             "    +RecordIn1 = {\n"
             "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Alias = \"TEST_RECORD1\"\n"
             "        Structure = {\n"
             "             UnsignedIntegers = {\n"
             "                  UInt8 = {\n"
@@ -359,6 +360,7 @@ bool EPICSPVAInputTest::TestExecute() {
             "            NumberOfBuffers = 2\n"
             "            Signals = {\n"
             "                RecordIn1 = {\n"
+            "                    Alias = \"TEST_RECORD1\"\n"
             "                    UnsignedIntegers = {\n"
             "                        UInt8 = {\n"
             "                            Type = uint8\n"
@@ -473,7 +475,7 @@ bool EPICSPVAInputTest::TestExecute() {
         uint32 timeOutCounts = 50;
         ok = false;
         while ((!ok) && (timeOutCounts != 0u)) {
-            pvac::ClientChannel record1(provider.connect("RecordIn1"));
+            pvac::ClientChannel record1(provider.connect("TEST_RECORD1"));
             record1.put().set("UnsignedIntegers.UInt8", 1).exec();
             record1.put().set("UnsignedIntegers.UInt16", 2).exec();
             record1.put().set("UnsignedIntegers.UInt32", 3).exec();
@@ -881,9 +883,7 @@ bool EPICSPVAInputTest::TestGetNumberOfMemoryBuffers() {
 }
 
 bool EPICSPVAInputTest::TestGetSignalMemoryBuffer() {
-    using namespace MARTe;
-    EPICSPVAInput test;
-    return (test.GetNumberOfMemoryBuffers() == 1);
+    return TestSetConfiguredDatabase();
 }
 
 bool EPICSPVAInputTest::TestGetBrokerName() {

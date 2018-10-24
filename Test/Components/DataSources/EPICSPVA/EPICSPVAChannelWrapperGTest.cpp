@@ -59,6 +59,11 @@ TEST(EPICSPVAChannelWrapperGTest,TestGetChannelName) {
     ASSERT_TRUE(test.TestGetChannelName());
 }
 
+TEST(EPICSPVAChannelWrapperGTest,TestGetChannelUnaliasedName) {
+    EPICSPVAChannelWrapperTest test;
+    ASSERT_TRUE(test.TestGetChannelUnaliasedName());
+}
+
 TEST(EPICSPVAChannelWrapperGTest,TestGetSignalMemory) {
     EPICSPVAChannelWrapperTest test;
     ASSERT_TRUE(test.TestGetSignalMemory());
@@ -73,4 +78,3 @@ TEST(EPICSPVAChannelWrapperGTest,TestPut) {
     EPICSPVAChannelWrapperTest test;
     ASSERT_TRUE(test.TestPut());
 }
-

@@ -57,46 +57,47 @@ namespace MARTe {
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
  *     CPUs = 0xff //Optional the affinity of the EmbeddedThread which actually performs the PVA monitoring.
  *     Signals = {
- "         RecordOut1 = {"
- "             UnsignedIntegers = {"
- "                 UInt8 = {"
- "                     Type = uint8"
- "                     NumberOfElements = 8"
- "                 }"
- "                 UInt16 = {"
- "                     Type = uint16"
- "                     NumberOfElements = 1"
- "                 }"
- "                 UInt32 = {"
- "                     Type = uint32"
- "                     NumberOfElements = 1"
- "                 }"
- "                 UInt64 = {"
- "                     Type = uint64"
- "                     NumberOfElements = 1"
- "                 }"
- "             }"
- "         }"
- "         RecordOut2 = {"
- "             SignedIntegers = {"
- "                 Int8 = {"
- "                     Type = int8"
- "                     NumberOfElements = 2"
- "                 }"
- "                 Int16 = {"
- "                     Type = int16"
- "                     NumberOfElements = 4"
- "                 }"
- "                 Int32 = {"
- "                     Type = int32"
- "                     NumberOfElements = 1"
- "                 }"
- "                 Int64 = {"
- "                     Type = int64"
- "                     NumberOfElements = 1"
- "                 }"
- "             }"
- "         }"
+ *         RecordOut1 = {//Record name if the Alias field is not set
+ *             Alias = "alternative::channel::name"
+ *             UnsignedIntegers = {
+ *                 UInt8 = {
+ *                     Type = uint8
+ *                     NumberOfElements = 8
+ *                 }
+ *                 UInt16 = {
+ *                     Type = uint16
+ *                     NumberOfElements = 1
+ *                 }
+ *                 UInt32 = {
+ *                     Type = uint32
+ *                     NumberOfElements = 1
+ *                 }
+ *                 UInt64 = {
+ *                     Type = uint64
+ *                     NumberOfElements = 1
+ *                 }
+ *             }
+ *         }
+ *         RecordOut2 = {
+ *             SignedIntegers = {
+ *                 Int8 = {
+ *                     Type = int8
+ *                     NumberOfElements = 2
+ *                 }
+ *                 Int16 = {
+ *                     Type = int16
+ *                     NumberOfElements = 4
+ *                 }
+ *                 Int32 = {
+ *                     Type = int32
+ *                     NumberOfElements = 1
+ *                 }
+ *                 Int64 = {
+ *                     Type = int64
+ *                     NumberOfElements = 1
+ *                 }
+ *             }
+ *         }
  *         ...
  *     }
  * }

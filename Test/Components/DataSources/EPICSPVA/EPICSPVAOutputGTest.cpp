@@ -44,6 +44,97 @@ TEST(EPICSPVAOutputGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+
+TEST(EPICSPVAOutputGTest,TestAllocateMemory) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestAllocateMemory());
+}
+
+TEST(EPICSPVAOutputGTest,TestGetNumberOfMemoryBuffers) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
+}
+
+TEST(EPICSPVAOutputGTest,TestGetSignalMemoryBuffer) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer());
+}
+
+TEST(EPICSPVAOutputGTest,TestGetBrokerName) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestGetBrokerName());
+}
+
+TEST(EPICSPVAOutputGTest,TestGetBrokerName_InputSignals) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestGetBrokerName_InputSignals());
+}
+
+TEST(EPICSPVAOutputGTest,TestGetOutputBrokers) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers());
+}
+
+TEST(EPICSPVAOutputGTest,TestInitialise) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(EPICSPVAOutputGTest,TestInitialise_Defaults) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_Defaults());
+}
+
+TEST(EPICSPVAOutputGTest,TestInitialise_False_Signals) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Signals());
+}
+
+TEST(EPICSPVAOutputGTest,TestInitialise_False_NumberOfBuffers) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers());
+}
+
+TEST(EPICSPVAOutputGTest,TestGetCPUMask) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestGetCPUMask());
+}
+
+TEST(EPICSPVAOutputGTest,TestGetStackSize) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestGetStackSize());
+}
+
+TEST(EPICSPVAOutputGTest,TestGetNumberOfBuffers) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestGetNumberOfBuffers());
+}
+
+TEST(EPICSPVAOutputGTest,TestSetConfiguredDatabase) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase());
+}
+
+TEST(EPICSPVAOutputGTest,TestSetConfiguredDatabase_False_NoSignals) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoSignals());
+}
+
+TEST(EPICSPVAOutputGTest,TestSetConfiguredDatabase_False_MoreThanOneGAM) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneGAM());
+}
+
+TEST(EPICSPVAOutputGTest,TestSetConfiguredDatabase_False_Samples) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_Samples());
+}
+
+TEST(EPICSPVAOutputGTest,TestIsIgnoringBufferOverrun) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestIsIgnoringBufferOverrun());
+}
+
 TEST(EPICSPVAOutputGTest,TestSynchronise) {
     EPICSPVAOutputTest test;
     ASSERT_TRUE(test.TestSynchronise());

@@ -219,6 +219,11 @@ bool EPICSPVARecord::Initialise(StructuredDataI &data) {
         ok = data.Copy(cdb);
     }
     if (ok) {
+        recordName = "";
+        if (!cdb.Read("Alias", recordName)) {
+            recordName = GetName();
+        }
+        REPORT_ERROR(ErrorManagement::Information, "Going to use the following record name: [%s]", recordName.Buffer());
         ok = cdb.MoveRelative("Structure");
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "No Structure defined");
@@ -236,7 +241,7 @@ epics::pvDatabase::PVRecordPtr EPICSPVARecord::CreatePVRecord() {
     if (ok) {
         epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
         pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
-        pvRecordWrapper = std::shared_ptr < MARTe2PVARecord > (new MARTe2PVARecord(GetName(), pvStructure));
+        pvRecordWrapper = std::shared_ptr < MARTe2PVARecord > (new MARTe2PVARecord(recordName.Buffer(), pvStructure));
         pvRecordWrapper->initPvt();
     }
     if (ok) {
@@ -249,6 +254,10 @@ epics::pvDatabase::PVRecordPtr EPICSPVARecord::CreatePVRecord() {
     }
     return pvRecordWrapper;
 
+}
+
+void EPICSPVARecord::GetRecordName(StreamString &recName) {
+    recName = recordName;
 }
 
 CLASS_REGISTER(EPICSPVARecord, "1.0")

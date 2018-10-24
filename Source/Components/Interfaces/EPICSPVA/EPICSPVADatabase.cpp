@@ -69,14 +69,16 @@ void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
         for (n = 0u; n < nElements; n++) {
             ReferenceT<EPICSPVARecord> pvaRecord = Get(n);
             if (pvaRecord.IsValid()) {
-                epics::pvDatabase::PVRecordPtr pvRecord = master->findRecord(pvaRecord->GetName());
-                REPORT_ERROR(ErrorManagement::Information, "Removing record %s", pvaRecord->GetName());
+                StreamString recordName;
+                pvaRecord->GetRecordName(recordName);
+                epics::pvDatabase::PVRecordPtr pvRecord = master->findRecord(recordName.Buffer());
+                REPORT_ERROR(ErrorManagement::Information, "Removing record %s", recordName.Buffer());
                 if (pvRecord) {
                     if(master->removeRecord(pvRecord)) {
-                        REPORT_ERROR(ErrorManagement::Information, "Removed record %s", pvaRecord->GetName());
+                        REPORT_ERROR(ErrorManagement::Information, "Removed record %s", recordName.Buffer());
                     }
                     else {
-                        REPORT_ERROR(ErrorManagement::FatalError, "Failed to remove record %s", pvaRecord->GetName());
+                        REPORT_ERROR(ErrorManagement::FatalError, "Failed to remove record %s", recordName.Buffer());
                     }
                     pvRecord->destroy();
                 }
@@ -132,14 +134,16 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
         for (i = 0u; (i < nOfRecords) && (ok); i++) {
             ReferenceT<EPICSPVARecord> record = Get(i);
             if (record.IsValid()) {
+                StreamString recordName;
+                record->GetRecordName(recordName);
                 epics::pvDatabase::PVRecordPtr pvRecordPtr = record->CreatePVRecord();
                 ok = (pvRecordPtr ? true : false);
                 if (ok) {
                     master->addRecord(pvRecordPtr);
-                    REPORT_ERROR(ErrorManagement::Information, "Registered record with name %s", record->GetName());
+                    REPORT_ERROR(ErrorManagement::Information, "Registered record with name %s", recordName.Buffer());
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::FatalError, "Record %s failed to CreatePVRecord", record->GetName());
+                    REPORT_ERROR(ErrorManagement::FatalError, "Record %s failed to CreatePVRecord", recordName.Buffer());
                 }
             }
             else {

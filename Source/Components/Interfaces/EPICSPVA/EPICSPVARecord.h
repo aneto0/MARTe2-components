@@ -46,8 +46,9 @@
  *
  * The configuration syntax is  (names are only given as an example):
  * <pre>
- * +Record1 = {
+ * +Record1 = { //If the Alias field is not set, the Object name is the record name
  *   Class = EPICSPVA::EPICSPVARecord
+ *   Alias = "f4e::falcon::Fast::Record1" //Optional. If set this will be the record name.
  *   Structure = {
  *     ElementsA = {
  *       Element1 = {
@@ -99,6 +100,13 @@ public:
      */
     virtual bool Initialise(StructuredDataI &data);
 
+    /**
+     * @brief Gets the record name.
+     * @param[out] recName the record name to return.
+     */
+    void GetRecordName(StreamString &recName);
+
+
 private:
     /**
      * @brief Recursively constructs the PVRecord from the configuration described in the "Structure" node of the configuration input (see Initialise).
@@ -125,11 +133,15 @@ private:
     template<typename T>
     void InitArray(StructuredDataI &data, const char8 * const name, const uint32 &size);
 
-
     /**
      * Local copy of the ConfigurationDatabase.
      */
     ConfigurationDatabase cdb;
+
+    /**
+     * The record name.
+     */
+    StreamString recordName;
 };
 }
 /*---------------------------------------------------------------------------*/

@@ -168,22 +168,26 @@ bool EPICSPVAOutput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 
     if (ok) {
         ok = fullQualifiedName.Seek(0LLU);
     }
-    StreamString channelName;
+    StreamString unaliasedChannelName;
     if (ok) {
         char8 ignore;
-        ok = fullQualifiedName.GetToken(channelName, ".", ignore);
+        ok = fullQualifiedName.GetToken(unaliasedChannelName, ".", ignore);
     }
     bool found = false;
     uint32 n;
     for (n = 0u; (n < numberOfChannels) && (ok) && (!found); n++) {
-        found = (channelName == channelList[n].GetChannelName());
+        found = (unaliasedChannelName == channelList[n].GetChannelUnaliasedName());
         if (found) {
             const char8 *fullQualifiedNameBuffer = fullQualifiedName.Buffer();
-            channelList[n].GetSignalMemory(&fullQualifiedNameBuffer[channelName.Size() + 1u], signalAddress);
+            signalAddress = NULL_PTR(void *);
+            channelList[n].GetSignalMemory(&fullQualifiedNameBuffer[unaliasedChannelName.Size() + 1u], signalAddress);
         }
     }
     if (ok) {
         ok = found;
+    }
+    if (ok) {
+        ok = (signalAddress != NULL_PTR(void *));
     }
     if (ok) {
         REPORT_ERROR(ErrorManagement::Information, "Signal [%s] was found in the declared structure", fullQualifiedName.Buffer());

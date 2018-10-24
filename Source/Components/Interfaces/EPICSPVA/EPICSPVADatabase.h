@@ -57,6 +57,7 @@ namespace MARTe {
  *   AutoStart = 0 //Optional. Default = 1. If false the service will only be started after receiving a Start message (see Start method).
  *   +Record1 = {
  *     Class = EPICSPVA::EPICSPVARecord
+ *     Alias = "f4e::falcon::Fast::Record1" //Optional. If set this will be the record name (as opposed to the Object name).
  *     Structure = {
  *       ElementsA = {
  *         Element1 = {

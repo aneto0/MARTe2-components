@@ -80,8 +80,8 @@ public:
     ~EPICSPVAChannelWrapper();
 
     /**
-     * @brief Registers the channel with a name given by data.GetName().
-     * @param[in] data the structure to be registered against the channel with a name given by data.GetName().
+     * @brief Registers the channel with a name given by data.Read("Alias") or data.GetName(), if the former does not exist.
+     * @param[in] data the structure to be registered against the channel.
      */
     bool Setup(StructuredDataI &data);
 
@@ -111,6 +111,12 @@ public:
      */
     const char8 * const GetChannelName();
 
+    /**
+     * @brief Gets this channel name irrespectively of the Alias.
+     * @return this channel name irrespectively of the Alias.
+     */
+    const char8 * const GetChannelUnaliasedName();
+
 private:
 
     /**
@@ -120,7 +126,6 @@ private:
      */
     template<typename T>
     void PutHelper(pvac::detail::PutBuilder &putBuilder, uint32 n);
-    //void PutHelper(uint32 n);
 
     /**
      * @brief Helper method which gets the value of the signal at index \a from the relevant field in the \a scalarArrayPtr.
@@ -159,6 +164,11 @@ private:
      * The EPICSPVA channelName
      */
     StreamString channelName;
+
+    /**
+     * The channelName without considering the alias
+     */
+    StreamString unliasedChannelName;
 
     /**
      * The backend memory

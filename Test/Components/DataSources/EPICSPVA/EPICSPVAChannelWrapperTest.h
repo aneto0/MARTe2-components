@@ -75,6 +75,11 @@ public:
      * @brief Test the GetChannelName method.
      */
     bool TestGetChannelName();
+
+    /**
+     * @brief Test the GetChannelUnaliasedName method.
+     */
+    bool TestGetChannelUnaliasedName();
 };
 
 /*---------------------------------------------------------------------------*/

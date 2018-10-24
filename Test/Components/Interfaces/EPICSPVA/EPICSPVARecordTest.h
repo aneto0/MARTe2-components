@@ -66,6 +66,11 @@ public:
      * @brief Tests that the Initialise method fails if an invalid type is specified.
      */
     bool TestInitialise_False_InvalidType();
+
+    /**
+     * @brief Test the GetRecordName method.
+     */
+    bool TestGetRecordName();
 };
 
 

@@ -103,3 +103,36 @@ bool EPICSPVARecordTest::TestInitialise_False_InvalidType() {
     return ok;
 }
 
+bool EPICSPVARecordTest::TestGetRecordName() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.B");
+    cdb.Write("Type", "uint32");
+    cdb.Write("NumberOfElements", 1);
+    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.C");
+    cdb.Write("Type", "uint32");
+    cdb.Write("NumberOfElements", 10);
+    cdb.MoveToRoot();
+    EPICSPVARecord pvaRecord;
+    pvaRecord.SetName("EPICSPVARecordTestTestCreatePVRecord");
+    bool ok = pvaRecord.Initialise(cdb);
+    if (ok) {
+        StreamString recordName;
+        pvaRecord.GetRecordName(recordName);
+        ok = (recordName == "EPICSPVARecordTestTestCreatePVRecord");
+    }
+    if (ok) {
+        EPICSPVARecord pvaRecord2;
+        cdb.MoveToRoot();
+        cdb.Write("Alias", "A::Different::Name");
+        ok = pvaRecord2.Initialise(cdb);
+        if (ok) {
+            StreamString recordName;
+            pvaRecord2.GetRecordName(recordName);
+            ok = (recordName == "A::Different::Name");
+        }
+    }
+
+    return ok;
+}
+
