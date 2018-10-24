@@ -48,21 +48,24 @@
 #endif
 #if ((defined(LINT)) || (!defined(FEATURE_10840)))
 namespace sdn {
-/*lint -estring(768, "sdn::Header_t::*") -e{970} -estring(754, "sdn::Header_t::*") -estring(770, "*sdn::Header_t*") -estring(9109, "*sdn::Header_t*")*/
+//! @cond Doxygen_Suppress
+ /*lint -estring(768, "sdn::Header_t::*") -e{970} -estring(754, "sdn::Header_t::*") -estring(770, "*sdn::Header_t*") -estring(9109, "*sdn::Header_t*")*/
 typedef struct {
+  /* see SDN core library */
   char     header_uid [4];
   /*lint -e{970}*/
-  char     header_version [4];
-  uint32_t header_size;
-  uint32_t topic_uid;
-  uint32_t topic_version;
-  uint32_t topic_size;
-  uint64_t topic_counter;
-  uint64_t send_time;
-  uint64_t recv_time;
+  char     header_version [4]; /* see SDN core library */
+  uint32_t header_size; /* see SDN core library */
+  uint32_t topic_uid; /* see SDN core library */
+  uint32_t topic_version; /* see SDN core library */
+  uint32_t topic_size; /* see SDN core library */
+  uint64_t topic_counter; /* see SDN core library */
+  uint64_t send_time; /* see SDN core library */
+  uint64_t recv_time; /* see SDN core library */
 
 } Header_t;
 }
+//! @endcond
 #endif
 
 /*---------------------------------------------------------------------------*/

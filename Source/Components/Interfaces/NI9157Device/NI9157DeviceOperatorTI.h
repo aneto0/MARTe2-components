@@ -59,6 +59,12 @@ public:
      */
     virtual ~NI9157DeviceOperatorTI();
 
+    /**
+     * @brief Find the resource identified by the \a varName
+     * @param[in] varName the name of the resource to find.
+     * @param[out] varDescriptor the returned variable descriptor.
+     * @return the NiFpga_Status.
+     */
     virtual NiFpga_Status FindResource(const char8 * const varName, uint32 &varDescriptor) const = 0;
 
     /**
@@ -124,7 +130,7 @@ public:
     /**
      * @brief Compares the values of two numbers depending by the type.
      * @param[in] a is a pointer to the first number.
-     * param[in] b is a pointer to the second number.
+     * @param[in] b is a pointer to the second number.
      * @return 0 if the values are equal, 1 if a>b, -1 if a<b.
      * @pre
      *   The pointers \a and \b must be valid and point to memories equal to sizeof(type)
@@ -136,7 +142,7 @@ public:
      * @param[in, out] dest is the pointer to the output memory.
      * @param[in] source is the pointer to the input memory.
      * @pre
-     *   The pointers \dest and \source must be valid and point to memories equal to sizeof(type)
+     *   The pointers \a dest and \a source must be valid and point to memories equal to sizeof(type)
      */
     virtual void Copy(uint8* const dest, const uint8* const source) const =0;
 

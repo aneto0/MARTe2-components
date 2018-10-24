@@ -2,7 +2,7 @@
  * @file NI9157CircularFifoReaderTest.h
  * @brief Header file for class NI9157CircularFifoReaderTest
  * @date 17/05/2018
- * @author pc
+ * @author Giuseppe Ferro
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

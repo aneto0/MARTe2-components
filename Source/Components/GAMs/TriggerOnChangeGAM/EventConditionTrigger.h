@@ -53,11 +53,11 @@ struct PacketField {
     /**
      * The field name
      */
-    StreamString name
+    StreamString name;
 
     /**
      * The field type
-     */;
+     */
     TypeDescriptor type;
 
     /**
@@ -167,7 +167,7 @@ public:
      * @details If the variables match, the Message objects contained will be added to a queue that
      * will be consumed within the Execute() function.
      * @param[in] packetMem is the memory to be checked.
-     * @param[in[ packetFieldIn is the packetField associated to the command that trigger this event.
+     * @param[in] packetFieldIn is the packetField associated to the command that trigger this event.
      * It must be one of the variables declared in "EventTrigger" block.
      * @return true if the variables match within the \a packetMem memory.
      */

@@ -96,6 +96,11 @@ public:
     bool TestExecute_Busy();
 
     /**
+     * @brief Tests the Execute method with Busy sleep and SleepPercentage.
+     */
+    bool TestExecute_Busy_SleepPercentage();
+
+    /**
      * @brief Tests the Execute method in the context of the real-time thread.
      */
     bool TestExecute_RTThread();
@@ -121,6 +126,16 @@ public:
     bool TestInitialise_Busy();
 
     /**
+     * @brief Tests the Initialise method  with a Busy SleepNature and specifying the SleepPercentage.
+     */
+    bool TestInitialise_Busy_SleepPercentage();
+
+    /**
+     * @brief Tests the Initialise method  with a Busy SleepNature and specifying a SleepPercentage > 100.
+     */
+    bool TestInitialise_Busy_SleepPercentage_gt_100();
+
+    /**
      * @brief Tests the Initialise method  with a CPUMask.
      */
     bool TestInitialise_CPUMask();
@@ -131,9 +146,19 @@ public:
     bool TestInitialise_StackSize();
 
     /**
-     * @brief Tests the Initialise method with an invalid SleepNature..
+     * @brief Tests the Initialise method with an invalid SleepNature.
      */
-    bool TestInitialise_False();
+    bool TestInitialise_False_SleepNature();
+
+    /**
+     * @brief Tests the Initialise method with an invalid ExecutionMode.
+     */
+    bool TestInitialise_False_ExecutionMode();
+
+    /**
+     * @brief Tests the Initialise method with an invalid StackSize.
+     */
+    bool TestInitialise_False_StackSize();
 
     /**
      * @brief Tests the TestGetCPUMask method.
@@ -184,6 +209,11 @@ public:
      * @brief Tests the SetConfiguredDatabase without setting any frequency.
      */
     bool TestSetConfiguredDatabase_False_NoFrequencySet();
+
+    /**
+     * @brief Test the GetSleepPercentage method.
+     */
+    bool TestGetSleepPercentage();
 };
 
 /*---------------------------------------------------------------------------*/

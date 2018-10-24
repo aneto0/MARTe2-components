@@ -52,6 +52,7 @@ namespace MARTe {
  *    ErrorCheck |= 0x8  //more than one event has occurred at the same time
  *
  * @details The configuration syntax is (names and signal quantities are only given as an example and * means optional):
+ *
  * <pre>
  * +NI1588Timestamp_0 = {
  *     Class = NI1588Timestamp
@@ -95,6 +96,7 @@ namespace MARTe {
  *         }
  *     }
  * }
+
  * </pre>
  */
 class NI1588Timestamp: public CircularBufferThreadInputDataSource {
@@ -102,7 +104,7 @@ public:
     CLASS_REGISTER_DECLARATION()
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     NI1588Timestamp();
 
