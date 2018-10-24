@@ -28,3 +28,10 @@ include Makefile.inc
 
 LIBRARIES = ../EPICS/cov/EPICS$(LIBEXT) -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVADIR)/lib/$(EPICS_HOST_ARCH)/ -Wl,-rpath,$(PVADIR)/lib/$(EPICS_HOST_ARCH)/ -lpvaClient -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom
 
+OCPPFLAGS := $(CPPFLAGS)
+#Force c++11
+ifdef PVACPP11
+CPPFLAGS = $(OCPPFLAGS) -std=c++11 -ftest-coverage
+else
+CPPFLAGS = $(OCPPFLAGS) -ftest-coverage  
+endif
