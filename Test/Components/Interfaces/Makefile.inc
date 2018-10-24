@@ -27,10 +27,6 @@
 SPB=MemoryGate.x\
 	SysLogger.x
 
-ifdef CODAC_ROOT
-SPB+=NI9157Device.x
-endif
-
 ifdef EFDA_MARTe_DIR
 SPB += BaseLib2Wrapper.x
 endif
@@ -40,7 +36,14 @@ SPB   += EPICS.x
 endif
 
 ifdef CODAC_ROOT
+
+SPB+=NI9157Device.x
+
+## Only force PVADIR if CCS version is gt v6.0
+CCSGT60 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 60 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCSGT60)" "1"
 PVADIR = $(EPICS_BASE)
+endif
 endif
 
 ifdef PVADIR

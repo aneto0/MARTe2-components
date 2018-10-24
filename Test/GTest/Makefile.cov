@@ -43,6 +43,13 @@ LIBRARIES += -lnisync
 LIBRARIES += -lnixseries
 LIBRARIES += -lpxi6259
 LIBRARIES += -lNiFpga
+
+## Only force PVADIR if CCS version is gt v6.0
+CCSGT60 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 60 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCSGT60)" "1"
+PVADIR = $(EPICS_BASE)
+endif
+
 endif
 
 ifdef EFDA_MARTe_DIR
@@ -55,10 +62,6 @@ endif
 
 ifdef EPICS_BASE
 LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
-endif
-
-ifdef CODAC_ROOT
-PVADIR = $(EPICS_BASE)
 endif
 
 ifdef PVADIR
