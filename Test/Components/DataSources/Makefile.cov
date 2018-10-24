@@ -53,6 +53,10 @@ ifdef EPICS_BASE
 LIBRARIES_STATIC+=EPICSCA/cov/EPICSCATest$(LIBEXT)
 endif
 
+ifdef PVADIR
+LIBRARIES_STATIC+=EPICSPVA/cov/EPICSPVATest$(LIBEXT)
+endif
+
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
 LIBRARIES_STATIC+=SDN/cov/SDNTest$(LIBEXT)

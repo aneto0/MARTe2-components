@@ -113,7 +113,7 @@ EPICSPV    ();
      * it will trigger the sending of a Message.
      * @param[in] args the new PV value.
      */
-    void HandlePVEvent(struct event_handler_args const args);
+    void HandlePVEvent(struct event_handler_args const & args);
 
     /**
      * @brief Gets the name of the PV.

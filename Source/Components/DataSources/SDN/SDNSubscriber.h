@@ -30,10 +30,13 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
-
+/*lint -save -e9113 -e553
+ * this is a macro that cannot be changed.
+ */
 #if UNIT_VERSION > UNIT_VERSION_UID(1,1,0)
 #define FEATURE_10840
 #endif
+/*lint -restore*/
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */

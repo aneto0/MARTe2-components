@@ -354,7 +354,7 @@ ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
     return err;
 }
 
-void EPICSPV::HandlePVEvent(struct event_handler_args const args) {
+void EPICSPV::HandlePVEvent(struct event_handler_args const & args) {
     const void * const dbr = args.dbr;
     if (dbr != NULL_PTR(const void *)) {
         if (pvMemory != NULL_PTR(char8 *)) {
@@ -364,7 +364,7 @@ void EPICSPV::HandlePVEvent(struct event_handler_args const args) {
                     //Arrays of strings are encoded as a single buffer of length 40 chars x numberOfDimensions
                     const char8 * tempStr = reinterpret_cast<const char8 *>(dbr);
                     uint32 n;
-                    for (n = 0u; n < args.count; n++) {
+                    for (n = 0u; n < static_cast<uint32>(args.count); n++) {
                         uint32 idx = static_cast<uint32>(MAX_STRING_SIZE) * n;
                         str[n] = &tempStr[idx];
                     }
@@ -374,7 +374,7 @@ void EPICSPV::HandlePVEvent(struct event_handler_args const args) {
                 }
             }
             else {
-                uint32 copySize = (args.count * typeSize);
+                uint32 copySize = (static_cast<uint32>(args.count) * typeSize);
                 (void) MemoryOperationsHelper::Copy(pvMemory, dbr, copySize);
             }
             if (!(eventMode.notSet.operator bool())) {
