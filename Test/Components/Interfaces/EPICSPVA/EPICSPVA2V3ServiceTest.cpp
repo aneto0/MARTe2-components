@@ -1071,3 +1071,110 @@ bool EPICSPVA2V3ServiceTest::Testrequest_False_hash_mismatch() {
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
+
+
+bool EPICSPVA2V3ServiceTest::Testrequest_False_unknown_qualifier() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+EPICSRPCServer = {\n"
+            "    Class = EPICSPVA::EPICSRPCServer\n"
+            "    +EPICSPVA2V3 = {\n"
+            "        Class = EPICSPVA::EPICSPVA2V3Service\n"
+            "        Polynomial = 0x12345678 //32 bit polynomial to use in the CRC computation\n"
+            "        CRCInitialValue = 0x0 //32 bit initial CRC value\n"
+            "        CRCFinalXOR = 0xFFFFFFFF //32 bit value to XOR against the computed CRC\n"
+            "        +Structure = { //Structure to be replied\n"
+            "            Class = ReferenceContainer\n"
+            "            +value1 = {//The leaf shall match against an existent EPICS3 PV.\n"
+            "                Class = EPICS::EPICSPV\n"
+            "                PVName = \"MARTE2::EPICSPVA2V3::TEST::VALUE1\"\n"
+            "                PVType = uint32\n"
+            "            }\n"
+            "            +value2 = {\n"
+            "                Class = EPICS::EPICSPV\n"
+            "                PVName = \"MARTE2::EPICSPVA2V3::TEST::VALUE2\"\n"
+            "                PVType = uint32\n"
+            "            }\n"
+            "            +valueS = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +value3 = {\n"
+            "                    Class = EPICS::EPICSPV\n"
+            "                    PVName = \"MARTE2::EPICSPVA2V3::TEST::VALUE3\"\n"
+            "                    PVType = uint32\n"
+            "                }\n"
+            "                +value4 = {\n"
+            "                    Class = EPICS::EPICSPV\n"
+            "                    PVName = \"MARTE2::EPICSPVA2V3::TEST::VALUE4ARR\"\n"
+            "                    PVType = uint32\n"
+            "                    NumberOfElements = 5\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "+EPICSRPCClient = {\n"
+            "    Class = EPICSPVA::EPICSRPCClient\n"
+            "}";
+
+    ConfigurationDatabase cdb;
+    config.Seek(0LLU);
+    StreamString err;
+    StandardParser parser(config, cdb, &err);
+    bool ok = parser.Parse();
+    if (ok) {
+        cdb.MoveToRoot();
+        ok = ObjectRegistryDatabase::Instance()->Initialise(cdb);
+    }
+    if (ok) {
+        ReferenceT<Message> msgInitStart(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        ConfigurationDatabase msgConfig;
+        msgInitStart->SetName("EPICSRPCServerStart");
+        msgConfig.Write("Destination", "EPICSRPCServer");
+        msgConfig.Write("Function", "Start");
+        msgInitStart->Initialise(msgConfig);
+        msgInitStart->SetExpectsReply(true);
+        //MessageI::SendMessage(msgInitStart);
+        Object notReallyUsed;
+        MessageI::SendMessageAndWaitReply(msgInitStart, &notReallyUsed);
+    }
+    if (ok) {
+        ReferenceT<Message> msgInitStart(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        ConfigurationDatabase msgConfig;
+        msgInitStart->SetName("EPICSRPCClientStart");
+        msgConfig.Write("Destination", "EPICSRPCClient");
+        msgConfig.Write("Function", "Start");
+        msgInitStart->Initialise(msgConfig);
+        MessageI::SendMessage(msgInitStart);
+    }
+    ReferenceT<Message> msgInit(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    uint32 status;
+
+    if (ok) {
+        ConfigurationDatabase msgConfig;
+        msgInit->SetName("EPICSPVA2V3");
+        msgConfig.Write("Destination", "EPICSRPCClient");
+        msgConfig.Write("Function", "");
+        msgInit->Initialise(msgConfig);
+        ReferenceT<ConfigurationDatabase> cdb(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        cdb->Write("qualifier", "wrong");
+        msgInit->Insert(cdb);
+        msgInit->SetExpectsReply(true);
+        Object notReallyUsed;
+        ok = MessageI::SendMessageAndWaitReply(msgInit, &notReallyUsed);
+    }
+    if (ok) {
+        ReferenceT<StructuredDataI> replyStruct;
+        replyStruct = msgInit->Get(1u);
+        ok = replyStruct.IsValid();
+
+        if (ok) {
+            ok = replyStruct->Read("status", status);
+            if (ok) {
+                ok = (status == 0u);
+            }
+        }
+    }
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+

@@ -97,6 +97,11 @@ public:
      */
     bool Testrequest_False_hash_mismatch();
 
+    /**
+     * @brief Tests that the request method fails with an unknown qualifier.
+     */
+    bool Testrequest_False_unknown_qualifier();
+
 };
 
 

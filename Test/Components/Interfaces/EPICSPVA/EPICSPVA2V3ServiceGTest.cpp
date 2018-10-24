@@ -88,3 +88,8 @@ TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_hash_mismatch) {
     EPICSPVA2V3ServiceTest test;
     ASSERT_TRUE(test.Testrequest_False_hash_mismatch());
 }
+
+TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_unknown_qualifier) {
+    EPICSPVA2V3ServiceTest test;
+    ASSERT_TRUE(test.Testrequest_False_unknown_qualifier());
+}

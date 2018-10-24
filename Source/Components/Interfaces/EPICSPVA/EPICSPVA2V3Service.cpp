@@ -325,6 +325,7 @@ epics::pvData::PVStructurePtr EPICSPVA2V3Service::request(epics::pvData::PVStruc
         }
         else {
             REPORT_ERROR(ErrorManagement::FatalError, "Unrecognised qualifier string");
+            ok = false;
         }
     }
     replyStructuredDataI.Write("status", ok);
