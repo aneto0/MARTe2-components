@@ -47,7 +47,9 @@
  * this is a macro that cannot be changed.
  */
 #if UNIT_VERSION > UNIT_VERSION_UID(1,1,0)
+#ifndef FEATURE_10840
 #define FEATURE_10840
+#endif
 #endif
 /*lint -restore*/
 #if ((defined(LINT)) || (!defined(FEATURE_10840)))
