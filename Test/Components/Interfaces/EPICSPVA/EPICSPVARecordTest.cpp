@@ -60,6 +60,9 @@ bool EPICSPVARecordTest::TestCreatePVRecord() {
     cdb.CreateAbsolute("Structure.EPICSPVARecordTest.C");
     cdb.Write("Type", "uint32");
     cdb.Write("NumberOfElements", 10);
+    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.D");
+    cdb.Write("Type", "string");
+    cdb.Write("NumberOfElements", 1);
     cdb.MoveToRoot();
     EPICSPVARecord pvaRecord;
     pvaRecord.SetName("EPICSPVARecordTestTestCreatePVRecord");

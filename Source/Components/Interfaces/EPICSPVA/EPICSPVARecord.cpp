@@ -176,6 +176,9 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
         else if (typeDesc == Float64Bit) {
             epicsType = epics::pvData::pvDouble;
         }
+        else if ((typeDesc.type == CArray) || (typeDesc.type == BT_CCString) || (typeDesc.type == PCString) || (typeDesc.type == SString)) {
+            epicsType = epics::pvData::pvString;
+        }
         else {
             ok = false;
             REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type %s", typeStr.Buffer());

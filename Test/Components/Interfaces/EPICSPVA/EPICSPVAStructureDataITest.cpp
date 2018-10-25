@@ -1107,10 +1107,13 @@ bool EPICSPVAStructureDataITest::TestAddToCurrentNode() {
     using namespace MARTe;
     EPICSPVAStructureDataI test;
     ConfigurationDatabase cdb;
+    ConfigurationDatabase cdb2;
+    cdb2.CreateAbsolute("A");
     test.InitStructure();
-    test.FinaliseStructure();
     Reference r;
-    bool ok = !test.AddToCurrentNode(r);
+    bool ok = test.AddToCurrentNode(cdb2.GetCurrentNode());
+    test.FinaliseStructure();
+    ok &= !test.AddToCurrentNode(r);
     return ok;
 }
 
@@ -1223,6 +1226,12 @@ bool EPICSPVAStructureDataITest::TestMoveRelative() {
     bool ok = test.MoveAbsolute("A.B.C");
     test.CreateRelative("E.F.G");
     if (ok) {
+        ok = test.MoveAbsolute("A.B");
+    }
+    if (ok) {
+        ok = test.MoveRelative("E");
+    }
+    if (ok) {
         ok = test.FinaliseStructure();
     }
     if (ok) {
@@ -1261,6 +1270,15 @@ bool EPICSPVAStructureDataITest::TestMoveToChild() {
     test.CreateAbsolute("F.G.E");
     test.CreateAbsolute("F.G.D");
     bool ok = test.MoveToRoot();
+    if (ok) {
+        ok = test.MoveToChild(1u);
+    }
+    if (ok) {
+        ok = test.MoveRelative("G.D");
+    }
+    if (ok) {
+        ok = test.MoveToRoot();
+    }
     if (ok) {
         ok = test.FinaliseStructure();
     }

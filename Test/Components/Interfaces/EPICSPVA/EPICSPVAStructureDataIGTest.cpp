@@ -86,12 +86,12 @@ TEST(EPICSPVAStructureDataIGTest,TestRead_Int64) {
 
 TEST(EPICSPVAStructureDataIGTest,TestRead_Float32) {
     EPICSPVAStructureDataITest test;
-    ASSERT_TRUE(test.TestRead_Int32());
+    ASSERT_TRUE(test.TestRead_Float32());
 }
 
 TEST(EPICSPVAStructureDataIGTest,TestRead_Float64) {
     EPICSPVAStructureDataITest test;
-    ASSERT_TRUE(test.TestRead_Int64());
+    ASSERT_TRUE(test.TestRead_Float64());
 }
 
 TEST(EPICSPVAStructureDataIGTest,TestRead_StreamString) {
