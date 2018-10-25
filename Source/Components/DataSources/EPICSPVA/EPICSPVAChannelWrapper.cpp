@@ -82,7 +82,7 @@ bool EPICSPVAChannelWrapper::LoadSignalStructure(StructuredDataI &data, StreamSt
     if (isSignal) {
         TypeDescriptor td = TypeDescriptor::GetTypeDescriptorFromTypeName(typeName.Buffer());
         uint32 memorySize = td.numberOfBits;
-        uint32 numberOfDimensions = 0u;
+        uint8 numberOfDimensions = 0u;
         (void) data.Read("NumberOfDimensions", numberOfDimensions);
         ok = (numberOfDimensions < 2u);
         if (ok) {
@@ -102,9 +102,7 @@ bool EPICSPVAChannelWrapper::LoadSignalStructure(StructuredDataI &data, StreamSt
             AnyType at(td, 0u, mem);
             at.SetNumberOfElements(0u, numberOfElements);
             at.SetNumberOfDimensions(numberOfDimensions);
-            if (ok) {
-                ok = memoryBackend.Write(relativeNodeName.Buffer(), at);
-            }
+            ok = memoryBackend.Write(relativeNodeName.Buffer(), at);
             if (ok) {
                 numberOfSignals++;
             }
@@ -149,6 +147,7 @@ bool EPICSPVAChannelWrapper::LoadSignalStructure(StructuredDataI &data, StreamSt
     return ok;
 }
 
+/*lint -e{613} cachedSignal cannot be NULL (see first if)*/
 void EPICSPVAChannelWrapper::GetSignalMemory(const char8 * const qualifiedName, void *&mem) {
     if (cachedSignals == NULL_PTR(EPICSPVAChannelWrapperCachedSignal *)) {
         if (numberOfSignals > 0u) {
@@ -298,7 +297,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
         }
         ok = channel.valid();
         if (ok) {
-            if(!monitor.valid()) {
+            if (!monitor.valid()) {
                 monitor = pvac::MonitorSync(channel.monitor());
             }
             ok = monitor.valid();
@@ -311,7 +310,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
                         for (n = 0u; (n < numberOfRequestedSignals) && (ok); n++) {
                             epics::pvData::PVStructure::const_shared_pointer readStruct = monitor.root;
                             epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr;
-                            epics::pvData::PVScalarArray::const_shared_pointer  scalarArrayPtr;
+                            epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr;
                             if ((cachedSignals[n].numberOfElements) == 1u) {
                                 scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(readStruct->getSubField(cachedSignals[n].qualifiedName.Buffer()));
                                 ok = (scalarFieldPtr ? true : false);
