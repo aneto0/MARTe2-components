@@ -72,6 +72,11 @@ public:
     bool TestSetNumberOfBins();
 
     /**
+     * @brief Tests the HistogramComparatorT::GetNumberOfBins method
+     */
+    bool TestGetNumberOfBins();
+
+    /**
      * @brief Tests the HistogramComparatorT::InRange method
      */
     bool TestInRange(T min,
@@ -109,6 +114,13 @@ bool HistogramComparatorTTest<T>::TestSetMax(){
 template<typename T>
 bool HistogramComparatorTTest<T>::TestSetNumberOfBins(){
     return TestInRange(0, 10, 12, 5, 6);
+}
+
+template<typename T>
+bool HistogramComparatorTTest<T>::TestGetNumberOfBins(){
+    HistogramComparatorT<T> test;
+    test.SetNumberOfBins(10);
+    return (test.GetNumberOfBins() == 10);
 }
 
 

@@ -73,6 +73,12 @@ public:
     virtual void SetNumberOfBins(const uint32 nBinsIn)=0;
 
     /**
+     * @brief Gets the number of bins in the histogram.
+     * @return the number of bins.
+     */
+    virtual uint32 GetNumberOfBins()=0;
+
+    /**
      * @brief Returns at which bin belongs the value hold in \a mem.
      * @param[in] mem holds the occurrence value.
      */

@@ -187,3 +187,8 @@ TEST(HistogramComparatorTGTest,TestSetNumberOfBins) {
     HistogramComparatorTTest<uint8> test;
     ASSERT_TRUE(test.TestSetNumberOfBins());
 }
+
+TEST(HistogramComparatorTGTest,TestGetNumberOfBins) {
+    HistogramComparatorTTest<uint8> test;
+    ASSERT_TRUE(test.TestGetNumberOfBins());
+}
