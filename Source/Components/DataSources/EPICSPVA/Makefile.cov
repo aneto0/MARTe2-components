@@ -28,8 +28,5 @@ include Makefile.inc
 
 OCPPFLAGS := $(CPPFLAGS)
 #Force c++11
-ifdef PVACPP11
 CPPFLAGS = $(OCPPFLAGS) -std=c++11 -ftest-coverage
-else
-CPPFLAGS = $(OCPPFLAGS) -ftest-coverage  
-endif
+
