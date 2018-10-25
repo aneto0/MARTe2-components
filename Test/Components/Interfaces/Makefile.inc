@@ -39,15 +39,14 @@ ifdef CODAC_ROOT
 
 SPB+=NI9157Device.x
 
-## Only force PVADIR if CCS version is gt v6.1
+## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
 ifeq "$(CCSGT61)" "1"
-PVADIR ?= $(EPICS_BASE)
+EPICSPVA = "1"
 endif
 endif
 
-ifdef PVADIR
-export PVADIR
+ifdef EPICSPVA
 SPB   += EPICSPVA.x
 endif
 
@@ -73,7 +72,7 @@ ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICSTest$(LIBEXT)
 endif
 
-ifdef PVADIR
+ifdef EPICSPVA
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVATest$(LIBEXT)
 endif
 

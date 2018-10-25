@@ -43,10 +43,10 @@ LIBRARIES += -lnixseries
 LIBRARIES += -lpxi6259
 LIBRARIES += -lNiFpga
 
-## Only force PVADIR if CCS version is gt v6.1
+## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
 ifeq "$(CCSGT61)" "1"
-PVADIR ?= $(EPICS_BASE)
+EPICSPVA = "1"
 endif
 
 endif
@@ -63,6 +63,6 @@ ifdef EPICS_BASE
 LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
 endif
 
-ifdef PVADIR
-LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(PVADIR)/lib/$(EPICS_HOST_ARCH)/ -Wl,-rpath,$(PVADIR)/lib/$(EPICS_HOST_ARCH)/ -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom -lpvaClient 
+ifdef EPICSPVA
+LIBRARIES += -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom -lpvaClient 
 endif 
