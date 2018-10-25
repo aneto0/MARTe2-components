@@ -50,7 +50,7 @@ namespace MARTe {
  *
  * <pre>
  * +EPICSPVAOutput_1 = {
- *     Class = EPICSPVA::EPICSPVAOutput
+ *     Class = EPICSPVADataSource::EPICSPVAOutput
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
  *     CPUs = 0xff //Optional the affinity of the EmbeddedThread which actually performs the PVA puts.
  *     IgnoreBufferOverrun = 1 //Optional. If true no error will be triggered when the thread that writes into EPICS does not consume the data fast enough.

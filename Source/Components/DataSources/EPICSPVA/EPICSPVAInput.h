@@ -53,7 +53,7 @@ namespace MARTe {
  *
  * <pre>
  * +EPICSPVAInput_1 = {
- *     Class = EPICSPVA::EPICSPVAInput
+ *     Class = EPICSPVADataSource::EPICSPVAInput
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
  *     CPUs = 0xff //Optional the affinity of the EmbeddedThread which actually performs the PVA monitoring.
  *     Signals = {

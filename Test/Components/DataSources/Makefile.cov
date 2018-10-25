@@ -54,7 +54,7 @@ LIBRARIES_STATIC+=EPICSCA/cov/EPICSCATest$(LIBEXT)
 endif
 
 ifdef EPICSPVA
-LIBRARIES_STATIC+=EPICSPVA/cov/EPICSPVATest$(LIBEXT)
+LIBRARIES_STATIC+=EPICSPVA/cov/EPICSPVADataSourceTest$(LIBEXT)
 endif
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.

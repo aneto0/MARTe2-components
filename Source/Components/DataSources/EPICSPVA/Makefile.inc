@@ -51,9 +51,10 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
 LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom -lpvaClient
 
+#Must be named EPICSPVADataSource as otherwise will clash with EPICSPVA.so from the Interfaces!
 all: $(OBJS)    \
-    $(BUILD_DIR)/EPICSPVA$(LIBEXT) \
-    $(BUILD_DIR)/EPICSPVA$(DLLEXT)
+    $(BUILD_DIR)/EPICSPVADataSource$(LIBEXT) \
+    $(BUILD_DIR)/EPICSPVADataSource$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

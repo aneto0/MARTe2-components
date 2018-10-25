@@ -97,7 +97,7 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSCA/EPICSCA$(LIBEXT)
 endif
 
 ifdef EPICSPVA
-LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVA$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVADataSource$(LIBEXT)
 endif
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
