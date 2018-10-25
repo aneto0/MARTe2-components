@@ -34,7 +34,8 @@ OBJSX = EPICSObjectRegistryDatabaseServiceGTest.x \
 	EPICSPVARecordGTest.x \
 	EPICSPVAStructureDataIGTest.x \
 	EPICSRPCClientMessageFilterGTest.x \
-	EPICSRPCClientGTest.x
+	EPICSRPCClientGTest.x \
+	EPICSRPCServerGTest.x
 
 include Makefile.inc
 	

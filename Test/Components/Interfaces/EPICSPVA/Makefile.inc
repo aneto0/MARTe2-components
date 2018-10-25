@@ -30,8 +30,9 @@ OBJSX +=  EPICSObjectRegistryDatabaseServiceTest.x \
     EPICSPVAMessageITest.x \
     EPICSPVARecordTest.x \
     EPICSPVAStructureDataITest.x \
+    EPICSRPCClientMessageFilterTest.x \
     EPICSRPCClientTest.x \
-    EPICSRPCClientMessageFilterTest.x
+    EPICSRPCServerTest.x
 		
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..
