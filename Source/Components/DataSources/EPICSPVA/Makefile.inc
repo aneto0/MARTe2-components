@@ -32,10 +32,6 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-ifdef CODAC_ROOT
-PVADIR = $(EPICS_BASE)
-endif
-
 INCLUDES += -I.
 INCLUDES += -I$(PVADIR)/include/
 INCLUDES += -I$(EPICS_BASE)/include/

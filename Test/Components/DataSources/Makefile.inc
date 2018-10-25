@@ -39,10 +39,10 @@ SPB+=NI6259.x
 SPB+=NI6368.x
 SPB+=NI9157.x
 
-## Only force PVADIR if CCS version is gt v6.0
-CCSGT60 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 60 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCSGT60)" "1"
-PVADIR = $(EPICS_BASE)
+## Only force PVADIR if CCS version is gt v6.1
+CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCSGT61)" "1"
+PVADIR ?= $(EPICS_BASE)
 endif
 
 endif
@@ -57,6 +57,7 @@ SPB+=EPICSCA.x
 endif
 
 ifdef PVADIR
+export EPICSPVA
 SPB   += EPICSPVA.x
 endif
 

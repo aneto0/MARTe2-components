@@ -40,14 +40,6 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-ifdef CODAC_ROOT
-## Only force PVADIR if CCS version is gt v6.0
-CCSGT60 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 60 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCSGT60)" "1"
-PVADIR = $(EPICS_BASE)
-endif
-endif
-
 INCLUDES += -I$(PVADIR)/include/
 INCLUDES += -I$(EPICS_BASE)/include/
 INCLUDES += -I$(EPICS_BASE)/include/os/Linux/
