@@ -93,3 +93,24 @@ TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_unknown_qualifier) {
     EPICSPVA2V3ServiceTest test;
     ASSERT_TRUE(test.Testrequest_False_unknown_qualifier());
 }
+
+TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_invalid_dimensions) {
+    EPICSPVA2V3ServiceTest test;
+    ASSERT_TRUE(test.Testrequest_False_invalid_dimensions());
+}
+
+TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_invalid_elements) {
+    EPICSPVA2V3ServiceTest test;
+    ASSERT_TRUE(test.Testrequest_False_invalid_elements());
+}
+
+TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_invalid_type) {
+    EPICSPVA2V3ServiceTest test;
+    ASSERT_TRUE(test.Testrequest_False_invalid_type());
+}
+
+TEST(EPICSPVA2V3ServiceGTest,Testrequest_False_invalid_node) {
+    EPICSPVA2V3ServiceTest test;
+    ASSERT_TRUE(test.Testrequest_False_invalid_node());
+}
+

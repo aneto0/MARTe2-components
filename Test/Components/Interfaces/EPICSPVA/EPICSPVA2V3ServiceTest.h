@@ -102,6 +102,26 @@ public:
      */
     bool Testrequest_False_unknown_qualifier();
 
+    /**
+     * @brief Tests that the request method fails with a mismatch in the number of dimensions.
+     */
+    bool Testrequest_False_invalid_dimensions();
+
+    /**
+     * @brief Tests that the request method fails with a mismatch in the number of elements.
+     */
+    bool Testrequest_False_invalid_elements();
+
+    /**
+     * @brief Tests that the request method fails with a mismatch in the type of signal.
+     */
+    bool Testrequest_False_invalid_type();
+
+    /**
+     * @brief Tests that the request method fails with an unknown node in the structure.
+     */
+    bool Testrequest_False_invalid_node();
+
 };
 
 

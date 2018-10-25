@@ -176,7 +176,7 @@ bool EPICSPVA2V3Service::HandleLeaf(StreamString leafName, StructuredDataI &pvSt
                 if (!ok) {
                     uint32 advertisedElements = pv3AnyType.GetNumberOfElements(j);
                     uint32 receivedElements = pvaAnyType.GetNumberOfElements(j);
-                    REPORT_ERROR(ErrorManagement::CommunicationError, "Number of elements mismatch in direction %d between the advertised number (%d) and the received number (%d)", advertisedElements,
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Number of elements mismatch in direction %d between the advertised number (%d) and the received number (%d)", j, advertisedElements,
                                  receivedElements);
                 }
             }
