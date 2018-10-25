@@ -1981,21 +1981,23 @@ bool NI6259ADCTest::TestPrepareNextState() {
             }
         }
     }
-    Sleep::MSec(1000);
-    uint32 counterBefore = (*counter);
-    uint32 timerBefore = (*timer);
-    application->StopCurrentStateExecution();
+    if (ok) {
+        Sleep::MSec(1000);
+        
+        uint32 counterBefore = (*counter);
+        uint32 timerBefore = (*timer);
+        application->StopCurrentStateExecution();
 
-    if (ok) {
-        ok = (counterBefore > 1) && (timerBefore > 1);
+        if (ok) {
+            ok = (counterBefore > 1) && (timerBefore > 1);
+        }
+        if (ok) {
+            ok = application->PrepareNextState("State1");
+        }
+        if (ok) {
+            ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
+        }
     }
-    if (ok) {
-        ok = application->PrepareNextState("State1");
-    }
-    if (ok) {
-        ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
-    }
-
     god->Purge();
     return ok;
 }
