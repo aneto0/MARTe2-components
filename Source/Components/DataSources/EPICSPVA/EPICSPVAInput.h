@@ -43,7 +43,7 @@
 namespace MARTe {
 
 /**
- * @brief A DataSource which allows to retrieved data from any number of records using the EPICS PVA protocol.
+ * @brief A DataSource which allows to retrieve data from any number of records using the EPICS PVA protocol.
  * Data is asynchronously retrieved using pvac::MonitorSync (see EPICAPVAChannelWrapper::Monitor).
  *
  * One thread will be created for each record being monitored (using a MultiThreadService)
