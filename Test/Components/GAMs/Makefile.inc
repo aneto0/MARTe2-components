@@ -27,6 +27,7 @@
 SPB=  IOGAM.x\
     ConstantGAM.x\
     ConversionGAM.x\
+    CRCGAM.x\
     FilterGAM.x\
     HistogramGAM.x\
     Interleaved2FlatGAM.x\
@@ -51,6 +52,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 LIBRARIES_STATIC+=$(BUILD_DIR)/IOGAM/IOGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/ConstantGAM/ConstantGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/ConversionGAM/ConversionGAMTest$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/CRCGAM/CRCGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/FilterGAM/FilterGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/HistogramGAM/HistogramGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/Interleaved2FlatGAM/Interleaved2FlatGAMTest$(LIBEXT)

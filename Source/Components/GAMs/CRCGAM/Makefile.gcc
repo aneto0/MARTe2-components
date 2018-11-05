@@ -2,7 +2,7 @@
 #
 # Copyright 2015 F4E | European Joint Undertaking for ITER 
 #  and the Development of Fusion Energy ('Fusion for Energy')
-# 
+#
 # Licensed under the EUPL, Version 1.1 or - as soon they 
 # will be approved by the European Commission - subsequent  
 # versions of the EUPL (the "Licence"); 
@@ -20,26 +20,9 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.gcc 3 2015-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-TARGET=cov
 
 include Makefile.inc
-
-LIBRARIES_STATIC=CRCGAM/cov/CRCGAM$(LIBEXT)
-LIBRARIES_STATIC+=IOGAM/cov/IOGAM$(LIBEXT)
-LIBRARIES_STATIC+=ConstantGAM/cov/ConstantGAM$(LIBEXT)
-LIBRARIES_STATIC+=ConversionGAM/cov/ConversionGAM$(LIBEXT)
-LIBRARIES_STATIC+=FilterGAM/cov/FilterGAM$(LIBEXT)
-LIBRARIES_STATIC+=HistogramGAM/cov/HistogramGAM$(LIBEXT)
-LIBRARIES_STATIC+=Interleaved2FlatGAM/cov/Interleaved2FlatGAM$(LIBEXT)
-LIBRARIES_STATIC+=MuxGAM/cov/MuxGAM$(LIBEXT)
-LIBRARIES_STATIC+=PIDGAM/cov/PIDGAM$(LIBEXT)
-LIBRARIES_STATIC+=SSMGAM/cov/SSMGAM$(LIBEXT)
-LIBRARIES_STATIC+=StatisticsGAM/cov/StatisticsGAM$(LIBEXT)
-LIBRARIES_STATIC+=TimeCorrectionGAM/cov/TimeCorrectionGAM$(LIBEXT)
-LIBRARIES_STATIC+=TriggerOnChangeGAM/cov/TriggerOnChangeGAM$(LIBEXT)
-LIBRARIES_STATIC+=WaveformGAM/cov/WaveformGAM$(LIBEXT)
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=BaseLib2GAM/cov/BaseLib2GAM$(LIBEXT)
-endif
