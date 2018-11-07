@@ -1,8 +1,8 @@
 /**
  * @file CRCGAMGTest.cpp
  * @brief Source file for class CRCGAMGTest
- * @date Oct 30, 2018 TODO Verify the value and format of the date
- * @author root TODO Verify the name and format of the author
+ * @date Oct 30, 2018
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -71,9 +71,25 @@ TEST(CRCGAMGTest,TestInitialiseMissingInverted) {
     ASSERT_TRUE(test.TestInitialiseMissingInverted());
 }
 
-TEST(CRCGAMGTest,TestSetup) {
+TEST(CRCGAMGTest,TestInitialiseWrongInverted) {
     CRCGAMTest test;
-    ASSERT_TRUE(test.TestSetup());
+    ASSERT_TRUE(test.TestInitialiseWrongInverted());
+}
+
+TEST(CRCGAMGTest,TestSetupUint8) {
+    CRCGAMTest test;
+    ASSERT_TRUE(test.TestSetupUint8());
+}
+
+
+TEST(CRCGAMGTest,TestSetupUint16) {
+    CRCGAMTest test;
+    ASSERT_TRUE(test.TestSetupUint16());
+}
+
+TEST(CRCGAMGTest,TestSetupUint32) {
+    CRCGAMTest test;
+    ASSERT_TRUE(test.TestSetupUint32());
 }
 
 TEST(CRCGAMGTest,TestSetupWrongNumberOfInput) {

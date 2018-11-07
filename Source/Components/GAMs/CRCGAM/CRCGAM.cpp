@@ -52,9 +52,10 @@ namespace MARTe {
         inputData = NULL_PTR(uint8 *);
         outputData = NULL_PTR(void *);
         crcHelper = NULL_PTR(CRCHelper *);
-        polynomial = 0x0;
-        initialCRCValue = 0x0;
-        isReflected = 0;
+        polynomial = 0x0u;
+        initialCRCValue = 0x0u;
+        isReflected = 0u;
+        inputSize = 0u;
     }
 
     CRCGAM::~CRCGAM() {
@@ -82,7 +83,7 @@ namespace MARTe {
             if(!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Cannot read Inverted value from configuration.");
             }
-            if(isReflected > 1) {
+            if(isReflected > 1u) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Inverted option value must be 0 or 1. Now Inverted = %d", isReflected);
                 ok = false;
             }
@@ -111,7 +112,7 @@ namespace MARTe {
                 ok = false;
             }
         }
-        //The size must be taken from InputSignals
+        //The inputSize must be taken from InputSignals
         if(ok) {
             uint32 n;
             for (n = 0u; (n < GetNumberOfInputSignals()) && (ok); n++) {
@@ -125,7 +126,7 @@ namespace MARTe {
                 }
                 if (ok) {
                     inByteSize *= inSamples;
-                    size += inByteSize;
+                    inputSize += inByteSize;
                 } else {
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error getting Signal number of samples from InputSignals.");
                 }
@@ -158,10 +159,6 @@ namespace MARTe {
         }
         if(ok) {
             inputData = reinterpret_cast<uint8*>(GetInputSignalsMemory());
-            if(inputData == NULL) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "The pointer to the signal memory is NULL.");
-                ok = false;
-            }
         }
         if(!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error during GAM Setup.");
@@ -170,7 +167,16 @@ namespace MARTe {
     }
 
     bool CRCGAM::Execute() {
-        crcHelper->Compute(inputData, size, &initialCRCValue, isReflected, outputData);
+
+        bool inv = false;
+        if(isReflected == 1u) {
+            inv = true;
+        }
+
+        if(crcHelper != NULL_PTR(CRCHelper *)) {
+            crcHelper->Compute(inputData, static_cast<int32>(inputSize), &initialCRCValue, inv, outputData);
+        }
+
         return true;
     }
 

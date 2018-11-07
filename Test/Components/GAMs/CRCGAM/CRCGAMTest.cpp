@@ -1,8 +1,8 @@
 /**
  * @file CRCGAMTest.cpp
  * @brief Source file for class CRCGAMTest
- * @date Oct 30, 2018 TODO Verify the value and format of the date
- * @author root TODO Verify the name and format of the author
+ * @date Oct 30, 2018 
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -40,15 +40,17 @@
 #include "StructuredDataI.h"
 #include "AdvancedErrorManagement.h"
 #include "RealTimeApplication.h"
+#include "AnyType.h"
+#include "TypeDescriptor.h"
 
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-#define MAX_UINT8    256
-#define MAX_UINT16   65536
-#define MAX_UINT32   4294967296
+#define MAX_UINT8 256
+#define MAX_UINT16 65536
+#define MAX_UINT32 4294967296
 
 
 namespace MARTe {
@@ -75,6 +77,10 @@ public:
         return CRCGAM::GetOutputSignalMemory(signalIdx);
     }
 
+    void *GetInputSignalMemory(const uint32 signalIdx) {
+        return CRCGAM::GetInputSignalMemory(signalIdx);
+    }
+
     ConfigurationDatabase config;
 
 private:
@@ -82,7 +88,68 @@ private:
     uint32 initialCRCValue;
     uint8 isReflected;
 };
+
+class DataSourceHelper : public DataSourceI {
+public:
+    CLASS_REGISTER_DECLARATION()
+
+    DataSourceHelper() : DataSourceI() {
+        value = 0;
+        constant = 0;
+    }
+
+    virtual ~DataSourceHelper() {
+
+    }
+
+    virtual bool Synchronise() {
+        return false;
+    }
+
+    virtual bool AllocateMemory() {
+        value = constant;
+        return true;
+    }
+
+    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *& signalAddress){
+        signalAddress = &value;
+        return true;
+    }
+
+    virtual const char8 * GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
+        const char8 *brokerName = NULL_PTR(const char8 *);
+        brokerName = "MemoryMapInputBroker";
+        return brokerName;
+    }
+
+    virtual bool Initialise(StructuredDataI & data) {
+        bool ok = DataSourceI::Initialise(data);
+        if(ok) {
+            data.Read("Constant", constant);
+        }
+        return ok;
+    }
+
+    virtual bool SetConfiguredDatabase(StructuredDataI & data) {
+        bool ok = DataSourceI::SetConfiguredDatabase(data);
+        return ok;
+    }
+
+    virtual bool PrepareNextState(const MARTe::char8 * const currentStateName,
+        const MARTe::char8 * const nextStateName) {
+        return true;
+    }
+
+
+private:
+    uint8 value;
+    uint8 constant;
+
+};
+
 CLASS_REGISTER(CRCTestHelper, "1.0")
+CLASS_REGISTER(DataSourceHelper, "1.0")
+
 }
 
 /*---------------------------------------------------------------------------*/
@@ -152,7 +219,22 @@ bool CRCGAMTest::TestInitialiseMissingInverted() {
     return ok;
 }
 
-bool CRCGAMTest::TestSetup() {
+bool CRCGAMTest::TestInitialiseWrongInverted() {
+    using namespace MARTe;
+    CRCGAM gam;
+    bool ok;
+    ConfigurationDatabase config;
+    uint32 pol = 0;
+    uint32 initCRC = 0;
+    uint8 inverted = 2;
+    config.Write("Polynomial", pol);
+    config.Write("InitialValue", initCRC);
+    config.Write("Inverted", inverted);
+    ok = !gam.Initialise(config);
+    return ok;
+}
+
+bool CRCGAMTest::TestSetupUint8() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = configFromBasicTypeTemplate;
@@ -160,6 +242,90 @@ bool CRCGAMTest::TestSetup() {
     StandardParser parser(configStream, cdb);
     bool ok = parser.Parse();
 
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        cdb.MoveToRoot();
+        ord->Purge();
+        ok = ord->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = ord->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    ord->Purge();
+    return ok;
+}
+
+bool CRCGAMTest::TestSetupUint16() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = configFromBasicTypeTemplate;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+
+    if (ok) {
+        ok = cdb.MoveAbsolute("$Test.+Functions.+GAM1.OutputSignals");
+    }
+    if (ok) {
+        StreamString signalName = "Signal2";
+        ok = cdb.MoveRelative(signalName.Buffer());
+        if (ok) {
+            ok = cdb.Delete("Type");
+        }
+        if (ok) {
+            ok = cdb.Write("Type", "uint16");
+        }
+        if (ok) {
+            ok = cdb.MoveToAncestor(1u);
+        }
+    }
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        cdb.MoveToRoot();
+        ord->Purge();
+        ok = ord->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = ord->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    ord->Purge();
+    return ok;
+}
+
+bool CRCGAMTest::TestSetupUint32() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = configFromBasicTypeTemplate;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+
+    if (ok) {
+        ok = cdb.MoveAbsolute("$Test.+Functions.+GAM1.OutputSignals");
+    }
+    if (ok) {
+        StreamString signalName = "Signal2";
+        ok = cdb.MoveRelative(signalName.Buffer());
+        if (ok) {
+            ok = cdb.Delete("Type");
+        }
+        if (ok) {
+            ok = cdb.Write("Type", "uint32");
+        }
+        if (ok) {
+            ok = cdb.MoveToAncestor(1u);
+        }
+    }
     ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
     if (ok) {
         cdb.MoveToRoot();
@@ -263,13 +429,18 @@ bool CRCGAMTest::TestSetupWrongOutputType() {
     return ok;
 }
 
-bool CRCGAMTest::TestExecuteUint8() {
+template <typename T>
+bool CRCGAMTest::TestExecute(T value) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = configFromBasicTypeTemplate;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ok = parser.Parse();
+
+    AnyType at(value);
+    TypeDescriptor td = at.GetTypeDescriptor();
+    const char8 * typeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(td);
 
     if(ok) {
         ok = cdb.MoveAbsolute("$Test.+Functions.+GAM1.OutputSignals.Signal2");
@@ -278,7 +449,7 @@ bool CRCGAMTest::TestExecuteUint8() {
         ok = cdb.Delete("Type");
     }
     if(ok) {
-        ok = cdb.Write("Type", "uint8");
+        ok = cdb.Write("Type", typeName);
     }
     if(ok) {
         ok = cdb.MoveToAncestor(1u);
@@ -289,8 +460,18 @@ bool CRCGAMTest::TestExecuteUint8() {
     if(ok) {
         ok = cdb.Delete("Polynomial");
     }
-    if(ok) {
-        ok = cdb.Write("Polynomial", 0x7);
+    if(td == UnsignedInteger8Bit) {
+        if(ok) {
+            ok = cdb.Write("Polynomial", 0x7);
+        }
+    } else if(td == UnsignedInteger16Bit) {
+        if(ok) {
+            ok = cdb.Write("Polynomial", 0x1021);
+        }
+    } else if(td == UnsignedInteger32Bit) {
+        if(ok) {
+            ok = cdb.Write("Polynomial", 0x4C11DB7);
+        }
     }
     if(ok) {
         ok = cdb.MoveToAncestor(1u);
@@ -310,163 +491,54 @@ bool CRCGAMTest::TestExecuteUint8() {
     if(ok) {
         ok = application->ConfigureApplication();
     }
-    if(ok) {
-        ok = application->PrepareNextState("State1");
-    }
-    if(ok) {
-        ok = application->StartNextStateExecution();
-    }
 
     ReferenceT<CRCTestHelper> gam = ord->Find("Test.Functions.GAM1");
 
-    uint8 * output = reinterpret_cast<uint8*>(gam->GetOutputSignalMemory(0u));
+    uint8 * input = reinterpret_cast<uint8*>(gam->GetInputSignalMemory(0u));
 
-    if(*output != 0 && *output < MAX_UINT8) {
-        ok = true;
-    } else {
-        ok = false;
+    *input = 10u;
+
+    gam->Execute();
+
+    T * output = reinterpret_cast<T*>(gam->GetOutputSignalMemory(0u));
+
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "Output: %d", *output);
+
+
+    if(td == UnsignedInteger8Bit) {
+        if(*output != 0 && *output < MAX_UINT8) {
+            ok = true;
+        } else {
+            ok = false;
+        }
+    } else if(td == UnsignedInteger16Bit) {
+        if(*output != 0 && *output < MAX_UINT16) {
+            ok = true;
+        } else {
+            ok = false;
+        }
+    } else if(td == UnsignedInteger32Bit) {
+        if(*output != 0 && *output < MAX_UINT32) {
+            ok = true;
+        } else {
+            ok = false;
+        }
     }
 
-    application->StopCurrentStateExecution();
+    ord->Purge();
 
     return ok;
+}
+
+bool CRCGAMTest::TestExecuteUint8() {
+    return TestExecute<MARTe::uint8>(2);
 }
 
 bool CRCGAMTest::TestExecuteUint16() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = configFromBasicTypeTemplate;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-
-    if(ok) {
-        ok = cdb.MoveAbsolute("$Test.+Functions.+GAM1.OutputSignals.Signal2");
-    }
-    if(ok) {
-        ok = cdb.Delete("Type");
-    }
-    if(ok) {
-        ok = cdb.Write("Type", "uint8");
-    }
-    if(ok) {
-        ok = cdb.MoveToAncestor(1u);
-    }
-    if(ok) {
-        ok = cdb.MoveAbsolute("$Test.+Functions.+GAM1");
-    }
-    if(ok) {
-        ok = cdb.Delete("Polynomial");
-    }
-    if(ok) {
-        ok = cdb.Write("Polynomial", 0x1021);
-    }
-    if(ok) {
-        ok = cdb.MoveToAncestor(1u);
-    }
-
-    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
-    if(ok) {
-        cdb.MoveToRoot();
-        ord->Purge();
-        ok = ord->Initialise(cdb);
-    }
-    ReferenceT<RealTimeApplication> application;
-    if(ok) {
-        application = ord->Find("Test");
-        ok = application.IsValid();
-    }
-    if(ok) {
-        ok = application->ConfigureApplication();
-    }
-    if(ok) {
-        ok = application->PrepareNextState("State1");
-    }
-    if(ok) {
-        ok = application->StartNextStateExecution();
-    }
-
-    ReferenceT<CRCTestHelper> gam = ord->Find("Test.Functions.GAM1");
-
-    uint16 * output = reinterpret_cast<uint16*>(gam->GetOutputSignalMemory(0u));
-
-    if(*output != 0 && *output < MAX_UINT16) {
-        ok = true;
-    } else {
-        ok = false;
-    }
-
-    application->StopCurrentStateExecution();
-
-    return ok;
+    return TestExecute<MARTe::uint16>(2);
 }
 
 bool CRCGAMTest::TestExecuteUint32() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = configFromBasicTypeTemplate;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-
-    if(ok) {
-        ok = cdb.MoveAbsolute("$Test.+Functions.+GAM1.OutputSignals.Signal2");
-    }
-    if(ok) {
-        ok = cdb.Delete("Type");
-    }
-    if(ok) {
-        ok = cdb.Write("Type", "uint8");
-    }
-    if(ok) {
-        ok = cdb.MoveToAncestor(1u);
-    }
-    if(ok) {
-        ok = cdb.MoveAbsolute("$Test.+Functions.+GAM1");
-    }
-    if(ok) {
-        ok = cdb.Delete("Polynomial");
-    }
-    if(ok) {
-        ok = cdb.Write("Polynomial", 0x1021);
-    }
-    if(ok) {
-        ok = cdb.MoveToAncestor(1u);
-    }
-
-    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
-    if(ok) {
-        cdb.MoveToRoot();
-        ord->Purge();
-        ok = ord->Initialise(cdb);
-    }
-    ReferenceT<RealTimeApplication> application;
-    if(ok) {
-        application = ord->Find("Test");
-        ok = application.IsValid();
-    }
-    if(ok) {
-        ok = application->ConfigureApplication();
-    }
-    if(ok) {
-        ok = application->PrepareNextState("State1");
-    }
-    if(ok) {
-        ok = application->StartNextStateExecution();
-    }
-
-    ReferenceT<CRCTestHelper> gam = ord->Find("Test.Functions.GAM1");
-
-    uint32 * output = reinterpret_cast<uint32*>(gam->GetOutputSignalMemory(0u));
-
-    if(*output != 0 && *output < MAX_UINT32) {
-        ok = true;
-    } else {
-        ok = false;
-    }
-
-    application->StopCurrentStateExecution();
-
-    return ok;
+    return TestExecute<MARTe::uint32>(1024);
 }
 	

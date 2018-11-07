@@ -1,8 +1,8 @@
 /**
  * @file CRCHelperTTest.cpp
  * @brief Source file for class CRCHelperTTest
- * @date Oct 30, 2018 TODO Verify the value and format of the date
- * @author root TODO Verify the name and format of the author
+ * @date Oct 30, 2018 
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -63,43 +63,67 @@ bool CRCHelperTTest::TestConstructorUint32() {
 }
 
 bool CRCHelperTTest::TestComputeTable() {
-    uint8 * pol8 = NULL_PTR(uint8 *);
+    uint8 p8 = 0x7u;
+    uint16 p16 = 0x1021u;
+    uint32 p32 = 0x4C11DB7u;
 
-    *pol8 = 0x7;
+    uint8 * pol8 = &p8;
+    uint16 * pol16 = &p16;
+    uint32 * pol32 = &p32;
 
-    /*CRCHelperT<uint8> t8;
-    t8.ComputeTable(pol8);*/
+    CRCHelperT<uint8> t8;
+    t8.ComputeTable(pol8);
 
+    CRCHelperT<uint8> t16;
+    t16.ComputeTable(pol16);
+
+    CRCHelperT<uint8> t32;
+    t32.ComputeTable(pol32);
 
     return true;
 }
 
 bool CRCHelperTTest::TestCompute() {
-    uint8 * init8 = NULL_PTR(uint8 *);
-    uint16 * init16 = NULL_PTR(uint16 *);
-    uint32 * init32 = NULL_PTR(uint32 *);
+    uint8 i8 = 0x0u;
+    uint16 i16 = 0u;
+    uint32 i32 = 0u;
 
-    uint8 * data = NULL_PTR(uint8 *);
+    uint8 p8 = 0x7u;
+    uint16 p16 = 0x1021u;
+    uint32 p32 = 0x4C11DB7u;
 
-    uint8 * ret8 = NULL_PTR(uint8 *);
-    uint16 * ret16 = NULL_PTR(uint16 *);
-    uint32 * ret32 = NULL_PTR(uint32 *);
+    uint8 * pol8 = &p8;
+    uint16 * pol16 = &p16;
+    uint32 * pol32 = &p32;
 
-    *init8 = 0;
-    *init16 = 0;
-    *init32 = 0;
+    uint8 d = 10u;
 
-    *data = 10;
+    uint8 * init8 = &i8;
+    uint16 * init16 = &i16;
+    uint32 * init32 = &i32;
+
+    uint8 * data = &d;
+
+    uint8 * ret8 = &i8;
+    uint16 * ret16 = &i16;
+    uint32 * ret32 = &i32;
+
+    int32 size = sizeof(uint8);
 
     CRCHelperT<uint8> t8;
-    t8.Compute(data, sizeof(uint8), init8, false, ret8);
+    t8.ComputeTable(pol8);
+    t8.Compute(data, size, init8, false, ret8);
 
     CRCHelperT<uint16> t16;
-    t16.Compute(data, sizeof(uint16), init16, false, ret16);
+    t16.ComputeTable(pol16);
+    t16.Compute(data, size, init16, false, ret16);
 
     CRCHelperT<uint16> t32;
-    t32.Compute(data, sizeof(uint32), init32, false, ret32);
+    t32.ComputeTable(pol32);
+    t32.Compute(data, size, init32, false, ret32);
 
-    return true;
+    bool ok = (ret8 != 0 && ret16 != 0 && ret32 != 0);
+
+    return ok;
 }
 	

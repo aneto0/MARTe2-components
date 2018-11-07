@@ -142,7 +142,7 @@ namespace MARTe {
         /**
          * Byte size of InputSignals.
          */
-        uint32 size;
+        uint32 inputSize;
 
         /**
          * TypeDescriptor for the out signal type.

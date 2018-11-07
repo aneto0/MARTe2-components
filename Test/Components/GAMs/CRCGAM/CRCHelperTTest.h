@@ -1,8 +1,8 @@
 /**
  * @file CRCHelperTTest.h
  * @brief Header file for class CRCHelperTTest
- * @date Oct 30, 2018 TODO Verify the value and format of the date
- * @author root TODO Verify the name and format of the author
+ * @date Oct 30, 2018
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -36,20 +36,42 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+/**
+ * @brief Test class for CRCHelperT
+ */
 class CRCHelperTTest {
 public:
 
+    /**
+     * @brief Generic test constructor function to be used by TestConstructorUint8, TestConstructorUint16
+     * TestConstructorUint32
+     */
     template <typename T>
     bool TestConstructor();
 
+    /**
+     * @brief TestConstructor with type = uint8
+     */
     bool TestConstructorUint8();
 
+    /**
+     * @brief TestConstructor with type = uint16
+     */
     bool TestConstructorUint16();
 
+    /**
+     * @brief TestConstructor with type = uint32
+     */
     bool TestConstructorUint32();
 
+    /**
+     * @brief Test the function ComputeTable for all the supported types
+     */
     bool TestComputeTable();
 
+    /**
+     * @brief Test the function Compute for all the supported types
+     */
     bool TestCompute();
 
 };

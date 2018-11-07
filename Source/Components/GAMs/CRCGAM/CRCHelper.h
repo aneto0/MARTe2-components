@@ -43,14 +43,16 @@ public:
     /**
      * @brief Destructor. NOOP.
      */
-    virtual inline ~CRCHelper();
+    virtual ~CRCHelper() {
+
+    }
 
     /**
      * @brief To be specialised by CRCHelperT for all the supported types.
      * @details Compute a lookup table for a given polynomial.
      * @param[in] The given divisor polynomial.
      */
-    virtual void ComputeTable(void * pol) = 0;
+    virtual void ComputeTable(void * const pol) = 0;
 
     /**
      * @brief To be specialised by CRCHelperT for all the supported types.
@@ -61,7 +63,7 @@ public:
      * @param[in] inputInverted if true, the order of the bytes to compute the CRC will be data[0], data[-1], data[-2] ... data[-size + 1].
      * @param[out] retval the computed CRC checksum.
      */
-    virtual void Compute(const uint8 * const data, int32 size, void * initCRC, bool inputInverted, void * retVal) = 0;
+    virtual void Compute(const uint8 * const data, int32 const size, void * const initCRC, bool const inputInverted, void * const retVal) = 0;
 
 };
 }
@@ -71,14 +73,6 @@ public:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
-
-namespace MARTe {
-
-    CRCHelper::~CRCHelper() {
-
-    }
-
-}
 
 #endif /* SOURCE_COMPONENTS_GAMS_CRCGAM_CRCHELPER_H_ */
 	

@@ -1,8 +1,8 @@
 /**
  * @file CRCGAMTest.h
  * @brief Header file for class CRCGAMTest
- * @date Oct 30, 2018 TODO Verify the value and format of the date
- * @author root TODO Verify the name and format of the author
+ * @date Oct 30, 2018
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -38,33 +38,102 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+/**
+ * @brief Test class for CRCGAM
+ */
 class CRCGAMTest {
 public:
 
+    /**
+     * @brief Test default constructor
+     */
     bool TestConstructor();
 
+    /**
+     * @brief Test initialise function
+     */
     bool TestInitialise();
 
+    /**
+     * @brief Test the initialise function when all the parameters from
+     * configuration are missing
+     */
     bool TestInitialiseMissingParameters();
 
+    /**
+     * @brief Test the initialise function when the Polynomial
+     * parameter is missing
+     */
     bool TestInitialiseMissingPolynomial();
 
+    /**
+     * @brief Test the initialise function when the InitialValue
+     * parameter is missing
+     */
     bool TestInitialiseMissingInitialCRCValue();
 
+    /**
+     * @brief Test the initialise function when the Inverted
+     * parameter is missing
+     */
     bool TestInitialiseMissingInverted();
 
-    bool TestSetup();
+    /**
+     * @brief Test the initialise function when the Inverted
+     * parameter is greater then 1
+     */
+    bool TestInitialiseWrongInverted();
 
+    /**
+     * @brief Test the Setup function for output type = uint8
+     */
+    bool TestSetupUint8();
+
+    /**
+     * @brief Test the Setup function for output type = uint16
+     */
+    bool TestSetupUint16();
+
+    /**
+     * @brief Test the Setup function for output type = uint32
+     */
+    bool TestSetupUint32();
+
+    /**
+     * @brief Test the setup function when the number of input is zero
+     */
     bool TestSetupWrongNumberOfInput();
 
+    /**
+     * @brief Test the setup function when the number of output is zero
+     */
     bool TestSetupWrongNumberOfOutput();
 
+    /**
+     * @brief Test the setup function when the output type is not
+     * a supported type
+     */
     bool TestSetupWrongOutputType();
 
+    /**
+     * @brief Execute test function to be called by TestExecuteUint8,
+     * TestExecuteUint16, TestExecuteUint32
+     */
+    template <typename T>
+    bool TestExecute(T value);
+    /**
+     * @brief Test the execute function for output type = uint8
+     */
     bool TestExecuteUint8();
 
+    /**
+     * @brief Test the execute function for output type = uint16
+     */
     bool TestExecuteUint16();
 
+    /**
+     * @brief Test the execute function for output type = uint32
+     */
     bool TestExecuteUint32();
 };
 
@@ -73,29 +142,22 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
+/**
+ * @brief Configuration example to be used by Test functions
+ */
 static const MARTe::char8 * const configFromBasicTypeTemplate = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
-        "        +Constant1 = {"
-        "            Class = ConstantGAM"
-        "            OutputSignals = {"
-        "                Signal1 = {"
-        "                    DataSource = DDB1"
-        "                    Type = uint32"
-        "                    Default = 10"
-        "                }"
-        "            }"
-        "        }"
         "        Class = ReferenceContainer"
         "        +GAM1 = {"
         "            Class = CRCTestHelper"
         "            Polynomial = 0"
         "            InitialValue = 0"
-        "            Inverted = 0"
+        "            Inverted = 1"
         "            InputSignals = {"
         "               Signal1 = {"
-        "                   DataSource = DDB1"
+        "                   DataSource = DSH"
         "               }"
         "            }"
         "            OutputSignals = {"
@@ -112,6 +174,15 @@ static const MARTe::char8 * const configFromBasicTypeTemplate = ""
         "        +DDB1 = {"
         "            Class = GAMDataSource"
         "        }"
+        "        +DSH = {"
+        "            Class = DataSourceHelper"
+        "            Constant = 10"
+        "            Signals = {"
+        "                Signal1 = {"
+        "                    Type = uint8"
+        "                }"
+        "            }"
+        "        }"
         "        +Timings = {"
         "            Class = TimingDataSource"
         "        }"
@@ -124,7 +195,7 @@ static const MARTe::char8 * const configFromBasicTypeTemplate = ""
         "                Class = ReferenceContainer"
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
-        "                    Functions = {Constant1 GAM1}"
+        "                    Functions = {GAM1}"
         "                }"
         "            }"
         "        }"

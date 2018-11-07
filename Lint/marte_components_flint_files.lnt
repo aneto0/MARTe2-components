@@ -23,6 +23,7 @@
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConstantGAM/
 -i./Source/Components/GAMs/ConversionGAM/
+-i./Source/Components/GAMs/CRCGAM/
 -i./Source/Components/GAMs/FilterGAM/
 -i./Source/Components/GAMs/HistogramGAM/
 -i./Source/Components/GAMs/Interleaved2FlatGAM/
@@ -49,6 +50,8 @@ ConversionGAM.cpp
 ConversionHelper.cpp
 CreateNI9157DeviceOperator.cpp
 CreateNI9157DeviceOperatorI.cpp
+CRCGAM.cpp
+CRCHelperT.h
 DANSource.cpp
 DANStream.cpp
 EpicsInputDataSource.cpp

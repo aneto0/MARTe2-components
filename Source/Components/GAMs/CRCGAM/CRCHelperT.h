@@ -32,6 +32,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "CRC.h"
+/*lint -efile(766,CRCHelperT.h) CRCHelper.h are used in this file*/
 #include "CRCHelper.h"
 
 /*---------------------------------------------------------------------------*/
@@ -39,55 +40,55 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 template <typename T>
-    class CRCHelperT : public CRCHelper {
-    public:
-        /**
-         * @brief Destructor. NOOP.
-         */
-        virtual ~CRCHelperT();
+class CRCHelperT : public CRCHelper {
+public:
+    /**
+     * @brief Destructor. NOOP.
+     */
+    ~CRCHelperT() {
 
-        /**
-         * @see CRCHelper::ComputeTable
-         * @details A cast to the declared output type is performed.
-         */
-        virtual void ComputeTable(void * pol);
+    }
 
-        /**
-         * @see CRCHelper::Compute
-         * @details A cast to the declared output type is performed.
-         */
-        virtual void Compute(const uint8 * const data, int32 size, void * initCRC, bool inputInverted, void * retVal);
+    /**
+     * @see CRCHelper::ComputeTable
+     * @details A cast to the declared output type is performed.
+     */
+    virtual void ComputeTable(void * const pol);
 
-    private:
+    /**
+     * @see CRCHelper::Compute
+     * @details A cast to the declared output type is performed.
+     */
+    virtual void Compute(const uint8 * const data, int32 const size, void * const initCRC, bool const inputInverted, void * const retVal);
 
-        /**
-         * CRC template class.
-         */
-        CRC<T> crc;
-    };
+private:
+
+    /**
+     * CRC template class.
+     */
+    CRC<T> crc;
+};
 }
-
-
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-    template <typename T>
-    CRCHelperT<T>::~CRCHelperT() {
 
-    }
+template<typename T>
+void CRCHelperT<T>::ComputeTable(void * const pol) {
+    crc.ComputeTable(*static_cast<T*>(pol));
+}
 
-    template <typename T>
-    void CRCHelperT<T>::ComputeTable(void * pol) {
-        crc.ComputeTable(*static_cast<T*>(pol));
-    }
-
-    template <typename T>
-    void CRCHelperT<T>::Compute(const uint8 * const data, int32 size, void * initCRC, bool inputInverted, void * retVal) {
-        T crcValue = crc.Compute(data, size, * static_cast<T*>(initCRC), inputInverted);
+template<typename T>
+void CRCHelperT<T>::Compute(const uint8 * const data, int32 const size, void * const initCRC, bool const inputInverted, void * const retVal) {
+    T crcValue = crc.Compute(data, size, *static_cast<T*>(initCRC), inputInverted);
+    if (retVal != NULL_PTR(void *)) {
         *static_cast<T*>(retVal) = crcValue;
     }
 }
+
+}
+
 #endif /* SOURCE_COMPONENTS_GAMS_CRCGAM_CRCHELPERT_H_ */
-	
+
