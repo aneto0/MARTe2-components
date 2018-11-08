@@ -37,6 +37,18 @@ ifdef EPICS_BASE
 SPB   += EPICS.x
 endif
 
+ifdef CODAC_ROOT
+## Only force EPICSPVA if CCS version is gt v6.1
+CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCSGT61)" "1"
+EPICSPVA = "1"
+endif
+endif
+
+ifdef EPICSPVA
+SPB   += EPICSPVA.x
+endif
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -56,6 +68,9 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2Wrapper$(LIBEXT)
 endif
 ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICS$(LIBEXT)
+endif
+ifdef EPICSPVA
+LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVA$(LIBEXT)
 endif
 
 all: $(OBJS)  $(SUBPROJ)  \

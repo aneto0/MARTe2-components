@@ -44,7 +44,7 @@
 /*---------------------------------------------------------------------------*/
 
 /**
- * @brief GAM which reads signals from a given EPICSCAOutput
+ * @brief GAM which writes signals into a given EPICSCAOutput
  */
 class EPICSCAOutputGAMTestHelper: public MARTe::GAM {
 public:

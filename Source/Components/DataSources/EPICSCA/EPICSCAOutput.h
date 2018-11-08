@@ -186,11 +186,6 @@ EPICSCAOutput    ();
      */
     bool IsIgnoringBufferOverrun() const;
 
-    /**
-     * @brief Registered as the ca_create_subscription callback function.
-     * It calls updates the memory of the corresponding PV variable.
-     */
-    friend void EPICSCAOutputEventCallback(struct event_handler_args args);
 
 private:
     /**

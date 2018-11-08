@@ -54,7 +54,7 @@ namespace MARTe {
  *   Class = EPICSInterface::EPICSCAClient
  *   StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
  *   CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
- *   AutoStart = 0 //Optional. Default = 1. If true the service will only be started after receiving a Start message (see Start method).
+ *   AutoStart = 0 //Optional. Default = 1. If false the service will only be started after receiving a Start message (see Start method).
  *   +PV_1 = {
  *      Class = EPICSPV //See class documentation of EPICSPV
  *      ...

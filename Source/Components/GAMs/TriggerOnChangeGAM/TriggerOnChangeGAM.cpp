@@ -41,8 +41,6 @@
 
 namespace MARTe {
 
-//#define NULL_PTR(x) NULL
-
 TriggerOnChangeGAM::TriggerOnChangeGAM() :
         GAM() {
 
@@ -298,20 +296,21 @@ bool TriggerOnChangeGAM::Execute() {
             /*lint -e{613} NULL pointer checked.*/
             (void) MemoryOperationsHelper::Copy(&previousValue[packetConfig[commandIndex[i]].offset], &currentValue[packetConfig[commandIndex[i]].offset],
                                                 (static_cast<uint32>(packetConfig[commandIndex[i]].type.numberOfBits) / 8u));
-            //REPORT_ERROR(ErrorManagement::Information, "ERROR[%d]", i);
+            REPORT_ERROR(ErrorManagement::Information, "ERROR[%d]", i);
         }
 
         //communication channel state machine
         /*lint -e{613} NULL pointer checked.*/
         if (state[i] == READY) {
-//check a difference with the previous
+            //check a difference with the previous
             if (IsChanged(i) == 1) {
                 //rising edge, send the message associated to the code
                 for (uint32 j = 0u; j < numberOfEvents; j++) {
                     ReferenceT<EventConditionTrigger> eventCondition = events->Get(j);
                     if (eventCondition.IsValid()) {
                         if (eventCondition->Check(currentValue, &packetConfig[commandIndex[i]])) {
-                            cntTrigger[i]++;
+                            //Number of messages.
+                            cntTrigger[i] += eventCondition->Size();
                         }
                     }
                 }
@@ -341,7 +340,7 @@ bool TriggerOnChangeGAM::Execute() {
                 for (uint32 j = 0u; j < numberOfEvents; j++) {
                     ReferenceT<EventConditionTrigger> eventCondition = events->Get(j);
                     if (eventCondition.IsValid()) {
-                        uint32 nReplies = eventCondition->Replied();
+                        uint32 nReplies = eventCondition->Replied(&packetConfig[commandIndex[i]]);
                         /*lint -e{613} NULL pointer checked.*/
                         cntReplied[i] += nReplies;
                     }
@@ -359,7 +358,7 @@ bool TriggerOnChangeGAM::Execute() {
             }
             (void) MemoryOperationsHelper::Copy(&previousValue[packetConfig[commandIndex[i]].offset], &currentValue[packetConfig[commandIndex[i]].offset],
                                                 (static_cast<uint32>(packetConfig[commandIndex[i]].type.numberOfBits) / 8u));
-            //REPORT_ERROR(ErrorManagement::Information, "SENDING[%d]", i);
+            REPORT_ERROR(ErrorManagement::Information, "SENDING[%d] - cntReplied[%d] = %d - cntTrigger[%d] = %d ", i, i, cntReplied[i], i, cntTrigger[i]);
         }
         /*lint -e{613} NULL pointer checked.*/
         if (state[i] == DONE) {

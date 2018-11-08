@@ -69,16 +69,6 @@ TEST(EPICSCAInputGTest,TestGetBrokerName_OutputSignals) {
     ASSERT_TRUE(test.TestGetBrokerName_OutputSignals());
 }
 
-TEST(EPICSCAInputGTest,TestGetInputBrokers) {
-    EPICSCAInputTest test;
-    ASSERT_TRUE(test.TestGetInputBrokers());
-}
-
-TEST(EPICSCAInputGTest,TestGetOutputBrokers) {
-    EPICSCAInputTest test;
-    ASSERT_TRUE(test.TestGetOutputBrokers());
-}
-
 TEST(EPICSCAInputGTest,TestInitialise) {
     EPICSCAInputTest test;
     ASSERT_TRUE(test.TestInitialise());

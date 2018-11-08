@@ -11,7 +11,7 @@ make -f Makefile.cov
 lcov --capture --initial --directory . --no-external --output-file $OUTPUT_DIR/MARTe2-components.coverage.info.initial
 
 #Execute the tests
-Test/GTest/cov/MainGTest.ex
+Test/GTest/cov/MainGTest.ex --gtest_filter=-PlatformGTest.*
 
 #Create test coverage data file
 lcov --capture --directory . --no-external --output-file $OUTPUT_DIR/MARTe2-components.coverage.info.tests

@@ -56,22 +56,27 @@ public:
     virtual ~HistogramComparatorT();
 
     /**
-     * @see Comparator::SetMin()
+     * @see HistogramComparator::SetMin()
      */
     virtual void SetMin(const void* const min);
 
     /**
-     * @see Comparator::SetMax()
+     * @see HistogramComparator::SetMax()
      */
     virtual void SetMax(const void* const max);
 
     /**
-     * @see Comparator::SetNumberOfBins()
+     * @see HistogramComparator::SetNumberOfBins()
      */
     virtual void SetNumberOfBins(const uint32 nBinsIn);
 
     /**
-     * @see Comparator::InRange()
+     * @see HistogramComparator::GetNumberOfBins()
+     */
+    virtual uint32 GetNumberOfBins();
+
+    /**
+     * @see HistogramComparator::InRange()
      */
     virtual uint32 InRange(const void * const mem);
 
@@ -140,6 +145,12 @@ void HistogramComparatorT<T>::SetNumberOfBins(const uint32 nBinsIn) {
         delta = static_cast<T>(range / nBinsTemp);
     }
 }
+
+template<typename T>
+uint32 HistogramComparatorT<T>::GetNumberOfBins() {
+    return nBins;
+}
+
 
 template<typename T>
 uint32 HistogramComparatorT<T>::InRange(const void* const mem) {

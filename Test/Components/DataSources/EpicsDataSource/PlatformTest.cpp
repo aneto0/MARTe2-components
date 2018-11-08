@@ -282,8 +282,10 @@ bool PlatformTest::TestMasterSlaveWithTwoProcesses(const char* const name,
     }
     else {
         int status;
-        ok = (waitpid(cpid, &status, 0) == cpid);
-        ok &= MasterProcessEpilogue(shm, name, fullname, cpid, dataset.GetResponseToken(), dataset.GetTokenLen());
+        if (ok) {
+            ok = (waitpid(cpid, &status, 0) == cpid);
+            ok &= MasterProcessEpilogue(shm, name, fullname, cpid, dataset.GetResponseToken(), dataset.GetTokenLen());
+        }
     }
     return ok;
 }

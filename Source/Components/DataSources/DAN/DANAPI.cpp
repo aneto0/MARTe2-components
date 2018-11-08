@@ -84,7 +84,11 @@ void * PublishSource(const char8 * const sourceName, uint32 bufferSize) {
 
 void UnpublishSource(void *danSource) {
     if ((danDataCore != NULL_PTR(dan_DataCore)) && (danSource != NULL_PTR(void *))) {
-        dan_publisher_unpublishSource(danDataCore, reinterpret_cast<dan_Source>(danSource));
+        // DAN v3.1 has replaced dan_publisher_unpublishSource with a macro which follows
+        // an expression such as s = new_method (d,s) which imposes the second parameter
+        // passed to dan_publisher_unpublishSource to be a valid lvalue argument.
+        dan_Source lvSource = reinterpret_cast<dan_Source>(danSource);
+        dan_publisher_unpublishSource(danDataCore, lvSource);
     }
 }
 }

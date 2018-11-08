@@ -88,6 +88,7 @@ namespace MARTe {
  * +HistogramGAM1 = {
  *     Class = HistogramGAM
  *     BeginCycleNumber = 0 //Optional. Start to compute histogram only after BeginCycleNumber cycles
+ *     StateChangeResetName = All //Optional. If set it will reset when the PrepareNextState, nextStaName == StateChangeResetName. If the StateChangeResetName is set to "All", it will always reset.
  *     InputSignals = {
  *         BeginCycleNumber = 10
  *         Signal1 = {
@@ -120,7 +121,7 @@ namespace MARTe {
  * }
  * </pre>
  */
-class HistogramGAM: public GAM {
+class HistogramGAM: public GAM, public StatefulI {
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -161,6 +162,13 @@ public:
      */
     virtual bool Execute();
 
+    /**
+     * @brief Resets the histogram counters if the nextStateName is equal to the StateChangeReset name.
+     * @return true.
+     */
+    virtual bool PrepareNextState(const char8 * const currentStateName,
+                                  const char8 * const nextStateName);
+
 protected:
 
     /**
@@ -180,6 +188,11 @@ protected:
      * Counts the elapsed number of cycles.
      */
     uint32 cycleCounter;
+
+    /**
+     * The name of the state to reset the histogram counters.
+     */
+    StreamString stateChangeResetName;
 };
 
 }
