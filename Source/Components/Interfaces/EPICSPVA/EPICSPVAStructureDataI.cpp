@@ -62,11 +62,12 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
         REPORT_ERROR(ErrorManagement::ParametersError, "FinaliseStructure must be called before Read().");
     }
     if (ok) {
-        scalarFieldPtr = std::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
+        scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar > (currentStructPtr->getSubField(name));
         ok = (scalarFieldPtr ? true : false);
         if (!ok) {
             isScalar = false;
-            scalarArrayPtr = std::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
+            scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
+                    > (currentStructPtr->getSubField(name));
             ok = (scalarArrayPtr ? true : false);
         }
     }
@@ -163,7 +164,8 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d",
+                             storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
                 ok = false;
             }
         }
@@ -188,14 +190,16 @@ AnyType EPICSPVAStructureDataI::GetType(const char8 * const name) {
         TypeDescriptor marte2Type;
         uint32 numberOfElements = 1u;
         if (epicsType == epics::pvData::scalar) {
-            epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
+            epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar
+                    > (currentStructPtr->getSubField(name));
             ok = (scalarFieldPtr ? true : false);
             if (ok) {
                 epicsScalarType = scalarFieldPtr->getScalar()->getScalarType();
             }
         }
         else if (epicsType == epics::pvData::scalarArray) {
-            epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
+            epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
+                    > (currentStructPtr->getSubField(name));
             ok = (scalarArrayPtr ? true : false);
             if (ok) {
                 epicsScalarType = scalarArrayPtr->getScalarArray()->getElementType();
@@ -297,8 +301,8 @@ bool EPICSPVAStructureDataI::CreateFromStoredType(const char8 * const name, AnyT
     else if (storedType.GetTypeDescriptor() == Float64Bit) {
         epicsType = epics::pvData::pvDouble;
     }
-    else if ((storedType.GetTypeDescriptor().type == CArray) || (storedType.GetTypeDescriptor().type == BT_CCString) || (storedType.GetTypeDescriptor().type == PCString)
-            || (storedType.GetTypeDescriptor().type == SString)) {
+    else if ((storedType.GetTypeDescriptor().type == CArray) || (storedType.GetTypeDescriptor().type == BT_CCString)
+            || (storedType.GetTypeDescriptor().type == PCString) || (storedType.GetTypeDescriptor().type == SString)) {
         epicsType = epics::pvData::pvString;
     }
     else {
@@ -327,57 +331,62 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
     bool ok = (isScalar == storedTypeIsScalar);
     if (ok) {
         if (storedTypeIsScalar) {
-            scalarFieldPtr = std::dynamic_pointer_cast<epics::pvData::PVScalar>(currentStructPtr->getSubField(name));
+            scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar
+                    > (currentStructPtr->getSubField(name));
             ok = (scalarFieldPtr ? true : false);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "%s should be a scalar but the conversion to PVScalar failed", name);
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "%s should be a scalar but the conversion to PVScalar failed", name);
             }
         }
         else {
-            scalarArrayPtr = std::dynamic_pointer_cast<epics::pvData::PVScalarArray>(currentStructPtr->getSubField(name));
+            scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
+                    > (currentStructPtr->getSubField(name));
             ok = (scalarArrayPtr ? true : false);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "%s should be an array but the conversion to PVScalarArray failed", name);
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "%s should be an array but the conversion to PVScalarArray failed", name);
             }
         }
     }
     else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Attempted to write a scalar on a vector (or vice-versa) for attribute with name %s ", name);
+        REPORT_ERROR(ErrorManagement::ParametersError,
+                     "Attempted to write a scalar on a vector (or vice-versa) for attribute with name %s ", name);
     }
     if (ok) {
         if (storedTypeIsScalar) {
-            if (storedType.GetTypeDescriptor() == UnsignedInteger8Bit) {
+            if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
                 scalarFieldPtr->putFrom<uint8>(*reinterpret_cast<uint8 *>(value.GetDataPointer()));
             }
-            else if (storedType.GetTypeDescriptor() == UnsignedInteger16Bit) {
+            else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
                 scalarFieldPtr->putFrom<uint16>(*reinterpret_cast<uint16 *>(value.GetDataPointer()));
             }
-            else if (storedType.GetTypeDescriptor() == UnsignedInteger32Bit) {
+            else if (value.GetTypeDescriptor() == UnsignedInteger32Bit) {
                 scalarFieldPtr->putFrom<uint32>(*reinterpret_cast<uint32 *>(value.GetDataPointer()));
             }
-            else if (storedType.GetTypeDescriptor() == UnsignedInteger64Bit) {
+            else if (value.GetTypeDescriptor() == UnsignedInteger64Bit) {
                 scalarFieldPtr->putFrom<unsigned long int>(*reinterpret_cast<uint64 *>(value.GetDataPointer()));
             }
-            else if (storedType.GetTypeDescriptor() == SignedInteger8Bit) {
+            else if (value.GetTypeDescriptor() == SignedInteger8Bit) {
                 scalarFieldPtr->putFrom<int8>(*reinterpret_cast<int8 *>(value.GetDataPointer()));
             }
-            else if (storedType.GetTypeDescriptor() == SignedInteger16Bit) {
+            else if (value.GetTypeDescriptor() == SignedInteger16Bit) {
                 scalarFieldPtr->putFrom<int16>(*reinterpret_cast<int16 *>(value.GetDataPointer()));
             }
-            else if (storedType.GetTypeDescriptor() == SignedInteger32Bit) {
+            else if (value.GetTypeDescriptor() == SignedInteger32Bit) {
                 scalarFieldPtr->putFrom<int32>(*reinterpret_cast<int32 *>(value.GetDataPointer()));
             }
-            else if (storedType.GetTypeDescriptor() == SignedInteger64Bit) {
+            else if (value.GetTypeDescriptor() == SignedInteger64Bit) {
                 scalarFieldPtr->putFrom<long int>(*reinterpret_cast<int64 *>(value.GetDataPointer()));
             }
-            else if (storedType.GetTypeDescriptor() == Float32Bit) {
+            else if (value.GetTypeDescriptor() == Float32Bit) {
                 scalarFieldPtr->putFrom<float32>(*reinterpret_cast<float32 *>(value.GetDataPointer()));
             }
-            else if (storedType.GetTypeDescriptor() == Float64Bit) {
+            else if (value.GetTypeDescriptor() == Float64Bit) {
                 scalarFieldPtr->putFrom<float64>(*reinterpret_cast<float64 *>(value.GetDataPointer()));
             }
-            else if ((storedType.GetTypeDescriptor().type == CArray) || (storedType.GetTypeDescriptor().type == BT_CCString) || (storedType.GetTypeDescriptor().type == PCString)
-                    || (storedType.GetTypeDescriptor().type == SString)) {
+            else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString)
+                    || (value.GetTypeDescriptor().type == PCString) || (value.GetTypeDescriptor().type == SString)) {
                 if (value.GetTypeDescriptor().type == SString) {
                     StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
                     scalarFieldPtr->putFrom<std::string>(src->Buffer());
@@ -396,45 +405,47 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
             uint32 numberOfElements = storedType.GetNumberOfElements(0u);
             uint32 size = numberOfElements * storedType.GetTypeDescriptor().numberOfBits / 8u;
             if (ok) {
-                if (storedType.GetTypeDescriptor() == UnsignedInteger8Bit) {
+                if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
                     ok = WriteArray<uint8>(scalarArrayPtr, storedType, value, size);
                 }
-                else if (storedType.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
                     ok = WriteArray<uint16>(scalarArrayPtr, storedType, value, size);
                 }
-                else if (storedType.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                else if (value.GetTypeDescriptor() == UnsignedInteger32Bit) {
                     ok = WriteArray<uint32>(scalarArrayPtr, storedType, value, size);
                 }
-                else if (storedType.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                else if (value.GetTypeDescriptor() == UnsignedInteger64Bit) {
                     ok = WriteArray<unsigned long int>(scalarArrayPtr, storedType, value, size);
                 }
-                else if (storedType.GetTypeDescriptor() == SignedInteger8Bit) {
+                else if (value.GetTypeDescriptor() == SignedInteger8Bit) {
                     ok = WriteArray<int8>(scalarArrayPtr, storedType, value, size);
                 }
-                else if (storedType.GetTypeDescriptor() == SignedInteger16Bit) {
+                else if (value.GetTypeDescriptor() == SignedInteger16Bit) {
                     ok = WriteArray<int16>(scalarArrayPtr, storedType, value, size);
                 }
-                else if (storedType.GetTypeDescriptor() == SignedInteger32Bit) {
+                else if (value.GetTypeDescriptor() == SignedInteger32Bit) {
                     ok = WriteArray<int32>(scalarArrayPtr, storedType, value, size);
                 }
-                else if (storedType.GetTypeDescriptor() == SignedInteger64Bit) {
+                else if (value.GetTypeDescriptor() == SignedInteger64Bit) {
                     ok = WriteArray<long int>(scalarArrayPtr, storedType, value, size);
                 }
-                else if (storedType.GetTypeDescriptor() == Float32Bit) {
+                else if (value.GetTypeDescriptor() == Float32Bit) {
                     ok = WriteArray<float32>(scalarArrayPtr, storedType, value, size);
                 }
-                else if (storedType.GetTypeDescriptor() == Float64Bit) {
+                else if (value.GetTypeDescriptor() == Float64Bit) {
                     ok = WriteArray<float64>(scalarArrayPtr, storedType, value, size);
                 }
-                else if ((storedType.GetTypeDescriptor().type == CArray) || (storedType.GetTypeDescriptor().type == BT_CCString) || (storedType.GetTypeDescriptor().type == PCString)
-                        || (storedType.GetTypeDescriptor().type == SString)) {
+                else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString)
+                        || (value.GetTypeDescriptor().type == PCString)
+                        || (value.GetTypeDescriptor().type == SString)) {
                     epics::pvData::shared_vector<const std::string> out;
                     out.resize(storedType.GetNumberOfElements(0u));
                     if (value.GetTypeDescriptor().type == SString) {
                         StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
                         uint32 i;
                         for (i = 0; i < numberOfElements; i++) {
-                            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i].Buffer();
+                            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) =
+                                    src[i].Buffer();
                         }
                         scalarArrayPtr->putFrom<std::string>(out);
                     }
@@ -452,7 +463,8 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d",
+                             storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
             }
         }
     }
@@ -480,9 +492,13 @@ bool EPICSPVAStructureDataI::Copy(StructuredDataI &destination) {
     uint32 nOfChildren = GetNumberOfChildren();
     for (uint32 i = 0u; (i < nOfChildren) && (ok); i++) {
         const char8 * const childName = GetChildName(i);
+        const char8 * const childId = GetChildId(i);
         if (MoveRelative(childName)) {
             if (!destination.CreateRelative(childName)) {
                 ok = false;
+            }
+            if (childId != NULL_PTR(const char8 *)) {
+                ok = destination.Write("_PVANodeId", childId);
             }
             if (ok) {
                 // go recursively !
@@ -506,7 +522,8 @@ bool EPICSPVAStructureDataI::Copy(StructuredDataI &destination) {
                 if (nOfElements1 < 1u) {
                     nOfElements1 = 1u;
                 }
-                if ((at.GetTypeDescriptor().type == CArray) || (at.GetTypeDescriptor().type == BT_CCString) || (at.GetTypeDescriptor().type == PCString) || (at.GetTypeDescriptor().type == SString)) {
+                if ((at.GetTypeDescriptor().type == CArray) || (at.GetTypeDescriptor().type == BT_CCString)
+                        || (at.GetTypeDescriptor().type == PCString) || (at.GetTypeDescriptor().type == SString)) {
                     if (nOfElements0 > 1u) {
                         Vector<StreamString> ss(nOfElements0);
                         ok = Read(childName, ss);
@@ -569,7 +586,8 @@ bool EPICSPVAStructureDataI::MoveToAncestor(uint32 generations) {
         for (i = 0u; (i < generations) && (ok); i++) {
             ok = (currentStructPtr != rootStructPtr);
             if (ok) {
-                currentStructPtr = std::dynamic_pointer_cast<epics::pvData::PVStructure>(currentStructPtr->getParent()->shared_from_this());
+                currentStructPtr = std::dynamic_pointer_cast < epics::pvData::PVStructure
+                        > (currentStructPtr->getParent()->shared_from_this());
             }
         }
         if (!ok) {
@@ -625,7 +643,7 @@ bool EPICSPVAStructureDataI::MoveToChild(const uint32 childIdx) {
         ok = (childIdx < fields.size());
         if (ok) {
             epics::pvData::PVFieldPtr field = fields[childIdx];
-            movePtr = std::dynamic_pointer_cast<epics::pvData::PVStructure>(field->shared_from_this());
+            movePtr = std::dynamic_pointer_cast < epics::pvData::PVStructure > (field->shared_from_this());
             ok = (movePtr ? true : false);
         }
         if (ok) {
@@ -638,7 +656,8 @@ bool EPICSPVAStructureDataI::MoveToChild(const uint32 childIdx) {
     return ok;
 }
 
-bool EPICSPVAStructureDataI::ConfigurationDataBaseToPVStructurePtr(ReferenceT<ReferenceContainer> currentNode, bool create) {
+bool EPICSPVAStructureDataI::ConfigurationDataBaseToPVStructurePtr(ReferenceT<ReferenceContainer> currentNode,
+                                                                   bool create) {
     bool ok = true;
     uint32 nOfChildren = currentNode->Size();
     ReferenceT<ReferenceContainer> foundNode;
@@ -661,11 +680,18 @@ bool EPICSPVAStructureDataI::ConfigurationDataBaseToPVStructurePtr(ReferenceT<Re
             ReferenceT<AnyObject> foundLeaf = currentNode->Get(i);
             if (foundLeaf.IsValid()) {
                 AnyType storedType = foundLeaf->GetType();
-                if (create) {
-                    ok = CreateFromStoredType(foundLeaf->GetName(), storedType);
+                StreamString leafName = foundLeaf->GetName();
+                if (leafName == "_PVANodeId") {
+                    StreamString nodeId = reinterpret_cast<const char8 *>(storedType.GetDataPointer());
+                    fieldBuilder = fieldBuilder->setId(nodeId.Buffer());
                 }
                 else {
-                    ok = WriteStoredType(foundLeaf->GetName(), storedType, storedType);
+                    if (create) {
+                        ok = CreateFromStoredType(leafName.Buffer(), storedType);
+                    }
+                    else {
+                        ok = WriteStoredType(leafName.Buffer(), storedType, storedType);
+                    }
                 }
             }
         }
@@ -721,11 +747,29 @@ const char8 *EPICSPVAStructureDataI::GetChildName(const uint32 index) {
         bool ok = (index < fields.size());
         if (ok) {
             epics::pvData::PVFieldPtr field = fields[index];
-            movePtr = std::dynamic_pointer_cast<epics::pvData::PVField>(field->shared_from_this());
+            movePtr = std::dynamic_pointer_cast < epics::pvData::PVField > (field->shared_from_this());
             ok = (movePtr ? true : false);
         }
         if (ok) {
             ret = movePtr->getFieldName().c_str();
+        }
+    }
+    return ret;
+}
+
+const char8 *EPICSPVAStructureDataI::GetChildId(const uint32 index) {
+    const char8 * ret = "";
+    if (currentStructPtr) {
+        const epics::pvData::PVFieldPtrArray & fields = currentStructPtr->getPVFields();
+        epics::pvData::PVFieldPtr movePtr;
+        bool ok = (index < fields.size());
+        if (ok) {
+            epics::pvData::PVFieldPtr field = fields[index];
+            movePtr = std::dynamic_pointer_cast < epics::pvData::PVField > (field->shared_from_this());
+            ok = (movePtr ? true : false);
+        }
+        if (ok) {
+            ret = movePtr->getField()->getID().c_str();
         }
     }
     return ret;
@@ -739,7 +783,7 @@ uint32 EPICSPVAStructureDataI::GetNumberOfChildren() {
     return numberOfFields;
 }
 
-void EPICSPVAStructureDataI::SetStructure(epics::pvData::PVStructurePtr structPtrToSet) {
+void EPICSPVAStructureDataI::SetStructure(epics::pvData::PVStructure::shared_pointer const & structPtrToSet) {
     structureFinalised = true;
     currentStructPtr = structPtrToSet;
     rootStructPtr = structPtrToSet;

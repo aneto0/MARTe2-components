@@ -178,7 +178,7 @@ public:
      * @post
      *    IsStructureFinalised().
      */
-    void SetStructure(epics::pvData::PVStructurePtr structPtrToSet);
+    void SetStructure(epics::pvData::PVStructure::shared_pointer const & structPtrToSet);
 
     /**
      * @brief Setup of the class so that the methods that allow modifying the structure can be called.
@@ -206,6 +206,12 @@ public:
     bool IsStructureFinalised();
 
 private:
+    /**
+     * @brief Gets the subNode Id
+     * @return the subNode Id
+     */
+    virtual const char8 *GetChildId(const uint32 index);
+
     /**
      * @brief Helper method to read an array from an epics::pvData::PVScalarArray into an AnyType. Should allow to convert from any numeric type to any numeric type.
      * @param[in] scalarArrayPtr the array where to read the data from.
