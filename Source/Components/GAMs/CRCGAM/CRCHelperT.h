@@ -1,8 +1,8 @@
 /**
  * @file CRCHelperT.h
  * @brief Header file for class CRCHelperT
- * @date Oct 29, 2018 TODO Verify the value and format of the date
- * @author root TODO Verify the name and format of the author
+ * @date Oct 29, 2018
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -74,6 +74,8 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+
+/*lint -esym(9107, MARTe::CRCHelperT*) [MISRA C++ Rule 3-1-1] required for template implementation*/
 
 template<typename T>
 void CRCHelperT<T>::ComputeTable(void * const pol) {
