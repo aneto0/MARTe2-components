@@ -63,6 +63,11 @@ public:
     bool TestExecute();
 
     /**
+     * @brief Tests the Execute method with structured types .
+     */
+    bool TestExecute_StructuredTypes();
+
+    /**
      * @brief Tests the Execute method writing in an array.
      */
     bool TestExecute_Array();

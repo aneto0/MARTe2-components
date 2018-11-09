@@ -31,9 +31,12 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "ConfigurationDatabase.h"
+#include "CLASSREGISTER.h"
 #include "EPICSRPCClient.h"
 #include "EPICSPVADatabase.h"
 #include "EPICSPVADatabaseTest.h"
+#include "Introspection.h"
+#include "IntrospectionT.h"
 #include "ObjectRegistryDatabase.h"
 #include "StandardParser.h"
 
@@ -291,6 +294,95 @@ bool EPICSPVADatabaseTest::TestExecute() {
     }
     if (ok) {
         pvac::ClientChannel channel(provider.connect("Record1"));
+        uint32 value = 99;
+
+        channel.put().set("value.ElementsB.ElementB3", value).exec();
+        epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();
+        std::shared_ptr<const epics::pvData::PVUInt> rvalue = getStruct->getSubField<epics::pvData::PVUInt>("value.ElementsB.ElementB3");
+        ok = (rvalue ? true : false);
+        if (ok) {
+            ok = (rvalue->get() == value);
+        }
+    }
+    ord->Purge();
+    return ok;
+}
+
+
+//An introspectable structure
+struct EPICSPVADatabaseTestS2 {
+    MARTe::uint32 ElementB1[8];
+    MARTe::float32 ElementB2[10];
+    MARTe::uint32 ElementB3;
+};
+struct EPICSPVADatabaseTestS1 {
+    MARTe::uint32 Element1[10];
+    MARTe::float32 Element2;
+    struct EPICSPVADatabaseTestS2 ElementsB;
+};
+
+//The strategy is identical to the class registration
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB1, uint32, "[8]", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB2, float32, "[10]", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB3, uint32, "", "");
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS2StructEntries[] = { &EPICSPVADatabaseTestS2_ElementB1_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB2_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB3_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestS2, EPICSPVADatabaseTestS2StructEntries)
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, Element1, uint32, "[10]", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, Element2, float32, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, ElementsB, EPICSPVADatabaseTestS2, "", "");
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS1StructEntries[] = { &EPICSPVADatabaseTestS1_Element1_introspectionEntry, &EPICSPVADatabaseTestS1_Element2_introspectionEntry, &EPICSPVADatabaseTestS1_ElementsB_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestS1, EPICSPVADatabaseTestS1StructEntries)
+
+bool EPICSPVADatabaseTest::TestExecute_StructuredTypes() {
+    using namespace MARTe;
+
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {"
+            "    Class = EPICSPVADatabase"
+            "    +Record1S = {"
+            "        Class = EPICSPVA::EPICSPVARecord"
+            "        Structure = {"
+            "            value = {"
+            "               Type = EPICSPVADatabaseTestS1"
+            "            }"
+            "        }"
+            "    }"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPVADatabase> pvDatabase;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        pvDatabase = ord->Find("EPICSPVADatabase1");
+        ok = pvDatabase.IsValid();
+    }
+    if (ok) {
+        ok = (pvDatabase->GetCPUMask() == 0xFF);
+    }
+    if (ok) {
+        ok = (pvDatabase->GetStackSize() == (THREADS_DEFAULT_STACKSIZE * 4u));
+    }
+    if (ok) {
+        uint32 timeout = 50;
+        while (!pvDatabase->GetServerContext()) {
+            Sleep::Sec(0.1);
+            timeout--;
+            if (timeout == 0) {
+                break;
+            }
+        }
+        ok = (pvDatabase->GetServerContext() ? true : false);
+    }
+    pvac::ClientProvider provider("pva");
+    if (ok) {
+        pvac::ClientChannel channel(provider.connect("Record1S"));
         uint32 value = 99;
 
         channel.put().set("value.ElementsB.ElementB3", value).exec();

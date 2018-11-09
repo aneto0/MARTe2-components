@@ -116,8 +116,8 @@ bool EPICSPVARecord::InitEPICSStructure(StructuredDataI &pvaDB) {
                 else if (type.GetTypeDescriptor() == Float64Bit) {
                     InitArray<float64>(pvaDB, name, numberOfElements);
                 }
-                else if ((type.GetTypeDescriptor().type == CArray) || (type.GetTypeDescriptor().type == BT_CCString) || (type.GetTypeDescriptor().type == PCString)
-                        || (type.GetTypeDescriptor().type == SString)) {
+                else if ((type.GetTypeDescriptor().type == CArray) || (type.GetTypeDescriptor().type == BT_CCString)
+                        || (type.GetTypeDescriptor().type == PCString) || (type.GetTypeDescriptor().type == SString)) {
                     Vector<StreamString> vec(numberOfElements);
                     uint32 n;
                     for (n = 0u; n < numberOfElements; n++) {
@@ -202,6 +202,10 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
                 bool hasType = (cdb.Read("Type", typeStr));
                 if (!hasType) {
                     fieldBuilder = fieldBuilder->addNestedStructure(nodeName);
+                    StreamString pvaNodeId;
+                    if (cdb.Read("_PVANodeId", pvaNodeId)) {
+                        fieldBuilder = fieldBuilder->setId(pvaNodeId.Buffer());
+                    }
                 }
                 ok = GetEPICSStructure(fieldBuilder);
                 cdb.MoveToAncestor(1);
@@ -212,6 +216,76 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
         }
     }
 
+    return ok;
+}
+
+bool EPICSPVARecord::ExpandStructuredType(const char8 * const typeName, ConfigurationDatabase &cdb) {
+    const ClassRegistryItem *item = ClassRegistryDatabase::Instance()->Find(typeName);
+    const Introspection *intro = NULL_PTR(Introspection *);
+    bool ok = (item != NULL_PTR(ClassRegistryItem *));
+    if (ok) {
+        /*lint -e{613} NULL pointer checking done before entering here */
+        intro = item->GetIntrospection();
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "The type %s is not registered", typeName);
+    }
+
+    ok = (intro != NULL_PTR(Introspection *));
+    if (ok) {
+        uint32 numberOfMembers = intro->GetNumberOfMembers();
+        uint32 i;
+        //For each of the structure members...
+        for (i = 0u; (i < numberOfMembers) && (ok); i++) {
+            //lint -e{613} intro cannot be NULL as it is checked above.
+            const IntrospectionEntry entry = intro->operator[](i);
+            ok = cdb.CreateRelative(entry.GetMemberName());
+            if (ok) {
+                const char8 * const memberTypeName = entry.GetMemberTypeName();
+                bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
+                if (isStructured) {
+                    ok = ExpandStructuredType(memberTypeName, cdb);
+                }
+                else {
+                    cdb.Write("Type", memberTypeName);
+                    cdb.Write("NumberOfDimensions", entry.GetNumberOfDimensions());
+                    cdb.Write("NumberOfElements", entry.GetNumberOfElements(0u));
+                }
+            }
+            if (ok) {
+                ok = cdb.MoveToAncestor(1u);
+            }
+        }
+    }
+    return ok;
+}
+
+bool EPICSPVARecord::ExpandStructuredTypes(ConfigurationDatabase &cdb) {
+    bool ok = true;
+    StreamString typeNameStr;
+    if (cdb.Read("Type", typeNameStr)) {
+        const ClassRegistryItem *item = ClassRegistryDatabase::Instance()->Find(typeNameStr.Buffer());
+        if (item != NULL_PTR(const ClassRegistryItem *)) {
+            ok = cdb.Delete("Type");
+            if (ok) {
+                ok = cdb.Write("_PVANodeId", typeNameStr.Buffer());
+            }
+            if (ok) {
+                ok = ExpandStructuredType(typeNameStr.Buffer(), cdb);
+            }
+        }
+    }
+    uint32 i;
+    uint32 nOfChildren = cdb.GetNumberOfChildren();
+    for (i = 0u; (i < nOfChildren) && (ok); i++) {
+        const char8 * const nodeName = cdb.GetChildName(i);
+        if (cdb.MoveRelative(nodeName)) {
+            ok = ExpandStructuredTypes(cdb);
+            if (ok) {
+                ok = cdb.MoveToAncestor(1u);
+            }
+        }
+    }
     return ok;
 }
 
@@ -239,10 +313,14 @@ epics::pvDatabase::PVRecordPtr EPICSPVARecord::CreatePVRecord() {
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
     epics::pvData::PVStructurePtr pvStructure;
     std::shared_ptr<MARTe2PVARecord> pvRecordWrapper;
-    bool ok = GetEPICSStructure(fieldBuilder);
+    bool ok = ExpandStructuredTypes(cdb);
+    if (ok) {
+        ok = GetEPICSStructure(fieldBuilder);
+    }
     if (ok) {
         epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
         pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
+        std::cout << pvStructure << std::endl;
         pvRecordWrapper = std::shared_ptr < MARTe2PVARecord > (new MARTe2PVARecord(recordName.Buffer(), pvStructure));
         pvRecordWrapper->initPvt();
     }

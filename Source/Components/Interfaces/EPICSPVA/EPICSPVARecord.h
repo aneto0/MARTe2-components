@@ -80,7 +80,7 @@ public:
     /**
      * @brief Constructor. NOOP.
      */
-    EPICSPVARecord();
+EPICSPVARecord    ();
 
     /**
      * @brief Destructor. NOOP.
@@ -106,7 +106,6 @@ public:
      */
     void GetRecordName(StreamString &recName);
 
-
 private:
     /**
      * @brief Recursively constructs the PVRecord from the configuration described in the "Structure" node of the configuration input (see Initialise).
@@ -116,12 +115,26 @@ private:
     bool GetEPICSStructure(epics::pvData::FieldBuilderPtr & fieldBuilder);
 
     /**
+     * @brief Expands the structured types (if any).
+     * @param[in] cdb the database to be traversed.
+     * @return true if all the structured types found could be expanded.
+     */
+    bool ExpandStructuredTypes(ConfigurationDatabase &cdb);
+
+    /**
+     * @brief Expands a structured type to a configuration database.
+     * @param[in] typeName the name of the type to be expanded.
+     * @param[out] the database where to write the signal into.
+     * @return true if all the structured types found could be expanded.
+     */
+    bool ExpandStructuredType(const char8 * const typeName, ConfigurationDatabase &cdb);
+
+    /**
      * @brief Initialises all the members in the PVStructure (in particular the arrays).
      * @param[in] pvaDB the structure to initialise.
      * @return true if the structure is correctly initialised.
      */
     bool InitEPICSStructure(StructuredDataI &pvaDB);
-
 
     /**
      * @brief Helper method to initialise an array.
@@ -151,15 +164,14 @@ private:
 namespace MARTe {
 template<typename T>
 void EPICSPVARecord::InitArray(StructuredDataI &data, const char8 * const name, const uint32 &size) {
-    Vector<T> vec(size);
-    uint32 n;
-    for (n = 0u; n<size; n++) {
-        vec[n] = static_cast<T>(0u);
-    }
-    data.Write(name, vec);
+Vector<T> vec(size);
+uint32 n;
+for (n = 0u; n < size; n++) {
+    vec[n] = static_cast<T>(0u);
+}
+data.Write(name, vec);
 }
 
 }
-
 
 #endif /* EPICSPVA_EPICSPVARECORD_H_ */
