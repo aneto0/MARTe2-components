@@ -146,6 +146,29 @@ private:
     bool LoadSignalStructure(StructuredDataI &cdbSignalStructure, StreamString fullNodeName, StreamString relativeNodeName);
 
     /**
+     * @brief Loads a basic type into the memory backend configuration database.
+     * @param[in] td the type to load.
+     * @param[in] numberOfElements the number of elements associated to the type.
+     * @param[in] numberOfDimensions the number of dimensions associated to the type.
+     * @param[in] fullNodeName the full name of the node currently being queried.
+     * @param[in] relativeNodeName the name of the node currently being queried.
+     * @return true if all the ConfigurationDatabase write operation is successful.
+     */
+    bool LoadBasicType(TypeDescriptor &td, uint32 numberOfElements, uint32 numberOfDimensions, StreamString fullNodeName,
+                       StreamString relativeNodeName);
+
+    /**
+     * @brief Recursively loads a structure type into the memory backend configuration database.
+     * @param[in] type name the name of the type to load.
+     * @param[in] fullNodeName the full name of the node currently being queried.
+     * @param[in] relativeNodeName the name of the node currently being queried.
+     * @param[in] entry introspection information about the type.
+     * @return true if all the ConfigurationDatabase write operation is successful.
+     */
+    bool LoadStructuredType(const char8 * const typeName, StreamString fullNodeName, StreamString relativeNodeName,
+                            const IntrospectionEntry *entry);
+
+    /**
      * The EPICS PVA channel
      */
     pvac::ClientChannel channel;
@@ -204,7 +227,8 @@ void EPICSPVAChannelWrapper::PutHelper(pvac::detail::PutBuilder &putBuilder, uin
     else {
         epics::pvData::shared_vector<T> out;
         out.resize(cachedSignals[n].numberOfElements);
-        (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory, cachedSignals[n].numberOfElements * sizeof(T));
+        (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory,
+                                            cachedSignals[n].numberOfElements * sizeof(T));
         epics::pvData::shared_vector<const T> outF = freeze(out);
         putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), outF);
     }

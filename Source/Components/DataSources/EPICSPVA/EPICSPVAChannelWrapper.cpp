@@ -72,6 +72,94 @@ bool EPICSPVAChannelWrapper::Setup(StructuredDataI &data) {
     return ok;
 }
 
+bool EPICSPVAChannelWrapper::LoadBasicType(TypeDescriptor &td, uint32 numberOfElements, uint32 numberOfDimensions,
+                                           StreamString fullNodeName, StreamString relativeNodeName) {
+    uint32 memorySize = td.numberOfBits;
+    bool ok = (numberOfDimensions < 2u);
+    if (ok) {
+        if (numberOfElements == 0u) {
+            numberOfElements = 1u;
+        }
+        if (numberOfElements > 1u) {
+            numberOfDimensions = 1u;
+        }
+        memorySize *= numberOfElements;
+        memorySize /= 8u;
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Only 0 and 1 dimension signals are currently supported");
+    }
+    if (ok) {
+        const char8 * const typeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(td);
+        REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s of type %s [%d bytes]", fullNodeName.Buffer(), typeName,
+                            memorySize);
+        void *mem = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize);
+        AnyType at(td, 0u, mem);
+        at.SetNumberOfElements(0u, numberOfElements);
+        at.SetNumberOfDimensions(numberOfDimensions);
+        ok = memoryBackend.Write(relativeNodeName.Buffer(), at);
+        if (ok) {
+            numberOfSignals++;
+        }
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(mem);
+    }
+    return ok;
+}
+
+bool EPICSPVAChannelWrapper::LoadStructuredType(const char8 * const typeName, StreamString fullNodeName, StreamString relativeNodeName,
+                                                const IntrospectionEntry *entry) {
+    bool ok = true;
+    TypeDescriptor td = TypeDescriptor::GetTypeDescriptorFromTypeName(typeName);
+    if (td == voidAnyType.GetTypeDescriptor()) {
+        ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(typeName);
+        bool ok = (cri != NULL_PTR(ClassRegistryItem *));
+        if (ok) {
+            const Introspection *intro = cri->GetIntrospection();
+            IntrospectionEntry introEntry;
+            ok = (intro != NULL_PTR(const Introspection *));
+            if (ok) {
+                uint32 i;
+                uint32 nOfMembers = intro->GetNumberOfMembers();
+                for (i = 0u; (i < nOfMembers) && (ok); i++) {
+                    introEntry = (intro->operator [](i));
+                    relativeNodeName = introEntry.GetMemberName();
+                    ok = memoryBackend.CreateRelative(relativeNodeName.Buffer());
+                    if (ok) {
+                        StreamString fullBranchNodeName = fullNodeName;
+                        if (fullBranchNodeName.Size() != 0u) {
+                            fullBranchNodeName += ".";
+                            fullBranchNodeName += relativeNodeName;
+                        }
+                        else {
+                            fullBranchNodeName = relativeNodeName;
+                        }
+                        ok = LoadStructuredType(introEntry.GetMemberTypeName(), fullBranchNodeName.Buffer(), relativeNodeName.Buffer(),
+                                                &introEntry);
+                    }
+                    if (ok) {
+                        ok = memoryBackend.MoveToAncestor(1u);
+                    }
+                }
+
+            }
+            else {
+                REPORT_ERROR_STATIC(ErrorManagement::Information, "Type %s has no introspection", typeName);
+            }
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Type %s not found", typeName);
+        }
+    }
+    else {
+        if (entry != NULL_PTR(const IntrospectionEntry *)) {
+            uint32 numberOfDimensions = entry->GetNumberOfDimensions();
+            uint32 numberOfElements = entry->GetNumberOfElements(0u);
+            ok = LoadBasicType(td, numberOfElements, numberOfDimensions, fullNodeName.Buffer(), relativeNodeName.Buffer());
+        }
+    }
+    return ok;
+}
+
 bool EPICSPVAChannelWrapper::LoadSignalStructure(StructuredDataI &data, StreamString fullNodeName, StreamString relativeNodeName) {
     bool ok = true;
 
@@ -81,35 +169,16 @@ bool EPICSPVAChannelWrapper::LoadSignalStructure(StructuredDataI &data, StreamSt
     bool isSignal = data.Read("Type", typeName);
     if (isSignal) {
         TypeDescriptor td = TypeDescriptor::GetTypeDescriptorFromTypeName(typeName.Buffer());
-        uint32 memorySize = td.numberOfBits;
-        uint8 numberOfDimensions = 0u;
-        (void) data.Read("NumberOfDimensions", numberOfDimensions);
-        ok = (numberOfDimensions < 2u);
-        if (ok) {
-            uint32 numberOfElements = 0u;
-            (void) data.Read("NumberOfElements", numberOfElements);
-            if (numberOfElements == 0u) {
-                numberOfElements = 1u;
-            }
-            if (numberOfElements > 1u) {
-                numberOfDimensions = 1u;
-            }
-
-            memorySize *= numberOfElements;
-            memorySize /= 8u;
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s of type %s [%d bytes]", fullNodeName.Buffer(), typeName.Buffer(), memorySize);
-            void *mem = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize);
-            AnyType at(td, 0u, mem);
-            at.SetNumberOfElements(0u, numberOfElements);
-            at.SetNumberOfDimensions(numberOfDimensions);
-            ok = memoryBackend.Write(relativeNodeName.Buffer(), at);
-            if (ok) {
-                numberOfSignals++;
-            }
-            GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(mem);
+        if (td == voidAnyType.GetTypeDescriptor()) {
+            ok = LoadStructuredType(typeName.Buffer(), fullNodeName.Buffer(), relativeNodeName.Buffer(),
+                                    NULL_PTR(const IntrospectionEntry *));
         }
         else {
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Only 0 and 1 dimension signals are currently supported");
+            uint32 numberOfDimensions;
+            uint32 numberOfElements;
+            (void) data.Read("NumberOfDimensions", numberOfDimensions);
+            (void) data.Read("NumberOfElements", numberOfElements);
+            ok = LoadBasicType(td, numberOfElements, numberOfDimensions, fullNodeName.Buffer(), relativeNodeName.Buffer());
         }
     }
     else {
@@ -312,7 +381,8 @@ bool EPICSPVAChannelWrapper::Monitor() {
                             epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr;
                             epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr;
                             if ((cachedSignals[n].numberOfElements) == 1u) {
-                                scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(readStruct->getSubField(cachedSignals[n].qualifiedName.Buffer()));
+                                scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(
+                                        readStruct->getSubField(cachedSignals[n].qualifiedName.Buffer()));
                                 ok = (scalarFieldPtr ? true : false);
                                 if (ok) {
                                     if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
@@ -352,7 +422,8 @@ bool EPICSPVAChannelWrapper::Monitor() {
                                 }
                             }
                             else {
-                                scalarArrayPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalarArray>(readStruct->getSubField(cachedSignals[n].qualifiedName.Buffer()));
+                                scalarArrayPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalarArray>(
+                                        readStruct->getSubField(cachedSignals[n].qualifiedName.Buffer()));
                                 ok = (scalarArrayPtr ? true : false);
                                 if (ok) {
                                     if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
