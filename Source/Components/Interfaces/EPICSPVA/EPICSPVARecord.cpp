@@ -242,14 +242,18 @@ bool EPICSPVARecord::ExpandStructuredType(const char8 * const typeName, Configur
             ok = cdb.CreateRelative(entry.GetMemberName());
             if (ok) {
                 const char8 * const memberTypeName = entry.GetMemberTypeName();
+                ok = cdb.Write("NumberOfDimensions", entry.GetNumberOfDimensions());
+                if (ok) {
+                    ok = cdb.Write("NumberOfElements", entry.GetNumberOfElements(0u));
+                }
                 bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
                 if (isStructured) {
-                    ok = ExpandStructuredType(memberTypeName, cdb);
+                    if (ok) {
+                        ok = ExpandStructuredType(memberTypeName, cdb);
+                    }
                 }
                 else {
                     cdb.Write("Type", memberTypeName);
-                    cdb.Write("NumberOfDimensions", entry.GetNumberOfDimensions());
-                    cdb.Write("NumberOfElements", entry.GetNumberOfElements(0u));
                 }
             }
             if (ok) {
