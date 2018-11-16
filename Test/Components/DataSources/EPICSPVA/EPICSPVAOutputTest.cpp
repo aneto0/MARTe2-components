@@ -34,6 +34,7 @@
 #include "EPICSPVAOutput.h"
 #include "EPICSPVAOutputTest.h"
 #include "GAM.h"
+#include "IntrospectionT.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
@@ -207,6 +208,183 @@ private:
 };
 
 CLASS_REGISTER(EPICSPVAOutputSchedulerTestHelper, "1.0")
+
+
+//An introspectable structure
+struct EPICSPVAOutputTestUInt {
+    MARTe::uint8 UInt8;
+    MARTe::uint16 UInt16;
+    MARTe::uint32 UInt32;
+    MARTe::uint64 UInt64;
+};
+struct EPICSPVAOutputTestInt {
+    MARTe::int8 Int8;
+    MARTe::int16 Int16;
+    MARTe::int32 Int32;
+    MARTe::int64 Int64;
+};
+struct EPICSPVAOutputTestFloat {
+    MARTe::float32 Float32;
+    MARTe::float64 Float64;
+};
+struct EPICSPVADatabaseTestOutputTypesS {
+    struct EPICSPVAOutputTestUInt UInts;
+    struct EPICSPVAOutputTestInt Ints;
+    struct EPICSPVAOutputTestFloat Floats;
+};
+//The strategy is identical to the class registration
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUInt, UInt8, uint8, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUInt, UInt16, uint16, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUInt, UInt32, uint32, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUInt, UInt64, uint64, "", "");
+static const MARTe::IntrospectionEntry* EPICSPVAOutputTestUIntStructEntries[] = { &EPICSPVAOutputTestUInt_UInt8_introspectionEntry,
+        &EPICSPVAOutputTestUInt_UInt16_introspectionEntry, &EPICSPVAOutputTestUInt_UInt32_introspectionEntry,
+        &EPICSPVAOutputTestUInt_UInt64_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestUInt, EPICSPVAOutputTestUIntStructEntries)
+
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestInt, Int8, int8, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestInt, Int16, int16, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestInt, Int32, int32, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestInt, Int64, int64, "", "");
+static const MARTe::IntrospectionEntry* EPICSPVAOutputTestIntStructEntries[] = { &EPICSPVAOutputTestInt_Int8_introspectionEntry,
+        &EPICSPVAOutputTestInt_Int16_introspectionEntry, &EPICSPVAOutputTestInt_Int32_introspectionEntry,
+        &EPICSPVAOutputTestInt_Int64_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestInt, EPICSPVAOutputTestIntStructEntries)
+
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestFloat, Float32, float32, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestFloat, Float64, float64, "", "");
+static const MARTe::IntrospectionEntry* EPICSPVAOutputTestFloatStructEntries[] = { &EPICSPVAOutputTestFloat_Float32_introspectionEntry,
+        &EPICSPVAOutputTestFloat_Float64_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestFloat, EPICSPVAOutputTestFloatStructEntries)
+
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, UInts, EPICSPVAOutputTestUInt, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, Ints, EPICSPVAOutputTestInt, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, Floats, EPICSPVAOutputTestFloat, "", "");
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSStructEntries[] = { &EPICSPVADatabaseTestOutputTypesS_UInts_introspectionEntry,
+        &EPICSPVADatabaseTestOutputTypesS_Ints_introspectionEntry, &EPICSPVADatabaseTestOutputTypesS_Floats_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestOutputTypesS, EPICSPVADatabaseTestOutputTypesSStructEntries)
+
+
+struct EPICSPVAOutputTestUIntA {
+    MARTe::uint8 UInt8[4];
+    MARTe::uint16 UInt16[4];
+    MARTe::uint32 UInt32[4];
+    MARTe::uint64 UInt64[4];
+};
+struct EPICSPVAOutputTestIntA {
+    MARTe::int8 Int8[4];
+    MARTe::int16 Int16[4];
+    MARTe::int32 Int32[4];
+    MARTe::int64 Int64[4];
+};
+struct EPICSPVAOutputTestFloatA {
+    MARTe::float32 Float32[4];
+    MARTe::float64 Float64[4];
+};
+struct EPICSPVADatabaseTestOutputTypesSA {
+    struct EPICSPVAOutputTestUIntA UInts;
+    struct EPICSPVAOutputTestIntA Ints;
+    struct EPICSPVAOutputTestFloatA Floats;
+};
+//The strategy is identical to the class registration
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUIntA, UInt8, uint8, "[4]", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUIntA, UInt16, uint16, "[4]", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUIntA, UInt32, uint32, "[4]", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUIntA, UInt64, uint64, "[4]", "");
+static const MARTe::IntrospectionEntry* EPICSPVAOutputTestUIntAStructEntries[] = { &EPICSPVAOutputTestUIntA_UInt8_introspectionEntry,
+        &EPICSPVAOutputTestUIntA_UInt16_introspectionEntry, &EPICSPVAOutputTestUIntA_UInt32_introspectionEntry,
+        &EPICSPVAOutputTestUIntA_UInt64_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestUIntA, EPICSPVAOutputTestUIntAStructEntries)
+
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestIntA, Int8, int8, "[4]", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestIntA, Int16, int16, "[4]", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestIntA, Int32, int32, "[4]", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestIntA, Int64, int64, "[4]", "");
+static const MARTe::IntrospectionEntry* EPICSPVAOutputTestIntAStructEntries[] = { &EPICSPVAOutputTestIntA_Int8_introspectionEntry,
+        &EPICSPVAOutputTestIntA_Int16_introspectionEntry, &EPICSPVAOutputTestIntA_Int32_introspectionEntry,
+        &EPICSPVAOutputTestIntA_Int64_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestIntA, EPICSPVAOutputTestIntAStructEntries)
+
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestFloatA, Float32, float32, "[4]", "");
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestFloatA, Float64, float64, "[4]", "");
+static const MARTe::IntrospectionEntry* EPICSPVAOutputTestFloatAStructEntries[] = { &EPICSPVAOutputTestFloatA_Float32_introspectionEntry,
+        &EPICSPVAOutputTestFloatA_Float64_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestFloatA, EPICSPVAOutputTestFloatAStructEntries)
+
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, UInts, EPICSPVAOutputTestUIntA, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, Ints, EPICSPVAOutputTestIntA, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, Floats, EPICSPVAOutputTestFloatA, "", "");
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSAStructEntries[] = { &EPICSPVADatabaseTestOutputTypesSA_UInts_introspectionEntry,
+        &EPICSPVADatabaseTestOutputTypesSA_Ints_introspectionEntry, &EPICSPVADatabaseTestOutputTypesSA_Floats_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestOutputTypesSA, EPICSPVADatabaseTestOutputTypesSAStructEntries)
+
+/**
+ * @brief GAM which writes signals into a given EPICSPVAOutput
+ */
+class EPICSPVAOutputGAMTestHelperS: public MARTe::GAM {
+public:
+    CLASS_REGISTER_DECLARATION()EPICSPVAOutputGAMTestHelperS() {
+        testStruct = NULL;
+    }
+
+    virtual ~EPICSPVAOutputGAMTestHelperS() {
+        using namespace MARTe;
+    }
+
+    virtual bool Initialise(MARTe::StructuredDataI & data) {
+        return GAM::Initialise(data);
+    }
+
+    virtual bool Setup() {
+        using namespace MARTe;
+        testStruct = reinterpret_cast<EPICSPVADatabaseTestOutputTypesS *>(GetOutputSignalMemory(0u));
+        return true;
+    }
+
+    virtual bool Execute() {
+        using namespace MARTe;
+        return true;
+    }
+
+    EPICSPVADatabaseTestOutputTypesS *testStruct;
+};
+CLASS_REGISTER(EPICSPVAOutputGAMTestHelperS, "1.0")
+
+
+/**
+ * @brief GAM which writes signals into a given EPICSPVAOutput
+ */
+class EPICSPVAOutputGAMTestHelperSA: public MARTe::GAM {
+public:
+    CLASS_REGISTER_DECLARATION()EPICSPVAOutputGAMTestHelperSA() {
+        testStruct = NULL;
+    }
+
+    virtual ~EPICSPVAOutputGAMTestHelperSA() {
+        using namespace MARTe;
+    }
+
+    virtual bool Initialise(MARTe::StructuredDataI & data) {
+        return GAM::Initialise(data);
+    }
+
+    virtual bool Setup() {
+        using namespace MARTe;
+        testStruct = reinterpret_cast<EPICSPVADatabaseTestOutputTypesSA *>(GetOutputSignalMemory(0u));
+        return true;
+    }
+
+    virtual bool Execute() {
+        using namespace MARTe;
+        return true;
+    }
+
+    EPICSPVADatabaseTestOutputTypesSA *testStruct;
+};
+CLASS_REGISTER(EPICSPVAOutputGAMTestHelperSA, "1.0")
+
+
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -1895,6 +2073,337 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
                 }
                 for (n = 0u; (n < nOfElements) && (ok); n++) {
                     ok = (outFloat64[n] == gam1->float64Signal[n]);
+                }
+            }
+            Sleep::Sec(0.1);
+            timeOutCounts--;
+        }
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool EPICSPVAOutputTest::TestSynchronise_StructuredType() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {\n"
+            "    Class = EPICSPVADatabase\n"
+            "    +RecordOut1S = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Structure = {\n"
+            "            SignalTypes = {\n"
+            "                Type = EPICSPVADatabaseTestOutputTypesS\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAM1 = {\n"
+            "            Class = EPICSPVAOutputGAMTestHelperS\n"
+            "            OutputSignals = {\n"
+            "                SignalTypes = {\n"
+            "                    Type = EPICSPVADatabaseTestOutputTypesS\n"
+            "                    DataSource = EPICSPVAOutputTest\n"
+            "                    Alias = RecordOut1S.SignalTypes\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +EPICSPVAOutputTest = {\n"
+            "            Class = EPICSPVAOutput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 2\n"
+            "            Signals = {\n"
+            "                RecordOut1S = {\n"
+            "                    SignalTypes = {\n"
+            "                        Type = EPICSPVADatabaseTestOutputTypesS\n"
+            "                        NumberOfElements = 1\n"
+            "                    }\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAM1}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = EPICSPVAOutputSchedulerTestHelper\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+
+    bool ok = TestIntegratedInApplication(config.Buffer(), false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<EPICSPVAOutputGAMTestHelperS> gam1;
+    ReferenceT<RealTimeApplication> application;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        gam1 = godb->Find("Test.Functions.GAM1");
+        ok = gam1.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    ReferenceT<EPICSPVAOutputSchedulerTestHelper> scheduler;
+    if (ok) {
+        scheduler = godb->Find("Test.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+    if (ok) {
+        gam1->testStruct->UInts.UInt8 = 1;
+        gam1->testStruct->UInts.UInt16 = 2;
+        gam1->testStruct->UInts.UInt32 = 3;
+        gam1->testStruct->UInts.UInt64 = 4;
+        gam1->testStruct->Ints.Int8 = -1;
+        gam1->testStruct->Ints.Int16 = -2;
+        gam1->testStruct->Ints.Int32 = -3;
+        gam1->testStruct->Ints.Int64 = -4;
+        gam1->testStruct->Floats.Float32 = 32;
+        gam1->testStruct->Floats.Float64 = 64;
+
+        scheduler->ExecuteThreadCycle(0u);
+        pvac::ClientProvider provider("pva");
+        uint32 timeOutCounts = 50;
+        ok = false;
+        while ((!ok) && (timeOutCounts != 0u)) {
+            {
+                pvac::ClientChannel record1(provider.connect("RecordOut1S"));
+                epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
+                std::shared_ptr<const epics::pvData::PVUByte> uint8Value = getStruct->getSubField<epics::pvData::PVUByte>("SignalTypes.UInts.UInt8");
+                std::shared_ptr<const epics::pvData::PVUShort> uint16Value = getStruct->getSubField<epics::pvData::PVUShort>("SignalTypes.UInts.UInt16");
+                std::shared_ptr<const epics::pvData::PVUInt> uint32Value = getStruct->getSubField<epics::pvData::PVUInt>("SignalTypes.UInts.UInt32");
+                std::shared_ptr<const epics::pvData::PVULong> uint64Value = getStruct->getSubField<epics::pvData::PVULong>("SignalTypes.UInts.UInt64");
+                std::shared_ptr<const epics::pvData::PVByte> int8Value = getStruct->getSubField<epics::pvData::PVByte>("SignalTypes.Ints.Int8");
+                std::shared_ptr<const epics::pvData::PVShort> int16Value = getStruct->getSubField<epics::pvData::PVShort>("SignalTypes.Ints.Int16");
+                std::shared_ptr<const epics::pvData::PVInt> int32Value = getStruct->getSubField<epics::pvData::PVInt>("SignalTypes.Ints.Int32");
+                std::shared_ptr<const epics::pvData::PVLong> int64Value = getStruct->getSubField<epics::pvData::PVLong>("SignalTypes.Ints.Int64");
+                std::shared_ptr<const epics::pvData::PVFloat> float32Value = getStruct->getSubField<epics::pvData::PVFloat>("SignalTypes.Floats.Float32");
+                std::shared_ptr<const epics::pvData::PVDouble> float64Value = getStruct->getSubField<epics::pvData::PVDouble>("SignalTypes.Floats.Float64");
+
+                ok = (uint8Value ? true : false);
+                if (ok) {
+                    ok = (uint8Value->get() == gam1->testStruct->UInts.UInt8);
+                    ok &= (uint16Value->get() == gam1->testStruct->UInts.UInt16);
+                    ok &= (uint32Value->get() == gam1->testStruct->UInts.UInt32);
+                    ok &= (uint64Value->get() == gam1->testStruct->UInts.UInt64);
+                    ok &= (int8Value->get() == gam1->testStruct->Ints.Int8);
+                    ok &= (int16Value->get() == gam1->testStruct->Ints.Int16);
+                    ok &= (int32Value->get() == gam1->testStruct->Ints.Int32);
+                    ok &= (int64Value->get() == gam1->testStruct->Ints.Int64);
+                    ok &= (float32Value->get() == gam1->testStruct->Floats.Float32);
+                    ok &= (float64Value->get() == gam1->testStruct->Floats.Float64);
+                }
+            }
+            Sleep::Sec(0.1);
+            timeOutCounts--;
+        }
+    }
+    godb->Purge();
+
+    return ok;
+}
+
+bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {\n"
+            "    Class = EPICSPVADatabase\n"
+            "    +RecordOut1SArr = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Structure = {\n"
+            "             SignalTypes = {\n"
+            "                  Type = EPICSPVADatabaseTestOutputTypesSA\n"
+            "             }\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAM1 = {\n"
+            "            Class = EPICSPVAOutputGAMTestHelperSA\n"
+            "            OutputSignals = {\n"
+            "                SignalTypes = {\n"
+            "                    Type = EPICSPVADatabaseTestOutputTypesSA\n"
+            "                    DataSource = EPICSPVAOutputTest\n"
+            "                    Alias = RecordOut1SArr.SignalTypes\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +EPICSPVAOutputTest = {\n"
+            "            Class = EPICSPVAOutput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 2\n"
+            "            Signals = {\n"
+            "                RecordOut1SArr = {\n"
+            "                    SignalTypes = {\n"
+            "                        Type = EPICSPVADatabaseTestOutputTypesSA\n"
+            "                    }\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAM1}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = EPICSPVAOutputSchedulerTestHelper\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+
+    bool ok = TestIntegratedInApplication(config.Buffer(), false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<EPICSPVAOutputGAMTestHelperSA> gam1;
+    ReferenceT<RealTimeApplication> application;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        gam1 = godb->Find("Test.Functions.GAM1");
+        ok = gam1.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    ReferenceT<EPICSPVAOutputSchedulerTestHelper> scheduler;
+    if (ok) {
+        scheduler = godb->Find("Test.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+    if (ok) {
+        uint32 n;
+        uint32 nOfElements = 4;
+        for (n = 0u; n < nOfElements; n++) {
+            gam1->testStruct->UInts.UInt8[n] = n;
+            gam1->testStruct->UInts.UInt16[n] = 2 * n;
+            gam1->testStruct->UInts.UInt32[n] = 3 * n;
+            gam1->testStruct->UInts.UInt64[n] = 4 * n;
+            gam1->testStruct->Ints.Int8[n] = -1 * n;
+            gam1->testStruct->Ints.Int16[n] = -2 * n;
+            gam1->testStruct->Ints.Int32[n] = -3 * n;
+            gam1->testStruct->Ints.Int64[n] = -4 * n;
+            gam1->testStruct->Floats.Float32[n] = 32 * n;
+            gam1->testStruct->Floats.Float64[n] = 64 * n;
+        }
+        scheduler->ExecuteThreadCycle(0u);
+        pvac::ClientProvider provider("pva");
+        uint32 timeOutCounts = 50;
+        ok = false;
+        while ((!ok) && (timeOutCounts != 0u)) {
+            {
+                pvac::ClientChannel record1(provider.connect("RecordOut1SArr"));
+                epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
+                std::shared_ptr<const epics::pvData::PVUByteArray> uint8Value = getStruct->getSubField<epics::pvData::PVUByteArray>("SignalTypes.UInts.UInt8");
+                std::shared_ptr<const epics::pvData::PVUShortArray> uint16Value = getStruct->getSubField<epics::pvData::PVUShortArray>("SignalTypes.UInts.UInt16");
+                std::shared_ptr<const epics::pvData::PVUIntArray> uint32Value = getStruct->getSubField<epics::pvData::PVUIntArray>("SignalTypes.UInts.UInt32");
+                std::shared_ptr<const epics::pvData::PVULongArray> uint64Value = getStruct->getSubField<epics::pvData::PVULongArray>("SignalTypes.UInts.UInt64");
+                std::shared_ptr<const epics::pvData::PVByteArray> int8Value = getStruct->getSubField<epics::pvData::PVByteArray>("SignalTypes.Ints.Int8");
+                std::shared_ptr<const epics::pvData::PVShortArray> int16Value = getStruct->getSubField<epics::pvData::PVShortArray>("SignalTypes.Ints.Int16");
+                std::shared_ptr<const epics::pvData::PVIntArray> int32Value = getStruct->getSubField<epics::pvData::PVIntArray>("SignalTypes.Ints.Int32");
+                std::shared_ptr<const epics::pvData::PVLongArray> int64Value = getStruct->getSubField<epics::pvData::PVLongArray>("SignalTypes.Ints.Int64");
+                std::shared_ptr<const epics::pvData::PVFloatArray> float32Value = getStruct->getSubField<epics::pvData::PVFloatArray>("SignalTypes.Floats.Float32");
+                std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value = getStruct->getSubField<epics::pvData::PVDoubleArray>("SignalTypes.Floats.Float64");
+
+                ok = (uint8Value ? true : false);
+                epics::pvData::shared_vector<const uint8> outUInt8;
+                epics::pvData::shared_vector<const uint16> outUInt16;
+                epics::pvData::shared_vector<const uint32> outUInt32;
+                epics::pvData::shared_vector<const unsigned long int> outUInt64;
+                epics::pvData::shared_vector<const int8> outInt8;
+                epics::pvData::shared_vector<const int16> outInt16;
+                epics::pvData::shared_vector<const int32> outInt32;
+                epics::pvData::shared_vector<const long int> outInt64;
+                epics::pvData::shared_vector<const float32> outFloat32;
+                epics::pvData::shared_vector<const float64> outFloat64;
+
+                outUInt8.resize(nOfElements);
+                outUInt16.resize(nOfElements);
+                outUInt32.resize(nOfElements);
+                outUInt64.resize(nOfElements);
+                outInt8.resize(nOfElements);
+                outInt16.resize(nOfElements);
+                outInt32.resize(nOfElements);
+                outInt64.resize(nOfElements);
+                outFloat32.resize(nOfElements);
+                outFloat64.resize(nOfElements);
+
+                if (ok) {
+                    uint8Value->getAs < uint8 > (outUInt8);
+                    uint16Value->getAs < uint16 > (outUInt16);
+                    uint32Value->getAs < uint32 > (outUInt32);
+                    uint64Value->getAs<unsigned long int>(outUInt64);
+                    int8Value->getAs < int8 > (outInt8);
+                    int16Value->getAs < int16 > (outInt16);
+                    int32Value->getAs < int32 > (outInt32);
+                    int64Value->getAs<long int>(outInt64);
+                    float32Value->getAs < float32 > (outFloat32);
+                    float64Value->getAs < float64 > (outFloat64);
+                }
+                for (n = 0u; (n < nOfElements) && (ok); n++) {
+                    ok = (outUInt8[n] == gam1->testStruct->UInts.UInt8[n]);
+                    ok &= (outUInt16[n] == gam1->testStruct->UInts.UInt16[n]);
+                    ok &= (outUInt32[n] == gam1->testStruct->UInts.UInt32[n]);
+                    ok &= (outUInt64[n] == gam1->testStruct->UInts.UInt64[n]);
+                    ok &= (outInt8[n] == gam1->testStruct->Ints.Int8[n]);
+                    ok &= (outInt16[n] == gam1->testStruct->Ints.Int16[n]);
+                    ok &= (outInt32[n] == gam1->testStruct->Ints.Int32[n]);
+                    ok &= (outInt64[n] == gam1->testStruct->Ints.Int64[n]);
+                    ok &= (outFloat32[n] == gam1->testStruct->Floats.Float32[n]);
+                    ok &= (outFloat64[n] == gam1->testStruct->Floats.Float64[n]);
                 }
             }
             Sleep::Sec(0.1);

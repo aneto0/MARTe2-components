@@ -44,7 +44,6 @@ TEST(EPICSPVAOutputGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-
 TEST(EPICSPVAOutputGTest,TestAllocateMemory) {
     EPICSPVAOutputTest test;
     ASSERT_TRUE(test.TestAllocateMemory());
@@ -145,4 +144,12 @@ TEST(EPICSPVAOutputGTest,TestSynchronise_Arrays) {
     ASSERT_TRUE(test.TestSynchronise_Arrays());
 }
 
-	
+TEST(EPICSPVAOutputGTest,TestSynchronise_StructuredType) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSynchronise_StructuredType());
+}
+
+TEST(EPICSPVAOutputGTest,TestSynchronise_Arrays_StructuredType) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSynchronise_Arrays_StructuredType());
+}

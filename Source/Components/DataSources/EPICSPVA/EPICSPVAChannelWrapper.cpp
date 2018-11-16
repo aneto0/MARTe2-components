@@ -174,8 +174,8 @@ bool EPICSPVAChannelWrapper::LoadSignalStructure(StructuredDataI &data, StreamSt
                                     NULL_PTR(const IntrospectionEntry *));
         }
         else {
-            uint32 numberOfDimensions;
-            uint32 numberOfElements;
+            uint32 numberOfDimensions = 0u;
+            uint32 numberOfElements = 1u;
             (void) data.Read("NumberOfDimensions", numberOfDimensions);
             (void) data.Read("NumberOfElements", numberOfElements);
             ok = LoadBasicType(td, numberOfElements, numberOfDimensions, fullNodeName.Buffer(), relativeNodeName.Buffer());
@@ -223,42 +223,50 @@ void EPICSPVAChannelWrapper::GetSignalMemory(const char8 * const qualifiedName, 
             cachedSignals = new EPICSPVAChannelWrapperCachedSignal[numberOfSignals];
         }
     }
-    StreamString qualifiedNameStr = qualifiedName;
-    StreamString token;
-    StreamString qualifiedLeafName;
-    bool ok = memoryBackend.MoveToRoot();
-    if (ok) {
-        ok = qualifiedNameStr.Seek(0LLU);
+    bool alreadyAdded = false;
+    uint32 n;
+    for (n = 0u; (n < numberOfRequestedSignals) && (!alreadyAdded); n++) {
+        alreadyAdded = (cachedSignals[n].qualifiedName == qualifiedName);
+        mem = cachedSignals[n].memory;
     }
-    if (ok) {
-        char8 ignore;
-        while (qualifiedNameStr.GetToken(token, ".", ignore)) {
-            (void) memoryBackend.MoveRelative(token.Buffer());
-            qualifiedLeafName = token;
-            token = "";
+    if (!alreadyAdded) {
+        mem = NULL_PTR(void *);
+        StreamString qualifiedNameStr = qualifiedName;
+        StreamString token;
+        StreamString qualifiedLeafName;
+        bool ok = memoryBackend.MoveToRoot();
+        if (ok) {
+            ok = qualifiedNameStr.Seek(0LLU);
         }
-    }
-
-    AnyType storedType = memoryBackend.GetType(qualifiedLeafName.Buffer());
-    if (storedType.GetTypeDescriptor() == voidAnyType.GetTypeDescriptor()) {
-        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Signal with qualified name %s not found!", qualifiedName);
-    }
-    else {
-        if (numberOfRequestedSignals < numberOfSignals) {
-            mem = storedType.GetDataPointer();
-            uint32 nOfElements = 1u;
-            uint32 nOfDimensions = storedType.GetNumberOfDimensions();
-            uint32 n;
-            for (n = 0u; n < nOfDimensions; n++) {
-                nOfElements *= storedType.GetNumberOfElements(n);
+        if (ok) {
+            char8 ignore;
+            while (qualifiedNameStr.GetToken(token, ".", ignore)) {
+                (void) memoryBackend.MoveRelative(token.Buffer());
+                qualifiedLeafName = token;
+                token = "";
             }
-            cachedSignals[numberOfRequestedSignals].qualifiedName = qualifiedName;
-            cachedSignals[numberOfRequestedSignals].typeDescriptor = storedType.GetTypeDescriptor();
-            cachedSignals[numberOfRequestedSignals].memory = mem;
-            cachedSignals[numberOfRequestedSignals].numberOfElements = nOfElements;
-
         }
-        numberOfRequestedSignals++;
+
+        AnyType storedType = memoryBackend.GetType(qualifiedLeafName.Buffer());
+        if (storedType.GetTypeDescriptor() == voidAnyType.GetTypeDescriptor()) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Signal with qualified name %s not found!", qualifiedName);
+        }
+        else {
+            mem = storedType.GetDataPointer();
+            if (numberOfRequestedSignals < numberOfSignals) {
+                uint32 nOfElements = 1u;
+                uint32 nOfDimensions = storedType.GetNumberOfDimensions();
+                uint32 n;
+                for (n = 0u; n < nOfDimensions; n++) {
+                    nOfElements *= storedType.GetNumberOfElements(n);
+                }
+                cachedSignals[numberOfRequestedSignals].qualifiedName = qualifiedName;
+                cachedSignals[numberOfRequestedSignals].typeDescriptor = storedType.GetTypeDescriptor();
+                cachedSignals[numberOfRequestedSignals].memory = mem;
+                cachedSignals[numberOfRequestedSignals].numberOfElements = nOfElements;
+                numberOfRequestedSignals++;
+            }
+        }
     }
 }
 

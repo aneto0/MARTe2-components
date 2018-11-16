@@ -58,6 +58,16 @@ public:
     bool TestExecute_Arrays();
 
     /**
+     * @brief Tests the Execute method with structured types.
+     */
+    bool TestExecute_StructuredType();
+
+    /**
+     * @brief Tests the Execute method with structured types that contain arrays.
+     */
+    bool TestExecute_StructuredType_Arrays();
+
+    /**
      * @brief Tests the AllocateMemory method
      */
     bool TestAllocateMemory();

@@ -118,16 +118,6 @@ public:
     bool TestSetConfiguredDatabase_False_MoreThanOneGAM();
 
     /**
-     * @brief Tests that the PV values are correctly written by the DataSourceI
-     */
-    bool TestExecute();
-
-    /**
-     * @brief Tests that the PV values are correctly written by the DataSourceI when using arrays.
-     */
-    bool TestExecute_Arrays();
-
-    /**
      * @brief Tests the GetCPUMask method.
      */
     bool TestGetCPUMask();
@@ -156,6 +146,16 @@ public:
      * @brief Tests the Synchronise method with arrays.
      */
     bool TestSynchronise_Arrays();
+
+    /**
+     * @brief Tests the Synchronise method with a structured type.
+     */
+    bool TestSynchronise_StructuredType();
+
+    /**
+     * @brief Tests the Synchronise method with a structured type with arrays.
+     */
+    bool TestSynchronise_Arrays_StructuredType();
 };
 
 /*---------------------------------------------------------------------------*/
