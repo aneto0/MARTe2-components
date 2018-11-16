@@ -569,7 +569,7 @@ bool EPICSPVAStructureDataI::Copy(StructuredDataI &destination) {
                     if (ok) {
                         ok = destination.Write(childName, at);
                     }
-                    delete mem;
+                    delete [] mem;
                 }
             }
         }
