@@ -213,6 +213,16 @@ private:
     virtual const char8 *GetChildId(const uint32 index);
 
     /**
+     * @brief Helper method to read a boolean array from an epics::pvData::PVScalarArray into an uint8 type. This needs to exist
+     * because getAs refuses to convert from boolean to anything other than string.
+     * @param[in] scalarArrayPtr the array where to read the data from.
+     * @param[in] storedType the type of data to be read (as stored in the backed)
+     * @param[out] value where to store the read array.
+     * @return true if the array can be successfully read.
+     */
+    bool ReadBooleanArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value);
+
+    /**
      * @brief Helper method to read an array from an epics::pvData::PVScalarArray into an AnyType. Should allow to convert from any numeric type to any numeric type.
      * @param[in] scalarArrayPtr the array where to read the data from.
      * @param[in] storedType the type of data to be read (as stored in the backed)

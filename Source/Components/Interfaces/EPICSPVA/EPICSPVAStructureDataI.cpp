@@ -66,15 +66,20 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
         ok = (scalarFieldPtr ? true : false);
         if (!ok) {
             isScalar = false;
-            scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
-                    > (currentStructPtr->getSubField(name));
+            scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray > (currentStructPtr->getSubField(name));
             ok = (scalarArrayPtr ? true : false);
         }
     }
     if (ok) {
         if (isScalar) {
             if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
-                *reinterpret_cast<uint8 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint8>();
+                if (scalarFieldPtr->getScalar()->getScalarType() == epics::pvData::pvBoolean) {
+                    bool bval = scalarFieldPtr->getAs<epics::pvData::boolean>();
+                    *reinterpret_cast<uint8 *>(value.GetDataPointer()) = (bval ? 1u : 0u);
+                }
+                else {
+                    *reinterpret_cast<uint8 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint8>();
+                }
             }
             else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
                 *reinterpret_cast<uint16 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint16>();
@@ -119,7 +124,12 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
             ok = (storedType.GetNumberOfElements(0u) == value.GetNumberOfElements(0u));
             if (ok) {
                 if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
-                    ok = ReadArray<uint8>(scalarArrayPtr, storedType, value);
+                    if (scalarArrayPtr->getScalarArray()->getElementType() == epics::pvData::pvBoolean) {
+                        ok = ReadBooleanArray(scalarArrayPtr, storedType, value);
+                    }
+                    else {
+                        ok = ReadArray<uint8>(scalarArrayPtr, storedType, value);
+                    }
                 }
                 else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
                     ok = ReadArray<uint16>(scalarArrayPtr, storedType, value);
@@ -164,12 +174,27 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d",
-                             storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u),
+                             value.GetNumberOfElements(0u));
                 ok = false;
             }
         }
     }
+    return ok;
+}
+
+bool EPICSPVAStructureDataI::ReadBooleanArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
+    bool ok = true;
+    epics::pvData::shared_vector<const epics::pvData::boolean> out;
+    scalarArrayPtr->getAs<epics::pvData::boolean>(out);
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    uint32 i;
+    Vector<uint8> readVec(reinterpret_cast<uint8 *>(value.GetDataPointer()), numberOfElements);
+    Vector<bool> srcVec(const_cast<bool *>(reinterpret_cast<const bool *>(out.data())), numberOfElements);
+    for (i = 0u; i < numberOfElements; i++) {
+        readVec[i] = (srcVec[i] ? 1u : 0u);
+    }
+
     return ok;
 }
 
@@ -244,7 +269,7 @@ AnyType EPICSPVAStructureDataI::GetType(const char8 * const name) {
                 marte2Type = CharString;
             }
             else if (epicsScalarType == epics::pvData::pvBoolean) {
-                marte2Type = UnsignedInteger32Bit;
+                marte2Type = UnsignedInteger8Bit;
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported EPICS type");
@@ -331,21 +356,17 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
     bool ok = (isScalar == storedTypeIsScalar);
     if (ok) {
         if (storedTypeIsScalar) {
-            scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar
-                    > (currentStructPtr->getSubField(name));
+            scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar > (currentStructPtr->getSubField(name));
             ok = (scalarFieldPtr ? true : false);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                             "%s should be a scalar but the conversion to PVScalar failed", name);
+                REPORT_ERROR(ErrorManagement::ParametersError, "%s should be a scalar but the conversion to PVScalar failed", name);
             }
         }
         else {
-            scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
-                    > (currentStructPtr->getSubField(name));
+            scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray > (currentStructPtr->getSubField(name));
             ok = (scalarArrayPtr ? true : false);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                             "%s should be an array but the conversion to PVScalarArray failed", name);
+                REPORT_ERROR(ErrorManagement::ParametersError, "%s should be an array but the conversion to PVScalarArray failed", name);
             }
         }
     }
@@ -436,16 +457,14 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
                     ok = WriteArray<float64>(scalarArrayPtr, storedType, value, size);
                 }
                 else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString)
-                        || (value.GetTypeDescriptor().type == PCString)
-                        || (value.GetTypeDescriptor().type == SString)) {
+                        || (value.GetTypeDescriptor().type == PCString) || (value.GetTypeDescriptor().type == SString)) {
                     epics::pvData::shared_vector<const std::string> out;
                     out.resize(storedType.GetNumberOfElements(0u));
                     if (value.GetTypeDescriptor().type == SString) {
                         StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
                         uint32 i;
                         for (i = 0; i < numberOfElements; i++) {
-                            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) =
-                                    src[i].Buffer();
+                            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i].Buffer();
                         }
                         scalarArrayPtr->putFrom<std::string>(out);
                     }
@@ -463,8 +482,8 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d",
-                             storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u),
+                             value.GetNumberOfElements(0u));
             }
         }
     }
@@ -656,8 +675,7 @@ bool EPICSPVAStructureDataI::MoveToChild(const uint32 childIdx) {
     return ok;
 }
 
-bool EPICSPVAStructureDataI::ConfigurationDataBaseToPVStructurePtr(ReferenceT<ReferenceContainer> currentNode,
-                                                                   bool create) {
+bool EPICSPVAStructureDataI::ConfigurationDataBaseToPVStructurePtr(ReferenceT<ReferenceContainer> currentNode, bool create) {
     bool ok = true;
     uint32 nOfChildren = currentNode->Size();
     ReferenceT<ReferenceContainer> foundNode;
