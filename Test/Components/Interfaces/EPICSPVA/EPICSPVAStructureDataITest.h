@@ -59,6 +59,11 @@ public:
     bool TestRead_UInt8();
 
     /**
+     * @brief Tests the Read with a boolean.
+     */
+    bool TestRead_Boolean();
+
+    /**
      * @brief Tests the Read with an uint16.
      */
     bool TestRead_UInt16();
@@ -112,6 +117,11 @@ public:
      * @brief Tests the Read with a uint8[].
      */
     bool TestRead_UInt8_Array();
+
+    /**
+     * @brief Tests the Read with a boolean[].
+     */
+    bool TestRead_Boolean_Array();
 
     /**
      * @brief Tests the Read with a uint16[].
@@ -684,7 +694,6 @@ bool EPICSPVAStructureDataITest::TestReadArray(MARTe::Vector<T> &wvalue) {
         ok = (rvalue[i] == wvalue[i]);
     }
     return ok;
-
 }
 
 template<typename T>

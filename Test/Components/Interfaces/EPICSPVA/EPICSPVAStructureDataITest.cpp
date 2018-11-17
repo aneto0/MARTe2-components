@@ -57,6 +57,28 @@ bool EPICSPVAStructureDataITest::TestRead_UInt8() {
     return TestRead(wvalue);
 }
 
+bool EPICSPVAStructureDataITest::TestRead_Boolean() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
+    fieldBuilder->add("Test", epics::pvData::pvBoolean);
+    epics::pvData::PVStructurePtr currentStructPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());
+    epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar
+            > (currentStructPtr->getSubField("Test"));
+    bool val = true;
+    scalarFieldPtr->putFrom<epics::pvData::boolean>(val);
+    test.SetStructure(currentStructPtr);
+    uint8 value;
+    test.Read("Test", value);
+    bool ok = (value == 1);
+    val = false;
+    scalarFieldPtr->putFrom<epics::pvData::boolean>(val);
+    test.SetStructure(currentStructPtr);
+    test.Read("Test", value);
+    ok &= (value == 0);
+    return ok;
+}
+
 bool EPICSPVAStructureDataITest::TestRead_UInt16() {
     using namespace MARTe;
     uint16 wvalue = 16;
@@ -127,6 +149,34 @@ bool EPICSPVAStructureDataITest::TestRead_UInt8_Array() {
     }
 
     return TestReadArray(wvalue);
+}
+
+bool EPICSPVAStructureDataITest::TestRead_Boolean_Array() {
+    using namespace MARTe;
+    epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
+    fieldBuilder->addBoundedArray("Test", epics::pvData::pvBoolean, 8);
+    epics::pvData::PVStructurePtr currentStructPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());
+    epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
+            > (currentStructPtr->getSubField("Test"));
+
+    uint32 vsize = 8u;
+    epics::pvData::shared_vector<epics::pvData::boolean> out;
+    out.resize(vsize);
+    uint32 i;
+    for (i = 0u; i < vsize; i++) {
+        out[i] = (i % 2 == 0);
+    }
+    epics::pvData::shared_vector<const epics::pvData::boolean> outF = freeze(out);
+    scalarArrayPtr->putFrom<epics::pvData::boolean>(outF);
+    EPICSPVAStructureDataI test;
+    test.SetStructure(currentStructPtr);
+    MARTe::Vector<uint8> rvalue(vsize);
+    test.Read("Test", rvalue);
+    bool ok = true;
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue[i] == (uint8)(!(bool)(i % 2)));
+    }
+    return ok;
 }
 
 bool EPICSPVAStructureDataITest::TestRead_UInt16_Array() {

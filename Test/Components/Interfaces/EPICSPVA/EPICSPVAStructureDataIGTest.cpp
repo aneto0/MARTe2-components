@@ -49,6 +49,11 @@ TEST(EPICSPVAStructureDataIGTest,TestRead_UInt8) {
     ASSERT_TRUE(test.TestRead_UInt8());
 }
 
+TEST(EPICSPVAStructureDataIGTest,TestRead_Boolean) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Boolean());
+}
+
 TEST(EPICSPVAStructureDataIGTest,TestRead_UInt16) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestRead_UInt16());
@@ -102,6 +107,11 @@ TEST(EPICSPVAStructureDataIGTest,TestRead_StreamString) {
 TEST(EPICSPVAStructureDataIGTest,TestRead_UInt8_Array) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestRead_UInt8_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Boolean_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Boolean_Array());
 }
 
 TEST(EPICSPVAStructureDataIGTest,TestRead_UInt16_Array) {
