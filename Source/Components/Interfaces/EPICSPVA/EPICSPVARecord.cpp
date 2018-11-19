@@ -201,7 +201,14 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
                 StreamString typeStr;
                 bool hasType = (cdb.Read("Type", typeStr));
                 if (!hasType) {
-                    fieldBuilder = fieldBuilder->addNestedStructure(nodeName);
+                    uint32 numberOfElements = 1u;
+                    (void) cdb.Read("NumberOfElements", numberOfElements);
+                    if (numberOfElements > 1u) {
+                        fieldBuilder = fieldBuilder->addNestedStructure(nodeName);
+                    }
+                    else {
+                        fieldBuilder = fieldBuilder->addNestedStructureArray(nodeName);
+                    }
                     StreamString pvaNodeId;
                     if (cdb.Read("_PVANodeId", pvaNodeId)) {
                         fieldBuilder = fieldBuilder->setId(pvaNodeId.Buffer());
@@ -248,6 +255,9 @@ bool EPICSPVARecord::ExpandStructuredType(const char8 * const typeName, Configur
                 }
                 bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
                 if (isStructured) {
+                    if (ok) {
+                        ok = cdb.Write("_PVANodeId", memberTypeName);
+                    }
                     if (ok) {
                         ok = ExpandStructuredType(memberTypeName, cdb);
                     }
