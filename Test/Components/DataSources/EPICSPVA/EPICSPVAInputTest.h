@@ -43,6 +43,11 @@
 class EPICSPVAInputTest {
 public:
     /**
+     * @brief Purges the ObjectRegistryDatabase
+     */
+    virtual ~EPICSPVAInputTest();
+
+    /**
      * @brief Tests the constructor.
      */
     bool TestConstructor();

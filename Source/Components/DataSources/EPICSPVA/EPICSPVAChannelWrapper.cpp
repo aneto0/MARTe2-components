@@ -42,9 +42,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 EPICSPVAChannelWrapper::EPICSPVAChannelWrapper() {
-    (void) memoryBackend.MoveToRoot();
     numberOfSignals = 0u;
-    numberOfRequestedSignals = 0u;
     cachedSignals = NULL_PTR(EPICSPVAChannelWrapperCachedSignal *);
 }
 
@@ -56,218 +54,85 @@ EPICSPVAChannelWrapper::~EPICSPVAChannelWrapper() {
     monitor = pvac::MonitorSync();
 }
 
-bool EPICSPVAChannelWrapper::Setup(StructuredDataI &data) {
+bool EPICSPVAChannelWrapper::SetAliasAndField(StructuredDataI &data) {
     bool ok = true;
-    unliasedChannelName = data.GetName();
     if (data.Read("Alias", channelName)) {
         ok = data.Delete("Alias");
     }
     else {
-        channelName = unliasedChannelName.Buffer();
+        channelName = data.GetName();
     }
-    REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering channel %s", channelName.Buffer());
-    if (ok) {
-        ok = LoadSignalStructure(data, "", "");
+    if (data.Read("Field", fieldName)) {
+        ok = data.Delete("Field");
     }
+    else {
+        fieldName = "value";
+    }
+    originalName = data.GetName();
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering channel %s [%s]", channelName.Buffer(), fieldName.Buffer());
     return ok;
 }
 
-bool EPICSPVAChannelWrapper::LoadBasicType(TypeDescriptor &td, uint32 numberOfElements, uint32 numberOfDimensions,
-                                           StreamString fullNodeName, StreamString relativeNodeName) {
-    uint32 memorySize = td.numberOfBits;
-    bool ok = (numberOfDimensions < 2u);
-    if (ok) {
-        if (numberOfElements == 0u) {
-            numberOfElements = 1u;
-        }
-        if (numberOfElements > 1u) {
-            numberOfDimensions = 1u;
-        }
-        memorySize *= numberOfElements;
-        memorySize /= 8u;
-    }
-    else {
-        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Only 0 and 1 dimension signals are currently supported");
-    }
-    if (ok) {
-        const char8 * const typeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(td);
-        REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s of type %s [%d bytes]", fullNodeName.Buffer(), typeName,
-                            memorySize);
-        void *mem = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize);
-        AnyType at(td, 0u, mem);
-        at.SetNumberOfElements(0u, numberOfElements);
-        at.SetNumberOfDimensions(numberOfDimensions);
-        ok = memoryBackend.Write(relativeNodeName.Buffer(), at);
+bool EPICSPVAChannelWrapper::Setup(DataSourceI &dataSource) {
+    bool ok = true;
+    uint32 maxNumberOfSignals = dataSource.GetNumberOfSignals();
+    EPICSPVAChannelWrapperCachedSignal *tempCachedSignals = new EPICSPVAChannelWrapperCachedSignal[maxNumberOfSignals];
+    numberOfSignals = 0u;
+    uint32 n;
+    for (n = 0u; (n < maxNumberOfSignals) && (ok); n++) {
+        StreamString signalName;
+        ok = dataSource.GetSignalName(n, signalName);
         if (ok) {
+            ok = signalName.Seek(0LLU);
+        }
+        bool signalBelongsToThisWrapper = false;
+        if (ok) {
+            //Remove the first part of the signal (which is also the record name)
+            StreamString token;
+            char8 ignore;
+            ok = signalName.GetToken(token, ".", ignore);
+            if (ok) {
+                signalBelongsToThisWrapper = (token == originalName);
+            }
+        }
+        if (signalBelongsToThisWrapper) {
+            if (ok) {
+                tempCachedSignals[numberOfSignals].qualifiedName = "";
+                if (signalName.Position() == signalName.Size()) {
+                    ok = tempCachedSignals[numberOfSignals].qualifiedName.Printf("%s", fieldName.Buffer());
+                }
+                else {
+                    ok = tempCachedSignals[numberOfSignals].qualifiedName.Printf("%s.%s", fieldName.Buffer(), signalName);
+                }
+            }
+            if (ok) {
+                tempCachedSignals[numberOfSignals].typeDescriptor = dataSource.GetSignalType(n);
+                ok = dataSource.GetSignalNumberOfElements(n, tempCachedSignals[numberOfSignals].numberOfElements);
+            }
+            if (ok) {
+                ok = dataSource.GetSignalMemoryBuffer(n, 0u, tempCachedSignals[numberOfSignals].memory);
+            }
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s [%s]",
+                                tempCachedSignals[numberOfSignals].qualifiedName.Buffer(), channelName.Buffer());
             numberOfSignals++;
         }
-        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(mem);
     }
-    return ok;
-}
-
-bool EPICSPVAChannelWrapper::LoadStructuredType(const char8 * const typeName, StreamString fullNodeName, StreamString relativeNodeName,
-                                                const IntrospectionEntry *entry) {
-    bool ok = true;
-    TypeDescriptor td = TypeDescriptor::GetTypeDescriptorFromTypeName(typeName);
-    if (td == voidAnyType.GetTypeDescriptor()) {
-        ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(typeName);
-        bool ok = (cri != NULL_PTR(ClassRegistryItem *));
-        if (ok) {
-            const Introspection *intro = cri->GetIntrospection();
-            IntrospectionEntry introEntry;
-            ok = (intro != NULL_PTR(const Introspection *));
-            if (ok) {
-                uint32 i;
-                uint32 nOfMembers = intro->GetNumberOfMembers();
-                for (i = 0u; (i < nOfMembers) && (ok); i++) {
-                    introEntry = (intro->operator [](i));
-                    relativeNodeName = introEntry.GetMemberName();
-                    ok = memoryBackend.CreateRelative(relativeNodeName.Buffer());
-                    if (ok) {
-                        StreamString fullBranchNodeName = fullNodeName;
-                        if (fullBranchNodeName.Size() != 0u) {
-                            fullBranchNodeName += ".";
-                            fullBranchNodeName += relativeNodeName;
-                        }
-                        else {
-                            fullBranchNodeName = relativeNodeName;
-                        }
-                        ok = LoadStructuredType(introEntry.GetMemberTypeName(), fullBranchNodeName.Buffer(), relativeNodeName.Buffer(),
-                                                &introEntry);
-                    }
-                    if (ok) {
-                        ok = memoryBackend.MoveToAncestor(1u);
-                    }
-                }
-
-            }
-            else {
-                REPORT_ERROR_STATIC(ErrorManagement::Information, "Type %s has no introspection", typeName);
-            }
+    if (ok) {
+        if (cachedSignals != NULL_PTR(EPICSPVAChannelWrapperCachedSignal *)) {
+            delete[] cachedSignals;
         }
-        else {
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Type %s not found", typeName);
-        }
-    }
-    else {
-        if (entry != NULL_PTR(const IntrospectionEntry *)) {
-            uint32 numberOfDimensions = entry->GetNumberOfDimensions();
-            uint32 numberOfElements = entry->GetNumberOfElements(0u);
-            ok = LoadBasicType(td, numberOfElements, numberOfDimensions, fullNodeName.Buffer(), relativeNodeName.Buffer());
-        }
-    }
-    return ok;
-}
-
-bool EPICSPVAChannelWrapper::LoadSignalStructure(StructuredDataI &data, StreamString fullNodeName, StreamString relativeNodeName) {
-    bool ok = true;
-
-    StreamString typeName;
-    StreamString ignore;
-    //If it is already a signal it shall have the type defined
-    bool isSignal = data.Read("Type", typeName);
-    if (isSignal) {
-        TypeDescriptor td = TypeDescriptor::GetTypeDescriptorFromTypeName(typeName.Buffer());
-        if (td == voidAnyType.GetTypeDescriptor()) {
-            ok = LoadStructuredType(typeName.Buffer(), fullNodeName.Buffer(), relativeNodeName.Buffer(),
-                                    NULL_PTR(const IntrospectionEntry *));
-        }
-        else {
-            uint32 numberOfDimensions = 0u;
-            uint32 numberOfElements = 1u;
-            (void) data.Read("NumberOfDimensions", numberOfDimensions);
-            (void) data.Read("NumberOfElements", numberOfElements);
-            ok = LoadBasicType(td, numberOfElements, numberOfDimensions, fullNodeName.Buffer(), relativeNodeName.Buffer());
-        }
-    }
-    else {
-        //If it is not a signal, must be a node
-        uint32 nOfChildren = data.GetNumberOfChildren();
-        ok = (nOfChildren > 0u);
-        if (!ok) {
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Found an invalid leaf which is not a signal");
-        }
-        uint32 n;
-        for (n = 0u; (n < nOfChildren) && (ok); n++) {
-            relativeNodeName = data.GetChildName(n);
-            StreamString fullBranchNodeName = fullNodeName;
-            if (fullBranchNodeName.Size() != 0u) {
-                fullBranchNodeName += ".";
-                fullBranchNodeName += relativeNodeName;
-            }
-            else {
-                fullBranchNodeName = relativeNodeName;
-            }
-            if (data.MoveRelative(relativeNodeName.Buffer())) {
-                ok = memoryBackend.CreateRelative(relativeNodeName.Buffer());
-                if (ok) {
-                    ok = LoadSignalStructure(data, fullBranchNodeName.Buffer(), relativeNodeName.Buffer());
-                }
-                if (ok) {
-                    ok = data.MoveToAncestor(1u);
-                }
-                if (ok) {
-                    ok = memoryBackend.MoveToAncestor(1u);
-                }
-            }
-        }
-    }
-    return ok;
-}
-
-/*lint -e{613} cachedSignal cannot be NULL (see first if)*/
-void EPICSPVAChannelWrapper::GetSignalMemory(const char8 * const qualifiedName, void *&mem) {
-    if (cachedSignals == NULL_PTR(EPICSPVAChannelWrapperCachedSignal *)) {
         if (numberOfSignals > 0u) {
             cachedSignals = new EPICSPVAChannelWrapperCachedSignal[numberOfSignals];
-        }
-    }
-    bool alreadyAdded = false;
-    uint32 n;
-    for (n = 0u; (n < numberOfRequestedSignals) && (!alreadyAdded); n++) {
-        alreadyAdded = (cachedSignals[n].qualifiedName == qualifiedName);
-        mem = cachedSignals[n].memory;
-    }
-    if (!alreadyAdded) {
-        mem = NULL_PTR(void *);
-        StreamString qualifiedNameStr = qualifiedName;
-        StreamString token;
-        StreamString qualifiedLeafName;
-        bool ok = memoryBackend.MoveToRoot();
-        if (ok) {
-            ok = qualifiedNameStr.Seek(0LLU);
-        }
-        if (ok) {
-            char8 ignore;
-            while (qualifiedNameStr.GetToken(token, ".", ignore)) {
-                (void) memoryBackend.MoveRelative(token.Buffer());
-                qualifiedLeafName = token;
-                token = "";
+            for (n = 0u; (n < numberOfSignals); n++) {
+                cachedSignals[n] = tempCachedSignals[n];
             }
         }
+        if (tempCachedSignals != NULL_PTR(EPICSPVAChannelWrapperCachedSignal *)) {
+            delete[] tempCachedSignals;
+        }
+    }
 
-        AnyType storedType = memoryBackend.GetType(qualifiedLeafName.Buffer());
-        if (storedType.GetTypeDescriptor() == voidAnyType.GetTypeDescriptor()) {
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Signal with qualified name %s not found!", qualifiedName);
-        }
-        else {
-            mem = storedType.GetDataPointer();
-            if (numberOfRequestedSignals < numberOfSignals) {
-                uint32 nOfElements = 1u;
-                uint32 nOfDimensions = storedType.GetNumberOfDimensions();
-                uint32 n;
-                for (n = 0u; n < nOfDimensions; n++) {
-                    nOfElements *= storedType.GetNumberOfElements(n);
-                }
-                cachedSignals[numberOfRequestedSignals].qualifiedName = qualifiedName;
-                cachedSignals[numberOfRequestedSignals].typeDescriptor = storedType.GetTypeDescriptor();
-                cachedSignals[numberOfRequestedSignals].memory = mem;
-                cachedSignals[numberOfRequestedSignals].numberOfElements = nOfElements;
-                numberOfRequestedSignals++;
-            }
-        }
-    }
+    return ok;
 }
 
 bool EPICSPVAChannelWrapper::Put() {
@@ -282,7 +147,7 @@ bool EPICSPVAChannelWrapper::Put() {
         if (ok) {
             uint32 n;
             pvac::detail::PutBuilder putBuilder = channel.put();
-            for (n = 0u; n < numberOfRequestedSignals; n++) {
+            for (n = 0u; n < numberOfSignals; n++) {
                 if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
                     PutHelper<uint8>(putBuilder, n);
                 }
@@ -384,7 +249,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
                 if (monitor.event.event == pvac::MonitorEvent::Data) {
                     while (monitor.poll()) {
                         uint32 n;
-                        for (n = 0u; (n < numberOfRequestedSignals) && (ok); n++) {
+                        for (n = 0u; (n < numberOfSignals) && (ok); n++) {
                             epics::pvData::PVStructure::const_shared_pointer readStruct = monitor.root;
                             epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr;
                             epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr;
@@ -487,8 +352,8 @@ const char8 * const EPICSPVAChannelWrapper::GetChannelName() {
     return channelName.Buffer();
 }
 
-const char8 * const EPICSPVAChannelWrapper::GetChannelUnaliasedName() {
-    return unliasedChannelName.Buffer();
+const char8 * const EPICSPVAChannelWrapper::GetFieldName() {
+    return fieldName.Buffer();
 }
 
 }

@@ -209,7 +209,6 @@ private:
 
 CLASS_REGISTER(EPICSPVAOutputSchedulerTestHelper, "1.0")
 
-
 //An introspectable structure
 struct EPICSPVAOutputTestUInt {
     MARTe::uint8 UInt8;
@@ -260,10 +259,10 @@ DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestFloat, EPICSPVAOutputTestFloatStr
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, UInts, EPICSPVAOutputTestUInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, Ints, EPICSPVAOutputTestInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, Floats, EPICSPVAOutputTestFloat, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSStructEntries[] = { &EPICSPVADatabaseTestOutputTypesS_UInts_introspectionEntry,
-        &EPICSPVADatabaseTestOutputTypesS_Ints_introspectionEntry, &EPICSPVADatabaseTestOutputTypesS_Floats_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSStructEntries[] = {
+        &EPICSPVADatabaseTestOutputTypesS_UInts_introspectionEntry, &EPICSPVADatabaseTestOutputTypesS_Ints_introspectionEntry,
+        &EPICSPVADatabaseTestOutputTypesS_Floats_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestOutputTypesS, EPICSPVADatabaseTestOutputTypesSStructEntries)
-
 
 struct EPICSPVAOutputTestUIntA {
     MARTe::uint8 UInt8[4];
@@ -314,8 +313,9 @@ DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestFloatA, EPICSPVAOutputTestFloatAS
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, UInts, EPICSPVAOutputTestUIntA, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, Ints, EPICSPVAOutputTestIntA, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, Floats, EPICSPVAOutputTestFloatA, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSAStructEntries[] = { &EPICSPVADatabaseTestOutputTypesSA_UInts_introspectionEntry,
-        &EPICSPVADatabaseTestOutputTypesSA_Ints_introspectionEntry, &EPICSPVADatabaseTestOutputTypesSA_Floats_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSAStructEntries[] = {
+        &EPICSPVADatabaseTestOutputTypesSA_UInts_introspectionEntry, &EPICSPVADatabaseTestOutputTypesSA_Ints_introspectionEntry,
+        &EPICSPVADatabaseTestOutputTypesSA_Floats_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestOutputTypesSA, EPICSPVADatabaseTestOutputTypesSAStructEntries)
 
 /**
@@ -350,7 +350,6 @@ public:
 };
 CLASS_REGISTER(EPICSPVAOutputGAMTestHelperS, "1.0")
 
-
 /**
  * @brief GAM which writes signals into a given EPICSPVAOutput
  */
@@ -383,8 +382,6 @@ public:
 };
 CLASS_REGISTER(EPICSPVAOutputGAMTestHelperSA, "1.0")
 
-
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -397,7 +394,7 @@ bool EPICSPVAOutputTest::TestConstructor() {
 bool EPICSPVAOutputTest::TestAllocateMemory() {
     using namespace MARTe;
     EPICSPVAOutput test;
-    return test.AllocateMemory();
+    return test.Synchronise();
 }
 
 bool EPICSPVAOutputTest::TestGetNumberOfMemoryBuffers() {
@@ -446,7 +443,7 @@ bool EPICSPVAOutputTest::TestInitialise() {
     if (ok) {
         ok = (test.GetCPUMask() == 1);
         ok &= (test.GetStackSize() == 100000);
-        ok &= (test.GetNumberOfBuffers() == 10);
+        ok &= (test.GetNumberOfMemoryBuffers() == 1);
         ok &= (!test.IsIgnoringBufferOverrun());
     }
     return ok;
@@ -463,7 +460,7 @@ bool EPICSPVAOutputTest::TestInitialise_Defaults() {
     if (ok) {
         ok = (test.GetCPUMask() == 0xff);
         ok &= (test.GetStackSize() == (THREADS_DEFAULT_STACKSIZE * 4u));
-        ok &= (test.GetNumberOfBuffers() == 11);
+        ok &= (test.GetNumberOfMemoryBuffers() == 1);
         ok &= (test.IsIgnoringBufferOverrun());
     }
     return ok;
@@ -479,20 +476,50 @@ bool EPICSPVAOutputTest::TestInitialise_False_Signals() {
     return !test.Initialise(cdb);
 }
 
-bool EPICSPVAOutputTest::TestInitialise_False_NumberOfBuffers() {
-    using namespace MARTe;
-    EPICSPVAOutput test;
-    ConfigurationDatabase cdb;
-    cdb.Write("CPUs", 1);
-    cdb.Write("StackSize", 100000);
-    cdb.CreateAbsolute("Signals");
-    cdb.MoveToRoot();
-    return !test.Initialise(cdb);
-}
-
 bool EPICSPVAOutputTest::TestSetConfiguredDatabase() {
     using namespace MARTe;
     StreamString config = ""
+            "+Types = {\n"
+            "    Class = ReferenceContainer"
+            "    +UnsignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        UInt8 = {\n"
+            "            Type = uint8\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt16 = {\n"
+            "            Type = uint16\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt32 = {\n"
+            "            Type = uint32\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt64 = {\n"
+            "            Type = uint64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "    +SignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        Int8 = {\n"
+            "            Type = int8\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int16 = {\n"
+            "            Type = int16\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int32 = {\n"
+            "            Type = int32\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int64 = {\n"
+            "            Type = int64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
             "+EPICSPVADatabase1 = {\n"
             "    Class = EPICSPVADatabase\n"
             "    +RecordOut1 = {\n"
@@ -570,52 +597,52 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase() {
             "                SignalUInt8 = {\n"
             "                    Type = uint8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt8\n"
+            "                    Alias = RecordOut1.UInt8\n"
             "                }\n"
             "                SignalUInt16 = {\n"
             "                    Type = uint16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt16\n"
+            "                    Alias = RecordOut1.UInt16\n"
             "                }\n"
             "                SignalUInt32 = {\n"
             "                    Type = uint32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt32\n"
+            "                    Alias = RecordOut1.UInt32\n"
             "                }\n"
             "                SignalUInt64 = {\n"
             "                    Type = uint64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt64\n"
+            "                    Alias = RecordOut1.UInt64\n"
             "                }\n"
             "                SignalFloat64 = {\n"
             "                    Type = float64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut4.Element1\n"
+            "                    Alias = RecordOut4\n"
             "                }\n"
             "                SignalInt8 = {\n"
             "                    Type = int8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int8\n"
+            "                    Alias = RecordOut2.Int8\n"
             "                }\n"
             "                SignalInt16 = {\n"
             "                    Type = int16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int16\n"
+            "                    Alias = RecordOut2.Int16\n"
             "                }\n"
             "                SignalInt32 = {\n"
             "                    Type = int32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int32\n"
+            "                    Alias = RecordOut2.Int32\n"
             "                }\n"
             "                SignalIn64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int64\n"
+            "                    Alias = RecordOut2.Int64\n"
             "                }\n"
             "                SignalFloat32 = {\n"
             "                    Type = float32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut3.Element1\n"
+            "                    Alias = RecordOut3\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -633,56 +660,22 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase() {
             "            NumberOfBuffers = 2\n"
             "            Signals = {\n"
             "                RecordOut1 = {\n"
-            "                    UnsignedIntegers = {\n"
-            "                        UInt8 = {\n"
-            "                            Type = uint8\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt16 = {\n"
-            "                            Type = uint16\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt32 = {\n"
-            "                            Type = uint32\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt64 = {\n"
-            "                            Type = uint64\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Type = UnsignedIntegers\n"
+            "                    Field = UnsignedIntegers\n"
             "                }\n"
             "                RecordOut2 = {\n"
-            "                    SignedIntegers = {\n"
-            "                        Int8 = {\n"
-            "                            Type = int8\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int16 = {\n"
-            "                            Type = int16\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int32 = {\n"
-            "                            Type = int32\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int64 = {\n"
-            "                            Type = int64\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Type = SignedIntegers\n"
+            "                    Field = SignedIntegers\n"
             "                }\n"
             "                RecordOut3 = {\n"
-            "                     Element1 = {\n"
-            "                         Type = float32\n"
-            "                         NumberOfElements = 1\n"
-            "                     }\n"
+            "                     Field = Element1\n"
+            "                     Type = float32\n"
+            "                     NumberOfElements = 1\n"
             "                }\n"
             "                RecordOut4 = {\n"
-            "                    Element1 = {\n"
-            "                        Type = float64\n"
-            "                        NumberOfElements = 1\n"
-            "                    }\n"
+            "                    Field = Element1\n"
+            "                    Type = float64\n"
+            "                    NumberOfElements = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -713,6 +706,47 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase() {
 bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_NoSignals() {
     using namespace MARTe;
     StreamString config = ""
+            "+Types = {\n"
+            "    Class = ReferenceContainer"
+            "    +UnsignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        UInt8 = {\n"
+            "            Type = uint8\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt16 = {\n"
+            "            Type = uint16\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt32 = {\n"
+            "            Type = uint32\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt64 = {\n"
+            "            Type = uint64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "    +SignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        Int8 = {\n"
+            "            Type = int8\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int16 = {\n"
+            "            Type = int16\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int32 = {\n"
+            "            Type = int32\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int64 = {\n"
+            "            Type = int64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
             "+EPICSPVADatabase1 = {\n"
             "    Class = EPICSPVADatabase\n"
             "    +RecordOut1 = {\n"
@@ -790,52 +824,52 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_NoSignals() {
             "                SignalUInt8 = {\n"
             "                    Type = uint8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt8\n"
+            "                    Alias = RecordOut1.UInt8\n"
             "                }\n"
             "                SignalUInt16 = {\n"
             "                    Type = uint16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt16\n"
+            "                    Alias = RecordOut1.UInt16\n"
             "                }\n"
             "                SignalUInt32 = {\n"
             "                    Type = uint32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt32\n"
+            "                    Alias = RecordOut1.UInt32\n"
             "                }\n"
             "                SignalUInt64 = {\n"
             "                    Type = uint64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt64\n"
+            "                    Alias = RecordOut1.UInt64\n"
             "                }\n"
             "                SignalFloat64 = {\n"
             "                    Type = float64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut4.Element1\n"
+            "                    Alias = RecordOut4\n"
             "                }\n"
             "                SignalInt8 = {\n"
             "                    Type = int8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int8\n"
+            "                    Alias = RecordOut2.Int8\n"
             "                }\n"
             "                SignalInt16 = {\n"
             "                    Type = int16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int16\n"
+            "                    Alias = RecordOut2.Int16\n"
             "                }\n"
             "                SignalInt32 = {\n"
             "                    Type = int32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int32\n"
+            "                    Alias = RecordOut2.Int32\n"
             "                }\n"
             "                SignalIn64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int64\n"
+            "                    Alias = RecordOut2.Int64\n"
             "                }\n"
             "                SignalFloat32 = {\n"
             "                    Type = float32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut3.Element1\n"
+            "                    Alias = RecordOut3\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -853,56 +887,22 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_NoSignals() {
             "            NumberOfBuffers = 2\n"
             "            Signals = {\n"
             "                RecordOut1 = {\n"
-            "                    UnsignedIntegers = {\n"
-            "                        UInt8 = {\n"
-            "                            Type = uint8\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt16 = {\n"
-            "                            Type = uint16\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt32 = {\n"
-            "                            Type = uint32\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt64 = {\n"
-            "                            Type = uint64\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Type = UnsignedIntegers\n"
+            "                    Field = UnsignedIntegers\n"
             "                }\n"
             "                RecordOut2 = {\n"
-            "                    SignedIntegers = {\n"
-            "                        Int8 = {\n"
-            "                            Type = int8\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int16 = {\n"
-            "                            Type = int16\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int32 = {\n"
-            "                            Type = int32\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int64 = {\n"
-            "                            Type = int64\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Type = SignedIntegers\n"
+            "                    Field = SignedIntegers\n"
             "                }\n"
             "                RecordOut3 = {\n"
-            "                     Element1 = {\n"
-            "                         Type = float32\n"
-            "                         NumberOfElements = 1\n"
-            "                     }\n"
+            "                     Field = Element1\n"
+            "                     Type = float32\n"
+            "                     NumberOfElements = 1\n"
             "                }\n"
             "                RecordOut4 = {\n"
-            "                    Element1 = {\n"
-            "                        Type = float64\n"
-            "                        NumberOfElements = 1\n"
-            "                    }\n"
+            "                    Field = Element1\n"
+            "                    Type = float64\n"
+            "                    NumberOfElements = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -942,6 +942,47 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_NoSignals() {
 bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_Samples() {
     using namespace MARTe;
     StreamString config = ""
+            "+Types = {\n"
+            "    Class = ReferenceContainer"
+            "    +UnsignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        UInt8 = {\n"
+            "            Type = uint8\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt16 = {\n"
+            "            Type = uint16\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt32 = {\n"
+            "            Type = uint32\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt64 = {\n"
+            "            Type = uint64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "    +SignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        Int8 = {\n"
+            "            Type = int8\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int16 = {\n"
+            "            Type = int16\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int32 = {\n"
+            "            Type = int32\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int64 = {\n"
+            "            Type = int64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
             "+EPICSPVADatabase1 = {\n"
             "    Class = EPICSPVADatabase\n"
             "    +RecordOut1 = {\n"
@@ -951,6 +992,7 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_Samples() {
             "                  UInt8 = {\n"
             "                      Type = uint8\n"
             "                      NumberOfElements = 1\n"
+            "                      Samples = 4\n"
             "                  }\n"
             "                  UInt16 = {\n"
             "                       Type = uint16\n"
@@ -1019,53 +1061,52 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_Samples() {
             "                SignalUInt8 = {\n"
             "                    Type = uint8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt8\n"
-            "                    Samples = 4\n"
+            "                    Alias = RecordOut1.UInt8\n"
             "                }\n"
             "                SignalUInt16 = {\n"
             "                    Type = uint16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt16\n"
+            "                    Alias = RecordOut1.UInt16\n"
             "                }\n"
             "                SignalUInt32 = {\n"
             "                    Type = uint32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt32\n"
+            "                    Alias = RecordOut1.UInt32\n"
             "                }\n"
             "                SignalUInt64 = {\n"
             "                    Type = uint64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt64\n"
+            "                    Alias = RecordOut1.UInt64\n"
             "                }\n"
             "                SignalFloat64 = {\n"
             "                    Type = float64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut4.Element1\n"
+            "                    Alias = RecordOut4\n"
             "                }\n"
             "                SignalInt8 = {\n"
             "                    Type = int8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int8\n"
+            "                    Alias = RecordOut2.Int8\n"
             "                }\n"
             "                SignalInt16 = {\n"
             "                    Type = int16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int16\n"
+            "                    Alias = RecordOut2.Int16\n"
             "                }\n"
             "                SignalInt32 = {\n"
             "                    Type = int32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int32\n"
+            "                    Alias = RecordOut2.Int32\n"
             "                }\n"
             "                SignalIn64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int64\n"
+            "                    Alias = RecordOut2.Int64\n"
             "                }\n"
             "                SignalFloat32 = {\n"
             "                    Type = float32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut3.Element1\n"
+            "                    Alias = RecordOut3\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1083,57 +1124,32 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_Samples() {
             "            NumberOfBuffers = 2\n"
             "            Signals = {\n"
             "                RecordOut1 = {\n"
-            "                    UnsignedIntegers = {\n"
-            "                        UInt8 = {\n"
-            "                            Type = uint8\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt16 = {\n"
-            "                            Type = uint16\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt32 = {\n"
-            "                            Type = uint32\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt64 = {\n"
-            "                            Type = uint64\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Type = UnsignedIntegers\n"
+            "                    Field = UnsignedIntegers\n"
             "                }\n"
             "                RecordOut2 = {\n"
-            "                    SignedIntegers = {\n"
-            "                        Int8 = {\n"
-            "                            Type = int8\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int16 = {\n"
-            "                            Type = int16\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int32 = {\n"
-            "                            Type = int32\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int64 = {\n"
-            "                            Type = int64\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Type = SignedIntegers\n"
+            "                    Field = SignedIntegers\n"
             "                }\n"
             "                RecordOut3 = {\n"
-            "                     Element1 = {\n"
-            "                         Type = float32\n"
-            "                         NumberOfElements = 1\n"
-            "                     }\n"
+            "                     Field = Element1\n"
+            "                     Type = float32\n"
+            "                     NumberOfElements = 1\n"
             "                }\n"
             "                RecordOut4 = {\n"
-            "                    Element1 = {\n"
-            "                        Type = float64\n"
-            "                        NumberOfElements = 1\n"
-            "                    }\n"
+            "                    Field = Element1\n"
+            "                    Type = float64\n"
+            "                    NumberOfElements = 1\n"
             "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +EPICSPVAOutputTest2 = {\n"
+            "            Class = EPICSPVAOutput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 2\n"
+            "            Signals = {\n"
+            "                Locked = 0\n"
             "            }\n"
             "        }\n"
             "    }\n"
@@ -1163,6 +1179,47 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_Samples() {
 bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
     using namespace MARTe;
     StreamString config = ""
+            "+Types = {\n"
+            "    Class = ReferenceContainer"
+            "    +UnsignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        UInt8 = {\n"
+            "            Type = uint8\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt16 = {\n"
+            "            Type = uint16\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt32 = {\n"
+            "            Type = uint32\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt64 = {\n"
+            "            Type = uint64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "    +SignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        Int8 = {\n"
+            "            Type = int8\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int16 = {\n"
+            "            Type = int16\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int32 = {\n"
+            "            Type = int32\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int64 = {\n"
+            "            Type = int64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
             "+EPICSPVADatabase1 = {\n"
             "    Class = EPICSPVADatabase\n"
             "    +RecordOut1 = {\n"
@@ -1172,6 +1229,7 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
             "                  UInt8 = {\n"
             "                      Type = uint8\n"
             "                      NumberOfElements = 1\n"
+            "                      Samples = 4\n"
             "                  }\n"
             "                  UInt16 = {\n"
             "                       Type = uint16\n"
@@ -1247,50 +1305,55 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
             "        +GAM1 = {\n"
             "            Class = EPICSPVAOutputGAMTestHelper\n"
             "            OutputSignals = {\n"
+            "                SignalUInt8 = {\n"
+            "                    Type = uint8\n"
+            "                    DataSource = EPICSPVAOutputTest\n"
+            "                    Alias = RecordOut1.UInt8\n"
+            "                }\n"
             "                SignalUInt16 = {\n"
             "                    Type = uint16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt16\n"
+            "                    Alias = RecordOut1.UInt16\n"
             "                }\n"
             "                SignalUInt32 = {\n"
             "                    Type = uint32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt32\n"
+            "                    Alias = RecordOut1.UInt32\n"
             "                }\n"
             "                SignalUInt64 = {\n"
             "                    Type = uint64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt64\n"
+            "                    Alias = RecordOut1.UInt64\n"
             "                }\n"
             "                SignalFloat64 = {\n"
             "                    Type = float64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut4.Element1\n"
+            "                    Alias = RecordOut4\n"
             "                }\n"
             "                SignalInt8 = {\n"
             "                    Type = int8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int8\n"
+            "                    Alias = RecordOut2.Int8\n"
             "                }\n"
             "                SignalInt16 = {\n"
             "                    Type = int16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int16\n"
+            "                    Alias = RecordOut2.Int16\n"
             "                }\n"
             "                SignalInt32 = {\n"
             "                    Type = int32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int32\n"
+            "                    Alias = RecordOut2.Int32\n"
             "                }\n"
             "                SignalIn64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int64\n"
+            "                    Alias = RecordOut2.Int64\n"
             "                }\n"
             "                SignalFloat32 = {\n"
             "                    Type = float32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut3.Element1\n"
+            "                    Alias = RecordOut3\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1308,57 +1371,32 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
             "            NumberOfBuffers = 2\n"
             "            Signals = {\n"
             "                RecordOut1 = {\n"
-            "                    UnsignedIntegers = {\n"
-            "                        UInt8 = {\n"
-            "                            Type = uint8\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt16 = {\n"
-            "                            Type = uint16\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt32 = {\n"
-            "                            Type = uint32\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt64 = {\n"
-            "                            Type = uint64\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Type = UnsignedIntegers\n"
+            "                    Field = UnsignedIntegers\n"
             "                }\n"
             "                RecordOut2 = {\n"
-            "                    SignedIntegers = {\n"
-            "                        Int8 = {\n"
-            "                            Type = int8\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int16 = {\n"
-            "                            Type = int16\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int32 = {\n"
-            "                            Type = int32\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int64 = {\n"
-            "                            Type = int64\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Type = SignedIntegers\n"
+            "                    Field = SignedIntegers\n"
             "                }\n"
             "                RecordOut3 = {\n"
-            "                     Element1 = {\n"
-            "                         Type = float32\n"
-            "                         NumberOfElements = 1\n"
-            "                     }\n"
+            "                     Field = Element1\n"
+            "                     Type = float32\n"
+            "                     NumberOfElements = 1\n"
             "                }\n"
             "                RecordOut4 = {\n"
-            "                    Element1 = {\n"
-            "                        Type = float64\n"
-            "                        NumberOfElements = 1\n"
-            "                    }\n"
+            "                    Field = Element1\n"
+            "                    Type = float64\n"
+            "                    NumberOfElements = 1\n"
             "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +EPICSPVAOutputTest2 = {\n"
+            "            Class = EPICSPVAOutput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 2\n"
+            "            Signals = {\n"
+            "                Locked = 0\n"
             "            }\n"
             "        }\n"
             "    }\n"
@@ -1370,7 +1408,7 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
             "                Class = ReferenceContainer\n"
             "                +Thread1 = {\n"
             "                    Class = RealTimeThread\n"
-            "                    Functions = {GAM0 GAM1}\n"
+            "                    Functions = {GAM1}\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1404,6 +1442,47 @@ bool EPICSPVAOutputTest::TestIsIgnoringBufferOverrun() {
 bool EPICSPVAOutputTest::TestSynchronise() {
     using namespace MARTe;
     StreamString config = ""
+            "+Types = {\n"
+            "    Class = ReferenceContainer"
+            "    +UnsignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        UInt8 = {\n"
+            "            Type = uint8\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt16 = {\n"
+            "            Type = uint16\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt32 = {\n"
+            "            Type = uint32\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        UInt64 = {\n"
+            "            Type = uint64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "    +SignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        Int8 = {\n"
+            "            Type = int8\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int16 = {\n"
+            "            Type = int16\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int32 = {\n"
+            "            Type = int32\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        Int64 = {\n"
+            "            Type = int64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
             "+EPICSPVADatabase1 = {\n"
             "    Class = EPICSPVADatabase\n"
             "    +RecordOut1 = {\n"
@@ -1413,6 +1492,7 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "                  UInt8 = {\n"
             "                      Type = uint8\n"
             "                      NumberOfElements = 1\n"
+            "                      Samples = 4\n"
             "                  }\n"
             "                  UInt16 = {\n"
             "                       Type = uint16\n"
@@ -1482,52 +1562,52 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "                SignalUInt8 = {\n"
             "                    Type = uint8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt8\n"
+            "                    Alias = RecordOut1.UInt8\n"
             "                }\n"
             "                SignalUInt16 = {\n"
             "                    Type = uint16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt16\n"
+            "                    Alias = RecordOut1.UInt16\n"
             "                }\n"
             "                SignalUInt32 = {\n"
             "                    Type = uint32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt32\n"
+            "                    Alias = RecordOut1.UInt32\n"
             "                }\n"
             "                SignalUInt64 = {\n"
             "                    Type = uint64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt64\n"
+            "                    Alias = RecordOut1.UInt64\n"
             "                }\n"
             "                SignalFloat64 = {\n"
             "                    Type = float64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut4.Element1\n"
+            "                    Alias = RecordOut4\n"
             "                }\n"
             "                SignalInt8 = {\n"
             "                    Type = int8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int8\n"
+            "                    Alias = RecordOut2.Int8\n"
             "                }\n"
             "                SignalInt16 = {\n"
             "                    Type = int16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int16\n"
+            "                    Alias = RecordOut2.Int16\n"
             "                }\n"
             "                SignalInt32 = {\n"
             "                    Type = int32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int32\n"
+            "                    Alias = RecordOut2.Int32\n"
             "                }\n"
             "                SignalIn64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2.SignedIntegers.Int64\n"
+            "                    Alias = RecordOut2.Int64\n"
             "                }\n"
             "                SignalFloat32 = {\n"
             "                    Type = float32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut3.Element1\n"
+            "                    Alias = RecordOut3\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1545,57 +1625,23 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "            NumberOfBuffers = 2\n"
             "            Signals = {\n"
             "                RecordOut1 = {\n"
-            "                    UnsignedIntegers = {\n"
-            "                        UInt8 = {\n"
-            "                            Type = uint8\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt16 = {\n"
-            "                            Type = uint16\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt32 = {\n"
-            "                            Type = uint32\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        UInt64 = {\n"
-            "                            Type = uint64\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Type = UnsignedIntegers\n"
+            "                    Field = UnsignedIntegers\n"
             "                }\n"
             "                RecordOut2 = {\n"
-            "                    Alias = \"TEST::RECORDOUT2\"\n"
-            "                    SignedIntegers = {\n"
-            "                        Int8 = {\n"
-            "                            Type = int8\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int16 = {\n"
-            "                            Type = int16\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int32 = {\n"
-            "                            Type = int32\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                        Int64 = {\n"
-            "                            Type = int64\n"
-            "                            NumberOfElements = 1\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Alias = \"TEST::RECORDOUT2\""
+            "                    Type = SignedIntegers\n"
+            "                    Field = SignedIntegers\n"
             "                }\n"
             "                RecordOut3 = {\n"
-            "                     Element1 = {\n"
-            "                         Type = float32\n"
-            "                         NumberOfElements = 1\n"
-            "                     }\n"
+            "                     Field = Element1\n"
+            "                     Type = float32\n"
+            "                     NumberOfElements = 1\n"
             "                }\n"
             "                RecordOut4 = {\n"
-            "                    Element1 = {\n"
-            "                        Type = float64\n"
-            "                        NumberOfElements = 1\n"
-            "                    }\n"
+            "                    Field = Element1\n"
+            "                    Type = float64\n"
+            "                    NumberOfElements = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1664,10 +1710,14 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             {
                 pvac::ClientChannel record1(provider.connect("RecordOut1"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
-                std::shared_ptr<const epics::pvData::PVUByte> uint8Value = getStruct->getSubField<epics::pvData::PVUByte>("UnsignedIntegers.UInt8");
-                std::shared_ptr<const epics::pvData::PVUShort> uint16Value = getStruct->getSubField<epics::pvData::PVUShort>("UnsignedIntegers.UInt16");
-                std::shared_ptr<const epics::pvData::PVUInt> uint32Value = getStruct->getSubField<epics::pvData::PVUInt>("UnsignedIntegers.UInt32");
-                std::shared_ptr<const epics::pvData::PVULong> uint64Value = getStruct->getSubField<epics::pvData::PVULong>("UnsignedIntegers.UInt64");
+                std::shared_ptr<const epics::pvData::PVUByte> uint8Value = getStruct->getSubField<epics::pvData::PVUByte>(
+                        "UnsignedIntegers.UInt8");
+                std::shared_ptr<const epics::pvData::PVUShort> uint16Value = getStruct->getSubField<epics::pvData::PVUShort>(
+                        "UnsignedIntegers.UInt16");
+                std::shared_ptr<const epics::pvData::PVUInt> uint32Value = getStruct->getSubField<epics::pvData::PVUInt>(
+                        "UnsignedIntegers.UInt32");
+                std::shared_ptr<const epics::pvData::PVULong> uint64Value = getStruct->getSubField<epics::pvData::PVULong>(
+                        "UnsignedIntegers.UInt64");
                 ok = (uint8Value ? true : false);
                 if (ok) {
                     ok = (uint8Value->get() == *gam1->uint8Signal);
@@ -1679,10 +1729,14 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             {
                 pvac::ClientChannel record2(provider.connect("TEST::RECORDOUT2"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record2.get();
-                std::shared_ptr<const epics::pvData::PVByte> int8Value = getStruct->getSubField<epics::pvData::PVByte>("SignedIntegers.Int8");
-                std::shared_ptr<const epics::pvData::PVShort> int16Value = getStruct->getSubField<epics::pvData::PVShort>("SignedIntegers.Int16");
-                std::shared_ptr<const epics::pvData::PVInt> int32Value = getStruct->getSubField<epics::pvData::PVInt>("SignedIntegers.Int32");
-                std::shared_ptr<const epics::pvData::PVLong> int64Value = getStruct->getSubField<epics::pvData::PVLong>("SignedIntegers.Int64");
+                std::shared_ptr<const epics::pvData::PVByte> int8Value = getStruct->getSubField<epics::pvData::PVByte>(
+                        "SignedIntegers.Int8");
+                std::shared_ptr<const epics::pvData::PVShort> int16Value = getStruct->getSubField<epics::pvData::PVShort>(
+                        "SignedIntegers.Int16");
+                std::shared_ptr<const epics::pvData::PVInt> int32Value = getStruct->getSubField<epics::pvData::PVInt>(
+                        "SignedIntegers.Int32");
+                std::shared_ptr<const epics::pvData::PVLong> int64Value = getStruct->getSubField<epics::pvData::PVLong>(
+                        "SignedIntegers.Int64");
                 ok &= (int8Value ? true : false);
                 if (ok) {
                     ok = (int8Value->get() == *gam1->int8Signal);
@@ -1721,6 +1775,47 @@ bool EPICSPVAOutputTest::TestSynchronise() {
 bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
     using namespace MARTe;
     StreamString config = ""
+            "+Types = {\n"
+            "    Class = ReferenceContainer"
+            "    +UnsignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        UInt8 = {\n"
+            "            Type = uint8\n"
+            "            NumberOfElements = 4\n"
+            "        }\n"
+            "        UInt16 = {\n"
+            "            Type = uint16\n"
+            "            NumberOfElements = 4\n"
+            "        }\n"
+            "        UInt32 = {\n"
+            "            Type = uint32\n"
+            "            NumberOfElements = 4\n"
+            "        }\n"
+            "        UInt64 = {\n"
+            "            Type = uint64\n"
+            "            NumberOfElements = 4\n"
+            "        }\n"
+            "    }\n"
+            "    +SignedIntegers = {\n"
+            "        Class = IntrospectionStructure"
+            "        Int8 = {\n"
+            "            Type = int8\n"
+            "            NumberOfElements = 4\n"
+            "        }\n"
+            "        Int16 = {\n"
+            "            Type = int16\n"
+            "            NumberOfElements = 4\n"
+            "        }\n"
+            "        Int32 = {\n"
+            "            Type = int32\n"
+            "            NumberOfElements = 4\n"
+            "        }\n"
+            "        Int64 = {\n"
+            "            Type = int64\n"
+            "            NumberOfElements = 4\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
             "+EPICSPVADatabase1 = {\n"
             "    Class = EPICSPVADatabase\n"
             "    +RecordOut1Arr = {\n"
@@ -1798,61 +1893,61 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             "                SignalUInt8 = {\n"
             "                    Type = uint8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1Arr.UnsignedIntegers.UInt8\n"
+            "                    Alias = RecordOut1Arr.UInt8\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
             "                SignalUInt16 = {\n"
             "                    Type = uint16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1Arr.UnsignedIntegers.UInt16\n"
+            "                    Alias = RecordOut1Arr.UInt16\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
             "                SignalUInt32 = {\n"
             "                    Type = uint32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1Arr.UnsignedIntegers.UInt32\n"
+            "                    Alias = RecordOut1Arr.UInt32\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
             "                SignalUInt64 = {\n"
             "                    Type = uint64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1Arr.UnsignedIntegers.UInt64\n"
+            "                    Alias = RecordOut1Arr.UInt64\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
             "                SignalFloat64 = {\n"
             "                    Type = float64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut4Arr.Element1\n"
+            "                    Alias = RecordOut4Arr\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
             "                SignalInt8 = {\n"
             "                    Type = int8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2Arr.SignedIntegers.Int8\n"
+            "                    Alias = RecordOut2Arr.Int8\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
             "                SignalInt16 = {\n"
             "                    Type = int16\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2Arr.SignedIntegers.Int16\n"
+            "                    Alias = RecordOut2Arr.Int16\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
             "                SignalInt32 = {\n"
             "                    Type = int32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2Arr.SignedIntegers.Int32\n"
+            "                    Alias = RecordOut2Arr.Int32\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
             "                SignalIn64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut2Arr.SignedIntegers.Int64\n"
+            "                    Alias = RecordOut2Arr.Int64\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
             "                SignalFloat32 = {\n"
             "                    Type = float32\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut3Arr.Element1\n"
+            "                    Alias = RecordOut3Arr\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
             "            }\n"
@@ -1871,56 +1966,22 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             "            NumberOfBuffers = 2\n"
             "            Signals = {\n"
             "                RecordOut1Arr = {\n"
-            "                    UnsignedIntegers = {\n"
-            "                        UInt8 = {\n"
-            "                            Type = uint8\n"
-            "                            NumberOfElements = 4\n"
-            "                        }\n"
-            "                        UInt16 = {\n"
-            "                            Type = uint16\n"
-            "                            NumberOfElements = 4\n"
-            "                        }\n"
-            "                        UInt32 = {\n"
-            "                            Type = uint32\n"
-            "                            NumberOfElements = 4\n"
-            "                        }\n"
-            "                        UInt64 = {\n"
-            "                            Type = uint64\n"
-            "                            NumberOfElements = 4\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Field = UnsignedIntegers\n"
+            "                    Type = UnsignedIntegers\n"
             "                }\n"
             "                RecordOut2Arr = {\n"
-            "                    SignedIntegers = {\n"
-            "                        Int8 = {\n"
-            "                            Type = int8\n"
-            "                            NumberOfElements = 4\n"
-            "                        }\n"
-            "                        Int16 = {\n"
-            "                            Type = int16\n"
-            "                            NumberOfElements = 4\n"
-            "                        }\n"
-            "                        Int32 = {\n"
-            "                            Type = int32\n"
-            "                            NumberOfElements = 4\n"
-            "                        }\n"
-            "                        Int64 = {\n"
-            "                            Type = int64\n"
-            "                            NumberOfElements = 4\n"
-            "                        }\n"
-            "                    }\n"
+            "                    Field = SignedIntegers\n"
+            "                    Type = SignedIntegers\n"
             "                }\n"
             "                RecordOut3Arr = {\n"
-            "                     Element1 = {\n"
-            "                         Type = float32\n"
-            "                         NumberOfElements = 4\n"
-            "                     }\n"
+            "                     Field = Element1\n"
+            "                     Type = float32\n"
+            "                     NumberOfElements = 4\n"
             "                }\n"
             "                RecordOut4Arr = {\n"
-            "                    Element1 = {\n"
-            "                        Type = float64\n"
-            "                        NumberOfElements = 4\n"
-            "                    }\n"
+            "                    Field = Element1\n"
+            "                    Type = float64\n"
+            "                    NumberOfElements = 4\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1992,10 +2053,14 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             {
                 pvac::ClientChannel record1(provider.connect("RecordOut1Arr"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
-                std::shared_ptr<const epics::pvData::PVUByteArray> uint8Value = getStruct->getSubField<epics::pvData::PVUByteArray>("UnsignedIntegers.UInt8");
-                std::shared_ptr<const epics::pvData::PVUShortArray> uint16Value = getStruct->getSubField<epics::pvData::PVUShortArray>("UnsignedIntegers.UInt16");
-                std::shared_ptr<const epics::pvData::PVUIntArray> uint32Value = getStruct->getSubField<epics::pvData::PVUIntArray>("UnsignedIntegers.UInt32");
-                std::shared_ptr<const epics::pvData::PVULongArray> uint64Value = getStruct->getSubField<epics::pvData::PVULongArray>("UnsignedIntegers.UInt64");
+                std::shared_ptr<const epics::pvData::PVUByteArray> uint8Value = getStruct->getSubField<epics::pvData::PVUByteArray>(
+                        "UnsignedIntegers.UInt8");
+                std::shared_ptr<const epics::pvData::PVUShortArray> uint16Value = getStruct->getSubField<epics::pvData::PVUShortArray>(
+                        "UnsignedIntegers.UInt16");
+                std::shared_ptr<const epics::pvData::PVUIntArray> uint32Value = getStruct->getSubField<epics::pvData::PVUIntArray>(
+                        "UnsignedIntegers.UInt32");
+                std::shared_ptr<const epics::pvData::PVULongArray> uint64Value = getStruct->getSubField<epics::pvData::PVULongArray>(
+                        "UnsignedIntegers.UInt64");
                 ok = (uint8Value ? true : false);
                 epics::pvData::shared_vector<const uint8> outUInt8;
                 epics::pvData::shared_vector<const uint16> outUInt16;
@@ -2021,10 +2086,14 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             {
                 pvac::ClientChannel record2(provider.connect("RecordOut2Arr"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record2.get();
-                std::shared_ptr<const epics::pvData::PVByteArray> int8Value = getStruct->getSubField<epics::pvData::PVByteArray>("SignedIntegers.Int8");
-                std::shared_ptr<const epics::pvData::PVShortArray> int16Value = getStruct->getSubField<epics::pvData::PVShortArray>("SignedIntegers.Int16");
-                std::shared_ptr<const epics::pvData::PVIntArray> int32Value = getStruct->getSubField<epics::pvData::PVIntArray>("SignedIntegers.Int32");
-                std::shared_ptr<const epics::pvData::PVLongArray> int64Value = getStruct->getSubField<epics::pvData::PVLongArray>("SignedIntegers.Int64");
+                std::shared_ptr<const epics::pvData::PVByteArray> int8Value = getStruct->getSubField<epics::pvData::PVByteArray>(
+                        "SignedIntegers.Int8");
+                std::shared_ptr<const epics::pvData::PVShortArray> int16Value = getStruct->getSubField<epics::pvData::PVShortArray>(
+                        "SignedIntegers.Int16");
+                std::shared_ptr<const epics::pvData::PVIntArray> int32Value = getStruct->getSubField<epics::pvData::PVIntArray>(
+                        "SignedIntegers.Int32");
+                std::shared_ptr<const epics::pvData::PVLongArray> int64Value = getStruct->getSubField<epics::pvData::PVLongArray>(
+                        "SignedIntegers.Int64");
                 ok = (int8Value ? true : false);
                 epics::pvData::shared_vector<const int8> outInt8;
                 epics::pvData::shared_vector<const int16> outInt16;
@@ -2050,7 +2119,8 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             {
                 pvac::ClientChannel record3(provider.connect("RecordOut3Arr"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record3.get();
-                std::shared_ptr<const epics::pvData::PVFloatArray> float32Value = getStruct->getSubField<epics::pvData::PVFloatArray>("Element1");
+                std::shared_ptr<const epics::pvData::PVFloatArray> float32Value = getStruct->getSubField<epics::pvData::PVFloatArray>(
+                        "Element1");
                 ok = (float32Value ? true : false);
                 epics::pvData::shared_vector<const float32> outFloat32;
                 outFloat32.resize(nOfElements);
@@ -2064,7 +2134,8 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             {
                 pvac::ClientChannel record4(provider.connect("RecordOut4Arr"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record4.get();
-                std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value = getStruct->getSubField<epics::pvData::PVDoubleArray>("Element1");
+                std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value = getStruct->getSubField<epics::pvData::PVDoubleArray>(
+                        "Element1");
                 ok = (float64Value ? true : false);
                 epics::pvData::shared_vector<const float64> outFloat64;
                 outFloat64.resize(nOfElements);
@@ -2107,7 +2178,7 @@ bool EPICSPVAOutputTest::TestSynchronise_StructuredType() {
             "                SignalTypes = {\n"
             "                    Type = EPICSPVADatabaseTestOutputTypesS\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1S.SignalTypes\n"
+            "                    Alias = RecordOut1S\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -2125,10 +2196,8 @@ bool EPICSPVAOutputTest::TestSynchronise_StructuredType() {
             "            NumberOfBuffers = 2\n"
             "            Signals = {\n"
             "                RecordOut1S = {\n"
-            "                    SignalTypes = {\n"
-            "                        Type = EPICSPVADatabaseTestOutputTypesS\n"
-            "                        NumberOfElements = 1\n"
-            "                    }\n"
+            "                    Field = SignalTypes\n"
+            "                    Type = EPICSPVADatabaseTestOutputTypesS\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -2197,16 +2266,26 @@ bool EPICSPVAOutputTest::TestSynchronise_StructuredType() {
             {
                 pvac::ClientChannel record1(provider.connect("RecordOut1S"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
-                std::shared_ptr<const epics::pvData::PVUByte> uint8Value = getStruct->getSubField<epics::pvData::PVUByte>("SignalTypes.UInts.UInt8");
-                std::shared_ptr<const epics::pvData::PVUShort> uint16Value = getStruct->getSubField<epics::pvData::PVUShort>("SignalTypes.UInts.UInt16");
-                std::shared_ptr<const epics::pvData::PVUInt> uint32Value = getStruct->getSubField<epics::pvData::PVUInt>("SignalTypes.UInts.UInt32");
-                std::shared_ptr<const epics::pvData::PVULong> uint64Value = getStruct->getSubField<epics::pvData::PVULong>("SignalTypes.UInts.UInt64");
-                std::shared_ptr<const epics::pvData::PVByte> int8Value = getStruct->getSubField<epics::pvData::PVByte>("SignalTypes.Ints.Int8");
-                std::shared_ptr<const epics::pvData::PVShort> int16Value = getStruct->getSubField<epics::pvData::PVShort>("SignalTypes.Ints.Int16");
-                std::shared_ptr<const epics::pvData::PVInt> int32Value = getStruct->getSubField<epics::pvData::PVInt>("SignalTypes.Ints.Int32");
-                std::shared_ptr<const epics::pvData::PVLong> int64Value = getStruct->getSubField<epics::pvData::PVLong>("SignalTypes.Ints.Int64");
-                std::shared_ptr<const epics::pvData::PVFloat> float32Value = getStruct->getSubField<epics::pvData::PVFloat>("SignalTypes.Floats.Float32");
-                std::shared_ptr<const epics::pvData::PVDouble> float64Value = getStruct->getSubField<epics::pvData::PVDouble>("SignalTypes.Floats.Float64");
+                std::shared_ptr<const epics::pvData::PVUByte> uint8Value = getStruct->getSubField<epics::pvData::PVUByte>(
+                        "SignalTypes.UInts.UInt8");
+                std::shared_ptr<const epics::pvData::PVUShort> uint16Value = getStruct->getSubField<epics::pvData::PVUShort>(
+                        "SignalTypes.UInts.UInt16");
+                std::shared_ptr<const epics::pvData::PVUInt> uint32Value = getStruct->getSubField<epics::pvData::PVUInt>(
+                        "SignalTypes.UInts.UInt32");
+                std::shared_ptr<const epics::pvData::PVULong> uint64Value = getStruct->getSubField<epics::pvData::PVULong>(
+                        "SignalTypes.UInts.UInt64");
+                std::shared_ptr<const epics::pvData::PVByte> int8Value = getStruct->getSubField<epics::pvData::PVByte>(
+                        "SignalTypes.Ints.Int8");
+                std::shared_ptr<const epics::pvData::PVShort> int16Value = getStruct->getSubField<epics::pvData::PVShort>(
+                        "SignalTypes.Ints.Int16");
+                std::shared_ptr<const epics::pvData::PVInt> int32Value = getStruct->getSubField<epics::pvData::PVInt>(
+                        "SignalTypes.Ints.Int32");
+                std::shared_ptr<const epics::pvData::PVLong> int64Value = getStruct->getSubField<epics::pvData::PVLong>(
+                        "SignalTypes.Ints.Int64");
+                std::shared_ptr<const epics::pvData::PVFloat> float32Value = getStruct->getSubField<epics::pvData::PVFloat>(
+                        "SignalTypes.Floats.Float32");
+                std::shared_ptr<const epics::pvData::PVDouble> float64Value = getStruct->getSubField<epics::pvData::PVDouble>(
+                        "SignalTypes.Floats.Float64");
 
                 ok = (uint8Value ? true : false);
                 if (ok) {
@@ -2255,7 +2334,7 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
             "                SignalTypes = {\n"
             "                    Type = EPICSPVADatabaseTestOutputTypesSA\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1SArr.SignalTypes\n"
+            "                    Alias = RecordOut1SArr\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -2273,9 +2352,8 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
             "            NumberOfBuffers = 2\n"
             "            Signals = {\n"
             "                RecordOut1SArr = {\n"
-            "                    SignalTypes = {\n"
-            "                        Type = EPICSPVADatabaseTestOutputTypesSA\n"
-            "                    }\n"
+            "                    Field = SignalTypes\n"
+            "                    Type = EPICSPVADatabaseTestOutputTypesSA\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -2347,16 +2425,26 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
             {
                 pvac::ClientChannel record1(provider.connect("RecordOut1SArr"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
-                std::shared_ptr<const epics::pvData::PVUByteArray> uint8Value = getStruct->getSubField<epics::pvData::PVUByteArray>("SignalTypes.UInts.UInt8");
-                std::shared_ptr<const epics::pvData::PVUShortArray> uint16Value = getStruct->getSubField<epics::pvData::PVUShortArray>("SignalTypes.UInts.UInt16");
-                std::shared_ptr<const epics::pvData::PVUIntArray> uint32Value = getStruct->getSubField<epics::pvData::PVUIntArray>("SignalTypes.UInts.UInt32");
-                std::shared_ptr<const epics::pvData::PVULongArray> uint64Value = getStruct->getSubField<epics::pvData::PVULongArray>("SignalTypes.UInts.UInt64");
-                std::shared_ptr<const epics::pvData::PVByteArray> int8Value = getStruct->getSubField<epics::pvData::PVByteArray>("SignalTypes.Ints.Int8");
-                std::shared_ptr<const epics::pvData::PVShortArray> int16Value = getStruct->getSubField<epics::pvData::PVShortArray>("SignalTypes.Ints.Int16");
-                std::shared_ptr<const epics::pvData::PVIntArray> int32Value = getStruct->getSubField<epics::pvData::PVIntArray>("SignalTypes.Ints.Int32");
-                std::shared_ptr<const epics::pvData::PVLongArray> int64Value = getStruct->getSubField<epics::pvData::PVLongArray>("SignalTypes.Ints.Int64");
-                std::shared_ptr<const epics::pvData::PVFloatArray> float32Value = getStruct->getSubField<epics::pvData::PVFloatArray>("SignalTypes.Floats.Float32");
-                std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value = getStruct->getSubField<epics::pvData::PVDoubleArray>("SignalTypes.Floats.Float64");
+                std::shared_ptr<const epics::pvData::PVUByteArray> uint8Value = getStruct->getSubField<epics::pvData::PVUByteArray>(
+                        "SignalTypes.UInts.UInt8");
+                std::shared_ptr<const epics::pvData::PVUShortArray> uint16Value = getStruct->getSubField<epics::pvData::PVUShortArray>(
+                        "SignalTypes.UInts.UInt16");
+                std::shared_ptr<const epics::pvData::PVUIntArray> uint32Value = getStruct->getSubField<epics::pvData::PVUIntArray>(
+                        "SignalTypes.UInts.UInt32");
+                std::shared_ptr<const epics::pvData::PVULongArray> uint64Value = getStruct->getSubField<epics::pvData::PVULongArray>(
+                        "SignalTypes.UInts.UInt64");
+                std::shared_ptr<const epics::pvData::PVByteArray> int8Value = getStruct->getSubField<epics::pvData::PVByteArray>(
+                        "SignalTypes.Ints.Int8");
+                std::shared_ptr<const epics::pvData::PVShortArray> int16Value = getStruct->getSubField<epics::pvData::PVShortArray>(
+                        "SignalTypes.Ints.Int16");
+                std::shared_ptr<const epics::pvData::PVIntArray> int32Value = getStruct->getSubField<epics::pvData::PVIntArray>(
+                        "SignalTypes.Ints.Int32");
+                std::shared_ptr<const epics::pvData::PVLongArray> int64Value = getStruct->getSubField<epics::pvData::PVLongArray>(
+                        "SignalTypes.Ints.Int64");
+                std::shared_ptr<const epics::pvData::PVFloatArray> float32Value = getStruct->getSubField<epics::pvData::PVFloatArray>(
+                        "SignalTypes.Floats.Float32");
+                std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value = getStruct->getSubField<epics::pvData::PVDoubleArray>(
+                        "SignalTypes.Floats.Float64");
 
                 ok = (uint8Value ? true : false);
                 epics::pvData::shared_vector<const uint8> outUInt8;

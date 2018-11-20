@@ -93,11 +93,6 @@ public:
     bool TestInitialise_False_Signals();
 
     /**
-     * @brief Tests the Initialise method without specifying the NumberOfBuffers
-     */
-    bool TestInitialise_False_NumberOfBuffers();
-
-    /**
      * @brief Tests the SetConfiguredDatabase method.
      */
     bool TestSetConfiguredDatabase();

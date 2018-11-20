@@ -36,10 +36,10 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 EPICSPVAOutput::EPICSPVAOutput() :
-        DataSourceI() {
+        MemoryDataSourceI() {
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
-    numberOfBuffers = 0u;
+    numberOfBrokerBuffers = 0u;
     numberOfChannels = 0u;
     ignoreBufferOverrun = 1u;
     channelList = NULL_PTR(EPICSPVAChannelWrapper *);
@@ -52,13 +52,12 @@ EPICSPVAOutput::~EPICSPVAOutput() {
 }
 
 bool EPICSPVAOutput::Initialise(StructuredDataI & data) {
-    bool ok = DataSourceI::Initialise(data);
-    if (ok) {
-        ok = data.Read("NumberOfBuffers", numberOfBuffers);
+    bool ok = MemoryDataSourceI::Initialise(data);
 
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be specified");
-        }
+    //Force the MemoryDataSourceI to have only one buffer
+    if (ok) {
+        numberOfBrokerBuffers = numberOfBuffers;
+        numberOfBuffers = 1u;
     }
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
@@ -96,7 +95,7 @@ bool EPICSPVAOutput::Initialise(StructuredDataI & data) {
         for (n = 0u; (n < numberOfChannels) && (ok); n++) {
             ok = signalsDatabase.MoveToChild(n);
             if (ok) {
-                ok = channelList[n].Setup(signalsDatabase);
+                ok = channelList[n].SetAliasAndField(signalsDatabase);
             }
             if (ok) {
                 ok = signalsDatabase.MoveToAncestor(1u);
@@ -113,7 +112,7 @@ bool EPICSPVAOutput::Initialise(StructuredDataI & data) {
 }
 
 bool EPICSPVAOutput::SetConfiguredDatabase(StructuredDataI & data) {
-    bool ok = DataSourceI::SetConfiguredDatabase(data);
+    bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
 //Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
     if (ok) {
@@ -146,52 +145,22 @@ bool EPICSPVAOutput::SetConfiguredDatabase(StructuredDataI & data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one Function allowed to interact with this DataSourceI");
         }
     }
-
     return ok;
 }
 
+
 bool EPICSPVAOutput::AllocateMemory() {
-    return true;
+    bool ok = MemoryDataSourceI::AllocateMemory();
+    uint32 n;
+    for (n = 0u; (n < numberOfChannels) && (ok); n++) {
+        ok = channelList[n].Setup(*this);
+    }
+
+    return ok;
 }
 
 uint32 EPICSPVAOutput::GetNumberOfMemoryBuffers() {
     return 1u;
-}
-
-/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool EPICSPVAOutput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    StreamString fullQualifiedName;
-    bool ok = (GetSignalName(signalIdx, fullQualifiedName));
-    REPORT_ERROR(ErrorManagement::Information, "Searching for signal [%s]", fullQualifiedName.Buffer());
-
-    if (ok) {
-        ok = fullQualifiedName.Seek(0LLU);
-    }
-    StreamString unaliasedChannelName;
-    if (ok) {
-        char8 ignore;
-        ok = fullQualifiedName.GetToken(unaliasedChannelName, ".", ignore);
-    }
-    bool found = false;
-    uint32 n;
-    for (n = 0u; (n < numberOfChannels) && (ok) && (!found); n++) {
-        found = (unaliasedChannelName == channelList[n].GetChannelUnaliasedName());
-        if (found) {
-            const char8 *fullQualifiedNameBuffer = fullQualifiedName.Buffer();
-            signalAddress = NULL_PTR(void *);
-            channelList[n].GetSignalMemory(&fullQualifiedNameBuffer[unaliasedChannelName.Size() + 1u], signalAddress);
-        }
-    }
-    if (ok) {
-        ok = found;
-    }
-    if (ok) {
-        ok = (signalAddress != NULL_PTR(void *));
-    }
-    if (ok) {
-        REPORT_ERROR(ErrorManagement::Information, "Signal [%s] was found in the declared structure", fullQualifiedName.Buffer());
-    }
-    return ok;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
@@ -205,7 +174,7 @@ const char8* EPICSPVAOutput::GetBrokerName(StructuredDataI& data, const SignalDi
 
 bool EPICSPVAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
     ReferenceT<MemoryMapAsyncOutputBroker> broker("MemoryMapAsyncOutputBroker");
-    bool ok = broker->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
+    bool ok = broker->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBrokerBuffers, cpuMask, stackSize);
     if (ok) {
         ok = outputBrokers.Insert(broker);
         broker->SetIgnoreBufferOverrun(ignoreBufferOverrun == 1u);
@@ -225,10 +194,6 @@ uint32 EPICSPVAOutput::GetStackSize() const {
 
 uint32 EPICSPVAOutput::GetCPUMask() const {
     return cpuMask;
-}
-
-uint32 EPICSPVAOutput::GetNumberOfBuffers() const {
-    return numberOfBuffers;
 }
 
 bool EPICSPVAOutput::Synchronise() {

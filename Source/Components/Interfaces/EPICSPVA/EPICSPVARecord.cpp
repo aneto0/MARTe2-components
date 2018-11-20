@@ -204,10 +204,10 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
                     uint32 numberOfElements = 1u;
                     (void) cdb.Read("NumberOfElements", numberOfElements);
                     if (numberOfElements > 1u) {
-                        fieldBuilder = fieldBuilder->addNestedStructure(nodeName);
+                        fieldBuilder = fieldBuilder->addNestedStructureArray(nodeName);
                     }
                     else {
-                        fieldBuilder = fieldBuilder->addNestedStructureArray(nodeName);
+                        fieldBuilder = fieldBuilder->addNestedStructure(nodeName);
                     }
                     StreamString pvaNodeId;
                     if (cdb.Read("_PVANodeId", pvaNodeId)) {

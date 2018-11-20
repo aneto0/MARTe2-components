@@ -89,11 +89,6 @@ TEST(EPICSPVAOutputGTest,TestInitialise_False_Signals) {
     ASSERT_TRUE(test.TestInitialise_False_Signals());
 }
 
-TEST(EPICSPVAOutputGTest,TestInitialise_False_NumberOfBuffers) {
-    EPICSPVAOutputTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers());
-}
-
 TEST(EPICSPVAOutputGTest,TestGetCPUMask) {
     EPICSPVAOutputTest test;
     ASSERT_TRUE(test.TestGetCPUMask());

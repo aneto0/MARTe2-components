@@ -52,19 +52,9 @@ public:
     bool TestSetup();
 
     /**
-     * @brief Tests that the Setup method fails for signals with dimensions > 1.
+     * @brief Tests the SetAliasAndField method.
      */
-    bool TestSetup_False_Dimensions();
-
-    /**
-     * @brief Tests that the Setup method fails with an invalid leaf.
-     */
-    bool TestSetup_False_InvalidLeaf();
-
-    /**
-     * @brief Tests the GetSignalMemory method.
-     */
-    bool TestGetSignalMemory();
+    bool TestSetAliasAndField();
 
     /**
      * @brief Tests the Put method.
@@ -82,9 +72,9 @@ public:
     bool TestGetChannelName();
 
     /**
-     * @brief Test the GetChannelUnaliasedName method.
+     * @brief Test the GetFieldName method.
      */
-    bool TestGetChannelUnaliasedName();
+    bool TestGetFieldName();
 };
 
 /*---------------------------------------------------------------------------*/

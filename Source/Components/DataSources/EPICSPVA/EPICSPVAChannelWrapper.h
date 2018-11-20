@@ -34,6 +34,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "ConfigurationDatabase.h"
+#include "DataSourceI.h"
 #include "StreamString.h"
 #include "StructuredDataI.h"
 
@@ -81,16 +82,18 @@ public:
 
     /**
      * @brief Registers the channel with a name given by data.Read("Alias") or data.GetName(), if the former does not exist.
+     * @details Also tries to read the field name data.Read("Field"). If not set Field = value is assumed.
      * @param[in] data the structure to be registered against the channel.
      */
-    bool Setup(StructuredDataI &data);
+    bool SetAliasAndField(StructuredDataI &data);
 
     /**
-     * @brief Gets the memory associated to the signal with the provided \a qualifiedName (that shall exist in the structure provide in Setup).
-     * @param[in] qualifiedName the full signal name inside the structure (dot separated).
-     * @param[out] mem the signal memory or NULL if the signal cannot be found.
+     * @brief Setup all the signal memory information.
+     * @param[in] dataSource the data source holding the signals.
+     * @parma[in] direction the signal direction.
+     * @return true if the memory setup was successfully set.
      */
-    void GetSignalMemory(const char8 * const qualifiedName, void *&mem);
+    bool Setup(DataSourceI &dataSource);
 
     /**
      * @brief Copies from each signal memory (see GetSignalMemory) into the relevant PVA structure fields and commit the changes.
@@ -106,16 +109,16 @@ public:
     bool Monitor();
 
     /**
-     * @brief Gets this channel name (see Setup).
+     * @brief Gets this channel name (see SetAliasAndField).
      * @return this channel name .
      */
     const char8 * const GetChannelName();
 
     /**
-     * @brief Gets this channel name irrespectively of the Alias.
-     * @return this channel name irrespectively of the Alias.
+     * @brief Gets the field name (see SetAliasAndField)..
+     * @return the field name.
      */
-    const char8 * const GetChannelUnaliasedName();
+    const char8 * const GetFieldName();
 
 private:
 
@@ -135,38 +138,6 @@ private:
      */
     template<typename T>
     bool GetArrayHelper(epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr, uint32 n);
-
-    /**
-     * @brief Recursively loads the signal structures into a ConfigurationDatabase (which is used as a memory backend).
-     * @param[in] cdbSignalStructure the signals to be loaded (see Setup).
-     * @param[in] fullNodeName the full name of the node currently being queried.
-     * @param[in] relativeNodeName the name of the node currently being queried.
-     * @return true if all the ConfigurationDatabase read/write operations are successful.
-     */
-    bool LoadSignalStructure(StructuredDataI &cdbSignalStructure, StreamString fullNodeName, StreamString relativeNodeName);
-
-    /**
-     * @brief Loads a basic type into the memory backend configuration database.
-     * @param[in] td the type to load.
-     * @param[in] numberOfElements the number of elements associated to the type.
-     * @param[in] numberOfDimensions the number of dimensions associated to the type.
-     * @param[in] fullNodeName the full name of the node currently being queried.
-     * @param[in] relativeNodeName the name of the node currently being queried.
-     * @return true if all the ConfigurationDatabase write operation is successful.
-     */
-    bool LoadBasicType(TypeDescriptor &td, uint32 numberOfElements, uint32 numberOfDimensions, StreamString fullNodeName,
-                       StreamString relativeNodeName);
-
-    /**
-     * @brief Recursively loads a structure type into the memory backend configuration database.
-     * @param[in] type name the name of the type to load.
-     * @param[in] fullNodeName the full name of the node currently being queried.
-     * @param[in] relativeNodeName the name of the node currently being queried.
-     * @param[in] entry introspection information about the type.
-     * @return true if all the ConfigurationDatabase write operation is successful.
-     */
-    bool LoadStructuredType(const char8 * const typeName, StreamString fullNodeName, StreamString relativeNodeName,
-                            const IntrospectionEntry *entry);
 
     /**
      * The EPICS PVA channel
@@ -189,24 +160,19 @@ private:
     StreamString channelName;
 
     /**
-     * The channelName without considering the alias
+     * The original signal name
      */
-    StreamString unliasedChannelName;
+    StreamString originalName;
 
     /**
-     * The backend memory
+     * The EPICSPVA fieldName
      */
-    ConfigurationDatabase memoryBackend;
+    StreamString fieldName;
 
     /**
      * The number of signals that were found while loading the structure.
      */
     uint32 numberOfSignals;
-
-    /**
-     * Number of signals actually being used by the broker.
-     */
-    uint32 numberOfRequestedSignals;
 
     /**
      * The cached signals (flat list of the structure identified with the qualifiedName).
