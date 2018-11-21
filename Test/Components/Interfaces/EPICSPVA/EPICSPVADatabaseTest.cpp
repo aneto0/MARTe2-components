@@ -58,29 +58,41 @@ bool EPICSPVADatabaseTest::TestInitialise_Defaults() {
     using namespace MARTe;
 
     StreamString config = ""
+            "+Types = {"
+            "   Class = ReferenceContainer"
+            "   +EPICSPVADatabaseTestT1 = {"
+            "       Class = IntrospectionStructure"
+            "       ElementB1 = {"
+            "           Type = uint8"
+            "           NumberOfElements = 100"
+            "       }"
+            "       ElementB2 = {"
+            "           Type = float32"
+            "           NumberOfElements = 5"
+            "       }"
+            "   }"
+            "   +EPICSPVADatabaseTestT2 = {"
+            "       Class = IntrospectionStructure"
+            "       Element1 = {"
+            "           Type = uint32"
+            "           NumberOfElements = 10"
+            "       }"
+            "       Element2 = {"
+            "           Type = float32"
+            "       }"
+            "       ElementsB = {"
+            "           Type = EPICSPVADatabaseTestT1"
+            "       }"
+            "   }"
+            "}"
             "+EPICSPVADatabase1 = {"
             "    Class = EPICSPVADatabase"
             "    +Record1 = {"
             "        Class = EPICSPVA::EPICSPVARecord"
             "        Structure = {"
             "            ElementsA = {"
-            "                Element1 = {"
-            "                   Type = uint32"
-            "                   NumberOfElements = 10"
-            "               }"
-            "               Element2 = {"
-            "                   Type = float32"
-            "               }"
-            "               ElementsB = {"
-            "                   ElementB1 = {"
-            "                       Type = uint8"
-            "                       NumberOfElements = 100"
-            "                   }"
-            "                   ElementB2 = {"
-            "                       Type = float32"
-            "                       NumberOfElements = 5"
-            "                   }"
-            "               }"
+            "                Type = EPICSPVADatabaseTestT2"
+            "                NumberOfElements = 1"
             "            }"
             "        }"
             "    }"
@@ -134,6 +146,33 @@ bool EPICSPVADatabaseTest::TestInitialise_NoDefaults() {
     using namespace MARTe;
 
     StreamString config = ""
+            "+Types = {"
+            "   Class = ReferenceContainer"
+            "   +EPICSPVADatabaseTestT1 = {"
+            "       Class = IntrospectionStructure"
+            "       ElementB1 = {"
+            "           Type = uint8"
+            "           NumberOfElements = 100"
+            "       }"
+            "       ElementB2 = {"
+            "           Type = float32"
+            "           NumberOfElements = 5"
+            "       }"
+            "   }"
+            "   +EPICSPVADatabaseTestT2 = {"
+            "       Class = IntrospectionStructure"
+            "       Element1 = {"
+            "           Type = uint32"
+            "           NumberOfElements = 10"
+            "       }"
+            "       Element2 = {"
+            "           Type = float32"
+            "       }"
+            "       ElementsB = {"
+            "           Type = EPICSPVADatabaseTestT1"
+            "       }"
+            "   }"
+            "}"
             "+EPICSPVADatabase1 = {"
             "    Class = EPICSPVADatabase"
             "    CPUs = 0x1"
@@ -143,23 +182,8 @@ bool EPICSPVADatabaseTest::TestInitialise_NoDefaults() {
             "        Class = EPICSPVA::EPICSPVARecord"
             "        Structure = {"
             "            ElementsA = {"
-            "                Element1 = {"
-            "                   Type = uint32"
-            "                   NumberOfElements = 10"
-            "               }"
-            "               Element2 = {"
-            "                   Type = float32"
-            "               }"
-            "               ElementsB = {"
-            "                   ElementB1 = {"
-            "                       Type = uint8"
-            "                       NumberOfElements = 100"
-            "                   }"
-            "                   ElementB2 = {"
-            "                       Type = float32"
-            "                       NumberOfElements = 5"
-            "                   }"
-            "               }"
+            "                Type = EPICSPVADatabaseTestT2"
+            "                NumberOfElements = 1"
             "            }"
             "        }"
             "    }"
@@ -208,32 +232,44 @@ bool EPICSPVADatabaseTest::TestExecute() {
     using namespace MARTe;
 
     StreamString config = ""
+            "+Types = {"
+            "   Class = ReferenceContainer"
+            "   +EPICSPVADatabaseTestT1 = {"
+            "       Class = IntrospectionStructure"
+            "       ElementB1 = {"
+            "           Type = uint8"
+            "           NumberOfElements = 100"
+            "       }"
+            "       ElementB2 = {"
+            "           Type = float32"
+            "           NumberOfElements = 5"
+            "       }"
+            "       ElementB3 = {"
+            "           Type = uint32"
+            "       }"
+            "   }"
+            "   +EPICSPVADatabaseTestT2 = {"
+            "       Class = IntrospectionStructure"
+            "       Element1 = {"
+            "           Type = uint32"
+            "           NumberOfElements = 10"
+            "       }"
+            "       Element2 = {"
+            "           Type = float32"
+            "       }"
+            "       ElementsB = {"
+            "           Type = EPICSPVADatabaseTestT1"
+            "       }"
+            "   }"
+            "}"
             "+EPICSPVADatabase1 = {"
             "    Class = EPICSPVADatabase"
             "    +Record1 = {"
             "        Class = EPICSPVA::EPICSPVARecord"
             "        Structure = {"
             "            value = {"
-            "               Element1 = {"
-            "                   Type = uint32"
-            "                   NumberOfElements = 10"
-            "               }"
-            "               Element2 = {"
-            "                   Type = float32"
-            "               }"
-            "               ElementsB = {"
-            "                   ElementB1 = {"
-            "                       Type = uint32"
-            "                       NumberOfElements = 8"
-            "                   }"
-            "                   ElementB2 = {"
-            "                       Type = float32"
-            "                       NumberOfElements = 10"
-            "                   }"
-            "                   ElementB3 = {"
-            "                       Type = uint32"
-            "                   }"
-            "               }"
+            "               Type = EPICSPVADatabaseTestT2"
+            "               NumberOfElements = 1"
             "            }"
             "        }"
             "    }"
@@ -308,7 +344,6 @@ bool EPICSPVADatabaseTest::TestExecute() {
     return ok;
 }
 
-
 //An introspectable structure
 struct EPICSPVADatabaseTestS2 {
     MARTe::uint32 ElementB1[8];
@@ -325,12 +360,14 @@ struct EPICSPVADatabaseTestS1 {
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB1, uint32, "[8]", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB2, float32, "[10]", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB3, uint32, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS2StructEntries[] = { &EPICSPVADatabaseTestS2_ElementB1_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB2_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB3_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS2StructEntries[] = { &EPICSPVADatabaseTestS2_ElementB1_introspectionEntry,
+        &EPICSPVADatabaseTestS2_ElementB2_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB3_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestS2, EPICSPVADatabaseTestS2StructEntries)
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, Element1, uint32, "[10]", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, Element2, float32, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, ElementsB, EPICSPVADatabaseTestS2, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS1StructEntries[] = { &EPICSPVADatabaseTestS1_Element1_introspectionEntry, &EPICSPVADatabaseTestS1_Element2_introspectionEntry, &EPICSPVADatabaseTestS1_ElementsB_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS1StructEntries[] = { &EPICSPVADatabaseTestS1_Element1_introspectionEntry,
+        &EPICSPVADatabaseTestS1_Element2_introspectionEntry, &EPICSPVADatabaseTestS1_ElementsB_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestS1, EPICSPVADatabaseTestS1StructEntries)
 
 bool EPICSPVADatabaseTest::TestExecute_StructuredTypes() {
@@ -401,6 +438,34 @@ bool EPICSPVADatabaseTest::TestExecute_Array() {
     using namespace MARTe;
 
     StreamString config = ""
+            "+Types = {"
+            "   Class = ReferenceContainer"
+            "   +EPICSPVADatabaseTestT1 = {"
+            "       Class = IntrospectionStructure"
+            "       ElementB1 = {"
+            "           Type = uint32"
+            "           NumberOfElements = 10"
+            "       }"
+            "       ElementB2 = {"
+            "           Type = float32"
+            "           NumberOfElements = 10"
+            "       }"
+            "   }"
+            "   +EPICSPVADatabaseTestT2 = {"
+            "       Class = IntrospectionStructure"
+            "       Element1 = {"
+            "           Type = uint32"
+            "           NumberOfElements = 10"
+            "       }"
+            "       Element2 = {"
+            "           Type = float32"
+            "       }"
+            "       ElementsB = {"
+            "           Type = EPICSPVADatabaseTestT1"
+            "           NumberOfElements = 1"
+            "       }"
+            "   }"
+            "}"
             "+EPICSPVADatabase1 = {"
             "    Class = EPICSPVADatabase"
             "    +Rec = {"
@@ -408,23 +473,8 @@ bool EPICSPVADatabaseTest::TestExecute_Array() {
             "        Alias = Record1"
             "        Structure = {"
             "            value = {"
-            "               Element1 = {"
-            "                   Type = uint32"
-            "                   NumberOfElements = 10"
-            "               }"
-            "               Element2 = {"
-            "                   Type = float32"
-            "               }"
-            "               ElementsB = {"
-            "                   ElementB1 = {"
-            "                       Type = uint32"
-            "                       NumberOfElements = 8"
-            "                   }"
-            "                   ElementB2 = {"
-            "                       Type = float32"
-            "                       NumberOfElements = 10"
-            "                   }"
-            "               }"
+            "                Type = EPICSPVADatabaseTestT2"
+            "                NumberOfElements = 1"
             "            }"
             "        }"
             "    }"
@@ -482,13 +532,14 @@ bool EPICSPVADatabaseTest::TestExecute_Array() {
             out[n] = n + 1;
         }
         epics::pvData::shared_vector<const uint32> outF = freeze(out);
-        channel.put().set("value.Element1", outF).exec();
+        const char8 *const field = "value.ElementsB.ElementB1";
+        channel.put().set(field, outF).exec();
         if (ok) {
             epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();
-            std::shared_ptr<const epics::pvData::PVUIntArray> rvalue = getStruct->getSubField<epics::pvData::PVUIntArray>("value.Element1");
+            std::shared_ptr<const epics::pvData::PVUIntArray> rvalue = getStruct->getSubField<epics::pvData::PVUIntArray>(field);
             epics::pvData::shared_vector<const uint32> out;
             out.resize(numberOfElements);
-            rvalue->getAs<uint32>(out);
+            rvalue->getAs < uint32 > (out);
             for (n = 0u; (n < numberOfElements) && (ok); n++) {
                 ok = (out[n] == (n + 1));
             }

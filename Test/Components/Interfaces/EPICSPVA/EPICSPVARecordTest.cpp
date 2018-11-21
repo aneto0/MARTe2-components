@@ -32,6 +32,7 @@
 #include "ConfigurationDatabase.h"
 #include "EPICSPVARecord.h"
 #include "EPICSPVARecordTest.h"
+#include "IntrospectionStructure.h"
 #include "ObjectRegistryDatabase.h"
 #include "RegisteredMethodsMessageFilter.h"
 #include "MessageI.h"
@@ -53,15 +54,36 @@ bool EPICSPVARecordTest::TestConstructor() {
 
 bool EPICSPVARecordTest::TestCreatePVRecord() {
     using namespace MARTe;
+    ConfigurationDatabase cdbType;
+    cdbType.CreateAbsolute("+EPICSPVARecordTestS1");
+    cdbType.CreateRelative("A");
+    cdbType.Write("Type", "uint32");
+    cdbType.Write("NumberOfElements", 3);
+    cdbType.CreateAbsolute("+EPICSPVARecordTestS2");
+    cdbType.CreateRelative("B");
+    cdbType.Write("Type", "EPICSPVARecordTestS1");
+    cdbType.Write("NumberOfElements", 2);
+
+    cdbType.MoveAbsolute("+EPICSPVARecordTestS1");
+    IntrospectionStructure is1;
+    is1.SetName("EPICSPVARecordTestS1");
+    is1.Initialise(cdbType);
+    IntrospectionStructure is2;
+    cdbType.MoveAbsolute("+EPICSPVARecordTestS2");
+    is2.SetName("EPICSPVARecordTestS2");
+    is2.Initialise(cdbType);
     ConfigurationDatabase cdb;
-    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.B");
+    cdb.CreateAbsolute("Structure.B");
     cdb.Write("Type", "uint32");
     cdb.Write("NumberOfElements", 1);
-    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.C");
+    cdb.CreateAbsolute("Structure.C");
     cdb.Write("Type", "uint32");
     cdb.Write("NumberOfElements", 10);
-    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.D");
-    cdb.Write("Type", "string");
+    cdb.CreateAbsolute("Structure.D");
+    cdb.Write("Type", "uint8");
+    cdb.Write("NumberOfElements", 64);
+    cdb.CreateAbsolute("Structure.E");
+    cdb.Write("Type", "EPICSPVARecordTestS2");
     cdb.Write("NumberOfElements", 1);
     cdb.MoveToRoot();
     EPICSPVARecord pvaRecord;
@@ -70,6 +92,7 @@ bool EPICSPVARecordTest::TestCreatePVRecord() {
     if (ok) {
         ok = (pvaRecord.CreatePVRecord() ? true : false);
     }
+    ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
 
@@ -93,8 +116,24 @@ bool EPICSPVARecordTest::TestInitialise_False_NoStructure() {
 bool EPICSPVARecordTest::TestInitialise_False_InvalidType() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
-    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.C");
+    cdb.CreateAbsolute("Structure.C");
     cdb.Write("Type", "uint4");
+    cdb.Write("NumberOfElements", 1);
+    cdb.MoveToRoot();
+    EPICSPVARecord pvaRecord;
+    pvaRecord.SetName("EPICSPVARecordTestTestInitialise_False_InvalidType");
+    bool ok = pvaRecord.Initialise(cdb);
+    if (ok) {
+        ok = (pvaRecord.CreatePVRecord() ? false : true);
+    }
+    return ok;
+}
+
+bool EPICSPVARecordTest::TestInitialise_False_NoType() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.CreateAbsolute("Structure.StA.C");
+    cdb.Write("Type", "uint32");
     cdb.Write("NumberOfElements", 1);
     cdb.MoveToRoot();
     EPICSPVARecord pvaRecord;
@@ -109,10 +148,10 @@ bool EPICSPVARecordTest::TestInitialise_False_InvalidType() {
 bool EPICSPVARecordTest::TestGetRecordName() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
-    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.B");
+    cdb.CreateAbsolute("Structure.B");
     cdb.Write("Type", "uint32");
     cdb.Write("NumberOfElements", 1);
-    cdb.CreateAbsolute("Structure.EPICSPVARecordTest.C");
+    cdb.CreateAbsolute("Structure.C");
     cdb.Write("Type", "uint32");
     cdb.Write("NumberOfElements", 10);
     cdb.MoveToRoot();

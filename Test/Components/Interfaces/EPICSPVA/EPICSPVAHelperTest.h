@@ -1,7 +1,7 @@
 /**
- * @file EPICSPVARecordTest.h
- * @brief Header file for class EPICSPVARecordTest
- * @date 13/10/2018
+ * @file EPICSPVAHelperTest.h
+ * @brief Header file for class EPICSPVAHelperTest
+ * @date 21/11/2018
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class EPICSPVARecordTest
+ * @details This header file contains the declaration of the class EPICSPVAHelperTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSPVA_EPICSPVARECORDTEST_H_
-#define EPICSPVA_EPICSPVARECORDTEST_H_
+#ifndef EPICSPVA_EPICSPVAHELPERTEST_H_
+#define EPICSPVA_EPICSPVAHELPERTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -32,55 +32,33 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 /**
- * @brief Tests the EPICSPVARecord public methods.
+ * @brief Tests the EPICSPVAHelper public methods.
  */
-class EPICSPVARecordTest {
+class EPICSPVAHelperTest {
 public:
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the GetStructure method.
      */
-    bool TestConstructor();
+    bool TestGetStructure();
 
     /**
-     * @brief Tests the CreatePVRecord method.
+     * @brief Tests the InitStructure method.
      */
-    bool TestCreatePVRecord();
+    bool TestInitStructureArrays();
 
     /**
-     * @brief Tests the Initialise method.
+     * @brief Tests the GetStructure method with an unregistered type. Not sure how I can force this error...
      */
-    bool TestInitialise();
-
-    /**
-     * @brief Tests that the Initialise method fails if no Structure field is defined.
-     */
-    bool TestInitialise_False_NoStructure();
-
-    /**
-     * @brief Tests that the Initialise method fails if an invalid type is specified.
-     */
-    bool TestInitialise_False_InvalidType();
-
-    /**
-     * @brief Tests that the Initialise method fails if no type is specified.
-     */
-    bool TestInitialise_False_NoType();
-
-    /**
-     * @brief Test the GetRecordName method.
-     */
-    bool TestGetRecordName();
+    //bool TestGetStructure_False_UnregisteredType();
 };
-
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSPVA_EPICSPVARECORDTEST_H_ */
+#endif /* EPICSPVA_EPICSPVAHELPERTEST_H_ */
+

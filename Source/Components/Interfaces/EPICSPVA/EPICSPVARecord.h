@@ -115,26 +115,23 @@ private:
     bool GetEPICSStructure(epics::pvData::FieldBuilderPtr & fieldBuilder);
 
     /**
-     * @brief Expands the structured types (if any).
-     * @param[in] cdb the database to be traversed.
-     * @return true if all the structured types found could be expanded.
-     */
-    bool ExpandStructuredTypes(ConfigurationDatabase &cdb);
-
-    /**
-     * @brief Expands a structured type to a configuration database.
-     * @param[in] typeName the name of the type to be expanded.
-     * @param[out] the database where to write the signal into.
-     * @return true if all the structured types found could be expanded.
-     */
-    bool ExpandStructuredType(const char8 * const typeName, ConfigurationDatabase &cdb);
-
-    /**
-     * @brief Initialises all the members in the PVStructure (in particular the arrays).
-     * @param[in] pvaDB the structure to initialise.
+     * @brief Initialises all the members in the PVStructure Structure Arrays.
+     * @param[in] pvaStruct the structure to initialise.
      * @return true if the structure is correctly initialised.
      */
-    bool InitEPICSStructure(StructuredDataI &pvaDB);
+    bool InitEPICSStructureArray(epics::pvData::PVStructurePtr pvaStruct);
+
+    /**
+     * @brief Initialises all the members in the PVStructure arrays.
+     * @param[in] pvaDB PVStructure wrapped on a StructuredDataI (for convenience).
+     * @return true if all the arrays are properly initialised.
+     */
+    bool InitEPICSArrays(StructuredDataI &pvaDB);
+
+    /**
+     * @brief Helper method which computes the total number of elements in a given array.
+     */
+    uint32 GetArrayNumberOfElements(StructuredDataI &cdb);
 
     /**
      * @brief Helper method to initialise an array.

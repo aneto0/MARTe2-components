@@ -27,6 +27,7 @@
 OBJSX +=  EPICSObjectRegistryDatabaseServiceTest.x \
     EPICSPVA2V3ServiceTest.x \
     EPICSPVADatabaseTest.x \
+    EPICSPVAHelperTest.x \
     EPICSPVAMessageITest.x \
     EPICSPVARecordTest.x \
     EPICSPVAStructureDataITest.x \
