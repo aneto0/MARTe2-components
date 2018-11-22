@@ -63,12 +63,16 @@ struct EPICSPVAChannelWrapperCachedSignal {
      * Allocate memory with sufficient space to hold a copy of the signal.
      */
     void *memory;
+    /**
+     * The pv field
+     */
+    epics::pvData::PVFieldPtr pvField;
 };
 
 /**
  * @brief Helper class which encapsulates a PVA signal (record) and allows to put/monitor.
  */
-class EPICSPVAChannelWrapper {
+class EPICSPVAChannelWrapper: public pvac::ClientChannel::PutCallback {
 public:
     /**
      * @brief Constructor. NOOP.
@@ -78,7 +82,7 @@ public:
     /**
      * @brief Destructor. NOOP.
      */
-    ~EPICSPVAChannelWrapper();
+    virtual ~EPICSPVAChannelWrapper();
 
     /**
      * @brief Registers the channel with a name given by data.Read("Alias") or data.GetName(), if the former does not exist.
@@ -120,15 +124,29 @@ public:
      */
     const char8 * const GetFieldName();
 
+    /**
+     * @brief TODO
+     */
+    virtual void putBuild(const epics::pvData::StructureConstPtr& build, pvac::ClientChannel::PutCallback::Args& args);
+
+    /**
+     * @brief TODO
+     */
+    virtual void putDone(const pvac::PutEvent& evt);
+
 private:
 
     /**
+     * @brief TODO
+     */
+    bool ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName);
+
+    /**
      * @brief Helper method which set signal at index \a in the \a putBuilder.
-     * @param[in] putBuilder a valid builder which will be updated with the signal[n] value.
      * @param[in] n the index of the signal to write.
      */
     template<typename T>
-    void PutHelper(pvac::detail::PutBuilder &putBuilder, uint32 n);
+    void PutHelper(uint32 n);
 
     /**
      * @brief Helper method which gets the value of the signal at index \a from the relevant field in the \a scalarArrayPtr.
@@ -178,6 +196,21 @@ private:
      * The cached signals (flat list of the structure identified with the qualifiedName).
      */
     EPICSPVAChannelWrapperCachedSignal *cachedSignals;
+
+    /**
+     * Was the structured resolved at least once?
+     */
+    bool structureResolved;
+
+    /**
+     * TODO
+     */
+    epics::pvData::PVStructure::const_shared_pointer putPVStruct;
+
+    /**
+     * TODO
+     */
+    bool putFinished;
 };
 }
 
@@ -186,17 +219,21 @@ private:
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 template<typename T>
-void EPICSPVAChannelWrapper::PutHelper(pvac::detail::PutBuilder &putBuilder, uint32 n) {
+void EPICSPVAChannelWrapper::PutHelper(uint32 n) {
     if ((cachedSignals[n].numberOfElements) == 1u) {
-        putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), *static_cast<T *>(cachedSignals[n].memory));
+        epics::pvData::PVScalar::shared_pointer scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar
+                > (cachedSignals[n].pvField);
+        scalarFieldPtr->putFrom<T>(*static_cast<T *>(cachedSignals[n].memory));
     }
     else {
+        epics::pvData::PVScalarArray::shared_pointer scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
+                > (cachedSignals[n].pvField);
         epics::pvData::shared_vector<T> out;
         out.resize(cachedSignals[n].numberOfElements);
         (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory,
                                             cachedSignals[n].numberOfElements * sizeof(T));
         epics::pvData::shared_vector<const T> outF = freeze(out);
-        putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), outF);
+        scalarArrayPtr->putFrom<T>(outF);
     }
 }
 
