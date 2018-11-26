@@ -52,18 +52,53 @@ public:
      * @return an epics::pvData::Structure which maps into the introspection type.
      * Note that an invalid epics::pvData::StructureConstPtr will be returned if the operation fails.
      */
-    static epics::pvData::StructureConstPtr GetStructure(const Introspection *intro,
-                                                         const char8 * const typeName = NULL_PTR(const char8 * const));
+    static epics::pvData::StructureConstPtr GetStructure(const Introspection *intro, const char8 * const typeName = NULL_PTR(const char8 * const));
 
     /**
+     * TODO
      * @brief Inits PVStructureArrays in the portion of the epics::pvData::PVStructurePtr associated to the structure wrapped by the \a intro parameter and identified by the \a introStructName
      * @param[in] intro the type identifying the structure.
      * @param[in] pvStructPtr the PVStructurePtr to be initialised (in particular the PVStructureArray elements)
      * @param[in] introTypeName the name of the field where intro can be found in \a pvStructPtr.
      * @return true if the structure is successfully initialised.
      */
-    static bool InitPVStructureArrays(const Introspection *intro, epics::pvData::PVStructurePtr pvStructPtr,
-                                      const char8 * const introFieldName);
+    static bool InitStructure(const Introspection *intro, epics::pvData::PVStructurePtr pvStructPtr);
+
+    /**
+     * TODO
+     * @brief Inits PVStructureArrays in the portion of the epics::pvData::PVStructurePtr associated to the structure wrapped by the \a intro parameter and identified by the \a introStructName
+     * @param[in] intro the type identifying the structure.
+     * @param[in] pvStructPtr the PVStructurePtr to be initialised (in particular the PVStructureArray elements)
+     * @param[in] introTypeName the name of the field where intro can be found in \a pvStructPtr.
+     * @return true if the structure is successfully initialised.
+     */
+    static bool ReplaceStructureArray(const Introspection *intro, epics::pvData::PVStructureArrayPtr pvStructPtr, uint32 numberOfElements = 0u,
+                                      const char8 * const typeName = NULL_PTR(const char8 * const));
+
+    /**
+     * @brief TODO
+     */
+    static void REPORT_ERROR_PVA_STRUCT(ErrorManagement::ErrorType err, epics::pvData::StructureConstPtr pvaStruct);
+
+    /**
+     * @brief TODO
+     */
+    static bool GetType(const char8 * const memberTypeName, epics::pvData::ScalarType &epicsType);
+
+    /**
+     * @brief TODO
+     */
+    static bool GetType(TypeDescriptor typeDesc, epics::pvData::ScalarType &epicsType);
+
+    /**
+     * @brief TODO
+     */
+    static void InitArray(epics::pvData::PVScalarArrayPtr pvScalarArr, const uint32 &numberOfElements);
+
+    /**
+     * @brief TODO
+     */
+    static const char8 * const STRUCTURE_ARRAY_PARENT_ID;
 
 };
 }

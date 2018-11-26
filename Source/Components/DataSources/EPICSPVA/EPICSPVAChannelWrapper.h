@@ -86,7 +86,8 @@ public:
 
     /**
      * @brief Registers the channel with a name given by data.Read("Alias") or data.GetName(), if the former does not exist.
-     * @details Also tries to read the field name data.Read("Field"). If not set Field = value is assumed.
+     * @details Also tries to read the field name data.Read("Field"). If not set Field = value is assumed. The Field cannot be set as
+     *  node as this would prevent the RealTimeApplicationConfigurationBuilder from properly expanding the structured types.
      * @param[in] data the structure to be registered against the channel.
      */
     bool SetAliasAndField(StructuredDataI &data);
@@ -139,7 +140,7 @@ private:
     /**
      * @brief TODO
      */
-    bool ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName);
+    bool ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName, int32 idx = -1);
 
     /**
      * @brief Helper method which set signal at index \a in the \a putBuilder.
@@ -223,17 +224,27 @@ void EPICSPVAChannelWrapper::PutHelper(uint32 n) {
     if ((cachedSignals[n].numberOfElements) == 1u) {
         epics::pvData::PVScalar::shared_pointer scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar
                 > (cachedSignals[n].pvField);
-        scalarFieldPtr->putFrom<T>(*static_cast<T *>(cachedSignals[n].memory));
+        if (scalarFieldPtr ? true : false) {
+            scalarFieldPtr->putFrom<T>(*static_cast<T *>(cachedSignals[n].memory));
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field", cachedSignals[n].qualifiedName.Buffer());
+        }
     }
     else {
         epics::pvData::PVScalarArray::shared_pointer scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
                 > (cachedSignals[n].pvField);
-        epics::pvData::shared_vector<T> out;
-        out.resize(cachedSignals[n].numberOfElements);
-        (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory,
-                                            cachedSignals[n].numberOfElements * sizeof(T));
-        epics::pvData::shared_vector<const T> outF = freeze(out);
-        scalarArrayPtr->putFrom<T>(outF);
+        if (scalarArrayPtr ? true : false) {
+            epics::pvData::shared_vector<T> out;
+            out.resize(cachedSignals[n].numberOfElements);
+            (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory,
+                                                cachedSignals[n].numberOfElements * sizeof(T));
+            epics::pvData::shared_vector<const T> outF = freeze(out);
+            scalarArrayPtr->putFrom<T>(outF);
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field", cachedSignals[n].qualifiedName.Buffer());
+        }
     }
 }
 

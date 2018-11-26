@@ -120,15 +120,12 @@ bool EPICSPVAHelperTest::TestGetStructure() {
         epics::pvData::FieldConstPtr e3Ptr = strPtr->getField("Int64");
         ok = (e3Ptr ? true : false);
     }
-    if (ok) {
-        std::cout << strPtr << std::endl;
-    }
 
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
 
-bool EPICSPVAHelperTest::TestInitStructureArrays() {
+bool EPICSPVAHelperTest::TestInitStructure() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = ""
@@ -201,7 +198,95 @@ bool EPICSPVAHelperTest::TestInitStructureArrays() {
         ok = (pvStructure ? true : false);
     }
     if (ok) {
-        ok = EPICSPVAHelper::InitPVStructureArrays(intro, pvStructure, "");
+        ok = EPICSPVAHelper::InitStructure(intro, pvStructure);
+        std::cout << pvStructure << std::endl;
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool EPICSPVAHelperTest::TestReplaceStructureArray() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = ""
+            "+Types = {\n"
+            "    Class = ReferenceContainer"
+            "    +EPICSPVAHelperTestT1 = {\n"
+            "        Class = IntrospectionStructure"
+            "        UInt8 = {\n"
+            "            Type = uint8\n"
+            "            NumberOfElements = 32\n"
+            "        }\n"
+            "        UInt16 = {\n"
+            "            Type = uint16\n"
+            "            NumberOfElements = {3}\n"
+            "        }\n"
+            "        UInt32 = {\n"
+            "            Type = uint32\n"
+            "            NumberOfElements = {2}\n"
+            "        }\n"
+            "    }\n"
+            "    +EPICSPVAHelperTestT2 = {\n"
+            "        Class = IntrospectionStructure"
+            "        E1 = {\n"
+            "            Type = EPICSPVAHelperTestT1\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        E2 = {\n"
+            "            Type = EPICSPVAHelperTestT1\n"
+            "            NumberOfElements = {3}\n"
+            "        }\n"
+            "        Int64 = {\n"
+            "            Type = int64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "";
+    configStream.Seek(0);
+    StreamString err;
+    StandardParser parser(configStream, cdb, &err);
+
+    bool ok = parser.Parse();
+    if (ok) {
+        (void) cdb.MoveToRoot();
+        ObjectRegistryDatabase::Instance()->Initialise(cdb);
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "%s", err.Buffer());
+    }
+    const ClassRegistryItem *cri;
+    const Introspection *intro;
+    if (ok) {
+        cri = ClassRegistryDatabase::Instance()->Find("EPICSPVAHelperTestT2");
+        ok = (cri != NULL);
+    }
+    if (ok) {
+        intro = cri->GetIntrospection();
+        ok = (intro != NULL);
+    }
+    uint32 numberOfElements = 2u;
+    const char8* const typeName = "EPICSPVAHelperTestT2";
+    epics::pvData::StructureConstPtr strPtr;
+    if (ok) {
+        epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
+        epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
+        fieldBuilder = fieldBuilder->addArray("value", EPICSPVAHelper::GetStructure(intro, typeName));
+        strPtr = fieldBuilder->createStructure();
+        ok = (strPtr ? true : false);
+    }
+    epics::pvData::PVStructureArrayPtr pvStructureArray;
+    epics::pvData::PVStructurePtr pvStructure;
+    if (ok) {
+        pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(strPtr);
+        pvStructureArray = pvStructure->getSubField<epics::pvData::PVStructureArray> ("value");
+    }
+    if (ok) {
+        ok = (pvStructureArray ? true : false);
+    }
+    if (ok) {
+        ok = EPICSPVAHelper::ReplaceStructureArray(intro, pvStructureArray, numberOfElements, typeName);
         std::cout << pvStructure << std::endl;
     }
 

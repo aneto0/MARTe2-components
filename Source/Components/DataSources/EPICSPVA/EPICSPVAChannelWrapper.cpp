@@ -88,11 +88,14 @@ bool EPICSPVAChannelWrapper::Setup(DataSourceI &dataSource) {
             ok = signalName.Seek(0LLU);
         }
         bool signalBelongsToThisWrapper = false;
+        char8 term;
         if (ok) {
-            //Remove the first part of the signal (which is also the record name)
+            //Remove the first part of the signal (which is also the record name). Take into account that it could be an array!
             StreamString token;
-            char8 ignore;
-            ok = signalName.GetToken(token, ".", ignore);
+            ok = signalName.GetToken(token, ".[", term);
+            if (ok) {
+                ok = token.Seek(0LLU);
+            }
             if (ok) {
                 signalBelongsToThisWrapper = (token == originalName);
             }
@@ -104,7 +107,12 @@ bool EPICSPVAChannelWrapper::Setup(DataSourceI &dataSource) {
                     ok = tempCachedSignals[numberOfSignals].qualifiedName.Printf("%s", fieldName.Buffer());
                 }
                 else {
-                    ok = tempCachedSignals[numberOfSignals].qualifiedName.Printf("%s.%s", fieldName.Buffer(), signalName);
+                    if (term == '.') {
+                        ok = tempCachedSignals[numberOfSignals].qualifiedName.Printf("%s.%s", fieldName.Buffer(), signalName);
+                    }
+                    else {
+                        ok = tempCachedSignals[numberOfSignals].qualifiedName.Printf("%s[%s", fieldName.Buffer(), signalName);
+                    }
                 }
             }
             if (ok) {
@@ -264,41 +272,52 @@ bool EPICSPVAChannelWrapper::Put() {
     return ok;
 }
 
-bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName) {
+bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName, int32 idx) {
     bool ok = (pvStruct != NULL_PTR(const epics::pvData::PVStructure*));
     if (ok) {
         const epics::pvData::PVFieldPtrArray & fields = pvStruct->getPVFields();
         uint32 nOfFields = fields.size();
         uint32 n;
-        for (n = 0u; n < nOfFields; n++) {
+
+        for (n = 0u; (n < nOfFields) && (ok); n++) {
             epics::pvData::PVFieldPtr field = fields[n];
             epics::pvData::Type fieldType = field->getField()->getType();
-            StreamString fullFieldName = nodeName;
-            if (fullFieldName.Size() > 0u) {
-                fullFieldName += ".";
-            }
-            fullFieldName += field->getFieldName().c_str();
-            if ((fieldType == epics::pvData::scalar) || (fieldType == epics::pvData::scalarArray)) {
-                uint32 k;
-                bool found = false;
-                for (k = 0u; (k < numberOfSignals) && (ok) && (!found); k++) {
-                    found = (cachedSignals[k].qualifiedName == fullFieldName);
-                    if (found) {
-                        cachedSignals[k].pvField = field;
-                    }
-                }
-            }
-            else if (fieldType == epics::pvData::structure) {
-                ok = ResolveStructure(static_cast<const epics::pvData::PVStructure*>(field.operator ->()), fullFieldName.Buffer());
-            }
-            else if (fieldType == epics::pvData::structureArray) {
+            REPORT_ERROR_STATIC(ErrorManagement::Debug, "ResolveStructure -- fields [%d of %d] -- [%s]", n, nOfFields, field->getFieldName().c_str());
+
+
+            if (fieldType == epics::pvData::structureArray) {
                 epics::pvData::PVStructureArray::const_svector arr(
                         static_cast<const epics::pvData::PVStructureArray*>(field.operator ->())->view());
                 uint32 z;
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving structureArray [%s - %s] - [%d]", nodeName, field->getFieldName().c_str(), static_cast<int32>(arr.size()));
                 for (z = 0u; z < arr.size(); z++) {
                     //This assumes that only linear arrays are supported, otherwise the field name will be wrong.
-                    fullFieldName.Printf("[%d]", z);
-                    ok = ResolveStructure(arr[z].get(), fullFieldName.Buffer());
+                    ok = ResolveStructure(arr[z].get(), nodeName, static_cast<int32>(z));
+                }
+            }
+            else {
+                StreamString fullFieldName = nodeName;
+                if (fullFieldName.Size() > 0u) {
+                    fullFieldName += ".";
+                }
+                fullFieldName += field->getFieldName().c_str();
+                if (idx != -1) {
+                    fullFieldName.Printf("[%d]", idx);
+                }
+                if ((fieldType == epics::pvData::scalar) || (fieldType == epics::pvData::scalarArray)) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving scalar (or array of) [%s]", fullFieldName.Buffer());
+                    uint32 k;
+                    bool found = false;
+                    for (k = 0u; (k < numberOfSignals) && (ok) && (!found); k++) {
+                        found = (cachedSignals[k].qualifiedName == fullFieldName);
+                        if (found) {
+                            cachedSignals[k].pvField = field;
+                        }
+                    }
+                }
+                else if (fieldType == epics::pvData::structure) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving structure [%s]", fullFieldName.Buffer());
+                    ok = ResolveStructure(static_cast<const epics::pvData::PVStructure*>(field.operator ->()), fullFieldName.Buffer());
                 }
             }
         }
@@ -318,9 +337,9 @@ bool EPICSPVAChannelWrapper::Monitor() {
         if (ok) {
             if (!monitor.valid()) {
                 monitor = pvac::MonitorSync(channel.monitor());
+                structureResolved = false;
             }
             ok = monitor.valid();
-            structureResolved = false;
         }
         if (ok) {
             if (monitor.wait(0.2)) {

@@ -48,7 +48,12 @@ public:
     /**
      * @brief Tests the InitStructure method.
      */
-    bool TestInitStructureArrays();
+    bool TestInitStructure();
+
+    /**
+     * @brief Tests the ReplaceStructureArray method with a structured array at the root level.
+     */
+    bool TestReplaceStructureArray();
 
     /**
      * @brief Tests the GetStructure method with an unregistered type. Not sure how I can force this error...

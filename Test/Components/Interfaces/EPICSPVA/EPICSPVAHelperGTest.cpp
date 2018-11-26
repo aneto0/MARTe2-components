@@ -46,5 +46,10 @@ TEST(EPICSPVAHelperGTest,TestGetStructure) {
 
 TEST(EPICSPVAHelperGTest,TestInitStructure) {
     EPICSPVAHelperTest test;
-    ASSERT_TRUE(test.TestInitStructureArrays());
+    ASSERT_TRUE(test.TestInitStructure());
+}
+
+TEST(EPICSPVAHelperGTest,TestReplaceStructureArray) {
+    EPICSPVAHelperTest test;
+    ASSERT_TRUE(test.TestReplaceStructureArray());
 }

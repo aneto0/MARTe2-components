@@ -108,6 +108,11 @@ EPICSPVARecord    ();
 
 private:
     /**
+     * @brief TODO
+     */
+    bool InitEPICSStructure(epics::pvData::PVStructurePtr pvStructure);
+
+    /**
      * @brief Recursively constructs the PVRecord from the configuration described in the "Structure" node of the configuration input (see Initialise).
      * @param[in] fieldBuilder the epics::pvData::FieldBuilde that is used to build the epics::pvDatabase::PVRecord.
      * @return true if all the fields are successfully (recursively) added to the epics::pvDatabase::PVRecord.
@@ -115,33 +120,9 @@ private:
     bool GetEPICSStructure(epics::pvData::FieldBuilderPtr & fieldBuilder);
 
     /**
-     * @brief Initialises all the members in the PVStructure Structure Arrays.
-     * @param[in] pvaStruct the structure to initialise.
-     * @return true if the structure is correctly initialised.
-     */
-    bool InitEPICSStructureArray(epics::pvData::PVStructurePtr pvaStruct);
-
-    /**
-     * @brief Initialises all the members in the PVStructure arrays.
-     * @param[in] pvaDB PVStructure wrapped on a StructuredDataI (for convenience).
-     * @return true if all the arrays are properly initialised.
-     */
-    bool InitEPICSArrays(StructuredDataI &pvaDB);
-
-    /**
      * @brief Helper method which computes the total number of elements in a given array.
      */
     uint32 GetArrayNumberOfElements(StructuredDataI &cdb);
-
-    /**
-     * @brief Helper method to initialise an array.
-     * @param[in] data the database holding the array.
-     * @param[in] name the name of the parameter.
-     * @param[in] size number of elements in the array.
-     * @return true if the array can be successfully initialised.
-     */
-    template<typename T>
-    void InitArray(StructuredDataI &data, const char8 * const name, const uint32 &size);
 
     /**
      * Local copy of the ConfigurationDatabase.
@@ -157,18 +138,5 @@ private:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
-
-namespace MARTe {
-template<typename T>
-void EPICSPVARecord::InitArray(StructuredDataI &data, const char8 * const name, const uint32 &size) {
-Vector<T> vec(size);
-uint32 n;
-for (n = 0u; n < size; n++) {
-    vec[n] = static_cast<T>(0u);
-}
-data.Write(name, vec);
-}
-
-}
 
 #endif /* EPICSPVA_EPICSPVARECORD_H_ */

@@ -494,6 +494,11 @@ TEST(EPICSPVAStructureDataIGTest,TestCopy) {
     ASSERT_TRUE(test.TestCopy());
 }
 
+TEST(EPICSPVAStructureDataIGTest,TestCopy_Structures) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestCopy_Structures());
+}
+
 TEST(EPICSPVAStructureDataIGTest,TestCopy_False_FinaliseStructure) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestCopy_False_FinaliseStructure());

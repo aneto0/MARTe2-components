@@ -504,6 +504,11 @@ public:
     bool TestCopy();
 
     /**
+     * @brief Tests the Copy method with structures and arrays of structures.
+     */
+    bool TestCopy_Structures();
+
+    /**
      * @brief Tests that the Copy method returns false if called before FinaliseStructure.
      */
     bool TestCopy_False_FinaliseStructure();

@@ -29,14 +29,16 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
-#include <EPICSPVAStructureDataI.h>
+#include "EPICSPVAHelper.h"
+#include "EPICSPVAStructureDataI.h"
+#include "EPICSPVAStructureDataITest.h"
+#include "EPICSRPCClient.h"
 #include "File.h"
 #include "ObjectRegistryDatabase.h"
 #include "StandardParser.h"
 #include "Vector.h"
-#include "EPICSPVAStructureDataITest.h"
-#include "EPICSRPCClient.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -63,8 +65,7 @@ bool EPICSPVAStructureDataITest::TestRead_Boolean() {
     epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
     fieldBuilder->add("Test", epics::pvData::pvBoolean);
     epics::pvData::PVStructurePtr currentStructPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());
-    epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar
-            > (currentStructPtr->getSubField("Test"));
+    epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar > (currentStructPtr->getSubField("Test"));
     bool val = true;
     scalarFieldPtr->putFrom<epics::pvData::boolean>(val);
     test.SetStructure(currentStructPtr);
@@ -156,8 +157,7 @@ bool EPICSPVAStructureDataITest::TestRead_Boolean_Array() {
     epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
     fieldBuilder->addBoundedArray("Test", epics::pvData::pvBoolean, 8);
     epics::pvData::PVStructurePtr currentStructPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());
-    epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
-            > (currentStructPtr->getSubField("Test"));
+    epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray > (currentStructPtr->getSubField("Test"));
 
     uint32 vsize = 8u;
     epics::pvData::shared_vector<epics::pvData::boolean> out;
@@ -174,7 +174,7 @@ bool EPICSPVAStructureDataITest::TestRead_Boolean_Array() {
     test.Read("Test", rvalue);
     bool ok = true;
     for (i = 0; (i < vsize) && (ok); i++) {
-        ok = (rvalue[i] == (uint8)(!(bool)(i % 2)));
+        ok = (rvalue[i] == (uint8) (!(bool) (i % 2)));
     }
     return ok;
 }
@@ -1141,7 +1141,101 @@ bool EPICSPVAStructureDataITest::TestCopy() {
         }
     }
     return ok;
+}
 
+bool EPICSPVAStructureDataITest::TestCopy_Structures() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    ConfigurationDatabase cdb;
+    StreamString configStream = ""
+            "+Types = {\n"
+            "    Class = ReferenceContainer"
+            "    +EPICSPVAStructureDataITestT1 = {\n"
+            "        Class = IntrospectionStructure"
+            "        UInt8 = {\n"
+            "            Type = uint8\n"
+            "            NumberOfElements = 32\n"
+            "        }\n"
+            "        UInt16 = {\n"
+            "            Type = uint16\n"
+            "            NumberOfElements = {3}\n"
+            "        }\n"
+            "        UInt32 = {\n"
+            "            Type = uint32\n"
+            "            NumberOfElements = {2}\n"
+            "        }\n"
+            "    }\n"
+            "    +EPICSPVAStructureDataITestT2 = {\n"
+            "        Class = IntrospectionStructure"
+            "        E1 = {\n"
+            "            Type = EPICSPVAStructureDataITestT1\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "        E2 = {\n"
+            "            Type = EPICSPVAStructureDataITestT1\n"
+            "            NumberOfElements = {3}\n"
+            "        }\n"
+            "        Int64 = {\n"
+            "            Type = int64\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "    +EPICSPVAStructureDataITestT3 = {\n"
+            "        Class = IntrospectionStructure"
+            "        F1 = {\n"
+            "            Type = EPICSPVAStructureDataITestT2\n"
+            "            NumberOfElements = 1\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "";
+    configStream.Seek(0);
+    StreamString err;
+    StandardParser parser(configStream, cdb, &err);
+
+    bool ok = parser.Parse();
+    if (ok) {
+        (void) cdb.MoveToRoot();
+        ObjectRegistryDatabase::Instance()->Initialise(cdb);
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "%s", err.Buffer());
+    }
+    const ClassRegistryItem *cri;
+    const Introspection *intro;
+    if (ok) {
+        cri = ClassRegistryDatabase::Instance()->Find("EPICSPVAStructureDataITestT3");
+        ok = (cri != NULL);
+    }
+    if (ok) {
+        intro = cri->GetIntrospection();
+        ok = (intro != NULL);
+    }
+    epics::pvData::StructureConstPtr strPtr;
+    if (ok) {
+        strPtr = EPICSPVAHelper::GetStructure(intro, "EPICSPVAStructureDataITestT3");
+        ok = (strPtr ? true : false);
+    }
+    epics::pvData::PVStructurePtr pvStructure;
+    if (ok) {
+        pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(strPtr);
+    }
+    if (ok) {
+        ok = (pvStructure ? true : false);
+    }
+    if (ok) {
+        ok = EPICSPVAHelper::InitStructure(intro, pvStructure);
+        std::cout << pvStructure << std::endl;
+    }
+    test.SetStructure(pvStructure);
+    ConfigurationDatabase destCDB;
+    ok = test.Copy(destCDB);
+
+    destCDB.MoveToRoot();
+    StreamString temp;
+    temp.Printf("%!", destCDB);
+    printf("%s", temp.Buffer());
+    return ok;
 }
 
 bool EPICSPVAStructureDataITest::TestCopy_False_FinaliseStructure() {

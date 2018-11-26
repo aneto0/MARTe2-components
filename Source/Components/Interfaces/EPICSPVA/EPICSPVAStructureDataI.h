@@ -178,7 +178,7 @@ public:
      * @post
      *    IsStructureFinalised().
      */
-    void SetStructure(epics::pvData::PVStructure::shared_pointer const & structPtrToSet);
+    void SetStructure(epics::pvData::PVStructurePtr const & structPtrToSet);
 
     /**
      * @brief Setup of the class so that the methods that allow modifying the structure can be called.
@@ -207,20 +207,15 @@ public:
 
 private:
     /**
+     * TODO
+     */
+    bool Move(const char8 * const path);
+
+    /**
      * @brief Gets the subNode Id
      * @return the subNode Id
      */
     virtual const char8 *GetChildId(const uint32 index);
-
-    /**
-     * @brief Helper method to read a boolean array from an epics::pvData::PVScalarArray into an uint8 type. This needs to exist
-     * because getAs refuses to convert from boolean to anything other than string.
-     * @param[in] scalarArrayPtr the array where to read the data from.
-     * @param[in] storedType the type of data to be read (as stored in the backed)
-     * @param[out] value where to store the read array.
-     * @return true if the array can be successfully read.
-     */
-    bool ReadBooleanArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value);
 
     /**
      * @brief Helper method to read an array from an epics::pvData::PVScalarArray into an AnyType. Should allow to convert from any numeric type to any numeric type.
@@ -266,7 +261,7 @@ private:
      * @param[in] create if true the nodes are added to the PVStructure, otherwise only the values are written.
      * @return true if the ConfigurationDatabase is successfully created.
      */
-    bool ConfigurationDataBaseToPVStructurePtr(ReferenceT<ReferenceContainer> currentNode, bool create = true);
+    bool ConfigurationDataBaseToPVStructurePtr(bool create = true);
 
     /**
      * Cached pointer to the current node.
@@ -317,6 +312,35 @@ bool EPICSPVAStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArr
     return ok;
 }
 
+template<>
+inline bool EPICSPVAStructureDataI::ReadArray<std::string>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
+    epics::pvData::shared_vector<const std::string> srcStr;
+    scalarArrayPtr->getAs<std::string>(srcStr);
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    uint32 i;
+    Vector<StreamString> dst(static_cast<StreamString *>(value.GetDataPointer()), numberOfElements);
+    for (i = 0u; i < numberOfElements; i++) {
+        dst[i] = srcStr[i].c_str();
+    }
+    return true;
+}
+
+template<>
+inline bool EPICSPVAStructureDataI::ReadArray<bool>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
+    bool ok = true;
+    epics::pvData::shared_vector<const epics::pvData::boolean> out;
+    scalarArrayPtr->getAs<epics::pvData::boolean>(out);
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    uint32 i;
+    Vector<uint8> readVec(reinterpret_cast<uint8 *>(value.GetDataPointer()), numberOfElements);
+    Vector<bool> srcVec(const_cast<bool *>(reinterpret_cast<const bool *>(out.data())), numberOfElements);
+    for (i = 0u; i < numberOfElements; i++) {
+        readVec[i] = (srcVec[i] ? 1u : 0u);
+    }
+
+    return ok;
+}
+
 template<typename T>
 bool EPICSPVAStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value, const uint32 &size) {
     epics::pvData::shared_vector<T> out;
@@ -325,6 +349,31 @@ bool EPICSPVAStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarAr
     epics::pvData::shared_vector<const T> outF = freeze(out);
     scalarArrayPtr->putFrom < T > (outF);
     return ok;
+}
+
+
+template<>
+inline bool EPICSPVAStructureDataI::WriteArray<std::string>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value, const uint32 &size) {
+    epics::pvData::shared_vector<const std::string> out;
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    out.resize(numberOfElements);
+    if (value.GetTypeDescriptor().type == SString) {
+        StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
+        uint32 i;
+        for (i = 0; i < numberOfElements; i++) {
+            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i].Buffer();
+        }
+        scalarArrayPtr->putFrom<std::string>(out);
+    }
+    else {
+        const char8 **src = static_cast<const char8 **>(value.GetDataPointer());
+        uint32 i;
+        for (i = 0; i < numberOfElements; i++) {
+            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i];
+        }
+        scalarArrayPtr->putFrom<std::string>(out);
+    }
+    return true;
 }
 
 }
