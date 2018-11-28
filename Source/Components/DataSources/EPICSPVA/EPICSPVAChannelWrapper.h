@@ -140,7 +140,7 @@ private:
     /**
      * @brief TODO
      */
-    bool ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName, int32 idx = -1);
+    bool ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName);
 
     /**
      * @brief Helper method which set signal at index \a in the \a putBuilder.
@@ -222,7 +222,7 @@ namespace MARTe {
 template<typename T>
 void EPICSPVAChannelWrapper::PutHelper(uint32 n) {
     if ((cachedSignals[n].numberOfElements) == 1u) {
-        epics::pvData::PVScalar::shared_pointer scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar
+        epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar
                 > (cachedSignals[n].pvField);
         if (scalarFieldPtr ? true : false) {
             scalarFieldPtr->putFrom<T>(*static_cast<T *>(cachedSignals[n].memory));
@@ -232,7 +232,7 @@ void EPICSPVAChannelWrapper::PutHelper(uint32 n) {
         }
     }
     else {
-        epics::pvData::PVScalarArray::shared_pointer scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
+        epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
                 > (cachedSignals[n].pvField);
         if (scalarArrayPtr ? true : false) {
             epics::pvData::shared_vector<T> out;

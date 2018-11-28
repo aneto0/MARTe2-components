@@ -36,7 +36,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-const char8 * const EPICSPVAHelper::STRUCTURE_ARRAY_PARENT_ID = "_structureArrayParent";
 
 template<typename T>
 void EPICSPVAHelperInitArrayT(epics::pvData::PVScalarArrayPtr scalarArrayPtr, const uint32 &size) {
@@ -163,7 +162,7 @@ bool EPICSPVAHelper::GetType(const char8 * const memberTypeName, epics::pvData::
     return GetType(typeDesc, epicsType);
 }
 
-epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(const Introspection *intro, const char8 * const typeName, bool addParentField = false) {
+epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(const Introspection *intro, const char8 * const typeName) {
     epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
     epics::pvData::StructureConstPtr topStructure;
@@ -213,14 +212,6 @@ epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(const Introsp
         }
     }
     if (ok) {
-        if (addParentField) {
-            if (sizeof(void *) == 8u) {
-                fieldBuilder = fieldBuilder->add(EPICSPVAHelper::STRUCTURE_ARRAY_PARENT_ID, epics::pvData::pvULong);
-            }
-            else {
-                fieldBuilder = fieldBuilder->add(EPICSPVAHelper::STRUCTURE_ARRAY_PARENT_ID, epics::pvData::pvUInt);
-            }
-        }
         topStructure = fieldBuilder->createStructure();
     }
     return topStructure;
@@ -326,21 +317,8 @@ bool EPICSPVAHelper::ReplaceStructureArray(const Introspection *memberIntro, epi
     uint32 arrSize = arr.size();
     bool ok = (pvStructMemberArr ? true : false);
     for (j = 0u; (j < arrSize) && (ok); j++) {
-        arr[j] = epics::pvData::getPVDataCreate()->createPVStructure(EPICSPVAHelperTransverseStructure(memberIntro, memberTypeName, true));
+        arr[j] = epics::pvData::getPVDataCreate()->createPVStructure(EPICSPVAHelperTransverseStructure(memberIntro, memberTypeName));
         ok = EPICSPVAHelperTransverseStructureInit(memberIntro, arr[j]);
-        if (ok) {
-            epics::pvData::PVScalarPtr parentField = arr[j]->getSubField<epics::pvData::PVScalar>(EPICSPVAHelper::STRUCTURE_ARRAY_PARENT_ID);
-            if (parentField ? true : false) {
-                const epics::pvData::PVStructure * parent = pvStructMemberArr->getParent();
-                if (parent != NULL_PTR(const epics::pvData::PVStructure *)) {
-                    unsigned long int paddr64 = reinterpret_cast<unsigned long int>(parent);
-                    parentField->putFrom<unsigned long int>(paddr64);
-                }
-                else {
-                    parentField->putFrom<uint32>(0u);
-                }
-            }
-        }
     }
     if (ok) {
         pvStructMemberArr->replace(freeze(arr));

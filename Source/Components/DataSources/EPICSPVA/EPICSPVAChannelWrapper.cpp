@@ -122,8 +122,7 @@ bool EPICSPVAChannelWrapper::Setup(DataSourceI &dataSource) {
             if (ok) {
                 ok = dataSource.GetSignalMemoryBuffer(n, 0u, tempCachedSignals[numberOfSignals].memory);
             }
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s [%s]",
-                                tempCachedSignals[numberOfSignals].qualifiedName.Buffer(), channelName.Buffer());
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s [%s]", tempCachedSignals[numberOfSignals].qualifiedName.Buffer(), channelName.Buffer());
             numberOfSignals++;
         }
     }
@@ -172,11 +171,10 @@ bool EPICSPVAChannelWrapper::Put() {
                 epics::pvData::PVStructure::const_shared_pointer getPVStruct = channel.get();
                 ok = (getPVStruct) ? true : false;
                 if (ok) {
-                    epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
-                    epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
-                    epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
-                    putPVStruct = epics::pvData::getPVDataCreate()->createPVStructure(getPVStruct->getStructure());
-                    ok = ResolveStructure(putPVStruct.operator ->(), "");
+                    ok = ResolveStructure(getPVStruct.operator ->(), "");
+                    if (ok) {
+                        putPVStruct = getPVStruct;
+                    }
                     structureResolved = ok;
                 }
             }
@@ -272,7 +270,7 @@ bool EPICSPVAChannelWrapper::Put() {
     return ok;
 }
 
-bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName, int32 idx) {
+bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName) {
     bool ok = (pvStruct != NULL_PTR(const epics::pvData::PVStructure*));
     if (ok) {
         const epics::pvData::PVFieldPtrArray & fields = pvStruct->getPVFields();
@@ -284,26 +282,26 @@ bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* 
             epics::pvData::Type fieldType = field->getField()->getType();
             REPORT_ERROR_STATIC(ErrorManagement::Debug, "ResolveStructure -- fields [%d of %d] -- [%s]", n, nOfFields, field->getFieldName().c_str());
 
+            StreamString fullFieldName = nodeName;
+            if (fullFieldName.Size() > 0u) {
+                fullFieldName += ".";
+            }
+            fullFieldName += field->getFieldName().c_str();
 
             if (fieldType == epics::pvData::structureArray) {
-                epics::pvData::PVStructureArray::const_svector arr(
-                        static_cast<const epics::pvData::PVStructureArray*>(field.operator ->())->view());
+                epics::pvData::PVStructureArray::const_svector arr(static_cast<const epics::pvData::PVStructureArray*>(field.operator ->())->view());
                 uint32 z;
                 REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving structureArray [%s - %s] - [%d]", nodeName, field->getFieldName().c_str(), static_cast<int32>(arr.size()));
-                for (z = 0u; z < arr.size(); z++) {
+                StreamString indexFullFieldName = fullFieldName;
+                ok = (arr.size() > 0);
+                for (z = 0u; (z < arr.size()) && (ok); z++) {
+                    indexFullFieldName = fullFieldName;
+                    indexFullFieldName.Printf("[%d]", z);
                     //This assumes that only linear arrays are supported, otherwise the field name will be wrong.
-                    ok = ResolveStructure(arr[z].get(), nodeName, static_cast<int32>(z));
+                    ok = ResolveStructure(arr[z].get(), indexFullFieldName.Buffer());
                 }
             }
             else {
-                StreamString fullFieldName = nodeName;
-                if (fullFieldName.Size() > 0u) {
-                    fullFieldName += ".";
-                }
-                fullFieldName += field->getFieldName().c_str();
-                if (idx != -1) {
-                    fullFieldName.Printf("[%d]", idx);
-                }
                 if ((fieldType == epics::pvData::scalar) || (fieldType == epics::pvData::scalarArray)) {
                     REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving scalar (or array of) [%s]", fullFieldName.Buffer());
                     uint32 k;
@@ -311,8 +309,13 @@ bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* 
                     for (k = 0u; (k < numberOfSignals) && (ok) && (!found); k++) {
                         found = (cachedSignals[k].qualifiedName == fullFieldName);
                         if (found) {
-                            cachedSignals[k].pvField = field;
+                            cachedSignals[k].pvField = field->shared_from_this();
+                            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Assigned PV to signal with name [%s]", fullFieldName.Buffer());
                         }
+                    }
+                    ok = found;
+                    if (!ok) {
+                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Could not find signal with name [%s]", fullFieldName.Buffer());
                     }
                 }
                 else if (fieldType == epics::pvData::structure) {
@@ -354,8 +357,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
                         uint32 n;
                         for (n = 0u; (n < numberOfSignals) && (ok); n++) {
                             if ((cachedSignals[n].numberOfElements) == 1u) {
-                                epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr = std::dynamic_pointer_cast<
-                                        const epics::pvData::PVScalar>(cachedSignals[n].pvField);
+                                epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(cachedSignals[n].pvField);
                                 ok = (scalarFieldPtr ? true : false);
                                 if (ok) {
                                     if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
@@ -395,8 +397,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
                                 }
                             }
                             else {
-                                epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr = std::dynamic_pointer_cast<
-                                        const epics::pvData::PVScalarArray>(cachedSignals[n].pvField);
+                                epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalarArray>(cachedSignals[n].pvField);
                                 ok = (scalarArrayPtr ? true : false);
                                 if (ok) {
                                     if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {

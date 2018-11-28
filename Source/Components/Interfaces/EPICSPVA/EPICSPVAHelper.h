@@ -95,11 +95,6 @@ public:
      */
     static void InitArray(epics::pvData::PVScalarArrayPtr pvScalarArr, const uint32 &numberOfElements);
 
-    /**
-     * @brief TODO
-     */
-    static const char8 * const STRUCTURE_ARRAY_PARENT_ID;
-
 };
 }
 

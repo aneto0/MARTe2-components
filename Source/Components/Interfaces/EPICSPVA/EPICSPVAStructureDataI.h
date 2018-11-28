@@ -207,7 +207,9 @@ public:
 
 private:
     /**
-     * TODO
+     * @brief Implementation of the move which allows to navigate inside arrays of structures by parsing the path and extracting []
+     * @param[in] path the relative or absolute path to move into.
+     * @return true if the Move was successful.
      */
     bool Move(const char8 * const path);
 
@@ -248,25 +250,22 @@ private:
     bool WriteStoredType(const char8 * const name, AnyType &storedType, const AnyType &value);
 
     /**
-     * @brief Helper method to add a typed leaf to the backend PVStructure.
-     * @param[in] name the name of the parameter to create.
-     * @param[in] storedType the type of data to be stored in the backend against this leaf.
-     * @return true if the leaf can be successfully created.
-     */
-    bool CreateFromStoredType(const char8 * const name, AnyType &storedType);
-
-    /**
      * @brief Helper method which transforms the cached ConfigurationDatabase into a PVStructure.
      * @param[in] currentNode the node where to start from.
      * @param[in] create if true the nodes are added to the PVStructure, otherwise only the values are written.
-     * @return true if the ConfigurationDatabase is successfully created.
+     * @return TODO if the ConfigurationDatabase is successfully created.
      */
-    bool ConfigurationDataBaseToPVStructurePtr(bool create = true);
+    epics::pvData::StructureConstPtr ConfigurationDataBaseToPVStructurePtr();
 
     /**
-     * Cached pointer to the current node.
+     * TODO
      */
-    epics::pvData::PVStructurePtr currentStructPtr;
+    bool ConfigurationDataBaseToPVStructurePtrInit(epics::pvData::PVStructurePtr pvStructPtr, bool initArray = false);
+
+    /**
+     * Cached pointer (including full path) to the current node.
+     */
+    epics::pvData::PVStructureArray::svector currentStructPtr;
 
     /**
      * Cached pointer to the root node.
@@ -277,11 +276,6 @@ private:
      * True if the structure was finalised.
      */
     bool structureFinalised;
-
-    /**
-     * The FieldBuilderPtr that is used to create the nested PVStructure.
-     */
-    epics::pvData::FieldBuilderPtr fieldBuilder;
 
     /**
      * The cached ConfigurationDatabase that is used until the FinaliseStructure is called.
