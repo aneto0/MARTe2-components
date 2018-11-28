@@ -178,7 +178,16 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
 
             if (ok) {
                 (void) StringHelper::CopyN(&pvs[n].pvName[0], pvName.Buffer(), PV_NAME_MAX_SIZE);
-                if (td == SignedInteger16Bit) {
+                if (td == CharString) {
+                    pvs[n].pvType = DBR_STRING;
+                }
+                else if (td == SignedInteger8Bit) {
+                    pvs[n].pvType = DBR_CHAR;
+                }
+                else if (td == UnsignedInteger8Bit) {
+                    pvs[n].pvType = DBR_CHAR;
+                }
+                else if (td == SignedInteger16Bit) {
                     pvs[n].pvType = DBR_SHORT;
                 }
                 else if (td == UnsignedInteger16Bit) {
@@ -325,7 +334,6 @@ bool EPICSCAOutput::Synchronise() {
 bool EPICSCAOutput::IsIgnoringBufferOverrun() const {
     return (ignoreBufferOverrun == 1u);
 }
-
 
 CLASS_REGISTER(EPICSCAOutput, "1.0")
 
