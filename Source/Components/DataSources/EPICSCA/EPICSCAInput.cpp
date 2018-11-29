@@ -215,6 +215,15 @@ bool EPICSCAInput::SetConfiguredDatabase(StructuredDataI & data) {
                 ok = GetSignalNumberOfElements(n, numberOfElements);
             }
             if (ok) {
+                if (pvs[n].pvType == DBR_STRING) {
+                    ok = (numberOfElements == 40u);
+                }
+                if (!ok) {
+                    //Could support arrays of strings with multiples of char8[40]
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Strings shall be defined with 40 elements char8[40]. Arrays of strings are not currently supported");
+                }
+            }
+            if (ok) {
                 pvs[n].numberOfElements = numberOfElements;
             }
             if (ok) {

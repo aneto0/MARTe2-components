@@ -119,6 +119,11 @@ TEST(EPICSCAInputGTest,TestSetConfiguredDatabase_False_UnsupportedType) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_UnsupportedType());
 }
 
+TEST(EPICSCAInputGTest,TestSetConfiguredDatabase_False_WrongStringSize) {
+    EPICSCAInputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_WrongStringSize());
+}
+
 TEST(EPICSCAInputGTest,TestExecute) {
     EPICSCAInputTest test;
     ASSERT_TRUE(test.TestExecute());

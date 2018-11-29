@@ -49,6 +49,9 @@
 class EPICSCAInputGAMTestHelper: public MARTe::GAM {
 public:
     CLASS_REGISTER_DECLARATION()EPICSCAInputGAMTestHelper() {
+        char8Signal = NULL;
+        uint8Signal = NULL;
+        int8Signal = NULL;
         uint16Signal = NULL;
         int16Signal = NULL;
         uint32Signal = NULL;
@@ -68,24 +71,38 @@ public:
 
     virtual bool Setup() {
         using namespace MARTe;
-        GetSignalNumberOfElements(InputSignals, 0, numberOfElements);
-        if (GetSignalType(InputSignals, 0u) == UnsignedInteger16Bit) {
-            uint16Signal = reinterpret_cast<uint16 *>(GetInputSignalMemory(0u));
+        uint32 i = 0u;
+        if (GetSignalType(InputSignals, i) == CharString) {
+            char8Signal = reinterpret_cast<char8 *>(GetInputSignalMemory(i));
+            i++;
+        }
+        GetSignalNumberOfElements(InputSignals, i, numberOfElements);
+        if (GetSignalType(InputSignals, i) == UnsignedInteger8Bit) {
+            uint8Signal = reinterpret_cast<uint8 *>(GetInputSignalMemory(i));
         }
         else {
-            int16Signal = reinterpret_cast<int16 *>(GetInputSignalMemory(0u));
+            int8Signal = reinterpret_cast<int8 *>(GetInputSignalMemory(i));
         }
-        if (GetSignalType(InputSignals, 1u) == UnsignedInteger32Bit) {
-            uint32Signal = reinterpret_cast<uint32 *>(GetInputSignalMemory(1u));
-        }
-        else {
-            int32Signal = reinterpret_cast<int32 *>(GetInputSignalMemory(1u));
-        }
-        if (GetSignalType(InputSignals, 2u) == Float32Bit) {
-            float32Signal = reinterpret_cast<float32 *>(GetInputSignalMemory(2u));
+        i++;
+        if (GetSignalType(InputSignals, i) == UnsignedInteger16Bit) {
+            uint16Signal = reinterpret_cast<uint16 *>(GetInputSignalMemory(i));
         }
         else {
-            float64Signal = reinterpret_cast<float64 *>(GetInputSignalMemory(2u));
+            int16Signal = reinterpret_cast<int16 *>(GetInputSignalMemory(i));
+        }
+        i++;
+        if (GetSignalType(InputSignals, i) == UnsignedInteger32Bit) {
+            uint32Signal = reinterpret_cast<uint32 *>(GetInputSignalMemory(i));
+        }
+        else {
+            int32Signal = reinterpret_cast<int32 *>(GetInputSignalMemory(i));
+        }
+        i++;
+        if (GetSignalType(InputSignals, i) == Float32Bit) {
+            float32Signal = reinterpret_cast<float32 *>(GetInputSignalMemory(i));
+        }
+        else {
+            float64Signal = reinterpret_cast<float64 *>(GetInputSignalMemory(i));
         }
 
         return true;
@@ -95,7 +112,9 @@ public:
         using namespace MARTe;
         return true;
     }
-
+    const MARTe::char8 *char8Signal;
+    MARTe::uint8 *uint8Signal;
+    MARTe::int8 *int8Signal;
     MARTe::uint16 *uint16Signal;
     MARTe::int16 *int16Signal;
     MARTe::uint32 *uint32Signal;
@@ -196,6 +215,15 @@ static const MARTe::char8 * const config1 = ""
         "        +GAM1 = {"
         "            Class = EPICSCAInputGAMTestHelper"
         "            InputSignals = {"
+        "                SignalChar8 = {"
+        "                    Type = string"
+        "                    NumberOfElements = 40"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
         "                SignalUInt16 = {"
         "                    Type = uint16"
         "                    DataSource = EPICSCAInputTest"
@@ -213,6 +241,10 @@ static const MARTe::char8 * const config1 = ""
         "        +GAM2 = {"
         "            Class = EPICSCAInputGAMTestHelper"
         "            InputSignals = {"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
         "                SignalInt16 = {"
         "                    Type = int16"
         "                    DataSource = EPICSCAInputTest"
@@ -239,6 +271,15 @@ static const MARTe::char8 * const config1 = ""
         "            CPUMask = 15"
         "            StackSize = 10000000"
         "            Signals = {"
+        "                SignalChar8 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Char8\""
+        "                }"
+        "                SignalUInt8 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt8\""
+        "                }"
+        "                SignalInt8 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Int8\""
+        "                }"
         "                SignalUInt16 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt16\""
         "                }"
@@ -369,6 +410,12 @@ static const MARTe::char8 * const config3 = ""
         "        +GAM1 = {"
         "            Class = EPICSCAInputGAMTestHelper"
         "            InputSignals = {"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 10"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
         "                SignalUInt16 = {"
         "                    Type = uint16"
         "                    NumberOfDimensions = 1"
@@ -392,6 +439,12 @@ static const MARTe::char8 * const config3 = ""
         "        +GAM2 = {"
         "            Class = EPICSCAInputGAMTestHelper"
         "            InputSignals = {"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 10"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
         "                SignalInt16 = {"
         "                    Type = int16"
         "                    NumberOfDimensions = 1"
@@ -424,8 +477,14 @@ static const MARTe::char8 * const config3 = ""
         "            CPUMask = 15"
         "            StackSize = 10000000"
         "            Signals = {"
+        "                SignalUInt8 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt8Arr\""
+        "                }"
         "                SignalUInt16 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt16Arr\""
+        "                }"
+        "                SignalInt8 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Int8Arr\""
         "                }"
         "                SignalInt16 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::Int16Arr\""
@@ -639,8 +698,8 @@ static const MARTe::char8 * const config6 = ""
         "        +GAM1 = {"
         "            Class = EPICSCAInputGAMTestHelper"
         "            InputSignals = {"
-        "                SignalUInt8 = {"
-        "                    Type = uint8"
+        "                SignalUInt4 = {"
+        "                    Type = uint4"
         "                    DataSource = EPICSCAInputTest"
         "                }"
         "                SignalUInt32 = {"
@@ -682,8 +741,8 @@ static const MARTe::char8 * const config6 = ""
         "            CPUMask = 15"
         "            StackSize = 10000000"
         "            Signals = {"
-        "                SignalUInt8 = {"
-        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt8\""
+        "                SignalUInt4 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt4\""
         "                }"
         "                SignalInt16 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::Int16\""
@@ -721,6 +780,122 @@ static const MARTe::char8 * const config6 = ""
         "        TimingDataSource = Timings"
         "    }"
         "}";
+
+
+//Standard configuration with a string with more than 40 bytes
+static const MARTe::char8 * const config7 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = EPICSCAInputGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalChar8 = {"
+        "                    Type = string"
+        "                    NumberOfElements = 39"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM2 = {"
+        "            Class = EPICSCAInputGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = EPICSCAInputTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +EPICSCAInputTest = {"
+        "            Class = EPICSCAInput"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Signals = {"
+        "                SignalChar8 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Char8\""
+        "                }"
+        "                SignalUInt8 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt8\""
+        "                }"
+        "                SignalInt8 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Int8\""
+        "                }"
+        "                SignalUInt16 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt16\""
+        "                }"
+        "                SignalInt16 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Int16\""
+        "                }"
+        "                SignalUInt32 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt32\""
+        "                }"
+        "                SignalInt32 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Int32\""
+        "                }"
+        "                SignalFloat32 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Float32\""
+        "                }"
+        "                SignalFloat64 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Float64\""
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1 GAM2}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = EPICSCAInputSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -859,6 +1034,10 @@ bool EPICSCAInputTest::TestSetConfiguredDatabase_False_UnsupportedType() {
     return !TestIntegratedInApplication(config6, true);
 }
 
+bool EPICSCAInputTest::TestSetConfiguredDatabase_False_WrongStringSize() {
+    return !TestIntegratedInApplication(config7, true);
+}
+
 bool EPICSCAInputTest::TestExecute() {
     using namespace MARTe;
     bool ok = TestIntegratedInApplication(config1, false);
@@ -895,18 +1074,23 @@ bool EPICSCAInputTest::TestExecute() {
     if (ok) {
         ok = (ca_context_create(ca_enable_preemptive_callback));
     }
-    const uint32 NUMBER_OF_PVS = 6u;
+    const uint32 NUMBER_OF_PVS = 9u;
     chid pvChids[NUMBER_OF_PVS];
-    chtype pvTypes[] = { DBR_SHORT, DBR_SHORT, DBR_LONG, DBR_LONG, DBR_FLOAT, DBR_DOUBLE };
-    const char8 *pvNames[] = { "MARTe2::EPICSCAInput::Test::UInt16", "MARTe2::EPICSCAInput::Test::Int16", "MARTe2::EPICSCAInput::Test::UInt32", "MARTe2::EPICSCAInput::Test::Int32",
-            "MARTe2::EPICSCAInput::Test::Float32", "MARTe2::EPICSCAInput::Test::Float64" };
-    uint32 uint16Value = 1u;
-    int32 int16Value = 2;
+    chtype pvTypes[] = { DBR_STRING, DBR_CHAR, DBR_CHAR, DBR_SHORT, DBR_SHORT, DBR_LONG, DBR_LONG, DBR_FLOAT, DBR_DOUBLE };
+    const char8 *pvNames[] = { "MARTe2::EPICSCAInput::Test::Char8", "MARTe2::EPICSCAInput::Test::UInt8", "MARTe2::EPICSCAInput::Test::Int8",
+            "MARTe2::EPICSCAInput::Test::UInt16", "MARTe2::EPICSCAInput::Test::Int16", "MARTe2::EPICSCAInput::Test::UInt32",
+            "MARTe2::EPICSCAInput::Test::Int32", "MARTe2::EPICSCAInput::Test::Float32", "MARTe2::EPICSCAInput::Test::Float64" };
+    char8 char8Value[40];
+    StringHelper::Copy(&char8Value[0], "EPICSCATEST");
+    uint8 uint8Value = 11u;
+    int8 int8Value = 12;
+    uint16 uint16Value = 1u;
+    int16 int16Value = 2;
     uint32 uint32Value = 3u;
     int32 int32Value = 5;
     float32 float32Value = 7.0;
     float64 float64Value = 9.0;
-    void *pvMemory[] = { &uint16Value, &int16Value, &uint32Value, &int32Value, &float32Value, &float64Value };
+    void *pvMemory[] = { &char8Value[0], &uint8Value, &int8Value, &uint16Value, &int16Value, &uint32Value, &int32Value, &float32Value, &float64Value };
 
     if (ok) {
         uint32 n;
@@ -918,7 +1102,7 @@ bool EPICSCAInputTest::TestExecute() {
 
     if (ok) {
         uint32 n;
-        bool done = 0;
+        bool done = false;
         uint32 doneC = 0;
         uint32 timeOutCounts = 50;
         while ((!done) && (timeOutCounts > 0u) && (ok)) {
@@ -930,9 +1114,13 @@ bool EPICSCAInputTest::TestExecute() {
             }
             scheduler->ExecuteThreadCycle(0);
 
-            done = (*gam1->uint16Signal == uint16Value);
+            StreamString tmp = char8Value;
+            done = (tmp == gam1->char8Signal);
+            done &= (*gam1->uint8Signal == uint8Value);
+            done &= (*gam1->uint16Signal == uint16Value);
             done &= (*gam1->uint32Signal == uint32Value);
             done &= (*gam1->float64Signal == float64Value);
+            done &= (*gam2->int8Signal == int8Value);
             done &= (*gam2->int16Signal == int16Value);
             done &= (*gam2->int32Signal == int32Value);
             done &= (*gam2->float32Signal == float32Value);
@@ -941,7 +1129,10 @@ bool EPICSCAInputTest::TestExecute() {
                 Sleep::Sec(0.1);
             }
             if ((done) && (doneC == 0)) {
+                StringHelper::Copy(&char8Value[0], "EPICSCATEST2");
+                uint8Value *= 2;
                 uint16Value *= 2;
+                int8Value *= 2;
                 int16Value *= 2;
                 uint32Value *= 2;
                 int32Value *= 2;
@@ -1007,12 +1198,15 @@ bool EPICSCAInputTest::TestExecute_Arrays() {
     if (ok) {
         ok = (ca_context_create(ca_enable_preemptive_callback));
     }
-    const uint32 NUMBER_OF_PVS = 6u;
+    const uint32 NUMBER_OF_PVS = 8u;
     chid pvChids[NUMBER_OF_PVS];
-    chtype pvTypes[] = { DBR_SHORT, DBR_SHORT, DBR_LONG, DBR_LONG, DBR_FLOAT, DBR_DOUBLE };
-    const char8 *pvNames[] = { "MARTe2::EPICSCAInput::Test::UInt16Arr", "MARTe2::EPICSCAInput::Test::Int16Arr", "MARTe2::EPICSCAInput::Test::UInt32Arr", "MARTe2::EPICSCAInput::Test::Int32Arr",
+    chtype pvTypes[] = { DBR_CHAR, DBR_CHAR, DBR_SHORT, DBR_SHORT, DBR_LONG, DBR_LONG, DBR_FLOAT, DBR_DOUBLE };
+    const char8 *pvNames[] = { "MARTe2::EPICSCAInput::Test::UInt8Arr", "MARTe2::EPICSCAInput::Test::Int8Arr", "MARTe2::EPICSCAInput::Test::UInt16Arr",
+            "MARTe2::EPICSCAInput::Test::Int16Arr", "MARTe2::EPICSCAInput::Test::UInt32Arr", "MARTe2::EPICSCAInput::Test::Int32Arr",
             "MARTe2::EPICSCAInput::Test::Float32Arr", "MARTe2::EPICSCAInput::Test::Float64Arr" };
 
+    uint8 *uint8Values = NULL;
+    int8 *int8Values = NULL;
     uint16 *uint16Values = NULL;
     int16 *int16Values = NULL;
     uint32 *uint32Values = NULL;
@@ -1022,14 +1216,18 @@ bool EPICSCAInputTest::TestExecute_Arrays() {
     uint32 numberOfElements = 0;
     if (ok) {
         numberOfElements = gam1->numberOfElements;
-        uint32Values = new uint32[numberOfElements];
-        int32Values = new int32[numberOfElements];
+        uint8Values = new uint8[numberOfElements];
+        int8Values = new int8[numberOfElements];
         uint16Values = new uint16[numberOfElements];
         int16Values = new int16[numberOfElements];
+        uint32Values = new uint32[numberOfElements];
+        int32Values = new int32[numberOfElements];
         float32Values = new float32[numberOfElements];
         float64Values = new float64[numberOfElements];
         uint32 n;
         for (n = 0u; (n < numberOfElements); n++) {
+            uint8Values[n] = 2 * n + 2;
+            int8Values[n] = 3 * n + 2;
             uint16Values[n] = 2 * n + 1;
             int16Values[n] = 3 * n + 1;
             uint32Values[n] = 4 * n + 1;
@@ -1038,7 +1236,7 @@ bool EPICSCAInputTest::TestExecute_Arrays() {
             float64Values[n] = 7 * n + 1;
         }
     }
-    void *pvMemory[] = { uint16Values, int16Values, uint32Values, int32Values, float32Values, float64Values };
+    void *pvMemory[] = { uint8Values, int8Values, uint16Values, int16Values, uint32Values, int32Values, float32Values, float64Values };
 
     if (ok) {
         uint32 n;
@@ -1063,6 +1261,9 @@ bool EPICSCAInputTest::TestExecute_Arrays() {
 
             done = true;
             for (n = 0u; (n < numberOfElements); n++) {
+                done &= (gam1->uint8Signal[n] == uint8Values[n]);
+            }
+            for (n = 0u; (n < numberOfElements); n++) {
                 done &= (gam1->uint16Signal[n] == uint16Values[n]);
             }
             for (n = 0u; (n < numberOfElements); n++) {
@@ -1070,6 +1271,9 @@ bool EPICSCAInputTest::TestExecute_Arrays() {
             }
             for (n = 0u; (n < numberOfElements); n++) {
                 done &= (gam1->float64Signal[n] == float64Values[n]);
+            }
+            for (n = 0u; (n < numberOfElements); n++) {
+                done &= (gam2->int8Signal[n] == int8Values[n]);
             }
             for (n = 0u; (n < numberOfElements); n++) {
                 done &= (gam2->int16Signal[n] == int16Values[n]);
@@ -1102,6 +1306,8 @@ bool EPICSCAInputTest::TestExecute_Arrays() {
     ca_detach_context();
     ca_context_destroy();
     if (ok) {
+        delete[] uint8Values;
+        delete[] int8Values;
         delete[] uint16Values;
         delete[] int16Values;
         delete[] uint32Values;
