@@ -181,6 +181,9 @@ bool EPICSCAInput::SetConfiguredDatabase(StructuredDataI & data) {
                 if (td == CharString) {
                     pvs[n].pvType = DBR_STRING;
                 }
+                else if (td == Character8Bit) {
+                    pvs[n].pvType = DBR_STRING;
+                }
                 else if (td == SignedInteger8Bit) {
                     pvs[n].pvType = DBR_CHAR;
                 }

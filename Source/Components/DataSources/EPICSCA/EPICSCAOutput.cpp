@@ -181,6 +181,9 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
                 if (td == CharString) {
                     pvs[n].pvType = DBR_STRING;
                 }
+                else if (td == Character8Bit) {
+                    pvs[n].pvType = DBR_STRING;
+                }
                 else if (td == SignedInteger8Bit) {
                     pvs[n].pvType = DBR_CHAR;
                 }
@@ -213,6 +216,16 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
             uint32 numberOfElements = 1u;
             if (ok) {
                 ok = GetSignalNumberOfElements(n, numberOfElements);
+            }
+            if (ok) {
+                if (pvs[n].pvType == DBR_STRING) {
+                    ok = (numberOfElements == 40u);
+                }
+                if (!ok) {
+                    //Could support arrays of strings with multiples of char8[40]
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Strings shall be defined with 40 elements char8[40]. Arrays of strings are not currently supported");
+                }
             }
             if (ok) {
                 pvs[n].numberOfElements = numberOfElements;
@@ -319,7 +332,12 @@ bool EPICSCAOutput::Synchronise() {
         if (pvs != NULL_PTR(PVWrapper *)) {
             for (n = 0u; (n < nOfSignals); n++) {
                 /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                ok = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                if (pvs[n].pvType == DBR_STRING) {
+                    ok = (ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                }
+                else {
+                    ok = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                }
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::FatalError, "ca_put failed for PV: %s", pvs[n].pvName);
                 }

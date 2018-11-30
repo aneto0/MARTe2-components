@@ -3,6 +3,11 @@ record( stringin, "MARTe2::EPICSCAInput::Test::Char8")
    field(DTYP, "Soft Channel")
 }
 
+record( stringin, "MARTe2::EPICSCAInput::Test::String")
+{
+   field(DTYP, "Soft Channel")
+}
+
 record( ai, "MARTe2::EPICSCAInput::Test::Int8")
 {
    field(DTYP, "Soft Channel")
