@@ -253,12 +253,12 @@ private:
      * @brief Helper method which transforms the cached ConfigurationDatabase into a PVStructure.
      * @param[in] currentNode the node where to start from.
      * @param[in] create if true the nodes are added to the PVStructure, otherwise only the values are written.
-     * @return TODO if the ConfigurationDatabase is successfully created.
+     * @return A valid epics::pvData::Structure if the ConfigurationDatabase is successfully created.
      */
     epics::pvData::StructureConstPtr ConfigurationDataBaseToPVStructurePtr();
 
     /**
-     * TODO
+     * TODO test and document _PVANodeArr
      */
     bool ConfigurationDataBaseToPVStructurePtrInit(epics::pvData::PVStructurePtr pvStructPtr, bool initArray = false);
 
