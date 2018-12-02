@@ -222,8 +222,7 @@ namespace MARTe {
 template<typename T>
 void EPICSPVAChannelWrapper::PutHelper(uint32 n) {
     if ((cachedSignals[n].numberOfElements) == 1u) {
-        epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar
-                > (cachedSignals[n].pvField);
+        epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar > (cachedSignals[n].pvField);
         if (scalarFieldPtr ? true : false) {
             scalarFieldPtr->putFrom<T>(*static_cast<T *>(cachedSignals[n].memory));
         }
@@ -232,19 +231,29 @@ void EPICSPVAChannelWrapper::PutHelper(uint32 n) {
         }
     }
     else {
-        epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray
-                > (cachedSignals[n].pvField);
+        epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray > (cachedSignals[n].pvField);
         if (scalarArrayPtr ? true : false) {
             epics::pvData::shared_vector<T> out;
             out.resize(cachedSignals[n].numberOfElements);
-            (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory,
-                                                cachedSignals[n].numberOfElements * sizeof(T));
+            (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory, cachedSignals[n].numberOfElements * sizeof(T));
             epics::pvData::shared_vector<const T> outF = freeze(out);
             scalarArrayPtr->putFrom<T>(outF);
         }
         else {
             REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field", cachedSignals[n].qualifiedName.Buffer());
         }
+    }
+}
+
+template<>
+inline void EPICSPVAChannelWrapper::PutHelper<char8>(uint32 n) {
+    epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar > (cachedSignals[n].pvField);
+    if (scalarFieldPtr ? true : false) {
+        std::string value = reinterpret_cast<char8 *>(cachedSignals[n].memory);
+        scalarFieldPtr->putFrom<std::string>(value);
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field. Note that arrays of strings are not supported in the data-source yet", cachedSignals[n].qualifiedName.Buffer());
     }
 }
 

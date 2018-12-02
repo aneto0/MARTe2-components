@@ -48,6 +48,7 @@
 class EPICSPVAInputGAMTestHelper: public MARTe::GAM {
 public:
     CLASS_REGISTER_DECLARATION()EPICSPVAInputGAMTestHelper() {
+        stringSignal = NULL;
         uint8Signal = NULL;
         int8Signal = NULL;
         uint16Signal = NULL;
@@ -75,7 +76,10 @@ public:
         uint32 n;
         uint32 numberOfSignals = GetNumberOfInputSignals();
         for(n=0; n<numberOfSignals; n++) {
-            if (GetSignalType(InputSignals, n) == UnsignedInteger8Bit) {
+            if (GetSignalType(InputSignals, n) == CharString) {
+                stringSignal = reinterpret_cast<char8 *>(GetInputSignalMemory(n));
+            }
+            else if (GetSignalType(InputSignals, n) == UnsignedInteger8Bit) {
                 uint8Signal = reinterpret_cast<uint8 *>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == SignedInteger8Bit) {
@@ -115,6 +119,7 @@ public:
         return true;
     }
 
+    MARTe::char8 *stringSignal;
     MARTe::uint8 *uint8Signal;
     MARTe::int8 *int8Signal;
     MARTe::uint16 *uint16Signal;
@@ -237,9 +242,9 @@ DECLARE_CLASS_MEMBER(EPICSPVAInputTestUInt, UInt8, uint8, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUInt, UInt16, uint16, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUInt, UInt32, uint32, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUInt, UInt64, uint64, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVAInputTestUIntStructEntries[] = { &EPICSPVAInputTestUInt_UInt8_introspectionEntry,
-        &EPICSPVAInputTestUInt_UInt16_introspectionEntry, &EPICSPVAInputTestUInt_UInt32_introspectionEntry,
-        &EPICSPVAInputTestUInt_UInt64_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVAInputTestUIntStructEntries[] =
+        { &EPICSPVAInputTestUInt_UInt8_introspectionEntry, &EPICSPVAInputTestUInt_UInt16_introspectionEntry, &EPICSPVAInputTestUInt_UInt32_introspectionEntry,
+                &EPICSPVAInputTestUInt_UInt64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestUInt, EPICSPVAInputTestUIntStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestInt, Int8, int8, "", "");
@@ -247,8 +252,7 @@ DECLARE_CLASS_MEMBER(EPICSPVAInputTestInt, Int16, int16, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestInt, Int32, int32, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestInt, Int64, int64, "", "");
 static const MARTe::IntrospectionEntry* EPICSPVAInputTestIntStructEntries[] = { &EPICSPVAInputTestInt_Int8_introspectionEntry,
-        &EPICSPVAInputTestInt_Int16_introspectionEntry, &EPICSPVAInputTestInt_Int32_introspectionEntry,
-        &EPICSPVAInputTestInt_Int64_introspectionEntry, 0 };
+        &EPICSPVAInputTestInt_Int16_introspectionEntry, &EPICSPVAInputTestInt_Int32_introspectionEntry, &EPICSPVAInputTestInt_Int64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestInt, EPICSPVAInputTestIntStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestFloat, Float32, float32, "", "");
@@ -260,9 +264,8 @@ DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestFloat, EPICSPVAInputTestFloatStruc
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesS, UInts, EPICSPVAInputTestUInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesS, Ints, EPICSPVAInputTestInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesS, Floats, EPICSPVAInputTestFloat, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestInputTypesSStructEntries[] = {
-        &EPICSPVADatabaseTestInputTypesS_UInts_introspectionEntry, &EPICSPVADatabaseTestInputTypesS_Ints_introspectionEntry,
-        &EPICSPVADatabaseTestInputTypesS_Floats_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestInputTypesSStructEntries[] = { &EPICSPVADatabaseTestInputTypesS_UInts_introspectionEntry,
+        &EPICSPVADatabaseTestInputTypesS_Ints_introspectionEntry, &EPICSPVADatabaseTestInputTypesS_Floats_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestInputTypesS, EPICSPVADatabaseTestInputTypesSStructEntries)
 
 struct EPICSPVAInputTestUIntA {
@@ -292,8 +295,8 @@ DECLARE_CLASS_MEMBER(EPICSPVAInputTestUIntA, UInt16, uint16, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUIntA, UInt32, uint32, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUIntA, UInt64, uint64, "[4]", "");
 static const MARTe::IntrospectionEntry* EPICSPVAInputTestUIntAStructEntries[] = { &EPICSPVAInputTestUIntA_UInt8_introspectionEntry,
-        &EPICSPVAInputTestUIntA_UInt16_introspectionEntry, &EPICSPVAInputTestUIntA_UInt32_introspectionEntry,
-        &EPICSPVAInputTestUIntA_UInt64_introspectionEntry, 0 };
+        &EPICSPVAInputTestUIntA_UInt16_introspectionEntry, &EPICSPVAInputTestUIntA_UInt32_introspectionEntry, &EPICSPVAInputTestUIntA_UInt64_introspectionEntry,
+        0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestUIntA, EPICSPVAInputTestUIntAStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestIntA, Int8, int8, "[4]", "");
@@ -301,8 +304,7 @@ DECLARE_CLASS_MEMBER(EPICSPVAInputTestIntA, Int16, int16, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestIntA, Int32, int32, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestIntA, Int64, int64, "[4]", "");
 static const MARTe::IntrospectionEntry* EPICSPVAInputTestIntAStructEntries[] = { &EPICSPVAInputTestIntA_Int8_introspectionEntry,
-        &EPICSPVAInputTestIntA_Int16_introspectionEntry, &EPICSPVAInputTestIntA_Int32_introspectionEntry,
-        &EPICSPVAInputTestIntA_Int64_introspectionEntry, 0 };
+        &EPICSPVAInputTestIntA_Int16_introspectionEntry, &EPICSPVAInputTestIntA_Int32_introspectionEntry, &EPICSPVAInputTestIntA_Int64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestIntA, EPICSPVAInputTestIntAStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestFloatA, Float32, float32, "[4]", "");
@@ -314,9 +316,8 @@ DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestFloatA, EPICSPVAInputTestFloatAStr
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, UInts, EPICSPVAInputTestUIntA, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, Ints, EPICSPVAInputTestIntA, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, Floats, EPICSPVAInputTestFloatA, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestInputTypesSAStructEntries[] = {
-        &EPICSPVADatabaseTestInputTypesSA_UInts_introspectionEntry, &EPICSPVADatabaseTestInputTypesSA_Ints_introspectionEntry,
-        &EPICSPVADatabaseTestInputTypesSA_Floats_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestInputTypesSAStructEntries[] = { &EPICSPVADatabaseTestInputTypesSA_UInts_introspectionEntry,
+        &EPICSPVADatabaseTestInputTypesSA_Ints_introspectionEntry, &EPICSPVADatabaseTestInputTypesSA_Floats_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestInputTypesSA, EPICSPVADatabaseTestInputTypesSAStructEntries)
 
 /**
@@ -477,6 +478,14 @@ bool EPICSPVAInputTest::TestExecute() {
             "            }\n"
             "       }\n"
             "    }\n"
+            "    +RecordIn6 = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Structure = {\n"
+            "            ElementString = {\n"
+            "                Type = string\n"
+            "            }\n"
+            "       }\n"
+            "    }\n"
             "}\n"
             "$Test = {\n"
             "    Class = RealTimeApplication\n"
@@ -535,6 +544,12 @@ bool EPICSPVAInputTest::TestExecute() {
             "                    DataSource = EPICSPVAInputTest\n"
             "                    Alias = RecordIn3\n"
             "                }\n"
+            "                SignalString = {\n"
+            "                    Type = string\n"
+            "                    DataSource = EPICSPVAInputTest\n"
+            "                    Alias = RecordIn6\n"
+            "                    NumberOfElements = 12\n"
+            "                }\n"
             "            }\n"
             "        }\n"
             "    }\n"
@@ -568,6 +583,11 @@ bool EPICSPVAInputTest::TestExecute() {
             "                    Field = Element1"
             "                    Type = float64\n"
             "                    NumberOfElements = 1\n"
+            "                }\n"
+            "                RecordIn6 = {\n"
+            "                    Field = ElementString"
+            "                    Type = string\n"
+            "                    NumberOfElements = 12\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -646,6 +666,11 @@ bool EPICSPVAInputTest::TestExecute() {
             record3.put().set("Element1", 32).exec();
             pvac::ClientChannel record4(provider.connect("RecordIn4"));
             record4.put().set("Element1", 64).exec();
+
+            const char8 *stringValueOut = "HELLOSTRING;HELLOSTRING,HELLOSTRING";
+            const char8 *stringValueExpected = "HELLOSTRING;";
+            pvac::ClientChannel record6(provider.connect("RecordIn6"));
+            record6.put().set("ElementString", stringValueOut).exec();
             scheduler->ExecuteThreadCycle(0u);
             ok = (1 == *gam1->uint8Signal);
             ok &= (2 == *gam1->uint16Signal);
@@ -657,6 +682,9 @@ bool EPICSPVAInputTest::TestExecute() {
             ok &= (-4 == *gam1->int64Signal);
             ok &= (32 == *gam1->float32Signal);
             ok &= (64 == *gam1->float64Signal);
+            StreamString tmpString = gam1->stringSignal;
+            ok &= (tmpString == stringValueExpected);
+
             Sleep::Sec(0.1);
             timeOutCounts--;
         }

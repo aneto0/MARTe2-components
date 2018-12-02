@@ -129,6 +129,22 @@ bool EPICSPVARecordTest::TestInitialise_False_InvalidType() {
     return ok;
 }
 
+bool EPICSPVARecordTest::TestInitialise_False_InvalidType_Char8() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.CreateAbsolute("Structure.C");
+    cdb.Write("Type", "char8");
+    cdb.Write("NumberOfElements", 64);
+    cdb.MoveToRoot();
+    EPICSPVARecord pvaRecord;
+    pvaRecord.SetName("EPICSPVARecordTestTestInitialise_False_InvalidType");
+    bool ok = pvaRecord.Initialise(cdb);
+    if (ok) {
+        ok = (pvaRecord.CreatePVRecord() ? false : true);
+    }
+    return ok;
+}
+
 bool EPICSPVARecordTest::TestInitialise_False_NoType() {
     using namespace MARTe;
     ConfigurationDatabase cdb;

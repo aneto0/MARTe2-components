@@ -68,6 +68,11 @@ public:
     bool TestInitialise_False_InvalidType();
 
     /**
+     * @brief Tests that the Initialise method fails if an invalid char8 type is specified.
+     */
+    bool TestInitialise_False_InvalidType_Char8();
+
+    /**
      * @brief Tests that the Initialise method fails if no type is specified.
      */
     bool TestInitialise_False_NoType();

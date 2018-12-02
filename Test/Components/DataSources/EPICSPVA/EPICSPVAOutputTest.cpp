@@ -47,6 +47,7 @@
 class EPICSPVAOutputGAMTestHelper: public MARTe::GAM {
 public:
     CLASS_REGISTER_DECLARATION()EPICSPVAOutputGAMTestHelper() {
+        stringSignal = NULL;
         uint8Signal = NULL;
         int8Signal = NULL;
         uint16Signal = NULL;
@@ -74,7 +75,10 @@ public:
         uint32 n;
         uint32 numberOfSignals = GetNumberOfOutputSignals();
         for(n=0; n<numberOfSignals; n++) {
-            if (GetSignalType(OutputSignals, n) == UnsignedInteger8Bit) {
+            if (GetSignalType(OutputSignals, n) == CharString) {
+                stringSignal = reinterpret_cast<char8 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == UnsignedInteger8Bit) {
                 uint8Signal = reinterpret_cast<uint8 *>(GetOutputSignalMemory(n));
             }
             else if (GetSignalType(OutputSignals, n) == SignedInteger8Bit) {
@@ -114,6 +118,7 @@ public:
         return true;
     }
 
+    MARTe::char8 *stringSignal;
     MARTe::uint8 *uint8Signal;
     MARTe::int8 *int8Signal;
     MARTe::uint16 *uint16Signal;
@@ -226,19 +231,25 @@ struct EPICSPVAOutputTestFloat {
     MARTe::float32 Float32;
     MARTe::float64 Float64;
 };
+struct EPICSPVAOutputTestString {
+    MARTe::char8 Char8[256];
+    MARTe::char8 SString[128];
+};
 struct EPICSPVADatabaseTestOutputTypesS {
     struct EPICSPVAOutputTestUInt UInts;
     struct EPICSPVAOutputTestInt Ints;
     struct EPICSPVAOutputTestFloat Floats;
+    struct EPICSPVAOutputTestString Strings;
 };
+
 //The strategy is identical to the class registration
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUInt, UInt8, uint8, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUInt, UInt16, uint16, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUInt, UInt32, uint32, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUInt, UInt64, uint64, "", "");
 static const MARTe::IntrospectionEntry* EPICSPVAOutputTestUIntStructEntries[] = { &EPICSPVAOutputTestUInt_UInt8_introspectionEntry,
-        &EPICSPVAOutputTestUInt_UInt16_introspectionEntry, &EPICSPVAOutputTestUInt_UInt32_introspectionEntry,
-        &EPICSPVAOutputTestUInt_UInt64_introspectionEntry, 0 };
+        &EPICSPVAOutputTestUInt_UInt16_introspectionEntry, &EPICSPVAOutputTestUInt_UInt32_introspectionEntry, &EPICSPVAOutputTestUInt_UInt64_introspectionEntry,
+        0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestUInt, EPICSPVAOutputTestUIntStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestInt, Int8, int8, "", "");
@@ -246,8 +257,7 @@ DECLARE_CLASS_MEMBER(EPICSPVAOutputTestInt, Int16, int16, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestInt, Int32, int32, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestInt, Int64, int64, "", "");
 static const MARTe::IntrospectionEntry* EPICSPVAOutputTestIntStructEntries[] = { &EPICSPVAOutputTestInt_Int8_introspectionEntry,
-        &EPICSPVAOutputTestInt_Int16_introspectionEntry, &EPICSPVAOutputTestInt_Int32_introspectionEntry,
-        &EPICSPVAOutputTestInt_Int64_introspectionEntry, 0 };
+        &EPICSPVAOutputTestInt_Int16_introspectionEntry, &EPICSPVAOutputTestInt_Int32_introspectionEntry, &EPICSPVAOutputTestInt_Int64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestInt, EPICSPVAOutputTestIntStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestFloat, Float32, float32, "", "");
@@ -256,12 +266,18 @@ static const MARTe::IntrospectionEntry* EPICSPVAOutputTestFloatStructEntries[] =
         &EPICSPVAOutputTestFloat_Float64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestFloat, EPICSPVAOutputTestFloatStructEntries)
 
+DECLARE_CLASS_MEMBER(EPICSPVAOutputTestString, SString, string, "[128]", "");
+static const MARTe::IntrospectionEntry* EPICSPVAOutputTestStringStructEntries[] = {
+        &EPICSPVAOutputTestString_SString_introspectionEntry, 0 };
+DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestString, EPICSPVAOutputTestStringStructEntries)
+
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, UInts, EPICSPVAOutputTestUInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, Ints, EPICSPVAOutputTestInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, Floats, EPICSPVAOutputTestFloat, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSStructEntries[] = {
-        &EPICSPVADatabaseTestOutputTypesS_UInts_introspectionEntry, &EPICSPVADatabaseTestOutputTypesS_Ints_introspectionEntry,
-        &EPICSPVADatabaseTestOutputTypesS_Floats_introspectionEntry, 0 };
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, Strings, EPICSPVAOutputTestString, "", "");
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSStructEntries[] = { &EPICSPVADatabaseTestOutputTypesS_UInts_introspectionEntry,
+        &EPICSPVADatabaseTestOutputTypesS_Ints_introspectionEntry, &EPICSPVADatabaseTestOutputTypesS_Floats_introspectionEntry,
+        &EPICSPVADatabaseTestOutputTypesS_Strings_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestOutputTypesS, EPICSPVADatabaseTestOutputTypesSStructEntries)
 
 struct EPICSPVAOutputTestUIntA {
@@ -299,9 +315,9 @@ DECLARE_CLASS_MEMBER(EPICSPVAOutputTestIntA, Int8, int8, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestIntA, Int16, int16, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestIntA, Int32, int32, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestIntA, Int64, int64, "[4]", "");
-static const MARTe::IntrospectionEntry* EPICSPVAOutputTestIntAStructEntries[] = { &EPICSPVAOutputTestIntA_Int8_introspectionEntry,
-        &EPICSPVAOutputTestIntA_Int16_introspectionEntry, &EPICSPVAOutputTestIntA_Int32_introspectionEntry,
-        &EPICSPVAOutputTestIntA_Int64_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVAOutputTestIntAStructEntries[] =
+        { &EPICSPVAOutputTestIntA_Int8_introspectionEntry, &EPICSPVAOutputTestIntA_Int16_introspectionEntry, &EPICSPVAOutputTestIntA_Int32_introspectionEntry,
+                &EPICSPVAOutputTestIntA_Int64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestIntA, EPICSPVAOutputTestIntAStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestFloatA, Float32, float32, "[4]", "");
@@ -313,9 +329,8 @@ DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestFloatA, EPICSPVAOutputTestFloatAS
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, UInts, EPICSPVAOutputTestUIntA, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, Ints, EPICSPVAOutputTestIntA, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, Floats, EPICSPVAOutputTestFloatA, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSAStructEntries[] = {
-        &EPICSPVADatabaseTestOutputTypesSA_UInts_introspectionEntry, &EPICSPVADatabaseTestOutputTypesSA_Ints_introspectionEntry,
-        &EPICSPVADatabaseTestOutputTypesSA_Floats_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSAStructEntries[] = { &EPICSPVADatabaseTestOutputTypesSA_UInts_introspectionEntry,
+        &EPICSPVADatabaseTestOutputTypesSA_Ints_introspectionEntry, &EPICSPVADatabaseTestOutputTypesSA_Floats_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestOutputTypesSA, EPICSPVADatabaseTestOutputTypesSAStructEntries)
 
 /**
@@ -1390,6 +1405,15 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "            }\n"
             "       }\n"
             "    }\n"
+            "    +RecordOut5 = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Alias = \"TEST::RECORDOUT5\"\n"
+            "        Structure = {\n"
+            "             Strings = {\n"
+            "                  Type = EPICSPVAOutputTestString\n"
+            "             }\n"
+            "        }\n"
+            "    }\n"
             "}\n"
             "$Test = {\n"
             "    Class = RealTimeApplication\n"
@@ -1448,6 +1472,12 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut3\n"
             "                }\n"
+            "                SignalString = {\n"
+            "                    Type = string\n"
+            "                    DataSource = EPICSPVAOutputTest\n"
+            "                    NumberOfElements = 128\n"
+            "                    Alias = RecordOut5.SString\n"
+            "                }\n"
             "            }\n"
             "        }\n"
             "    }\n"
@@ -1481,6 +1511,11 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "                    Field = Element1\n"
             "                    Type = float64\n"
             "                    NumberOfElements = 1\n"
+            "                }\n"
+            "                RecordOut5 = {\n"
+            "                    Alias = \"TEST::RECORDOUT5\""
+            "                    Field = Strings\n"
+            "                    Type = EPICSPVAOutputTestString\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1540,6 +1575,9 @@ bool EPICSPVAOutputTest::TestSynchronise() {
         *gam1->int64Signal = -4;
         *gam1->float32Signal = 32;
         *gam1->float64Signal = 64;
+        StreamString expectedStringValue = "STRINGSIGNAL";
+
+        StringHelper::CopyN(&gam1->stringSignal[0], expectedStringValue.Buffer(), expectedStringValue.Size());
 
         scheduler->ExecuteThreadCycle(0u);
         pvac::ClientProvider provider("pva");
@@ -1549,14 +1587,10 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             {
                 pvac::ClientChannel record1(provider.connect("RecordOut1"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
-                std::shared_ptr<const epics::pvData::PVUByte> uint8Value = getStruct->getSubField<epics::pvData::PVUByte>(
-                        "UnsignedIntegers.UInt8");
-                std::shared_ptr<const epics::pvData::PVUShort> uint16Value = getStruct->getSubField<epics::pvData::PVUShort>(
-                        "UnsignedIntegers.UInt16");
-                std::shared_ptr<const epics::pvData::PVUInt> uint32Value = getStruct->getSubField<epics::pvData::PVUInt>(
-                        "UnsignedIntegers.UInt32");
-                std::shared_ptr<const epics::pvData::PVULong> uint64Value = getStruct->getSubField<epics::pvData::PVULong>(
-                        "UnsignedIntegers.UInt64");
+                std::shared_ptr<const epics::pvData::PVUByte> uint8Value = getStruct->getSubField<epics::pvData::PVUByte>("UnsignedIntegers.UInt8");
+                std::shared_ptr<const epics::pvData::PVUShort> uint16Value = getStruct->getSubField<epics::pvData::PVUShort>("UnsignedIntegers.UInt16");
+                std::shared_ptr<const epics::pvData::PVUInt> uint32Value = getStruct->getSubField<epics::pvData::PVUInt>("UnsignedIntegers.UInt32");
+                std::shared_ptr<const epics::pvData::PVULong> uint64Value = getStruct->getSubField<epics::pvData::PVULong>("UnsignedIntegers.UInt64");
                 ok = (uint8Value ? true : false);
                 if (ok) {
                     ok = (uint8Value->get() == *gam1->uint8Signal);
@@ -1568,14 +1602,10 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             {
                 pvac::ClientChannel record2(provider.connect("TEST::RECORDOUT2"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record2.get();
-                std::shared_ptr<const epics::pvData::PVByte> int8Value = getStruct->getSubField<epics::pvData::PVByte>(
-                        "SignedIntegers.Int8");
-                std::shared_ptr<const epics::pvData::PVShort> int16Value = getStruct->getSubField<epics::pvData::PVShort>(
-                        "SignedIntegers.Int16");
-                std::shared_ptr<const epics::pvData::PVInt> int32Value = getStruct->getSubField<epics::pvData::PVInt>(
-                        "SignedIntegers.Int32");
-                std::shared_ptr<const epics::pvData::PVLong> int64Value = getStruct->getSubField<epics::pvData::PVLong>(
-                        "SignedIntegers.Int64");
+                std::shared_ptr<const epics::pvData::PVByte> int8Value = getStruct->getSubField<epics::pvData::PVByte>("SignedIntegers.Int8");
+                std::shared_ptr<const epics::pvData::PVShort> int16Value = getStruct->getSubField<epics::pvData::PVShort>("SignedIntegers.Int16");
+                std::shared_ptr<const epics::pvData::PVInt> int32Value = getStruct->getSubField<epics::pvData::PVInt>("SignedIntegers.Int32");
+                std::shared_ptr<const epics::pvData::PVLong> int64Value = getStruct->getSubField<epics::pvData::PVLong>("SignedIntegers.Int64");
                 ok &= (int8Value ? true : false);
                 if (ok) {
                     ok = (int8Value->get() == *gam1->int8Signal);
@@ -1600,6 +1630,17 @@ bool EPICSPVAOutputTest::TestSynchronise() {
                 ok &= (float64Value ? true : false);
                 if (ok) {
                     ok = (float64Value->get() == *gam1->float64Signal);
+                }
+            }
+            {
+                pvac::ClientChannel record5(provider.connect("TEST::RECORDOUT5"));
+                epics::pvData::PVStructure::const_shared_pointer getStruct = record5.get();
+                std::shared_ptr<const epics::pvData::PVString> stringValue = getStruct->getSubField<epics::pvData::PVString>("Strings.SString");
+
+                ok &= (stringValue ? true : false);
+                if (ok) {
+                    std::string val = stringValue->get();
+                    ok = (expectedStringValue == val.c_str());
                 }
             }
             Sleep::Sec(0.1);
@@ -1862,14 +1903,11 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             {
                 pvac::ClientChannel record1(provider.connect("RecordOut1Arr"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
-                std::shared_ptr<const epics::pvData::PVUByteArray> uint8Value = getStruct->getSubField<epics::pvData::PVUByteArray>(
-                        "UnsignedIntegers.UInt8");
+                std::shared_ptr<const epics::pvData::PVUByteArray> uint8Value = getStruct->getSubField<epics::pvData::PVUByteArray>("UnsignedIntegers.UInt8");
                 std::shared_ptr<const epics::pvData::PVUShortArray> uint16Value = getStruct->getSubField<epics::pvData::PVUShortArray>(
                         "UnsignedIntegers.UInt16");
-                std::shared_ptr<const epics::pvData::PVUIntArray> uint32Value = getStruct->getSubField<epics::pvData::PVUIntArray>(
-                        "UnsignedIntegers.UInt32");
-                std::shared_ptr<const epics::pvData::PVULongArray> uint64Value = getStruct->getSubField<epics::pvData::PVULongArray>(
-                        "UnsignedIntegers.UInt64");
+                std::shared_ptr<const epics::pvData::PVUIntArray> uint32Value = getStruct->getSubField<epics::pvData::PVUIntArray>("UnsignedIntegers.UInt32");
+                std::shared_ptr<const epics::pvData::PVULongArray> uint64Value = getStruct->getSubField<epics::pvData::PVULongArray>("UnsignedIntegers.UInt64");
                 ok = (uint8Value ? true : false);
                 epics::pvData::shared_vector<const uint8> outUInt8;
                 epics::pvData::shared_vector<const uint16> outUInt16;
@@ -1895,14 +1933,10 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             {
                 pvac::ClientChannel record2(provider.connect("RecordOut2Arr"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record2.get();
-                std::shared_ptr<const epics::pvData::PVByteArray> int8Value = getStruct->getSubField<epics::pvData::PVByteArray>(
-                        "SignedIntegers.Int8");
-                std::shared_ptr<const epics::pvData::PVShortArray> int16Value = getStruct->getSubField<epics::pvData::PVShortArray>(
-                        "SignedIntegers.Int16");
-                std::shared_ptr<const epics::pvData::PVIntArray> int32Value = getStruct->getSubField<epics::pvData::PVIntArray>(
-                        "SignedIntegers.Int32");
-                std::shared_ptr<const epics::pvData::PVLongArray> int64Value = getStruct->getSubField<epics::pvData::PVLongArray>(
-                        "SignedIntegers.Int64");
+                std::shared_ptr<const epics::pvData::PVByteArray> int8Value = getStruct->getSubField<epics::pvData::PVByteArray>("SignedIntegers.Int8");
+                std::shared_ptr<const epics::pvData::PVShortArray> int16Value = getStruct->getSubField<epics::pvData::PVShortArray>("SignedIntegers.Int16");
+                std::shared_ptr<const epics::pvData::PVIntArray> int32Value = getStruct->getSubField<epics::pvData::PVIntArray>("SignedIntegers.Int32");
+                std::shared_ptr<const epics::pvData::PVLongArray> int64Value = getStruct->getSubField<epics::pvData::PVLongArray>("SignedIntegers.Int64");
                 ok = (int8Value ? true : false);
                 epics::pvData::shared_vector<const int8> outInt8;
                 epics::pvData::shared_vector<const int16> outInt16;
@@ -1928,8 +1962,7 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             {
                 pvac::ClientChannel record3(provider.connect("RecordOut3Arr"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record3.get();
-                std::shared_ptr<const epics::pvData::PVFloatArray> float32Value = getStruct->getSubField<epics::pvData::PVFloatArray>(
-                        "Element1");
+                std::shared_ptr<const epics::pvData::PVFloatArray> float32Value = getStruct->getSubField<epics::pvData::PVFloatArray>("Element1");
                 ok = (float32Value ? true : false);
                 epics::pvData::shared_vector<const float32> outFloat32;
                 outFloat32.resize(nOfElements);
@@ -1943,8 +1976,7 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             {
                 pvac::ClientChannel record4(provider.connect("RecordOut4Arr"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record4.get();
-                std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value = getStruct->getSubField<epics::pvData::PVDoubleArray>(
-                        "Element1");
+                std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value = getStruct->getSubField<epics::pvData::PVDoubleArray>("Element1");
                 ok = (float64Value ? true : false);
                 epics::pvData::shared_vector<const float64> outFloat64;
                 outFloat64.resize(nOfElements);
@@ -2075,26 +2107,16 @@ bool EPICSPVAOutputTest::TestSynchronise_StructuredType() {
             {
                 pvac::ClientChannel record1(provider.connect("RecordOut1S"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
-                std::shared_ptr<const epics::pvData::PVUByte> uint8Value = getStruct->getSubField<epics::pvData::PVUByte>(
-                        "SignalTypes.UInts.UInt8");
-                std::shared_ptr<const epics::pvData::PVUShort> uint16Value = getStruct->getSubField<epics::pvData::PVUShort>(
-                        "SignalTypes.UInts.UInt16");
-                std::shared_ptr<const epics::pvData::PVUInt> uint32Value = getStruct->getSubField<epics::pvData::PVUInt>(
-                        "SignalTypes.UInts.UInt32");
-                std::shared_ptr<const epics::pvData::PVULong> uint64Value = getStruct->getSubField<epics::pvData::PVULong>(
-                        "SignalTypes.UInts.UInt64");
-                std::shared_ptr<const epics::pvData::PVByte> int8Value = getStruct->getSubField<epics::pvData::PVByte>(
-                        "SignalTypes.Ints.Int8");
-                std::shared_ptr<const epics::pvData::PVShort> int16Value = getStruct->getSubField<epics::pvData::PVShort>(
-                        "SignalTypes.Ints.Int16");
-                std::shared_ptr<const epics::pvData::PVInt> int32Value = getStruct->getSubField<epics::pvData::PVInt>(
-                        "SignalTypes.Ints.Int32");
-                std::shared_ptr<const epics::pvData::PVLong> int64Value = getStruct->getSubField<epics::pvData::PVLong>(
-                        "SignalTypes.Ints.Int64");
-                std::shared_ptr<const epics::pvData::PVFloat> float32Value = getStruct->getSubField<epics::pvData::PVFloat>(
-                        "SignalTypes.Floats.Float32");
-                std::shared_ptr<const epics::pvData::PVDouble> float64Value = getStruct->getSubField<epics::pvData::PVDouble>(
-                        "SignalTypes.Floats.Float64");
+                std::shared_ptr<const epics::pvData::PVUByte> uint8Value = getStruct->getSubField<epics::pvData::PVUByte>("SignalTypes.UInts.UInt8");
+                std::shared_ptr<const epics::pvData::PVUShort> uint16Value = getStruct->getSubField<epics::pvData::PVUShort>("SignalTypes.UInts.UInt16");
+                std::shared_ptr<const epics::pvData::PVUInt> uint32Value = getStruct->getSubField<epics::pvData::PVUInt>("SignalTypes.UInts.UInt32");
+                std::shared_ptr<const epics::pvData::PVULong> uint64Value = getStruct->getSubField<epics::pvData::PVULong>("SignalTypes.UInts.UInt64");
+                std::shared_ptr<const epics::pvData::PVByte> int8Value = getStruct->getSubField<epics::pvData::PVByte>("SignalTypes.Ints.Int8");
+                std::shared_ptr<const epics::pvData::PVShort> int16Value = getStruct->getSubField<epics::pvData::PVShort>("SignalTypes.Ints.Int16");
+                std::shared_ptr<const epics::pvData::PVInt> int32Value = getStruct->getSubField<epics::pvData::PVInt>("SignalTypes.Ints.Int32");
+                std::shared_ptr<const epics::pvData::PVLong> int64Value = getStruct->getSubField<epics::pvData::PVLong>("SignalTypes.Ints.Int64");
+                std::shared_ptr<const epics::pvData::PVFloat> float32Value = getStruct->getSubField<epics::pvData::PVFloat>("SignalTypes.Floats.Float32");
+                std::shared_ptr<const epics::pvData::PVDouble> float64Value = getStruct->getSubField<epics::pvData::PVDouble>("SignalTypes.Floats.Float64");
 
                 ok = (uint8Value ? true : false);
                 if (ok) {
@@ -2234,22 +2256,16 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
             {
                 pvac::ClientChannel record1(provider.connect("RecordOut1SArr"));
                 epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
-                std::shared_ptr<const epics::pvData::PVUByteArray> uint8Value = getStruct->getSubField<epics::pvData::PVUByteArray>(
-                        "SignalTypes.UInts.UInt8");
+                std::shared_ptr<const epics::pvData::PVUByteArray> uint8Value = getStruct->getSubField<epics::pvData::PVUByteArray>("SignalTypes.UInts.UInt8");
                 std::shared_ptr<const epics::pvData::PVUShortArray> uint16Value = getStruct->getSubField<epics::pvData::PVUShortArray>(
                         "SignalTypes.UInts.UInt16");
-                std::shared_ptr<const epics::pvData::PVUIntArray> uint32Value = getStruct->getSubField<epics::pvData::PVUIntArray>(
-                        "SignalTypes.UInts.UInt32");
+                std::shared_ptr<const epics::pvData::PVUIntArray> uint32Value = getStruct->getSubField<epics::pvData::PVUIntArray>("SignalTypes.UInts.UInt32");
                 std::shared_ptr<const epics::pvData::PVULongArray> uint64Value = getStruct->getSubField<epics::pvData::PVULongArray>(
                         "SignalTypes.UInts.UInt64");
-                std::shared_ptr<const epics::pvData::PVByteArray> int8Value = getStruct->getSubField<epics::pvData::PVByteArray>(
-                        "SignalTypes.Ints.Int8");
-                std::shared_ptr<const epics::pvData::PVShortArray> int16Value = getStruct->getSubField<epics::pvData::PVShortArray>(
-                        "SignalTypes.Ints.Int16");
-                std::shared_ptr<const epics::pvData::PVIntArray> int32Value = getStruct->getSubField<epics::pvData::PVIntArray>(
-                        "SignalTypes.Ints.Int32");
-                std::shared_ptr<const epics::pvData::PVLongArray> int64Value = getStruct->getSubField<epics::pvData::PVLongArray>(
-                        "SignalTypes.Ints.Int64");
+                std::shared_ptr<const epics::pvData::PVByteArray> int8Value = getStruct->getSubField<epics::pvData::PVByteArray>("SignalTypes.Ints.Int8");
+                std::shared_ptr<const epics::pvData::PVShortArray> int16Value = getStruct->getSubField<epics::pvData::PVShortArray>("SignalTypes.Ints.Int16");
+                std::shared_ptr<const epics::pvData::PVIntArray> int32Value = getStruct->getSubField<epics::pvData::PVIntArray>("SignalTypes.Ints.Int32");
+                std::shared_ptr<const epics::pvData::PVLongArray> int64Value = getStruct->getSubField<epics::pvData::PVLongArray>("SignalTypes.Ints.Int64");
                 std::shared_ptr<const epics::pvData::PVFloatArray> float32Value = getStruct->getSubField<epics::pvData::PVFloatArray>(
                         "SignalTypes.Floats.Float32");
                 std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value = getStruct->getSubField<epics::pvData::PVDoubleArray>(

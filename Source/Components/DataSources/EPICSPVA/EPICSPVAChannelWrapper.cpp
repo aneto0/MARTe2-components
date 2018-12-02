@@ -122,7 +122,8 @@ bool EPICSPVAChannelWrapper::Setup(DataSourceI &dataSource) {
             if (ok) {
                 ok = dataSource.GetSignalMemoryBuffer(n, 0u, tempCachedSignals[numberOfSignals].memory);
             }
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s [%s]", tempCachedSignals[numberOfSignals].qualifiedName.Buffer(), channelName.Buffer());
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s [%s]", tempCachedSignals[numberOfSignals].qualifiedName.Buffer(),
+                                channelName.Buffer());
             numberOfSignals++;
         }
     }
@@ -212,46 +213,19 @@ bool EPICSPVAChannelWrapper::Put() {
                 else if (cachedSignals[n].typeDescriptor == Float64Bit) {
                     PutHelper<float64>(n);
                 }
-#if 0
-                //This code compiles and should work BUT I have no way of testing this, since the builder does not support signals which are strings.
-                else if ((cachedSignals[n].typeDescriptor.type == CArray) || (cachedSignals[n].typeDescriptor.type == BT_CCString)
-                        || (cachedSignals[n].typeDescriptor.type == PCString) || (cachedSignals[n].typeDescriptor.type == SString)) {
-                    if ((cachedSignals[n].numberOfElements) == 0u) {
-                        if (cachedSignals[n].typeDescriptor.type == SString) {
-                            StreamString *src = static_cast<StreamString *>(cachedSignals[n].memory);
-                            putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), std::string(src->Buffer()));
-                        }
-                        else {
-                            char8 *src = static_cast<char8 *>(cachedSignals[n].memory);
-                            putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), std::string(src));
-                        }
-                    }
-                    else {
-                        epics::pvData::shared_vector<const std::string> out;
-                        out.resize(cachedSignals[n].numberOfElements);
-                        if (cachedSignals[n].typeDescriptor.type == SString) {
-                            StreamString *src = static_cast<StreamString *>(cachedSignals[n].memory);
-                            uint32 i;
-                            for (i = 0; i < cachedSignals[n].numberOfElements; i++) {
-                                *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i].Buffer();
-                            }
-                        }
-                        else {
-                            const char8 **src = static_cast<const char8 **>(cachedSignals[n].memory);
-                            uint32 i;
-                            for (i = 0; i < cachedSignals[n].numberOfElements; i++) {
-                                *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i];
-                            }
-                        }
-                        putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), out);
-                    }
+                else if (cachedSignals[n].typeDescriptor == CharString) {
+                    PutHelper<char8>(n);
                 }
-#endif
+                else if (cachedSignals[n].typeDescriptor == Character8Bit) {
+                    ok = false;
+                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "For strings use Type = string; for bytes use Type = uint8");
+                }
                 else {
                     //Should never reach here...
                     REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported type");
                     ok = false;
                 }
+
             }
         }
         putFinished = false;
@@ -291,7 +265,8 @@ bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* 
             if (fieldType == epics::pvData::structureArray) {
                 epics::pvData::PVStructureArray::const_svector arr(static_cast<const epics::pvData::PVStructureArray*>(field.operator ->())->view());
                 uint32 z;
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving structureArray [%s - %s] - [%d]", nodeName, field->getFieldName().c_str(), static_cast<int32>(arr.size()));
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving structureArray [%s - %s] - [%d]", nodeName, field->getFieldName().c_str(),
+                                    static_cast<int32>(arr.size()));
                 StreamString indexFullFieldName = fullFieldName;
                 ok = (arr.size() > 0);
                 for (z = 0u; (z < arr.size()) && (ok); z++) {
@@ -356,8 +331,24 @@ bool EPICSPVAChannelWrapper::Monitor() {
                         }
                         uint32 n;
                         for (n = 0u; (n < numberOfSignals) && (ok); n++) {
-                            if ((cachedSignals[n].numberOfElements) == 1u) {
-                                epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(cachedSignals[n].pvField);
+                            epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(
+                                    cachedSignals[n].pvField);
+                            if (cachedSignals[n].typeDescriptor == CharString) {
+                                ok = (scalarFieldPtr ? true : false);
+                                if (ok) {
+                                    std::string value = scalarFieldPtr->getAs<std::string>();
+                                    uint32 maxSize = value.size();
+                                    if (maxSize > cachedSignals[n].numberOfElements) {
+                                        maxSize = cachedSignals[n].numberOfElements;
+                                    }
+                                    StringHelper::CopyN(reinterpret_cast<char8 *>(cachedSignals[n].memory), value.c_str(), maxSize);
+                                }
+                            }
+                            else if (cachedSignals[n].typeDescriptor == Character8Bit) {
+                                ok = false;
+                                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "For strings use Type = string; for bytes use Type = uint8");
+                            }
+                            else if ((cachedSignals[n].numberOfElements) == 1u) {
                                 ok = (scalarFieldPtr ? true : false);
                                 if (ok) {
                                     if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
@@ -391,13 +382,15 @@ bool EPICSPVAChannelWrapper::Monitor() {
                                         *reinterpret_cast<float64 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<float64>();
                                     }
                                     else {
-                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read type");
+                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read type for signal %s",
+                                                            cachedSignals[n].qualifiedName.Buffer());
                                         ok = false;
                                     }
                                 }
                             }
                             else {
-                                epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalarArray>(cachedSignals[n].pvField);
+                                epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr =
+                                        std::dynamic_pointer_cast<const epics::pvData::PVScalarArray>(cachedSignals[n].pvField);
                                 ok = (scalarArrayPtr ? true : false);
                                 if (ok) {
                                     if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
@@ -431,7 +424,8 @@ bool EPICSPVAChannelWrapper::Monitor() {
                                         ok = GetArrayHelper<float64>(scalarArrayPtr, n);
                                     }
                                     else {
-                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read array type");
+                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read array type for signal %s",
+                                                            cachedSignals[n].qualifiedName.Buffer());
                                         ok = false;
                                     }
                                 }

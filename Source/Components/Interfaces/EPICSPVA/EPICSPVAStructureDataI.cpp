@@ -180,7 +180,8 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u),
+                             value.GetNumberOfElements(0u));
                 ok = false;
             }
         }
@@ -354,8 +355,8 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
             else if (value.GetTypeDescriptor() == Float64Bit) {
                 scalarFieldPtr->putFrom<float64>(*reinterpret_cast<float64 *>(value.GetDataPointer()));
             }
-            else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString) || (value.GetTypeDescriptor().type == PCString)
-                    || (value.GetTypeDescriptor().type == SString)) {
+            else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString)
+                    || (value.GetTypeDescriptor().type == PCString) || (value.GetTypeDescriptor().type == SString)) {
                 if (value.GetTypeDescriptor().type == SString) {
                     StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
                     scalarFieldPtr->putFrom<std::string>(src->Buffer());
@@ -404,8 +405,8 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
                 else if (value.GetTypeDescriptor() == Float64Bit) {
                     ok = WriteArray<float64>(scalarArrayPtr, storedType, value, size);
                 }
-                else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString) || (value.GetTypeDescriptor().type == PCString)
-                        || (value.GetTypeDescriptor().type == SString)) {
+                else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString)
+                        || (value.GetTypeDescriptor().type == PCString) || (value.GetTypeDescriptor().type == SString)) {
                     ok = WriteArray<std::string>(scalarArrayPtr, storedType, value, size);
                 }
                 else {
@@ -413,7 +414,8 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u),
+                             value.GetNumberOfElements(0u));
             }
         }
     }
@@ -452,7 +454,8 @@ bool EPICSPVAStructureDataI::Copy(StructuredDataI &destination) {
             if (nOfElements1 < 1u) {
                 nOfElements1 = 1u;
             }
-            if ((at.GetTypeDescriptor().type == CArray) || (at.GetTypeDescriptor().type == BT_CCString) || (at.GetTypeDescriptor().type == PCString) || (at.GetTypeDescriptor().type == SString)) {
+            if ((at.GetTypeDescriptor().type == CArray) || (at.GetTypeDescriptor().type == BT_CCString) || (at.GetTypeDescriptor().type == PCString)
+                    || (at.GetTypeDescriptor().type == SString)) {
                 if (nOfElements0 > 1u) {
                     Vector<StreamString> ss(nOfElements0);
                     ok = Read(childName, ss);

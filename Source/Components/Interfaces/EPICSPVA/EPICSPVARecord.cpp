@@ -67,10 +67,8 @@ EPICSPVARecord::~EPICSPVARecord() {
 
 }
 
-uint32 EPICSPVARecord::GetArrayNumberOfElements(StructuredDataI & cdb) {
+bool EPICSPVARecord::GetArrayNumberOfElements(StructuredDataI & cdb, uint32 &totalElements, uint8 &numberOfDimensions) {
     bool ok = true;
-    uint32 totalElements = 0u;
-    uint8 numberOfDimensions = 0u;
     uint32 *numberOfElements = NULL_PTR(uint32 *);
     AnyType arrayDescription = cdb.GetType("NumberOfElements");
     if (arrayDescription.GetDataPointer() == NULL_PTR(void *)) {
@@ -107,7 +105,13 @@ uint32 EPICSPVARecord::GetArrayNumberOfElements(StructuredDataI & cdb) {
     if (ok) {
         uint32 nd;
         for (nd = 0u; nd < numberOfDimensions; nd++) {
-            totalElements += numberOfElements[nd]; //[1][1][1] has size 3x
+            uint32 nde = numberOfElements[nd];
+            if (nde != 0u) {
+                if (totalElements == 0u) {
+                    totalElements = 1u;
+                }
+                totalElements *= nde; //[1][1][1] has size 1x
+            }
         }
         if (totalElements == 0u) {
             totalElements = numberOfElements[0U];
@@ -119,7 +123,7 @@ uint32 EPICSPVARecord::GetArrayNumberOfElements(StructuredDataI & cdb) {
     if (numberOfElements != NULL_PTR(uint32 *)) {
         delete[] numberOfElements;
     }
-    return totalElements;
+    return ok;
 }
 
 bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuilder) {
@@ -129,6 +133,7 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
 
     for (i = 0u; (i < nOfChildren) && (ok); i++) {
         uint32 totalElements = 0u;
+        uint8 numberOfDimensions = 0u;
         ok = cdb.MoveToChild(i);
         StreamString typeStr;
         if (ok) {
@@ -138,7 +143,7 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
             }
         }
         if (ok) {
-            totalElements = GetArrayNumberOfElements(cdb);
+            ok = GetArrayNumberOfElements(cdb, totalElements, numberOfDimensions);
         }
         TypeDescriptor typeDesc = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
         if (typeDesc == InvalidType) {
@@ -172,10 +177,23 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
             }
             if (ok) {
                 if (totalElements > 1u) {
-                    fieldBuilder = fieldBuilder->addBoundedArray(cdb.GetName(), epicsType, totalElements);
+                    //Do not allow for arrays of strings.
+                    if ((epicsType == epics::pvData::pvString) && (numberOfDimensions < 2u)) {
+                        fieldBuilder = fieldBuilder->add(cdb.GetName(), epicsType);
+                        REPORT_ERROR(
+                                ErrorManagement::Warning,
+                                "Registering scalar %s with type %s - the number of elements is being ignored. If you wish to register an array of strings, declare it has an 1xn matrix {1, n}",
+                                cdb.GetName(), typeStr.Buffer());
+                    }
+                    else {
+                        fieldBuilder = fieldBuilder->addBoundedArray(cdb.GetName(), epicsType, totalElements);
+                        REPORT_ERROR(ErrorManagement::Debug, "Registering scalar array %s with type %s and %d elements", cdb.GetName(), typeStr.Buffer(),
+                                     totalElements);
+                    }
                 }
                 else {
                     fieldBuilder = fieldBuilder->add(cdb.GetName(), epicsType);
+                    REPORT_ERROR(ErrorManagement::Debug, "Registering scalar %s with type %s", cdb.GetName(), typeStr.Buffer());
                 }
             }
         }
@@ -193,6 +211,7 @@ bool EPICSPVARecord::InitEPICSStructure(epics::pvData::PVStructurePtr pvStructur
     bool ok = true;
 
     for (i = 0u; (i < nOfChildren) && (ok); i++) {
+        uint8 numberOfDimensions = 0u;
         uint32 totalElements = 0u;
         ok = cdb.MoveToChild(i);
         StreamString typeStr;
@@ -203,7 +222,7 @@ bool EPICSPVARecord::InitEPICSStructure(epics::pvData::PVStructurePtr pvStructur
             }
         }
         if (ok) {
-            totalElements = GetArrayNumberOfElements(cdb);
+            ok = GetArrayNumberOfElements(cdb, totalElements, numberOfDimensions);
         }
         TypeDescriptor typeDesc = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
         if (typeDesc == InvalidType) {

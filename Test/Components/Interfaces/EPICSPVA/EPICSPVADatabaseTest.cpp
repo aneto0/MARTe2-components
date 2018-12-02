@@ -349,6 +349,8 @@ struct EPICSPVADatabaseTestS2 {
     MARTe::uint32 ElementB1[8];
     MARTe::float32 ElementB2[10];
     MARTe::uint32 ElementB3;
+    MARTe::char8 ElementB4[128];
+    MARTe::char8 ElementB5[64];
 };
 struct EPICSPVADatabaseTestS1 {
     MARTe::uint32 Element1[10];
@@ -360,8 +362,11 @@ struct EPICSPVADatabaseTestS1 {
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB1, uint32, "[8]", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB2, float32, "[10]", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB3, uint32, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB4, string, "[128]", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB5, string, "[64]", "");
 static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS2StructEntries[] = { &EPICSPVADatabaseTestS2_ElementB1_introspectionEntry,
-        &EPICSPVADatabaseTestS2_ElementB2_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB3_introspectionEntry, 0 };
+        &EPICSPVADatabaseTestS2_ElementB2_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB3_introspectionEntry,
+        &EPICSPVADatabaseTestS2_ElementB4_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB5_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestS2, EPICSPVADatabaseTestS2StructEntries)
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, Element1, uint32, "[10]", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, Element2, float32, "", "");
@@ -430,6 +435,30 @@ bool EPICSPVADatabaseTest::TestExecute_StructuredTypes() {
             ok = (rvalue->get() == value);
         }
     }
+    if (ok) {
+        pvac::ClientChannel channel(provider.connect("Record1S"));
+        const char8 *value = "HELLOSTRINGS";
+
+        channel.put().set("value.ElementsB.ElementB4", value).exec();
+        epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();
+        std::shared_ptr<const epics::pvData::PVString> rvalue = getStruct->getSubField<epics::pvData::PVString>("value.ElementsB.ElementB4");
+        ok = (rvalue ? true : false);
+        if (ok) {
+            ok = (rvalue->get() == value);
+        }
+    }
+    if (ok) {
+        pvac::ClientChannel channel(provider.connect("Record1S"));
+        const char8 *value = "HELLOSTRINGSSTRING";
+
+        channel.put().set("value.ElementsB.ElementB5", value).exec();
+        epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();
+        std::shared_ptr<const epics::pvData::PVString> rvalue = getStruct->getSubField<epics::pvData::PVString>("value.ElementsB.ElementB5");
+        ok = (rvalue ? true : false);
+        if (ok) {
+            ok = (rvalue->get() == value);
+        }
+    }
     ord->Purge();
     return ok;
 }
@@ -459,6 +488,10 @@ bool EPICSPVADatabaseTest::TestExecute_Array() {
             "       }"
             "       Element2 = {"
             "           Type = float32"
+            "       }"
+            "       Element3 = {"
+            "           Type = string"
+            "           NumberOfElements = {1, 3}"
             "       }"
             "       ElementsB = {"
             "           Type = EPICSPVADatabaseTestT1"
@@ -524,15 +557,39 @@ bool EPICSPVADatabaseTest::TestExecute_Array() {
     {
         pvac::ClientChannel channel(provider.connect("Record1"));
 
+        uint32 numberOfElements = 3u;
+        uint32 n;
+        epics::pvData::shared_vector<std::string> outt;
+        outt.resize(numberOfElements);
+        outt[0] = "ELEMENT0";
+        outt[1] = "ELEMENT1";
+        outt[2] = "ELEMENT2";
+        epics::pvData::shared_vector<const std::string> outF = freeze(outt);
+        const char8 * const field = "value.Element3";
+        channel.put().set(field, outF).exec();
+        if (ok) {
+            epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();
+            std::shared_ptr<const epics::pvData::PVStringArray> rvalue = getStruct->getSubField<epics::pvData::PVStringArray>(field);
+            epics::pvData::shared_vector<const std::string> out;
+            out.resize(numberOfElements);
+            rvalue->getAs < std::string > (out);
+            for (n = 0u; (n < numberOfElements) && (ok); n++) {
+                ok = (out[n] == outF[n]);
+            }
+        }
+    }
+    {
+        pvac::ClientChannel channel(provider.connect("Record1"));
+
         uint32 numberOfElements = 10u;
         uint32 n;
-        epics::pvData::shared_vector<uint32> out;
-        out.resize(numberOfElements);
+        epics::pvData::shared_vector<uint32> outt;
+        outt.resize(numberOfElements);
         for (n = 0u; n < numberOfElements; n++) {
-            out[n] = n + 1;
+            outt[n] = n + 1;
         }
-        epics::pvData::shared_vector<const uint32> outF = freeze(out);
-        const char8 *const field = "value.ElementsB.ElementB1";
+        epics::pvData::shared_vector<const uint32> outF = freeze(outt);
+        const char8 * const field = "value.ElementsB.ElementB1";
         channel.put().set(field, outF).exec();
         if (ok) {
             epics::pvData::PVStructure::const_shared_pointer getStruct = channel.get();

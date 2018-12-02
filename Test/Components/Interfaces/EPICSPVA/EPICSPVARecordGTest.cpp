@@ -64,6 +64,11 @@ TEST(EPICSPVARecordGTest,TestInitialise_False_InvalidType) {
     ASSERT_TRUE(test.TestInitialise_False_InvalidType());
 }
 
+TEST(EPICSPVARecordGTest,TestInitialise_False_InvalidType_Char8) {
+    EPICSPVARecordTest test;
+    ASSERT_TRUE(test.TestInitialise_False_InvalidType_Char8());
+}
+
 TEST(EPICSPVARecordGTest,TestInitialise_False_NoType) {
     EPICSPVARecordTest test;
     ASSERT_TRUE(test.TestInitialise_False_NoType());

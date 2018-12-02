@@ -63,11 +63,17 @@ uint32 EPICSPVAHelperGetNumberOfElements(const IntrospectionEntry &entry) {
     uint32 numberOfElements = 1u;
     uint8 nOfDimensions = entry.GetNumberOfDimensions();
     if (nOfDimensions > 0u) {
-        numberOfElements = 0u;
+        numberOfElements = 1u;
         uint32 ne;
         for (ne = 0u; ne < nOfDimensions; ne++) {
-            numberOfElements += entry.GetNumberOfElements(ne);
+            uint32 nde = entry.GetNumberOfElements(ne);
+            if (nde != 0u) {
+                numberOfElements *= nde;
+            }
         }
+    }
+    if (numberOfElements == 0u) {
+        numberOfElements = 1u;
     }
     return numberOfElements;
 }
@@ -180,6 +186,7 @@ epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(const Introsp
             const char8 * const memberName = entry.GetMemberName();
             const char8 * const memberTypeName = entry.GetMemberTypeName();
             bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
+            uint8 numberOfDimensions = entry.GetNumberOfDimensions();
             uint32 numberOfElements = EPICSPVAHelperGetNumberOfElements(entry);
             if (isStructured) {
                 const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
@@ -202,10 +209,23 @@ epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(const Introsp
                 ok = EPICSPVAHelper::GetType(memberTypeName, epicsType);
                 if (ok) {
                     if (numberOfElements > 1u) {
-                        fieldBuilder = fieldBuilder->addBoundedArray(memberName, epicsType, numberOfElements);
+                        if ((epicsType == epics::pvData::pvString) && (numberOfDimensions < 2u)) {
+                            fieldBuilder = fieldBuilder->add(memberName, epicsType);
+                            REPORT_ERROR_STATIC(
+                                    ErrorManagement::Warning,
+                                    "Registering scalar %s with type %s - the number of elements is being ignored. If you wish to register an array of strings, declare it has an 1xn matrix {1, n}",
+                                    memberName, memberTypeName);
+                        }
+                        else {
+                            fieldBuilder = fieldBuilder->addBoundedArray(memberName, epicsType, numberOfElements);
+                            REPORT_ERROR_STATIC(ErrorManagement::Debug, "Registering scalar array %s with type %s and %d elements", memberName, memberTypeName,
+                                                numberOfElements);
+
+                        }
                     }
                     else {
                         fieldBuilder = fieldBuilder->add(memberName, epicsType);
+                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Registering scalar %s with type %s", memberName, memberTypeName);
                     }
                 }
             }
@@ -245,7 +265,8 @@ bool EPICSPVAHelperTransverseStructureInit(const Introspection *intro, epics::pv
                         ok = EPICSPVAHelper::ReplaceStructureArray(memberIntro, pvStructMemberArr, numberOfElements, memberTypeName);
                     }
                     else {
-                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Member %s not found in PVStructurePtr or is not a PVStructureArrayPtr", memberName);
+                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Member %s not found in PVStructurePtr or is not a PVStructureArrayPtr",
+                                            memberName);
                     }
                 }
                 else {
@@ -270,12 +291,14 @@ bool EPICSPVAHelperTransverseStructureInit(const Introspection *intro, epics::pv
                 if (!ok) {
                     REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Member %s not found in PVScalarArrayPtr", memberName);
                 }
-                epics::pvData::PVScalarArrayPtr pvScalarArr = pvStructPtr->getSubField<epics::pvData::PVScalarArray>(memberName);
-                if (ok) {
-                    ok = (pvScalarArr ? true : false);
-                }
-                if (ok) {
-                    EPICSPVAHelper::InitArray(pvScalarArr, numberOfElements);
+                if (epicsType != epics::pvData::pvString) {
+                    epics::pvData::PVScalarArrayPtr pvScalarArr = pvStructPtr->getSubField<epics::pvData::PVScalarArray>(memberName);
+                    if (ok) {
+                        ok = (pvScalarArr ? true : false);
+                    }
+                    if (ok) {
+                        EPICSPVAHelper::InitArray(pvScalarArr, numberOfElements);
+                    }
                 }
             }
         }
@@ -311,7 +334,8 @@ bool EPICSPVAHelper::InitStructure(const Introspection *intro, epics::pvData::PV
     return ok;
 }
 
-bool EPICSPVAHelper::ReplaceStructureArray(const Introspection *memberIntro, epics::pvData::PVStructureArrayPtr pvStructMemberArr, uint32 numberOfElements, const char8 * const memberTypeName) {
+bool EPICSPVAHelper::ReplaceStructureArray(const Introspection *memberIntro, epics::pvData::PVStructureArrayPtr pvStructMemberArr, uint32 numberOfElements,
+                                           const char8 * const memberTypeName) {
     uint32 j;
     epics::pvData::PVStructureArray::svector arr(numberOfElements);
     uint32 arrSize = arr.size();
