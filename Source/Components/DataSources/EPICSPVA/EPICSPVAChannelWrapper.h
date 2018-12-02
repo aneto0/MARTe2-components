@@ -1,8 +1,8 @@
 /**
  * @file EPICSPVAChannelWrapper.h
  * @brief Header file for class EPICSPVAChannelWrapper
- * @date Oct 21, 2018
- * @author aneto
+ * @date 21/10/2018
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -126,19 +126,25 @@ public:
     const char8 * const GetFieldName();
 
     /**
-     * @brief TODO
+     * @brief The callback function that is called when the channel.put method is called. Sets the args.root to pvStruct.
+     * @param[in] build see pvac::ClientChannel::PutCallback
+     * @param[in,out] args see pvac::ClientChannel::PutCallback
      */
     virtual void putBuild(const epics::pvData::StructureConstPtr& build, pvac::ClientChannel::PutCallback::Args& args);
 
     /**
-     * @brief TODO
+     * @brief The callback function that is called when the put operation concludes.
+     * @param[in] evt see pvac::ClientChannel::PutCallback
      */
     virtual void putDone(const pvac::PutEvent& evt);
 
 private:
 
     /**
-     * @brief TODO
+     * @brief Recursively populates the cachedSignals (flat list of the structure identified with the qualifiedName) array from the input structure.
+     * @param[in] pvStruct the structure to be resolved.
+     * @param[in] nodeName the name of structure.
+     * @return true if the structure can be fully resolved with no errors.
      */
     bool ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName);
 
@@ -204,12 +210,12 @@ private:
     bool structureResolved;
 
     /**
-     * TODO
+     * The structure which is pvput (see putBuild)
      */
     epics::pvData::PVStructure::const_shared_pointer putPVStruct;
 
     /**
-     * TODO
+     * Set to true when the put has finished.
      */
     bool putFinished;
 };
@@ -253,7 +259,9 @@ inline void EPICSPVAChannelWrapper::PutHelper<char8>(uint32 n) {
         scalarFieldPtr->putFrom<std::string>(value);
     }
     else {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field. Note that arrays of strings are not supported in the data-source yet", cachedSignals[n].qualifiedName.Buffer());
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError,
+                            "Signal %s has an invalid pv field. Note that arrays of strings are not supported in the data-source yet",
+                            cachedSignals[n].qualifiedName.Buffer());
     }
 }
 

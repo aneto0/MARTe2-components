@@ -51,6 +51,8 @@ namespace MARTe {
  * Each signal root name defines the name of the record (signal).
  * The configuration syntax is (names are only given as an example):
  *
+ * Note that strings shall be specified with Type = string (also inside structured types).
+ *
  * <pre>
  * +EPICSPVAInput_1 = {
  *     Class = EPICSPVADataSource::EPICSPVAInput
