@@ -92,6 +92,11 @@ public:
     bool TestSynchronise_CSV();
 
     /**
+     * @brief Tests the Synchronise method with csv files and using the comma as the separator.
+     */
+    bool TestSynchronise_CSV_Comma();
+
+    /**
      * @brief Tests the Synchronise method with csv files and interpolation.
      */
     bool TestSynchronise_CSV_Interpolation();

@@ -397,7 +397,7 @@ static void DeleteTestFile(const MARTe::char8 * const filename) {
 static bool TestIntegratedExecution(const MARTe::char8 * const config, const MARTe::char8 * const filename, FRTSignalToVerify **signalToVerify,
                                     MARTe::uint32 *signalToVerifyNumberOfElements, MARTe::uint32 signalToVerifyNumberOfSamples, bool csv,
                                     MARTe::uint32 interpolationPeriod, const MARTe::char8 * const xAxisSignalName = "SignalUInt32", bool purge = true,
-                                    bool ignoreFailure = false) {
+                                    bool ignoreFailure = false, const MARTe::char8 * const csvSeparator = ";") {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config;
@@ -423,7 +423,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, const MAR
     if (csv) {
         cdb.Write("FileFormat", "csv");
         cdb.Delete("CSVSeparator");
-        cdb.Write("CSVSeparator", ";");
+        cdb.Write("CSVSeparator", csvSeparator);
     }
     else {
         cdb.Write("FileFormat", "binary");
@@ -593,7 +593,7 @@ static void GenerateBinaryFile(const MARTe::char8 * const filename, FRTSignalToV
     f.Close();
 }
 
-static bool TestIntegratedExecution(const MARTe::char8 * const config, bool csv, MARTe::uint32 *numberOfElements) {
+static bool TestIntegratedExecution(const MARTe::char8 * const config, bool csv, MARTe::uint32 *numberOfElements, const MARTe::char8 * const csvSeparator) {
     using namespace MARTe;
     const char8 * filename = "";
     bool ok = true;
@@ -606,9 +606,9 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, bool csv,
 
     if (csv) {
         filename = "TestIntegratedExecution.csv";
-        GenerateCSVFile(filename, ";", signals, numberOfElements, signalToVerifyNumberOfSamples);
+        GenerateCSVFile(filename, csvSeparator, signals, numberOfElements, signalToVerifyNumberOfSamples);
         if (ok) {
-            ok = TestIntegratedExecution(config, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, true, 0, "");
+            ok = TestIntegratedExecution(config, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, true, 0, "", true, false, csvSeparator);
         }
     }
     else {
@@ -1438,7 +1438,7 @@ bool FileReaderTest::TestGetSignalMemoryBuffer() {
     bool ok = !test.GetSignalMemoryBuffer(0, 0, ptr);
     if (ok) {
         uint32 numberOfElements[] = { 1, 1, 1, 3, 1, 1, 1, 1, 10, 1 };
-        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
     }
     return ok;
 }
@@ -1500,7 +1500,7 @@ bool FileReaderTest::TestGetInputBrokers() {
     bool ok = !test.GetSignalMemoryBuffer(0, 0, ptr);
     if (ok) {
         uint32 numberOfElements[] = { 1, 1, 1, 3, 1, 1, 1, 1, 1, 1 };
-        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
     }
     return ok;
 }
@@ -1517,11 +1517,25 @@ bool FileReaderTest::TestSynchronise_CSV() {
     bool ok = true;
     if (ok) {
         uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        ok = TestIntegratedExecution(config1, true, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, true, &numberOfElements[0], ";");
     }
     if (ok) {
         uint32 numberOfElements[] = { 2, 4, 5, 2, 3, 4, 3, 2, 4, 2 };
-        ok = TestIntegratedExecution(config1, true, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, true, &numberOfElements[0], ";");
+    }
+    return ok;
+}
+
+bool FileReaderTest::TestSynchronise_CSV_Comma() {
+    using namespace MARTe;
+    bool ok = true;
+    if (ok) {
+        uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        ok = TestIntegratedExecution(config1, true, &numberOfElements[0], ",");
+    }
+    if (ok) {
+        uint32 numberOfElements[] = { 2, 4, 5, 2, 3, 4, 3, 2, 4, 2 };
+        ok = TestIntegratedExecution(config1, true, &numberOfElements[0], ",");
     }
     return ok;
 }
@@ -1545,11 +1559,11 @@ bool FileReaderTest::TestSynchronise_Binary() {
     bool ok = true;
     if (ok) {
         uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
     }
     if (ok) {
         uint32 numberOfElements[] = { 2, 4, 5, 2, 3, 4, 3, 2, 4, 2 };
-        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
     }
     return ok;
 }
@@ -1856,7 +1870,7 @@ bool FileReaderTest::TestInitialise_Warning_InterpolationPeriod() {
 bool FileReaderTest::TestSetConfiguredDatabase() {
     using namespace MARTe;
     uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    return TestIntegratedExecution(config1, false, &numberOfElements[0]);
+    return TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
 }
 
 bool FileReaderTest::TestSetConfiguredDatabase_False_NumberOfSamples() {
@@ -1902,7 +1916,7 @@ bool FileReaderTest::TestSetConfiguredDatabase_False_XAxisSignal_Dimensions() {
 bool FileReaderTest::TestOpenFile() {
     using namespace MARTe;
     uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    return TestIntegratedExecution(config1, false, &numberOfElements[0]);
+    return TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
 }
 
 bool FileReaderTest::TestCloseFile() {

@@ -200,6 +200,11 @@ TEST(FileReaderGTest,TestSynchronise_CSV) {
     ASSERT_TRUE(test.TestSynchronise_CSV());
 }
 
+TEST(FileReaderGTest,TestSynchronise_CSV_Comma) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise_CSV_Comma());
+}
+
 TEST(FileReaderGTest,TestSynchronise_CSV_Interpolation) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSynchronise_CSV_Interpolation());
