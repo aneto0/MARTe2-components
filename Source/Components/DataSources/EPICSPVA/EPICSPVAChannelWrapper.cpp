@@ -285,7 +285,7 @@ bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* 
                         found = (cachedSignals[k].qualifiedName == fullFieldName);
                         if (found) {
                             cachedSignals[k].pvField = field->shared_from_this();
-                            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Assigned PV to signal with name [%s]", fullFieldName.Buffer());
+                            REPORT_ERROR_STATIC(ErrorManagement::Debug, "Assigned PV to signal with name [%s]", fullFieldName.Buffer());
                         }
                     }
                     ok = found;
