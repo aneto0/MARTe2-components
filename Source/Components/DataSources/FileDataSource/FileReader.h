@@ -54,6 +54,9 @@ namespace MARTe {
  * A new line is expected after all signal samples have been written for any time instant.
  * Arrays are encoded inside brackets as per BufferedStreamI::PrintFormatted. e.g.""1;2000000;{2,2,2,2}"
  *
+ * Strings shall be expressed with the type char8 or string with the number of elements defining the maximum string length (including the \0 terminator).
+ * Arrays of strings are not currently supported.
+ *
  * If the format is binary an header with the following information is expected: the first 4 bytes
  * contain the number of signals. Then, for each signal, the signal type will be encoded in two bytes, followed
  *  by exactly 32 bytes to encode the signal name, followed by 4 bytes which store the number of elements of a given signal.
