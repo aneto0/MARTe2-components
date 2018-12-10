@@ -47,7 +47,7 @@
 class EPICSPVAOutputGAMTestHelper: public MARTe::GAM {
 public:
     CLASS_REGISTER_DECLARATION()EPICSPVAOutputGAMTestHelper() {
-        stringSignal = NULL;
+        char8Signal = NULL;
         uint8Signal = NULL;
         int8Signal = NULL;
         uint16Signal = NULL;
@@ -75,8 +75,8 @@ public:
         uint32 n;
         uint32 numberOfSignals = GetNumberOfOutputSignals();
         for(n=0; n<numberOfSignals; n++) {
-            if (GetSignalType(OutputSignals, n) == CharString) {
-                stringSignal = reinterpret_cast<char8 *>(GetOutputSignalMemory(n));
+            if (GetSignalType(OutputSignals, n) == Character8Bit) {
+                char8Signal = reinterpret_cast<char8 *>(GetOutputSignalMemory(n));
             }
             else if (GetSignalType(OutputSignals, n) == UnsignedInteger8Bit) {
                 uint8Signal = reinterpret_cast<uint8 *>(GetOutputSignalMemory(n));
@@ -118,7 +118,7 @@ public:
         return true;
     }
 
-    MARTe::char8 *stringSignal;
+    MARTe::char8 *char8Signal;
     MARTe::uint8 *uint8Signal;
     MARTe::int8 *int8Signal;
     MARTe::uint16 *uint16Signal;
@@ -1473,7 +1473,7 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "                    Alias = RecordOut3\n"
             "                }\n"
             "                SignalString = {\n"
-            "                    Type = string\n"
+            "                    Type = char8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    NumberOfElements = 128\n"
             "                    Alias = RecordOut5.SString\n"
@@ -1577,7 +1577,7 @@ bool EPICSPVAOutputTest::TestSynchronise() {
         *gam1->float64Signal = 64;
         StreamString expectedStringValue = "STRINGSIGNAL";
 
-        StringHelper::CopyN(&gam1->stringSignal[0], expectedStringValue.Buffer(), expectedStringValue.Size());
+        StringHelper::CopyN(&gam1->char8Signal[0], expectedStringValue.Buffer(), expectedStringValue.Size());
 
         scheduler->ExecuteThreadCycle(0u);
         pvac::ClientProvider provider("pva");

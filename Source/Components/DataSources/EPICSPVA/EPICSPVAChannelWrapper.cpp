@@ -213,12 +213,12 @@ bool EPICSPVAChannelWrapper::Put() {
                 else if (cachedSignals[n].typeDescriptor == Float64Bit) {
                     PutHelper<float64>(n);
                 }
-                else if (cachedSignals[n].typeDescriptor == CharString) {
+                else if (cachedSignals[n].typeDescriptor == Character8Bit) {
                     PutHelper<char8>(n);
                 }
-                else if (cachedSignals[n].typeDescriptor == Character8Bit) {
+                else if (cachedSignals[n].typeDescriptor == CharString) {
                     ok = false;
-                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "For strings use Type = string; for bytes use Type = uint8");
+                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "For strings use Type = char8; for bytes use Type = uint8");
                 }
                 else {
                     //Should never reach here...
@@ -333,7 +333,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
                         for (n = 0u; (n < numberOfSignals) && (ok); n++) {
                             epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(
                                     cachedSignals[n].pvField);
-                            if (cachedSignals[n].typeDescriptor == CharString) {
+                            if (cachedSignals[n].typeDescriptor == Character8Bit) {
                                 ok = (scalarFieldPtr ? true : false);
                                 if (ok) {
                                     std::string value = scalarFieldPtr->getAs<std::string>();
@@ -344,9 +344,9 @@ bool EPICSPVAChannelWrapper::Monitor() {
                                     StringHelper::CopyN(reinterpret_cast<char8 *>(cachedSignals[n].memory), value.c_str(), maxSize);
                                 }
                             }
-                            else if (cachedSignals[n].typeDescriptor == Character8Bit) {
+                            else if (cachedSignals[n].typeDescriptor == CharString) {
                                 ok = false;
-                                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "For strings use Type = string; for bytes use Type = uint8");
+                                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "For strings use Type = char8; for bytes use Type = uint8");
                             }
                             else if ((cachedSignals[n].numberOfElements) == 1u) {
                                 ok = (scalarFieldPtr ? true : false);

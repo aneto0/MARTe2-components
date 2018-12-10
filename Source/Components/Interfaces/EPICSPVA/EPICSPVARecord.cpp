@@ -67,7 +67,7 @@ EPICSPVARecord::~EPICSPVARecord() {
 
 }
 
-bool EPICSPVARecord::GetArrayNumberOfElements(StructuredDataI & cdb, uint32 &totalElements, uint8 &numberOfDimensions) {
+bool EPICSPVARecord::GetArrayNumberOfElements(TypeDescriptor &typeDesc, StructuredDataI & cdb, uint32 &totalElements, uint8 &numberOfDimensions) {
     bool ok = true;
     uint32 *numberOfElements = NULL_PTR(uint32 *);
     AnyType arrayDescription = cdb.GetType("NumberOfElements");
@@ -104,6 +104,12 @@ bool EPICSPVARecord::GetArrayNumberOfElements(StructuredDataI & cdb, uint32 &tot
     }
     if (ok) {
         uint32 nd;
+        if (typeDesc == Character8Bit) {
+            if (numberOfDimensions > 0u) {
+                numberOfDimensions -= 1u;
+                numberOfElements[numberOfDimensions] = 1u;
+            }
+        }
         for (nd = 0u; nd < numberOfDimensions; nd++) {
             uint32 nde = numberOfElements[nd];
             if (nde != 0u) {
@@ -142,10 +148,10 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
                 REPORT_ERROR(ErrorManagement::ParametersError, "A Type shall be defined for every node");
             }
         }
-        if (ok) {
-            ok = GetArrayNumberOfElements(cdb, totalElements, numberOfDimensions);
-        }
         TypeDescriptor typeDesc = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
+        if (ok) {
+            ok = GetArrayNumberOfElements(typeDesc, cdb, totalElements, numberOfDimensions);
+        }
         if (typeDesc == InvalidType) {
             const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(typeStr.Buffer());
             const Introspection *intro = NULL_PTR(const Introspection *);
@@ -182,13 +188,12 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
                         fieldBuilder = fieldBuilder->add(cdb.GetName(), epicsType);
                         REPORT_ERROR(
                                 ErrorManagement::Warning,
-                                "Registering scalar %s with type %s - the number of elements is being ignored. If you wish to register an array of strings, declare it has an 1xn matrix {1, n}",
+                                "Registering scalar %s with type %s - the number of elements is being ignored. If you wish to register an array of strings, declare it has an nxm matrix {n, m}, where n is the number of strings and m the size of the string ",
                                 cdb.GetName(), typeStr.Buffer());
                     }
                     else {
                         fieldBuilder = fieldBuilder->addBoundedArray(cdb.GetName(), epicsType, totalElements);
-                        REPORT_ERROR(ErrorManagement::Debug, "Registering scalar array %s with type %s and %d elements", cdb.GetName(), typeStr.Buffer(),
-                                     totalElements);
+                        REPORT_ERROR(ErrorManagement::Debug, "Registering scalar array %s with type %s and %d elements", cdb.GetName(), typeStr.Buffer(), totalElements);
                     }
                 }
                 else {
@@ -221,10 +226,10 @@ bool EPICSPVARecord::InitEPICSStructure(epics::pvData::PVStructurePtr pvStructur
                 REPORT_ERROR(ErrorManagement::ParametersError, "A Type shall be defined for every node");
             }
         }
-        if (ok) {
-            ok = GetArrayNumberOfElements(cdb, totalElements, numberOfDimensions);
-        }
         TypeDescriptor typeDesc = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
+        if (ok) {
+            ok = GetArrayNumberOfElements(typeDesc, cdb, totalElements, numberOfDimensions);
+        }
         if (typeDesc == InvalidType) {
             const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(typeStr.Buffer());
             const Introspection *intro = NULL_PTR(const Introspection *);

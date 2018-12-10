@@ -48,7 +48,7 @@
 class EPICSPVAInputGAMTestHelper: public MARTe::GAM {
 public:
     CLASS_REGISTER_DECLARATION()EPICSPVAInputGAMTestHelper() {
-        stringSignal = NULL;
+        char8Signal = NULL;
         uint8Signal = NULL;
         int8Signal = NULL;
         uint16Signal = NULL;
@@ -76,8 +76,8 @@ public:
         uint32 n;
         uint32 numberOfSignals = GetNumberOfInputSignals();
         for(n=0; n<numberOfSignals; n++) {
-            if (GetSignalType(InputSignals, n) == CharString) {
-                stringSignal = reinterpret_cast<char8 *>(GetInputSignalMemory(n));
+            if (GetSignalType(InputSignals, n) == Character8Bit) {
+                char8Signal = reinterpret_cast<char8 *>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == UnsignedInteger8Bit) {
                 uint8Signal = reinterpret_cast<uint8 *>(GetInputSignalMemory(n));
@@ -119,7 +119,7 @@ public:
         return true;
     }
 
-    MARTe::char8 *stringSignal;
+    MARTe::char8 *char8Signal;
     MARTe::uint8 *uint8Signal;
     MARTe::int8 *int8Signal;
     MARTe::uint16 *uint16Signal;
@@ -482,7 +482,8 @@ bool EPICSPVAInputTest::TestExecute() {
             "        Class = EPICSPVA::EPICSPVARecord\n"
             "        Structure = {\n"
             "            ElementString = {\n"
-            "                Type = string\n"
+            "                Type = char8\n"
+            "                NumberOfElements = 12\n"
             "            }\n"
             "       }\n"
             "    }\n"
@@ -545,7 +546,7 @@ bool EPICSPVAInputTest::TestExecute() {
             "                    Alias = RecordIn3\n"
             "                }\n"
             "                SignalString = {\n"
-            "                    Type = string\n"
+            "                    Type = char8\n"
             "                    DataSource = EPICSPVAInputTest\n"
             "                    Alias = RecordIn6\n"
             "                    NumberOfElements = 12\n"
@@ -586,7 +587,7 @@ bool EPICSPVAInputTest::TestExecute() {
             "                }\n"
             "                RecordIn6 = {\n"
             "                    Field = ElementString"
-            "                    Type = string\n"
+            "                    Type = char8\n"
             "                    NumberOfElements = 12\n"
             "                }\n"
             "            }\n"
@@ -682,7 +683,7 @@ bool EPICSPVAInputTest::TestExecute() {
             ok &= (-4 == *gam1->int64Signal);
             ok &= (32 == *gam1->float32Signal);
             ok &= (64 == *gam1->float64Signal);
-            StreamString tmpString = gam1->stringSignal;
+            StreamString tmpString = gam1->char8Signal;
             ok &= (tmpString == stringValueExpected);
 
             Sleep::Sec(0.1);

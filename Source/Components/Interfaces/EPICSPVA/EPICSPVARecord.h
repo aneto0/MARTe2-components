@@ -123,7 +123,7 @@ private:
      * @brief Helper method which computes the total number of elements in a given array.
      * TODO
      */
-    bool GetArrayNumberOfElements(StructuredDataI &cdb, uint32 &totalElements, uint8 &numberOfDimensions);
+    bool GetArrayNumberOfElements(TypeDescriptor &typeDesc, StructuredDataI &cdb, uint32 &totalElements, uint8 &numberOfDimensions);
 
     /**
      * Local copy of the ConfigurationDatabase.

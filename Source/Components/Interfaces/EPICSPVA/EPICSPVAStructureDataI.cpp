@@ -180,8 +180,7 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u),
-                             value.GetNumberOfElements(0u));
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
                 ok = false;
             }
         }
@@ -295,6 +294,12 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
 
     bool isScalar = (value.GetNumberOfElements(0u) <= 1u);
     bool storedTypeIsScalar = (storedType.GetNumberOfElements(0u) <= 1u);
+    if (value.GetTypeDescriptor() == Character8Bit) {
+        isScalar = (value.GetNumberOfElements(1u) <= 1u);
+    }
+    if (storedType.GetTypeDescriptor() == Character8Bit) {
+        storedTypeIsScalar = (storedType.GetNumberOfElements(1u) <= 1u);
+    }
 
     bool ok = (isScalar == storedTypeIsScalar);
     epics::pvData::PVStructurePtr structPtr;
@@ -355,8 +360,8 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
             else if (value.GetTypeDescriptor() == Float64Bit) {
                 scalarFieldPtr->putFrom<float64>(*reinterpret_cast<float64 *>(value.GetDataPointer()));
             }
-            else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString)
-                    || (value.GetTypeDescriptor().type == PCString) || (value.GetTypeDescriptor().type == SString)) {
+            else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString) || (value.GetTypeDescriptor().type == PCString)
+                    || (value.GetTypeDescriptor().type == SString)) {
                 if (value.GetTypeDescriptor().type == SString) {
                     StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
                     scalarFieldPtr->putFrom<std::string>(src->Buffer());
@@ -405,8 +410,8 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
                 else if (value.GetTypeDescriptor() == Float64Bit) {
                     ok = WriteArray<float64>(scalarArrayPtr, storedType, value, size);
                 }
-                else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString)
-                        || (value.GetTypeDescriptor().type == PCString) || (value.GetTypeDescriptor().type == SString)) {
+                else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString) || (value.GetTypeDescriptor().type == PCString)
+                        || (value.GetTypeDescriptor().type == SString)) {
                     ok = WriteArray<std::string>(scalarArrayPtr, storedType, value, size);
                 }
                 else {
@@ -414,8 +419,7 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u),
-                             value.GetNumberOfElements(0u));
+                REPORT_ERROR(ErrorManagement::ParametersError, "Array dimensions must match %d != %d", storedType.GetNumberOfElements(0u), value.GetNumberOfElements(0u));
             }
         }
     }
@@ -448,14 +452,33 @@ bool EPICSPVAStructureDataI::Copy(StructuredDataI &destination) {
         if (at.GetTypeDescriptor() != voidAnyType.GetTypeDescriptor()) {
             uint32 nOfElements0 = at.GetNumberOfElements(0u);
             uint32 nOfElements1 = at.GetNumberOfElements(1u);
+
             if (nOfElements0 < 1u) {
                 nOfElements0 = 1u;
             }
             if (nOfElements1 < 1u) {
                 nOfElements1 = 1u;
             }
-            if ((at.GetTypeDescriptor().type == CArray) || (at.GetTypeDescriptor().type == BT_CCString) || (at.GetTypeDescriptor().type == PCString)
-                    || (at.GetTypeDescriptor().type == SString)) {
+            if (at.GetTypeDescriptor() == Character8Bit) {
+                if (nOfElements1 > 1u) {
+                    Vector<StreamString> ss(nOfElements1);
+                    ok = Read(childName, ss);
+                    if (ok) {
+                        ok = destination.Write(childName, ss);
+                    }
+                }
+                else {
+                    StreamString ss;
+                    ok = Read(childName, ss);
+                    if (ok) {
+                        ok = ss.Seek(0LLU);
+                    }
+                    if (ok) {
+                        ok = destination.Write(childName, ss);
+                    }
+                }
+            }
+            else if ((at.GetTypeDescriptor().type == BT_CCString) || (at.GetTypeDescriptor().type == PCString) || (at.GetTypeDescriptor().type == SString)) {
                 if (nOfElements0 > 1u) {
                     Vector<StreamString> ss(nOfElements0);
                     ok = Read(childName, ss);
@@ -736,6 +759,9 @@ epics::pvData::StructureConstPtr EPICSPVAStructureDataI::ConfigurationDataBaseTo
                 }
                 if (ok) {
                     bool isScalar = (storedType.GetNumberOfElements(0u) <= 1u);
+                    if (storedType.GetTypeDescriptor() == Character8Bit) {
+                        isScalar = (storedType.GetNumberOfElements(1u) <= 1u);
+                    }
                     if (isScalar) {
                         fieldBuilder = fieldBuilder->add(childName, epicsType);
                     }
