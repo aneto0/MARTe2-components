@@ -108,7 +108,9 @@ EPICSPVARecord    ();
 
 private:
     /**
-     * @brief TODO
+     * @brief Recursively initialises the \a pvStructure (in particular the arrays and the structure arrays) .
+     * @param[in] pvStructure the structure to initialise.
+     * @return true if all the members of the structure were successfully initialised.
      */
     bool InitEPICSStructure(epics::pvData::PVStructurePtr pvStructure);
 
@@ -121,7 +123,11 @@ private:
 
     /**
      * @brief Helper method which computes the total number of elements in a given array.
-     * TODO
+     * @param[in] typeDesc the type of the array parameter.
+     * @param[in] cdb structure pointing at the node containing the parameter.
+     * @param[out] totalElements the total number of elements found in the array.
+     * @param[out] numberOfDimensions the number of dimensions found in the array.
+     * @return true if the array dimension was successfully computed.
      */
     bool GetArrayNumberOfElements(TypeDescriptor &typeDesc, StructuredDataI &cdb, uint32 &totalElements, uint8 &numberOfDimensions);
 
