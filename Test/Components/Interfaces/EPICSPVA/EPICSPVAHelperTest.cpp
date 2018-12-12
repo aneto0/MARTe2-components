@@ -280,7 +280,7 @@ bool EPICSPVAHelperTest::TestReplaceStructureArray() {
     epics::pvData::PVStructurePtr pvStructure;
     if (ok) {
         pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(strPtr);
-        pvStructureArray = pvStructure->getSubField<epics::pvData::PVStructureArray> ("value");
+        pvStructureArray = pvStructure->getSubField<epics::pvData::PVStructureArray>("value");
     }
     if (ok) {
         ok = (pvStructureArray ? true : false);
@@ -291,6 +291,13 @@ bool EPICSPVAHelperTest::TestReplaceStructureArray() {
     }
 
     ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool EPICSPVAHelperTest::TestGetType_TypeName(const MARTe::char8 *typeName) {
+    using namespace MARTe;
+    epics::pvData::ScalarType epicsType;
+    bool ok = EPICSPVAHelper::GetType(typeName, epicsType);
     return ok;
 }
 

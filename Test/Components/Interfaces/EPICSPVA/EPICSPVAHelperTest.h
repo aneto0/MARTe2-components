@@ -31,6 +31,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "AnyType.h"
+#include "AdvancedErrorManagement.h"
+#include "EPICSPVAHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -56,6 +59,23 @@ public:
     bool TestReplaceStructureArray();
 
     /**
+     * @brief Tests the InitArray function.
+     */
+    template<typename T>
+    bool TestInitArray(T ignored);
+
+    /**
+     * @brief Tests the GetType function (from a MARTe TypeDescriptor).
+     */
+    template<typename T>
+    bool TestGetType_TypeDescriptor(T ignored);
+
+    /**
+     * @brief Tests the GetType function (from a MARTe typename).
+     */
+    bool TestGetType_TypeName(const MARTe::char8 *typeName);
+
+    /**
      * @brief Tests the GetStructure method with an unregistered type. Not sure how I can force this error...
      */
     //bool TestGetStructure_False_UnregisteredType();
@@ -64,6 +84,31 @@ public:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+template<typename T>
+bool EPICSPVAHelperTest::TestInitArray(T ignored) {
+    using namespace MARTe;
+    uint32 numberOfElements = 10u;
+    AnyType discover(ignored);
+    epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
+    epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
+    epics::pvData::ScalarType epicsType;
+    EPICSPVAHelper::GetType(discover.GetTypeDescriptor(), epicsType);
+    fieldBuilder = fieldBuilder->addBoundedArray("value", epicsType, numberOfElements);
+    epics::pvData::StructureConstPtr strPtr = fieldBuilder->createStructure();
+    epics::pvData::PVStructurePtr pvStructPtr = epics::pvData::getPVDataCreate()->createPVStructure(strPtr);
+    epics::pvData::PVScalarArrayPtr pvScalarArr = pvStructPtr->getSubField<epics::pvData::PVScalarArray>("value");
+    bool ok = EPICSPVAHelper::InitArray(pvScalarArr, numberOfElements);
+    return ok;
+}
+
+template<typename T>
+bool EPICSPVAHelperTest::TestGetType_TypeDescriptor(T ignored) {
+    using namespace MARTe;
+    AnyType discover(ignored);
+    epics::pvData::ScalarType epicsType;
+    bool ok = EPICSPVAHelper::GetType(discover.GetTypeDescriptor(), epicsType);
+    return ok;
+}
 
 #endif /* EPICSPVA_EPICSPVAHELPERTEST_H_ */
 

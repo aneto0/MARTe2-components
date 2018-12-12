@@ -55,45 +55,56 @@ public:
     static epics::pvData::StructureConstPtr GetStructure(const Introspection *intro, const char8 * const typeName = NULL_PTR(const char8 * const));
 
     /**
-     * TODO
-     * @brief Inits PVStructureArrays in the portion of the epics::pvData::PVStructurePtr associated to the structure wrapped by the \a intro parameter and identified by the \a introStructName
+     * @brief Initialises PVStructureArrays and basic type arrays in the portion of the epics::pvData::PVStructurePtr associated to the structure wrapped by the \a intro parameter.
      * @param[in] intro the type identifying the structure.
-     * @param[in] pvStructPtr the PVStructurePtr to be initialised (in particular the PVStructureArray elements)
-     * @param[in] introTypeName the name of the field where intro can be found in \a pvStructPtr.
+     * @param[in] pvStructPtr the PVStructurePtr to be initialised (in particular the PVStructureArray elements).
      * @return true if the structure is successfully initialised.
      */
     static bool InitStructure(const Introspection *intro, epics::pvData::PVStructurePtr pvStructPtr);
 
     /**
-     * TODO
-     * @brief Inits PVStructureArrays in the portion of the epics::pvData::PVStructurePtr associated to the structure wrapped by the \a intro parameter and identified by the \a introStructName
-     * @param[in] intro the type identifying the structure.
-     * @param[in] pvStructPtr the PVStructurePtr to be initialised (in particular the PVStructureArray elements)
-     * @param[in] introTypeName the name of the field where intro can be found in \a pvStructPtr.
-     * @return true if the structure is successfully initialised.
-     */
-    static bool ReplaceStructureArray(const Introspection *intro, epics::pvData::PVStructureArrayPtr pvStructPtr, uint32 numberOfElements = 0u,
-                                      const char8 * const typeName = NULL_PTR(const char8 * const));
-
-    /**
-     * @brief TODO
+     * @brief Helper macro which dumps the pvaStruct in a MARTe log stream.
+     * @param[in] err the MARTe error type.
+     * @param[in] pvaStruct the structure to output.
      */
     static void REPORT_ERROR_PVA_STRUCT(ErrorManagement::ErrorType err, epics::pvData::StructureConstPtr pvaStruct);
 
     /**
-     * @brief TODO
+     * @brief Gets the epics::pvData::ScalarType from a MARTe type name.
+     * @param[in] memberTypeName the MARTe type name.
+     * @param[out] epicsType the corresponding epics::pvData::ScalarType.
+     * @return true if the type is supported.
      */
     static bool GetType(const char8 * const memberTypeName, epics::pvData::ScalarType &epicsType);
 
     /**
-     * @brief TODO
+     * @brief Gets the epics::pvData::ScalarType from a MARTe TypeDescriptor.
+     * @param[in] typeDesc the MARTe TypeDescriptor.
+     * @param[out] epicsType the corresponding epics::pvData::ScalarType.
+     * @return true if the type is supported.
      */
     static bool GetType(TypeDescriptor typeDesc, epics::pvData::ScalarType &epicsType);
 
     /**
-     * @brief TODO
+     * @brief Initialises a PVScalarArray with the specified number of elements.
+     * @param[in] pvScalarArr the array to be initialised.
+     * @param[in] numberOfElements the number of elements to initialise.
+     * @return true if the pvScalarArr is valid and if the type is supported.
      */
-    static void InitArray(epics::pvData::PVScalarArrayPtr pvScalarArr, const uint32 &numberOfElements);
+    static bool InitArray(epics::pvData::PVScalarArrayPtr pvScalarArr, const uint32 &numberOfElements);
+
+    /**
+     * @brief Helper code which replaces the PVStructureArrays with the equivalent set of PVStructures.
+     * @param[in] intro the type identifying the structure.
+     * @param[in] pvStructPtr the PVStructurePtr containing the arrays to be replaced.
+     * @param[in] numberOfElements the number of elements to be replaced.
+     * @param[in] typeName the type name of the structured type.
+     * @return true if the array is successfully replaced by a set of of equivalent PVStructures of type (typeName) and with size = \a numberOfElements.
+     */
+    static bool ReplaceStructureArray(const Introspection *intro, epics::pvData::PVStructureArrayPtr pvStructPtr, uint32 numberOfElements = 0u,
+                                      const char8 * const typeName = NULL_PTR(const char8 * const));
+
+
 
 };
 }

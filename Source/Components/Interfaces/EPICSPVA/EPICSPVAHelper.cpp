@@ -78,7 +78,7 @@ uint32 EPICSPVAHelperGetNumberOfElements(const IntrospectionEntry &entry) {
     return numberOfElements;
 }
 
-void EPICSPVAHelper::InitArray(epics::pvData::PVScalarArrayPtr pvScalarArr, const uint32 &numberOfElements) {
+bool EPICSPVAHelper::InitArray(epics::pvData::PVScalarArrayPtr pvScalarArr, const uint32 &numberOfElements) {
     bool ok = (pvScalarArr ? true : false);
     if (ok) {
         epics::pvData::ScalarType epicsType = pvScalarArr->getScalarArray()->getElementType();
@@ -117,8 +117,10 @@ void EPICSPVAHelper::InitArray(epics::pvData::PVScalarArrayPtr pvScalarArr, cons
         }
     }
     else {
+        ok = false;
         REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Type not supported");
     }
+    return ok;
 }
 
 bool EPICSPVAHelper::GetType(TypeDescriptor typeDesc, epics::pvData::ScalarType &epicsType) {
@@ -297,7 +299,7 @@ bool EPICSPVAHelperTransverseStructureInit(const Introspection *intro, epics::pv
                         ok = (pvScalarArr ? true : false);
                     }
                     if (ok) {
-                        EPICSPVAHelper::InitArray(pvScalarArr, numberOfElements);
+                        ok = EPICSPVAHelper::InitArray(pvScalarArr, numberOfElements);
                     }
                 }
             }
