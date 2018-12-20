@@ -223,7 +223,7 @@ AnyType EPICSPVAStructureDataI::GetType(const char8 * const name) {
             ok = (scalarArrayPtr ? true : false);
             if (ok) {
                 epicsScalarType = scalarArrayPtr->getScalarArray()->getElementType();
-                numberOfElements = scalarArrayPtr->getScalarArray()->getMaximumCapacity();
+                numberOfElements = scalarArrayPtr->getLength();
             }
         }
         else {
@@ -766,7 +766,7 @@ epics::pvData::StructureConstPtr EPICSPVAStructureDataI::ConfigurationDataBaseTo
                         fieldBuilder = fieldBuilder->add(childName, epicsType);
                     }
                     else {
-                        fieldBuilder = fieldBuilder->addBoundedArray(childName, epicsType, storedType.GetNumberOfElements(0u));
+                        fieldBuilder = fieldBuilder->addArray(childName, epicsType);
                     }
                 }
             }

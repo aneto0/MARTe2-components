@@ -192,7 +192,7 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
                                 cdb.GetName(), typeStr.Buffer());
                     }
                     else {
-                        fieldBuilder = fieldBuilder->addBoundedArray(cdb.GetName(), epicsType, totalElements);
+                        fieldBuilder = fieldBuilder->addArray(cdb.GetName(), epicsType);
                         REPORT_ERROR(ErrorManagement::Debug, "Registering scalar array %s with type %s and %d elements", cdb.GetName(), typeStr.Buffer(), totalElements);
                     }
                 }

@@ -64,8 +64,11 @@ uint32 EPICSPVAHelperGetNumberOfElements(const IntrospectionEntry &entry) {
     uint8 nOfDimensions = entry.GetNumberOfDimensions();
     if (nOfDimensions > 0u) {
         numberOfElements = 1u;
-        uint32 ne;
-        for (ne = 0u; ne < nOfDimensions; ne++) {
+        uint32 ne = 0u;
+        if (entry.GetMemberTypeDescriptor() == Character8Bit) {
+            ne = 1u;
+        }
+        for (; ne < nOfDimensions; ne++) {
             uint32 nde = entry.GetNumberOfElements(ne);
             if (nde != 0u) {
                 numberOfElements *= nde;
@@ -219,7 +222,7 @@ epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(const Introsp
                                     memberName, memberTypeName);
                         }
                         else {
-                            fieldBuilder = fieldBuilder->addBoundedArray(memberName, epicsType, numberOfElements);
+                            fieldBuilder = fieldBuilder->addArray(memberName, epicsType);
                             REPORT_ERROR_STATIC(ErrorManagement::Debug, "Registering scalar array %s with type %s and %d elements", memberName, memberTypeName,
                                                 numberOfElements);
 
