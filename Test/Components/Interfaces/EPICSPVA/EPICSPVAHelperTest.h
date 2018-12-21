@@ -93,7 +93,7 @@ bool EPICSPVAHelperTest::TestInitArray(T ignored) {
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
     epics::pvData::ScalarType epicsType;
     EPICSPVAHelper::GetType(discover.GetTypeDescriptor(), epicsType);
-    fieldBuilder = fieldBuilder->addBoundedArray("value", epicsType, numberOfElements);
+    fieldBuilder = fieldBuilder->addArray("value", epicsType);
     epics::pvData::StructureConstPtr strPtr = fieldBuilder->createStructure();
     epics::pvData::PVStructurePtr pvStructPtr = epics::pvData::getPVDataCreate()->createPVStructure(strPtr);
     epics::pvData::PVScalarArrayPtr pvScalarArr = pvStructPtr->getSubField<epics::pvData::PVScalarArray>("value");

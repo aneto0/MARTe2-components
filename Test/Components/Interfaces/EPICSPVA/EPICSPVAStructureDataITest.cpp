@@ -155,7 +155,7 @@ bool EPICSPVAStructureDataITest::TestRead_UInt8_Array() {
 bool EPICSPVAStructureDataITest::TestRead_Boolean_Array() {
     using namespace MARTe;
     epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
-    fieldBuilder->addBoundedArray("Test", epics::pvData::pvBoolean, 8);
+    fieldBuilder->addArray("Test", epics::pvData::pvBoolean);
     epics::pvData::PVStructurePtr currentStructPtr = epics::pvData::getPVDataCreate()->createPVStructure(fieldBuilder->createStructure());
     epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray > (currentStructPtr->getSubField("Test"));
 
