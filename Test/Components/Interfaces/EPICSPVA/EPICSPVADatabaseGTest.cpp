@@ -93,3 +93,8 @@ TEST(EPICSPVADatabaseGTest,TestGetServerContext) {
     EPICSPVADatabaseTest test;
     ASSERT_TRUE(test.TestGetServerContext());
 }
+
+TEST(EPICSPVADatabaseGTest,TestExecute_False_NoRecord) {
+    EPICSPVADatabaseTest test;
+    ASSERT_TRUE(test.TestExecute_False_NoRecord());
+}

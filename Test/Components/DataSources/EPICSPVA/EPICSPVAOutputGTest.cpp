@@ -148,3 +148,14 @@ TEST(EPICSPVAOutputGTest,TestSynchronise_Arrays_StructuredType) {
     EPICSPVAOutputTest test;
     ASSERT_TRUE(test.TestSynchronise_Arrays_StructuredType());
 }
+
+TEST(EPICSPVAOutputGTest,TestSynchronise_Arrays_Elements) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSynchronise_Arrays_Elements());
+}
+
+TEST(EPICSPVAOutputGTest,TestSynchronise_False_BadSignal) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSynchronise_False_BadSignal());
+}
+

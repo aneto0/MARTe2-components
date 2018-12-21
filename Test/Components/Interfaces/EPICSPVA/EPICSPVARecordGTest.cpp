@@ -74,6 +74,16 @@ TEST(EPICSPVARecordGTest,TestInitialise_False_NoType) {
     ASSERT_TRUE(test.TestInitialise_False_NoType());
 }
 
+TEST(EPICSPVARecordGTest,TestInitialise_False_NoIntrospection) {
+    EPICSPVARecordTest test;
+    ASSERT_TRUE(test.TestInitialise_False_NoIntrospection());
+}
+
+TEST(EPICSPVARecordGTest,TestInitialise_Warning_Char8Array) {
+    EPICSPVARecordTest test;
+    ASSERT_TRUE(test.TestInitialise_Warning_Char8Array());
+}
+
 TEST(EPICSPVARecordGTest,TestGetRecordName) {
     EPICSPVARecordTest test;
     ASSERT_TRUE(test.TestGetRecordName());

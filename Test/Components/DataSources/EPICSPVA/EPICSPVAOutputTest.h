@@ -143,6 +143,11 @@ public:
     bool TestSynchronise_Arrays();
 
     /**
+     * @brief Tests the Synchronise method with array elements.
+     */
+    bool TestSynchronise_Arrays_Elements();
+
+    /**
      * @brief Tests the Synchronise method with a structured type.
      */
     bool TestSynchronise_StructuredType();
@@ -151,6 +156,17 @@ public:
      * @brief Tests the Synchronise method with a structured type with arrays.
      */
     bool TestSynchronise_Arrays_StructuredType();
+
+    /**
+     * @brief Tests that the Synchronise method fails with a CharString.
+     */
+    bool TestSynchronise_False_CharString();
+
+    /**
+     * @brief Tests that the Synchronise method fails with a badly specified signal.
+     */
+    bool TestSynchronise_False_BadSignal();
+
 };
 
 /*---------------------------------------------------------------------------*/

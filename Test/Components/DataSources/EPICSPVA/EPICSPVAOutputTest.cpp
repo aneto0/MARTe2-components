@@ -296,7 +296,7 @@ struct EPICSPVAOutputTestFloatA {
 struct EPICSPVADatabaseTestOutputTypesSA {
     struct EPICSPVAOutputTestUIntA UInts;
     struct EPICSPVAOutputTestIntA Ints;
-    struct EPICSPVAOutputTestFloatA Floats;
+    struct EPICSPVAOutputTestFloatA Floats[2];
 };
 //The strategy is identical to the class registration
 DECLARE_CLASS_MEMBER(EPICSPVAOutputTestUIntA, UInt8, uint8, "[4]", "");
@@ -322,7 +322,7 @@ DECLARE_STRUCT_INTROSPECTION(EPICSPVAOutputTestFloatA, EPICSPVAOutputTestFloatAS
 
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, UInts, EPICSPVAOutputTestUIntA, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, Ints, EPICSPVAOutputTestIntA, "", "");
-DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, Floats, EPICSPVAOutputTestFloatA, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesSA, Floats, EPICSPVAOutputTestFloatA, "[2]", "");
 static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSAStructEntries[] = { &EPICSPVADatabaseTestOutputTypesSA_UInts_introspectionEntry,
         &EPICSPVADatabaseTestOutputTypesSA_Ints_introspectionEntry, &EPICSPVADatabaseTestOutputTypesSA_Floats_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestOutputTypesSA, EPICSPVADatabaseTestOutputTypesSAStructEntries)
@@ -1177,7 +1177,7 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
             "                SignalUInt8 = {\n"
             "                    Type = uint8\n"
             "                    DataSource = EPICSPVAOutputTest\n"
-            "                    Alias = RecordOut1.UnsignedIntegers.UInt8\n"
+            "                    Alias = RecordOut1.UInt8\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -2238,8 +2238,10 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
             gam1->testStruct->Ints.Int16[n] = -2 * n;
             gam1->testStruct->Ints.Int32[n] = -3 * n;
             gam1->testStruct->Ints.Int64[n] = -4 * n;
-            gam1->testStruct->Floats.Float32[n] = 32 * n;
-            gam1->testStruct->Floats.Float64[n] = 64 * n;
+            gam1->testStruct->Floats[0].Float32[n] = 32 * n;
+            gam1->testStruct->Floats[0].Float64[n] = 64 * n;
+            gam1->testStruct->Floats[1].Float32[n] = -32 * n;
+            gam1->testStruct->Floats[1].Float64[n] = -64 * n;
         }
         scheduler->ExecuteThreadCycle(0u);
         pvac::ClientProvider provider("pva");
@@ -2257,8 +2259,14 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
                 std::shared_ptr<const epics::pvData::PVShortArray> int16Value = getStruct->getSubField<epics::pvData::PVShortArray>("SignalTypes.Ints.Int16");
                 std::shared_ptr<const epics::pvData::PVIntArray> int32Value = getStruct->getSubField<epics::pvData::PVIntArray>("SignalTypes.Ints.Int32");
                 std::shared_ptr<const epics::pvData::PVLongArray> int64Value = getStruct->getSubField<epics::pvData::PVLongArray>("SignalTypes.Ints.Int64");
-                std::shared_ptr<const epics::pvData::PVFloatArray> float32Value = getStruct->getSubField<epics::pvData::PVFloatArray>("SignalTypes.Floats.Float32");
-                std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value = getStruct->getSubField<epics::pvData::PVDoubleArray>("SignalTypes.Floats.Float64");
+
+                std::shared_ptr<const epics::pvData::PVStructureArray> pvStructValue = getStruct->getSubField<epics::pvData::PVStructureArray>("SignalTypes.Floats");
+                epics::pvData::PVStructureArray::const_svector arr(static_cast<const epics::pvData::PVStructureArray*>(pvStructValue.operator ->())->view());
+
+                std::shared_ptr<const epics::pvData::PVFloatArray> float32Value0 = arr[0].get()->getSubField<epics::pvData::PVFloatArray>("Float32");
+                std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value0 = arr[0].get()->getSubField<epics::pvData::PVDoubleArray>("Float64");
+                std::shared_ptr<const epics::pvData::PVFloatArray> float32Value1 = arr[1].get()->getSubField<epics::pvData::PVFloatArray>("Float32");
+                std::shared_ptr<const epics::pvData::PVDoubleArray> float64Value1 = arr[1].get()->getSubField<epics::pvData::PVDoubleArray>("Float64");
 
                 ok = (uint8Value ? true : false);
                 epics::pvData::shared_vector<const uint8> outUInt8;
@@ -2269,8 +2277,10 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
                 epics::pvData::shared_vector<const int16> outInt16;
                 epics::pvData::shared_vector<const int32> outInt32;
                 epics::pvData::shared_vector<const long int> outInt64;
-                epics::pvData::shared_vector<const float32> outFloat32;
-                epics::pvData::shared_vector<const float64> outFloat64;
+                epics::pvData::shared_vector<const float32> outFloat320;
+                epics::pvData::shared_vector<const float64> outFloat640;
+                epics::pvData::shared_vector<const float32> outFloat321;
+                epics::pvData::shared_vector<const float64> outFloat641;
 
                 outUInt8.resize(nOfElements);
                 outUInt16.resize(nOfElements);
@@ -2280,8 +2290,10 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
                 outInt16.resize(nOfElements);
                 outInt32.resize(nOfElements);
                 outInt64.resize(nOfElements);
-                outFloat32.resize(nOfElements);
-                outFloat64.resize(nOfElements);
+                outFloat320.resize(nOfElements);
+                outFloat640.resize(nOfElements);
+                outFloat321.resize(nOfElements);
+                outFloat641.resize(nOfElements);
 
                 if (ok) {
                     uint8Value->getAs < uint8 > (outUInt8);
@@ -2292,8 +2304,10 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
                     int16Value->getAs < int16 > (outInt16);
                     int32Value->getAs < int32 > (outInt32);
                     int64Value->getAs<long int>(outInt64);
-                    float32Value->getAs < float32 > (outFloat32);
-                    float64Value->getAs < float64 > (outFloat64);
+                    float32Value0->getAs < float32 > (outFloat320);
+                    float64Value0->getAs < float64 > (outFloat640);
+                    float32Value1->getAs < float32 > (outFloat321);
+                    float64Value1->getAs < float64 > (outFloat641);
                 }
                 for (n = 0u; (n < nOfElements) && (ok); n++) {
                     ok = (outUInt8[n] == gam1->testStruct->UInts.UInt8[n]);
@@ -2304,8 +2318,10 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
                     ok &= (outInt16[n] == gam1->testStruct->Ints.Int16[n]);
                     ok &= (outInt32[n] == gam1->testStruct->Ints.Int32[n]);
                     ok &= (outInt64[n] == gam1->testStruct->Ints.Int64[n]);
-                    ok &= (outFloat32[n] == gam1->testStruct->Floats.Float32[n]);
-                    ok &= (outFloat64[n] == gam1->testStruct->Floats.Float64[n]);
+                    ok &= (outFloat320[n] == gam1->testStruct->Floats[0].Float32[n]);
+                    ok &= (outFloat640[n] == gam1->testStruct->Floats[0].Float64[n]);
+                    ok &= (outFloat321[n] == gam1->testStruct->Floats[1].Float32[n]);
+                    ok &= (outFloat641[n] == gam1->testStruct->Floats[1].Float64[n]);
                 }
             }
             Sleep::Sec(0.1);
@@ -2313,5 +2329,325 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays_StructuredType() {
         }
     }
     godb->Purge();
+    return ok;
+}
+
+bool EPICSPVAOutputTest::TestSynchronise_False_CharString() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {\n"
+            "    Class = EPICSPVADatabase\n"
+            "    +RecordOut1SArr = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Structure = {\n"
+            "             SignalCharString = {\n"
+            "                  Type = char8\n"
+            "                  NumberOfElements = 64"
+            "             }\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAM1 = {\n"
+            "            Class = EPICSPVAOutputGAMTestHelperS\n"
+            "            OutputSignals = {\n"
+            "                RecordOut1SArr = {\n"
+            "                    Type = string\n"
+            "                    DataSource = EPICSPVAOutputTest\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +EPICSPVAOutputTest = {\n"
+            "            Class = EPICSPVAOutput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 2\n"
+            "            Signals = {\n"
+            "                RecordOut1SArr = {\n"
+            "                    Field = SignalCharString\n"
+            "                    Type = string\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAM1}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = EPICSPVAOutputSchedulerTestHelper\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+
+    bool ok = TestIntegratedInApplication(config.Buffer(), false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<RealTimeApplication> application;
+    ReferenceT<EPICSPVAOutput> ds1;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ds1 = godb->Find("Test.Data.EPICSPVAOutputTest");
+        ok = ds1.IsValid();
+    }
+    if (ok) {
+        ok = !ds1->Synchronise();
+    }
+
+    godb->Purge();
+
+    return ok;
+}
+
+bool EPICSPVAOutputTest::TestSynchronise_Arrays_Elements() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+Types = {\n"
+            "    Class = ReferenceContainer"
+            "    +UnsignedIntegers1 = {\n"
+            "        Class = IntrospectionStructure"
+            "        UInt32 = {\n"
+            "            Type = uint32\n"
+            "            NumberOfElements = 4\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "+EPICSPVADatabase1 = {\n"
+            "    Class = EPICSPVADatabase\n"
+            "    +RecordOut1Arr = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Structure = {\n"
+            "             UnsignedIntegers1 = {\n"
+            "                  Type = UnsignedIntegers1\n"
+            "                  NumberOfElements = 2\n"
+            "             }\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAM1 = {\n"
+            "            Class = EPICSPVAOutputGAMTestHelper\n"
+            "            OutputSignals = {\n"
+            "                SignalUInt32 = {\n"
+            "                    Type = UnsignedIntegers1\n"
+            "                    DataSource = EPICSPVAOutputTest\n"
+            "                    Alias = RecordOut1Arr[0]\n"
+            "                    NumberOfElements = 1\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +EPICSPVAOutputTest = {\n"
+            "            Class = EPICSPVAOutput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 2\n"
+            "            Signals = {\n"
+            "                RecordOut1Arr = {\n"
+            "                    Field = UnsignedIntegers1\n"
+            "                    Type = UnsignedIntegers1\n"
+            "                    NumberOfElements = 2\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAM1}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = EPICSPVAOutputSchedulerTestHelper\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+
+    bool ok = TestIntegratedInApplication(config.Buffer(), false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<EPICSPVAOutputGAMTestHelper> gam1;
+    ReferenceT<RealTimeApplication> application;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        gam1 = godb->Find("Test.Functions.GAM1");
+        ok = gam1.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    ReferenceT<EPICSPVAOutputSchedulerTestHelper> scheduler;
+    if (ok) {
+        scheduler = godb->Find("Test.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+    if (ok) {
+        uint32 n;
+        uint32 nOfElements = 4;
+        for (n = 0u; n < nOfElements; n++) {
+            gam1->uint32Signal[n] = 3 * n;
+        }
+        scheduler->ExecuteThreadCycle(0u);
+        pvac::ClientProvider provider("pva");
+        uint32 timeOutCounts = 50;
+        ok = false;
+        while ((!ok) && (timeOutCounts != 0u)) {
+            {
+                pvac::ClientChannel record1(provider.connect("RecordOut1Arr"));
+                epics::pvData::PVStructure::const_shared_pointer getStruct = record1.get();
+
+                std::shared_ptr<const epics::pvData::PVStructureArray> pvStructValue = getStruct->getSubField<epics::pvData::PVStructureArray>("UnsignedIntegers1");
+                epics::pvData::PVStructureArray::const_svector arr(static_cast<const epics::pvData::PVStructureArray*>(pvStructValue.operator ->())->view());
+                std::shared_ptr<const epics::pvData::PVUIntArray> uint32Value = arr[0].get()->getSubField<epics::pvData::PVUIntArray>("UInt32");
+                ok = (uint32Value ? true : false);
+                epics::pvData::shared_vector<const uint32> outUInt32;
+                outUInt32.resize(nOfElements);
+                if (ok) {
+                    uint32Value->getAs < uint32 > (outUInt32);
+                }
+                for (n = 0u; (n < nOfElements) && (ok); n++) {
+                    ok &= (outUInt32[n] == gam1->uint32Signal[n]);
+                }
+            }
+            Sleep::Sec(0.1);
+            timeOutCounts--;
+        }
+    }
+    godb->Purge();
+    return ok;
+}
+
+bool EPICSPVAOutputTest::TestSynchronise_False_BadSignal() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {\n"
+            "    Class = EPICSPVADatabase\n"
+            "    +RecordOut1 = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Structure = {\n"
+            "             SignalUInt = {\n"
+            "                  Type = uint32\n"
+            "             }\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAM1 = {\n"
+            "            Class = EPICSPVAOutputGAMTestHelper\n"
+            "            OutputSignals = {\n"
+            "                RecordOut1 = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = EPICSPVAOutputTest\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +EPICSPVAOutputTest = {\n"
+            "            Class = EPICSPVAOutput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 2\n"
+            "            Signals = {\n"
+            "                RecordOut1 = {\n"
+            "                    Field = SignalUIntB\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAM1}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = EPICSPVAOutputSchedulerTestHelper\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+
+    bool ok = TestIntegratedInApplication(config.Buffer(), false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<RealTimeApplication> application;
+    ReferenceT<EPICSPVAOutput> ds1;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ds1 = godb->Find("Test.Data.EPICSPVAOutputTest");
+        ok = ds1.IsValid();
+    }
+    if (ok) {
+        ok = !ds1->Synchronise();
+    }
+
+    godb->Purge();
+
     return ok;
 }

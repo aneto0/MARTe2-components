@@ -100,6 +100,12 @@ bool EPICSPVAChannelWrapperTest::TestPut() {
     return test.TestSynchronise();
 }
 
+bool EPICSPVAChannelWrapperTest::TestPut_False_CharString() {
+    using namespace MARTe;
+    EPICSPVAOutputTest test;
+    return test.TestSynchronise_False_CharString();
+}
+
 bool EPICSPVAChannelWrapperTest::TestMonitor() {
     EPICSPVAInputTest test;
     return test.TestExecute();

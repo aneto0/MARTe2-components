@@ -235,12 +235,14 @@ bool EPICSPVARecord::InitEPICSStructure(epics::pvData::PVStructurePtr pvStructur
             const Introspection *intro = NULL_PTR(const Introspection *);
             ok = (cri != NULL_PTR(const ClassRegistryItem *));
             if (!ok) {
+                //Should not be reachable as it trapped by the GetEPICSStructure
                 REPORT_ERROR(ErrorManagement::ParametersError, "Type %s is not registered", typeStr.Buffer());
             }
             if (ok) {
                 intro = cri->GetIntrospection();
                 ok = (intro != NULL_PTR(const Introspection *));
                 if (!ok) {
+                    //Should not be reachable as it trapped by the GetEPICSStructure
                     REPORT_ERROR(ErrorManagement::ParametersError, "Type %s has no introspection", typeStr.Buffer());
                 }
             }

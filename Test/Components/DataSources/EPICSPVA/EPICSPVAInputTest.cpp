@@ -1373,6 +1373,97 @@ bool EPICSPVAInputTest::TestExecute_StructuredType_Arrays() {
     return ok;
 }
 
+bool EPICSPVAInputTest::TestExecute_False_CharString() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {\n"
+            "    Class = EPICSPVADatabase\n"
+            "    +RecordIn6 = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Structure = {\n"
+            "            ElementString = {\n"
+            "                Type = char8\n"
+            "                NumberOfElements = 12\n"
+            "            }\n"
+            "       }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAM1 = {\n"
+            "            Class = EPICSPVAInputGAMTestHelper\n"
+            "            InputSignals = {\n"
+            "                SignalString = {\n"
+            "                    Type = string\n"
+            "                    DataSource = EPICSPVAInputTest\n"
+            "                    Alias = RecordIn6\n"
+            "                    NumberOfElements = 1\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +EPICSPVAInputTest = {\n"
+            "            Class = EPICSPVAInput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 2\n"
+            "            Signals = {\n"
+            "                RecordIn6 = {\n"
+            "                    Field = ElementString"
+            "                    Type = string\n"
+            "                    NumberOfElements = 1\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAM1}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = EPICSPVAInputSchedulerTestHelper\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+
+    bool ok = TestIntegratedInApplication(config.Buffer(), false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<EPICSPVAInput> ds1;
+    ReferenceT<RealTimeApplication> application;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ds1 = godb->Find("Test.Data.EPICSPVAInputTest");
+        ok = ds1.IsValid();
+    }
+    //Just to wait to increase coverage
+    Sleep::Sec(0.5);
+    godb->Purge();
+
+    return ok;
+}
+
 bool EPICSPVAInputTest::TestAllocateMemory() {
     using namespace MARTe;
     EPICSPVAInput test;
