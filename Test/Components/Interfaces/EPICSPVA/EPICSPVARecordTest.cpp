@@ -129,11 +129,11 @@ bool EPICSPVARecordTest::TestInitialise_False_InvalidType() {
     return ok;
 }
 
-bool EPICSPVARecordTest::TestInitialise_False_InvalidType_Char8() {
+bool EPICSPVARecordTest::TestInitialise_False_InvalidType_CharString() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     cdb.CreateAbsolute("Structure.C");
-    cdb.Write("Type", "char8");
+    cdb.Write("Type", "string");
     cdb.Write("NumberOfElements", 64);
     cdb.MoveToRoot();
     EPICSPVARecord pvaRecord;

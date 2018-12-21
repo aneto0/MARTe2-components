@@ -179,6 +179,12 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
         else {
             epics::pvData::ScalarType epicsType;
             if (ok) {
+                ok = (typeStr != "string");
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "For node %s use the type char8[]", cdb.GetName());
+                }
+            }
+            if (ok) {
                 ok = EPICSPVAHelper::GetType(typeStr.Buffer(), epicsType);
             }
             if (ok) {
