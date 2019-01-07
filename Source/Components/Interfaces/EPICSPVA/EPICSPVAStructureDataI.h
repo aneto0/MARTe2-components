@@ -260,10 +260,9 @@ private:
     /**
      * @brief Helper method which expands the PVStructure arrays to elements named Node[0...n] where n is the array size.
      * @param[in] pvStructPtr the pvStructPtr to be initialised.
-     * @param[in] initArray if true it will expands the PVStructure arrays.
      * @return true if all the arrays were successfully initialised.
      */
-    bool ConfigurationDataBaseToPVStructurePtrInit(epics::pvData::PVStructurePtr pvStructPtr, bool initArray = false);
+    bool ConfigurationDataBaseToPVStructurePtrInit(epics::pvData::PVStructurePtr pvStructPtr);
 
     /**
      * Cached pointer (including full path) to the current node.

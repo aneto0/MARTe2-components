@@ -64,7 +64,6 @@ TEST(EPICSPVAChannelWrapperGTest,TestGetFieldName) {
     ASSERT_TRUE(test.TestGetFieldName());
 }
 
-
 TEST(EPICSPVAChannelWrapperGTest,TestMonitor) {
     EPICSPVAChannelWrapperTest test;
     ASSERT_TRUE(test.TestMonitor());
@@ -73,4 +72,9 @@ TEST(EPICSPVAChannelWrapperGTest,TestMonitor) {
 TEST(EPICSPVAChannelWrapperGTest,TestPut) {
     EPICSPVAChannelWrapperTest test;
     ASSERT_TRUE(test.TestPut());
+}
+
+TEST(EPICSPVAChannelWrapperGTest,TestPut_False_CharString) {
+    EPICSPVAChannelWrapperTest test;
+    ASSERT_TRUE(test.TestPut_False_CharString());
 }

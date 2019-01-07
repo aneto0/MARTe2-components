@@ -122,8 +122,7 @@ bool EPICSPVAChannelWrapper::Setup(DataSourceI &dataSource) {
             if (ok) {
                 ok = dataSource.GetSignalMemoryBuffer(n, 0u, tempCachedSignals[numberOfSignals].memory);
             }
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s [%s]", tempCachedSignals[numberOfSignals].qualifiedName.Buffer(),
-                                channelName.Buffer());
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s [%s]", tempCachedSignals[numberOfSignals].qualifiedName.Buffer(), channelName.Buffer());
             numberOfSignals++;
         }
     }
@@ -265,8 +264,7 @@ bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* 
             if (fieldType == epics::pvData::structureArray) {
                 epics::pvData::PVStructureArray::const_svector arr(static_cast<const epics::pvData::PVStructureArray*>(field.operator ->())->view());
                 uint32 z;
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving structureArray [%s - %s] - [%d]", nodeName, field->getFieldName().c_str(),
-                                    static_cast<int32>(arr.size()));
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving structureArray [%s - %s] - [%d]", nodeName, field->getFieldName().c_str(), static_cast<int32>(arr.size()));
                 StreamString indexFullFieldName = fullFieldName;
                 ok = (arr.size() > 0);
                 for (z = 0u; (z < arr.size()) && (ok); z++) {
@@ -306,18 +304,21 @@ bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* 
 bool EPICSPVAChannelWrapper::Monitor() {
     bool ok = false;
     try {
-        if (!channel.valid()) {
-            provider = pvac::ClientProvider("pva");
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Connected to channel %s", channelName.Buffer());
-            channel = pvac::ClientChannel(provider.connect(channelName.Buffer()));
-        }
-        ok = channel.valid();
-        if (ok) {
-            if (!monitor.valid()) {
-                monitor = pvac::MonitorSync(channel.monitor());
-                structureResolved = false;
+        ok = (channel ? true : false);
+        if (!ok) {
+            if (!channel.valid()) {
+                provider = pvac::ClientProvider("pva");
+                REPORT_ERROR_STATIC(ErrorManagement::Information, "Connected to channel %s", channelName.Buffer());
+                channel = pvac::ClientChannel(provider.connect(channelName.Buffer()));
             }
-            ok = monitor.valid();
+            ok = channel.valid();
+            if (ok) {
+                if (!monitor.valid()) {
+                    monitor = pvac::MonitorSync(channel.monitor());
+                    structureResolved = false;
+                }
+                ok = monitor.valid();
+            }
         }
         if (ok) {
             if (monitor.wait(0.2)) {
@@ -331,8 +332,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
                         }
                         uint32 n;
                         for (n = 0u; (n < numberOfSignals) && (ok); n++) {
-                            epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(
-                                    cachedSignals[n].pvField);
+                            epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(cachedSignals[n].pvField);
                             if (cachedSignals[n].typeDescriptor == Character8Bit) {
                                 ok = (scalarFieldPtr ? true : false);
                                 if (ok) {
@@ -382,15 +382,13 @@ bool EPICSPVAChannelWrapper::Monitor() {
                                         *reinterpret_cast<float64 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<float64>();
                                     }
                                     else {
-                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read type for signal %s",
-                                                            cachedSignals[n].qualifiedName.Buffer());
+                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read type for signal %s", cachedSignals[n].qualifiedName.Buffer());
                                         ok = false;
                                     }
                                 }
                             }
                             else {
-                                epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr =
-                                        std::dynamic_pointer_cast<const epics::pvData::PVScalarArray>(cachedSignals[n].pvField);
+                                epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalarArray>(cachedSignals[n].pvField);
                                 ok = (scalarArrayPtr ? true : false);
                                 if (ok) {
                                     if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
@@ -424,8 +422,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
                                         ok = GetArrayHelper<float64>(scalarArrayPtr, n);
                                     }
                                     else {
-                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read array type for signal %s",
-                                                            cachedSignals[n].qualifiedName.Buffer());
+                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read array type for signal %s", cachedSignals[n].qualifiedName.Buffer());
                                         ok = false;
                                     }
                                 }

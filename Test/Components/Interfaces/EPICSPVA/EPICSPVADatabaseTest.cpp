@@ -344,6 +344,52 @@ bool EPICSPVADatabaseTest::TestExecute() {
     return ok;
 }
 
+bool EPICSPVADatabaseTest::TestExecute_False_NoRecord() {
+    using namespace MARTe;
+
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {"
+            "    Class = EPICSPVADatabase"
+            "    +Record1 = {"
+            "        Class = ReferenceContainer"
+            "    }"
+            "    +Record2 = {"
+            "        Class = EPICSPVA::EPICSPVARecord"
+            "        Structure = {"
+            "            Element1 = {"
+            "                Type = float64"
+            "                NumberOfElements = 1"
+            "            }"
+            "       }"
+            "    }"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPVADatabase> pvDatabase;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        pvDatabase = ord->Find("EPICSPVADatabase1");
+        ok = pvDatabase.IsValid();
+    }
+    if (ok) {
+        ok = (pvDatabase->GetCPUMask() == 0xFF);
+    }
+    if (ok) {
+        ok = (pvDatabase->GetStackSize() == (THREADS_DEFAULT_STACKSIZE * 4u));
+    }
+    Sleep::Sec(1.0);
+
+    ord->Purge();
+    return ok;
+}
+
 //An introspectable structure
 struct EPICSPVADatabaseTestS2 {
     MARTe::uint32 ElementB1[8];
@@ -364,15 +410,14 @@ DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB2, float32, "[10]", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB3, uint32, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB4, string, "[128]", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS2, ElementB5, string, "[64]", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS2StructEntries[] = { &EPICSPVADatabaseTestS2_ElementB1_introspectionEntry,
-        &EPICSPVADatabaseTestS2_ElementB2_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB3_introspectionEntry,
-        &EPICSPVADatabaseTestS2_ElementB4_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB5_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS2StructEntries[] = { &EPICSPVADatabaseTestS2_ElementB1_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB2_introspectionEntry,
+        &EPICSPVADatabaseTestS2_ElementB3_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB4_introspectionEntry, &EPICSPVADatabaseTestS2_ElementB5_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestS2, EPICSPVADatabaseTestS2StructEntries)
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, Element1, uint32, "[10]", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, Element2, float32, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestS1, ElementsB, EPICSPVADatabaseTestS2, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS1StructEntries[] = { &EPICSPVADatabaseTestS1_Element1_introspectionEntry,
-        &EPICSPVADatabaseTestS1_Element2_introspectionEntry, &EPICSPVADatabaseTestS1_ElementsB_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestS1StructEntries[] = { &EPICSPVADatabaseTestS1_Element1_introspectionEntry, &EPICSPVADatabaseTestS1_Element2_introspectionEntry,
+        &EPICSPVADatabaseTestS1_ElementsB_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestS1, EPICSPVADatabaseTestS1StructEntries)
 
 bool EPICSPVADatabaseTest::TestExecute_StructuredTypes() {

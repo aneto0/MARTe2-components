@@ -73,6 +73,11 @@ public:
     bool TestExecute_StructuredType_Arrays();
 
     /**
+     * @brief Tests that the Execute method fails with CharString.
+     */
+    bool TestExecute_False_CharString();
+
+    /**
      * @brief Tests the AllocateMemory method
      */
     bool TestAllocateMemory();

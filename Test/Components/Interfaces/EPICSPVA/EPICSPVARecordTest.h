@@ -68,14 +68,24 @@ public:
     bool TestInitialise_False_InvalidType();
 
     /**
-     * @brief Tests that the Initialise method fails if an invalid char8 type is specified.
+     * @brief Tests that the Initialise method fails if a string type is specified.
      */
-    bool TestInitialise_False_InvalidType_Char8();
+    bool TestInitialise_False_InvalidType_CharString();
 
     /**
      * @brief Tests that the Initialise method fails if no type is specified.
      */
     bool TestInitialise_False_NoType();
+
+    /**
+     * @brief Tests that the Initialise method fails if the type has no introspection.
+     */
+    bool TestInitialise_False_NoIntrospection();
+
+    /**
+     * @brief Tests that the Initialise method reports a warning if an array of strings is declared.
+     */
+    bool TestInitialise_Warning_Char8Array();
 
     /**
      * @brief Test the GetRecordName method.

@@ -62,6 +62,11 @@ public:
     bool TestPut();
 
     /**
+     * @brief Tests that the Put method fails for a CharString.
+     */
+    bool TestPut_False_CharString();
+
+    /**
      * @brief Tests the Monitor method.
      */
     bool TestMonitor();

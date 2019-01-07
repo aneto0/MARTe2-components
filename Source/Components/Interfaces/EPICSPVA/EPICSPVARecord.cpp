@@ -179,6 +179,12 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
         else {
             epics::pvData::ScalarType epicsType;
             if (ok) {
+                ok = (typeStr != "string");
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "For node %s use the type char8[]", cdb.GetName());
+                }
+            }
+            if (ok) {
                 ok = EPICSPVAHelper::GetType(typeStr.Buffer(), epicsType);
             }
             if (ok) {
@@ -192,7 +198,7 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
                                 cdb.GetName(), typeStr.Buffer());
                     }
                     else {
-                        fieldBuilder = fieldBuilder->addBoundedArray(cdb.GetName(), epicsType, totalElements);
+                        fieldBuilder = fieldBuilder->addArray(cdb.GetName(), epicsType);
                         REPORT_ERROR(ErrorManagement::Debug, "Registering scalar array %s with type %s and %d elements", cdb.GetName(), typeStr.Buffer(), totalElements);
                     }
                 }
@@ -235,12 +241,14 @@ bool EPICSPVARecord::InitEPICSStructure(epics::pvData::PVStructurePtr pvStructur
             const Introspection *intro = NULL_PTR(const Introspection *);
             ok = (cri != NULL_PTR(const ClassRegistryItem *));
             if (!ok) {
+                //Should not be reachable as it trapped by the GetEPICSStructure
                 REPORT_ERROR(ErrorManagement::ParametersError, "Type %s is not registered", typeStr.Buffer());
             }
             if (ok) {
                 intro = cri->GetIntrospection();
                 ok = (intro != NULL_PTR(const Introspection *));
                 if (!ok) {
+                    //Should not be reachable as it trapped by the GetEPICSStructure
                     REPORT_ERROR(ErrorManagement::ParametersError, "Type %s has no introspection", typeStr.Buffer());
                 }
             }

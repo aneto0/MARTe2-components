@@ -129,9 +129,12 @@ TEST(EPICSPVAInputGTest,TestExecute_StructuredType_Arrays) {
     ASSERT_TRUE(test.TestExecute_StructuredType_Arrays());
 }
 
-
 TEST(EPICSPVAInputGTest,TestExecute_Arrays) {
     EPICSPVAInputTest test;
     ASSERT_TRUE(test.TestExecute_Arrays());
 }
 
+TEST(EPICSPVAInputGTest,TestExecute_False_CharString) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestExecute_False_CharString());
+}

@@ -223,7 +223,7 @@ AnyType EPICSPVAStructureDataI::GetType(const char8 * const name) {
             ok = (scalarArrayPtr ? true : false);
             if (ok) {
                 epicsScalarType = scalarArrayPtr->getScalarArray()->getElementType();
-                numberOfElements = scalarArrayPtr->getScalarArray()->getMaximumCapacity();
+                numberOfElements = scalarArrayPtr->getLength();
             }
         }
         else {
@@ -731,17 +731,9 @@ epics::pvData::StructureConstPtr EPICSPVAStructureDataI::ConfigurationDataBaseTo
         if (cachedCDB.MoveRelative(childName)) {
             //If it is a node, try to read the node id and the node number of Elements
             StreamString nodeId;
-            uint32 numberOfElements = 0u;
 
             (void) cachedCDB.Read("_PVANodeId", nodeId);
-            (void) cachedCDB.Read("_PVANodeArr", numberOfElements);
-
-            if (numberOfElements == 0u) {
-                fieldBuilder = fieldBuilder->add(childName, ConfigurationDataBaseToPVStructurePtr());
-            }
-            else {
-                fieldBuilder = fieldBuilder->addArray(childName, ConfigurationDataBaseToPVStructurePtr());
-            }
+            fieldBuilder = fieldBuilder->add(childName, ConfigurationDataBaseToPVStructurePtr());
             if (nodeId.Size() > 0u) {
                 fieldBuilder = fieldBuilder->setId(nodeId.Buffer());
             }
@@ -766,7 +758,7 @@ epics::pvData::StructureConstPtr EPICSPVAStructureDataI::ConfigurationDataBaseTo
                         fieldBuilder = fieldBuilder->add(childName, epicsType);
                     }
                     else {
-                        fieldBuilder = fieldBuilder->addBoundedArray(childName, epicsType, storedType.GetNumberOfElements(0u));
+                        fieldBuilder = fieldBuilder->addArray(childName, epicsType);
                     }
                 }
             }
@@ -778,7 +770,7 @@ epics::pvData::StructureConstPtr EPICSPVAStructureDataI::ConfigurationDataBaseTo
     return topStructure;
 }
 
-bool EPICSPVAStructureDataI::ConfigurationDataBaseToPVStructurePtrInit(epics::pvData::PVStructurePtr pvStructPtr, bool initArray) {
+bool EPICSPVAStructureDataI::ConfigurationDataBaseToPVStructurePtrInit(epics::pvData::PVStructurePtr pvStructPtr) {
     bool ok = true;
     uint32 nOfChildren = cachedCDB.GetNumberOfChildren();
     uint32 i;
@@ -786,25 +778,6 @@ bool EPICSPVAStructureDataI::ConfigurationDataBaseToPVStructurePtrInit(epics::pv
     for (i = 0u; (i < nOfChildren) && (ok); i++) {
         const char8 * const childName = cachedCDB.GetChildName(i);
         if (cachedCDB.MoveRelative(childName)) {
-            if (!initArray) {
-                //If it is a node, try to read the node number of Elements
-                uint32 numberOfElements = 0u;
-                (void) cachedCDB.Read("_PVANodeArr", numberOfElements);
-                if (numberOfElements > 0u) {
-                    uint32 j;
-                    epics::pvData::PVStructureArray::svector arr(numberOfElements);
-                    uint32 arrSize = arr.size();
-                    bool ok = (pvStructPtr ? true : false);
-                    for (j = 0u; (j < arrSize) && (ok); j++) {
-                        arr[j] = epics::pvData::getPVDataCreate()->createPVStructure(ConfigurationDataBaseToPVStructurePtr());
-                        ok = ConfigurationDataBaseToPVStructurePtrInit(arr[j], true);
-                    }
-                    if (ok) {
-                        epics::pvData::PVStructureArrayPtr pvStructMemberArr = std::dynamic_pointer_cast < epics::pvData::PVStructureArray > (pvStructPtr);
-                        pvStructMemberArr->replace(freeze(arr));
-                    }
-                }
-            }
             ok = MoveRelative(childName);
             epics::pvData::PVStructurePtr pvStructMember;
             if (ok) {

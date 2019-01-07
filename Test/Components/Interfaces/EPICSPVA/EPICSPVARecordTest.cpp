@@ -129,11 +129,11 @@ bool EPICSPVARecordTest::TestInitialise_False_InvalidType() {
     return ok;
 }
 
-bool EPICSPVARecordTest::TestInitialise_False_InvalidType_Char8() {
+bool EPICSPVARecordTest::TestInitialise_False_InvalidType_CharString() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     cdb.CreateAbsolute("Structure.C");
-    cdb.Write("Type", "char8");
+    cdb.Write("Type", "string");
     cdb.Write("NumberOfElements", 64);
     cdb.MoveToRoot();
     EPICSPVARecord pvaRecord;
@@ -157,6 +157,38 @@ bool EPICSPVARecordTest::TestInitialise_False_NoType() {
     bool ok = pvaRecord.Initialise(cdb);
     if (ok) {
         ok = (pvaRecord.CreatePVRecord() ? false : true);
+    }
+    return ok;
+}
+
+bool EPICSPVARecordTest::TestInitialise_False_NoIntrospection() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.CreateAbsolute("Structure.StA.C");
+    cdb.Write("Type", "ReferenceContainer");
+    cdb.Write("NumberOfElements", 1);
+    cdb.MoveToRoot();
+    EPICSPVARecord pvaRecord;
+    pvaRecord.SetName("TestInitialise_False_NoIntrospection");
+    bool ok = pvaRecord.Initialise(cdb);
+    if (ok) {
+        ok = (pvaRecord.CreatePVRecord() ? false : true);
+    }
+    return ok;
+}
+
+bool EPICSPVARecordTest::TestInitialise_Warning_Char8Array() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    cdb.CreateAbsolute("Structure.Char8");
+    cdb.Write("Type", "char8");
+    cdb.Write("NumberOfElements", 32);
+    cdb.MoveToRoot();
+    EPICSPVARecord pvaRecord;
+    pvaRecord.SetName("TestInitialise_Warning_Char8Array");
+    bool ok = pvaRecord.Initialise(cdb);
+    if (ok) {
+        ok = (pvaRecord.CreatePVRecord() ? true : false);
     }
     return ok;
 }
