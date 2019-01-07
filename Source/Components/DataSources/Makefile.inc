@@ -32,6 +32,11 @@ SPB    = EpicsDataSource.x \
     RealTimeThreadAsyncBridge.x \
     RealTimeThreadSynchronisation.x
 
+
+ifdef OPEN62541_INCLUDE
+SPB    += OPCUADataSource.x
+endif
+
 ifdef CODAC_ROOT
 SPB    += NI1588.x
 SPB    += NI6259.x

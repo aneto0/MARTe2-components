@@ -25,6 +25,10 @@
 SPB=MemoryGate.x \
 	SysLogger.x 
 
+ifdef OPEN62541_LIB
+SPB+=OPCUA.x
+endif
+
 ifdef CODAC_ROOT
 SPB+=NI9157Device.x
 endif
