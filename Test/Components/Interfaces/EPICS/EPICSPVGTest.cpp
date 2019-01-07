@@ -44,6 +44,16 @@ TEST(EPICSPVGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+TEST(EPICSPVGTest,TestInitialise_NoEvent_UInt16) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestInitialise_NoEvent_UInt16());
+}
+
+TEST(EPICSPVGTest,TestInitialise_NoEvent_Int16) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestInitialise_NoEvent_Int16());
+}
+
 TEST(EPICSPVGTest,TestInitialise_NoEvent_UInt32) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestInitialise_NoEvent_UInt32());
@@ -67,6 +77,11 @@ TEST(EPICSPVGTest,TestInitialise_NoEvent_Float64) {
 TEST(EPICSPVGTest,TestInitialise_NoEvent_String) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestInitialise_NoEvent_String());
+}
+
+TEST(EPICSPVGTest,TestInitialise_NoEvent_Array) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestInitialise_NoEvent_Array());
 }
 
 TEST(EPICSPVGTest,TestInitialise_NoEvent_Timeout) {
@@ -254,14 +269,24 @@ TEST(EPICSPVGTest,TestHandlePVEvent_FunctionMap_NoKey) {
     ASSERT_TRUE(test.TestHandlePVEvent_FunctionMap_NoKey());
 }
 
-TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Int) {
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Int16) {
     EPICSPVTest test;
-    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_Int());
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_Int16());
 }
 
-TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_UInt) {
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_UInt16) {
     EPICSPVTest test;
-    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_UInt());
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_UInt16());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Int32) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_Int32());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_UInt32) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_UInt32());
 }
 
 TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Float32) {
@@ -279,6 +304,16 @@ TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_String) {
     ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_String());
 }
 
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_Array) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_Array());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Parameter_String_Array) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Parameter_String_Array());
+}
+
 TEST(EPICSPVGTest,TestHandlePVEvent_Function_ParameterName_Int) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestHandlePVEvent_Function_ParameterName_Int());
@@ -287,6 +322,16 @@ TEST(EPICSPVGTest,TestHandlePVEvent_Function_ParameterName_Int) {
 TEST(EPICSPVGTest,TestHandlePVEvent_Function_Ignore) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestHandlePVEvent_Function_Ignore());
+}
+
+TEST(EPICSPVGTest,TestCAPut_UInt16) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestCAPut_UInt16());
+}
+
+TEST(EPICSPVGTest,TestCAPut_Int16) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestCAPut_Int16());
 }
 
 TEST(EPICSPVGTest,TestCAPut_UInt32) {
@@ -314,7 +359,52 @@ TEST(EPICSPVGTest,TestCAPut_String) {
     ASSERT_TRUE(test.TestCAPut_String());
 }
 
+TEST(EPICSPVGTest,TestCAPut_Int16_Arr) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestCAPut_Int16_Arr());
+}
+
+TEST(EPICSPVGTest,TestCAPut_UInt16_Arr) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestCAPut_UInt16_Arr());
+}
+
+TEST(EPICSPVGTest,TestCAPut_Int32_Arr) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestCAPut_Int32_Arr());
+}
+
+TEST(EPICSPVGTest,TestCAPut_UInt32_Arr) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestCAPut_UInt32_Arr());
+}
+
+TEST(EPICSPVGTest,TestCAPut_Float32_Arr) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestCAPut_Float32_Arr());
+}
+
+TEST(EPICSPVGTest,TestCAPut_Float64_Arr) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestCAPut_Float64_Arr());
+}
+
+TEST(EPICSPVGTest,TestCAPut_String_Arr) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestCAPut_String_Arr());
+}
+
 TEST(EPICSPVGTest,TestCAGet) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestCAGet());
+}
+
+TEST(EPICSPVGTest,TestCAPutRaw) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestCAPutRaw());
+}
+
+TEST(EPICSPVGTest,TestGetAnyType) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestGetAnyType());
 }

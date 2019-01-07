@@ -53,7 +53,7 @@ RealTimeThreadAsyncBridge::RealTimeThreadAsyncBridge() :
     whatIsNewestGlobCounter = NULL_PTR(uint32 *);
     writeOp = NULL_PTR(uint32 *);
     writeOpCounter = NULL_PTR(uint32 *);
-    offsetStore = 0u;
+    offsetStore = NULL_PTR(uint32 *);
 }
 
 RealTimeThreadAsyncBridge::~RealTimeThreadAsyncBridge() {
@@ -64,7 +64,10 @@ RealTimeThreadAsyncBridge::~RealTimeThreadAsyncBridge() {
     if (spinlocksWrite != NULL_PTR(FastPollingMutexSem *)) {
         delete[] spinlocksWrite;
         spinlocksWrite = NULL_PTR(FastPollingMutexSem *);
-
+    }
+    if (offsetStore != NULL_PTR(uint32 *)) {
+        delete[] offsetStore;
+        spinlocksWrite = NULL_PTR(FastPollingMutexSem *);
     }
     if (whatIsNewestCounter != NULL_PTR(uint32 *)) {
         delete[] whatIsNewestCounter;
@@ -237,7 +240,12 @@ bool RealTimeThreadAsyncBridge::SetConfiguredDatabase(StructuredDataI & data) {
                 ret = (writeOpCounter != NULL_PTR(uint32 *));
             }
         }
-
+        if (ret) {
+            if (offsetStore == NULL) {
+                offsetStore = new uint32[numberOfSignals];
+                ret = (offsetStore != NULL_PTR(uint32 *));
+            }
+        }
         if (ret) {
             uint32 numberOfElements = (numberOfSignals * numberOfBuffers);
             for (uint32 i = 0u; i < numberOfElements; i++) {
@@ -297,12 +305,10 @@ bool RealTimeThreadAsyncBridge::GetInputOffset(const uint32 signalIdx, const uin
 /*lint -e{715} symbols not referenced.*/
 /*lint -e{613} null pointer checked before.*/
 bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx, const uint32 numberOfSamples, uint32 &offset) {
-
-//REPORT_ERROR(ErrorManagement::Information, "Here %d %d", startFromIdx, signalIdx);
     bool ok = false;
 
     if (writeOpCounter[signalIdx] < writeOp[signalIdx]) {
-        offset = offsetStore;
+        offset = offsetStore[signalIdx];
         ok = true;
     }
     uint64 checkedMask = 0ull;
@@ -319,7 +325,6 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx, const ui
             }
         }
         checkedMask |= (1ull << bufferIdx);
-        //REPORT_ERROR(ErrorManagement::Information, "Here 1 %d %d", startFromIdx, signalIdx);
         ok = false;
         //try to lock the next buffer to write
         uint32 index = (signalIdx * numberOfBuffers) + bufferIdx;
@@ -333,8 +338,7 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx, const ui
             }
         }
     }
-
-    offsetStore = offset;
+    offsetStore[signalIdx] = offset;
 
     return ok;
 }
@@ -352,7 +356,6 @@ bool RealTimeThreadAsyncBridge::TerminateInputCopy(const uint32 signalIdx, const
 /*lint -e{715} numberOfSamples not required for this implementation.*/
 /*lint -e{613} null pointer checked before.*/
 bool RealTimeThreadAsyncBridge::TerminateOutputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples) {
-
     writeOpCounter[signalIdx]--;
     if (writeOpCounter[signalIdx] == 0u) {
         uint32 buffNumber = (offset / signalSize[signalIdx]);

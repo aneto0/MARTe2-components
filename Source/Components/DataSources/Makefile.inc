@@ -38,6 +38,12 @@ SPB    += NI6259.x
 SPB    += NI6368.x
 SPB    += NI9157.x
 SPB    += DAN.x
+
+## Only force EPICSPVA if CCS version is gt v6.1
+CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCSGT61)" "1"
+EPICSPVA = "1"
+endif
 endif
 
 ifdef MDSPLUS_DIR
@@ -47,6 +53,10 @@ endif
 
 ifdef EPICS_BASE
 SPB   += EPICSCA.x
+endif
+
+ifdef EPICSPVA
+SPB   += EPICSPVA.x
 endif
 
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
@@ -84,6 +94,10 @@ endif
 
 ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSCA/EPICSCA$(LIBEXT)
+endif
+
+ifdef EPICSPVA
+LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVADataSource$(LIBEXT)
 endif
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.

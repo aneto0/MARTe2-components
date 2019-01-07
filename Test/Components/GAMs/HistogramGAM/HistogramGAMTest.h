@@ -121,6 +121,20 @@ public:
      */
     bool TestExecute_BeginCycleNumber();
 
+    /**
+     * @brief Tests the PrepareNextState without a reset
+     */
+    bool TestPrepareNextState();
+
+    /**
+     * @brief Tests the PrepareNextState with a reset (all)
+     */
+    bool TestPrepareNextState_Reset_All();
+
+    /**
+     * @brief Tests the PrepareNextState with a reset (of only a specific state)
+     */
+    bool TestPrepareNextState_Reset_State();
 
 };
 

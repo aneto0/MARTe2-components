@@ -2501,8 +2501,8 @@ bool FilterGAMTest::TestAlwaysResetFIR() {
     bool ok = true;
     //gam.config.Write("ResetInEachState", true); set the value to true, then the gam.InitialiseFilterFIR() set the value to false,
     //however the read stops at the first ResetInEachState
-    ok &= gam.config.Write("ResetInEachState", true);
     ok &= gam.InitialiseFilterFIR();
+    ok &= gam.config.Write("ResetInEachState", 1);
     ok &= gam.Initialise(gam.config);
     ok &= gam.InitialiseConfigDataBaseSignal2();
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
@@ -2556,8 +2556,8 @@ bool FilterGAMTest::TestAlwaysResetIIR() {
     bool ok = true;
     //gam.config.Write("ResetInEachState", true); set the value to true, then the gam.InitialiseFilterFIR() set the value to false,
     //however the read stops at the first ResetInEachState
-    ok &= gam.config.Write("ResetInEachState", true);
     ok &= gam.InitialiseFilterIIR();
+    ok &= gam.config.Write("ResetInEachState", true);
     ok &= gam.Initialise(gam.config);
     ok &= gam.InitialiseConfigDataBaseSignal2();
     ok &= gam.SetConfiguredDatabase(gam.configSignals);
@@ -2607,8 +2607,8 @@ bool FilterGAMTest::TestAlwaysResetMemoryNotInt() {
     bool ok = true;
     //gam.config.Write("ResetInEachState", true); set the value to true, then the gam.InitialiseFilterFIR() set the value to false,
     //however the read stops at the first ResetInEachState
-    ok &= gam.config.Write("ResetInEachState", true);
     ok &= gam.InitialiseFilterFIR();
+    ok &= gam.config.Write("ResetInEachState", true);
     ok &= gam.Initialise(gam.config);
     ok &= gam.InitialiseConfigDataBaseSignal2();
     ok &= gam.SetConfiguredDatabase(gam.configSignals);

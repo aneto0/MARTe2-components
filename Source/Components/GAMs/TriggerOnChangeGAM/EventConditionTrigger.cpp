@@ -66,15 +66,16 @@ EventConditionTrigger::EventConditionTrigger() :
     eventConditions = NULL_PTR(EventConditionField *);
     numberOfConditions = 0u;
     replied = 0u;
+    if (!eventSem.Create()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
+    }
+    if (!eventSem.Reset()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not reset EventSem.");
+    }
 }
 
 /*lint -e{1551} no exception will be called in destructor.*/
 EventConditionTrigger::~EventConditionTrigger() {
-    if (!executor.Stop()) {
-        if (!executor.Stop()) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
-        }
-    }
     if (eventConditions != NULL_PTR(EventConditionField *)) {
         delete[] eventConditions;
     }
@@ -89,7 +90,7 @@ bool EventConditionTrigger::Initialise(StructuredDataI &data) {
             ret = data.MoveToAncestor(1u);
         }
         else {
-            REPORT_ERROR(ErrorManagement::FatalError, "Please define the block EventTrigger containing the trigger conditions");
+            REPORT_ERROR(ErrorManagement::ParametersError, "Please define the block EventTrigger containing the trigger conditions");
         }
         if (ret) {
             ret = data.Copy(signalsDatabase);
@@ -102,6 +103,16 @@ bool EventConditionTrigger::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMaskIn);
         }
         cpuMask = cpuMaskIn;
+    }
+    if (ret) {
+        uint32 n;
+        for (n = 0u; (n < Size()) && (ret); n++) {
+            ReferenceT<Message> msg = Get(n);
+            ret = msg.IsValid();
+            if (!ret) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Only Messages are allowed inside the container");
+            }
+        }
     }
     if (ret) {
         executor.SetCPUMask(cpuMask);
@@ -180,8 +191,7 @@ bool EventConditionTrigger::Check(const uint8 * const packetMem, const PacketFie
             /*lint -e{613} NULL pointer checked.*/
             uint32 byteSize = static_cast<uint32>(eventConditions[i].packetField->type.numberOfBits) / 8u;
             /*lint -e{613} NULL pointer checked.*/
-            trigger = (MemoryOperationsHelper::Compare(&packetMem[eventConditions[i].packetField->offset], eventConditions[i].at.GetDataPointer(), byteSize)
-                    == 0);
+            trigger = (MemoryOperationsHelper::Compare(&packetMem[eventConditions[i].packetField->offset], eventConditions[i].at.GetDataPointer(), byteSize) == 0);
         }
 
         if (trigger) {
@@ -198,6 +208,7 @@ bool EventConditionTrigger::Check(const uint8 * const packetMem, const PacketFie
                     }
                 }
             }
+            (void) eventSem.Post();
         }
     }
 
@@ -304,6 +315,17 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
                 }
             }
         }
+        else {
+            if (static_cast<bool>(spinLock.FastLock())) {
+                if (messageQueue.Size() == 0u) {
+                    err = !eventSem.Reset();
+                }
+                spinLock.FastUnLock();
+            }
+            if (err.ErrorsCleared()) {
+                err = eventSem.Wait(500u);
+            }
+        }
     }
     else {
 
@@ -311,18 +333,47 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
     return err;
 }
 
-uint32 EventConditionTrigger::Replied() {
-    uint32 ret = replied;
-    if (ret > 0u) {
-        if (static_cast<bool>(spinLock.FastLock())) {
-            replied = 0u;
-            spinLock.FastUnLock();
+uint32 EventConditionTrigger::Replied(const PacketField * const packetFieldIn) {
+    uint32 retVal = 0u;
+    bool ret = (packetFieldIn != NULL);
+    if (ret) {
+        ret = (packetFieldIn->isCommand);
+        if (!ret) {
+            StreamString name = packetFieldIn->name;
+            REPORT_ERROR(ErrorManagement::FatalError, "The field %s is not a command and cannot trigger an event", name.Buffer());
         }
     }
-    return ret;
+    else {
+        REPORT_ERROR(ErrorManagement::FatalError, "The PacketField in input is NULL");
+    }
+    bool trigger = false;
+    if (ret) {
+        for (uint32 i = 0u; (i < numberOfConditions) && (!trigger); i++) {
+            /*lint -e{613} NULL pointer checked.*/
+            trigger = (packetFieldIn == eventConditions[i].packetField);
+        }
+
+        if (trigger) {
+            if (static_cast<bool>(spinLock.FastLock())) {
+                retVal = replied;
+                spinLock.FastUnLock();
+            }
+            if (retVal > 0u) {
+                if (static_cast<bool>(spinLock.FastLock())) {
+                    replied = 0u;
+                    spinLock.FastUnLock();
+                }
+            }
+        }
+    }
+    return retVal;
 }
 
 void EventConditionTrigger::Purge(ReferenceContainer &purgeList) {
+    (void) eventSem.Post();
+    if (!eventSem.Close()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not close the EventSem.");
+    }
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");

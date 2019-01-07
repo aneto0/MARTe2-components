@@ -103,3 +103,20 @@ TEST(HistogramGAMGTest,TestExecute_BeginCycleNumber) {
     HistogramGAMTest test;
     ASSERT_TRUE(test.TestExecute_BeginCycleNumber());
 }
+
+TEST(HistogramGAMGTest,TestPrepareNextState) {
+    HistogramGAMTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
+}
+
+TEST(HistogramGAMGTest,TestPrepareNextState_Reset_All) {
+    HistogramGAMTest test;
+    ASSERT_TRUE(test.TestPrepareNextState_Reset_All());
+}
+
+TEST(HistogramGAMGTest,TestPrepareNextState_Reset_State) {
+    HistogramGAMTest test;
+    ASSERT_TRUE(test.TestPrepareNextState_Reset_State());
+}
+
+

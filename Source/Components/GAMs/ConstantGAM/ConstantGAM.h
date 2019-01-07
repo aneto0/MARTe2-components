@@ -61,6 +61,7 @@ namespace MARTe {
  *             DataSource = "DDB"
  *             Type = int32
  *             Default = 100
+ *         }
  *         Signal3 = {
  *             DataSource = "DDB"
  *             Type = int8

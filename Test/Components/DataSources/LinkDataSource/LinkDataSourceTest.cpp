@@ -1086,9 +1086,9 @@ bool LinkDataSourceTest::TestGetBrokerName() {
     LinkDataSource link;
     ConfigurationDatabase cdb;
     StreamString brokerName = link.GetBrokerName(cdb, InputSignals);
-    bool ok = (brokerName == "MemoryMapSynchronisedMultiBufferInputBroker");
+    bool ok = (brokerName == "MemoryMapSynchronisedInputBroker");
     brokerName = link.GetBrokerName(cdb, OutputSignals);
-    ok &= (brokerName == "MemoryMapSynchronisedMultiBufferOutputBroker");
+    ok &= (brokerName == "MemoryMapSynchronisedOutputBroker");
     return ok;
 }
 

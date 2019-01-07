@@ -3,6 +3,7 @@
  * and
  * Error 10: Expecting '}' due to the inclusion of system header files...
  */
+
 -e10
 -e96
 
@@ -72,8 +73,8 @@
 -esym(1795,epics::*)
 
 /* Notes related to functions that belong to external libraries*/
--estring(1960,*MARTe::AnyType::Init*)
--estring(1960,*MARTe::AnyType::SetStaticDeclared*)
+-estring(1960,*MARTe::AnyType::*)
+-estring(1960,*MARTe::Sleep::*)
 -estring(1960,*MARTe::BufferedStreamIOBuffer::SetTimeout*)
 -estring(1960,*MARTe::IOBuffer::Empty*)
 -estring(1960,*MARTe::TimeStamp::SetMicroseconds*)
@@ -82,4 +83,8 @@
 -estring(1960,*epicsEvent::*)
 -estring(1960,*ccs::*)
 -estring(1960,*sdn::*)
+-estring(1960,*std::*)
+-estring(1960,*__gnu_cxx::*)
+-estring(1960,*__throw_*)
+-estring(1960,*epics*::*)
 -estring(451,*NiFpga.h*)

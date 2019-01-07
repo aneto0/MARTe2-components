@@ -28,10 +28,10 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "../EPICS/EPICSPV.h"
 
 #include "ConfigurationDatabase.h"
 #include "CLASSMETHODREGISTER.h"
+#include "EPICSPV.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
@@ -50,16 +50,17 @@ EPICSPV::EPICSPV() :
     timeout = 5.0F;
     pvName = "";
     pvChid = NULL_PTR(chid);
-    pvType = DBR_INT;
-
-    pvTypeDesc = VoidType;
+    pvType = DBR_LONG;
 
     eventMode.asUint8 = 0u;
     nOfFunctionMaps = 0u;
+    numberOfElements = 1u;
 
     functionMap[0u] = NULL_PTR(StreamString *);
     functionMap[1u] = NULL_PTR(StreamString *);
-    pvMemory = NULL_PTR(char8 *);
+    pvMemory = NULL_PTR(void *);
+    memorySize = 0u;
+    typeSize = 0u;
 
     ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -69,7 +70,7 @@ EPICSPV::EPICSPV() :
     }
 }
 
-/*lint -e{1551} -e{1540} functionMap memory is freed in the destructor. The context, pvChid and pvMemory variables are managed (and thus freed) by the EPICS framework.*/
+/*lint -e{1551} -e{1540} -e{1740} functionMap memory is freed in the destructor. The context, pvChid and pvMemory variables are managed (and thus freed) by the EPICS framework.*/
 EPICSPV::~EPICSPV() {
     if (functionMap[0u] != NULL_PTR(StreamString *)) {
         delete[] functionMap[0u];
@@ -77,6 +78,22 @@ EPICSPV::~EPICSPV() {
     if (functionMap[1u] != NULL_PTR(StreamString *)) {
         delete[] functionMap[1u];
     }
+    if (pvMemory != NULL_PTR(void *)) {
+        if (pvAnyType.GetTypeDescriptor().type == SString) {
+            if (numberOfElements > 1u) {
+                StreamString *str = static_cast<StreamString *>(pvMemory);
+                delete[] str;
+            }
+            else {
+                StreamString *str = static_cast<StreamString *>(pvMemory);
+                delete str;
+            }
+        }
+        else {
+            GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(pvMemory);
+        }
+    }
+
 }
 
 bool EPICSPV::Initialise(StructuredDataI & data) {
@@ -88,6 +105,12 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
         }
     }
     if (ok) {
+        if (!data.Read("NumberOfElements", numberOfElements)) {
+            REPORT_ERROR(ErrorManagement::Warning, "NumberOfElements not set. Using default of %d", numberOfElements);
+        }
+    }
+    TypeDescriptor pvTypeDesc = VoidType;
+    if (ok) {
         StreamString pvTypeStr;
         ok = data.Read("PVType", pvTypeStr);
         if (!ok) {
@@ -95,12 +118,19 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
         }
         if (ok) {
             pvTypeDesc = TypeDescriptor::GetTypeDescriptorFromTypeName(pvTypeStr.Buffer());
-            uint64 memorySize = (static_cast<uint64>(pvTypeDesc.numberOfBits) / 8u);
-            if (pvTypeDesc == SignedInteger32Bit) {
-                pvType = DBR_INT;
+            typeSize = (static_cast<uint32>(pvTypeDesc.numberOfBits) / 8u);
+            memorySize = (typeSize * numberOfElements);
+            if (pvTypeDesc == SignedInteger16Bit) {
+                pvType = DBR_SHORT;
+            }
+            else if (pvTypeDesc == UnsignedInteger16Bit) {
+                pvType = DBR_SHORT;
+            }
+            else if (pvTypeDesc == SignedInteger32Bit) {
+                pvType = DBR_LONG;
             }
             else if (pvTypeDesc == UnsignedInteger32Bit) {
-                pvType = DBR_INT;
+                pvType = DBR_LONG;
             }
             else if (pvTypeDesc == Float32Bit) {
                 pvType = DBR_FLOAT;
@@ -117,13 +147,19 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "PVType %s is not supported", pvTypeStr.Buffer());
             }
             if (ok) {
-                //Trick to recycle the memory of a string to easily store the other data types
                 if (pvType == DBR_STRING) {
-                    pvMemory = &pvMemoryStr;
+                    if (numberOfElements > 1u) {
+                        StreamString *str = new StreamString[numberOfElements];
+                        pvMemory = static_cast<void *>(&str[0u]);
+                        //lint -e{429} str is freed in the destructor
+                    }
+                    else {
+                        StreamString *str = new StreamString();
+                        pvMemory = static_cast<void *>(str);
+                    }
                 }
                 else {
-                    (void) pvMemoryStr.SetSize(memorySize);
-                    pvMemory = reinterpret_cast<void *>(pvMemoryStr.BufferReference());
+                    pvMemory = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize);
                 }
             }
         }
@@ -213,8 +249,7 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
             if (data.Read("Function", function)) {
                 ok = (!eventMode.function.operator bool());
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError,
-                                 "With PVValue=Function the Function to be called is the PV value. Remove this parameter. At most specify a FunctionMap");
+                    REPORT_ERROR(ErrorManagement::ParametersError, "With PVValue=Function the Function to be called is the PV value. Remove this parameter. At most specify a FunctionMap");
                 }
             }
         }
@@ -235,95 +270,144 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
     else {
         eventMode.notSet = true;
     }
+    if (ok) {
+        pvAnyType = AnyType(pvTypeDesc, 0u, pvMemory);
+        if (numberOfElements > 1u) {
+            pvAnyType.SetNumberOfDimensions(1u);
+            pvAnyType.SetNumberOfElements(0u, numberOfElements);
+        }
+    }
     return ok;
 }
 
-ErrorManagement::ErrorType EPICSPV::CAPut(StructuredDataI &data) {
+ErrorManagement::ErrorType EPICSPV::CAPut(StructuredDataI & data) {
+    if (pvAnyType.GetTypeDescriptor().type == SString) {
+        StreamString *str = static_cast<StreamString *>(pvAnyType.GetDataPointer());
+        if (numberOfElements > 1u) {
+            uint32 n;
+            for (n = 0u; n < numberOfElements; n++) {
+                str[n] = "";
+            }
+        }
+        else {
+            *str = "";
+        }
+    }
+    ErrorManagement::ErrorType err;
+    err.parametersError = !data.Read("param1", pvAnyType);
+    if (err.ErrorsCleared()) {
+        err = CAPutRaw();
+    }
+    return err;
+}
+
+ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
     ErrorManagement::ErrorType err = (context != NULL_PTR(struct ca_client_context *));
     if (err.ErrorsCleared()) {
         /*lint -e{9130} -e{835} -e{845} Several false positives. lint is getting confused here for some reason.*/
         err = !(ca_attach_context(context) == ECA_NORMAL);
     }
     if (err.ErrorsCleared()) {
-        AnyType at(pvTypeDesc, 0u, pvMemory);
-
-        //The StreamString memory has to be treated differently... and the Stream has to be reset.
-        void *putMem = pvMemory;
-        if (pvType == DBR_STRING) {
-            pvMemoryStr = "";
-            putMem = reinterpret_cast<void *>(pvMemoryStr.BufferReference());
+        //Arrays of strings are encoded with space separated tokens!
+        char8 *strArrayTemp = NULL_PTR(char8 *);
+        void *mem = pvMemory;
+        //StreamString has to be treated differently
+        if (pvAnyType.GetTypeDescriptor().type == SString) {
+            StreamString *str = static_cast<StreamString *>(pvAnyType.GetDataPointer());
+            if (numberOfElements > 1u) {
+                uint32 idx = static_cast<uint32>(MAX_STRING_SIZE) * numberOfElements;
+                strArrayTemp = new char8[idx];
+                //Arrays of strings are encoded as a single buffer of length 40 chars x numberOfDimensions
+                uint32 n;
+                bool ok = true;
+                for (n = 0u; (n < numberOfElements) && (ok); n++) {
+                    uint32 copySize = static_cast<uint32>(str[n].Size());
+                    if (copySize > static_cast<uint32>(MAX_STRING_SIZE)) {
+                        copySize = static_cast<uint32>(MAX_STRING_SIZE);
+                    }
+                    idx = n * static_cast<uint32>(MAX_STRING_SIZE);
+                    void *dest = &strArrayTemp[idx];
+                    ok = MemoryOperationsHelper::Copy(dest, str[n].Buffer(), copySize);
+                }
+                err = !ok;
+                mem = static_cast<void *>(&strArrayTemp[0u]);
+            }
+            else {
+                mem = const_cast<void *>(static_cast<const void *>(str->Buffer()));
+            }
         }
-        err = !data.Read("param1", at);
-
-        if (err.ErrorsCleared()) {
-            /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-            if (ca_put(pvType, pvChid, putMem) != ECA_NORMAL) {
-                err = ErrorManagement::FatalError;
-                REPORT_ERROR(err, "ca_put failed for PV: %s", pvName.Buffer());
-            }
-            /*lint -e{9130} -e{835} -e{845} Several false positives. lint is getting confused here for some reason.*/
-            if (ca_pend_io(timeout) != ECA_NORMAL) {
-                err = ErrorManagement::FatalError;
-                REPORT_ERROR(err, "ca_pend_io failed for PV: %s", pvName.Buffer());
-            }
+        /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+        if (ca_array_put(pvType, numberOfElements, pvChid, mem) != ECA_NORMAL) {
+            err = ErrorManagement::FatalError;
+            REPORT_ERROR(err, "ca_put failed for PV: %s", pvName.Buffer());
+        }
+        /*lint -e{9130} -e{835} -e{845} Several false positives. lint is getting confused here for some reason.*/
+        if (ca_pend_io(timeout) != ECA_NORMAL) {
+            err = ErrorManagement::FatalError;
+            REPORT_ERROR(err, "ca_pend_io failed for PV: %s", pvName.Buffer());
+        }
+        if (strArrayTemp != NULL_PTR(char8 *)) {
+            delete[] strArrayTemp;
         }
         ca_detach_context();
     }
     return err;
 }
 
-void EPICSPV::HandlePVEvent(const void * const dbr) {
+void EPICSPV::HandlePVEvent(struct event_handler_args const & args) {
+    const void * const dbr = args.dbr;
     if (dbr != NULL_PTR(const void *)) {
         if (pvMemory != NULL_PTR(char8 *)) {
-            StreamString newValue;
-            if (pvType == DBR_INT) {
-                *(reinterpret_cast<uint32 *>(pvMemory)) = *(reinterpret_cast<const uint32 *>(dbr));
-                (void) newValue.Printf("%d", *(reinterpret_cast<uint32 *>(pvMemory)));
-            }
-            else if (pvType == DBR_FLOAT) {
-                *(reinterpret_cast<float32 *>(pvMemory)) = *(reinterpret_cast<const float32 *>(dbr));
-                (void) newValue.Printf("%f", *(reinterpret_cast<float32 *>(pvMemory)));
-            }
-            else if (pvType == DBR_DOUBLE) {
-                *(reinterpret_cast<float64 *>(pvMemory)) = *(reinterpret_cast<const float64 *>(dbr));
-                (void) newValue.Printf("%f", *(reinterpret_cast<float64 *>(pvMemory)));
-            }
-            else if (pvType == DBR_STRING) {
-                pvMemoryStr = reinterpret_cast<const char8 *>(dbr);
-                newValue = pvMemoryStr;
+            if (pvAnyType.GetTypeDescriptor().type == SString) {
+                StreamString *str = static_cast<StreamString *>(pvAnyType.GetDataPointer());
+                if (numberOfElements > 1u) {
+                    //Arrays of strings are encoded as a single buffer of length 40 chars x numberOfDimensions
+                    const char8 * tempStr = reinterpret_cast<const char8 *>(dbr);
+                    uint32 n;
+                    for (n = 0u; n < static_cast<uint32>(args.count); n++) {
+                        uint32 idx = static_cast<uint32>(MAX_STRING_SIZE) * n;
+                        str[n] = &tempStr[idx];
+                    }
+                }
+                else {
+                    *str = reinterpret_cast<const char8 *>(dbr);
+                }
             }
             else {
-                //Should never enter here...
+                uint32 copySize = (static_cast<uint32>(args.count) * typeSize);
+                (void) MemoryOperationsHelper::Copy(pvMemory, dbr, copySize);
             }
-
             if (!(eventMode.notSet.operator bool())) {
-                TriggerEventMessage(newValue);
+                TriggerEventMessage();
             }
         }
     }
 }
 
-void EPICSPV::TriggerEventMessage(StreamString &newValue) {
+void EPICSPV::TriggerEventMessage() {
     ConfigurationDatabase cdb;
     //firstTime do not trigger an event so that we only react on value transitions.
     static bool firstTime = true;
     if (!firstTime) {
-        (void) newValue.Seek(0LLU);
         bool ok = cdb.Write("Destination", destination.Buffer());
         if (eventMode.function.operator bool()) {
             if (nOfFunctionMaps == 0u) {
                 if (ok) {
-                    ok = cdb.Write("Function", newValue.Buffer());
+                    ok = cdb.Write("Function", pvAnyType);
                 }
             }
             else {
-                StreamString functionMapValue = GetFunctionFromMap(newValue);
-                if (functionMapValue.Size() > 0u) {
-                    ok = cdb.Write("Function", functionMapValue.Buffer());
-                }
-                else {
-                    REPORT_ERROR(ErrorManagement::FatalError, "Could not find a mapping for key: %s", newValue.Buffer());
-                    ok = false;
+                StreamString newValue;
+                AnyType newValueAnyType(TypeDescriptor(false, SString, static_cast<uint16>(sizeof(StreamString) * 8u)), 0u, &newValue);
+                if (TypeConvert(newValueAnyType, pvAnyType)) {
+                    StreamString functionMapValue = GetFunctionFromMap(newValue.Buffer());
+                    if (functionMapValue.Size() > 0u) {
+                        ok = cdb.Write("Function", functionMapValue.Buffer());
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::FatalError, "Could not find a mapping for key: %s", newValue.Buffer());
+                        ok = false;
+                    }
                 }
             }
         }
@@ -346,7 +430,7 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
                 ok = cdb.Write("param1", GetName());
             }
             if (ok) {
-                ok = cdb.Write("param2", newValue.Buffer());
+                ok = cdb.Write("param2", pvAnyType);
             }
             if (ok) {
                 ok = cdb.MoveToAncestor(1u);
@@ -367,7 +451,7 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
                 ok = cdb.Write("Class", "ConfigurationDatabase");
             }
             if (ok) {
-                ok = cdb.Write("param1", newValue.Buffer());
+                ok = cdb.Write("param1", pvAnyType);
             }
             if (ok) {
                 ok = cdb.MoveToAncestor(1u);
@@ -381,7 +465,9 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
             ok = message->Initialise(cdb);
             if (ok) {
                 if (MessageI::SendMessage(message, this) != ErrorManagement::NoError) {
-                    REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", destination.Buffer(), newValue.Buffer());
+                    StreamString val;
+                    (void) val.Printf("%!", pvAnyType);
+                    REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", destination.Buffer(), val.Buffer());
                 }
             }
             else {
@@ -393,9 +479,8 @@ void EPICSPV::TriggerEventMessage(StreamString &newValue) {
 }
 
 /*lint -e{1762} function cannot be made const as it is registered as an RPC*/
-ErrorManagement::ErrorType EPICSPV::CAGet(StructuredDataI &data) {
-    AnyType at(pvTypeDesc, 0u, reinterpret_cast<const void * const >(pvMemory));
-    ErrorManagement::ErrorType err = data.Write("param1", at);
+ErrorManagement::ErrorType EPICSPV::CAGet(StructuredDataI & data) {
+    ErrorManagement::ErrorType err = data.Write("param1", pvAnyType);
     return err;
 }
 
@@ -431,6 +516,10 @@ chtype EPICSPV::GetPVType() const {
     return pvType;
 }
 
+AnyType EPICSPV::GetAnyType() const {
+    return pvAnyType;
+}
+
 EPICSPV::EventMode EPICSPV::GetMode() const {
     return eventMode;
 }
@@ -463,6 +552,11 @@ StreamString EPICSPV::GetFunctionFromMap(const StreamString &key) const {
     }
     return value;
 }
+
+uint32 EPICSPV::GetMemorySize() const {
+    return memorySize;
+}
+
 
 CLASS_REGISTER(EPICSPV, "1.0")
 /*lint -e{1023} There is no ambiguity on the function to be called as the compiler can distinguish between both template definitions.*/

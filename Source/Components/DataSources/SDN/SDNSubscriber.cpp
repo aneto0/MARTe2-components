@@ -34,13 +34,13 @@
 
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
-#ifdef FEATURE_10840
-#include "Endianity.h"
-#endif
 #include "MemoryMapInputBroker.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "SDNSubscriber.h"
 
+#ifdef FEATURE_10840
+#include "Endianity.h"
+#endif
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 /*lint -estring(843,"*crc.h*") ignore could be declared const warning from the crc.h header*/
 /*---------------------------------------------------------------------------*/

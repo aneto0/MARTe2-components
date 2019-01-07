@@ -114,6 +114,16 @@ TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger) {
     ASSERT_TRUE(test.TestIntegratedInApplication_Trigger());
 }
 
+TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_NotMultiple) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_NotMultiple());
+}
+
+TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_NotMultiple_Samples) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_NotMultiple_Samples());
+}
+
 TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_Time8) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Time8());

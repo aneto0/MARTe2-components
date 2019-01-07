@@ -173,9 +173,8 @@ HistogramComparatorCreatorT<float32> compCreateF32("float32");
  */
 HistogramComparatorCreatorT<float64> compCreateF64("float64");
 
-
-static HistogramComparatorCreator *compCreator[] = { &compCreateI8, &compCreateU8, &compCreateI16, &compCreateU16, &compCreateI32, &compCreateU32,
-        &compCreateI64, &compCreateU64, &compCreateF32, &compCreateF64 };
+static HistogramComparatorCreator *compCreator[] = { &compCreateI8, &compCreateU8, &compCreateI16, &compCreateU16, &compCreateI32, &compCreateU32, &compCreateI64, &compCreateU64, &compCreateF32,
+        &compCreateF64 };
 }
 
 /*---------------------------------------------------------------------------*/
@@ -211,6 +210,13 @@ bool HistogramGAM::Initialise(StructuredDataI &data) {
     if (ret) {
         if (!data.Read("BeginCycleNumber", beginCycle)) {
             beginCycle = 0u;
+        }
+    }
+    if (ret) {
+        stateChangeResetName = "";
+        (void) data.Read("StateChangeResetName", stateChangeResetName);
+        if (stateChangeResetName.Size() > 0u) {
+            REPORT_ERROR(ErrorManagement::Information, "Going to reset when the next state name is: %s", stateChangeResetName.Buffer());
         }
     }
     return ret;
@@ -326,6 +332,26 @@ bool HistogramGAM::Setup() {
 
     return ret;
 
+}
+
+/*lint -e{715} [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns irrespectively of the input parameters.*/
+bool HistogramGAM::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
+    bool reset = (stateChangeResetName == nextStateName);
+    if (!reset) {
+        reset = (stateChangeResetName == "All");
+    }
+    if (reset) {
+        cycleCounter = 0u;
+        /*lint -e{613} the NULL pointer is checked before*/
+        for (uint32 i = 0u; i < numberOfInputSignals; i++) {
+            uint32 *outputSignal = reinterpret_cast<uint32 *>(GetOutputSignalMemory(i));
+            uint32 nBins = comps[i]->GetNumberOfBins();
+            for (uint32 j = 0u; j < nBins; j++) {
+                outputSignal[j] = 0u;
+            }
+        }
+    }
+    return true;
 }
 
 bool HistogramGAM::Execute() {

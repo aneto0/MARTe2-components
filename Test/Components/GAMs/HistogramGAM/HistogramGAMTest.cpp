@@ -54,7 +54,7 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-    HistogramGAMTestGAM();
+HistogramGAMTestGAM    ();
     virtual ~HistogramGAMTestGAM();
 
     HistogramComparator ** GetComps();
@@ -103,7 +103,7 @@ class HistogramGAMTestDS: public MemoryDataSourceI {
 public:
     CLASS_REGISTER_DECLARATION()
 
-    HistogramGAMTestDS();
+HistogramGAMTestDS    ();
 
     virtual ~HistogramGAMTestDS();
 
@@ -126,8 +126,7 @@ HistogramGAMTestDS::~HistogramGAMTestDS() {
 
 }
 
-const char8 *HistogramGAMTestDS::GetBrokerName(StructuredDataI &data,
-                                               const SignalDirection direction) {
+const char8 *HistogramGAMTestDS::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
 
     const char8* brokerName = NULL_PTR(const char8 *);
 
@@ -172,10 +171,10 @@ const char8 *HistogramGAMTestDS::GetBrokerName(StructuredDataI &data,
     return brokerName;
 }
 
-bool HistogramGAMTestDS::PrepareNextState(const char8 * const currentStateName,
-                                          const char8 * const nextStateName) {
+bool HistogramGAMTestDS::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
 
     MemoryOperationsHelper::Set(memory, 0, totalMemorySize);
+    firstTime = true;
 
     return true;
 }
@@ -1884,7 +1883,7 @@ bool HistogramGAMTest::TestExecute() {
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
     ReferenceT<HistogramGAMTestGAM> gam;
-    ReferenceT < HistogramGAMTestDS > ds;
+    ReferenceT<HistogramGAMTestDS> ds;
     if (ret) {
         gam = god->Find("Application.Functions.GAM1");
         ret = gam.IsValid();
@@ -1906,8 +1905,8 @@ bool HistogramGAMTest::TestExecute() {
         ret &= dynamic_cast<HistogramComparatorT<float32>*>(comps[8]) != NULL;
         ret &= dynamic_cast<HistogramComparatorT<float64>*>(comps[9]) != NULL;
     }
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerSync;
-    ReferenceT < MemoryMapInputBroker > broker;
+    ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync;
+    ReferenceT<MemoryMapInputBroker> broker;
 
     if (ret) {
         ReferenceContainer inputBrokers;
@@ -1940,7 +1939,7 @@ bool HistogramGAMTest::TestExecute() {
             gam->Execute();
             for (uint32 j = 0u; (j < 12u) && (ret); j++) {
                 if (i >= 10) {
-                    ret &= (outMemU8[11] == (uint32)(i - 9));
+                    ret &= (outMemU8[11] == (uint32) (i - 9));
                 }
                 else {
                     if (j > 0 && j <= (i + 1)) {
@@ -1952,10 +1951,10 @@ bool HistogramGAMTest::TestExecute() {
                 }
 
                 if (i >= 11) {
-                    ret &= (outMemI8[11] == (uint32)(i - 10));
+                    ret &= (outMemI8[11] == (uint32) (i - 10));
                 }
                 else if (i < 1) {
-                    ret &= (outMemI8[0] == (uint32)(i + 1));
+                    ret &= (outMemI8[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i)) {
@@ -1967,10 +1966,10 @@ bool HistogramGAMTest::TestExecute() {
                 }
 
                 if (i >= 12) {
-                    ret &= (outMemU16[11] == (uint32)(i - 11));
+                    ret &= (outMemU16[11] == (uint32) (i - 11));
                 }
                 else if (i < 2) {
-                    ret &= (outMemU16[0] == (uint32)(i + 1));
+                    ret &= (outMemU16[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 1)) {
@@ -1982,10 +1981,10 @@ bool HistogramGAMTest::TestExecute() {
                 }
 
                 if (i >= 13) {
-                    ret &= (outMemI16[11] == (uint32)(i - 12));
+                    ret &= (outMemI16[11] == (uint32) (i - 12));
                 }
                 else if (i < 3) {
-                    ret &= (outMemI16[0] == (uint32)(i + 1));
+                    ret &= (outMemI16[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 2)) {
@@ -1997,10 +1996,10 @@ bool HistogramGAMTest::TestExecute() {
                 }
 
                 if (i >= 14) {
-                    ret &= (outMemU32[11] == (uint32)(i - 13));
+                    ret &= (outMemU32[11] == (uint32) (i - 13));
                 }
                 else if (i < 4) {
-                    ret &= (outMemU32[0] == (uint32)(i + 1));
+                    ret &= (outMemU32[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 3)) {
@@ -2012,10 +2011,10 @@ bool HistogramGAMTest::TestExecute() {
                 }
 
                 if (i >= 15) {
-                    ret &= (outMemI32[11] == (uint32)(i - 14));
+                    ret &= (outMemI32[11] == (uint32) (i - 14));
                 }
                 else if (i < 5) {
-                    ret &= (outMemI32[0] == (uint32)(i + 1));
+                    ret &= (outMemI32[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 4)) {
@@ -2027,10 +2026,10 @@ bool HistogramGAMTest::TestExecute() {
                 }
 
                 if (i >= 16) {
-                    ret &= (outMemU64[11] == (uint32)(i - 15));
+                    ret &= (outMemU64[11] == (uint32) (i - 15));
                 }
                 else if (i < 6) {
-                    ret &= (outMemU64[0] == (uint32)(i + 1));
+                    ret &= (outMemU64[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 5)) {
@@ -2042,10 +2041,10 @@ bool HistogramGAMTest::TestExecute() {
                 }
 
                 if (i >= 17) {
-                    ret &= (outMemI64[11] == (uint32)(i - 16));
+                    ret &= (outMemI64[11] == (uint32) (i - 16));
                 }
                 else if (i < 7) {
-                    ret &= (outMemI64[0] == (uint32)(i + 1));
+                    ret &= (outMemI64[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 6)) {
@@ -2057,10 +2056,10 @@ bool HistogramGAMTest::TestExecute() {
                 }
 
                 if (i >= 18) {
-                    ret &= (outMemF32[11] == (uint32)(i - 17));
+                    ret &= (outMemF32[11] == (uint32) (i - 17));
                 }
                 else if (i < 8) {
-                    ret &= (outMemF32[0] == (uint32)(i + 1));
+                    ret &= (outMemF32[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 7)) {
@@ -2072,10 +2071,10 @@ bool HistogramGAMTest::TestExecute() {
                 }
 
                 if (i >= 19) {
-                    ret &= (outMemF64[11] == (uint32)(i - 18));
+                    ret &= (outMemF64[11] == (uint32) (i - 18));
                 }
                 else if (i < 9) {
-                    ret &= (outMemF64[0] == (uint32)(i + 1));
+                    ret &= (outMemF64[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 8)) {
@@ -2092,6 +2091,7 @@ bool HistogramGAMTest::TestExecute() {
     god->Purge();
     return ret;
 }
+
 bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
 
     const char8 *config = ""
@@ -2268,7 +2268,7 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
     ReferenceT<HistogramGAMTestGAM> gam;
-    ReferenceT < HistogramGAMTestDS > ds;
+    ReferenceT<HistogramGAMTestDS> ds;
     if (ret) {
         gam = god->Find("Application.Functions.GAM1");
         ret = gam.IsValid();
@@ -2290,8 +2290,8 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
         ret &= dynamic_cast<HistogramComparatorT<float32>*>(comps[8]) != NULL;
         ret &= dynamic_cast<HistogramComparatorT<float64>*>(comps[9]) != NULL;
     }
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerSync;
-    ReferenceT < MemoryMapInputBroker > broker;
+    ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync;
+    ReferenceT<MemoryMapInputBroker> broker;
 
     if (ret) {
         ReferenceContainer inputBrokers;
@@ -2329,7 +2329,7 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
             gam->Execute();
             for (uint32 j = 0u; (j < 12u) && (ret); j++) {
                 if (i >= 10) {
-                    ret &= (outMemU8[11] == (uint32)(i - 9));
+                    ret &= (outMemU8[11] == (uint32) (i - 9));
                 }
                 else {
                     if (j > 0 && j <= (i + 1)) {
@@ -2341,10 +2341,10 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
                 }
 
                 if (i >= 11) {
-                    ret &= (outMemI8[11] == (uint32)(i - 10));
+                    ret &= (outMemI8[11] == (uint32) (i - 10));
                 }
                 else if (i < 1) {
-                    ret &= (outMemI8[0] == (uint32)(i + 1));
+                    ret &= (outMemI8[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i)) {
@@ -2356,10 +2356,10 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
                 }
 
                 if (i >= 12) {
-                    ret &= (outMemU16[11] == (uint32)(i - 11));
+                    ret &= (outMemU16[11] == (uint32) (i - 11));
                 }
                 else if (i < 2) {
-                    ret &= (outMemU16[0] == (uint32)(i + 1));
+                    ret &= (outMemU16[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 1)) {
@@ -2371,10 +2371,10 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
                 }
 
                 if (i >= 13) {
-                    ret &= (outMemI16[11] == (uint32)(i - 12));
+                    ret &= (outMemI16[11] == (uint32) (i - 12));
                 }
                 else if (i < 3) {
-                    ret &= (outMemI16[0] == (uint32)(i + 1));
+                    ret &= (outMemI16[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 2)) {
@@ -2386,10 +2386,10 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
                 }
 
                 if (i >= 14) {
-                    ret &= (outMemU32[11] == (uint32)(i - 13));
+                    ret &= (outMemU32[11] == (uint32) (i - 13));
                 }
                 else if (i < 4) {
-                    ret &= (outMemU32[0] == (uint32)(i + 1));
+                    ret &= (outMemU32[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 3)) {
@@ -2401,10 +2401,10 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
                 }
 
                 if (i >= 15) {
-                    ret &= (outMemI32[11] == (uint32)(i - 14));
+                    ret &= (outMemI32[11] == (uint32) (i - 14));
                 }
                 else if (i < 5) {
-                    ret &= (outMemI32[0] == (uint32)(i + 1));
+                    ret &= (outMemI32[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 4)) {
@@ -2416,10 +2416,10 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
                 }
 
                 if (i >= 16) {
-                    ret &= (outMemU64[11] == (uint32)(i - 15));
+                    ret &= (outMemU64[11] == (uint32) (i - 15));
                 }
                 else if (i < 6) {
-                    ret &= (outMemU64[0] == (uint32)(i + 1));
+                    ret &= (outMemU64[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 5)) {
@@ -2431,10 +2431,10 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
                 }
 
                 if (i >= 17) {
-                    ret &= (outMemI64[11] == (uint32)(i - 16));
+                    ret &= (outMemI64[11] == (uint32) (i - 16));
                 }
                 else if (i < 7) {
-                    ret &= (outMemI64[0] == (uint32)(i + 1));
+                    ret &= (outMemI64[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 6)) {
@@ -2446,10 +2446,10 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
                 }
 
                 if (i >= 18) {
-                    ret &= (outMemF32[11] == (uint32)(i - 17));
+                    ret &= (outMemF32[11] == (uint32) (i - 17));
                 }
                 else if (i < 8) {
-                    ret &= (outMemF32[0] == (uint32)(i + 1));
+                    ret &= (outMemF32[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 7)) {
@@ -2461,10 +2461,10 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
                 }
 
                 if (i >= 19) {
-                    ret &= (outMemF64[11] == (uint32)(i - 18));
+                    ret &= (outMemF64[11] == (uint32) (i - 18));
                 }
                 else if (i < 9) {
-                    ret &= (outMemF64[0] == (uint32)(i + 1));
+                    ret &= (outMemF64[0] == (uint32) (i + 1));
                 }
                 else {
                     if (j > 0 && j <= (i - 8)) {
@@ -2482,3 +2482,1207 @@ bool HistogramGAMTest::TestExecute_BeginCycleNumber() {
     return ret;
 }
 
+bool HistogramGAMTest::TestPrepareNextState() {
+
+    const char8 *config = ""
+            "$Application = {"
+            "   Class = RealTimeApplication"
+            "   +Functions = {"
+            "       Class = ReferenceContainer"
+            "       +GAM1 = {"
+            "           Class = HistogramGAMTestGAM"
+            "           BeginCycleNumber = 5"
+            "             InputSignals = {"
+            "                 Source_U8 = {"
+            "                     DataSource = Input"
+            "                     Frequency = 1"
+            "                     MaxLim = 10"
+            "                     MinLim = 0"
+            "                     Type = uint8"
+            "                 }"
+            "                 Source_I8 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 11"
+            "                     MinLim = 1"
+            "                     Type = int8"
+            "                 }"
+            "                 Source_U16 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 12"
+            "                     MinLim = 2"
+            "                     Type = uint16"
+            "                 }"
+            "                 Source_I16 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 13"
+            "                     MinLim = 3"
+            "                     Type = int16"
+            "                 }"
+            "                 Source_U32 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 14"
+            "                     MinLim = 4"
+            "                     Type = uint32"
+            "                 }"
+            "                 Source_i32 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 15"
+            "                     MinLim = 5"
+            "                     Type = int32"
+            "                 }"
+            "                 Source_U64 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 16"
+            "                     MinLim = 6"
+            "                     Type = uint64"
+            "                 }"
+            "                 Source_I64 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 17"
+            "                     MinLim = 7"
+            "                     Type = int64"
+            "                 }"
+            "                 Source_F32 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 18"
+            "                     MinLim = 8"
+            "                     Type = float32"
+            "                 }"
+            "                 Source_F64 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 19"
+            "                     MinLim = 9"
+            "                     Type = float64"
+            "                 }"
+            "             }"
+            "             OutputSignals = {"
+            "                 Statistics_U8 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I8 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_U16 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I16 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_U32 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I32 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_U64 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I64 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_F32 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_F64 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "             }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "        +LoggerDataSource = {"
+            "            Class = LoggerDataSource"
+            "        }"
+            "        +Input = {"
+            "            Class = HistogramGAMTestDS"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Idle = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    CPUs = 2"
+            "                    Functions = { GAM1 }"
+            "                }"
+            "            }"
+            "         }"
+            "     }"
+            "     +Scheduler = {"
+            "         Class = GAMScheduler"
+            "         TimingDataSource = Timings"
+            "     }"
+            "}";
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    ReferenceT<HistogramGAMTestGAM> gam;
+    ReferenceT<HistogramGAMTestDS> ds;
+    if (ret) {
+        gam = god->Find("Application.Functions.GAM1");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ds = god->Find("Application.Data.Input");
+        ret = ds.IsValid();
+    }
+    if (ret) {
+        HistogramComparator **comps = gam->GetComps();
+        ret &= dynamic_cast<HistogramComparatorT<uint8>*>(comps[0]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int8>*>(comps[1]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<uint16>*>(comps[2]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int16>*>(comps[3]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<uint32>*>(comps[4]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int32>*>(comps[5]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<uint64>*>(comps[6]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int64>*>(comps[7]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<float32>*>(comps[8]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<float64>*>(comps[9]) != NULL;
+    }
+    ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync;
+    ReferenceT<MemoryMapInputBroker> broker;
+
+    if (ret) {
+        ReferenceContainer inputBrokers;
+        gam->GetInputBrokers(inputBrokers);
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+        if (ret) {
+            broker = inputBrokers.Get(1);
+            ret = broker.IsValid();
+        }
+    }
+    if (ret) {
+        ret = ds->PrepareNextState("State1", "State1");
+    }
+
+    uint32 *outMemU8 = (uint32*) gam->GetOutputSignalsMemory();
+    uint32 *outMemI8 = (outMemU8 + 12);
+    uint32 *outMemU16 = (outMemI8 + 12);
+    uint32 *outMemI16 = (outMemU16 + 12);
+    uint32 *outMemU32 = (outMemI16 + 12);
+    uint32 *outMemI32 = (outMemU32 + 12);
+    uint32 *outMemU64 = (outMemI32 + 12);
+    uint32 *outMemI64 = (outMemU64 + 12);
+    uint32 *outMemF32 = (outMemI64 + 12);
+    uint32 *outMemF64 = (outMemF32 + 12);
+    if (ret) {
+        //Force the BeginCycleNumber
+        for (uint32 i = 0u; (i < 5u) && (ret); i++) {
+            gam->Execute();
+        }
+
+        for (uint32 i = 0u; (i < 20u) && (ret); i++) {
+            brokerSync->Execute();
+            broker->Execute();
+            gam->Execute();
+            for (uint32 j = 0u; (j < 12u) && (ret); j++) {
+                if (i >= 10) {
+                    ret &= (outMemU8[11] == (uint32) (i - 9));
+                }
+                else {
+                    if (j > 0 && j <= (i + 1)) {
+                        ret &= (outMemU8[j] == (uint32) 1);
+                    }
+                    else {
+                        ret &= (outMemU8[j] == (uint32) 0);
+                    }
+                }
+
+                if (i >= 11) {
+                    ret &= (outMemI8[11] == (uint32) (i - 10));
+                }
+                else if (i < 1) {
+                    ret &= (outMemI8[0] == (uint32) (i + 1));
+                }
+                else {
+                    if (j > 0 && j <= (i)) {
+                        ret &= (outMemI8[j] == (uint32) 1);
+                    }
+                    else if (j > i) {
+                        ret &= (outMemI8[j] == (uint32) 0);
+                    }
+                }
+
+                if (i >= 12) {
+                    ret &= (outMemU16[11] == (uint32) (i - 11));
+                }
+                else if (i < 2) {
+                    ret &= (outMemU16[0] == (uint32) (i + 1));
+                }
+                else {
+                    if (j > 0 && j <= (i - 1)) {
+                        ret &= (outMemU16[j] == (uint32) 1);
+                    }
+                    else if (j > (i - 1)) {
+                        ret &= (outMemU16[j] == (uint32) 0);
+                    }
+                }
+
+                if (i >= 13) {
+                    ret &= (outMemI16[11] == (uint32) (i - 12));
+                }
+                else if (i < 3) {
+                    ret &= (outMemI16[0] == (uint32) (i + 1));
+                }
+                else {
+                    if (j > 0 && j <= (i - 2)) {
+                        ret &= (outMemI16[j] == (uint32) 1);
+                    }
+                    else if (j > (i - 2)) {
+                        ret &= (outMemI16[j] == (uint32) 0);
+                    }
+                }
+
+                if (i >= 14) {
+                    ret &= (outMemU32[11] == (uint32) (i - 13));
+                }
+                else if (i < 4) {
+                    ret &= (outMemU32[0] == (uint32) (i + 1));
+                }
+                else {
+                    if (j > 0 && j <= (i - 3)) {
+                        ret &= (outMemU32[j] == (uint32) 1);
+                    }
+                    else if (j > (i - 3)) {
+                        ret &= (outMemU32[j] == (uint32) 0);
+                    }
+                }
+
+                if (i >= 15) {
+                    ret &= (outMemI32[11] == (uint32) (i - 14));
+                }
+                else if (i < 5) {
+                    ret &= (outMemI32[0] == (uint32) (i + 1));
+                }
+                else {
+                    if (j > 0 && j <= (i - 4)) {
+                        ret &= (outMemI32[j] == (uint32) 1);
+                    }
+                    else if (j > (i - 4)) {
+                        ret &= (outMemI32[j] == (uint32) 0);
+                    }
+                }
+
+                if (i >= 16) {
+                    ret &= (outMemU64[11] == (uint32) (i - 15));
+                }
+                else if (i < 6) {
+                    ret &= (outMemU64[0] == (uint32) (i + 1));
+                }
+                else {
+                    if (j > 0 && j <= (i - 5)) {
+                        ret &= (outMemU64[j] == (uint32) 1);
+                    }
+                    else if (j > (i - 5)) {
+                        ret &= (outMemU64[j] == (uint32) 0);
+                    }
+                }
+
+                if (i >= 17) {
+                    ret &= (outMemI64[11] == (uint32) (i - 16));
+                }
+                else if (i < 7) {
+                    ret &= (outMemI64[0] == (uint32) (i + 1));
+                }
+                else {
+                    if (j > 0 && j <= (i - 6)) {
+                        ret &= (outMemI64[j] == (uint32) 1);
+                    }
+                    else if (j > (i - 6)) {
+                        ret &= (outMemI64[j] == (uint32) 0);
+                    }
+                }
+
+                if (i >= 18) {
+                    ret &= (outMemF32[11] == (uint32) (i - 17));
+                }
+                else if (i < 8) {
+                    ret &= (outMemF32[0] == (uint32) (i + 1));
+                }
+                else {
+                    if (j > 0 && j <= (i - 7)) {
+                        ret &= (outMemF32[j] == (uint32) 1);
+                    }
+                    else if (j > (i - 7)) {
+                        ret &= (outMemF32[j] == (uint32) 0);
+                    }
+                }
+
+                if (i >= 19) {
+                    ret &= (outMemF64[11] == (uint32) (i - 18));
+                }
+                else if (i < 9) {
+                    ret &= (outMemF64[0] == (uint32) (i + 1));
+                }
+                else {
+                    if (j > 0 && j <= (i - 8)) {
+                        ret &= (outMemF64[j] == (uint32) 1);
+                    }
+                    else if (j > (i - 8)) {
+                        ret &= (outMemF64[j] == (uint32) 0);
+                    }
+                }
+            }
+        }
+    }
+
+    uint8 *outMemU8B = new uint8[12];
+    //Check that the memory was not reset.
+    uint32 k;
+    for (k = 0u; k < 12; k++) {
+        outMemU8B[k] = outMemU8[k];
+    }
+    gam->PrepareNextState("State1", "State2");
+    for (k = 0u; (k < 12) && (ret); k++) {
+        ret &= (outMemU8B[k] == outMemU8[k]);
+    }
+    delete[] outMemU8B;
+    god->Purge();
+    return ret;
+}
+
+bool HistogramGAMTest::TestPrepareNextState_Reset_All() {
+
+    const char8 *config = ""
+            "$Application = {"
+            "   Class = RealTimeApplication"
+            "   +Functions = {"
+            "       Class = ReferenceContainer"
+            "       +GAM1 = {"
+            "           Class = HistogramGAMTestGAM"
+            "           BeginCycleNumber = 5"
+            "           StateChangeResetName = All"
+            "             InputSignals = {"
+            "                 Source_U8 = {"
+            "                     DataSource = Input"
+            "                     Frequency = 1"
+            "                     MaxLim = 10"
+            "                     MinLim = 0"
+            "                     Type = uint8"
+            "                 }"
+            "                 Source_I8 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 11"
+            "                     MinLim = 1"
+            "                     Type = int8"
+            "                 }"
+            "                 Source_U16 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 12"
+            "                     MinLim = 2"
+            "                     Type = uint16"
+            "                 }"
+            "                 Source_I16 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 13"
+            "                     MinLim = 3"
+            "                     Type = int16"
+            "                 }"
+            "                 Source_U32 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 14"
+            "                     MinLim = 4"
+            "                     Type = uint32"
+            "                 }"
+            "                 Source_i32 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 15"
+            "                     MinLim = 5"
+            "                     Type = int32"
+            "                 }"
+            "                 Source_U64 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 16"
+            "                     MinLim = 6"
+            "                     Type = uint64"
+            "                 }"
+            "                 Source_I64 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 17"
+            "                     MinLim = 7"
+            "                     Type = int64"
+            "                 }"
+            "                 Source_F32 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 18"
+            "                     MinLim = 8"
+            "                     Type = float32"
+            "                 }"
+            "                 Source_F64 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 19"
+            "                     MinLim = 9"
+            "                     Type = float64"
+            "                 }"
+            "             }"
+            "             OutputSignals = {"
+            "                 Statistics_U8 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I8 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_U16 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I16 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_U32 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I32 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_U64 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I64 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_F32 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_F64 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "             }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "        +LoggerDataSource = {"
+            "            Class = LoggerDataSource"
+            "        }"
+            "        +Input = {"
+            "            Class = HistogramGAMTestDS"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Idle = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    CPUs = 2"
+            "                    Functions = { GAM1 }"
+            "                }"
+            "            }"
+            "         }"
+            "     }"
+            "     +Scheduler = {"
+            "         Class = GAMScheduler"
+            "         TimingDataSource = Timings"
+            "     }"
+            "}";
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    ReferenceT<HistogramGAMTestGAM> gam;
+    ReferenceT<HistogramGAMTestDS> ds;
+    if (ret) {
+        gam = god->Find("Application.Functions.GAM1");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ds = god->Find("Application.Data.Input");
+        ret = ds.IsValid();
+    }
+    if (ret) {
+        HistogramComparator **comps = gam->GetComps();
+        ret &= dynamic_cast<HistogramComparatorT<uint8>*>(comps[0]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int8>*>(comps[1]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<uint16>*>(comps[2]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int16>*>(comps[3]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<uint32>*>(comps[4]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int32>*>(comps[5]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<uint64>*>(comps[6]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int64>*>(comps[7]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<float32>*>(comps[8]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<float64>*>(comps[9]) != NULL;
+    }
+    ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync;
+    ReferenceT<MemoryMapInputBroker> broker;
+
+    if (ret) {
+        ReferenceContainer inputBrokers;
+        gam->GetInputBrokers(inputBrokers);
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+        if (ret) {
+            broker = inputBrokers.Get(1);
+            ret = broker.IsValid();
+        }
+    }
+
+    uint32 r = 0u;
+    for (r = 0u; (r < 2) && (ret); r++) {
+        ret = ds->PrepareNextState("State1", "State1");
+        if (r == 1) {
+            //Check that the memory was reset.
+            gam->PrepareNextState("State1", "State2");
+        }
+
+        uint32 *outMemU8 = (uint32*) gam->GetOutputSignalsMemory();
+        uint32 *outMemI8 = (outMemU8 + 12);
+        uint32 *outMemU16 = (outMemI8 + 12);
+        uint32 *outMemI16 = (outMemU16 + 12);
+        uint32 *outMemU32 = (outMemI16 + 12);
+        uint32 *outMemI32 = (outMemU32 + 12);
+        uint32 *outMemU64 = (outMemI32 + 12);
+        uint32 *outMemI64 = (outMemU64 + 12);
+        uint32 *outMemF32 = (outMemI64 + 12);
+        uint32 *outMemF64 = (outMemF32 + 12);
+        if (ret) {
+            //Force the BeginCycleNumber
+            for (uint32 i = 0u; (i < 5u) && (ret); i++) {
+                gam->Execute();
+            }
+
+            for (uint32 i = 0u; (i < 20u) && (ret); i++) {
+                brokerSync->Execute();
+                broker->Execute();
+                gam->Execute();
+                for (uint32 j = 0u; (j < 12u) && (ret); j++) {
+                    if (i >= 10) {
+                        ret &= (outMemU8[11] == (uint32) (i - 9));
+                    }
+                    else {
+                        if (j > 0 && j <= (i + 1)) {
+                            ret &= (outMemU8[j] == (uint32) 1);
+                        }
+                        else {
+                            ret &= (outMemU8[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 11) {
+                        ret &= (outMemI8[11] == (uint32) (i - 10));
+                    }
+                    else if (i < 1) {
+                        ret &= (outMemI8[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i)) {
+                            ret &= (outMemI8[j] == (uint32) 1);
+                        }
+                        else if (j > i) {
+                            ret &= (outMemI8[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 12) {
+                        ret &= (outMemU16[11] == (uint32) (i - 11));
+                    }
+                    else if (i < 2) {
+                        ret &= (outMemU16[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 1)) {
+                            ret &= (outMemU16[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 1)) {
+                            ret &= (outMemU16[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 13) {
+                        ret &= (outMemI16[11] == (uint32) (i - 12));
+                    }
+                    else if (i < 3) {
+                        ret &= (outMemI16[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 2)) {
+                            ret &= (outMemI16[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 2)) {
+                            ret &= (outMemI16[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 14) {
+                        ret &= (outMemU32[11] == (uint32) (i - 13));
+                    }
+                    else if (i < 4) {
+                        ret &= (outMemU32[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 3)) {
+                            ret &= (outMemU32[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 3)) {
+                            ret &= (outMemU32[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 15) {
+                        ret &= (outMemI32[11] == (uint32) (i - 14));
+                    }
+                    else if (i < 5) {
+                        ret &= (outMemI32[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 4)) {
+                            ret &= (outMemI32[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 4)) {
+                            ret &= (outMemI32[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 16) {
+                        ret &= (outMemU64[11] == (uint32) (i - 15));
+                    }
+                    else if (i < 6) {
+                        ret &= (outMemU64[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 5)) {
+                            ret &= (outMemU64[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 5)) {
+                            ret &= (outMemU64[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 17) {
+                        ret &= (outMemI64[11] == (uint32) (i - 16));
+                    }
+                    else if (i < 7) {
+                        ret &= (outMemI64[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 6)) {
+                            ret &= (outMemI64[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 6)) {
+                            ret &= (outMemI64[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 18) {
+                        ret &= (outMemF32[11] == (uint32) (i - 17));
+                    }
+                    else if (i < 8) {
+                        ret &= (outMemF32[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 7)) {
+                            ret &= (outMemF32[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 7)) {
+                            ret &= (outMemF32[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 19) {
+                        ret &= (outMemF64[11] == (uint32) (i - 18));
+                    }
+                    else if (i < 9) {
+                        ret &= (outMemF64[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 8)) {
+                            ret &= (outMemF64[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 8)) {
+                            ret &= (outMemF64[j] == (uint32) 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    god->Purge();
+    return ret;
+}
+
+bool HistogramGAMTest::TestPrepareNextState_Reset_State() {
+
+    const char8 *config = ""
+            "$Application = {"
+            "   Class = RealTimeApplication"
+            "   +Functions = {"
+            "       Class = ReferenceContainer"
+            "       +GAM1 = {"
+            "           Class = HistogramGAMTestGAM"
+            "           BeginCycleNumber = 5"
+            "           StateChangeResetName = State2"
+            "             InputSignals = {"
+            "                 Source_U8 = {"
+            "                     DataSource = Input"
+            "                     Frequency = 1"
+            "                     MaxLim = 10"
+            "                     MinLim = 0"
+            "                     Type = uint8"
+            "                 }"
+            "                 Source_I8 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 11"
+            "                     MinLim = 1"
+            "                     Type = int8"
+            "                 }"
+            "                 Source_U16 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 12"
+            "                     MinLim = 2"
+            "                     Type = uint16"
+            "                 }"
+            "                 Source_I16 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 13"
+            "                     MinLim = 3"
+            "                     Type = int16"
+            "                 }"
+            "                 Source_U32 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 14"
+            "                     MinLim = 4"
+            "                     Type = uint32"
+            "                 }"
+            "                 Source_i32 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 15"
+            "                     MinLim = 5"
+            "                     Type = int32"
+            "                 }"
+            "                 Source_U64 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 16"
+            "                     MinLim = 6"
+            "                     Type = uint64"
+            "                 }"
+            "                 Source_I64 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 17"
+            "                     MinLim = 7"
+            "                     Type = int64"
+            "                 }"
+            "                 Source_F32 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 18"
+            "                     MinLim = 8"
+            "                     Type = float32"
+            "                 }"
+            "                 Source_F64 = {"
+            "                     DataSource = Input"
+            "                     MaxLim = 19"
+            "                     MinLim = 9"
+            "                     Type = float64"
+            "                 }"
+            "             }"
+            "             OutputSignals = {"
+            "                 Statistics_U8 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I8 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_U16 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I16 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_U32 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I32 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_U64 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_I64 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_F32 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "                 Statistics_F64 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                     NumberOfDimensions = 1"
+            "                     NumberOfElements = 12"
+            "                 }"
+            "             }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "        +LoggerDataSource = {"
+            "            Class = LoggerDataSource"
+            "        }"
+            "        +Input = {"
+            "            Class = HistogramGAMTestDS"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Idle = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    CPUs = 2"
+            "                    Functions = { GAM1 }"
+            "                }"
+            "            }"
+            "         }"
+            "     }"
+            "     +Scheduler = {"
+            "         Class = GAMScheduler"
+            "         TimingDataSource = Timings"
+            "     }"
+            "}";
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    ReferenceT<HistogramGAMTestGAM> gam;
+    ReferenceT<HistogramGAMTestDS> ds;
+    if (ret) {
+        gam = god->Find("Application.Functions.GAM1");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ds = god->Find("Application.Data.Input");
+        ret = ds.IsValid();
+    }
+    if (ret) {
+        HistogramComparator **comps = gam->GetComps();
+        ret &= dynamic_cast<HistogramComparatorT<uint8>*>(comps[0]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int8>*>(comps[1]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<uint16>*>(comps[2]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int16>*>(comps[3]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<uint32>*>(comps[4]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int32>*>(comps[5]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<uint64>*>(comps[6]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<int64>*>(comps[7]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<float32>*>(comps[8]) != NULL;
+        ret &= dynamic_cast<HistogramComparatorT<float64>*>(comps[9]) != NULL;
+    }
+    ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync;
+    ReferenceT<MemoryMapInputBroker> broker;
+
+    if (ret) {
+        ReferenceContainer inputBrokers;
+        gam->GetInputBrokers(inputBrokers);
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+        if (ret) {
+            broker = inputBrokers.Get(1);
+            ret = broker.IsValid();
+        }
+    }
+
+    uint32 *outMemU8 = (uint32*) gam->GetOutputSignalsMemory();
+    uint32 r = 0u;
+    for (r = 0u; (r < 2) && (ret); r++) {
+        ret = ds->PrepareNextState("State1", "State1");
+        if (r == 1) {
+            //Check that the memory was reset.
+            gam->PrepareNextState("State1", "State2");
+        }
+
+        uint32 *outMemI8 = (outMemU8 + 12);
+        uint32 *outMemU16 = (outMemI8 + 12);
+        uint32 *outMemI16 = (outMemU16 + 12);
+        uint32 *outMemU32 = (outMemI16 + 12);
+        uint32 *outMemI32 = (outMemU32 + 12);
+        uint32 *outMemU64 = (outMemI32 + 12);
+        uint32 *outMemI64 = (outMemU64 + 12);
+        uint32 *outMemF32 = (outMemI64 + 12);
+        uint32 *outMemF64 = (outMemF32 + 12);
+        if (ret) {
+            //Force the BeginCycleNumber
+            for (uint32 i = 0u; (i < 5u) && (ret); i++) {
+                gam->Execute();
+            }
+
+            for (uint32 i = 0u; (i < 20u) && (ret); i++) {
+                brokerSync->Execute();
+                broker->Execute();
+                gam->Execute();
+                for (uint32 j = 0u; (j < 12u) && (ret); j++) {
+                    if (i >= 10) {
+                        ret &= (outMemU8[11] == (uint32) (i - 9));
+                    }
+                    else {
+                        if (j > 0 && j <= (i + 1)) {
+                            ret &= (outMemU8[j] == (uint32) 1);
+                        }
+                        else {
+                            ret &= (outMemU8[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 11) {
+                        ret &= (outMemI8[11] == (uint32) (i - 10));
+                    }
+                    else if (i < 1) {
+                        ret &= (outMemI8[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i)) {
+                            ret &= (outMemI8[j] == (uint32) 1);
+                        }
+                        else if (j > i) {
+                            ret &= (outMemI8[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 12) {
+                        ret &= (outMemU16[11] == (uint32) (i - 11));
+                    }
+                    else if (i < 2) {
+                        ret &= (outMemU16[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 1)) {
+                            ret &= (outMemU16[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 1)) {
+                            ret &= (outMemU16[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 13) {
+                        ret &= (outMemI16[11] == (uint32) (i - 12));
+                    }
+                    else if (i < 3) {
+                        ret &= (outMemI16[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 2)) {
+                            ret &= (outMemI16[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 2)) {
+                            ret &= (outMemI16[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 14) {
+                        ret &= (outMemU32[11] == (uint32) (i - 13));
+                    }
+                    else if (i < 4) {
+                        ret &= (outMemU32[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 3)) {
+                            ret &= (outMemU32[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 3)) {
+                            ret &= (outMemU32[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 15) {
+                        ret &= (outMemI32[11] == (uint32) (i - 14));
+                    }
+                    else if (i < 5) {
+                        ret &= (outMemI32[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 4)) {
+                            ret &= (outMemI32[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 4)) {
+                            ret &= (outMemI32[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 16) {
+                        ret &= (outMemU64[11] == (uint32) (i - 15));
+                    }
+                    else if (i < 6) {
+                        ret &= (outMemU64[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 5)) {
+                            ret &= (outMemU64[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 5)) {
+                            ret &= (outMemU64[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 17) {
+                        ret &= (outMemI64[11] == (uint32) (i - 16));
+                    }
+                    else if (i < 7) {
+                        ret &= (outMemI64[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 6)) {
+                            ret &= (outMemI64[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 6)) {
+                            ret &= (outMemI64[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 18) {
+                        ret &= (outMemF32[11] == (uint32) (i - 17));
+                    }
+                    else if (i < 8) {
+                        ret &= (outMemF32[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 7)) {
+                            ret &= (outMemF32[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 7)) {
+                            ret &= (outMemF32[j] == (uint32) 0);
+                        }
+                    }
+
+                    if (i >= 19) {
+                        ret &= (outMemF64[11] == (uint32) (i - 18));
+                    }
+                    else if (i < 9) {
+                        ret &= (outMemF64[0] == (uint32) (i + 1));
+                    }
+                    else {
+                        if (j > 0 && j <= (i - 8)) {
+                            ret &= (outMemF64[j] == (uint32) 1);
+                        }
+                        else if (j > (i - 8)) {
+                            ret &= (outMemF64[j] == (uint32) 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    uint8 *outMemU8B = new uint8[12];
+    //Check that the memory was not reset with the wrong state.
+    uint32 k;
+    for (k = 0u; k < 12; k++) {
+        outMemU8B[k] = outMemU8[k];
+    }
+    gam->PrepareNextState("State1", "State3");
+    for (k = 0u; (k < 12) && (ret); k++) {
+        ret &= (outMemU8B[k] == outMemU8[k]);
+    }
+    delete[] outMemU8B;
+    god->Purge();
+    return ret;
+}
