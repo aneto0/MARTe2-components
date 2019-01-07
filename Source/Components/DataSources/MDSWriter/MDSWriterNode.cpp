@@ -540,37 +540,38 @@ bool MDSWriterNode::AddDataToSegment() {
         if (!useTimeVector) {
             start += period;
         }
-        if (numberOfElements > 1) {
+        if (numberOfElements > 1u) {
+            int32 numberElementsInt32 = static_cast<int32>(numberOfElements);
             MDSplus::Array *value = NULL_PTR(MDSplus::Array *);
             if (nodeType == DTYPE_B) {
-                value = new MDSplus::Int8Array(&(reinterpret_cast<char8 *>(bufferedData)[i]), numberOfElements);
+                value = new MDSplus::Int8Array(&(reinterpret_cast<char8 *>(bufferedData)[i]), numberElementsInt32);
             }
             else if (nodeType == DTYPE_BU) {
-                value = new MDSplus::Uint8Array(&(reinterpret_cast<uint8 *>(bufferedData)[i]), numberOfElements);
+                value = new MDSplus::Uint8Array(&(reinterpret_cast<uint8 *>(bufferedData)[i]), numberElementsInt32);
             }
             else if (nodeType == DTYPE_W) {
-                value = new MDSplus::Int16Array(&(reinterpret_cast<int16 *>(bufferedData)[i]), numberOfElements);
+                value = new MDSplus::Int16Array(&(reinterpret_cast<int16 *>(bufferedData)[i]), numberElementsInt32);
             }
             else if (nodeType == DTYPE_WU) {
-                value = new MDSplus::Uint16Array(&(reinterpret_cast<uint16 *>(bufferedData)[i]), numberOfElements);
+                value = new MDSplus::Uint16Array(&(reinterpret_cast<uint16 *>(bufferedData)[i]), numberElementsInt32);
             }
             else if (nodeType == DTYPE_L) {
-                value = new MDSplus::Int32Array(&(reinterpret_cast<int32 *>(bufferedData)[i]), numberOfElements);
+                value = new MDSplus::Int32Array(&(reinterpret_cast<int32 *>(bufferedData)[i]), numberElementsInt32);
             }
             else if (nodeType == DTYPE_LU) {
-                value = new MDSplus::Uint32Array(&(reinterpret_cast<uint32 *>(bufferedData)[i]), numberOfElements);
+                value = new MDSplus::Uint32Array(&(reinterpret_cast<uint32 *>(bufferedData)[i]), numberElementsInt32);
             }
             else if (nodeType == DTYPE_Q) {
-                value = new MDSplus::Int64Array(&(reinterpret_cast<int64_t *>(bufferedData)[i]), numberOfElements);
+                value = new MDSplus::Int64Array(&(reinterpret_cast<int64_t *>(bufferedData)[i]), numberElementsInt32);
             }
             else if (nodeType == DTYPE_QU) {
-                value = new MDSplus::Uint64Array(&(reinterpret_cast<uint64_t *>(bufferedData)[i]), numberOfElements);
+                value = new MDSplus::Uint64Array(&(reinterpret_cast<uint64_t *>(bufferedData)[i]), numberElementsInt32);
             }
             else if (nodeType == DTYPE_FLOAT) {
-                value = new MDSplus::Float32Array(&(reinterpret_cast<float32*>(bufferedData)[i]), numberOfElements);
+                value = new MDSplus::Float32Array(&(reinterpret_cast<float32*>(bufferedData)[i]), numberElementsInt32);
             }
             else if (nodeType == DTYPE_DOUBLE) {
-                value = new MDSplus::Float64Array(&(reinterpret_cast<float64*>(bufferedData)[i]), numberOfElements);
+                value = new MDSplus::Float64Array(&(reinterpret_cast<float64*>(bufferedData)[i]), numberElementsInt32);
             }
             else {
                 //An invalid nodeType is trapped before.

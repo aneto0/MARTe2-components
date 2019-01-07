@@ -1,7 +1,7 @@
 /**
  * @file CRCGAMTest.h
  * @brief Header file for class CRCGAMTest
- * @date Oct 30, 2018
+ * @date 30/10/2018
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and

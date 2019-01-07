@@ -1,7 +1,7 @@
 /**
  * @file CRCGAMTest.cpp
  * @brief Source file for class CRCGAMTest
- * @date Oct 30, 2018 
+ * @date 30/10/2018
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -31,26 +31,25 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "CRCGAMTest.h"
+#include "AdvancedErrorManagement.h"
+#include "AnyType.h"
 #include "ConfigurationDatabase.h"
+#include "CRCGAMTest.h"
+#include "DataSourceI.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
-#include "StandardParser.h"
-#include "DataSourceI.h"
-#include "StructuredDataI.h"
-#include "AdvancedErrorManagement.h"
 #include "RealTimeApplication.h"
-#include "AnyType.h"
+#include "StandardParser.h"
+#include "StructuredDataI.h"
 #include "TypeDescriptor.h"
-
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-#define MAX_UINT8 256
-#define MAX_UINT16 65536
-#define MAX_UINT32 4294967296
+#define CRCTEST_MAX_UINT8 256
+#define CRCTEST_MAX_UINT16 65536
+#define CRCTEST_MAX_UINT32 4294967296
 
 
 namespace MARTe {
@@ -506,19 +505,19 @@ bool CRCGAMTest::TestExecute(T value) {
 
 
     if(td == UnsignedInteger8Bit) {
-        if(*output != 0 && *output < MAX_UINT8) {
+        if(*output != 0 && *output < CRCTEST_MAX_UINT8) {
             ok = true;
         } else {
             ok = false;
         }
     } else if(td == UnsignedInteger16Bit) {
-        if(*output != 0 && *output < MAX_UINT16) {
+        if(*output != 0 && *output < CRCTEST_MAX_UINT16) {
             ok = true;
         } else {
             ok = false;
         }
     } else if(td == UnsignedInteger32Bit) {
-        if(*output != 0 && *output < MAX_UINT32) {
+        if(*output != 0 && *output < CRCTEST_MAX_UINT32) {
             ok = true;
         } else {
             ok = false;

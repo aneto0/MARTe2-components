@@ -1,7 +1,7 @@
 /**
  * @file CRCGAM.h
  * @brief Header file for class CRCGAM
- * @date 30 Oct 2018
+ * @date 30/10/2018
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -31,9 +31,8 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
-#include "GAM.h"
 #include "CRCHelperT.h"
+#include "GAM.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -50,7 +49,7 @@ namespace MARTe {
  * The configuration setup must include:
  * - The divisor Polynomial with (n+1) bits for the CRC-n type chosen.
  *   Common values for polynomial are: 0x7 (uint8), 0x1021 (uint16), 0x4C11DB7 (uint32).
- * - The initialCRCvalue.
+ * - The initial CRC value.
  * - The Inverted option: 1 is you want the CRC checksum reflected, 0 otherwise.
  *
  * The number of OutputSignals must be equal to 1.
@@ -63,7 +62,7 @@ namespace MARTe {
  *     InitialValue = 0x0
  *     Inverted = 0
  *     InputSignals = {
- *         inputArea = {
+ *         InputArea = {
  *             DataSource = DDB1
  *         }
  *     }
@@ -77,87 +76,86 @@ namespace MARTe {
  *</pre>
  */
 
-    class CRCGAM : public GAM {
-    public:
-        CLASS_REGISTER_DECLARATION()
+class CRCGAM: public GAM {
+public:
+    CLASS_REGISTER_DECLARATION()
 
-        /**
-         * @brief Default Constructor. NOOP.
-         */
-        CRCGAM();
+    /**
+     * @brief Default Constructor. NOOP.
+     */
+CRCGAM    ();
 
-        /**
-         * @brief Default Destructor. NOOP.
-         */
-        virtual ~CRCGAM();
+    /**
+     * @brief Default Destructor. NOOP.
+     */
+    virtual ~CRCGAM();
 
-        /**
-         * @brief see GAM::Initialise.
-         * @details Stores the GAM configuration in order to read Polynomial, InitialValue and Inverted option.
-         */
-        virtual bool Initialise(StructuredDataI &data);
+    /**
+     * @brief see GAM::Initialise.
+     * @details Stores the GAM configuration in order to read Polynomial, InitialValue and Inverted option.
+     */
+    virtual bool Initialise(StructuredDataI &data);
 
-        /**
-         * @brief Verifies the correctness of the GAM configuration.
-         * @details Retrieves byte size of input signals, computes the table from the polynomial and checks that the rules below are met.
-         * @return true if all the preconditions are met.
-         * @pre
-         *     GetNumberOfOutputSignals() == 1 &&
-         *     GetSignalType(OutputSignals, 0u) == uint8 or uint16 or uint32
-         */
-        virtual bool Setup();
+    /**
+     * @brief Verifies the correctness of the GAM configuration.
+     * @details Retrieves byte size of input signals, computes the table from the polynomial and checks that the rules below are met.
+     * @return true if all the preconditions are met.
+     * @pre
+     *     GetNumberOfOutputSignals() == 1 &&
+     *     GetSignalType(OutputSignals, 0u) == uint8 or uint16 or uint32
+     */
+    virtual bool Setup();
 
-        /**
-         * @brief Computes the CRC checksum from the stored data.
-         */
-        virtual bool Execute();
+    /**
+     * @brief Computes the CRC checksum from the stored data.
+     */
+    virtual bool Execute();
 
-    private:
+private:
 
-        /**
-         * Memory of the CRCGAM input signals.
-         */
-        uint8 * inputData;
+    /**
+     * Memory of the CRCGAM input signals.
+     */
+    uint8 * inputData;
 
-        /**
-         * Memory of the CRCGAM output signals.
-         */
-        void * outputData;
+    /**
+     * Memory of the CRCGAM output signals.
+     */
+    void * outputData;
 
-        /**
-         * The CRCHelper for type independent CRC computation.
-         */
-        CRCHelper * crcHelper;
+    /**
+     * The CRCHelper for type independent CRC computation.
+     */
+    CRCHelper * crcHelper;
 
-        /**
-         * The divisor polynomial.
-         */
-        uint32 polynomial;
+    /**
+     * The divisor polynomial.
+     */
+    uint32 polynomial;
 
-        /**
-         * Initial value for the CRC computation.
-         */
-        uint32 initialCRCValue;
+    /**
+     * Initial value for the CRC computation.
+     */
+    uint32 initialCRCValue;
 
-        /**
-         * Byte size of InputSignals.
-         */
-        uint32 inputSize;
+    /**
+     * Byte size of InputSignals.
+     */
+    uint32 inputSize;
 
-        /**
-         * TypeDescriptor for the out signal type.
-         */
-        TypeDescriptor outputSignalType;
+    /**
+     * TypeDescriptor for the out signal type.
+     */
+    TypeDescriptor outputSignalType;
 
-        /**
-         * Flag for inverted result.
-         */
-        uint8 isReflected;
+    /**
+     * Flag for inverted result.
+     */
+    uint8 isReflected;
 
-    };
+};
 
 }
-
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

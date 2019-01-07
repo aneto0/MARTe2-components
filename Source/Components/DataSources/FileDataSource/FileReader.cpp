@@ -225,13 +225,13 @@ bool FileReader::Synchronise() {
                 if (!isString) {
                     isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == Character8Bit);
                 }
-                if ((!isString) && (signalsAnyType[signalIdx].GetNumberOfDimensions() == 1u)) {
+                if ((signalsAnyType[signalIdx].GetNumberOfDimensions() == 1u) && (!isString)) {
                     uint32 nElements = signalsAnyType[signalIdx].GetNumberOfElements(0u);
                     StreamString tokenArray;
                     uint32 arrayIdx = 0u;
                     void *signalAddress = signalsAnyType[signalIdx].GetDataPointer();
                     char8 *signalAddressChr = reinterpret_cast<char8 *>(signalAddress);
-                    if (token[token.Size() - 1u] != '}') {
+                    if (token[static_cast<uint32>(token.Size()) - 1u] != '}') {
                         token += csvSeparator;
                         ok = line.GetToken(token, "}", saveTerminator);
                         if (ok) {
