@@ -37,6 +37,10 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------*/
+/*                           Method definitions                              */
+/*---------------------------------------------------------------------------*/
+
 namespace MARTe {
 
 OPCUADSInput::OPCUADSInput() :
@@ -45,8 +49,12 @@ OPCUADSInput::OPCUADSInput() :
         executor(*this) {
     clients = NULL_PTR(OPCUAClientWrapper *);
     numberOfClients = 0u;
+    numberOfNodes = 0u;
     paths = NULL_PTR(StreamString *);
     namespaceIndexes = NULL_PTR(uint32 *);
+    tempPaths = NULL_PTR(StreamString *);
+    tempNamespaceIndexes = NULL_PTR(uint32 *);
+    serverAddress = "";
 }
 
 OPCUADSInput::~OPCUADSInput() {
@@ -61,6 +69,12 @@ OPCUADSInput::~OPCUADSInput() {
 bool OPCUADSInput::Initialise(StructuredDataI & data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
+        if (ok) {
+            ok = data.Read("Address", serverAddress);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Address attribute");
+            }
+        }
         ok = data.MoveRelative("Signals");
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
@@ -72,31 +86,18 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
         if (ok) {
             ok = signalsDatabase.Write("Locked", 1u);
             numberOfClients = (signalsDatabase.GetNumberOfChildren() - 1u);
-
-            /* Checking the signal type. If it's a structured type we need to call the function to get the structure */
-            bool isStructured;
-            paths = new StreamString[numberOfClients];
-            namespaceIndexes = new uint32[numberOfClients];
+            tempPaths = new StreamString[numberOfClients];
+            tempNamespaceIndexes = new uint32[numberOfClients];
             for (uint32 i = 0u; (i < numberOfClients) && (ok); i++) {
-                /* TEST */
-                TypeDescriptor td = GetSignalType(i);
-                isStructured = td.isStructuredData;
-                if (isStructured) {
-                    /* Here we need to resolve the Structure until we find a base type
-                     * Then we need to append the names of the member we found to the paths array
-                     * Increment the number of clients according to the number of base type member we found
-                     */
-                }
-                /* END TEST */
                 ok = signalsDatabase.MoveRelative(signalsDatabase.GetChildName(i));
                 if (ok) {
-                    ok = signalsDatabase.Read("Path", paths[i]);
+                    ok = signalsDatabase.Read("Path", tempPaths[i]);
                     if (!ok) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Path attribute from signal %d", i);
                     }
                 }
                 if (ok) {
-                    ok = signalsDatabase.Read("NamespaceIndex", namespaceIndexes[i]);
+                    ok = signalsDatabase.Read("NamespaceIndex", tempNamespaceIndexes[i]);
                     if (!ok) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the NamespaceIndex attribute from signal %d", i);
                     }
@@ -105,21 +106,10 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
             }
         }
         if (ok) {
-            if (numberOfClients > 0u) {
-                clients = new OPCUAClientWrapper[numberOfClients];
-            }
-        }
-        if (ok) {
             ok = signalsDatabase.MoveToAncestor(1u);
         }
-    }
-    if (ok) {
-        ok = data.MoveToAncestor(1u);
-    }
-    if (ok) {
-        uint32 i;
-        for (i = 0u; i < numberOfClients; i++) {
-            clients[i].Connect();
+        if (ok) {
+            ok = data.MoveToAncestor(1u);
         }
     }
     if (!ok) {
@@ -131,10 +121,71 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
 bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     uint32 nOfSignals = GetNumberOfSignals();
+    numberOfNodes = nOfSignals;
+    executor.SetNumberOfPoolThreads(numberOfNodes);
     if (ok) {
         ok = (nOfSignals > 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "At least one signal shall be defined");
+        }
+    }
+    paths = new StreamString[numberOfNodes];
+    namespaceIndexes = new uint32[numberOfNodes];
+    /* Checking the signal type. If it's a structured type we need to call the function to get the structure */
+    /* TEST */
+    StreamString sigName, pathToken, sigToken;
+    char8 ignore;
+    for (uint32 i = 0u; i < nOfSignals; i++) {
+        sigName.Seek(0LLU);
+        GetSignalName(i, sigName);
+
+        /* Getting the first name from the signal path */
+        sigName.Seek(0LLU);
+        ok = sigName.GetToken(sigToken, ".", ignore);
+
+        for (uint32 j = 0u; (j < numberOfClients) && (ok); j++) {
+            /* This cycle will save the last token found */
+            tempPaths[j].Seek(0LLU);
+            do {
+                pathToken = "";
+                ok = tempPaths[j].GetToken(pathToken, ".", ignore);
+                if (pathToken == sigToken) {
+                    paths[i] = tempPaths[j];
+                    namespaceIndexes[i] = tempNamespaceIndexes[j];
+                    ok = false; /* Exit from the cycle */
+                }
+            }
+            while (ok);
+        }
+
+        /* Then we add to the path the remaining node names */
+        StreamString dotToken = ".";
+        do {
+            sigToken = "";
+            ok = sigName.GetToken(sigToken, ".", ignore);
+            if (ok) {
+                paths[i] += dotToken;
+                paths[i] += sigToken;
+            }
+        }
+        while (ok);
+        ok = true;
+        /* Debug info */
+        REPORT_ERROR(ErrorManagement::Information, "%s", paths[i].Buffer());
+    }
+    if (ok) {
+        if (numberOfNodes > 0u) {
+            clients = new OPCUAClientWrapper[numberOfNodes];
+        }
+    }
+    if (ok) {
+        uint32 i;
+        /* Insert Address from configuration */
+        char* s = new char[strlen(reinterpret_cast<const char*>(serverAddress.Buffer()))];
+        strcpy(s, reinterpret_cast<const char*>(serverAddress.Buffer()));
+        for (i = 0u; i < numberOfNodes; i++) {
+            clients[i].SetServerAddress(s);
+            clients[i].Connect();
         }
     }
     if (ok) {
@@ -156,6 +207,7 @@ bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          void *&signalAddress) {
     StreamString opcDisplayName;
     bool ok = GetSignalName(signalIdx, opcDisplayName);
+    /* Debug info */
     REPORT_ERROR(ErrorManagement::Information, "Searching for signal [%s]", opcDisplayName.Buffer());
     if (ok) {
         ok = clients[signalIdx].BrowseAddressSpace(namespaceIndexes[signalIdx], paths[signalIdx]);
@@ -199,11 +251,57 @@ bool OPCUADSInput::Synchronise() {
     return false;
 }
 
+bool OPCUADSInput::GetStructure(const Introspection *intro,
+                                StreamString &path) {
+    bool ok = true;
+    uint32 numberOfMembers = intro->GetNumberOfMembers();
+    uint32 j;
+    for (j = 0u; j < numberOfMembers; j++) {
+        const IntrospectionEntry entry = intro->operator[](j);
+        const char8 * const memberName = entry.GetMemberName();
+        StreamString dot = ".";
+        StreamString stringToAdd;
+        uint32 memberSize = entry.GetMemberSize();
+        stringToAdd.Write(memberName, memberSize);
+        path += dot;
+        path += stringToAdd;
+        const char8 * const memberTypeName = entry.GetMemberTypeName();
+        bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
+        if (isStructured) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
+            ok = (cri != NULL_PTR(const ClassRegistryItem *));
+            if (ok) {
+                ok = GetStructure(cri->GetIntrospection(), path);
+            }
+        }
+    }
+    return ok;
+}
+
+uint32 OPCUADSInput::GetNumberOfBaseNodes(const Introspection *intro) {
+    bool ok = true;
+    uint32 numberOfBaseNodes = 0u;
+    uint32 numberOfMembers = intro->GetNumberOfMembers();
+    uint32 j;
+    for (j = 0u; j < numberOfMembers; j++) {
+        const IntrospectionEntry entry = intro->operator[](j);
+        const char8 * const memberTypeName = entry.GetMemberTypeName();
+        bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
+        if (isStructured) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
+            ok = (cri != NULL_PTR(const ClassRegistryItem *));
+            if (ok) {
+                numberOfBaseNodes = GetNumberOfBaseNodes(cri->GetIntrospection());
+            }
+        }
+        else {
+            numberOfBaseNodes++;
+        }
+    }
+    return numberOfBaseNodes;
+}
+
 CLASS_REGISTER(OPCUADSInput, "1.0");
 
 }
-
-/*---------------------------------------------------------------------------*/
-/*                           Method definitions                              */
-/*---------------------------------------------------------------------------*/
 

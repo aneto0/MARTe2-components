@@ -44,7 +44,7 @@ OPCUAServer::OPCUAServer() :
         EmbeddedServiceMethodBinderI(),
         service(*this) {
     /* Insert the port number and the certificate if needed */
-    opcuaConfig = UA_ServerConfig_new_minimal(4841, NULL);
+    opcuaConfig = UA_ServerConfig_new_minimal(4840, NULL);
     opcuaServer = UA_Server_new(opcuaConfig);
     opcuaRunning = true;
 }

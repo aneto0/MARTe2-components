@@ -76,17 +76,31 @@ OPCUADSInput    ();
 
     virtual bool Synchronise();
 
+    bool GetStructure(const Introspection *intro, StreamString &path);
+
+    uint32 GetNumberOfBaseNodes(const Introspection *intro);
+
+
+
 private:
 
     MultiThreadService executor;
 
     OPCUAClientWrapper * clients;
 
+    StreamString serverAddress;
+
     uint32 numberOfClients;
+
+    uint32 numberOfNodes;
 
     StreamString * paths;
 
+    StreamString *tempPaths;
+
     uint32 * namespaceIndexes;
+
+    uint32 *tempNamespaceIndexes;
 
 };
 

@@ -60,7 +60,7 @@ void OPCUAClientWrapperUpdateMemory(UA_Client *client,
                                     UA_UInt32 monId,
                                     void *monContext,
                                     UA_DataValue *value) {
-    REPORT_ERROR_STATIC(ErrorManagement::Information, "CLIENT ---------------------------> SensorGeometry: New Notification!");
+    //REPORT_ERROR_STATIC(ErrorManagement::Information, "CLIENT ---------------------------> SensorGeometry: New Notification!");
     //loop in clients
     uint32 i;
     for (i = 0u; i < nOfClients; i++) {
@@ -110,7 +110,7 @@ OPCUAClientWrapper::OPCUAClientWrapper() {
     valueMemory = NULL_PTR(void *);
     clients[nOfClients - 1] = opcuaClient;
     wrappers[nOfClients - 1] = this;
-    nodeName = NULL_PTR(char *);
+    serverAddress = NULL_PTR(char *);
 }
 
 OPCUAClientWrapper::~OPCUAClientWrapper() {
@@ -121,14 +121,18 @@ OPCUAClientWrapper::~OPCUAClientWrapper() {
     }
 }
 
+void OPCUAClientWrapper::SetServerAddress(char* address) {
+    serverAddress = new char[strlen(address)];
+    strcpy(serverAddress, address);
+}
+
 bool OPCUAClientWrapper::Connect() {
-    UA_StatusCode retval = UA_Client_connect(opcuaClient, "opc.tcp://192.168.130.80:4841");
+    UA_StatusCode retval = UA_Client_connect(opcuaClient, serverAddress);
     return (retval == UA_STATUSCODE_GOOD);
 }
 
 bool OPCUAClientWrapper::GetSignalMemory(void *&mem) {
     bool ok = true;
-//Allocating a memory space for outValueMem
     if (monitoredNode.identifier.numeric == 0) {
         REPORT_ERROR_STATIC(ErrorManagement::IllegalOperation, "Cannot get the signal memory.");
         ok = false;
@@ -149,11 +153,6 @@ bool OPCUAClientWrapper::BrowseAddressSpace(uint32 namespaceIndex,
                                             StreamString nodePath) {
     bool ok = false;
 
-    /*monitoredNode.identifier.string.data
-     * TEST Service TranslateBrowsePathToNodeIds
-     * The name of the nodes must be taken from the Datasource configuration file
-     */
-
     ok = nodePath.Seek(0LLU);
     StreamString pathTokenized;
     uint32 pathSize = 0u;
@@ -170,6 +169,7 @@ bool OPCUAClientWrapper::BrowseAddressSpace(uint32 namespaceIndex,
         while (ok);
     }
     char** path = new char*[pathSize];
+    uint32* ids = new uint32[pathSize];
     ok = nodePath.Seek(0LLU);
     if (ok) {
         for (uint32 i = 0u; i < pathSize; i++) {
@@ -183,26 +183,30 @@ bool OPCUAClientWrapper::BrowseAddressSpace(uint32 namespaceIndex,
         }
     }
 
-    /* We save the last node name for use it in Monitor function to create the monitoredItem */
-    nodeName = new char[strlen(path[pathSize - 1u])];
-    strcpy(nodeName, path[pathSize - 1u]);
+    /* Building request for Browse Service */
+    UA_BrowseRequest bReq;
+    UA_BrowseRequest_init(&bReq);
+    bReq.requestedMaxReferencesPerNode = 0;
+    bReq.nodesToBrowse = UA_BrowseDescription_new();
+    bReq.nodesToBrowseSize = 1;
 
+    /* Building request for TranslateBrowsePathsToNodeIds */
     UA_BrowsePath browsePath;
     UA_BrowsePath_init(&browsePath);
     browsePath.startingNode = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
     browsePath.relativePath.elements = (UA_RelativePathElement*) UA_Array_new(pathSize, &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
     browsePath.relativePath.elementsSize = pathSize;
 
-    UA_RelativePathElement *firstElem = &browsePath.relativePath.elements[0];
-    firstElem->referenceTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
-    firstElem->targetName = UA_QUALIFIEDNAME_ALLOC(namespaceIndex, path[0]);
+    uint32 tempNumericNodeId = UA_NS0ID_OBJECTSFOLDER;
+    uint16 tempNamespaceIndex = 0u;
+    char* tempStringNodeId;
 
-    for (size_t i = 1; i < pathSize; i++) {
+    for (uint32 i = 0u; i < pathSize; i++) {
+        ids[i] = GetReferenceType(bReq, path[i], tempNamespaceIndex, tempNumericNodeId, tempStringNodeId);
         UA_RelativePathElement *elem = &browsePath.relativePath.elements[i];
-        elem->referenceTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);
+        elem->referenceTypeId = UA_NODEID_NUMERIC(0, ids[i]);
         elem->targetName = UA_QUALIFIEDNAME_ALLOC(namespaceIndex, path[i]);
     }
-
     UA_TranslateBrowsePathsToNodeIdsRequest tbpReq;
     UA_TranslateBrowsePathsToNodeIdsRequest_init(&tbpReq);
     tbpReq.browsePaths = &browsePath;
@@ -212,7 +216,6 @@ bool OPCUAClientWrapper::BrowseAddressSpace(uint32 namespaceIndex,
     if (ok) {
         UA_BrowsePathTarget *ref = &(tbpResp.results[0].targets[0]);
         monitoredNode = ref->targetId.nodeId;
-        REPORT_ERROR_STATIC(ErrorManagement::Information, "TranslateBrowsePath : MonitoredNodeId is  %d", monitoredNode.identifier.numeric);
     }
     /*
      * END TEST
@@ -221,41 +224,34 @@ bool OPCUAClientWrapper::BrowseAddressSpace(uint32 namespaceIndex,
     /**
      * BrowseService is useless if we know the browse path
      */
-#if 0
-    UA_BrowseRequest bReq;
-    UA_BrowseRequest_init(&bReq);
-    bReq.requestedMaxReferencesPerNode = 0u;
-    bReq.nodesToBrowse = UA_BrowseDescription_new();
-    bReq.nodesToBrowseSize = 1;
-    uint32 numericNodeIdentifier;
-    //Inserire il namespace
-    uint16 nodeNamespaceIndex;
-    numericNodeIdentifier = UA_NS0ID_OBJECTSFOLDER; /* starting browsing objects folder */
-    nodeNamespaceIndex = 0;
-    bReq.nodesToBrowse[0].includeSubtypes = true;
-    bReq.nodesToBrowse[0].resultMask = UA_BROWSERESULTMASK_ALL; /* return everything */
-    bReq.nodesToBrowse[0].nodeClassMask = 0;
-    //We must browse at least the object folder
-    ok = SearchNode(bReq, nodeName, nodeNamespaceIndex, numericNodeIdentifier);
-#endif
     return ok;
 }
 
 bool OPCUAClientWrapper::Monitor() {
     UA_StatusCode code = 1u;
+    bool ok;
     if (monitoredNode.identifier.numeric != 0 && valueMemory != NULL_PTR(void *)) {
         /* Create a subscription */
         if (response.subscriptionId == 0) {
             response = UA_Client_Subscriptions_create(opcuaClient, request, NULL, NULL, NULL);
+            ok = (response.responseHeader.serviceResult == UA_STATUSCODE_GOOD);
         }
         /* Add a MonitoredItem */
-        if (monitorRequest.itemToMonitor.nodeId.identifier.numeric == 0) {
-            //monitorRequest = UA_MonitoredItemCreateRequest_default(UA_NODEID_NUMERIC(monitoredNode.namespaceIndex, monitoredNode.identifier.numeric));
-            monitorRequest = UA_MonitoredItemCreateRequest_default(UA_NODEID_STRING(monitoredNode.namespaceIndex, nodeName));
+        if (monitorRequest.itemToMonitor.nodeId.identifier.numeric == 0 && ok) {
+            if (monitoredNode.identifierType == UA_NODEIDTYPE_NUMERIC) {
+                monitorRequest = UA_MonitoredItemCreateRequest_default(UA_NODEID_NUMERIC(monitoredNode.namespaceIndex, monitoredNode.identifier.numeric));
+            }
+            else if (monitoredNode.identifierType == UA_NODEIDTYPE_STRING) {
+                monitorRequest = UA_MonitoredItemCreateRequest_default(
+                        UA_NODEID_STRING(monitoredNode.namespaceIndex, reinterpret_cast<char*>(monitoredNode.identifier.string.data)));
+            }
+            //monitorRequest = UA_MonitoredItemCreateRequest_default(UA_NODEID_STRING(monitoredNode.namespaceIndex, nodeName));
         }
         if (monitorResponse.monitoredItemId == 0) {
             monitorResponse = UA_Client_MonitoredItems_createDataChange(opcuaClient, response.subscriptionId, UA_TIMESTAMPSTORETURN_BOTH, monitorRequest, NULL,
                                                                         OPCUAClientWrapperUpdateMemory, NULL);
+            /* Debug only */
+            ok = (monitorResponse.statusCode == UA_STATUSCODE_GOOD);
         }
         /* Asynchronous call */
         code = UA_Client_run_iterate(opcuaClient, 1000);
@@ -274,79 +270,63 @@ bool OPCUAClientWrapper::Monitor() {
  * @details Recursively calls itself to explore deeper nodes in the tree.
  * It uses the OPCUA Browse Service.
  */
-bool OPCUAClientWrapper::SearchNode(UA_BrowseRequest request,
-                                    StreamString nodeName,
-                                    uint16 namespaceIndex,
-                                    uint32 numericNodeId,
-                                    unsigned char* stringNodeId,
-                                    size_t length) {
-    bool ok = false;
-    if (numericNodeId != 0) {
-        request.nodesToBrowse[0].nodeId = UA_NODEID_NUMERIC(namespaceIndex, numericNodeId);
+uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
+                                            char* path,
+                                            uint16 &namespaceIndex,
+                                            uint32 &numericNodeId,
+                                            char* &stringNodeId) {
+    uint32 id = 0u;
+    if (numericNodeId == 0u) {
+        bReq.nodesToBrowse[0].nodeId = UA_NODEID_STRING(namespaceIndex, stringNodeId);
     }
     else {
-        request.nodesToBrowse[0].nodeId.namespaceIndex = namespaceIndex;
-        request.nodesToBrowse[0].nodeId.identifierType = UA_NODEIDTYPE_STRING;
-        request.nodesToBrowse[0].nodeId.identifier.string.length = length;
-        request.nodesToBrowse[0].nodeId.identifier.string.data = stringNodeId;
+        bReq.nodesToBrowse[0].nodeId = UA_NODEID_NUMERIC(namespaceIndex, numericNodeId);
     }
-    UA_BrowseResponse bResp = UA_Client_Service_browse(opcuaClient, request);
-    if (bResp.resultsSize != 0) {
-        for (uint32 i = 0u; i < bResp.resultsSize; ++i) {
-            for (uint32 j = 0u; j < bResp.results[i].referencesSize; ++j) {
-                UA_ReferenceDescription *ref = &(bResp.results[i].references[j]);
-                //TODO Check if we reached the end of the tree
-                char * currentNodeString = new char[strlen(reinterpret_cast<const char8*>(ref->displayName.text.data))];
-                strcpy(currentNodeString, reinterpret_cast<const char8*>(ref->displayName.text.data));
-                //REPORT_ERROR_STATIC(ErrorManagement::Information, "%s", currentNodeString);
-                char * nodeNameString = new char[strlen(nodeName.Buffer())];
-                strcpy(nodeNameString, nodeName.Buffer());
-                if (strcmp(nodeNameString, currentNodeString) == 0) {
-                    //Node found
-                    ok = true;
-                    monitoredNode = ref->nodeId.nodeId;
-                }
-                /* Change the namespace for the query */
-                else if (ref->nodeId.nodeId.namespaceIndex == 1) {
+    bReq.nodesToBrowse[0].includeSubtypes = true;
+    bReq.nodesToBrowse[0].resultMask = UA_BROWSERESULTMASK_ALL; /* return everything */
+    UA_BrowseResponse *bResp = UA_BrowseResponse_new();
+    *bResp = UA_Client_Service_browse(opcuaClient, bReq);
+    bool found = false;
+    while ((!found) && (bResp->resultsSize)) {
+        for (uint32 i = 0u; i < bResp->resultsSize; ++i) {
+            for (uint32 j = 0u; j < bResp->results[i].referencesSize; ++j) {
+                UA_ReferenceDescription *ref = &(bResp->results[i].references[j]);
+                if (strcmp(reinterpret_cast<char*>(ref->browseName.name.data), path) == 0) {
+                    id = ref->referenceTypeId.identifier.numeric;
+                    namespaceIndex = ref->nodeId.nodeId.namespaceIndex;
                     if (ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_NUMERIC) {
-                        ok = SearchNode(request, nodeName, ref->nodeId.nodeId.namespaceIndex, ref->nodeId.nodeId.identifier.numeric);
+                        numericNodeId = ref->nodeId.nodeId.identifier.numeric;
                     }
-                    else {
-                        ok = SearchNode(request, nodeName, ref->nodeId.nodeId.namespaceIndex, 0u, ref->nodeId.nodeId.identifier.string.data,
-                                        ref->nodeId.nodeId.identifier.string.length);
+                    else if (ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_STRING) {
+                        stringNodeId = new char[ref->nodeId.nodeId.identifier.string.length];
+                        strcpy(stringNodeId, reinterpret_cast<char*>(ref->nodeId.nodeId.identifier.string.data));
+                        numericNodeId = 0u;
                     }
+                    found = true;
                 }
             }
         }
-    }
-    else {
-        ok = false;
-    }
-    return ok;
-}
+        if (!found && bResp->results->continuationPoint.length) {
+            /* Debug only */
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Browse Next Service");
 
-/*
- * NOT USED - This function is not yet used by the Monitor function
- */
-bool OPCUAClientWrapper::Read() {
-    bool ok = true;
-    UA_StatusCode code = 1u;
-    if (monitoredNode.identifier.numeric != 0) {
-
-        code = UA_Client_readValueAttribute(opcuaClient, monitoredNode, outValueMem);
-        ok = (code == UA_STATUSCODE_GOOD);
-        if (ok) {
-            memcpy(valueMemory, outValueMem->data, sizeof(uint32));
+            UA_BrowseNextRequest nextReq;
+            UA_BrowseNextRequest_init(&nextReq);
+            nextReq.continuationPoints = UA_ByteString_new();
+            UA_ByteString_copy(&(bResp->results->continuationPoint), nextReq.continuationPoints);
+            nextReq.continuationPointsSize = 1;
+            *reinterpret_cast<UA_BrowseNextResponse *>(bResp) = UA_Client_Service_browseNext(opcuaClient, nextReq);
+            UA_BrowseNextRequest_deleteMembers(&nextReq);
         }
     }
-    return ok;
+    return id;
 }
 
 void OPCUAClientWrapper::UpdateMemory(UA_DataValue *value) {
     outValueMem->data = value->value.data;
     if (valueMemory != NULL_PTR(void *)) {
         memcpy(valueMemory, outValueMem->data, sizeof(uint32));
-        REPORT_ERROR_STATIC(ErrorManagement::Information, "CLIENT ---------------------------> UPDATE CALLBACK - Value %u", *static_cast<uint32*>(valueMemory));
+        //REPORT_ERROR_STATIC(ErrorManagement::Information, "CLIENT ---------------------------> UPDATE CALLBACK - Value %u", *static_cast<uint32*>(valueMemory));
     }
 }
 

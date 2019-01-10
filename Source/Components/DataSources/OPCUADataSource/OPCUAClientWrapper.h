@@ -52,11 +52,14 @@ public:
 
     ~OPCUAClientWrapper();
 
+    void SetServerAddress(char* address);
+
     bool Connect();
 
     bool GetSignalMemory(void *&mem);
 
-    bool BrowseAddressSpace(uint32 namespaceIndex, StreamString nodePath);
+    bool BrowseAddressSpace(uint32 namespaceIndex,
+                            StreamString nodePath);
 
     bool Monitor();
 
@@ -68,22 +71,19 @@ public:
 
 private:
 
-    bool SearchNode(UA_BrowseRequest request,
-                    StreamString nodeName,
-                    uint16 namespaceIndex,
-                    uint32 numericNodeId = 0u,
-                    unsigned char* stringNodeId = 0,
-                    size_t length = 0u);
+    uint32 GetReferenceType(UA_BrowseRequest bReq,
+                          char* path,
+                          uint16 &namespaceIndex,
+                          uint32 &numericNodeId,
+                          char* &stringNodeId);
 
-    bool Read();
+    char* serverAddress;
 
     UA_Variant * outValueMem;
 
     void* valueMemory;
 
     UA_NodeId monitoredNode; //It is a node Variable
-
-    char * nodeName;
 
     UA_ClientConfig config;
 
