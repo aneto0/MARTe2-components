@@ -1,7 +1,7 @@
 /**
- * @file OPCUADSInput.cpp
- * @brief Source file for class OPCUADSInput
- * @date Nov 16, 2018 TODO Verify the value and format of the date
+ * @file OPCUADSOutput.cpp
+ * @brief Source file for class OPCUADSOutput
+ * @date 10 Jan 2019 TODO Verify the value and format of the date
  * @author lporzio TODO Verify the name and format of the author
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class OPCUADSInput (public, protected, and private). Be aware that some 
+ * the class OPCUADSOutput (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -31,22 +31,16 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "OPCUADSInput.h"
+#include "OPCUADSOutput.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-/*---------------------------------------------------------------------------*/
-/*                           Method definitions                              */
-/*---------------------------------------------------------------------------*/
-
 namespace MARTe {
 
-OPCUADSInput::OPCUADSInput() :
-        DataSourceI(),
-        EmbeddedServiceMethodBinderI(),
-        executor(*this) {
+OPCUADSOutput::OPCUADSOutput() :
+        DataSourceI() {
     clients = NULL_PTR(OPCUAClientWrapper *);
     numberOfClients = 0u;
     numberOfNodes = 0u;
@@ -55,23 +49,38 @@ OPCUADSInput::OPCUADSInput() :
     tempPaths = NULL_PTR(StreamString *);
     tempNamespaceIndexes = NULL_PTR(uint32 *);
     serverAddress = "";
+    numberOfBuffers = 0u;
+    cpuMask = 0xffu;
+    stackSize = THREADS_DEFAULT_STACKSIZE * 2u;
 }
 
-OPCUADSInput::~OPCUADSInput() {
-    if (!executor.Stop()) {
-        if (!executor.Stop()) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Could not stop MultiThreadService.");
-        }
-    }
+OPCUADSOutput::~OPCUADSOutput() {
 }
 
-bool OPCUADSInput::Initialise(StructuredDataI & data) {
+bool OPCUADSOutput::Initialise(StructuredDataI & data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         if (ok) {
             ok = data.Read("Address", serverAddress);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Address attribute");
+            }
+        }
+        if (ok) {
+            ok = data.Read("NumberOfBuffers", numberOfBuffers);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be specified");
+            }
+        }
+        if (ok) {
+            if (!data.Read("CPUs", cpuMask)) {
+                REPORT_ERROR(ErrorManagement::Information, "No CPUs defined. Using default = %d", cpuMask);
+            }
+            else {
+
+            }
+            if (!data.Read("StackSize", stackSize)) {
+                REPORT_ERROR(ErrorManagement::Information, "No StackSize defined. Using default = %d", stackSize);
             }
         }
         ok = data.MoveRelative("Signals");
@@ -117,11 +126,10 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
     return ok;
 }
 
-bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
+bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     uint32 nOfSignals = GetNumberOfSignals();
     numberOfNodes = nOfSignals;
-    executor.SetNumberOfPoolThreads(numberOfNodes);
     if (ok) {
         ok = (nOfSignals > 0u);
         if (!ok) {
@@ -130,8 +138,6 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
     }
     paths = new StreamString[numberOfNodes];
     namespaceIndexes = new uint32[numberOfNodes];
-    /* Checking the signal type. If it's a structured type we need to call the function to get the structure */
-    /* TEST */
     StreamString sigName, pathToken, sigToken;
     char8 ignore;
     for (uint32 i = 0u; i < nOfSignals; i++) {
@@ -187,23 +193,20 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
             clients[i].Connect();
         }
     }
-    if (ok) {
-        ok = (executor.Start() == ErrorManagement::NoError);
-    }
     return ok;
 }
 
-bool OPCUADSInput::AllocateMemory() {
+bool OPCUADSOutput::AllocateMemory() {
     return true;
 }
 
-uint32 OPCUADSInput::GetNumberOfMemoryBuffers() {
+uint32 OPCUADSOutput::GetNumberOfMemoryBuffers() {
     return 1u;
 }
 
-bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx,
-                                         const uint32 bufferIdx,
-                                         void *&signalAddress) {
+bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                          const uint32 bufferIdx,
+                                          void *&signalAddress) {
     StreamString opcDisplayName;
     bool ok = GetSignalName(signalIdx, opcDisplayName);
     /* Debug info */
@@ -223,34 +226,44 @@ bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx,
     return ok;
 }
 
-const char8 * OPCUADSInput::GetBrokerName(StructuredDataI &data,
-                                          const SignalDirection direction) {
+const char8 * OPCUADSOutput::GetBrokerName(StructuredDataI &data,
+                                           const SignalDirection direction) {
     const char8* brokerName = "";
-    if (direction == InputSignals) {
-        brokerName = "MemoryMapInputBroker";
+    if (direction == OutputSignals) {
+        brokerName = "MemoryMapAsyncOutputBroker";
     }
     return brokerName;
 }
 
-bool OPCUADSInput::PrepareNextState(const char8 * const currentStateName,
-                                    const char8 * const nextStateName) {
+bool OPCUADSOutput::GetOutputBrokers(ReferenceContainer& outputBrokers,
+                                     const char8* const functionName,
+                                     void* const gamMemPtr) {
+    bool ok = true;
+    ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
+    ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
+    if (ok) {
+        ok = outputBrokers.Insert(brokerAsync);
+    }
+    return ok;
+}
+
+bool OPCUADSOutput::PrepareNextState(const char8 * const currentStateName,
+                                     const char8 * const nextStateName) {
     return true;
 }
 
-ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo & info) {
-    ErrorManagement::ErrorType err = ErrorManagement::NoError;
-    if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        err.communicationError = !clients[info.GetThreadNumber()].Monitor();
-        Sleep::MSec(500);
+bool OPCUADSOutput::Synchronise() {
+    for (uint32 i = 0u; i < numberOfNodes; i++) {
+        clients[i].WriteValueAttribute();
     }
-    return err;
+    return true;
 }
 
-bool OPCUADSInput::Synchronise() {
-    return false;
-}
-
-CLASS_REGISTER(OPCUADSInput, "1.0");
+CLASS_REGISTER(OPCUADSOutput, "1.0")
 
 }
+
+/*---------------------------------------------------------------------------*/
+/*                           Method definitions                              */
+/*---------------------------------------------------------------------------*/
 

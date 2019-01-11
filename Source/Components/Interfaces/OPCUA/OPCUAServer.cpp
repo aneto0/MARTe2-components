@@ -84,7 +84,7 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
         REPORT_ERROR(ErrorManagement::Information, "OPCUAServer Startup Stage");
         //Here read the structure and Initialise the Address Space
         ReferenceT<OPCUAObject> mainObject("OPCUAObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
-        mainObject->SetName("MARTe2_Variables");
+        mainObject->SetName("MARTe2");
         bool ok = false;
         uint32 nOfChildren = cdb.GetNumberOfChildren();
         StreamString typeStr;

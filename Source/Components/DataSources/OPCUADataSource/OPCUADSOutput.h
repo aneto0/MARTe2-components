@@ -1,7 +1,7 @@
 /**
- * @file OPCUAClientWrapper.h
- * @brief Header file for class OPCUAClientWrapper
- * @date 21 Nov 2018 TODO Verify the value and format of the date
+ * @file OPCUADSOutput.h
+ * @brief Header file for class OPCUADSOutput
+ * @date 10 Jan 2019 TODO Verify the value and format of the date
  * @author lporzio TODO Verify the name and format of the author
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class OPCUAClientWrapper
+ * @details This header file contains the declaration of the class OPCUADSOutput
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef SOURCE_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUACLIENTWRAPPER_H_
-#define SOURCE_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUACLIENTWRAPPER_H_
+#ifndef SOURCE_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUADSOUTPUT_H_
+#define SOURCE_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUADSOUTPUT_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -32,11 +32,9 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
-#include "/home/lporzio/open62541/build/open62541.h"
-#include "Reference.h"
-#include "StreamString.h"
-#include "AdvancedErrorManagement.h"
-#include <string.h>
+#include "DataSourceI.h"
+#include "MemoryMapAsyncOutputBroker.h"
+#include "OPCUAClientWrapper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -44,60 +42,60 @@
 
 namespace MARTe {
 
-class OPCUAClientWrapper {
+class OPCUADSOutput: public DataSourceI {
 
 public:
+    CLASS_REGISTER_DECLARATION()
 
-    OPCUAClientWrapper();
+OPCUADSOutput    ();
 
-    ~OPCUAClientWrapper();
+    virtual ~OPCUADSOutput();
 
-    void SetServerAddress(char* address);
+    virtual bool Initialise(StructuredDataI & data);
 
-    bool Connect();
+    virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
-    bool GetSignalMemory(void *&mem);
+    virtual bool AllocateMemory();
 
-    bool BrowseAddressSpace(uint32 namespaceIndex,
-                            StreamString nodePath);
+    uint32 GetNumberOfMemoryBuffers();
 
-    bool Monitor();
+    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
+            const uint32 bufferIdx,
+            void *&signalAddress);
 
-    void UpdateMemory(UA_DataValue *value);
+    virtual const char8 *GetBrokerName(StructuredDataI &data,
+            const SignalDirection direction);
 
-    void StateCallback(UA_ClientState clientState);
+    virtual bool GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr);
 
-    void SubscriptionInactivity();
+    virtual bool PrepareNextState(const char8 * const currentStateName,
+            const char8 * const nextStateName);
 
-    void WriteValueAttribute();
+    virtual bool Synchronise();
 
 private:
 
-    uint32 GetReferenceType(UA_BrowseRequest bReq,
-                            char* path,
-                            uint16 &namespaceIndex,
-                            uint32 &numericNodeId,
-                            char* &stringNodeId);
+    OPCUAClientWrapper * clients;
 
-    char* serverAddress;
+    StreamString serverAddress;
 
-    UA_Variant * outValueMem;
+    uint32 numberOfClients;
 
-    void* valueMemory;
+    uint32 numberOfNodes;
 
-    UA_NodeId monitoredNode; //It is a node Variable
+    StreamString * paths;
 
-    UA_ClientConfig config;
+    StreamString *tempPaths;
 
-    UA_Client * opcuaClient;
+    uint32 * namespaceIndexes;
 
-    UA_CreateSubscriptionRequest request;
+    uint32 *tempNamespaceIndexes;
 
-    UA_CreateSubscriptionResponse response;
+    uint32 numberOfBuffers;
 
-    UA_MonitoredItemCreateRequest monitorRequest;
+    uint32 cpuMask;
 
-    UA_MonitoredItemCreateResult monitorResponse;
+    uint32 stackSize;
 
 };
 
@@ -107,5 +105,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* SOURCE_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUACLIENTWRAPPER_H_ */
+#endif /* SOURCE_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUADSOUTPUT_H_ */
 

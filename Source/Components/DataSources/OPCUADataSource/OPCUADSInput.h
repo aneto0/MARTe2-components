@@ -76,12 +76,6 @@ OPCUADSInput    ();
 
     virtual bool Synchronise();
 
-    bool GetStructure(const Introspection *intro, StreamString &path);
-
-    uint32 GetNumberOfBaseNodes(const Introspection *intro);
-
-
-
 private:
 
     MultiThreadService executor;

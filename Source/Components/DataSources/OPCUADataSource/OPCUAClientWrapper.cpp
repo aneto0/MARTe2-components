@@ -217,13 +217,6 @@ bool OPCUAClientWrapper::BrowseAddressSpace(uint32 namespaceIndex,
         UA_BrowsePathTarget *ref = &(tbpResp.results[0].targets[0]);
         monitoredNode = ref->targetId.nodeId;
     }
-    /*
-     * END TEST
-     */
-
-    /**
-     * BrowseService is useless if we know the browse path
-     */
     return ok;
 }
 
@@ -320,6 +313,21 @@ uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
         }
     }
     return id;
+}
+
+void OPCUAClientWrapper::WriteValueAttribute() {
+    UA_Variant *tempVariant = UA_Variant_new();
+    uint32 value = *reinterpret_cast<uint32*>(valueMemory);
+    UA_Variant_setScalarCopy(tempVariant, &value, &UA_TYPES[UA_TYPES_UINT32]);
+    if (monitoredNode.identifierType == UA_NODEIDTYPE_NUMERIC) {
+        UA_Client_writeValueAttribute(opcuaClient, UA_NODEID_NUMERIC(monitoredNode.namespaceIndex, monitoredNode.identifier.numeric), tempVariant);
+    }
+    else if (monitoredNode.identifierType == UA_NODEIDTYPE_STRING) {
+        UA_Client_writeValueAttribute(opcuaClient,
+                                      UA_NODEID_STRING(monitoredNode.namespaceIndex, reinterpret_cast<char*>(monitoredNode.identifier.string.data)),
+                                      tempVariant);
+    }
+    UA_Variant_delete(tempVariant);
 }
 
 void OPCUAClientWrapper::UpdateMemory(UA_DataValue *value) {
