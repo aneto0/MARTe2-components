@@ -148,7 +148,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
         sigName.Seek(0LLU);
         ok = sigName.GetToken(sigToken, ".", ignore);
 
-        for (uint32 j = 0u; (j < numberOfClients) && (ok); j++) {
+        for (uint32 j = 0u; j < numberOfClients; j++) {
             /* This cycle will save the last token found */
             tempPaths[j].Seek(0LLU);
             do {
