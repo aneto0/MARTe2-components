@@ -2,7 +2,7 @@
  * @file OPCUADSInput.cpp
  * @brief Source file for class OPCUADSInput
  * @date Nov 16, 2018 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -168,8 +168,6 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
         }
         while (ok);
         ok = true;
-        /* Debug info */
-        REPORT_ERROR(ErrorManagement::Information, "CAZZOCAZZOCAZZO %s", paths[i].Buffer());
     }
     if (ok) {
         if (numberOfNodes > 0u) {

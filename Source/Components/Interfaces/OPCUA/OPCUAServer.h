@@ -2,7 +2,7 @@
  * @file OPCUAServer.h
  * @brief Header file for class OPCUAServer
  * @date Nov 8, 2018 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -52,11 +52,13 @@ namespace MARTe {
  * @details A SingleThreadService which offers all the functionalities to read data from IntrospectionStructures
  * and to create the OPCUA Address Space correctly.
  *
+ * All the nodes added in the AddressSpace will be OPCUA Variable type.
+ *
  * The configuration syntax is  (names are only given as an example):
  * <pre>
  * +OPCUAServer
  *     Class = OPCUA::OPCUAServer
- *     CPUMask = 0x1
+ *     Port = 4840 //Optional. Default is 4840
  *     AddressSpace = {
  *         MyNodeStructure1 = {
  *             Type = MyIntrospectionStructure1
@@ -121,6 +123,8 @@ private:
     UA_ServerConfig * opcuaConfig;
 
     bool opcuaRunning;
+
+    uint16 port;
 
     /**
      * Private copy of the Configuration Database

@@ -2,7 +2,7 @@
  * @file OPCUAServer.cpp
  * @brief Source file for class OPCUAServer
  * @date Nov 8, 2018 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -43,10 +43,10 @@ OPCUAServer::OPCUAServer() :
         Object(),
         EmbeddedServiceMethodBinderI(),
         service(*this) {
-    /* Insert the port number and the certificate if needed */
-    opcuaConfig = UA_ServerConfig_new_minimal(4840, NULL);
-    opcuaServer = UA_Server_new(opcuaConfig);
+    opcuaConfig = NULL_PTR(UA_ServerConfig *);
+    opcuaServer = NULL_PTR(UA_Server *);
     opcuaRunning = true;
+    port = 0u;
 }
 
 OPCUAServer::~OPCUAServer() {
@@ -65,13 +65,24 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
     if (ok) {
         ok = data.Copy(cdb);
     }
+    if(ok) {
+        ok = data.Read("Port", port);
+        if(!ok) {
+            REPORT_ERROR(ErrorManagement::Information, "No Port number defined. It will be 4840.");
+        }
+    }
     if (ok) {
-        ok = cdb.MoveRelative("AddressSpace");
+        ok = data.MoveRelative("AddressSpace");
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "No Address Space defined!");
         }
     }
+    if(ok) {
+        ok = data.MoveToAncestor(1u);
+    }
     if (ok) {
+        opcuaConfig = UA_ServerConfig_new_minimal(port, NULL);
+        opcuaServer = UA_Server_new(opcuaConfig);
         SetRunning(true);
         ok = (service.Start() == ErrorManagement::NoError);
     }
@@ -98,6 +109,7 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "A Type shall be defined for every node");
                 }
             }
+            cdb.MoveToAncestor(1u);
             const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(typeStr.Buffer());
             const Introspection *intro = NULL_PTR(const Introspection *);
             ok = (cri != NULL_PTR(const ClassRegistryItem *));

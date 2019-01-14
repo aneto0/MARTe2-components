@@ -2,7 +2,7 @@
  * @file OPCUAClientWrapper.cpp
  * @brief Source file for class OPCUAClientWrapper
  * @date 21 Nov 2018 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -248,12 +248,13 @@ bool OPCUAClientWrapper::Monitor() {
         }
         /* Asynchronous call */
         code = UA_Client_run_iterate(opcuaClient, 1000);
+        ok = (code == UA_STATUSCODE_GOOD);
     }
     else {
         REPORT_ERROR_STATIC(ErrorManagement::Information, "CLIENT ---------------------------> Monitor: Waiting for initialization...");
         code = UA_STATUSCODE_GOOD;
     }
-    return (code == UA_STATUSCODE_GOOD);
+    return ok;
 }
 
 /**
