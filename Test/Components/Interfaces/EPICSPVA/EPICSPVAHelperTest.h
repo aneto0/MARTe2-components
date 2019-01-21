@@ -49,14 +49,29 @@ public:
     bool TestGetStructure();
 
     /**
+     * @brief Tests the GetStructure method from a StructuredDataI.
+     */
+    bool TestGetStructure_StructuredDataI();
+
+    /**
      * @brief Tests the InitStructure method.
      */
     bool TestInitStructure();
 
     /**
+     * @brief Tests the InitStructure method from a StructuredDataI.
+     */
+    bool TestInitStructure_StructuredDataI();
+
+    /**
      * @brief Tests the ReplaceStructureArray method with a structured array at the root level.
      */
     bool TestReplaceStructureArray();
+
+    /**
+     * @brief Tests the ReplaceStructureArray method with a structured array at the root level for a StructuredDataI.
+     */
+    bool TestReplaceStructureArray_StructuredDataI();
 
     /**
      * @brief Tests the InitArray function.

@@ -618,3 +618,13 @@ TEST(EPICSPVAStructureDataIGTest,TestIsStructureFinalised) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestIsStructureFinalised());
 }
+
+TEST(EPICSPVAStructureDataIGTest,TestCopyValuesFrom) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestCopyValuesFrom());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestCopyValuesFrom_False) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestCopyValuesFrom_False());
+}

@@ -628,6 +628,16 @@ public:
      */
     bool TestIsStructureFinalised();
 
+    /**
+     * @brief Tests the CopyValuesFrom function.
+     */
+    bool TestCopyValuesFrom();
+
+    /**
+     * @brief Tests that the CopyValuesFrom function fails when.
+     */
+    bool TestCopyValuesFrom_False();
+
 private:
     /**
      * @brief Tests the Read method with any of the supported template types.

@@ -125,6 +125,55 @@ bool EPICSPVAHelperTest::TestGetStructure() {
     return ok;
 }
 
+bool EPICSPVAHelperTest::TestGetStructure_StructuredDataI() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+
+    bool ok = cdb.CreateAbsolute("A");
+    ok &= cdb.Write("a", 1);
+    ok &= cdb.CreateAbsolute("B[0]");
+    ok &= cdb.Write("b", 2.0);
+    ok &= cdb.Write("c", 3.0);
+    ok &= cdb.CreateAbsolute("B[1]");
+    ok &= cdb.Write("b", -2.0);
+    ok &= cdb.Write("c", -3.0);
+    ok &= cdb.CreateAbsolute("D");
+    ok &= cdb.Write("d", "test");
+    ok &= cdb.MoveToRoot();
+    epics::pvData::StructureConstPtr strPtr;
+    if (ok) {
+        strPtr = EPICSPVAHelper::GetStructure(cdb, "EPICSPVAHelperTestT2");
+        ok = (strPtr ? true : false);
+    }
+    epics::pvData::PVStructurePtr pvStructure;
+    if (ok) {
+        pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(strPtr);
+    }
+    if (ok) {
+        ok = (pvStructure ? true : false);
+    }
+    if (ok) {
+        cdb.MoveToRoot();
+        ok = EPICSPVAHelper::InitStructure(cdb, pvStructure);
+    }
+
+    if (ok) {
+        epics::pvData::FieldConstPtr aPtr = strPtr->getField("A");
+        ok = (aPtr ? true : false);
+    }
+    if (ok) {
+        epics::pvData::FieldConstPtr dPtr = strPtr->getField("D");
+        ok = (dPtr ? true : false);
+    }
+    if (ok) {
+        epics::pvData::FieldConstPtr bPtr = strPtr->getField("B");
+        ok = (bPtr ? true : false);
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
 bool EPICSPVAHelperTest::TestInitStructure() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
@@ -199,11 +248,14 @@ bool EPICSPVAHelperTest::TestInitStructure() {
     }
     if (ok) {
         ok = EPICSPVAHelper::InitStructure(intro, pvStructure);
-        std::cout << pvStructure << std::endl;
     }
 
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
+}
+
+bool EPICSPVAHelperTest::TestInitStructure_StructuredDataI() {
+    return TestInitStructure();
 }
 
 bool EPICSPVAHelperTest::TestReplaceStructureArray() {
@@ -287,7 +339,49 @@ bool EPICSPVAHelperTest::TestReplaceStructureArray() {
     }
     if (ok) {
         ok = EPICSPVAHelper::ReplaceStructureArray(intro, pvStructureArray, numberOfElements, typeName);
-        std::cout << pvStructure << std::endl;
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool EPICSPVAHelperTest::TestReplaceStructureArray_StructuredDataI() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+
+    bool ok = cdb.CreateAbsolute("A");
+    ok &= cdb.Write("a", 1);
+    ok &= cdb.CreateAbsolute("B[0]");
+    ok &= cdb.Write("b", 2.0);
+    ok &= cdb.Write("c", 3.0);
+    ok &= cdb.CreateAbsolute("B[1]");
+    ok &= cdb.Write("b", -2.0);
+    ok &= cdb.Write("c", -3.0);
+    ok &= cdb.CreateAbsolute("D");
+    ok &= cdb.Write("d", "test");
+    ok &= cdb.MoveToRoot();
+    epics::pvData::StructureConstPtr strPtr;
+    uint32 numberOfElements = 2u;
+    const char8* const typeName = "EPICSPVAHelperTestT2";
+
+    if (ok) {
+        epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
+        epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
+        fieldBuilder = fieldBuilder->addArray("value", EPICSPVAHelper::GetStructure(cdb, typeName));
+        strPtr = fieldBuilder->createStructure();
+        ok = (strPtr ? true : false);
+    }
+    epics::pvData::PVStructureArrayPtr pvStructureArray;
+    epics::pvData::PVStructurePtr pvStructure;
+    if (ok) {
+        pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(strPtr);
+        pvStructureArray = pvStructure->getSubField<epics::pvData::PVStructureArray>("value");
+    }
+    if (ok) {
+        ok = (pvStructureArray ? true : false);
+    }
+    if (ok) {
+        ok = EPICSPVAHelper::ReplaceStructureArray(cdb, pvStructureArray, numberOfElements, typeName);
     }
 
     ObjectRegistryDatabase::Instance()->Purge();
@@ -300,4 +394,3 @@ bool EPICSPVAHelperTest::TestGetType_TypeName(const MARTe::char8 *typeName) {
     bool ok = EPICSPVAHelper::GetType(typeName, epicsType);
     return ok;
 }
-

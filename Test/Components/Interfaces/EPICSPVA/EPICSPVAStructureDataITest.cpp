@@ -1762,7 +1762,6 @@ bool EPICSPVAStructureDataITest::TestGetRootStruct() {
 bool EPICSPVAStructureDataITest::TestIsStructureFinalised() {
     using namespace MARTe;
     EPICSPVAStructureDataI test;
-    ConfigurationDatabase cdb;
     test.InitStructure();
     bool ok = !test.IsStructureFinalised();
     test.CreateAbsolute("A");
@@ -1783,3 +1782,87 @@ bool EPICSPVAStructureDataITest::TestIsStructureFinalised() {
     }
     return ok;
 }
+
+bool EPICSPVAStructureDataITest::TestCopyValuesFrom() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI dest;
+    ConfigurationDatabase cdb;
+    dest.InitStructure();
+    bool ok = !dest.IsStructureFinalised();
+    dest.CreateAbsolute("A");
+    dest.Write("a", 0);
+    dest.Write("b", "");
+    if (ok) {
+        ok = dest.FinaliseStructure();
+    }
+    if (ok) {
+        ok = dest.IsStructureFinalised();
+    }
+    if (ok) {
+        ok = dest.MoveToRoot();
+    }
+    if (ok) {
+        cdb.CreateAbsolute("A");
+    }
+    if (ok) {
+        ok = cdb.Write("a", 2);
+    }
+    if (ok) {
+        ok = cdb.Write("b", "TEST");
+    }
+    if (ok) {
+        ok = cdb.MoveToRoot();
+    }
+    if (ok) {
+        ok = dest.CopyValuesFrom(cdb);
+    }
+    if (ok) {
+        ok = dest.MoveAbsolute("A");
+    }
+    if (ok) {
+        uint32 a;
+        ok = dest.Read("a", a);
+        if (ok) {
+            ok = (a == 2);
+        }
+    }
+    if (ok) {
+        StreamString ss;
+        ok = dest.Read("b", ss);
+        if (ok) {
+            ok = (ss == "TEST");
+        }
+    }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestCopyValuesFrom_False() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI dest;
+    ConfigurationDatabase cdb;
+    dest.InitStructure();
+    bool ok = !dest.IsStructureFinalised();
+    dest.CreateAbsolute("A");
+    dest.Write("a", 0);
+    dest.Write("b", "");
+    if (ok) {
+        ok = dest.MoveToRoot();
+    }
+    if (ok) {
+        cdb.CreateAbsolute("A");
+    }
+    if (ok) {
+        ok = cdb.Write("a", 2);
+    }
+    if (ok) {
+        ok = cdb.Write("b", "TEST");
+    }
+    if (ok) {
+        ok = cdb.MoveToRoot();
+    }
+    if (ok) {
+        ok = !dest.CopyValuesFrom(cdb);
+    }
+    return ok;
+}
+

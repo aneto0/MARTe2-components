@@ -45,14 +45,29 @@ TEST(EPICSPVAHelperGTest,TestGetStructure) {
     ASSERT_TRUE(test.TestGetStructure());
 }
 
+TEST(EPICSPVAHelperGTest,TestGetStructure_StructuredDataI) {
+    EPICSPVAHelperTest test;
+    ASSERT_TRUE(test.TestGetStructure_StructuredDataI());
+}
+
 TEST(EPICSPVAHelperGTest,TestInitStructure) {
     EPICSPVAHelperTest test;
     ASSERT_TRUE(test.TestInitStructure());
 }
 
+TEST(EPICSPVAHelperGTest,TestInitStructure_StructuredDataI) {
+    EPICSPVAHelperTest test;
+    ASSERT_TRUE(test.TestInitStructure_StructuredDataI());
+}
+
 TEST(EPICSPVAHelperGTest,TestReplaceStructureArray) {
     EPICSPVAHelperTest test;
     ASSERT_TRUE(test.TestReplaceStructureArray());
+}
+
+TEST(EPICSPVAHelperGTest,TestReplaceStructureArray_StructuredDataI) {
+    EPICSPVAHelperTest test;
+    ASSERT_TRUE(test.TestReplaceStructureArray_StructuredDataI());
 }
 
 TEST(EPICSPVAHelperGTest,TestInitArray_UInt8) {

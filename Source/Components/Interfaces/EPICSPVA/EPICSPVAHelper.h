@@ -34,6 +34,7 @@
 /*---------------------------------------------------------------------------*/
 #include "IntrospectionT.h"
 #include "StreamString.h"
+#include "StructuredDataI.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -55,12 +56,29 @@ public:
     static epics::pvData::StructureConstPtr GetStructure(const Introspection *intro, const char8 * const typeName = NULL_PTR(const char8 * const));
 
     /**
+     * @brief Creates an epics::pvData::Structure from a StructuredDataI.
+     * @param[in] data the parent node from which to create the structure.
+     * @param[in] typeName the type name to associate to the structure.
+     * @return an epics::pvData::Structure which maps into the introspection type.
+     * Note that an invalid epics::pvData::StructureConstPtr will be returned if the operation fails.
+     */
+    static epics::pvData::StructureConstPtr GetStructure(StructuredDataI &data, const char8 * const typeName = NULL_PTR(const char8 * const));
+
+    /**
      * @brief Initialises PVStructureArrays and basic type arrays in the portion of the epics::pvData::PVStructurePtr associated to the structure wrapped by the \a intro parameter.
      * @param[in] intro the type identifying the structure.
      * @param[in] pvStructPtr the PVStructurePtr to be initialised (in particular the PVStructureArray elements).
      * @return true if the structure is successfully initialised.
      */
     static bool InitStructure(const Introspection *intro, epics::pvData::PVStructurePtr pvStructPtr);
+
+    /**
+     * @brief Initialises PVStructureArrays and basic type arrays in the portion of the epics::pvData::PVStructurePtr associated to the structure wrapped by the \a data parameter.
+     * @param[in] data the parent node from which to create the structure.
+     * @param[in] pvStructPtr the PVStructurePtr to be initialised (in particular the PVStructureArray elements).
+     * @return true if the structure is successfully initialised.
+     */
+    static bool InitStructure(StructuredDataI &data, epics::pvData::PVStructurePtr pvStructPtr);
 
     /**
      * @brief Helper macro which dumps the pvaStruct in a MARTe log stream.
@@ -104,7 +122,16 @@ public:
     static bool ReplaceStructureArray(const Introspection *intro, epics::pvData::PVStructureArrayPtr pvStructPtr, uint32 numberOfElements = 0u,
                                       const char8 * const typeName = NULL_PTR(const char8 * const));
 
-
+    /**
+     * @brief Helper code which replaces the PVStructureArrays with the equivalent set of PVStructures.
+     * @param[in] data the type identifying the structure.
+     * @param[in] pvStructPtr the PVStructurePtr containing the arrays to be replaced.
+     * @param[in] numberOfElements the number of elements to be replaced.
+     * @param[in] typeName the type name of the structured type.
+     * @return true if the array is successfully replaced by a set of of equivalent PVStructures of type (typeName) and with size = \a numberOfElements.
+     */
+    static bool ReplaceStructureArray(StructuredDataI &data, epics::pvData::PVStructureArrayPtr pvStructPtr, uint32 numberOfElements = 0u,
+                                      const char8 * const typeName = NULL_PTR(const char8 * const));
 
 };
 }

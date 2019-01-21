@@ -65,7 +65,7 @@ public:
      * @post
      *    IsStructureFinalised()
      */
-    EPICSPVAStructureDataI ();
+EPICSPVAStructureDataI    ();
 
     /**
      * @brief NOOP.
@@ -205,6 +205,16 @@ public:
      */
     bool IsStructureFinalised();
 
+    /**
+     * @brief Copies the values from another StructuredDataI.
+     * @details The source structure must match this structure.
+     * @param[in] source the structure where to copy from.
+     * @return true if the structures match and all the elements can be successfully copied.
+     * @pre
+     *    IsStructureFinalised() => structure is fixed.
+     */
+    bool CopyValuesFrom(StructuredDataI &source);
+
 private:
     /**
      * @brief Implementation of the move which allows to navigate inside arrays of structures by parsing the path and extracting []
@@ -250,21 +260,6 @@ private:
     bool WriteStoredType(const char8 * const name, AnyType &storedType, const AnyType &value);
 
     /**
-     * @brief Helper method which transforms the cached ConfigurationDatabase into a PVStructure.
-     * @param[in] currentNode the node where to start from.
-     * @param[in] create if true the nodes are added to the PVStructure, otherwise only the values are written.
-     * @return A valid epics::pvData::Structure if the ConfigurationDatabase is successfully created.
-     */
-    epics::pvData::StructureConstPtr ConfigurationDataBaseToPVStructurePtr();
-
-    /**
-     * @brief Helper method which expands the PVStructure arrays to elements named Node[0...n] where n is the array size.
-     * @param[in] pvStructPtr the pvStructPtr to be initialised.
-     * @return true if all the arrays were successfully initialised.
-     */
-    bool ConfigurationDataBaseToPVStructurePtrInit(epics::pvData::PVStructurePtr pvStructPtr);
-
-    /**
      * Cached pointer (including full path) to the current node.
      */
     epics::pvData::PVStructureArray::svector currentStructPtr;
@@ -295,13 +290,13 @@ template<typename T>
 bool EPICSPVAStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
     bool ok = true;
     epics::pvData::shared_vector<const T> out;
-    scalarArrayPtr->getAs < T > (out);
+    scalarArrayPtr->getAs<T>(out);
     uint32 numberOfElements = storedType.GetNumberOfElements(0u);
     uint32 i;
     //Should allow to convert from numeric anytype to anytype. Note that this is called with the T of the value.
-    Vector<T> readVec (reinterpret_cast<T *>(value.GetDataPointer()), numberOfElements);
-    Vector<T> srcVec (const_cast<T *>(reinterpret_cast<const T *>(out.data())), numberOfElements);
-    for (i = 0u; i<numberOfElements; i++) {
+    Vector<T> readVec(reinterpret_cast<T *>(value.GetDataPointer()), numberOfElements);
+    Vector<T> srcVec(const_cast<T *>(reinterpret_cast<const T *>(out.data())), numberOfElements);
+    for (i = 0u; i < numberOfElements; i++) {
         readVec[i] = srcVec[i];
     }
 
@@ -343,10 +338,9 @@ bool EPICSPVAStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarAr
     out.resize(storedType.GetNumberOfElements(0u));
     bool ok = MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), value.GetDataPointer(), size);
     epics::pvData::shared_vector<const T> outF = freeze(out);
-    scalarArrayPtr->putFrom < T > (outF);
+    scalarArrayPtr->putFrom<T>(outF);
     return ok;
 }
-
 
 template<>
 inline bool EPICSPVAStructureDataI::WriteArray<std::string>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value, const uint32 &size) {
