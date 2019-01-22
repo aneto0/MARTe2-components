@@ -59,6 +59,15 @@ bool InitLibrary() {
     return ok;
 }
 
+bool InitLibraryICProg(const char8 * const progName) {
+    bool ok = true;
+    if (danDataCore == NULL_PTR(dan_DataCore)) {
+        danDataCore = dan_initLibrary_icprog(progName);
+        ok = (danDataCore != NULL_PTR(dan_DataCore));
+    }
+    return ok;
+}
+
 void CloseLibrary() {
     if (danDataCore != NULL_PTR(dan_DataCore)) {
         dan_closeLibrary(danDataCore);

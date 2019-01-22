@@ -146,8 +146,7 @@ bool DANSource::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8*
     if (storeOnTrigger) {
         ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
         brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
-                                                              numberOfPostTriggers, cpuMask, stackSize);
+        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTriggerNew);
         }
@@ -265,9 +264,20 @@ bool DANSource::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = DANAPI::InitLibrary();
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed to dan_initLibrary");
+        StreamString icProgName;
+        if (data.Read("ICProgName", icProgName)) {
+            REPORT_ERROR(ErrorManagement::Debug, "Calling dan_initLibrary_icprog with program name %s", icProgName.Buffer());
+            ok = DANAPI::InitLibraryICProg(icProgName.Buffer());
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Failed to dan_initLibrary_icprog with program name %s", icProgName.Buffer());
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::Debug, "Calling dan_initLibrary");
+            ok = DANAPI::InitLibrary();
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Failed to dan_initLibrary");
+            }
         }
     }
     if (ok) {
