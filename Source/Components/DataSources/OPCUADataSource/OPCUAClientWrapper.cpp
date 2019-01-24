@@ -145,10 +145,6 @@ bool OPCUAClientWrapper::GetSignalMemory(void *&mem) {
 
 }
 
-/**
- * @brief Recursive search in the Server AddressSpace
- * @details It calls the private function SearchNode starting from the Object folder parameters.
- */
 bool OPCUAClientWrapper::BrowseAddressSpace(uint32 namespaceIndex,
                                             StreamString nodePath) {
     bool ok = false;
@@ -158,7 +154,7 @@ bool OPCUAClientWrapper::BrowseAddressSpace(uint32 namespaceIndex,
     uint32 pathSize = 0u;
     char8 ignore;
     if (ok) {
-        /* This cycle is only for getting the path size */
+        /* This cycle is for getting the path size only */
         do {
             ok = nodePath.GetToken(pathTokenized, ".", ignore);
             if (ok) {
@@ -222,7 +218,7 @@ bool OPCUAClientWrapper::BrowseAddressSpace(uint32 namespaceIndex,
 
 bool OPCUAClientWrapper::Monitor() {
     UA_StatusCode code = 1u;
-    bool ok;
+    bool ok = false;
     if (monitoredNode.identifier.numeric != 0 && valueMemory != NULL_PTR(void *)) {
         /* Create a subscription */
         if (response.subscriptionId == 0) {
@@ -252,18 +248,12 @@ bool OPCUAClientWrapper::Monitor() {
     }
     else {
         REPORT_ERROR_STATIC(ErrorManagement::Information, "CLIENT ---------------------------> Monitor: Waiting for initialization...");
-        code = UA_STATUSCODE_GOOD;
+        ok = true;
     }
     return ok;
 }
 
-/**
- * NOT USED - This function is not yet used by the BrowseAddressSpace function
- *
- * @brief Search the requested node in the Server AddressSpace
- * @details Recursively calls itself to explore deeper nodes in the tree.
- * It uses the OPCUA Browse Service.
- */
+//namespaceIndex, numericNodeId e stringNodeId servono davvero?
 uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
                                             char* path,
                                             uint16 &namespaceIndex,

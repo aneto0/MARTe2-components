@@ -1,8 +1,8 @@
 /**
  * @file OPCUANode.cpp
  * @brief Source file for class OPCUANode
- * @date Nov 12, 2018 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 24/01/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -41,10 +41,6 @@ namespace MARTe {
 
 OPCUANode::OPCUANode() :
         OPCUAReferenceContainer() {
-    nType = 0u;
-    value = 0u;
-    nodeId = NULL_PTR(const char*);
-    parentNodeId = NULL_PTR(char*);
     parentReferenceNodeId = 1u;
 }
 
@@ -52,62 +48,151 @@ OPCUANode::~OPCUANode() {
 
 }
 
-bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings) {
+bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
+                               TypeDescriptor nodeType) {
     bool ok = true;
     char * localization = new char[strlen("en-US") + 1];
     strcpy(localization, "en-US");
-
-    //Read from cdb
-    settings->nType = 1u;
-
-    if (settings->nType == 1u) {
-        settings->attr = UA_VariableAttributes_default;
-        settings->attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
-
-        //settings->value = value;
-        settings->value = 54u;
-
-        UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_UINT32]);
-
-        nodeId = GetName();
-        settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
-
-        //TODO How to read strings from configuration file in MARTe?
-
-        char * readName = new char[strlen(GetName()) + 1];
-        strcpy(readName, GetName());
-        settings->nodeName = UA_QUALIFIEDNAME(1, readName);
-        settings->attr.displayName = UA_LOCALIZEDTEXT(localization, readName);
-
-        if (parentNodeId == 0u) {
-            settings->parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
-            ok = true;
+    settings->attr = UA_VariableAttributes_default;
+    settings->attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
+    SetNodeId(GetName());
+    bool isArray = (numberOfDimensions > 0);
+    uint64 nElements = 1u;
+    /* Setting the array parameters in the OPCUA Variable */
+    if (isArray) {
+        for (uint8 i = 0u; i < numberOfDimensions; i++) {
+            nElements *= numberOfElements[i];
+        }
+    }
+    if (nodeType == UnsignedInteger8Bit) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_BYTE], nElements);
         }
         else {
-            settings->parentNodeId = UA_NODEID_STRING(1, parentNodeId);
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_BYTE]);
         }
-        if (parentReferenceNodeId != 0u) {
-            settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);
+    }
+    else if (nodeType == UnsignedInteger16Bit) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_UINT16], nElements);
         }
         else {
-            ok = false;
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_UINT16]);
         }
+    }
+    else if (nodeType == UnsignedInteger32Bit) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_UINT32], nElements);
+        }
+        else {
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_UINT32]);
+        }
+    }
+    else if (nodeType == UnsignedInteger64Bit) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_UINT64], nElements);
+        }
+        else {
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_UINT64]);
+        }
+    }
+    else if (nodeType == SignedInteger8Bit) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_SBYTE], nElements);
+        }
+        else {
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_SBYTE]);
+        }
+    }
+    else if (nodeType == SignedInteger16Bit) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_INT16], nElements);
+        }
+        else {
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_INT16]);
+        }
+    }
+    else if (nodeType == SignedInteger32Bit) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_INT32], nElements);
+        }
+        else {
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_INT32]);
+        }
+    }
+    else if (nodeType == SignedInteger64Bit) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_INT64], nElements);
+        }
+        else {
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_INT64]);
+        }
+    }
+    else if (nodeType == Float32Bit) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_FLOAT], nElements);
+        }
+        else {
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_FLOAT]);
+        }
+    }
+    else if (nodeType == Float64Bit) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_DOUBLE], nElements);
+        }
+        else {
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_DOUBLE]);
+        }
+    }
+    else if ((nodeType.type == CArray) || (nodeType.type == BT_CCString) || (nodeType.type == PCString) || (nodeType.type == SString)) {
+        if (isArray) {
+            InitArray(settings, &UA_TYPES[UA_TYPES_STRING], nElements);
+        }
+        else {
+            UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_STRING]);
+        }
+    }
+
+    settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
+    settings->value = 0u;
+    char * readName = new char[strlen(GetName()) + 1];
+    strcpy(readName, GetName());
+    settings->nodeName = UA_QUALIFIEDNAME(1, readName);
+    settings->attr.displayName = UA_LOCALIZEDTEXT(localization, readName);
+
+    if (parentNodeId == NULL_PTR(char*)) {
+        settings->parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
+        settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
+        parentReferenceNodeId = 0u;
+        ok = true;
+    }
+    else {
+        settings->parentNodeId = UA_NODEID_STRING(1, parentNodeId);
+    }
+    if (parentReferenceNodeId == 1u) {
+        settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);
     }
 
     return ok;
 }
 
-void OPCUANode::SetParent(const char* parentId) {
-    parentNodeId = new char[strlen(parentId) + 1];
-    StringHelper::Copy(parentNodeId, parentId);
-}
-
-const char* OPCUANode::GetNodeId() {
-    return nodeId;
-}
-
 bool OPCUANode::IsNode() {
     return true;
+}
+
+void OPCUANode::InitArray(OPCUANodeSettings &settings,
+                          const UA_DataType *type,
+                          uint64 nElem) {
+    settings->attr.valueRank = numberOfDimensions;
+    settings->attr.arrayDimensions = static_cast<uint32 *>(UA_Array_new(numberOfDimensions, type));
+    settings->attr.arrayDimensionsSize = numberOfDimensions;
+    settings->attr.value.arrayDimensions = static_cast<uint32 *>(UA_Array_new(numberOfDimensions, type));
+    settings->attr.value.arrayDimensionsSize = numberOfDimensions;
+    for (uint8 k = 0u; k < numberOfDimensions; k++) {
+        settings->attr.arrayDimensions[k] = numberOfElements[k];
+        settings->attr.value.arrayDimensions[k] = numberOfElements[k];
+    }
+    UA_Variant_setArrayCopy(&settings->attr.value, &settings->value, nElem, type);
 }
 
 CLASS_REGISTER(OPCUANode, "");

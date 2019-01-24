@@ -1,8 +1,8 @@
 /**
  * @file OPCUAObject.cpp
  * @brief Source file for class OPCUAObject
- * @date Nov 16, 2018 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 24/01/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -41,7 +41,9 @@ namespace MARTe {
 
 OPCUAObject::OPCUAObject() :
         OPCUAReferenceContainer() {
-    nodeId = NULL_PTR(const char*);
+    nodeId = NULL_PTR(char*);
+    parentNodeId = NULL_PTR(char*);
+    isFirstObject = false;
 }
 
 OPCUAObject::~OPCUAObject() {
@@ -51,27 +53,35 @@ OPCUAObject::~OPCUAObject() {
 bool OPCUAObject::GetOPCObject(OPCUAObjectSettings &settings) {
     bool ok = true;
     settings->attr = UA_ObjectAttributes_default;
-    settings->nType = 0u;
-    if (ok) {
-        nodeId = GetName();
-        settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
-        char * localization = new char[strlen("en-US") + 1];
-        strcpy(localization, "en-US");
-        char * readName = new char[strlen(GetName()) + 1];
-        strcpy(readName, GetName());
-        settings->nodeName = UA_QUALIFIEDNAME(1, readName);
-        settings->attr.displayName = UA_LOCALIZEDTEXT(localization, readName);
+    SetNodeId(GetName());
+    settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
+    char * localization = new char[strlen("en-US") + 1];
+    StringHelper::Copy(localization, "en-US");
+    char * readName = new char[StringHelper::Length(GetName()) + 1];
+    StringHelper::Copy(readName, GetName());
+    settings->nodeName = UA_QUALIFIEDNAME(1, readName);
+    settings->attr.displayName = UA_LOCALIZEDTEXT(localization, readName);
+    if (parentNodeId == NULL_PTR(char*)) {
+        settings->parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
     }
+    else {
+        settings->parentNodeId = UA_NODEID_STRING(1, parentNodeId);
+    }
+    settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
 
     return ok;
 }
 
-const char* OPCUAObject::GetNodeId() {
-    return nodeId;
-}
-
 bool OPCUAObject::IsObject() {
     return true;
+}
+
+void OPCUAObject::SetFirst(const bool value) {
+    isFirstObject = value;
+}
+
+const bool OPCUAObject::IsFirstObject() {
+    return isFirstObject;
 }
 
 CLASS_REGISTER(OPCUAObject, "");

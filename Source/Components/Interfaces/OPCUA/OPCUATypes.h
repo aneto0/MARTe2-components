@@ -1,8 +1,8 @@
 /**
  * @file OPCUATypes.h
  * @brief Header file for class OPCUATypes
- * @date 10 Dec 2018 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 24/01/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -41,9 +41,8 @@
 /* TODO Add struct for others OPCUA Node Type. */
 
 struct NodeProperties {
-    MARTe::uint32 nType;
     UA_VariableAttributes attr;
-    UA_UInt32 value;
+    void* value;
     UA_NodeId nodeId;
     UA_QualifiedName nodeName;
     UA_NodeId parentNodeId;
@@ -53,10 +52,11 @@ struct NodeProperties {
 typedef struct NodeProperties * OPCUANodeSettings;
 
 struct ObjectProperties {
-    MARTe::uint32 nType;
     UA_ObjectAttributes attr;
     UA_NodeId nodeId;
     UA_QualifiedName nodeName;
+    UA_NodeId parentNodeId;
+    UA_NodeId parentReferenceNodeId;
 };
 
 typedef struct ObjectProperties * OPCUAObjectSettings;

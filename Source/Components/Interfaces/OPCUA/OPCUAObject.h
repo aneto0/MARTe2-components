@@ -1,8 +1,8 @@
 /**
  * @file OPCUAObject.h
  * @brief Header file for class OPCUAObject
- * @date Nov 16, 2018 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 24/01/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -44,23 +44,25 @@
 
 namespace MARTe {
 
-class OPCUAObject : public OPCUAReferenceContainer {
+class OPCUAObject: public OPCUAReferenceContainer {
 public:
     CLASS_REGISTER_DECLARATION()
 
-    OPCUAObject();
+OPCUAObject    ();
 
     ~OPCUAObject();
 
     virtual bool GetOPCObject(OPCUAObjectSettings &settings);
 
-    virtual const char* GetNodeId();
-
     virtual bool IsObject();
+
+    virtual void SetFirst(const bool value);
+
+    virtual const bool IsFirstObject();
 
 private:
 
-    const char* nodeId;
+    bool isFirstObject;
 
 };
 

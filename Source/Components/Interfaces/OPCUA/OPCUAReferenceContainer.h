@@ -1,8 +1,8 @@
 /**
  * @file OPCUAReferenceContainer.h
  * @brief Header file for class OPCUAReferenceContainer
- * @date Nov 20, 2018 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 24/01/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -58,13 +58,42 @@ OPCUAReferenceContainer    ();
 
     virtual bool IsNode();
 
-    virtual bool GetOPCVariable(OPCUANodeSettings &settings);
+    virtual bool GetOPCVariable(OPCUANodeSettings &settings, TypeDescriptor nodeType);
 
     virtual bool GetOPCObject(OPCUAObjectSettings &settings);
 
-    virtual void SetParent(const char* parentId);
+    virtual void SetFirst(const bool value);
 
-    virtual const char* GetNodeId();
+    virtual const bool IsFirstObject();
+
+    void SetParent(const char* parentId);
+
+    const char* GetParentNodeId();
+
+    void SetNodeId(const char* newNodeId);
+
+    const char* GetNodeId();
+
+    void SetNodeType(TypeDescriptor type);
+
+    TypeDescriptor GetNodeType();
+
+    void SetNumberOfElements(const uint32 dimension, const uint32 nElements);
+
+    void SetNumberOfDimensions(const uint8 nDimensions);
+
+
+protected:
+
+    TypeDescriptor nodeType;
+
+    char* nodeId;
+
+    char* parentNodeId;
+
+    uint8 numberOfDimensions;
+
+    uint32* numberOfElements;
 
 };
 

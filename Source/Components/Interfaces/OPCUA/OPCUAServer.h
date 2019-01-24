@@ -1,7 +1,7 @@
 /**
  * @file OPCUAServer.h
  * @brief Header file for class OPCUAServer
- * @date Nov 8, 2018 TODO Verify the value and format of the date
+ * @date 24/01/2019
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -112,7 +112,7 @@ OPCUAServer    ();
     /**
      * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
      */
-    bool GetStructure(const Introspection *intro, ReferenceT<OPCUAReferenceContainer> refContainer);
+    bool GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer, const Introspection *intro);
 
 private:
 
