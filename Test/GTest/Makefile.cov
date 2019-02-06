@@ -37,7 +37,7 @@ LIBRARIES   += ../../Test/Components/GAMs/$(TARGET)/GAMsTests$(LIBEXT)
 LIBRARIES   += -L$(MARTe2_DIR)/Build/x86-linux/Core/ -lMARTe2
 LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a 
 
-ifdef CODAC_ROOT
+ifdef $(CODAC_ROOT)
 LIBRARIES += -L$(CODAC_ROOT)/lib/
 LIBRARIES += -lnisync
 LIBRARIES += -lnixseries
@@ -52,18 +52,18 @@ endif
 
 endif
 
-ifdef EFDA_MARTe_DIR
+ifdef $(EFDA_MARTe_DIR)
 LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
 endif
 
-ifdef MDSPLUS_DIR
+ifdef $(MDSPLUS_DIR)
 LIBRARIES += -L$(MDSPLUS_DIR)/lib64 -lMdsObjectsCppShr
 endif
 
-ifdef EPICS_BASE
+ifdef $(EPICS_BASE)
 LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
 endif
 
-ifdef EPICSPVA
+ifdef $(EPICSPVA)
 LIBRARIES += -lpvaClient -lpvAccess -lpvData -lpvDatabase
 endif 
