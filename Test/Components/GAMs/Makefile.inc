@@ -39,7 +39,7 @@ SPB=  IOGAM.x\
     TriggerOnChangeGAM.x\
     WaveformGAM.x
 
-ifdef EFDA_MARTe_DIR
+ifdef $(EFDA_MARTe_DIR)
 SPB += BaseLib2GAM.x
 endif
 
@@ -63,7 +63,7 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/StatisticsGAM/StatisticsGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/TimeCorrectionGAM/TimeCorrectionGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/TriggerOnChangeGAM/TriggerOnChangeGAMTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/WaveformGAM/WaveformGAMTest$(LIBEXT)
-ifdef EFDA_MARTe_DIR
+ifdef $(EFDA_MARTe_DIR)
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAMTest$(LIBEXT)
 endif
 

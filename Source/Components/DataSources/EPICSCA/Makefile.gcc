@@ -25,4 +25,6 @@
 
 include Makefile.inc
 
+ifdef $(EPICS_ROOT)
 LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
+endif
