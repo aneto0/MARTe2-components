@@ -32,7 +32,7 @@ SPB    = EpicsDataSource.x \
     RealTimeThreadAsyncBridge.x \
     RealTimeThreadSynchronisation.x
 
-ifdef $(CODAC_ROOT)
+ifdef CODAC_ROOT
 SPB    += NI1588.x
 SPB    += NI6259.x
 SPB    += NI6368.x
@@ -46,16 +46,16 @@ EPICSPVA = "1"
 endif
 endif
 
-ifdef $(MDSPLUS_DIR)
+ifdef MDSPLUS_DIR
 SPB    += MDSWriter.x
 SPB    += MDSReader.x
 endif
 
-ifdef $(EPICS_BASE)
+ifdef EPICS_BASE
 SPB   += EPICSCA.x
 endif
 
-ifdef $(EPICSPVA)
+ifdef EPICSPVA
 SPB   += EPICSPVA.x
 endif
 
@@ -79,7 +79,7 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadAsyncBridge/RealTimeThreadAsyncBridge$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadSynchronisation/RealTimeThreadSynchronisation$(LIBEXT)
 
-ifdef $(CODAC_ROOT)
+ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/DAN/DAN$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI1588/NI1588$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259$(LIBEXT)
@@ -87,16 +87,16 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/NI6368/NI6368$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157/NI9157$(LIBEXT)
 endif
 
-ifdef $(MDSPLUS_DIR)
+ifdef MDSPLUS_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriter$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/MDSReader/MDSReader$(LIBEXT)
 endif
 
-ifdef $(EPICS_BASE)
+ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSCA/EPICSCA$(LIBEXT)
 endif
 
-ifdef $(EPICSPVA)
+ifdef EPICSPVA
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVADataSource$(LIBEXT)
 endif
 

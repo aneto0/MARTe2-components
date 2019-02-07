@@ -27,20 +27,20 @@
 SPB=MemoryGate.x\
 	SysLogger.x
 
-ifdef $(EFDA_MARTe_DIR)
+ifdef EFDA_MARTe_DIR
 SPB += BaseLib2Wrapper.x
 endif
 
-ifdef $(EPICS_BASE)
+ifdef EPICS_BASE
 SPB   += EPICS.x
 endif
 
 
-ifdef $(MDSPLUS_DIR)
+ifdef MDSPLUS_DIR
 SPB += MDSStructuredDataI.x
 endif
 
-ifdef $(CODAC_ROOT)
+ifdef CODAC_ROOT
 SPB+=NI9157Device.x
 ## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
@@ -49,7 +49,7 @@ EPICSPVA = "1"
 endif
 endif
 
-ifdef $(EPICSPVA)
+ifdef EPICSPVA
 SPB   += EPICSPVA.x
 endif
 
@@ -63,24 +63,24 @@ LIBRARIES_STATIC=$(BUILD_DIR)/MemoryGate/MemoryGateTest$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/SysLogger/SysLoggerTest$(LIBEXT)
 
 
-ifdef $(CODAC_ROOT)
+ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157Device/NI9157DeviceTest$(LIBEXT)
 endif
 
-ifdef $(EFDA_MARTe_DIR)
+ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2WrapperTest$(LIBEXT)
 endif
 
-ifdef $(EPICS_BASE)
+ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICSTest$(LIBEXT)
 endif
 
 
-ifdef $(MDSPLUS_DIR)
+ifdef MDSPLUS_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/MDSStructuredDataI/MDSStructuredDataITest$(LIBEXT)
 endif
 
-ifdef $(EPICSPVA)
+ifdef EPICSPVA
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVATest$(LIBEXT)
 endif
 
