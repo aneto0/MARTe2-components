@@ -219,6 +219,16 @@ public:
     bool TestIntegratedInApplication_Trigger();
 
     /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event and with a MakeSegmentAfterNWrites which is not multiple of the length of the array to write .
+     */
+    bool TestIntegratedInApplication_Trigger_NotMultiple();
+
+    /**
+     * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event and with a MakeSegmentAfterNWrites which is not multiple of the length of the array to write  with Samples.
+     */
+    bool TestIntegratedInApplication_Trigger_NotMultiple_Samples();
+
+    /**
      * @brief Tests the MDSWriter integrated in an application which asynchronously stores data based on a trigger event using a 8 bit time signal.
      */
     bool TestIntegratedInApplication_Trigger_Time8();

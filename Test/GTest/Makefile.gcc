@@ -36,22 +36,33 @@ LIBRARIES   += ../../Build/$(TARGET)/Components/Interfaces/InterfacesTests$(LIBE
 LIBRARIES   += -L$(MARTe2_DIR)/Build/$(TARGET)/Core/ -lMARTe2
 LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a
 
-ifdef CODAC_ROOT
+ifdef $(CODAC_ROOT)
 LIBRARIES += -L$(CODAC_ROOT)/lib/
 LIBRARIES += -lnisync
 LIBRARIES += -lnixseries
 LIBRARIES += -lpxi6259
 LIBRARIES += -lNiFpga
+
+## Only force EPICSPVA if CCS version is gt v6.1
+CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCSGT61)" "1"
+EPICSPVA = "1"
 endif
 
-ifdef EFDA_MARTe_DIR
+endif
+
+ifdef $(EFDA_MARTe_DIR)
 LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
 endif
 
-ifdef MDSPLUS_DIR
-LIBRARIES += -L$(MDSPLUS_DIR)/lib64 -lMdsObjectsCppShr
+ifdef $(MDSPLUS_DIR)
+LIBRARIES += -L$(MDSPLUS_DIR)/lib64 -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
 endif
 
-ifdef EPICS_BASE
+ifdef $(EPICS_BASE)
 LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
 endif
+
+ifdef $(EPICSPVA)
+LIBRARIES += -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom -lpvaClient 
+endif 

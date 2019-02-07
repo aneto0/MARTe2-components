@@ -96,6 +96,11 @@ TEST(LinuxTimerGTest, TestExecute_Busy) {
     ASSERT_TRUE(test.TestExecute_Busy());
 }
 
+TEST(LinuxTimerGTest, TestExecute_Busy_SleepPercentage) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute_Busy_SleepPercentage());
+}
+
 TEST(LinuxTimerGTest, TestExecute_RTThread) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestExecute_RTThread());
@@ -116,6 +121,15 @@ TEST(LinuxTimerGTest, TestInitialise_Busy) {
     ASSERT_TRUE(test.TestInitialise_Busy());
 }
 
+TEST(LinuxTimerGTest, TestInitialise_Busy_SleepPercentage) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_Busy_SleepPercentage());
+}
+
+TEST(LinuxTimerGTest, TestInitialise_Busy_SleepPercentage_gt_100) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_Busy_SleepPercentage_gt_100());
+}
 TEST(LinuxTimerGTest, TestInitialise_CPUMask) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestInitialise_CPUMask());
@@ -131,9 +145,19 @@ TEST(LinuxTimerGTest, TestInitialise_Empty) {
     ASSERT_TRUE(test.TestInitialise_Empty());
 }
 
-TEST(LinuxTimerGTest, TestInitialise_False) {
+TEST(LinuxTimerGTest, TestInitialise_False_SleepNature) {
     LinuxTimerTest test;
-    ASSERT_TRUE(test.TestInitialise_False());
+    ASSERT_TRUE(test.TestInitialise_False_SleepNature());
+}
+
+TEST(LinuxTimerGTest, TestInitialise_False_ExecutionMode) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_False_ExecutionMode());
+}
+
+TEST(LinuxTimerGTest, TestInitialise_False_StackSize) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_False_StackSize());
 }
 
 TEST(LinuxTimerGTest, TestGetStackSize) {
@@ -184,6 +208,11 @@ TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_IntegerSignal1) {
 TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_IntegerSignal2) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_IntegerSignal2());
+}
+
+TEST(LinuxTimerGTest, TestGetSleepPercentage) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestGetSleepPercentage());
 }
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

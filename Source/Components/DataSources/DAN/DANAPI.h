@@ -51,6 +51,11 @@ namespace DANAPI {
 bool InitLibrary();
 
 /**
+ * @brief see dan_initLibrary_icprog
+ */
+bool InitLibraryICProg(const char8 * const progName);
+
+/**
  * @brief see dan_closeLibrary
  */
 void CloseLibrary();

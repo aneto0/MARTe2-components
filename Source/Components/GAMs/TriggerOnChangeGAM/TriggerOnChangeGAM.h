@@ -74,7 +74,7 @@ namespace MARTe {
  * @details Follows an example of configuration:
  * <pre>
  *   +GAM1 = {
- *       Class = TriggerOnChangeGAMTestGAM
+ *       Class = TriggerOnChangeGAM
  *       +Events = {
  *           Class = ReferenceContainer
  *           +Event1 = {
@@ -135,8 +135,12 @@ namespace MARTe {
  *               DataSource = DDB1
  *               Type = uint32
  *               NumberOfDimensions = 1
- *               NumberOfElements = 3 //3 input signals
+ *               NumberOfElements = 2 //2 input commands
  *               Trigger = 1
+ *           }
+ *           Signal1 = {
+ *                DataSource = DDB1
+ *                Type = uint32
  *           }
  *           State = {
  *               DataSource = DDB1

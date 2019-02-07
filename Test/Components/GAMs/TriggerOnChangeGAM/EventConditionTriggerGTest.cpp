@@ -56,6 +56,11 @@ TEST(EventConditionTriggerGTest,TestInitialise_FalseNoEventTrigger) {
     ASSERT_TRUE(test.TestInitialise_FalseNoEventTrigger());
 }
 
+TEST(EventConditionTriggerGTest,TestInitialise_FalseNotOnlyMessages) {
+    EventConditionTriggerTest test;
+    ASSERT_TRUE(test.TestInitialise_FalseNotOnlyMessages());
+}
+
 TEST(EventConditionTriggerGTest,TestSetPacketConfig) {
     EventConditionTriggerTest test;
     ASSERT_TRUE(test.TestSetPacketConfig());

@@ -44,14 +44,17 @@ INCLUDES += -I/usr/include/libxml2
 
 ifdef CODAC_ROOT
 INCLUDES += -I$(CODAC_ROOT)/include
-endif
-
-ifdef CODAC_ROOT
 LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
-endif
-
 # Override CPPFLAGS due to scoped enums. Allow narrowing. TODO file bug report.
 #CPPFLAGS += -std=c++0x -Wno-error=narrowing
+
+## Compatibility issue with dan_initLibrary_icprog pre CCSv6.0
+CCS_LT_60 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -lt 60 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCS_LT_60)" "1"
+CPPFLAGS += -DCCS_LT_60
+endif
+
+endif
 
 all: $(OBJS)    \
     $(BUILD_DIR)/DAN$(LIBEXT) \

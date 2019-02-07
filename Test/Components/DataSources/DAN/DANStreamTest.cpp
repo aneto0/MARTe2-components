@@ -200,7 +200,11 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
             DanDataHolder *pDataChannel = NULL;
             if (ok) {
                 DataInterval interval = danStreamReader.getIntervalWhole();
+#ifdef NO_HDF5_SET_CHANNEL
+		danStreamReader.openDataPath(channelNames[c]);
+#else
                 danStreamReader.setChannel(channelNames[c]);
+#endif
                 pDataChannel = danStreamReader.getRawValuesNative(&interval, -1);
                 ok = (pDataChannel != NULL);
                 if (ok) {

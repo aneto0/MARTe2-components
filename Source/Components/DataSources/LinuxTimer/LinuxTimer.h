@@ -53,6 +53,7 @@ namespace MARTe {
  * +Timer = {
  *     Class = LinuxTimer
  *     SleepNature = Busy|Default//If SleepNature is not specified then Default is set
+ *     SleepPercentage = 0 //Only meaningful if SleepNature = Busy. The percentage of time to sleep using the OS sleep.
  *     ExecutionMode = IndependentThread //Optional. If not set ExecutionMode = IndependentThread. If ExecutionMode == IndependentThread a thread is spawned to generate the time events. ExecutionMode == RealTimeThread the time is generated in the context of the real-time thread.
  *     CPUMask = 0x8 //Optional and only relevant if ExecutionMode=IndependentThread
  *     Signals = {
@@ -179,6 +180,12 @@ LinuxTimer    ();
      */
     uint32 GetStackSize() const;
 
+    /**
+     * @brief Gets the percentage of the time to sleep using the OS sleep (i.e. the non-busy Sleep).
+     * @return the percentage of the time to sleep using the OS sleep (i.e. the non-busy Sleep).
+     */
+    uint32 GetSleepPercentage() const;
+
 private:
     /**
      * The two supported sleep natures.
@@ -187,6 +194,12 @@ private:
         Default = 0,
         Busy = 1
     };
+
+    /**
+     * The non-busy sleep percentage. Valid if
+     * LinuxTimerSleepNature == Busy
+     */
+    uint32 sleepPercentage;
 
     /**
      * The selected sleep nature.

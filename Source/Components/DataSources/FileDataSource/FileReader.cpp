@@ -213,20 +213,37 @@ bool FileReader::Synchronise() {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed to read line.");
             }
 
-            (void) line.Seek(0LLU);
+            if (ok) {
+                ok = line.Seek(0LLU);
+            }
             if (ok) {
                 ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
             }
+            /*lint -e{613} signalsAnyType cannot be NULL as otherwise SetConfiguredDatabase would have failed.*/
             while ((ok) && (signalIdx < nSignals)) {
-                /*lint -e{613} signalsAnyType cannot be NULL as otherwise SetConfiguredDatabase would have failed.*/
-                if (signalsAnyType[signalIdx].GetNumberOfDimensions() == 1u) {
+                bool isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == CharString);
+                if (!isString) {
+                    isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == Character8Bit);
+                }
+                if ((signalsAnyType[signalIdx].GetNumberOfDimensions() == 1u) && (!isString)) {
                     uint32 nElements = signalsAnyType[signalIdx].GetNumberOfElements(0u);
                     StreamString tokenArray;
                     uint32 arrayIdx = 0u;
                     void *signalAddress = signalsAnyType[signalIdx].GetDataPointer();
                     char8 *signalAddressChr = reinterpret_cast<char8 *>(signalAddress);
-                    (void) token.Seek(0LLU);
-                    ok = token.GetToken(tokenArray, "{},", saveTerminator);
+                    if (token[static_cast<uint32>(token.Size()) - 1u] != '}') {
+                        token += csvSeparator;
+                        ok = line.GetToken(token, "}", saveTerminator);
+                        if (ok) {
+                            token += saveTerminator;
+                        }
+                    }
+                    if (ok) {
+                        ok = token.Seek(0LLU);
+                    }
+                    if (ok) {
+                        ok = token.GetToken(tokenArray, "{},", saveTerminator);
+                    }
                     while ((ok) && (arrayIdx < nElements)) {
                         AnyType sourceStr(CharString, 0u, tokenArray.Buffer());
                         uint32 byteSize = signalsAnyType[signalIdx].GetByteSize();
@@ -248,8 +265,14 @@ bool FileReader::Synchronise() {
                     }
                 }
                 else {
-                    AnyType sourceStr(CharString, 0u, token.Buffer());
-                    ok = TypeConvert(signalsAnyType[signalIdx], sourceStr);
+                    if (!isString) {
+                        AnyType sourceStr(CharString, 0u, token.Buffer());
+                        ok = TypeConvert(signalsAnyType[signalIdx], sourceStr);
+                    }
+                    else {
+                        ok = StringHelper::CopyN(reinterpret_cast<char8 *>(signalsAnyType[signalIdx].GetDataPointer()), token.Buffer(),
+                                                 signalsAnyType[signalIdx].GetNumberOfElements(0u));
+                    }
                 }
                 signalIdx++;
                 token = "";
@@ -635,7 +658,7 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                 StreamString signalName;
                 if (!fatalFileError) {
                     //lint -e{645} signalNameMemory is always initialised if !fatalFileError
-                    signalName = reinterpret_cast<const char8 * const>(&signalNameMemory[0]);
+                    signalName = reinterpret_cast<const char8 * const >(&signalNameMemory[0]);
                 }
                 uint32 nOfElements = 0u;
                 if (!fatalFileError) {

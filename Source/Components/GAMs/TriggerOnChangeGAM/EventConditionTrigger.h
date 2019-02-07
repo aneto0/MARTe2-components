@@ -31,12 +31,13 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "ReferenceContainer.h"
-#include "EmbeddedServiceMethodBinderI.h"
-#include "MessageI.h"
-#include "SingleThreadService.h"
 #include "ConfigurationDatabase.h"
+#include "EmbeddedServiceMethodBinderI.h"
+#include "EventSem.h"
 #include "FastPollingMutexSem.h"
+#include "MessageI.h"
+#include "ReferenceContainer.h"
+#include "SingleThreadService.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -52,11 +53,11 @@ struct PacketField {
     /**
      * The field name
      */
-    StreamString name
+    StreamString name;
 
     /**
      * The field type
-     */;
+     */
     TypeDescriptor type;
 
     /**
@@ -166,7 +167,7 @@ public:
      * @details If the variables match, the Message objects contained will be added to a queue that
      * will be consumed within the Execute() function.
      * @param[in] packetMem is the memory to be checked.
-     * @param[in[ packetFieldIn is the packetField associated to the command that trigger this event.
+     * @param[in] packetFieldIn is the packetField associated to the command that trigger this event.
      * It must be one of the variables declared in "EventTrigger" block.
      * @return true if the variables match within the \a packetMem memory.
      */
@@ -177,7 +178,7 @@ public:
      * @brief Returns the number of replies and reset the counter.
      * @return the number of replies to the sent messages.
      */
-    uint32 Replied();
+    uint32 Replied(const PacketField * const packetFieldIn);
 
     /**
      * @brief Consumes the queue of the messages to be sent. If the Message is declared with
@@ -266,6 +267,11 @@ protected:
      * The affinity of the SingleThreadService.
      */
     ProcessorType cpuMask;
+
+    /**
+     * Event semaphore to wait for messages to be available.
+     */
+    EventSem eventSem;
 
 };
 

@@ -76,6 +76,12 @@ public:
     bool TestInitialise_FalseNoEventTrigger();
 
     /**
+     * @brief Tests the EventConditionTrigger::Initialise method that fails if
+     * not only Messages are defined.
+     */
+    bool TestInitialise_FalseNotOnlyMessages();
+
+    /**
      * @brief Tests the EventConditionTrigger::SetPacketConfig method
      */
     bool TestSetPacketConfig();

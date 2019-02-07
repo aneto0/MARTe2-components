@@ -33,6 +33,7 @@
 #include "MDSStructuredDataI.h"
 #include "Reference.h"
 #include "StreamString.h"
+#include "AdvancedErrorManagement.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -52,11 +53,13 @@ MDSStructuredDataI::MDSStructuredDataI() {
 MDSStructuredDataI::~MDSStructuredDataI() {
 }
 
-bool MDSStructuredDataI::Read(const char8* const name, const AnyType& value) {
+bool MDSStructuredDataI::Read(const char8* const name,
+                              const AnyType& value) {
     return false;
 }
 
-bool MDSStructuredDataI::Write(const char8 * const name, const AnyType &value) {
+bool MDSStructuredDataI::Write(const char8 * const name,
+                               const AnyType &value) {
     bool ok = true;
     MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
     try {
@@ -70,6 +73,9 @@ bool MDSStructuredDataI::Write(const char8 * const name, const AnyType &value) {
     }
     if (ok) {
         ok = (node != NULL_PTR(MDSplus::TreeNode *));
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Node %s does not exist and cannot be created", name);
+        }
     }
     if (ok) {
         MDSplus::Data *data;
@@ -343,8 +349,24 @@ void MDSStructuredDataI::SetEditMode(bool edit) {
     editModeSet = edit;
 }
 
-bool MDSStructuredDataI::OpenTree(const char8 * const treeName, uint32 pulseNumber) {
-    return false;
+bool MDSStructuredDataI::OpenTree(const char8 * const treeName,
+                                  uint32 pulseNumber) {
+    bool ok = (tree = NULL_PTR(MDSplus::Tree *));
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "The tree is already opened, current open tree name = %s and pulse number", GetName(),
+                            openPulseNumber);
+    }
+    if (ok) {
+        try {
+            tree = new MDSplus::Tree(treeName, pulseNumber);
+            openPulseNumber = pulseNumber;
+        }
+        catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Fail opening tree %s with shotNumber %d:  %s", treeName, pulseNumber, exc.what());
+            ok = false;
+        }
+    }
+    return ok;
 }
 
 bool MDSStructuredDataI::CreateTree(const char8 * const treeName) {

@@ -52,7 +52,8 @@ namespace MARTe {
  * +PV_1 = {
  *   Class = EPICSInterface::EPICSPV
  *   PVName = PV_ONE //Compulsory. Name of the EPICS PV.
- *   PVType = uint32 //Compulsory. The PV type. Supported types are uint32, int32, float32, float64 and string.
+ *   PVType = uint32 //Compulsory. The PV type. Supported types are uint16, int16, uint32, int32, float32, float64 and string.
+ *   NumberOfElements = 1 //Optional. Number of elements
  *   Timeout = 5.0 //Optional but if set shall be > 0. The timeout for the ca_pend_io operations in seconds. Default value is 5.0 s.
  *   Event = { //Optional. Information about the message to be triggered every-time the EPICS PV value changes.
  *     Destination = StateMachine //Compulsory. Destination of the message.
@@ -110,9 +111,9 @@ EPICSPV    ();
      * @brief Triggered when this PV value changes.
      * @details The value of the PV will set to the \a dbr value. If the Event section (see class description) was defined
      * it will trigger the sending of a Message.
-     * @param[in] dbr the new PV value.
+     * @param[in] args the new PV value.
      */
-    void HandlePVEvent(const void *dbr);
+    void HandlePVEvent(struct event_handler_args const & args);
 
     /**
      * @brief Gets the name of the PV.
@@ -239,12 +240,31 @@ EPICSPV    ();
      */
     ErrorManagement::ErrorType CAGet(StructuredDataI &data);
 
+    /**
+     * @brief Updates the value of the PV by calling an EPICS caput using the value currently held in the memory of GetAnyType.
+     * @return ErrorManagement::NoError if the value can be successfully caput (which implies that the low-level EPICS function return no Error).
+     */
+    ErrorManagement::ErrorType CAPutRaw();
+
+    /**
+     * @brief Gets the AnyType which represents the variable wrapped by this EPICSPV.
+     * @return the AnyType which represents the variable wrapped by this EPICSPV.
+     */
+    AnyType GetAnyType() const;
+
+    /**
+     * @brief Gets the memory size to hold this PV.
+     * @return the memory size to hold this PV.
+     * TODO test function!
+     */
+    uint32 GetMemorySize() const;
+
 private:
     /**
      * @brief Triggers the sending of a Message with the rules defined in the class description.
      * @param[in] newValue the value to be sent (either as the Function name or the Function parameter).
      */
-    void TriggerEventMessage(StreamString &newValue);
+    void TriggerEventMessage();
 
     /**
      * The EPICS client context.
@@ -277,11 +297,6 @@ private:
     chtype pvType;
 
     /**
-     * The PV TypeDescriptor.
-     */
-    TypeDescriptor pvTypeDesc;
-
-    /**
      * The name of the event message destination object.
      */
     StreamString destination;
@@ -307,15 +322,29 @@ private:
     EventMode eventMode;
 
     /**
-     * The PV value is stored using the StreamString memory.
-     */
-    StreamString pvMemoryStr;
-
-    /**
      * The memory of the PV (stored using the internal buffer of the pvMemoryStr StreamString)
      */
     void *pvMemory;
 
+    /**
+     * The total memory size
+     */
+    uint32 memorySize;
+
+    /**
+     * The type size
+     */
+    uint32 typeSize;
+
+    /**
+     * The number of elements to set
+     */
+    uint32 numberOfElements;
+
+    /**
+     * The EPICS PV AnyType representation
+     */
+    AnyType pvAnyType;
 };
 
 }

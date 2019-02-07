@@ -340,7 +340,11 @@ template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnT
         const uint64 *absTimeStored = NULL;
         if (ok) {
             DataInterval interval = danStreamReader.getIntervalWhole();
+#ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
+	    danStreamReader.openDataPath(channelNames[c]);
+#else
             danStreamReader.setChannel(channelNames[c]);
+#endif
             pDataChannel = danStreamReader.getRawValuesNative(&interval, -1);
             pDataTime = danStreamReader.getTimeAbs(&interval, -1);
             absTimeStored = reinterpret_cast<const uint64 *>(pDataTime->asUInt64());

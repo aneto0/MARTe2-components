@@ -248,6 +248,57 @@ const MARTe::char8 * const config2 = ""
         "    }"
         "}";
 
+const MARTe::char8 * const config21 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = LinuxTimerTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            SleepNature = Busy"
+        "            SleepPercentage = 50"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 const MARTe::char8 * const config3 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
@@ -681,7 +732,6 @@ const MARTe::char8 * const config10 = ""
         "    }"
         "}";
 
-
 //Standard configuration for testing in the context of the real-time thread
 const MARTe::char8 * const config11 = ""
         "$Test = {"
@@ -818,6 +868,10 @@ bool LinuxTimerTest::TestExecute_Busy() {
     return TestIntegratedInApplication(config2);
 }
 
+bool LinuxTimerTest::TestExecute_Busy_SleepPercentage() {
+    return TestIntegratedInApplication(config21);
+}
+
 bool LinuxTimerTest::TestExecute_RTThread() {
     return TestIntegratedInApplication(config11);
 }
@@ -914,7 +968,37 @@ bool LinuxTimerTest::TestInitialise_Busy() {
     LinuxTimer test;
     ConfigurationDatabase cdb;
     cdb.Write("SleepNature", "Busy");
-    return test.Initialise(cdb);
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = test.GetSleepPercentage() == 0;
+    }
+    return ok;
+}
+
+bool LinuxTimerTest::TestInitialise_Busy_SleepPercentage() {
+    using namespace MARTe;
+    LinuxTimer test;
+    ConfigurationDatabase cdb;
+    cdb.Write("SleepNature", "Busy");
+    cdb.Write("SleepPercentage", "50");
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = test.GetSleepPercentage() == 50;
+    }
+    return ok;
+}
+
+bool LinuxTimerTest::TestInitialise_Busy_SleepPercentage_gt_100() {
+    using namespace MARTe;
+    LinuxTimer test;
+    ConfigurationDatabase cdb;
+    cdb.Write("SleepNature", "Busy");
+    cdb.Write("SleepPercentage", "150");
+    bool ok = test.Initialise(cdb);
+    if (ok) {
+        ok = test.GetSleepPercentage() == 100;
+    }
+    return ok;
 }
 
 bool LinuxTimerTest::TestInitialise_CPUMask() {
@@ -951,11 +1035,27 @@ bool LinuxTimerTest::TestGetStackSize() {
     return TestInitialise_StackSize();
 }
 
-bool LinuxTimerTest::TestInitialise_False() {
+bool LinuxTimerTest::TestInitialise_False_SleepNature() {
     using namespace MARTe;
     LinuxTimer test;
     ConfigurationDatabase cdb;
     cdb.Write("SleepNature", "False");
+    return !test.Initialise(cdb);
+}
+
+bool LinuxTimerTest::TestInitialise_False_ExecutionMode() {
+    using namespace MARTe;
+    LinuxTimer test;
+    ConfigurationDatabase cdb;
+    cdb.Write("ExecutionMode", "False");
+    return !test.Initialise(cdb);
+}
+
+bool LinuxTimerTest::TestInitialise_False_StackSize() {
+    using namespace MARTe;
+    LinuxTimer test;
+    ConfigurationDatabase cdb;
+    cdb.Write("StackSize", 0);
     return !test.Initialise(cdb);
 }
 
@@ -990,3 +1090,8 @@ bool LinuxTimerTest::TestSetConfiguredDatabase_False_IntegerSignal1() {
 bool LinuxTimerTest::TestSetConfiguredDatabase_False_IntegerSignal2() {
     return !TestIntegratedInApplication(config10);
 }
+
+bool LinuxTimerTest::TestGetSleepPercentage() {
+    return TestInitialise_Busy_SleepPercentage();
+}
+

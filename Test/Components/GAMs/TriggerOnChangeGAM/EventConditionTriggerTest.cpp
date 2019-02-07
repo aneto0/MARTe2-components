@@ -50,12 +50,11 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-
 class EventConditionTriggerTestGAM: public TriggerOnChangeGAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
-    EventConditionTriggerTestGAM();
+EventConditionTriggerTestGAM    ();
     ~EventConditionTriggerTestGAM();
 
     uint8 *GetPreviousValue();
@@ -71,27 +70,25 @@ public:
     uint8 *GetCurrentValue();
     uint8 *GetAckValue();
 
-
     void *GetInputSignalsMemory();
 
     void *GetOutputSignalsMemory();
 
-
 };
 
-EventConditionTriggerTestGAM::EventConditionTriggerTestGAM(){
+EventConditionTriggerTestGAM::EventConditionTriggerTestGAM() {
 
 }
 
-EventConditionTriggerTestGAM::~EventConditionTriggerTestGAM(){
+EventConditionTriggerTestGAM::~EventConditionTriggerTestGAM() {
 
 }
 
-void *EventConditionTriggerTestGAM::GetInputSignalsMemory(){
+void *EventConditionTriggerTestGAM::GetInputSignalsMemory() {
     return GAM::GetInputSignalsMemory();
 }
 
-void *EventConditionTriggerTestGAM::GetOutputSignalsMemory(){
+void *EventConditionTriggerTestGAM::GetOutputSignalsMemory() {
     return GAM::GetOutputSignalsMemory();
 }
 
@@ -144,8 +141,6 @@ uint8 *EventConditionTriggerTestGAM::GetAckValue() {
 
 CLASS_REGISTER(EventConditionTriggerTestGAM, "1.0")
 
-
-
 class EventConditionTriggerTestComp: public EventConditionTrigger {
 public:
 
@@ -161,12 +156,14 @@ public:
 
 };
 
-EventConditionTriggerTestComp::EventConditionTriggerTestComp() {
+EventConditionTriggerTestComp::EventConditionTriggerTestComp() :
+        EventConditionTrigger() {
 
 }
 
 EventConditionTriggerTestComp::~EventConditionTriggerTestComp() {
-
+    ReferenceContainer rc;
+    Purge(rc);
 }
 
 EventConditionTriggerTestComp::EventConditionField *EventConditionTriggerTestComp::GetEventConditions() {
@@ -189,22 +186,22 @@ class EventConditionTriggerTestDS: public MemoryDataSourceI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
 
-    EventConditionTriggerTestDS();
+EventConditionTriggerTestDS    ();
 
     virtual ~EventConditionTriggerTestDS();
 
     const char8 *GetBrokerName(StructuredDataI &data,
-                               const SignalDirection direction);
+            const SignalDirection direction);
 
     bool ChangeCommand(uint32 index,
-                       uint32 value);
+            uint32 value);
 
     ErrorManagement::ErrorType TrigFun1();
     ErrorManagement::ErrorType TrigFun2();
     ErrorManagement::ErrorType TrigFun3();
 
     virtual bool PrepareNextState(const char8 * const currentStateName,
-                                  const char8 * const nextStateName);
+            const char8 * const nextStateName);
     virtual bool Synchronise();
 
     void ResetFlag();
@@ -219,7 +216,7 @@ private:
 
 EventConditionTriggerTestDS::EventConditionTriggerTestDS() :
         MessageI() {
-    ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
     if (!ret.ErrorsCleared()) {
@@ -275,8 +272,7 @@ ErrorManagement::ErrorType EventConditionTriggerTestDS::TrigFun3() {
     return ret;
 }
 
-bool EventConditionTriggerTestDS::ChangeCommand(uint32 index,
-                                                uint32 value) {
+bool EventConditionTriggerTestDS::ChangeCommand(uint32 index, uint32 value) {
     uint32 *signalAddress = NULL;
     bool ret = GetSignalMemoryBuffer(index, 0, (void*&) signalAddress);
     if (ret) {
@@ -285,8 +281,7 @@ bool EventConditionTriggerTestDS::ChangeCommand(uint32 index,
     return ret;
 }
 
-const char8 *EventConditionTriggerTestDS::GetBrokerName(StructuredDataI &data,
-                                                        const SignalDirection direction) {
+const char8 *EventConditionTriggerTestDS::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
 
     const char8* brokerName = NULL_PTR(const char8 *);
 
@@ -331,8 +326,7 @@ const char8 *EventConditionTriggerTestDS::GetBrokerName(StructuredDataI &data,
     return brokerName;
 }
 
-bool EventConditionTriggerTestDS::PrepareNextState(const char8 * const currentStateName,
-                                                   const char8 * const nextStateName) {
+bool EventConditionTriggerTestDS::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
     return true;
 }
 
@@ -387,7 +381,7 @@ bool EventConditionTriggerTest::TestConstructor() {
     EventConditionTriggerTestComp comp;
     bool ret = comp.GetEventConditions() == NULL;
     ret &= comp.GetNumberOfConditions() == 0u;
-    ret &= comp.Replied() == 0u;
+    //ret &= comp.Replied() == 0u;
     return ret;
 }
 
@@ -429,7 +423,6 @@ bool EventConditionTriggerTest::TestInitialise() {
     }
     return ret;
 }
-
 
 bool EventConditionTriggerTest::TestInitialise_CPUMask() {
 
@@ -484,6 +477,46 @@ bool EventConditionTriggerTest::TestInitialise_FalseNoEventTrigger() {
             "                    }"
             "                    +StartStateMachine = {"
             "                        Class = Message"
+            "                        Destination = Application.Data.Input"
+            "                        Function = \"TrigFun1\""
+            "                        Mode = ExpectsReply"
+            "                    }";
+
+    EventConditionTriggerTestComp comp;
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ret = parser.Parse();
+    if (ret) {
+        ret = !comp.Initialise(cdb);
+    }
+    return ret;
+
+}
+
+bool EventConditionTriggerTest::TestInitialise_FalseNotOnlyMessages() {
+
+    const char8 *config = ""
+            "                    Class = EventConditionTrigger"
+            "                    CPUMask = 0x1"
+            "                    EventTrigger = {"
+            "                        Command1 = 1"
+            "                        Command2 = 2"
+            "                        Command3 = 3"
+            "                        Command4 = 4"
+            "                        State = 4"
+            "                    }"
+            "                    +StartStateMachine = {"
+            "                        Class = Message"
+            "                        Destination = Application.Data.Input"
+            "                        Function = \"TrigFun1\""
+            "                        Mode = ExpectsReply"
+            "                    }"
+            "                    +StartStateMachine2 = {"
+            "                        Class = Object"
             "                        Destination = Application.Data.Input"
             "                        Function = \"TrigFun1\""
             "                        Mode = ExpectsReply"
@@ -965,38 +998,38 @@ bool EventConditionTriggerTest::TestExecute_ImmediateReply() {
 
     //get the ds memory
 
-    ReferenceT < EventConditionTriggerTestDS > ds;
+    ReferenceT<EventConditionTriggerTestDS> ds;
     if (ret) {
         ds = god->Find("Application.Data.Input");
         ret = ds.IsValid();
     }
 
-    ReferenceT < EventConditionTriggerTestGAM > gam;
-       if (ret) {
-           gam = god->Find("Application.Functions.GAM1");
-           ret = gam.IsValid();
-       }
+    ReferenceT<EventConditionTriggerTestGAM> gam;
+    if (ret) {
+        gam = god->Find("Application.Functions.GAM1");
+        ret = gam.IsValid();
+    }
 
     uint32 *mem = NULL;
-    if(ret){
-        ret=ds->GetSignalMemoryBuffer(0u, 0u, (void*&)mem);
+    if (ret) {
+        ret = ds->GetSignalMemoryBuffer(0u, 0u, (void*&) mem);
 
     }
 
-    if(ret){
-        mem[0]=1;
-        mem[1]=2;
-        PacketField *packetField=gam->GetPacketConfig();
-        ret=event1->Check((uint8*)mem, &packetField[0]);
-        if(ret){
-            uint8 flag=0u;
+    if (ret) {
+        mem[0] = 1;
+        mem[1] = 2;
+        PacketField *packetField = gam->GetPacketConfig();
+        ret = event1->Check((uint8*) mem, &packetField[0]);
+        if (ret) {
+            uint8 flag = 0u;
             //give max 10 sec to execute the messages
-            const uint32 nTries=10u;
-            ret=false;
-            for(uint32 i=0u; i<nTries; i++){
-                flag=ds->GetFlag();
-                if(flag==0x7){
-                    ret=(event1->Replied()==3);
+            const uint32 nTries = 10u;
+            ret = false;
+            for (uint32 i = 0u; i < nTries; i++) {
+                flag = ds->GetFlag();
+                if (flag == 0x7) {
+                    ret = (event1->Replied(&packetField[0]) == 3);
                     break;
                 }
                 Sleep::Sec(1);
@@ -1009,8 +1042,7 @@ bool EventConditionTriggerTest::TestExecute_ImmediateReply() {
     return ret;
 }
 
-
-bool EventConditionTriggerTest::TestExecute_IndirectReply(){
+bool EventConditionTriggerTest::TestExecute_IndirectReply() {
 
     const char8 *config = ""
             "$Application = {"
@@ -1125,38 +1157,38 @@ bool EventConditionTriggerTest::TestExecute_IndirectReply(){
 
     //get the ds memory
 
-    ReferenceT < EventConditionTriggerTestDS > ds;
+    ReferenceT<EventConditionTriggerTestDS> ds;
     if (ret) {
         ds = god->Find("Application.Data.Input");
         ret = ds.IsValid();
     }
 
-    ReferenceT < EventConditionTriggerTestGAM > gam;
-       if (ret) {
-           gam = god->Find("Application.Functions.GAM1");
-           ret = gam.IsValid();
-       }
+    ReferenceT<EventConditionTriggerTestGAM> gam;
+    if (ret) {
+        gam = god->Find("Application.Functions.GAM1");
+        ret = gam.IsValid();
+    }
 
     uint32 *mem = NULL;
-    if(ret){
-        ret=ds->GetSignalMemoryBuffer(0u, 0u, (void*&)mem);
+    if (ret) {
+        ret = ds->GetSignalMemoryBuffer(0u, 0u, (void*&) mem);
 
     }
 
-    if(ret){
-        mem[0]=1;
-        mem[1]=2;
-        PacketField *packetField=gam->GetPacketConfig();
-        ret=event1->Check((uint8*)mem, &packetField[0]);
-        if(ret){
-            uint8 flag=0u;
+    if (ret) {
+        mem[0] = 1;
+        mem[1] = 2;
+        PacketField *packetField = gam->GetPacketConfig();
+        ret = event1->Check((uint8*) mem, &packetField[0]);
+        if (ret) {
+            uint8 flag = 0u;
             //give max 10 sec to execute the messages
-            const uint32 nTries=10u;
-            ret=false;
-            for(uint32 i=0u; i<nTries; i++){
-                flag=ds->GetFlag();
-                if(flag==0x7){
-                    ret=(event1->Replied()==3);
+            const uint32 nTries = 10u;
+            ret = false;
+            for (uint32 i = 0u; i < nTries; i++) {
+                flag = ds->GetFlag();
+                if (flag == 0x7) {
+                    ret = (event1->Replied(&packetField[0]) == 3);
                     break;
                 }
                 Sleep::Sec(1);
@@ -1169,8 +1201,7 @@ bool EventConditionTriggerTest::TestExecute_IndirectReply(){
     return ret;
 }
 
-
-bool EventConditionTriggerTest::TestExecute_Mixed(){
+bool EventConditionTriggerTest::TestExecute_Mixed() {
 
     const char8 *config = ""
             "$Application = {"
@@ -1285,38 +1316,38 @@ bool EventConditionTriggerTest::TestExecute_Mixed(){
 
     //get the ds memory
 
-    ReferenceT < EventConditionTriggerTestDS > ds;
+    ReferenceT<EventConditionTriggerTestDS> ds;
     if (ret) {
         ds = god->Find("Application.Data.Input");
         ret = ds.IsValid();
     }
 
-    ReferenceT < EventConditionTriggerTestGAM > gam;
-       if (ret) {
-           gam = god->Find("Application.Functions.GAM1");
-           ret = gam.IsValid();
-       }
+    ReferenceT<EventConditionTriggerTestGAM> gam;
+    if (ret) {
+        gam = god->Find("Application.Functions.GAM1");
+        ret = gam.IsValid();
+    }
 
     uint32 *mem = NULL;
-    if(ret){
-        ret=ds->GetSignalMemoryBuffer(0u, 0u, (void*&)mem);
+    if (ret) {
+        ret = ds->GetSignalMemoryBuffer(0u, 0u, (void*&) mem);
 
     }
 
-    if(ret){
-        mem[0]=1;
-        mem[1]=2;
-        PacketField *packetField=gam->GetPacketConfig();
-        ret=event1->Check((uint8*)mem, &packetField[0]);
-        if(ret){
-            uint8 flag=0u;
+    if (ret) {
+        mem[0] = 1;
+        mem[1] = 2;
+        PacketField *packetField = gam->GetPacketConfig();
+        ret = event1->Check((uint8*) mem, &packetField[0]);
+        if (ret) {
+            uint8 flag = 0u;
             //give max 10 sec to execute the messages
-            const uint32 nTries=10u;
-            ret=false;
-            for(uint32 i=0u; i<nTries; i++){
-                flag=ds->GetFlag();
-                if(flag==0x7){
-                    ret=(event1->Replied()==3);
+            const uint32 nTries = 10u;
+            ret = false;
+            for (uint32 i = 0u; i < nTries; i++) {
+                flag = ds->GetFlag();
+                if (flag == 0x7) {
+                    ret = (event1->Replied(&packetField[0]) == 3);
                     break;
                 }
                 Sleep::Sec(1);
@@ -1329,19 +1360,18 @@ bool EventConditionTriggerTest::TestExecute_Mixed(){
     return ret;
 }
 
-
-bool EventConditionTriggerTest::TestReplied_ImmediateReply(){
+bool EventConditionTriggerTest::TestReplied_ImmediateReply() {
     return TestExecute_ImmediateReply();
 }
 
-bool EventConditionTriggerTest::TestReplied_IndirectReply(){
+bool EventConditionTriggerTest::TestReplied_IndirectReply() {
     return TestExecute_IndirectReply();
 }
 
-bool EventConditionTriggerTest::TestReplied_Mixed(){
+bool EventConditionTriggerTest::TestReplied_Mixed() {
     return TestExecute_Mixed();
 }
 
-bool EventConditionTriggerTest::TestGetCPUMask(){
+bool EventConditionTriggerTest::TestGetCPUMask() {
     return TestInitialise_CPUMask();
 }

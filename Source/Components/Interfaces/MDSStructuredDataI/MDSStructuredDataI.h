@@ -65,7 +65,9 @@ MDSStructuredDataI    ();
     virtual AnyType GetType(const char8 * const name);
 
     /**
-     * TODO
+     * @brief write value in the node specified by name
+     * @details if the node does not exist it is created
+     * @pre
      */
     virtual bool Write(const char8 * const name, const AnyType &value);
 
@@ -174,6 +176,8 @@ private:
      * True if the tree can be edited.
      */
     bool editModeSet;
+
+    MARTe::uint32 openPulseNumber;
 
 };
 }
