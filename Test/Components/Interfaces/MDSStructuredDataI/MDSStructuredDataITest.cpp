@@ -34,7 +34,6 @@
 #include "MDSStructuredDataI.h"
 #include "MDSStructuredDataITest.h"
 #include "StandardParser.h"
-#include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -44,29 +43,123 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+MDSStructuredDataITest::MDSStructuredDataITest() {
+    remove_mds_sdi = false;
+    remove_mds_sdi2 = false;
+    char *home = getenv("HOME");
+    treeName = "mds_sdi";
+    fullPath = treeName.Buffer();
+    fullPath += "_path=";
+    fullPath += home;
+    //Important detail: fullPath must exist in all places where the environment variables is needed.
+    //In other words, the scope of the environment variables is defined by the scope of the string (char *)
+    //given to putenv() function.
+    putenv((char *) (fullPath.Buffer()));
+    treeName2 = "mds_sdi2";
+    fullPath2 = treeName2.Buffer();
+    fullPath2 += "_path=";
+    fullPath2 += home;
+    //Important detail: fullPath must exist in all places where the environment variables is needed.
+    //In other words, the scope of the environment variables is defined by the scope of the string (char *)
+    //given to putenv() function.
+    putenv((char *) (fullPath2.Buffer()));
+}
+
+MDSStructuredDataITest::~MDSStructuredDataITest() {
+    if (remove_mds_sdi) {
+        MARTe::StreamString strChar = getenv("HOME");
+        strChar += "/";
+        strChar += treeName.Buffer();
+        strChar += "_model.characteristics";
+        if (0 != remove(strChar.Buffer())) {
+            printf("Error while removing %s\n", strChar.Buffer());
+        }
+        MARTe::StreamString strData = getenv("HOME");
+        strData += "/";
+        strData += treeName.Buffer();
+        strData += "_model.datafile";
+        if (0 != remove(strData.Buffer())) {
+            printf("Error while removing %s\n", strData.Buffer());
+        }
+        MARTe::StreamString strTree = getenv("HOME");
+        strTree += "/";
+        strTree += treeName.Buffer();
+        strTree += "_model.tree";
+        if (0 != remove(strTree.Buffer())) {
+            printf("Error while removing %s\n", strTree.Buffer());
+        }
+    }
+    if (remove_mds_sdi2) {
+        MARTe::StreamString strChar = getenv("HOME");
+        strChar += "/";
+        strChar += treeName2.Buffer();
+        strChar += "_model.characteristics";
+        if (0 != remove(strChar.Buffer())) {
+            printf("Error while removing %s\n", strChar.Buffer());
+        }
+        MARTe::StreamString strData = getenv("HOME");
+        strData += "/";
+        strData += treeName2.Buffer();
+        strData += "_model.datafile";
+        if (0 != remove(strData.Buffer())) {
+            printf("Error while removing %s\n", strData.Buffer());
+        }
+        MARTe::StreamString strTree = getenv("HOME");
+        strTree += "/";
+        strTree += treeName2.Buffer();
+        strTree += "_model.tree";
+        if (0 != remove(strTree.Buffer())) {
+            printf("Error while removing %s\n", strTree.Buffer());
+        }
+    }
+}
 bool MDSStructuredDataITest::TestConstructor() {
     using namespace MARTe;
-    MDSplus::Tree *tree = NULL;
-    StreamString treeName = "mds_sdi";
-    try {
-        tree = new MDSplus::Tree(treeName.Buffer(), -1, "EDIT");
-    }
-    catch (const MDSplus::MdsException &exc) {
-        REPORT_ERROR_STATIC(MARTe::ErrorManagement::Warning, "Error opening tree %s. Error: %s", treeName.Buffer(), exc.what());
-    }
     MDSStructuredDataI mdsStructuredDataI;
-    mdsStructuredDataI.SetTree(tree);
-    mdsStructuredDataI.SetEditMode(true);
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer());
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SetEditMode(true);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    /*
+     try {
+     tree = new MDSplus::Tree(treeName.Buffer(), -1, "EDIT");
+     }
+     catch (const MDSplus::MdsException &exc) {
+     REPORT_ERROR_STATIC(MARTe::ErrorManagement::Warning, "Error opening tree %s. Error: %s", treeName.Buffer(), exc.what());
+     ret = false;
+     }
 
-     /*mdsStructuredDataI.CreateAbsolute("A");
-     mdsStructuredDataI.CreateAbsolute("A.B");
-     mdsStructuredDataI.CreateAbsolute("A.B.C");
-     float32 f = 9;
-     mdsStructuredDataI.Write("AFloat", f);
-
-     mdsStructuredDataI.CreateAbsolute("A.B.D");
-     StreamString b = "HELLO!";
-     mdsStructuredDataI.Write("AString", b.Buffer());*/
+     if (ret) {
+     mdsStructuredDataI.SetTree(tree);
+     mdsStructuredDataI.SetEditMode(true);
+     }
+     */
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B.C");
+    }
+    float32 f = 9;
+    if (ret) {
+        ret = mdsStructuredDataI.Write("AFloat", f);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B.D");
+    }
+    StreamString b = "HELLO!";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("AString", b.Buffer());
+    }
 
     const char* config = "Test = {"
             "    Class = RealTimeApplication"
@@ -170,10 +263,1653 @@ bool MDSStructuredDataITest::TestConstructor() {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "%s", err.Buffer());
     }
     cdb.MoveToRoot();
-    cdb.Copy(mdsStructuredDataI);
+    if (ret) {
+        cdb.Copy(mdsStructuredDataI);
+    }
 
-    tree->write();
-    delete tree;
-    return true;
+    mdsStructuredDataI.SaveTree();
+    return ret;
 }
+
+bool MDSStructuredDataITest::TestCreateTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer());
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCreateTree2() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer());
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateTree(treeName.Buffer());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCreateTree_force() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer());
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), true);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestOpentree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), true);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestOpentree2() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), true);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestOpentree_sameTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), true);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestOpentree_diffTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), true);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.OpenTree(treeName2.Buffer(), -1);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestOpentree_NoCreate() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool ret = !mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestSetTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    MDSplus::Tree *extTree = NULL_PTR(MDSplus::Tree *);
+    try {
+        extTree = new MDSplus::Tree(treeName.Buffer(), -1, "EDIT");
+    }
+    catch (const MDSplus::MdsException &exc) {
+        REPORT_ERROR_STATIC(MARTe::ErrorManagement::Warning, "Error opening tree %s. Error: %s", treeName.Buffer(), exc.what());
+        ret = false;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SetTree(extTree);
+        mdsStructuredDataI.SetEditMode(true);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestSetTree_openTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    MDSplus::Tree *extTree = NULL_PTR(MDSplus::Tree *);
+    try {
+        extTree = new MDSplus::Tree(treeName.Buffer(), -1, "EDIT");
+    }
+    catch (const MDSplus::MdsException &exc) {
+        REPORT_ERROR_STATIC(MARTe::ErrorManagement::Warning, "Error opening tree %s. Error: %s", treeName.Buffer(), exc.what());
+        ret = false;
+    }
+
+    if (ret) {
+        ret = !mdsStructuredDataI.SetTree(extTree);
+        mdsStructuredDataI.SetEditMode(true);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestcloseTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestcloseTree_SetTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    MDSplus::Tree *extTree = NULL_PTR(MDSplus::Tree *);
+    try {
+        extTree = new MDSplus::Tree(treeName.Buffer(), -1, "EDIT");
+    }
+    catch (const MDSplus::MdsException &exc) {
+        REPORT_ERROR_STATIC(MARTe::ErrorManagement::Warning, "Error opening tree %s. Error: %s", treeName.Buffer(), exc.what());
+        ret = false;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SetTree(extTree);
+        mdsStructuredDataI.SetEditMode(true);
+    }
+    if (extTree != NULL_PTR(MDSplus::Tree *)) {
+        delete extTree;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestcloseTree_noOpened() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.CloseTree();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestDelete() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    StreamString a = "Hi";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("AString", a.Buffer());
+    }
+    StreamString b = "Bye";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("BString", b.Buffer());
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.Delete("BString");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestDelete_noEditable() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    StreamString a = "Hi";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("AString", a.Buffer());
+    }
+    StreamString b = "Bye";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("BString", b.Buffer());
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(false);
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.Delete("BString");
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestDelete_noOpened() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    StreamString a = "Hi";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("AString", a.Buffer());
+    }
+    StreamString b = "Bye";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("BString", b.Buffer());
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.Delete("BString");
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestDelete_noNode() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    StreamString a = "Hi";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("AString", a.Buffer());
+    }
+    StreamString b = "Bye";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("BString", b.Buffer());
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.Delete("noExistingNode");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestSetEditMode() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+    }
+    StreamString a = "Hi";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("AString", a.Buffer());
+    }
+    StreamString b = "Bye";
+    if (ret) {
+        ret = mdsStructuredDataI.Write("BString", b.Buffer());
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestSetEditMode2() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(false);
+        mdsStructuredDataI.SetEditMode(true);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("C");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestSetEditMode3() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("B");
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.SetEditMode(false);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestSaveTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestSaveTree_noEditable() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+        mdsStructuredDataI.SetEditMode(false);
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.SaveTree();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestSaveTree_noOpen() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.SaveTree();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestGetNumberOfChildren() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.1");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.2");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.3");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor();
+        ret = (3 == mdsStructuredDataI.GetNumberOfChildren());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestGetNumberOfChildren2() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.1");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.2");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.3");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor();
+        ret = (3 == mdsStructuredDataI.GetNumberOfChildren());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestGetNumberOfChildren_closedTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.1");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.2");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.3");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = (0 == mdsStructuredDataI.GetNumberOfChildren());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestGetChildName() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.1");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.2");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.3");
+    }
+
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor();
+        StreamString refStr1 = "1";
+        ret = (refStr1 == mdsStructuredDataI.GetChildName(0));
+    }
+    if (ret) {
+        StreamString refStr2 = "2";
+        ret = (refStr2 == mdsStructuredDataI.GetChildName(1));
+    }
+    if (ret) {
+        StreamString refStr3 = "3";
+        ret = (refStr3 == mdsStructuredDataI.GetChildName(2));
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestGetChildName_noExistingNode() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.1");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.2");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.3");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor();
+        ret = (NULL_PTR(char8 *) == mdsStructuredDataI.GetChildName(3));
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestGetChildName_noExistingNode2() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.1");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.2");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.3");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor();
+        ret = (NULL_PTR(char8 *) == mdsStructuredDataI.GetChildName(4));
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestGetName() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.1");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.2");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.3");
+    }
+    if (ret) {
+        StreamString auxStr = "3";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestGetName_closedTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.1");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.2");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.3");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = (NULL_PTR(char8 *) == mdsStructuredDataI.GetName());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCreateRelative() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("1");
+    }
+    if (ret) {
+        StreamString auxStr = "1";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCreateRelative_NoEditable() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(false);
+        ret = !mdsStructuredDataI.CreateRelative("1");
+    }
+    if (ret) {
+        StreamString auxStr = "A";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCreateRelative_closedTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateRelative("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.CreateRelative("1");
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCreateAbsolute() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.A");
+    }
+    if (ret) {
+        StreamString auxStr = "A";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    if (ret) {
+        StreamString auxStr = "A";
+        ret = mdsStructuredDataI.MoveToAncestor();
+        if (ret) {
+            ret = (auxStr == mdsStructuredDataI.GetName());
+        }
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        StreamString auxStr = "B";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCreateAbsolute_noEditable() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.A");
+    }
+    if (ret) {
+        StreamString auxStr = "A";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    if (ret) {
+        StreamString auxStr = "A";
+        ret = mdsStructuredDataI.MoveToAncestor();
+        if (ret) {
+            ret = (auxStr == mdsStructuredDataI.GetName());
+        }
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SetEditMode(false);
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCreateAbsolute_closedTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.A");
+    }
+    if (ret) {
+        StreamString auxStr = "A";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    if (ret) {
+        StreamString auxStr = "A";
+        ret = mdsStructuredDataI.MoveToAncestor();
+        if (ret) {
+            ret = (auxStr == mdsStructuredDataI.GetName());
+        }
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCreateAbsolute_invalidPath() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.F");
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.CreateAbsolute("C.B");
+    }
+    if (ret) {
+        StreamString auxStr = "F";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveToChild() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToChild(0);
+    }
+    if (ret) {
+        StreamString auxStr = "B";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveToChild_invalidNode() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.MoveToChild(1);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveToChild_ClosedTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.MoveToChild(0);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveRelative() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveRelative("B");
+    }
+    if (ret) {
+        StreamString auxStr = "B";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveRelative_InvalidNode() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B.C");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor(1);
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.MoveRelative("B.C");
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveRelative_closedTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.MoveRelative("B");
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveAbsolute() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("D");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("D.E");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveAbsolute("A.B");
+    }
+    if (ret) {
+        StreamString auxStr = "B";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveAbsolute_InvalidNode() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("D");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("D.E");
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.MoveAbsolute("A.E");
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveAbsolute_closedTree() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.MoveAbsolute("A.B");
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveToAncestor() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor(1);
+    }
+    if (ret) {
+        StreamString auxStr = "A";
+        ret = auxStr == mdsStructuredDataI.GetName();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveToAncestor2() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor(2);
+    }
+    if (ret) {
+        StreamString auxStr = "TOP";
+        ret = auxStr == mdsStructuredDataI.GetName();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveToAncestor3() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToAncestor(3);
+    }
+    if (ret) {
+        StreamString auxStr = "TOP";
+        ret = auxStr == mdsStructuredDataI.GetName();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveToAncestor_treeClosed() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.MoveToAncestor(2);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveToRoot() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToRoot();
+    }
+    if (ret) {
+        StreamString auxStr = "TOP";
+        ret = (auxStr == mdsStructuredDataI.GetName());
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestMoveToRoot_treeClosed() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A.B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SaveTree();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.MoveToAncestor();
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCopy() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    MDSStructuredDataI mdsStructuredDataI2;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateTree(treeName2.Buffer(), force);
+    }
+    if (ret) {
+        remove_mds_sdi2 = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SetEditMode(true);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI2.SetEditMode(true);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI2.OpenTree(treeName2.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToRoot();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.Copy(mdsStructuredDataI2);
+    }
+    if (ret) {
+        ret = (mdsStructuredDataI.GetNumberOfChildren() == mdsStructuredDataI2.GetNumberOfChildren());
+    }
+    for (uint32 i = 0; (i < mdsStructuredDataI.GetNumberOfChildren()) && ret; i++) {
+        StreamString auxStr = mdsStructuredDataI.GetChildName(i);
+        ret = (auxStr == mdsStructuredDataI2.GetChildName(i));
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCopy2() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    ConfigurationDatabase cdb;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateTree(treeName2.Buffer(), force);
+    }
+    if (ret) {
+        remove_mds_sdi2 = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SetEditMode(true);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToRoot();
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.Copy(cdb);
+    }
+    if (ret) {
+        ret = (mdsStructuredDataI.GetNumberOfChildren() == cdb.GetNumberOfChildren());
+    }
+
+    for (uint32 i = 0; (i < mdsStructuredDataI.GetNumberOfChildren()) && ret; i++) {
+        StreamString auxStr = mdsStructuredDataI.GetChildName(i);
+        ret = (auxStr == cdb.GetChildName(i));
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCopy_treeClosed() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    MDSStructuredDataI mdsStructuredDataI2;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateTree(treeName2.Buffer(), force);
+    }
+    if (ret) {
+        remove_mds_sdi2 = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SetEditMode(true);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI2.SetEditMode(true);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToRoot();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.Copy(mdsStructuredDataI2);
+    }
+    return ret;
+}
+
+bool MDSStructuredDataITest::TestCopy_treeClosed2() {
+    using namespace MARTe;
+    MDSStructuredDataI mdsStructuredDataI;
+    MDSStructuredDataI mdsStructuredDataI2;
+    bool force = true;
+    bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
+    if (ret) {
+        remove_mds_sdi = true;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateTree(treeName2.Buffer(), force);
+    }
+    if (ret) {
+        remove_mds_sdi2 = true;
+    }
+    if (ret) {
+        mdsStructuredDataI.SetEditMode(true);
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.SetEditMode(true);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI2.SetEditMode(true);
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CreateAbsolute("B");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.MoveToRoot();
+    }
+    if (ret) {
+        ret = !mdsStructuredDataI.Copy(mdsStructuredDataI2);
+    }
+    return ret;
+}
+
+
 
