@@ -50,5 +50,4 @@ endif
 
 ifdef EPICSPVA)
 LIBRARIES_STATIC+=EPICSPVA/cov/EPICSPVATest$(LIBEXT)
->>>>>>> refs/remotes/origin/develop
 endif
