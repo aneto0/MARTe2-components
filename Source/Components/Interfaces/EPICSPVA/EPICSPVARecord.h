@@ -49,25 +49,12 @@
  * +Record1 = { //If the Alias field is not set, the Object name is the record name
  *   Class = EPICSPVA::EPICSPVARecord
  *   Alias = "f4e::falcon::Fast::Record1" //Optional. If set this will be the record name.
- *   Structure = {
- *     ElementsA = {
- *       Element1 = {
- *         Type = uint32
- *         NumberOfElements = 10
- *       }
- *       Element2 = {
- *         Type = float32
- *       }
- *       ElementsB = {
- *         ElementB1 = {
- *           Type = uint8
- *           NumberOfElements = 100
- *         }
- *         ElementB2 = {
- *           Type = float32
- *           NumberOfElements = 5
- *         }
- *       }
+ *     Structure = {//Use structured types for nested structures.
+ *     A = {
+ *       Type = uint32
+ *     }
+ *     B = {
+ *       Type = AStructuredType //e.g. registered with IntrospectionStructure
  *     }
  *   }
  * }
