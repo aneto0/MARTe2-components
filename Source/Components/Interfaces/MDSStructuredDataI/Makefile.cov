@@ -22,8 +22,8 @@
 #
 #############################################################
 
+TARGET=cov
 
 include Makefile.inc
-ifdef EPICS_ROOT)
-LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
-endif
+
+LIBRARIES += -L$(MDSPLUS_DIR)/lib64 -lMdsObjectsCppShr

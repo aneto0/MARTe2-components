@@ -34,7 +34,11 @@ SPB+=BaseLib2Wrapper.x
 endif
 
 ifdef EPICS_BASE
-SPB   += EPICS.x
+SPB+=EPICS.x
+endif
+
+ifdef MDSPLUS_DIR
+SPB+= MDSStructuredDataI.x
 endif
 
 ifdef CODAC_ROOT
@@ -66,12 +70,19 @@ endif
 ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2Wrapper$(LIBEXT)
 endif
+
 ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICS$(LIBEXT)
 endif
+
 ifdef EPICSPVA
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVA$(LIBEXT)
 endif
+
+ifdef MDSPLUS_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/MDSStructuredDataI/MDSStructuredDataI$(LIBEXT)
+endif
+
 
 all: $(OBJS)  $(SUBPROJ)  \
     $(BUILD_DIR)/Interfaces$(LIBEXT) \

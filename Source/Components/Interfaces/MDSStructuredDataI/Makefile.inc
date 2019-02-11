@@ -22,36 +22,36 @@
 #
 #############################################################
 
-OBJSX=
-SPB =
+OBJSX=MDSStructuredDataI.x
 
-PACKAGE=
-ROOT_DIR=../..
+PACKAGE=Components/Interfaces
+
+ROOT_DIR=../../../../
+
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+INCLUDES += -I.
+INCLUDES += -I$(MDSPLUS_DIR)/include/
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
-# Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
-# Current assumption is prior installation of CODAC Core System on the build node
-ifdef CODAC_ROOT
-## DAN client API dependencies
-LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
-## DAN HDF5 reader dependencies (test code)
-LIBRARIES += -ldan_base -ldan_archive -ldan_wrapper_srv -ldan_uda_reader_base -ldan_stream_reader_cpp
-endif
+#TODO Temporary to fix problem in mdsplus include
+CPPFLAGS += -Wno-error=sign-compare
 
-ifdef SDN_CORE_LIBRARY_DIR
-LIBRARIES += -L$(SDN_CORE_LIBRARY_DIR) -lsdn-core -lxml2
-endif
-
-
-all: $(OBJS) $(SUBPROJ)   \
-        $(BUILD_DIR)/MainGTest$(EXEEXT)
+all: $(OBJS)    \
+    $(BUILD_DIR)/MDSStructuredDataI$(LIBEXT) \
+    $(BUILD_DIR)/MDSStructuredDataI$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

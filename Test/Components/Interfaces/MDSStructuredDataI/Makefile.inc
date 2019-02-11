@@ -20,39 +20,43 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-OBJSX=
-SPB =
+OBJSX +=  MDSStructuredDataITest.x
 
-PACKAGE=
-ROOT_DIR=../..
+PACKAGE=Components/Interfaces
+ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+INCLUDES += -I$(MDSPLUS_DIR)/include/
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
-# Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
-# Current assumption is prior installation of CODAC Core System on the build node
-ifdef CODAC_ROOT
-## DAN client API dependencies
-LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
-## DAN HDF5 reader dependencies (test code)
-LIBRARIES += -ldan_base -ldan_archive -ldan_wrapper_srv -ldan_uda_reader_base -ldan_stream_reader_cpp
-endif
+INCLUDES += -I../../../../Source/Components/Interfaces/MDSStructuredDataI
 
-ifdef SDN_CORE_LIBRARY_DIR
-LIBRARIES += -L$(SDN_CORE_LIBRARY_DIR) -lsdn-core -lxml2
-endif
+#TODO Temporary to fix problem in mdsplus include
+CPPFLAGS += -Wno-error=sign-compare
 
-
-all: $(OBJS) $(SUBPROJ)   \
-        $(BUILD_DIR)/MainGTest$(EXEEXT)
+all: $(OBJS) \
+	$(BUILD_DIR)/MDSStructuredDataITest$(LIBEXT)
 	echo  $(OBJS)
+
 
 include depends.$(TARGET)
 

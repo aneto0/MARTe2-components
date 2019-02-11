@@ -35,10 +35,13 @@ ifdef EPICS_BASE
 SPB   += EPICS.x
 endif
 
+
+ifdef MDSPLUS_DIR
+SPB += MDSStructuredDataI.x
+endif
+
 ifdef CODAC_ROOT
-
 SPB+=NI9157Device.x
-
 ## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
 ifeq "$(CCSGT61)" "1"
@@ -70,6 +73,11 @@ endif
 
 ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICSTest$(LIBEXT)
+endif
+
+
+ifdef MDSPLUS_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/MDSStructuredDataI/MDSStructuredDataITest$(LIBEXT)
 endif
 
 ifdef EPICSPVA
