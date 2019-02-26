@@ -260,8 +260,7 @@ bool FileReader::Synchronise() {
                     if (!ok) {
                         StreamString signalName;
                         (void) GetSignalName(signalIdx, signalName);
-                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(),
-                                     line.Buffer());
+                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(), line.Buffer());
                     }
                 }
                 else {
@@ -270,8 +269,7 @@ bool FileReader::Synchronise() {
                         ok = TypeConvert(signalsAnyType[signalIdx], sourceStr);
                     }
                     else {
-                        ok = StringHelper::CopyN(reinterpret_cast<char8 *>(signalsAnyType[signalIdx].GetDataPointer()), token.Buffer(),
-                                                 signalsAnyType[signalIdx].GetNumberOfElements(0u));
+                        ok = StringHelper::CopyN(reinterpret_cast<char8 *>(signalsAnyType[signalIdx].GetDataPointer()), token.Buffer(), signalsAnyType[signalIdx].GetNumberOfElements(0u));
                     }
                 }
                 signalIdx++;
@@ -373,14 +371,12 @@ bool FileReader::Initialise(StructuredDataI& data) {
     if (ok) {
         if (interpolate) {
             if (!data.Read("XAxisSignal", xAxisSignalName)) {
-                REPORT_ERROR(
-                        ErrorManagement::Warning,
-                        "Interpolate=yes and the XAxisSignal was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
+                REPORT_ERROR(ErrorManagement::Warning,
+                             "Interpolate=yes and the XAxisSignal was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
             }
             if (!data.Read("InterpolationPeriod", interpolationPeriod)) {
-                REPORT_ERROR(
-                        ErrorManagement::Warning,
-                        "Interpolate=yes and the InterpolationPeriod was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
+                REPORT_ERROR(ErrorManagement::Warning,
+                             "Interpolate=yes and the InterpolationPeriod was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
             }
         }
     }
@@ -611,16 +607,36 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                     fatalFileError = !TypeConvert(dst, src);
                 }
                 if (!fatalFileError) {
-                    fatalFileError = !cdb.CreateRelative(signalName.Buffer());
+                    if (!cdb.CreateRelative(signalName.Buffer())) {
+                        fatalFileError = !cdb.MoveRelative(signalName.Buffer());
+                    }
                 }
                 if (!fatalFileError) {
-                    fatalFileError = !cdb.Write("Type", signalTypeStr.Buffer());
+                    if (!cdb.Write("Type", signalTypeStr.Buffer())) {
+                        StreamString declaredType;
+                        fatalFileError = !cdb.Read("Type", declaredType);
+                        if (!fatalFileError) {
+                            fatalFileError = (declaredType != signalTypeStr);
+                        }
+                    }
                 }
                 if (!fatalFileError) {
-                    fatalFileError = !cdb.Write("NumberOfElements", nElements);
+                    if (!cdb.Write("NumberOfElements", nElements)) {
+                        uint32 declaredElements;
+                        fatalFileError = !cdb.Read("NumberOfElements", declaredElements);
+                        if (!fatalFileError) {
+                            fatalFileError = (nElements != declaredElements);
+                        }
+                    }
                 }
                 if (nElements > 1u) {
-                    fatalFileError = !cdb.Write("NumberOfDimensions", 1u);
+                    if (!cdb.Write("NumberOfDimensions", 1u)) {
+                        uint32 declaredDimensions;
+                        fatalFileError = !cdb.Read("NumberOfDimensions", declaredDimensions);
+                        if (!fatalFileError) {
+                            fatalFileError = (declaredDimensions != 1u);
+                        }
+                    }
                 }
                 if (!fatalFileError) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
@@ -679,8 +695,7 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
                 }
                 if (!fatalFileError) {
-                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(),
-                                 TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
+                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
                 }
             }
         }

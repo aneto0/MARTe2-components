@@ -802,7 +802,7 @@ void EPICSPVAStructureDataI::InitStructure() {
 
 bool EPICSPVAStructureDataI::FinaliseStructure() {
     bool ok = cachedCDB.MoveToRoot();
-    ReferenceT<ReferenceContainer> rootNode = cachedCDB.GetCurrentNode();
+    //ReferenceT<ReferenceContainer> rootNode = cachedCDB.GetCurrentNode();
     epics::pvData::StructureConstPtr topStructure;
     if (ok) {
         topStructure = EPICSPVAHelper::GetStructure(cachedCDB);
