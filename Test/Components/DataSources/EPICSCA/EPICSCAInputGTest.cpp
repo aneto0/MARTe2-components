@@ -64,6 +64,11 @@ TEST(EPICSCAInputGTest,TestGetBrokerName) {
     ASSERT_TRUE(test.TestGetBrokerName());
 }
 
+TEST(EPICSCAInputGTest,TestGetOutputBrokers) {
+    EPICSCAInputTest test;
+    ASSERT_TRUE(test.TestGetOutputBrokers());
+}
+
 TEST(EPICSCAInputGTest,TestGetBrokerName_OutputSignals) {
     EPICSCAInputTest test;
     ASSERT_TRUE(test.TestGetBrokerName_OutputSignals());
@@ -117,6 +122,11 @@ TEST(EPICSCAInputGTest,TestSetConfiguredDatabase_False_Samples) {
 TEST(EPICSCAInputGTest,TestSetConfiguredDatabase_False_UnsupportedType) {
     EPICSCAInputTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_UnsupportedType());
+}
+
+TEST(EPICSCAInputGTest,TestSetConfiguredDatabase_False_WrongStringSize) {
+    EPICSCAInputTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_WrongStringSize());
 }
 
 TEST(EPICSCAInputGTest,TestExecute) {

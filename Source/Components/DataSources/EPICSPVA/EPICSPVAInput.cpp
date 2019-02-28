@@ -36,7 +36,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 EPICSPVAInput::EPICSPVAInput() :
-        DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
+        MemoryDataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
     numberOfChannels = 0u;
     channelList = NULL_PTR(EPICSPVAChannelWrapper *);
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
@@ -56,7 +56,7 @@ EPICSPVAInput::~EPICSPVAInput() {
 }
 
 bool EPICSPVAInput::Initialise(StructuredDataI & data) {
-    bool ok = DataSourceI::Initialise(data);
+    bool ok = MemoryDataSourceI::Initialise(data);
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
             REPORT_ERROR(ErrorManagement::Information, "No CPUs defined. Using default = %d", cpuMask);
@@ -92,7 +92,7 @@ bool EPICSPVAInput::Initialise(StructuredDataI & data) {
         for (n = 0u; (n < numberOfChannels) && (ok); n++) {
             ok = signalsDatabase.MoveToChild(n);
             if (ok) {
-                ok = channelList[n].Setup(signalsDatabase);
+                ok = channelList[n].SetAliasAndField(signalsDatabase);
             }
             if (ok) {
                 ok = signalsDatabase.MoveToAncestor(1u);
@@ -109,7 +109,7 @@ bool EPICSPVAInput::Initialise(StructuredDataI & data) {
 }
 
 bool EPICSPVAInput::SetConfiguredDatabase(StructuredDataI & data) {
-    bool ok = DataSourceI::SetConfiguredDatabase(data);
+    bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
     //Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
     if (ok) {
@@ -135,53 +135,17 @@ bool EPICSPVAInput::SetConfiguredDatabase(StructuredDataI & data) {
             }
         }
     }
-
-    if (ok) {
-        ok = (executor.Start() == ErrorManagement::NoError);
-    }
     return ok;
 }
 
 bool EPICSPVAInput::AllocateMemory() {
-    return true;
-}
-
-uint32 EPICSPVAInput::GetNumberOfMemoryBuffers() {
-    return 1u;
-}
-
-/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool EPICSPVAInput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    StreamString fullQualifiedName;
-    bool ok = (GetSignalName(signalIdx, fullQualifiedName));
-    REPORT_ERROR(ErrorManagement::Information, "Searching for signal [%s]", fullQualifiedName.Buffer());
-
-    if (ok) {
-        ok = fullQualifiedName.Seek(0LLU);
-    }
-    StreamString unaliasedChannelName;
-    if (ok) {
-        char8 ignore;
-        ok = fullQualifiedName.GetToken(unaliasedChannelName, ".", ignore);
-    }
-    bool found = false;
+    bool ok = MemoryDataSourceI::AllocateMemory();
     uint32 n;
-    for (n = 0u; (n < numberOfChannels) && (ok) && (!found); n++) {
-        found = (unaliasedChannelName == channelList[n].GetChannelUnaliasedName());
-        if (found) {
-            const char8 *fullQualifiedNameBuffer = fullQualifiedName.Buffer();
-            signalAddress = NULL_PTR(void *);
-            channelList[n].GetSignalMemory(&fullQualifiedNameBuffer[unaliasedChannelName.Size() + 1u], signalAddress);
-        }
+    for (n = 0u; (n < numberOfChannels) && (ok); n++) {
+        ok = channelList[n].Setup(*this);
     }
     if (ok) {
-        ok = found;
-    }
-    if (ok) {
-        ok = (signalAddress != NULL_PTR(void *));
-    }
-    if (ok) {
-        REPORT_ERROR(ErrorManagement::Information, "Signal [%s] was found in the declared structure", fullQualifiedName.Buffer());
+        ok = (executor.Start() == ErrorManagement::NoError);
     }
     return ok;
 }

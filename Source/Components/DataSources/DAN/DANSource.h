@@ -63,6 +63,7 @@ namespace MARTe {
  *     StoreOnTrigger = 1 //Compulsory. If 0 all the data in the circular buffer is continuously stored. If 1 data is stored when the Trigger signal is 1 (see below).
  *     NumberOfPreTriggers = 2 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store before the trigger.
  *     NumberOfPostTriggers = 1 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store after the trigger.
+ *     ICProgName = "MARTeApp.ex" //Optional. If set it will call dan_initLibrary_icprog with the specified name.
  *
  *     Signals = {
  *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be set in index 0 of the Signals node. When the value of this signal is 1 data will be stored into the DAN database. Shall not be added if StoreOnTrigger = 0.

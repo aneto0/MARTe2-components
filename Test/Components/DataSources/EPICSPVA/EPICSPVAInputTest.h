@@ -43,6 +43,11 @@
 class EPICSPVAInputTest {
 public:
     /**
+     * @brief Purges the ObjectRegistryDatabase
+     */
+    virtual ~EPICSPVAInputTest();
+
+    /**
      * @brief Tests the constructor.
      */
     bool TestConstructor();
@@ -56,6 +61,21 @@ public:
      * @brief Tests the Execute method with arrays.
      */
     bool TestExecute_Arrays();
+
+    /**
+     * @brief Tests the Execute method with structured types.
+     */
+    bool TestExecute_StructuredType();
+
+    /**
+     * @brief Tests the Execute method with structured types that contain arrays.
+     */
+    bool TestExecute_StructuredType_Arrays();
+
+    /**
+     * @brief Tests that the Execute method fails with CharString.
+     */
+    bool TestExecute_False_CharString();
 
     /**
      * @brief Tests the AllocateMemory method

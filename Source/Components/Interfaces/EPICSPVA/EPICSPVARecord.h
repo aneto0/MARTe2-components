@@ -49,25 +49,12 @@
  * +Record1 = { //If the Alias field is not set, the Object name is the record name
  *   Class = EPICSPVA::EPICSPVARecord
  *   Alias = "f4e::falcon::Fast::Record1" //Optional. If set this will be the record name.
- *   Structure = {
- *     ElementsA = {
- *       Element1 = {
- *         Type = uint32
- *         NumberOfElements = 10
- *       }
- *       Element2 = {
- *         Type = float32
- *       }
- *       ElementsB = {
- *         ElementB1 = {
- *           Type = uint8
- *           NumberOfElements = 100
- *         }
- *         ElementB2 = {
- *           Type = float32
- *           NumberOfElements = 5
- *         }
- *       }
+ *     Structure = {//Use structured types for nested structures.
+ *     A = {
+ *       Type = uint32
+ *     }
+ *     B = {
+ *       Type = AStructuredType //e.g. registered with IntrospectionStructure
  *     }
  *   }
  * }
@@ -80,7 +67,7 @@ public:
     /**
      * @brief Constructor. NOOP.
      */
-    EPICSPVARecord();
+EPICSPVARecord    ();
 
     /**
      * @brief Destructor. NOOP.
@@ -106,8 +93,14 @@ public:
      */
     void GetRecordName(StreamString &recName);
 
-
 private:
+    /**
+     * @brief Recursively initialises the \a pvStructure (in particular the arrays and the structure arrays) .
+     * @param[in] pvStructure the structure to initialise.
+     * @return true if all the members of the structure were successfully initialised.
+     */
+    bool InitEPICSStructure(epics::pvData::PVStructurePtr pvStructure);
+
     /**
      * @brief Recursively constructs the PVRecord from the configuration described in the "Structure" node of the configuration input (see Initialise).
      * @param[in] fieldBuilder the epics::pvData::FieldBuilde that is used to build the epics::pvDatabase::PVRecord.
@@ -116,22 +109,14 @@ private:
     bool GetEPICSStructure(epics::pvData::FieldBuilderPtr & fieldBuilder);
 
     /**
-     * @brief Initialises all the members in the PVStructure (in particular the arrays).
-     * @param[in] pvaDB the structure to initialise.
-     * @return true if the structure is correctly initialised.
+     * @brief Helper method which computes the total number of elements in a given array.
+     * @param[in] typeDesc the type of the array parameter.
+     * @param[in] cdb structure pointing at the node containing the parameter.
+     * @param[out] totalElements the total number of elements found in the array.
+     * @param[out] numberOfDimensions the number of dimensions found in the array.
+     * @return true if the array dimension was successfully computed.
      */
-    bool InitEPICSStructure(StructuredDataI &pvaDB);
-
-
-    /**
-     * @brief Helper method to initialise an array.
-     * @param[in] data the database holding the array.
-     * @param[in] name the name of the parameter.
-     * @param[in] size number of elements in the array.
-     * @return true if the array can be successfully initialised.
-     */
-    template<typename T>
-    void InitArray(StructuredDataI &data, const char8 * const name, const uint32 &size);
+    bool GetArrayNumberOfElements(TypeDescriptor &typeDesc, StructuredDataI &cdb, uint32 &totalElements, uint8 &numberOfDimensions);
 
     /**
      * Local copy of the ConfigurationDatabase.
@@ -147,19 +132,5 @@ private:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
-
-namespace MARTe {
-template<typename T>
-void EPICSPVARecord::InitArray(StructuredDataI &data, const char8 * const name, const uint32 &size) {
-    Vector<T> vec(size);
-    uint32 n;
-    for (n = 0u; n<size; n++) {
-        vec[n] = static_cast<T>(0u);
-    }
-    data.Write(name, vec);
-}
-
-}
-
 
 #endif /* EPICSPVA_EPICSPVARECORD_H_ */

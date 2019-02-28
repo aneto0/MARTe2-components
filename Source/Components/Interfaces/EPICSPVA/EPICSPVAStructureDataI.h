@@ -65,7 +65,7 @@ public:
      * @post
      *    IsStructureFinalised()
      */
-    EPICSPVAStructureDataI ();
+EPICSPVAStructureDataI    ();
 
     /**
      * @brief NOOP.
@@ -178,7 +178,7 @@ public:
      * @post
      *    IsStructureFinalised().
      */
-    void SetStructure(epics::pvData::PVStructurePtr structPtrToSet);
+    void SetStructure(epics::pvData::PVStructurePtr const & structPtrToSet);
 
     /**
      * @brief Setup of the class so that the methods that allow modifying the structure can be called.
@@ -205,7 +205,30 @@ public:
      */
     bool IsStructureFinalised();
 
+    /**
+     * @brief Copies the values from another StructuredDataI.
+     * @details The source structure must match this structure.
+     * @param[in] source the structure where to copy from.
+     * @return true if the structures match and all the elements can be successfully copied.
+     * @pre
+     *    IsStructureFinalised() => structure is fixed.
+     */
+    bool CopyValuesFrom(StructuredDataI &source);
+
 private:
+    /**
+     * @brief Implementation of the move which allows to navigate inside arrays of structures by parsing the path and extracting []
+     * @param[in] path the relative or absolute path to move into.
+     * @return true if the Move was successful.
+     */
+    bool Move(const char8 * const path);
+
+    /**
+     * @brief Gets the subNode Id
+     * @return the subNode Id
+     */
+    virtual const char8 *GetChildId(const uint32 index);
+
     /**
      * @brief Helper method to read an array from an epics::pvData::PVScalarArray into an AnyType. Should allow to convert from any numeric type to any numeric type.
      * @param[in] scalarArrayPtr the array where to read the data from.
@@ -237,25 +260,9 @@ private:
     bool WriteStoredType(const char8 * const name, AnyType &storedType, const AnyType &value);
 
     /**
-     * @brief Helper method to add a typed leaf to the backend PVStructure.
-     * @param[in] name the name of the parameter to create.
-     * @param[in] storedType the type of data to be stored in the backend against this leaf.
-     * @return true if the leaf can be successfully created.
+     * Cached pointer (including full path) to the current node.
      */
-    bool CreateFromStoredType(const char8 * const name, AnyType &storedType);
-
-    /**
-     * @brief Helper method which transforms the cached ConfigurationDatabase into a PVStructure.
-     * @param[in] currentNode the node where to start from.
-     * @param[in] create if true the nodes are added to the PVStructure, otherwise only the values are written.
-     * @return true if the ConfigurationDatabase is successfully created.
-     */
-    bool ConfigurationDataBaseToPVStructurePtr(ReferenceT<ReferenceContainer> currentNode, bool create = true);
-
-    /**
-     * Cached pointer to the current node.
-     */
-    epics::pvData::PVStructurePtr currentStructPtr;
+    epics::pvData::PVStructureArray::svector currentStructPtr;
 
     /**
      * Cached pointer to the root node.
@@ -266,11 +273,6 @@ private:
      * True if the structure was finalised.
      */
     bool structureFinalised;
-
-    /**
-     * The FieldBuilderPtr that is used to create the nested PVStructure.
-     */
-    epics::pvData::FieldBuilderPtr fieldBuilder;
 
     /**
      * The cached ConfigurationDatabase that is used until the FinaliseStructure is called.
@@ -288,14 +290,43 @@ template<typename T>
 bool EPICSPVAStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
     bool ok = true;
     epics::pvData::shared_vector<const T> out;
-    scalarArrayPtr->getAs < T > (out);
+    scalarArrayPtr->getAs<T>(out);
     uint32 numberOfElements = storedType.GetNumberOfElements(0u);
     uint32 i;
     //Should allow to convert from numeric anytype to anytype. Note that this is called with the T of the value.
-    Vector<T> readVec (reinterpret_cast<T *>(value.GetDataPointer()), numberOfElements);
-    Vector<T> srcVec (const_cast<T *>(reinterpret_cast<const T *>(out.data())), numberOfElements);
-    for (i = 0u; i<numberOfElements; i++) {
+    Vector<T> readVec(reinterpret_cast<T *>(value.GetDataPointer()), numberOfElements);
+    Vector<T> srcVec(const_cast<T *>(reinterpret_cast<const T *>(out.data())), numberOfElements);
+    for (i = 0u; i < numberOfElements; i++) {
         readVec[i] = srcVec[i];
+    }
+
+    return ok;
+}
+
+template<>
+inline bool EPICSPVAStructureDataI::ReadArray<std::string>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
+    epics::pvData::shared_vector<const std::string> srcStr;
+    scalarArrayPtr->getAs<std::string>(srcStr);
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    uint32 i;
+    Vector<StreamString> dst(static_cast<StreamString *>(value.GetDataPointer()), numberOfElements);
+    for (i = 0u; i < numberOfElements; i++) {
+        dst[i] = srcStr[i].c_str();
+    }
+    return true;
+}
+
+template<>
+inline bool EPICSPVAStructureDataI::ReadArray<bool>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
+    bool ok = true;
+    epics::pvData::shared_vector<const epics::pvData::boolean> out;
+    scalarArrayPtr->getAs<epics::pvData::boolean>(out);
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    uint32 i;
+    Vector<uint8> readVec(reinterpret_cast<uint8 *>(value.GetDataPointer()), numberOfElements);
+    Vector<bool> srcVec(const_cast<bool *>(reinterpret_cast<const bool *>(out.data())), numberOfElements);
+    for (i = 0u; i < numberOfElements; i++) {
+        readVec[i] = (srcVec[i] ? 1u : 0u);
     }
 
     return ok;
@@ -307,8 +338,32 @@ bool EPICSPVAStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarAr
     out.resize(storedType.GetNumberOfElements(0u));
     bool ok = MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), value.GetDataPointer(), size);
     epics::pvData::shared_vector<const T> outF = freeze(out);
-    scalarArrayPtr->putFrom < T > (outF);
+    scalarArrayPtr->putFrom<T>(outF);
     return ok;
+}
+
+template<>
+inline bool EPICSPVAStructureDataI::WriteArray<std::string>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value, const uint32 &size) {
+    epics::pvData::shared_vector<const std::string> out;
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    out.resize(numberOfElements);
+    if (value.GetTypeDescriptor().type == SString) {
+        StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
+        uint32 i;
+        for (i = 0; i < numberOfElements; i++) {
+            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i].Buffer();
+        }
+        scalarArrayPtr->putFrom<std::string>(out);
+    }
+    else {
+        const char8 **src = static_cast<const char8 **>(value.GetDataPointer());
+        uint32 i;
+        for (i = 0; i < numberOfElements; i++) {
+            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i];
+        }
+        scalarArrayPtr->putFrom<std::string>(out);
+    }
+    return true;
 }
 
 }

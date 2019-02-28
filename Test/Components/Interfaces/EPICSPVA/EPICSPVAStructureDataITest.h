@@ -59,6 +59,11 @@ public:
     bool TestRead_UInt8();
 
     /**
+     * @brief Tests the Read with a boolean.
+     */
+    bool TestRead_Boolean();
+
+    /**
      * @brief Tests the Read with an uint16.
      */
     bool TestRead_UInt16();
@@ -112,6 +117,11 @@ public:
      * @brief Tests the Read with a uint8[].
      */
     bool TestRead_UInt8_Array();
+
+    /**
+     * @brief Tests the Read with a boolean[].
+     */
+    bool TestRead_Boolean_Array();
 
     /**
      * @brief Tests the Read with a uint16[].
@@ -494,6 +504,11 @@ public:
     bool TestCopy();
 
     /**
+     * @brief Tests the Copy method with structures and arrays of structures.
+     */
+    bool TestCopy_Structures();
+
+    /**
      * @brief Tests that the Copy method returns false if called before FinaliseStructure.
      */
     bool TestCopy_False_FinaliseStructure();
@@ -613,6 +628,16 @@ public:
      */
     bool TestIsStructureFinalised();
 
+    /**
+     * @brief Tests the CopyValuesFrom function.
+     */
+    bool TestCopyValuesFrom();
+
+    /**
+     * @brief Tests that the CopyValuesFrom function fails when.
+     */
+    bool TestCopyValuesFrom_False();
+
 private:
     /**
      * @brief Tests the Read method with any of the supported template types.
@@ -684,7 +709,6 @@ bool EPICSPVAStructureDataITest::TestReadArray(MARTe::Vector<T> &wvalue) {
         ok = (rvalue[i] == wvalue[i]);
     }
     return ok;
-
 }
 
 template<typename T>

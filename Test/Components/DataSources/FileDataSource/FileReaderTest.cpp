@@ -96,6 +96,8 @@ CLASS_METHOD_REGISTER(FileReaderTestHelper, HandleRuntimeError)
 class FileReaderGAMTriggerTestHelper: public MARTe::GAM {
 public:
     CLASS_REGISTER_DECLARATION()FileReaderGAMTriggerTestHelper() {
+        char8Signal = NULL;
+        stringSignal = NULL;
         uint8Signal = NULL;
         int8Signal = NULL;
         uint16Signal = NULL;
@@ -128,7 +130,13 @@ public:
             uint32 nElements;
             GetSignalNumberOfElements(InputSignals, 0, nElements);
             numberOfElements[n] = nElements;
-            if (GetSignalType(InputSignals, n) == UnsignedInteger8Bit) {
+            if (GetSignalType(InputSignals, n) == Character8Bit) {
+                char8Signal = reinterpret_cast<char8 *>(GetInputSignalMemory(n));
+            }
+            else if (GetSignalType(InputSignals, n) == CharString) {
+                stringSignal = reinterpret_cast<char8 *>(GetInputSignalMemory(n));
+            }
+            else if (GetSignalType(InputSignals, n) == UnsignedInteger8Bit) {
                 uint8Signal = reinterpret_cast<uint8 *>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == SignedInteger8Bit) {
@@ -168,6 +176,8 @@ public:
         return true;
     }
 
+    MARTe::char8 *char8Signal;
+    MARTe::char8 *stringSignal;
     MARTe::uint8 *uint8Signal;
     MARTe::int8 *int8Signal;
     MARTe::uint16 *uint16Signal;
@@ -397,7 +407,7 @@ static void DeleteTestFile(const MARTe::char8 * const filename) {
 static bool TestIntegratedExecution(const MARTe::char8 * const config, const MARTe::char8 * const filename, FRTSignalToVerify **signalToVerify,
                                     MARTe::uint32 *signalToVerifyNumberOfElements, MARTe::uint32 signalToVerifyNumberOfSamples, bool csv,
                                     MARTe::uint32 interpolationPeriod, const MARTe::char8 * const xAxisSignalName = "SignalUInt32", bool purge = true,
-                                    bool ignoreFailure = false) {
+                                    bool ignoreFailure = false, const MARTe::char8 * const csvSeparator = ";") {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config;
@@ -423,7 +433,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, const MAR
     if (csv) {
         cdb.Write("FileFormat", "csv");
         cdb.Delete("CSVSeparator");
-        cdb.Write("CSVSeparator", ";");
+        cdb.Write("CSVSeparator", csvSeparator);
     }
     else {
         cdb.Write("FileFormat", "binary");
@@ -593,7 +603,7 @@ static void GenerateBinaryFile(const MARTe::char8 * const filename, FRTSignalToV
     f.Close();
 }
 
-static bool TestIntegratedExecution(const MARTe::char8 * const config, bool csv, MARTe::uint32 *numberOfElements) {
+static bool TestIntegratedExecution(const MARTe::char8 * const config, bool csv, MARTe::uint32 *numberOfElements, const MARTe::char8 * const csvSeparator) {
     using namespace MARTe;
     const char8 * filename = "";
     bool ok = true;
@@ -606,9 +616,9 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, bool csv,
 
     if (csv) {
         filename = "TestIntegratedExecution.csv";
-        GenerateCSVFile(filename, ";", signals, numberOfElements, signalToVerifyNumberOfSamples);
+        GenerateCSVFile(filename, csvSeparator, signals, numberOfElements, signalToVerifyNumberOfSamples);
         if (ok) {
-            ok = TestIntegratedExecution(config, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, true, 0, "");
+            ok = TestIntegratedExecution(config, filename, signals, numberOfElements, signalToVerifyNumberOfSamples, true, 0, "", true, false, csvSeparator);
         }
     }
     else {
@@ -1410,6 +1420,122 @@ static const MARTe::char8 * const config7 = ""
         "    }"
         "}";
 
+//As config1 with strings
+static const MARTe::char8 * const config8 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileReaderGAMTriggerTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64WhichIsAlsoAVeryLon = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalChar8 = {"
+        "                    Type = char8"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalString = {"
+        "                    Type = string"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 7"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileReader"
+        "            Filename = \"filereader_test.csv\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Interpolate = no"
+        "            XAxisSignal = SignalUInt32"
+        "            +Messages = {"
+        "                Class = ReferenceContainer"
+        "                +FileRuntimeError = {"
+        "                    Class = Message"
+        "                    Destination = FileReaderTestHelper"
+        "                    Function = HandleRuntimeError"
+        "                    Mode = ExpectsReply"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileReaderSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+FileReaderTestHelper = {"
+        "    Class = FileReaderTestHelper"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "}";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -1438,7 +1564,7 @@ bool FileReaderTest::TestGetSignalMemoryBuffer() {
     bool ok = !test.GetSignalMemoryBuffer(0, 0, ptr);
     if (ok) {
         uint32 numberOfElements[] = { 1, 1, 1, 3, 1, 1, 1, 1, 10, 1 };
-        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
     }
     return ok;
 }
@@ -1500,7 +1626,7 @@ bool FileReaderTest::TestGetInputBrokers() {
     bool ok = !test.GetSignalMemoryBuffer(0, 0, ptr);
     if (ok) {
         uint32 numberOfElements[] = { 1, 1, 1, 3, 1, 1, 1, 1, 1, 1 };
-        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
     }
     return ok;
 }
@@ -1517,11 +1643,120 @@ bool FileReaderTest::TestSynchronise_CSV() {
     bool ok = true;
     if (ok) {
         uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        ok = TestIntegratedExecution(config1, true, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, true, &numberOfElements[0], ";");
     }
     if (ok) {
         uint32 numberOfElements[] = { 2, 4, 5, 2, 3, 4, 3, 2, 4, 2 };
-        ok = TestIntegratedExecution(config1, true, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, true, &numberOfElements[0], ";");
+    }
+    return ok;
+}
+
+bool FileReaderTest::TestSynchronise_CSV_Strings() {
+    using namespace MARTe;
+    const char8 * filename = "FileReaderTest_Test.csv";
+    const char8 * fileContent =
+            ""
+                    "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLon (float64)[1];SignalChar8 (char8)[5];SignalString (string)[7]\n"
+                    "1;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000;AAAA;aaaaaa\n"
+                    "1;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000;BBBB;bbbbbb\n"
+                    "1;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000;C;cc\n";
+    GenerateFile(filename, fileContent);
+    ConfigurationDatabase cdb;
+    StreamString configStream = config8;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    cdb.MoveAbsolute("$Test.+Data.+Drv1");
+    cdb.Delete("Filename");
+    cdb.Write("Filename", filename);
+    cdb.Delete("Interpolate");
+    cdb.Write("Interpolate", "no");
+    cdb.Delete("FileFormat");
+    cdb.Write("FileFormat", "csv");
+    cdb.Delete("CSVSeparator");
+    cdb.Write("CSVSeparator", ";");
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        cdb.MoveToRoot();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    ReferenceT<FileReaderSchedulerTestHelper> scheduler;
+    ReferenceT<FileReaderGAMTriggerTestHelper> gam;
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    if (ok) {
+        scheduler = application->Find("Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        gam = application->Find("Functions.GAM1");
+        ok = gam.IsValid();
+    }
+    ReferenceT<FileReader> fileReader;
+    if (ok) {
+        fileReader = godb->Find("Test.Data.Drv1");
+        ok = fileReader.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+    if (ok) {
+        uint32 s;
+        uint32 signalToVerifyNumberOfSamples = 3u;
+        StreamString *char8ToVerify = new StreamString[signalToVerifyNumberOfSamples];
+        StreamString *stringToVerify = new StreamString[signalToVerifyNumberOfSamples];
+        char8ToVerify[0] = "AAAA";
+        char8ToVerify[1] = "BBBB";
+        char8ToVerify[2] = "C";
+        stringToVerify[0] = "aaaaaa";
+        stringToVerify[1] = "bbbbbb";
+        stringToVerify[2] = "cc";
+
+        for (s = 0; (s < signalToVerifyNumberOfSamples) && (ok); s++) {
+            scheduler->ExecuteThreadCycle(0);
+            ok = (char8ToVerify[s] == gam->char8Signal);
+            ok &= (stringToVerify[s] == gam->stringSignal);
+        }
+        delete[] char8ToVerify;
+        delete[] stringToVerify;
+    }
+    if (ok) {
+        ok = application->StopCurrentStateExecution();
+    }
+    god->Purge();
+
+    DeleteTestFile(filename);
+
+    return ok;
+}
+
+bool FileReaderTest::TestSynchronise_CSV_Comma() {
+    using namespace MARTe;
+    bool ok = true;
+    if (ok) {
+        uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        ok = TestIntegratedExecution(config1, true, &numberOfElements[0], ",");
+    }
+    if (ok) {
+        uint32 numberOfElements[] = { 2, 4, 5, 2, 3, 4, 3, 2, 4, 2 };
+        ok = TestIntegratedExecution(config1, true, &numberOfElements[0], ",");
     }
     return ok;
 }
@@ -1545,11 +1780,11 @@ bool FileReaderTest::TestSynchronise_Binary() {
     bool ok = true;
     if (ok) {
         uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
     }
     if (ok) {
         uint32 numberOfElements[] = { 2, 4, 5, 2, 3, 4, 3, 2, 4, 2 };
-        ok = TestIntegratedExecution(config1, false, &numberOfElements[0]);
+        ok = TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
     }
     return ok;
 }
@@ -1856,7 +2091,7 @@ bool FileReaderTest::TestInitialise_Warning_InterpolationPeriod() {
 bool FileReaderTest::TestSetConfiguredDatabase() {
     using namespace MARTe;
     uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    return TestIntegratedExecution(config1, false, &numberOfElements[0]);
+    return TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
 }
 
 bool FileReaderTest::TestSetConfiguredDatabase_False_NumberOfSamples() {
@@ -1902,7 +2137,7 @@ bool FileReaderTest::TestSetConfiguredDatabase_False_XAxisSignal_Dimensions() {
 bool FileReaderTest::TestOpenFile() {
     using namespace MARTe;
     uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    return TestIntegratedExecution(config1, false, &numberOfElements[0]);
+    return TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
 }
 
 bool FileReaderTest::TestCloseFile() {

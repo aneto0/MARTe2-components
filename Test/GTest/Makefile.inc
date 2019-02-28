@@ -49,10 +49,10 @@ ifdef SDN_CORE_LIBRARY_DIR
 LIBRARIES += -L$(SDN_CORE_LIBRARY_DIR) -lsdn-core -lxml2
 endif
 
+
 all: $(OBJS) $(SUBPROJ)   \
         $(BUILD_DIR)/MainGTest$(EXEEXT)
 	echo  $(OBJS)
-
 
 include depends.$(TARGET)
 
