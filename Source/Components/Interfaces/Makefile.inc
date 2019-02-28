@@ -38,7 +38,7 @@ SPB+=BaseLib2Wrapper.x
 endif
 
 ifdef EPICS_BASE
-SPB   += EPICS.x
+SPB+=EPICS.x
 endif
 
 ifdef CODAC_ROOT
@@ -50,7 +50,7 @@ endif
 endif
 
 ifdef EPICSPVA
-SPB   += EPICSPVA.x
+SPB+=EPICSPVA.x
 endif
 
 PACKAGE=Components

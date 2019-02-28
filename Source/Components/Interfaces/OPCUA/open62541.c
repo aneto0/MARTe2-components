@@ -40791,14 +40791,14 @@ createDefaultConfig(void) {
     conf->maxSessionTimeout = 60.0 * 60.0 * 1000.0; /* 1h */
 
     /* Limits for Subscriptions */
-    conf->publishingIntervalLimits = UA_DURATIONRANGE(100.0, 3600.0 * 1000.0);
+    conf->publishingIntervalLimits = UA_DURATIONRANGE(10.0, 3600.0 * 1000.0);
     conf->lifeTimeCountLimits = UA_UINT32RANGE(3, 15000);
     conf->keepAliveCountLimits = UA_UINT32RANGE(1, 100);
     conf->maxNotificationsPerPublish = 1000;
     conf->maxRetransmissionQueueSize = 0; /* unlimited */
 
     /* Limits for MonitoredItems */
-    conf->samplingIntervalLimits = UA_DURATIONRANGE(50.0, 24.0 * 3600.0 * 1000.0);
+    conf->samplingIntervalLimits = UA_DURATIONRANGE(5.0, 24.0 * 3600.0 * 1000.0);
     conf->queueSizeLimits = UA_UINT32RANGE(1, 100);
 
 #ifdef UA_ENABLE_DISCOVERY
