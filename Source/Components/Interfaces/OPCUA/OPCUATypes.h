@@ -38,8 +38,6 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-/* TODO Add struct for others OPCUA Node Type. */
-
 struct NodeProperties {
     UA_VariableAttributes attr;
     void* value;

@@ -52,7 +52,7 @@ OPCUAObject    ();
 
     ~OPCUAObject();
 
-    virtual bool GetOPCObject(OPCUAObjectSettings &settings);
+    virtual bool GetOPCObject(OPCUAObjectSettings &settings, uint32 nodeNumber);
 
     virtual bool IsObject();
 

@@ -58,7 +58,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    OPCUAClientWrapper();
+    OPCUAClientWrapper(const char8* const modeType);
 
     /**
      * @brief Default destructor.
@@ -83,7 +83,11 @@ public:
      * @param[in] mem The signal memory buffer
      * @return true if the monitored node has been set.
      */
-    bool GetSignalMemory(void *&mem);
+    bool GetSignalMemory(void *&mem,
+                         uint32 index,
+                         const TypeDescriptor & valueTd,
+                         const uint32 nElem,
+                         const uint8 nDimensions);
 
     /**
      * @brief Browse the OPCUA Address Space and sets the monitored node declared by the path.
@@ -95,8 +99,9 @@ public:
      * @return true if the result of the TranslateBrowsePathToNodeId service request is not empty.
      * @pre Connect
      */
-    bool BrowseAddressSpace(uint32 namespaceIndex,
-                            StreamString nodePath);
+    bool SetTargetNodes(uint32 * namespaceIndexes,
+                        StreamString * nodePaths,
+                        uint32 numberOfNodes);
 
     /**
      * @brief Creates the OPCUA Subscription and Monitored Item request. Runs the Client iteration service.
@@ -114,7 +119,7 @@ public:
      * on the monitored node.
      * @pre BrowseAddressSpace
      */
-    void WriteValueAttribute();
+    bool Write(uint32 numberOfNodes);
 
     /**
      * @brief Update the valueMemory with the new data.
@@ -134,6 +139,14 @@ public:
      */
     void SubscriptionInactivity();
 
+    void SetMaxNumberOfChar(uint32 nElements);
+
+    void SetSamplingTime(float64 sampleTime);
+
+    bool Read(uint32 numberOfNodes,
+              TypeDescriptor * types,
+              uint32 * nElements);
+
 private:
 
     /**
@@ -147,13 +160,22 @@ private:
                             uint32 &numericNodeId,
                             char* &stringNodeId);
 
+    void SetWriteRequest(uint32 idx,
+                         uint8 nDimensions,
+                         uint32 nElements,
+                         TypeDescriptor type);
+
     char* serverAddress;
 
     UA_Variant * outValueMem;
 
-    void* valueMemory;
+    void** valueMemories;
 
-    UA_NodeId monitoredNode; //It is a node Variable
+    uint32 numberOfCharElements;
+
+    float64 samplingTime;
+
+    UA_NodeId * monitoredNodes;
 
     UA_ClientConfig config;
 
@@ -166,6 +188,20 @@ private:
     UA_MonitoredItemCreateRequest monitorRequest;
 
     UA_MonitoredItemCreateResult monitorResponse;
+
+    UA_ReadRequest readRequest;
+
+    UA_ReadResponse readResponse;
+
+    UA_ReadValueId * readValues;
+
+    UA_WriteRequest writeRequest;
+
+    UA_WriteValue * writeValues;
+
+    StreamString mode;
+
+    UA_Variant * tempVariant;
 
 };
 

@@ -114,17 +114,23 @@ OPCUAServer    ();
      */
     bool GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer, const Introspection *intro);
 
-private:
-
     SingleThreadService service;
+
+private:
 
     UA_Server * opcuaServer;
 
     UA_ServerConfig * opcuaConfig;
 
+    uint32 nodeNumber;
+
     bool opcuaRunning;
 
     uint16 port;
+
+    uint32 cpuMask;
+
+    uint32 stackSize;
 
     /**
      * Private copy of the Configuration Database

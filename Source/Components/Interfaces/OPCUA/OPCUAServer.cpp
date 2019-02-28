@@ -51,15 +51,23 @@ OPCUAServer::OPCUAServer() :
     opcuaServer = NULL_PTR(UA_Server *);
     opcuaRunning = true;
     port = 4840u;
+    cpuMask = 0xffu;
+    stackSize = THREADS_DEFAULT_STACKSIZE;
+    nodeNumber = 3000u;
 }
 
 OPCUAServer::~OPCUAServer() {
     SetRunning(false);
-    UA_Server_delete(opcuaServer);
-    UA_ServerConfig_delete(opcuaConfig);
     if (!service.Stop()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
     }
+    else {
+        REPORT_ERROR(ErrorManagement::Information, "Service Stopped");
+    }
+    UA_Server_delete(opcuaServer);
+    REPORT_ERROR(ErrorManagement::Information, "Server Deleted");
+    UA_ServerConfig_delete(opcuaConfig);
+    REPORT_ERROR(ErrorManagement::Information, "Server Config Deleted");
 }
 
 bool OPCUAServer::Initialise(StructuredDataI &data) {
@@ -75,6 +83,20 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
+        ok = data.Read("CPUMask", cpuMask);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::Information, "No CPUMask defined. It will be default one.");
+            ok = true;
+        }
+    }
+    if (ok) {
+        ok = data.Read("StackSize", stackSize);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::Information, "No StackSize defined. It will be default.");
+            ok = true;
+        }
+    }
+    if (ok) {
         ok = cdb.MoveRelative("AddressSpace");
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "No Address Space defined!");
@@ -82,8 +104,12 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
     }
     if (ok) {
         opcuaConfig = UA_ServerConfig_new_minimal(port, NULL);
+        opcuaConfig->maxSessions = 1000;
+        opcuaConfig->maxSecureChannels = 1000;
         opcuaServer = UA_Server_new(opcuaConfig);
         SetRunning(true);
+        service.SetCPUMask(cpuMask);
+        service.SetStackSize(stackSize);
         ok = (service.Start() == ErrorManagement::NoError);
     }
     return ok;
@@ -137,12 +163,15 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
             }
         }
         //This is a blocking call
-        if(ok) {
+        if (ok) {
             UA_Server_run(opcuaServer, &opcuaRunning);
         }
     }
     else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        Sleep::Sec(1.0);
+        SetRunning(false);
+    }
+    else if (info.GetStage() != ExecutionInfo::AsyncTerminationStage) {
+        SetRunning(false);
     }
     return err;
 }
@@ -150,10 +179,11 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
 bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
     bool ok = true;
     UA_StatusCode code = 1u;
-    const char* parentId = NULL_PTR(const char*);
+    //const char* parentId = NULL_PTR(const char*);
+    uint32 parentId = 0u;
     if (ref->IsObject()) {
         OPCUAObjectSettings settings = new ObjectProperties;
-        ok = ref->GetOPCObject(settings);
+        ok = ref->GetOPCObject(settings, nodeNumber);
         do {
             if (!ref->IsFirstObject() && ok) {
                 if (ok) {
@@ -166,12 +196,15 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
                                                UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE), settings->attr, NULL, NULL);
             }
             if (code == UA_STATUSCODE_BADNODEIDEXISTS) {
-                char8* newNodeId = new char[StringHelper::Length(ref->GetNodeId()) + StringHelper::Length(".") + StringHelper::Length(ref->GetParentNodeId())
+                /*char8* newNodeId = new char[StringHelper::Length(ref->GetNodeId()) + StringHelper::Length(".") + StringHelper::Length(ref->GetParentNodeId())
                         + 1];
                 StringHelper::Concatenate(ref->GetParentNodeId(), ".", newNodeId);
                 StringHelper::Concatenate(newNodeId, ref->GetNodeId(), newNodeId);
                 ref->SetNodeId(newNodeId);
-                settings->nodeId = UA_NODEID_STRING(1, newNodeId);
+                settings->nodeId = UA_NODEID_STRING(1, newNodeId);*/
+                nodeNumber++;
+                ref->SetNodeId(nodeNumber);
+                settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
             }
             else {
                 parentId = ref->GetNodeId();
@@ -184,19 +217,22 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
     else if (ref->IsNode()) {
         TypeDescriptor typeName = ref->GetNodeType();
         OPCUANodeSettings settings = new NodeProperties;
-        ok = ref->GetOPCVariable(settings, typeName);
+        ok = ref->GetOPCVariable(settings, typeName, nodeNumber);
         do {
             if (ok) {
                 code = UA_Server_addVariableNode(opcuaServer, settings->nodeId, settings->parentNodeId, settings->parentReferenceNodeId, settings->nodeName,
                                                  UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), settings->attr, NULL, NULL);
             }
             if (code == UA_STATUSCODE_BADNODEIDEXISTS) {
-                char8* newNodeId = new char[StringHelper::Length(ref->GetNodeId()) + StringHelper::Length(".") + StringHelper::Length(ref->GetParentNodeId())
+                /*char8* newNodeId = new char[StringHelper::Length(ref->GetNodeId()) + StringHelper::Length(".") + StringHelper::Length(ref->GetParentNodeId())
                         + 1];
                 StringHelper::Concatenate(ref->GetParentNodeId(), ".", newNodeId);
                 StringHelper::Concatenate(newNodeId, ref->GetNodeId(), newNodeId);
                 ref->SetNodeId(newNodeId);
-                settings->nodeId = UA_NODEID_STRING(1, newNodeId);
+                settings->nodeId = UA_NODEID_STRING(1, newNodeId);*/
+                nodeNumber++;
+                ref->SetNodeId(nodeNumber);
+                settings->nodeId = UA_NODEID_NUMERIC(1,nodeNumber);
             }
         }
         while (code != UA_STATUSCODE_GOOD);
@@ -204,6 +240,7 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
     }
     uint32 i = 0u;
     uint32 size = ref->Size();
+    nodeNumber++;
     for (i = 0u; (i < size) && (ok); i++) {
         ReferenceT<OPCUAReferenceContainer> rc = ref->Get(i);
         if (rc.IsValid()) {

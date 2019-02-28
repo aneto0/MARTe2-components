@@ -49,13 +49,14 @@ OPCUANode::~OPCUANode() {
 }
 
 bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
-                               TypeDescriptor nodeType) {
+                               TypeDescriptor nodeType,
+                               uint32 nodeNumber) {
     bool ok = true;
     char * localization = new char[strlen("en-US") + 1];
     strcpy(localization, "en-US");
     settings->attr = UA_VariableAttributes_default;
     settings->attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
-    SetNodeId(GetName());
+    SetNodeId(nodeNumber);
     bool isArray = (numberOfDimensions > 0);
     uint64 nElements = 1u;
     /* Setting the array parameters in the OPCUA Variable */
@@ -113,6 +114,7 @@ bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
         }
     }
     else if (nodeType == SignedInteger32Bit) {
+        settings->attr.dataType = UA_TYPES[UA_TYPES_INT32].typeId;
         if (isArray) {
             InitArray(settings, &UA_TYPES[UA_TYPES_INT32], nElements);
         }
@@ -146,28 +148,32 @@ bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
     }
     else if ((nodeType.type == CArray) || (nodeType.type == BT_CCString) || (nodeType.type == PCString) || (nodeType.type == SString)) {
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_STRING], nElements);
+            //InitArray(settings, &UA_TYPES[UA_TYPES_STRING], nElements);
+            ok = false;
         }
         else {
+            //UA_String defString = UA_STRING_ALLOC("NULL");
+            //THE STRING IS NOT INITIALISED.
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_STRING]);
+
         }
     }
-
-    settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
-    settings->value = 0u;
+    //settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
+    settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
     char * readName = new char[strlen(GetName()) + 1];
     strcpy(readName, GetName());
     settings->nodeName = UA_QUALIFIEDNAME(1, readName);
     settings->attr.displayName = UA_LOCALIZEDTEXT(localization, readName);
 
-    if (parentNodeId == NULL_PTR(char*)) {
+    if (parentNodeId == 0u) {
         settings->parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
         settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
         parentReferenceNodeId = 0u;
         ok = true;
     }
     else {
-        settings->parentNodeId = UA_NODEID_STRING(1, parentNodeId);
+        //settings->parentNodeId = UA_NODEID_STRING(1, parentNodeId);
+        settings->parentNodeId = UA_NODEID_NUMERIC(1, parentNodeId);
     }
     if (parentReferenceNodeId == 1u) {
         settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);

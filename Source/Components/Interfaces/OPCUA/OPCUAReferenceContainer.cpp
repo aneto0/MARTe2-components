@@ -42,8 +42,10 @@ namespace MARTe {
 OPCUAReferenceContainer::OPCUAReferenceContainer() :
         ReferenceContainer() {
     nodeType = TypeDescriptor();
-    nodeId = NULL_PTR(char*);
-    parentNodeId = NULL_PTR(char*);
+    nodeId = 0u;
+    parentNodeId = 0u;
+    numberOfElements = NULL_PTR(uint32 *);
+    numberOfDimensions = 0u;
 }
 
 OPCUAReferenceContainer::~OPCUAReferenceContainer() {
@@ -58,30 +60,34 @@ bool OPCUAReferenceContainer::IsObject() {
     return false;
 }
 
-bool OPCUAReferenceContainer::GetOPCObject(OPCUAObjectSettings &settings) {
+bool OPCUAReferenceContainer::GetOPCObject(OPCUAObjectSettings &settings,
+                                           uint32 nodeNumber) {
     return false;
 }
 
 bool OPCUAReferenceContainer::GetOPCVariable(OPCUANodeSettings &settings,
-                                             TypeDescriptor nodeType) {
+                                             TypeDescriptor nodeType,
+                                             uint32 nodeNumber) {
     return false;
 }
 
-void OPCUAReferenceContainer::SetParent(const char* parentId) {
-    parentNodeId = new char[strlen(parentId) + 1];
-    StringHelper::Copy(parentNodeId, parentId);
+void OPCUAReferenceContainer::SetParent(const uint32 parentId) {
+    /*parentNodeId = new char[strlen(parentId) + 1];
+    StringHelper::Copy(parentNodeId, parentId);*/
+    parentNodeId = parentId;
 }
 
-const char* OPCUAReferenceContainer::GetParentNodeId() {
+const uint32 OPCUAReferenceContainer::GetParentNodeId() {
     return parentNodeId;
 }
 
-void OPCUAReferenceContainer::SetNodeId(const char* newNodeId) {
-    nodeId = new char[strlen(newNodeId) + 1];
-    StringHelper::Copy(nodeId, newNodeId);
+void OPCUAReferenceContainer::SetNodeId(const uint32 newNodeId) {
+    /*nodeId = new char[strlen(newNodeId) + 1];
+    StringHelper::Copy(nodeId, newNodeId);*/
+    nodeId = newNodeId;
 }
 
-const char* OPCUAReferenceContainer::GetNodeId() {
+const uint32 OPCUAReferenceContainer::GetNodeId() {
     return nodeId;
 }
 
@@ -102,7 +108,7 @@ TypeDescriptor OPCUAReferenceContainer::GetNodeType() {
 }
 
 void OPCUAReferenceContainer::SetNumberOfElements(const uint32 dimension,
-                         const uint32 nElements) {
+                                                  const uint32 nElements) {
     numberOfElements[dimension] = nElements;
 }
 

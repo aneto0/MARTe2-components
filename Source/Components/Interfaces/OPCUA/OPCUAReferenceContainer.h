@@ -58,21 +58,21 @@ OPCUAReferenceContainer    ();
 
     virtual bool IsNode();
 
-    virtual bool GetOPCVariable(OPCUANodeSettings &settings, TypeDescriptor nodeType);
+    virtual bool GetOPCVariable(OPCUANodeSettings &settings, TypeDescriptor nodeType, uint32 nodeNumber);
 
-    virtual bool GetOPCObject(OPCUAObjectSettings &settings);
+    virtual bool GetOPCObject(OPCUAObjectSettings &settings, uint32 nodeNumber);
 
     virtual void SetFirst(const bool value);
 
     virtual const bool IsFirstObject();
 
-    void SetParent(const char* parentId);
+    void SetParent(const uint32 parentId);
 
-    const char* GetParentNodeId();
+    const uint32 GetParentNodeId();
 
-    void SetNodeId(const char* newNodeId);
+    void SetNodeId(const uint32 newNodeId);
 
-    const char* GetNodeId();
+    const uint32 GetNodeId();
 
     void SetNodeType(TypeDescriptor type);
 
@@ -87,9 +87,9 @@ protected:
 
     TypeDescriptor nodeType;
 
-    char* nodeId;
+    uint32 nodeId;
 
-    char* parentNodeId;
+    uint32 parentNodeId;
 
     uint8 numberOfDimensions;
 

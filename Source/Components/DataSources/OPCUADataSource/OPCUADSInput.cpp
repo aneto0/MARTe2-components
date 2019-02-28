@@ -47,7 +47,7 @@ OPCUADSInput::OPCUADSInput() :
         DataSourceI(),
         EmbeddedServiceMethodBinderI(),
         executor(*this) {
-    clients = NULL_PTR(OPCUAClientWrapper *);
+    masterClient = NULL_PTR(OPCUAClientWrapper *);
     numberOfClients = 0u;
     numberOfNodes = 0u;
     paths = NULL_PTR(StreamString *);
@@ -55,13 +55,14 @@ OPCUADSInput::OPCUADSInput() :
     tempPaths = NULL_PTR(StreamString *);
     tempNamespaceIndexes = NULL_PTR(uint32 *);
     serverAddress = "";
+    samplingTime = 0;
+    nElements = NULL_PTR(uint32 *);
+    types = NULL_PTR(TypeDescriptor *);
 }
 
 OPCUADSInput::~OPCUADSInput() {
     if (!executor.Stop()) {
-        if (!executor.Stop()) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Could not stop MultiThreadService.");
-        }
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not stop MultiThreadService.");
     }
 }
 
@@ -72,6 +73,20 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
             ok = data.Read("Address", serverAddress);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Address attribute");
+            }
+        }
+        if (ok) {
+            ok = data.Read("Synchronise", sync);
+            if (!ok) {
+                sync = "no";
+                REPORT_ERROR(ErrorManagement::ParametersError, "Synchronise option is not enabled. Using MultiThreadService.");
+            }
+        }
+        if (ok) {
+            ok = data.Read("SamplingTime", samplingTime);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::Information, "Sampling Time not set. Usingdefault value: 250ms");
+                samplingTime = 250;
             }
         }
         ok = data.MoveRelative("Signals");
@@ -110,6 +125,10 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
         if (ok) {
             ok = data.MoveToAncestor(1u);
         }
+        /* Initialise the OPCUA ReadRequest */
+        if (ok && samplingTime < 5) {
+
+        }
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Error during Initialise!");
@@ -119,72 +138,92 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
 
 bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
-    uint32 nOfSignals = GetNumberOfSignals();
-    numberOfNodes = nOfSignals;
-    executor.SetNumberOfPoolThreads(numberOfNodes);
+    numberOfNodes = GetNumberOfSignals();
+    uint8 nDimensions = 0u;
+    nElements = new uint32[numberOfNodes];
+    types = new TypeDescriptor[numberOfNodes];
+    StreamString signalName;
+    /* Check for signals with number of dimensions > 1. Multidimensional arrays not supported yet */
+    for (uint32 k = 0u; k < numberOfNodes; k++) {
+        ok = GetSignalNumberOfDimensions(k, nDimensions);
+        if (nDimensions > 1 && ok) {
+            GetSignalName(k, signalName);
+            REPORT_ERROR(ErrorManagement::ParametersError, "Signal %s has Number Of Dimensions = %d. Multidimensional arrays not supported yet.",
+                         signalName.Buffer(), nDimensions);
+            ok = false;
+        }
+        if (ok) {
+            ok = GetSignalNumberOfElements(k, nElements[k]);
+        }
+        if (ok) {
+            types[k] = GetSignalType(k);
+        }
+    }
     if (ok) {
-        ok = (nOfSignals > 0u);
+        ok = (numberOfNodes > 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "At least one signal shall be defined");
         }
     }
-    paths = new StreamString[numberOfNodes];
-    namespaceIndexes = new uint32[numberOfNodes];
-    /* Checking the signal type. If it's a structured type we need to call the function to get the structure */
-    /* TEST */
-    StreamString sigName, pathToken, sigToken;
-    char8 ignore;
-    for (uint32 i = 0u; i < nOfSignals; i++) {
-        sigName = "";
-        GetSignalName(i, sigName);
-        /* Getting the first name from the signal path */
-        sigName.Seek(0LLU);
-        ok = sigName.GetToken(sigToken, ".", ignore);
+    /* Setting path and namespace for each signal */
+    if (ok) {
+        paths = new StreamString[numberOfNodes];
+        namespaceIndexes = new uint32[numberOfNodes];
+        StreamString sigName, pathToken, sigToken;
+        char8 ignore;
+        for (uint32 i = 0u; i < numberOfNodes; i++) {
+            sigName = "";
+            GetSignalName(i, sigName);
+            /* Getting the first name from the signal path */
+            sigName.Seek(0LLU);
+            ok = sigName.GetToken(sigToken, ".", ignore);
 
-        for (uint32 j = 0u; j < numberOfClients; j++) {
-            /* This cycle will save the last token found */
-            tempPaths[j].Seek(0LLU);
+            for (uint32 j = 0u; j < numberOfClients; j++) {
+                /* This cycle will save the last token found */
+                tempPaths[j].Seek(0LLU);
+                do {
+                    pathToken = "";
+                    ok = tempPaths[j].GetToken(pathToken, ".", ignore);
+                    if (pathToken == sigToken) {
+                        paths[i] = tempPaths[j];
+                        namespaceIndexes[i] = tempNamespaceIndexes[j];
+                        ok = false; /* Exit from the cycle */
+                    }
+                }
+                while (ok);
+            }
+
+            /* Then we add to the path the remaining node names */
+            StreamString dotToken = ".";
             do {
-                pathToken = "";
-                ok = tempPaths[j].GetToken(pathToken, ".", ignore);
-                if (pathToken == sigToken) {
-                    paths[i] = tempPaths[j];
-                    namespaceIndexes[i] = tempNamespaceIndexes[j];
-                    ok = false; /* Exit from the cycle */
+                sigToken = "";
+                ok = sigName.GetToken(sigToken, ".", ignore);
+                if (ok) {
+                    paths[i] += dotToken;
+                    paths[i] += sigToken;
                 }
             }
             while (ok);
-        }
-
-        /* Then we add to the path the remaining node names */
-        StreamString dotToken = ".";
-        do {
-            sigToken = "";
-            ok = sigName.GetToken(sigToken, ".", ignore);
-            if (ok) {
-                paths[i] += dotToken;
-                paths[i] += sigToken;
-            }
-        }
-        while (ok);
-        ok = true;
-    }
-    if (ok) {
-        if (numberOfNodes > 0u) {
-            clients = new OPCUAClientWrapper[numberOfNodes];
+            ok = true;
         }
     }
     if (ok) {
-        uint32 i;
-        /* Insert Address from configuration */
+        /* Setting up the master Client who will perform the operations */
         char* s = new char[strlen(reinterpret_cast<const char*>(serverAddress.Buffer()))];
         strcpy(s, reinterpret_cast<const char*>(serverAddress.Buffer()));
-        for (i = 0u; i < numberOfNodes; i++) {
-            clients[i].SetServerAddress(s);
-            clients[i].Connect();
+        masterClient = new OPCUAClientWrapper("Read");
+        masterClient->SetServerAddress(s);
+        masterClient->SetSamplingTime(samplingTime);
+        ok = masterClient->Connect();
+        if (ok) {
+            REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
+        }
+        ok = masterClient->SetTargetNodes(namespaceIndexes, paths, numberOfNodes);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find one or more signals in the Server.");
         }
     }
-    if (ok) {
+    if (ok && sync == "no") {
         ok = (executor.Start() == ErrorManagement::NoError);
     }
     return ok;
@@ -204,11 +243,17 @@ bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx,
     StreamString opcDisplayName;
     bool ok = GetSignalName(signalIdx, opcDisplayName);
     /* Debug info */
-    REPORT_ERROR(ErrorManagement::Information, "Searching for signal [%s]", opcDisplayName.Buffer());
+    //REPORT_ERROR(ErrorManagement::Information, "Searching for signal [%s]", opcDisplayName.Buffer());
     if (ok) {
-        ok = clients[signalIdx].BrowseAddressSpace(namespaceIndexes[signalIdx], paths[signalIdx]);
+        if ((types[signalIdx].type == CArray) || (types[signalIdx].type == BT_CCString) || (types[signalIdx].type == PCString)
+                || (types[signalIdx].type == SString)) {
+            //uint32 numberOfChars = 0u;
+            //If char8 the number of elements will be 1. Correct this!
+            //GetSignalNumberOfElements(signalIdx, numberOfChars);
+            //clients[signalIdx].SetMaxNumberOfChar(numberOfChars);
+        }
         if (ok) {
-            ok = clients[signalIdx].GetSignalMemory(signalAddress);
+            ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx], 0u);
         }
     }
     if (ok) {
@@ -223,8 +268,15 @@ bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx,
 const char8 * OPCUADSInput::GetBrokerName(StructuredDataI &data,
                                           const SignalDirection direction) {
     const char8* brokerName = "";
-    if (direction == InputSignals) {
-        brokerName = "MemoryMapInputBroker";
+    if (sync == "no") {
+        if (direction == InputSignals) {
+            brokerName = "MemoryMapInputBroker";
+        }
+    }
+    else if (sync == "yes") {
+        if (direction == InputSignals) {
+            brokerName = "MemoryMapSynchronisedInputBroker";
+        }
     }
     return brokerName;
 }
@@ -237,14 +289,22 @@ bool OPCUADSInput::PrepareNextState(const char8 * const currentStateName,
 ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo & info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        err.communicationError = !clients[info.GetThreadNumber()].Monitor();
-        Sleep::MSec(500);
+        if (samplingTime >= 5.0) {
+            //err.communicationError = !clients[info.GetThreadNumber()].Monitor();
+        }
+        else if (samplingTime < 5.0) {
+            err.communicationError = !masterClient->Read(numberOfNodes, types, nElements);
+        }
     }
     return err;
 }
 
 bool OPCUADSInput::Synchronise() {
-    return false;
+    bool ok = true;
+    if (sync == "yes") {
+        masterClient->Read(numberOfNodes, types, nElements);
+    }
+    return ok;
 }
 
 CLASS_REGISTER(OPCUADSInput, "1.0");

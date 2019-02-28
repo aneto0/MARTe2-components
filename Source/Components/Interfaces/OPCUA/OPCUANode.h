@@ -57,7 +57,7 @@ public:
 
     ~OPCUANode();
 
-    virtual bool GetOPCVariable(OPCUANodeSettings &settings, TypeDescriptor nodeType);
+    virtual bool GetOPCVariable(OPCUANodeSettings &settings, TypeDescriptor nodeType, uint32 nodeNumber);
 
     virtual bool IsNode();
 

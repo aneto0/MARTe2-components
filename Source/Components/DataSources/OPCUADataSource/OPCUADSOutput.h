@@ -66,8 +66,6 @@ OPCUADSOutput    ();
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
 
-    virtual bool GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr);
-
     virtual bool PrepareNextState(const char8 * const currentStateName,
             const char8 * const nextStateName);
 
@@ -75,7 +73,7 @@ OPCUADSOutput    ();
 
 private:
 
-    OPCUAClientWrapper * clients;
+    OPCUAClientWrapper * masterClient;
 
     StreamString serverAddress;
 
@@ -96,6 +94,12 @@ private:
     uint32 cpuMask;
 
     uint32 stackSize;
+
+    uint8 * nDimensions;
+
+    uint32 * nElements;
+
+    TypeDescriptor * types;
 
 };
 

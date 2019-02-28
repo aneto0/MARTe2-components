@@ -37,6 +37,7 @@
 #include "MultiThreadService.h"
 #include "OPCUAClientWrapper.h"
 #include "AdvancedErrorManagement.h"
+#include "MemoryMapSynchronisedInputBroker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -52,7 +53,9 @@ namespace MARTe {
  * Since it uses the TranslateBrowsePathToNodeId service, you must indicate the relative browse path of the Address Space
  * starting from the OPCUA Object of interest inside the "Objects" folder.
  *
- * It supports int8/16/32/64, uint8/16/32/64, float32/64 and Introspection Structure.
+ * It supports int8/16/32/64, uint8/16/32/64, float32/64, char8 and Introspection Structure.
+ *
+ * Maximum number of signal supported is 1000.
  *
  * The configuration syntax is (names are only given as an example):
  * <pre>
@@ -88,9 +91,9 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-/**
- * @brief Default constructor. NOOP
- */
+    /**
+     * @brief Default constructor. NOOP
+     */
 OPCUADSInput    ();
 
     /**
@@ -141,7 +144,7 @@ OPCUADSInput    ();
      * @return MemoryMapInputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-             const SignalDirection direction);
+            const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::PrepareNextState.
@@ -157,23 +160,23 @@ OPCUADSInput    ();
      */
     virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
-    /**
-     * @brief See DataSourceI::Synchronise.
-     * @return false
-     */
     virtual bool Synchronise();
 
 private:
 
     MultiThreadService executor;
 
-    OPCUAClientWrapper * clients;
+    OPCUAClientWrapper * masterClient;
+
+    StreamString sync;
 
     StreamString serverAddress;
 
     uint32 numberOfClients;
 
     uint32 numberOfNodes;
+
+    float64 samplingTime;
 
     /**
      * The array which stores all the browse paths for each
@@ -196,6 +199,10 @@ private:
      * Temporary array to store value read from configuration
      */
     uint32 *tempNamespaceIndexes;
+
+    uint32 * nElements;
+
+    TypeDescriptor * types;
 
 };
 

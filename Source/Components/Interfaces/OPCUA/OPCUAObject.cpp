@@ -41,31 +41,32 @@ namespace MARTe {
 
 OPCUAObject::OPCUAObject() :
         OPCUAReferenceContainer() {
-    nodeId = NULL_PTR(char*);
-    parentNodeId = NULL_PTR(char*);
     isFirstObject = false;
+    //parentNodeId = 0u;
 }
 
 OPCUAObject::~OPCUAObject() {
 
 }
 
-bool OPCUAObject::GetOPCObject(OPCUAObjectSettings &settings) {
+bool OPCUAObject::GetOPCObject(OPCUAObjectSettings &settings, uint32 nodeNumber) {
     bool ok = true;
     settings->attr = UA_ObjectAttributes_default;
-    SetNodeId(GetName());
-    settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
+    SetNodeId(nodeNumber);
+    //settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
+    settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
     char * localization = new char[strlen("en-US") + 1];
     StringHelper::Copy(localization, "en-US");
     char * readName = new char[StringHelper::Length(GetName()) + 1];
     StringHelper::Copy(readName, GetName());
     settings->nodeName = UA_QUALIFIEDNAME(1, readName);
     settings->attr.displayName = UA_LOCALIZEDTEXT(localization, readName);
-    if (parentNodeId == NULL_PTR(char*)) {
+    if (parentNodeId == 0u) {
         settings->parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
     }
     else {
-        settings->parentNodeId = UA_NODEID_STRING(1, parentNodeId);
+        //settings->parentNodeId = UA_NODEID_STRING(1, parentNodeId);
+        settings->parentNodeId = UA_NODEID_NUMERIC(1, parentNodeId);
     }
     settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
 
