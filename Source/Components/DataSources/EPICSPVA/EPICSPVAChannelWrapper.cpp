@@ -282,7 +282,7 @@ bool EPICSPVAChannelWrapper::ResolveStructure(const epics::pvData::PVStructure* 
                     for (k = 0u; (k < numberOfSignals) && (ok) && (!found); k++) {
                         found = (cachedSignals[k].qualifiedName == fullFieldName);
                         if (found) {
-                            cachedSignals[k].pvField = field->shared_from_this();
+                            cachedSignals[k].pvField = field;
                             REPORT_ERROR_STATIC(ErrorManagement::Debug, "Assigned PV to signal with name [%s]", fullFieldName.Buffer());
                         }
                     }
@@ -330,6 +330,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
                             }
                             structureResolved = ok;
                         }
+                        structureResolved = false;
                         uint32 n;
                         for (n = 0u; (n < numberOfSignals) && (ok); n++) {
                             epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(cachedSignals[n].pvField);

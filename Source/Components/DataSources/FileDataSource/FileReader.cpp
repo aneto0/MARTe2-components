@@ -210,7 +210,20 @@ bool FileReader::Synchronise() {
             StreamString line;
             ok = inputFile.GetLine(line);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Failed to read line.");
+                if (inputFile.Position() == inputFile.Size()) {
+                    ok = inputFile.Seek(0LLU);
+                    if (ok) {
+                        //Skip the header
+                        ok = inputFile.GetLine(line);
+                    }
+                    if (ok) {
+                        line = "";
+                        ok = inputFile.GetLine(line);
+                    }
+                }
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Failed to read line.");
+                }
             }
 
             if (ok) {
