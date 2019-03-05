@@ -18,10 +18,11 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class MDSStructuredDataI (public, protected, and private). Be aware that some 
+ * the class MDSStructuredDataI (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
+#define DLL_API
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
@@ -34,6 +35,7 @@
 #include "Reference.h"
 #include "StreamString.h"
 #include "AdvancedErrorManagement.h"
+#include "TypeConversion.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -44,38 +46,156 @@
 namespace MARTe {
 
 MDSStructuredDataI::MDSStructuredDataI() :
-        Object(),
-        StructuredDataI() {
+        Object() {
     currentNode = NULL_PTR(MDSplus::TreeNode *);
     rootNode = NULL_PTR(MDSplus::TreeNode *);
     tree = NULL_PTR(MDSplus::Tree *);
     editModeSet = false;
     internallyCreated = false;
+    isOpen = false;
 }
 
+//lint -e{1551} Function may throw exception --> The exceptions are not managed
+//lint -e{1579} Pointer member might have been freed by a separate function --> CloseTree checks if the pointers were freed previously
 MDSStructuredDataI::~MDSStructuredDataI() {
-    if (internallyCreated) {
+    //lint -e{534} Ignoring return value of function --> The destructor is a void function the returned value of CloseTree cannot be used
+    if (IsOpen()) {
         CloseTree();
     }
 }
 
 bool MDSStructuredDataI::Read(const char8* const name,
                               const AnyType& value) {
-    return false;
+    bool ok = IsOpen();
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. The tree is closed! Open it before calling read");
+    }
+    /*
+     if (ok) {
+     //lint -e{534} Ignoring return value of function --> It is a mechanism to test if tree pointers are valid
+     //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> rootNode is not NULL because IsOpen() ensure that
+     //the pointer is not NULL.
+     try {
+     rootNode->getNodeName();
+     }
+     catch (const MDSplus::MdsException &exc) {
+     REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Impossible to read: %s", exc.what());
+     ok = false;
+     }
+     }
+     */
+    MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
+    if (ok) {
+        //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> rootNode is not NULL because IsOpen() ensure that
+        //the pointer is not NULL.
+        try {
+            node = currentNode->getNode(name);
+        }
+        catch (const MDSplus::MdsException &exc) {
+            node = NULL_PTR(MDSplus::TreeNode *);
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Node %s does not exist: %s", name, exc.what());
+            ok = false;
+        }
+    }
+    //lint -e{613} Possible use of null pointer 'node' in left argument to operator '->' --> if node is NULL ok is false and hence node never used.
+    if (ok) {
+        MDSplus::Data *dataD = node->getData();
+        TypeDescriptor marteType = value.GetTypeDescriptor();
+        void *data = NULL_PTR(void *);
+        int32 numberOfElements = 0;
+        if (marteType == UnsignedInteger8Bit) {
+            data = dataD->getByteUnsignedArray(&numberOfElements);
+        }
+        else if (marteType == SignedInteger8Bit) {
+            data = dataD->getByteArray(&numberOfElements);
+        }
+        else if (marteType == UnsignedInteger16Bit) {
+            data = dataD->getShortUnsignedArray(&numberOfElements);
+        }
+        else if (marteType == SignedInteger16Bit) {
+            data = dataD->getShortUnsignedArray(&numberOfElements);
+        }
+        else if (marteType == UnsignedInteger32Bit) {
+            data = dataD->getIntUnsignedArray(&numberOfElements);
+        }
+        else if (marteType == SignedInteger32Bit) {
+            data = dataD->getIntArray(&numberOfElements);
+        }
+        else if (marteType == UnsignedInteger64Bit) {
+            data = dataD->getLongUnsignedArray(&numberOfElements);
+        }
+        else if (marteType == SignedInteger64Bit) {
+            data = dataD->getLongArray(&numberOfElements);
+        }
+        else if (marteType == Float32Bit) {
+            data = dataD->getFloatArray(&numberOfElements);
+        }
+        else if (marteType == Float64Bit) {
+            data = dataD->getDoubleArray(&numberOfElements);
+        }
+        else if (marteType == CharString) {
+            data = dataD->getString();
+            StreamString auxStream = reinterpret_cast<char8 *>(data);
+            numberOfElements = static_cast<int32>(auxStream.Size());
+        }
+        else if (marteType == ConstCharString) {
+            data = dataD->getString();
+            StreamString auxStream = reinterpret_cast<const char8 *>(data);
+            numberOfElements = static_cast<int32>(auxStream.Size());
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Not valid type");
+            ok = false;
+        }
+
+        if (ok) {
+            ok = MemoryOperationsHelper::Copy(value.GetDataPointer(), data, (static_cast<uint32>(numberOfElements) * marteType.numberOfBits) / 8u);
+            MDSplus::deleteData(dataD);
+        }
+    }
+    return ok;
 }
 
 bool MDSStructuredDataI::Write(const char8 * const name,
                                const AnyType &value) {
-    bool ok = true;
+    bool ok = IsOpen();
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree is closed. Open it before calling Write()");
+    }
+    if(ok){
+        ok = editModeSet;
+        if(!ok){
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Tree is not in editable mode");
+        }
+    }
+    if (ok) {
+        try {
+            //lint -e{534} Ignoring return value of function --> It is a mechanism to test if tree pointers are valid
+            //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> rootNode is not NULL because IsOpen() ensure that
+            //the pointer is not NULL.
+            rootNode->getNodeName();
+        }
+        catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Impossible to write: %s", exc.what());
+            ok = false;
+        }
+    }
     MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
-    try {
-        node = currentNode->getNode(name);
-    }
-    catch (const MDSplus::MdsException &exc) {
-        node = NULL_PTR(MDSplus::TreeNode *);
-    }
-    if (node == NULL_PTR(MDSplus::TreeNode *)) {
-        node = currentNode->addNode(name, "ANY");
+    if (ok) {
+        try {
+            //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> currentNode is not NULL because IsOpen() ensure that
+            //the pointer is not NULL.
+            node = currentNode->getNode(name);
+        }
+        catch (const MDSplus::MdsException &exc) {
+            node = NULL_PTR(MDSplus::TreeNode *);
+            //REPORT_ERROR_STATIC(ErrorManagement::Information, "System error: %s. Node %s not found try to add it.", exc.what(), name);
+        }
+        if (node == NULL_PTR(MDSplus::TreeNode *)) {
+            //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> currentNode is not NULL because IsOpen() ensure that
+            //the pointer is not NULL.
+            node = currentNode->addNode(name, "ANY");
+        }
     }
     if (ok) {
         ok = (node != NULL_PTR(MDSplus::TreeNode *));
@@ -83,110 +203,152 @@ bool MDSStructuredDataI::Write(const char8 * const name,
             REPORT_ERROR(ErrorManagement::FatalError, "Node %s does not exist and cannot be created", name);
         }
     }
+    //lint -e{429} Custodial pointer 'data' (line 181) has not been freed or returned --> If it is initialised it is freed via MDSplus::deleteData(data)
     if (ok) {
-        MDSplus::Data *data;
+        MDSplus::Data *data = NULL_PTR(MDSplus::Data *);
         TypeDescriptor mdsType = value.GetTypeDescriptor();
         if (mdsType == UnsignedInteger8Bit) {
-            data = new MDSplus::Uint8(*reinterpret_cast<uint8 *>(value.GetDataPointer()));
+            data = new MDSplus::Uint8Array(reinterpret_cast<uint8 *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
         }
         else if (mdsType == SignedInteger8Bit) {
-            data = new MDSplus::Int8(*reinterpret_cast<int8 *>(value.GetDataPointer()));
+            data = new MDSplus::Int8Array(reinterpret_cast<char8 *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
         }
         else if (mdsType == UnsignedInteger16Bit) {
-            data = new MDSplus::Uint16(*reinterpret_cast<uint16 *>(value.GetDataPointer()));
+            data = new MDSplus::Uint16Array(reinterpret_cast<uint16 *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
         }
         else if (mdsType == SignedInteger16Bit) {
-            data = new MDSplus::Int16(*reinterpret_cast<int16 *>(value.GetDataPointer()));
+            data = new MDSplus::Int16Array(reinterpret_cast<int16 *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
         }
         else if (mdsType == UnsignedInteger32Bit) {
-            data = new MDSplus::Uint32(*reinterpret_cast<uint32 *>(value.GetDataPointer()));
+            data = new MDSplus::Uint32Array(reinterpret_cast<uint32 *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
         }
         else if (mdsType == SignedInteger32Bit) {
-            data = new MDSplus::Int32(*reinterpret_cast<int32 *>(value.GetDataPointer()));
+            data = new MDSplus::Int32Array(reinterpret_cast<int32 *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
         }
         else if (mdsType == UnsignedInteger64Bit) {
-            data = new MDSplus::Uint64(*reinterpret_cast<uint64 *>(value.GetDataPointer()));
+            data = new MDSplus::Uint64Array(reinterpret_cast<uint64_t *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
         }
         else if (mdsType == SignedInteger64Bit) {
-            data = new MDSplus::Int64(*reinterpret_cast<int64 *>(value.GetDataPointer()));
+            data = new MDSplus::Int64Array(reinterpret_cast<int64_t *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
         }
         else if (mdsType == Float32Bit) {
-            data = new MDSplus::Float32(*reinterpret_cast<float32 *>(value.GetDataPointer()));
+            data = new MDSplus::Float32Array(reinterpret_cast<float32 *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
         }
         else if (mdsType == Float64Bit) {
-            data = new MDSplus::Float64(*reinterpret_cast<float64 *>(value.GetDataPointer()));
+            data = new MDSplus::Float64Array(reinterpret_cast<float64 *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
         }
         else if (mdsType == CharString) {
-            data = new MDSplus::String(reinterpret_cast<char8 *>(value.GetDataPointer()));
+            StreamString auxStream = reinterpret_cast<char8 *>(value.GetDataPointer());
+            data = new MDSplus::String(reinterpret_cast<char8 *>(value.GetDataPointer()), static_cast<int32>(auxStream.Size()));
         }
         else if (mdsType == ConstCharString) {
-            data = new MDSplus::String(reinterpret_cast<const char8 *>(value.GetDataPointer()));
+            StreamString auxStream = reinterpret_cast<char8 *>(value.GetDataPointer());
+            data = new MDSplus::String(reinterpret_cast<const char8 *>(value.GetDataPointer()), static_cast<int32>(auxStream.Size()));
+        }
+        else if (mdsType == Character8Bit) {
+            data = new MDSplus::String(reinterpret_cast<const char8 *>(value.GetDataPointer()), static_cast<int32>(value.GetNumberOfElements(0u)));
+        }
+        else {
+            ok = false;
         }
         if (ok) {
+            //lint -e{613} Possible use of null pointer 'node' in left argument to operator '->' --> if the data == NULL then ok is false
             node->putData(data);
             MDSplus::deleteData(data);
         }
     }
-
     return ok;
 }
 
 AnyType MDSStructuredDataI::GetType(const char8* const name) {
     AnyType at;
-
-    MDSplus::TreeNode *node = currentNode->getNode(name);
-    if (node != NULL_PTR(MDSplus::TreeNode *)) {
-        StreamString mdsType = node->getDType();
-        TypeDescriptor marteType;
-        if (mdsType == "DTYPE_BU") {
-            marteType = UnsignedInteger8Bit;
+    MDSplus::TreeNode * node = NULL_PTR(MDSplus::TreeNode *);
+    int32 numberOfElements = 0;
+    bool ok = IsOpen();
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree is closed. Open it before calling GetType()");
+    }
+    if (ok) {
+        //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> currentNode is not NULL because IsOpen() ensure that
+        //the pointer is not NULL.
+        try {
+            node = currentNode->getNode(name);
         }
-        else if (mdsType == "DTYPE_B") {
-            marteType = SignedInteger8Bit;
+        catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Impossible to GetType: %s", exc.what());
+            node = NULL_PTR(MDSplus::TreeNode *);
         }
-        else if (mdsType == "DTYPE_WU") {
-            marteType = UnsignedInteger16Bit;
+        if (node != NULL_PTR(MDSplus::TreeNode *)) {
+            StreamString mdsType = node->getDType();
+            TypeDescriptor marteType;
+            MDSplus::Data *dataD = node->getData();
+            if (mdsType == "DTYPE_BU") {
+                numberOfElements = dataD->getSize();
+                marteType = UnsignedInteger8Bit;
+            }
+            else if (mdsType == "DTYPE_B") {
+                numberOfElements = dataD->getSize();
+                marteType = SignedInteger8Bit;
+            }
+            else if (mdsType == "DTYPE_WU") {
+                numberOfElements = dataD->getSize();
+                marteType = UnsignedInteger16Bit;
+            }
+            else if (mdsType == "DTYPE_W") {
+                numberOfElements = dataD->getSize();
+                marteType = SignedInteger16Bit;
+            }
+            else if (mdsType == "DTYPE_LU") {
+                numberOfElements = dataD->getSize();
+                marteType = UnsignedInteger32Bit;
+            }
+            else if (mdsType == "DTYPE_L") {
+                numberOfElements = dataD->getSize();
+                marteType = SignedInteger32Bit;
+            }
+            else if (mdsType == "DTYPE_QU") {
+                numberOfElements = dataD->getSize();
+                marteType = UnsignedInteger64Bit;
+            }
+            else if (mdsType == "DTYPE_Q") {
+                numberOfElements = dataD->getSize();
+                marteType = SignedInteger64Bit;
+            }
+            else if (mdsType == "DTYPE_FS") {
+                numberOfElements = dataD->getSize();
+                marteType = Float32Bit;
+            }
+            else if (mdsType == "DTYPE_FT") {
+                numberOfElements = dataD->getSize();
+                marteType = Float64Bit;
+            }
+            else if (mdsType == "DTYPE_T") {
+                void * data = dataD->getString();
+                StreamString auxString = reinterpret_cast<char8 *>(data);
+                numberOfElements = static_cast<int32>(auxString.Size());
+                marteType = CharString;
+            }
+            else {
+            }
+            at = AnyType(marteType, 0u, NULL_PTR(void *));
+            at.SetNumberOfElements(0u, static_cast<uint32>(numberOfElements));
+            MDSplus::deleteData(dataD);
         }
-        else if (mdsType == "DTYPE_W") {
-            marteType = SignedInteger16Bit;
-        }
-        else if (mdsType == "DTYPE_LU") {
-            marteType = UnsignedInteger32Bit;
-        }
-        else if (mdsType == "DTYPE_L") {
-            marteType = SignedInteger32Bit;
-        }
-        else if (mdsType == "DTYPE_QU") {
-            marteType = UnsignedInteger64Bit;
-        }
-        else if (mdsType == "DTYPE_Q") {
-            marteType = SignedInteger64Bit;
-        }
-        else if (mdsType == "DTYPE_FS") {
-            marteType = Float32Bit;
-        }
-        else if (mdsType == "DTYPE_FT") {
-            marteType = Float64Bit;
-        }
-        else {
-
-        }
-        at = AnyType(marteType, 0u, NULL_PTR(void *));
-
     }
     return at;
 }
 
 bool MDSStructuredDataI::Copy(StructuredDataI& destination) {
-    bool ok = (currentNode != NULL_PTR(MDSplus::TreeNode *));
+    bool ok = IsOpen();
     if (!ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree not opened");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree closed. Open it before calling Copy");
     }
-    uint32 numberOfChildren = GetNumberOfChildren();
+    uint32 numberOfChildren = 0u;
+    if(ok){
+        numberOfChildren = GetNumberOfChildren();
+    }
     for (uint32 i = 0u; (i < numberOfChildren) && (ok); i++) {
-        if (ok) {
-            ok = MoveToChild(i);
-        }
+        ok = MoveToChild(i);
         if (ok) {
             ok = destination.CreateRelative(GetName());
         }
@@ -203,70 +365,59 @@ bool MDSStructuredDataI::Copy(StructuredDataI& destination) {
     }
     return ok;
 }
-
-bool MDSStructuredDataI::AddToCurrentNode(Reference nodeRef) {
-
+//lint -e{715} Symbol 'node' (line 319) not referenced --> function not supported
+bool MDSStructuredDataI::AddToCurrentNode(Reference node) {
     return false;
-    /*
-     bool ok = editModeSet;
-     if (ok) {
-     MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
-     ok = (currentNode != NULL_PTR(MDSplus::TreeNode *));
-     if (!ok) {
-     REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Relative node cannot be created because the tree is not opened");
-     }
-     if (ok) {
-     ok = nodeRef.IsValid();
-     if (!ok) {
-     REPORT_ERROR_STATIC(ErrorManagement::FatalError, "node reference not valid");
-     }
-     }
-     if (ok) {
-     try {
-     node = currentNode->addNode(nodeRef, "STRUCTURE");
-     }
-     catch (const MDSplus::MdsException &exc) {
-     node = NULL_PTR(MDSplus::TreeNode *);
-     ok = false;
-     }
-     }
-     if (ok) {
-     ok = (node != NULL_PTR(MDSplus::TreeNode *));
-     if (ok) {
-     currentNode = node;
-     }
-     }
-     }
-     return ok;
-     */
 }
 
 bool MDSStructuredDataI::MoveToRoot() {
-    bool ret = (rootNode != NULL_PTR(MDSplus::TreeNode *));
+    bool ret = IsOpen();
     if (!ret) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree not opened");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree closed. Open it before calling MoveToRoot");
     }
+    if (ret) {
+        //lint -e{534} Ignoring return value of function --> It is a mechanism to test if tree pointers are valid
+        //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> rootNode is not NULL because IsOpen() ensure that
+        //the pointer is not NULL.
+        try {
+            currentNode->getNodeName();
+        }
+        catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Impossible to move root: %s", exc.what());
+            ret = false;
+        }
+    }
+//lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> rootNode is not NULL because IsOpen() ensure that
+//the pointer is not NULL.
     if (ret) {
         currentNode = rootNode;
     }
     return ret;
 }
 
-bool MDSStructuredDataI::MoveToAncestor(uint32 generations) {
-    bool ok = (currentNode != NULL_PTR(MDSplus::TreeNode *));
+bool MDSStructuredDataI::MoveToAncestor(const uint32 generations) {
+    bool ok = IsOpen();
     if (!ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree not opened");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree closed. Open it before calling MoveToAncestor");
     }
-    MDSplus::TreeNode *node = currentNode;
+    MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
+//lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::currentNode' in left argument to operator '->'--> currentNode is not NULL because IsOpen() ensures that
+//the pointer is not NULL.
+    if (ok) {
+        node = currentNode;
+    }
     uint32 i = 0u;
-    while ((i < generations) && (node != NULL_PTR(MDSplus::TreeNode *))) {
-        try {
-            node = node->getParent();
+    if (ok) {
+        while ((i < generations) && (node != NULL_PTR(MDSplus::TreeNode *))) {
+            try {
+                node = node->getParent();
+            }
+            catch (const MDSplus::MdsException &exc) {
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Impossible to move ancestor: %s", exc.what());
+                ok = false;
+            }
+            i++;
         }
-        catch (const MDSplus::MdsException &exc) {
-            ok = false;
-        }
-        i++;
     }
     if (ok) {
         ok = (node != NULL_PTR(MDSplus::TreeNode *));
@@ -282,22 +433,19 @@ bool MDSStructuredDataI::MoveToAncestor(uint32 generations) {
 
 bool MDSStructuredDataI::MoveAbsolute(const char8* const path) {
     MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
-    bool ok = (tree != NULL_PTR(MDSplus::Tree*));
+    bool ok = IsOpen();
     if (!ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree not opened");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree closed. Open it before calling MoveAbsolute.");
     }
+//lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::tree' in left argument to operator '->' IsOpen guarantees that the node is not NULL
     if (ok) {
         try {
             node = tree->getNode(path);
         }
         catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Impossible to move to %s: %s", path, exc.what());
             node = NULL_PTR(MDSplus::TreeNode *);
-        }
-    }
-    if (ok) {
-        ok = (node != NULL_PTR(MDSplus::TreeNode *));
-        if (!ok) {
-            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Path not found");
+            ok = false;
         }
     }
     if (ok) {
@@ -308,25 +456,23 @@ bool MDSStructuredDataI::MoveAbsolute(const char8* const path) {
 
 bool MDSStructuredDataI::MoveRelative(const char8* const path) {
     MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
-    bool ok = (currentNode != NULL_PTR(MDSplus::TreeNode *));
+    bool ok = IsOpen();
     if (!ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree not opened");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree closed. Open it before calling MoveRelative");
     }
     if (ok) {
+        //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::currentNode' in left argument to operator '->'. IsOpen() ensures that the currentNode is not NULL
         try {
             node = currentNode->getNode(path);
         }
         catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Could not move to %s: %s", path, exc.what());
             node = NULL_PTR(MDSplus::TreeNode *);
+            ok = false;
         }
     }
     if (ok) {
-        ok = (node != NULL_PTR(MDSplus::TreeNode *));
-        if (!ok) {
-            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Child node does not exist");
-        }
-    }
-    if (ok) {
+        //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::node' --> It was previously check. if node == NULL ok = false
         currentNode = node;
     }
     return ok;
@@ -334,16 +480,19 @@ bool MDSStructuredDataI::MoveRelative(const char8* const path) {
 
 bool MDSStructuredDataI::MoveToChild(const uint32 childIdx) {
     MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
-    bool ok = (currentNode != NULL_PTR(MDSplus::TreeNode *));
+    bool ok = IsOpen();
     if (!ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree not opened");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree closed. Open it before calling MoveToChild()");
     }
+//lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::tree' in left argument to operator '->' IsOpen() guarantees that the currentNode is not NULL
     if (ok) {
         try {
             node = currentNode->getChild();
         }
         catch (const MDSplus::MdsException &exc) {
             node = NULL_PTR(MDSplus::TreeNode *);
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Impossible to get child %u: %s", childIdx, exc.what());
+            ok = false;
         }
     }
     uint32 i = 0u;
@@ -357,7 +506,8 @@ bool MDSStructuredDataI::MoveToChild(const uint32 childIdx) {
         try {
             node = node->getBrother();
         }
-        catch (const MDSplus::MdsException &exc) {
+        catch (const MDSplus::MdsException &exc) {        //Never should happen
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Child node does not exist. System error %s", exc.what());
             node = NULL_PTR(MDSplus::TreeNode *);
         }
         i++;
@@ -375,27 +525,23 @@ bool MDSStructuredDataI::MoveToChild(const uint32 childIdx) {
 }
 
 bool MDSStructuredDataI::CreateAbsolute(const char8* const path) {
-    bool ok = (tree != NULL_PTR(MDSplus::Tree *));
+    bool ok = IsOpen();
     if (!ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error, tree is not opened");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error, Tree closed. Open it before calling CreateAbsolute()");
     }
     if (ok) {
-        ok = tree->isOpenForEdit();
+        ok = editModeSet;
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Trying to modify tree but it is not open in edit mode");
         }
     }
+    MDSplus::TreeNode *auxNode = NULL_PTR(MDSplus::TreeNode *);
     if (ok) {
-        MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
-        try {
-            node = rootNode->addNode(path, "STRUCTURE");
-        }
-        catch (const MDSplus::MdsException &exc) {
-            node = NULL_PTR(MDSplus::TreeNode *);
-        }
-        ok = (node != NULL_PTR(MDSplus::TreeNode *));
-        if (ok) {
-            currentNode = node;
+        auxNode = currentNode;
+        currentNode = rootNode;
+        ok = CreateNodes(path);
+        if (!ok) {
+            currentNode = auxNode;
         }
     }
     return ok;
@@ -407,7 +553,7 @@ bool MDSStructuredDataI::CreateRelative(const char8* const path) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Relative node cannot be created because the tree is not set editable");
     }
     if (ok) {
-        ok = (currentNode != NULL_PTR(MDSplus::TreeNode *));
+        ok = IsOpen();
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Relative node cannot be created because the tree is not opened");
         }
@@ -416,32 +562,6 @@ bool MDSStructuredDataI::CreateRelative(const char8* const path) {
         ok = CreateNodes(path);
     }
     return ok;
-    /*
-     bool ok = editModeSet;
-     if (ok) {
-     MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
-     ok = (currentNode != NULL_PTR(MDSplus::TreeNode *));
-     if (!ok) {
-     REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Relative node cannot be created because the tree is not opened");
-     }
-     if (ok) {
-     try {
-     node = currentNode->addNode(path, "STRUCTURE");
-     }
-     catch (const MDSplus::MdsException &exc) {
-     node = NULL_PTR(MDSplus::TreeNode *);
-     ok = false;
-     }
-     }
-     if (ok) {
-     ok = (node != NULL_PTR(MDSplus::TreeNode *));
-     if (ok) {
-     currentNode = node;
-     }
-     }
-     }
-     return ok;
-     */
 }
 
 bool MDSStructuredDataI::Delete(const char8* const name) {
@@ -450,12 +570,13 @@ bool MDSStructuredDataI::Delete(const char8* const name) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. The node = %s  of the tree cannot be deleted because the tree is not in editable mode", name);
     }
     if (ok) {
-        ok = (tree != NULL_PTR(MDSplus::Tree *));
+        ok = IsOpen();
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. node = %s of the tree cannot be deleted because the tree is not opened", name);
         }
         if (ok) {
             try {
+                //lint -e{613} Possible use of null pointer --> Not Possible because IsOpen() return false if tree = NULL
                 tree->remove(name);
             }
             catch (const MDSplus::MdsException &exc) {
@@ -469,7 +590,12 @@ bool MDSStructuredDataI::Delete(const char8* const name) {
 
 const char8* MDSStructuredDataI::GetName() {
     char8 * retChar = NULL_PTR(char8*);
-    if (currentNode != NULL_PTR(MDSplus::TreeNode *)) {
+    bool ok = IsOpen();
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree is closed. Open it before calling GetName()");
+    }
+    if (ok) {
+        //lint -e{613} Possible use of null pointer --> Not possible because IsOpen() return false if currentNode = NULL
         retChar = currentNode->getNodeName();
     }
     return retChar;
@@ -478,31 +604,37 @@ const char8* MDSStructuredDataI::GetName() {
 const char8* MDSStructuredDataI::GetChildName(const uint32 index) {
     const char8* ret = NULL_PTR(const char8*);
     MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
-    if (currentNode != NULL_PTR(MDSplus::TreeNode *)) {
+    bool ok = IsOpen();
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree is closed. Open it before calling GetChildName()");
+    }
+    if (ok) {
+        //lint -e{613} Possible use of null pointer --> Not possible because IsOpen() checks that the pointer is not NULL
         try {
             node = currentNode->getChild();
         }
         catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error::%s", exc.what());
+            ok = false;
         }
     }
-    if (index >= GetNumberOfChildren()) { //If the index is too high for sure the node name doesn't exist
-        node = NULL_PTR(MDSplus::TreeNode *);
+    if (ok) {
+        ok = (index < GetNumberOfChildren()); //If the index is too high for sure the node name doesn't exist
     }
     uint32 i = 0u;
-    while ((i < index) && (node != NULL_PTR(MDSplus::TreeNode *))) {
-        try {
-            node = node->getBrother();
+    if (ok) {
+        while ((i < index) && (node != NULL_PTR(MDSplus::TreeNode *))) {
+            try {
+                node = node->getBrother();
+            }
+            catch (const MDSplus::MdsException &exc) {
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "No more brothers to consume. Child not found::%s", exc.what());
+                node = NULL_PTR(MDSplus::TreeNode *);
+            }
+            i++;
         }
-        catch (const MDSplus::MdsException &exc) {
-            node = NULL_PTR(MDSplus::TreeNode *);
-        }
-        i++;
-    }
-    if (node != NULL_PTR(MDSplus::TreeNode *)) {
-        try {
+        if (node != NULL_PTR(MDSplus::TreeNode *)) {
             ret = node->getNodeName();
-        }
-        catch (const MDSplus::MdsException &exc) {
         }
     }
     return ret;
@@ -510,44 +642,53 @@ const char8* MDSStructuredDataI::GetChildName(const uint32 index) {
 
 uint32 MDSStructuredDataI::GetNumberOfChildren() {
     uint32 ret = 0u;
-    if (currentNode == NULL_PTR(MDSplus::TreeNode *)) {
+    bool ok = IsOpen();
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree is closed. Open it before calling GetNumberOfChildren()");
         ret = 0u;
     }
     else {
+        //lint -e{613} Possible use of null pointer --> Not possible because IsOpen() checks that the pointer is not NULL
         try {
-            ret = currentNode->getNumChildren();
+            ret = static_cast<uint32>(currentNode->getNumChildren());
         }
         catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error::%s", exc.what());
             ret = 0u;
         }
     }
     return ret;
 }
 
-bool MDSStructuredDataI::SetTree(MDSplus::Tree *treeIn) {
-    bool ret = (tree == NULL_PTR(MDSplus::Tree *));
+bool MDSStructuredDataI::SetTree(MDSplus::Tree * const treeIn) {
+    bool ret = !IsOpen();
+//lint -e{613} Possible use of null pointer --> Not possible because IsOpen() checks that the pointer is not NULL
     if (!ret) {
+        const char8 * treeNameOpened = tree->getName();
+        int32 treeShot = MDSplus::Tree::getCurrent(treeNameOpened);
         REPORT_ERROR_STATIC(
                 ErrorManagement::FatalError,
-                "The tree cannot be set because the tree = %s with pulse number = %d is already opened. Please close the current tree before set a new tree",
-                tree->getName(), tree->getCurrent(tree->getName()));
+                "The tree cannot be set because tree = %s with pulse number = %d is already opened. Please close the current tree before set a new tree",
+                tree->getName(), treeShot);
     }
     if (ret) {
         tree = treeIn;
         rootNode = tree->getDefault();
         currentNode = rootNode;
+        editModeSet = tree->isOpenForEdit();
+        isOpen = true;
     }
     return ret;
 }
 
-bool MDSStructuredDataI::SetEditMode(bool edit) {
+bool MDSStructuredDataI::SetEditMode(const bool edit) {
     editModeSet = edit;
     bool ok = true;
     if (tree != NULL_PTR(MDSplus::Tree*)) {
         try {
             tree->edit(edit);
         }
-        catch (MDSplus::MdsException &exc) {
+        catch (const MDSplus::MdsException &exc) {
             REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error changing the mode:  %s", exc.what());
             ok = false;
         }
@@ -558,13 +699,14 @@ bool MDSStructuredDataI::SetEditMode(bool edit) {
 bool MDSStructuredDataI::OpenTree(const char8 * const treeName,
                                   int32 pulseNumber) {
     bool ok = (tree == NULL_PTR(MDSplus::Tree *));
+//lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::tree' in left argument to operator '->'. tree != NULL since is previously checked
     if (!ok) {
         StreamString openedTreeName(tree->getName());
         ok = (openedTreeName == treeName);
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::FatalError,
                                 "The tree is already opened. Trying to open %s current opened tree name = %s and pulse number = %d", treeName, tree->getName(),
-                                tree->getCurrent(tree->getName()));
+                                MDSplus::Tree::getCurrent(tree->getName()));
         }
     }
     if (ok) {
@@ -584,15 +726,17 @@ bool MDSStructuredDataI::OpenTree(const char8 * const treeName,
         }
     }
     if (ok) {
+        //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::tree' in left argument to operator '->' --> tree pointer check previously.
         rootNode = tree->getDefault();
         currentNode = rootNode;
         internallyCreated = true;
+        isOpen = true;
     }
     return ok;
 }
 
 bool MDSStructuredDataI::CloseTree() {
-    bool ret = (tree != NULL_PTR(MDSplus::Tree *));
+    bool ret = IsOpen();
     if (!ret) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error closing the tree. Tree was not opened");
     }
@@ -601,29 +745,26 @@ bool MDSStructuredDataI::CloseTree() {
             delete tree;
         }
         tree = NULL_PTR(MDSplus::Tree *);
-    }
-    if (rootNode != NULL_PTR(MDSplus::TreeNode *)) {
-        if (internallyCreated) {
-            delete rootNode;
+
+        if (rootNode != NULL_PTR(MDSplus::TreeNode *)) {
+            if (internallyCreated) {
+                delete rootNode;
+            }
+            rootNode = NULL_PTR(MDSplus::TreeNode *);
         }
-        rootNode = NULL_PTR(MDSplus::TreeNode *);
-    }
-    if (currentNode != NULL_PTR(MDSplus::TreeNode *)) {
-        /*
-         if(internallyCreated){
-         delete currentNode;
-         }
-         */
-        currentNode = NULL_PTR(MDSplus::TreeNode *);
+        if (currentNode != NULL_PTR(MDSplus::TreeNode *)) {
+            currentNode = NULL_PTR(MDSplus::TreeNode *);
+        }
     }
     internallyCreated = false;
+    isOpen = false;
     return ret;
 }
 
 bool MDSStructuredDataI::SaveTree() {
-    bool ret = (tree != NULL_PTR(MDSplus::Tree *));
+    bool ret = IsOpen();
     if (!ret) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error saving the tree because tree = NULL_PTR(Tree *).");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error saving the tree because the tree is closed.");
     }
     if (ret) {
         ret = editModeSet;
@@ -632,6 +773,7 @@ bool MDSStructuredDataI::SaveTree() {
         }
         if (ret) {
             try {
+                //lint -e{613} Possible use of null pointer --> Not possible because ret is true
                 tree->write();
             }
             catch (const MDSplus::MdsException &exc) {
@@ -643,17 +785,23 @@ bool MDSStructuredDataI::SaveTree() {
     return ret;
 }
 
+bool MDSStructuredDataI::IsOpen() const {
+    return isOpen;
+}
+
 bool MDSStructuredDataI::CreateTree(const char8 * const treeName,
-                                    bool force) {
+                                    const bool force) const{
     bool ret = true;
     MDSplus::Tree *auxTree = NULL_PTR(MDSplus::Tree *);
-    try {
-//open tree in new mode
-        auxTree = new MDSplus::Tree(treeName, -1);
+    if (!force) {
+        try {
+            auxTree = new MDSplus::Tree(treeName, -1);
+        }
+        catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Tree %s does not exist. Trying to create tree. System info : %s", treeName, exc.what());
+        }
     }
-    catch (const MDSplus::MdsException &exc) {
-    }
-    if ((auxTree == NULL_PTR(MDSplus::Tree *)) | force) {
+    if ((auxTree == NULL_PTR(MDSplus::Tree *)) || force) {
         try {
             //open tree in new mode
             auxTree = new MDSplus::Tree(treeName, -1, "NEW");
@@ -670,9 +818,14 @@ bool MDSStructuredDataI::CreateTree(const char8 * const treeName,
 }
 
 bool MDSStructuredDataI::CreateNodes(const MARTe::char8 * const path) {
-    using namespace MARTe;
     StreamString pathStr = path;
-    bool ok = pathStr.Seek(0Lu);
+    bool ok = IsOpen();
+    if (!ok) { //since it is a private function. IsOpen was already check. So this statment is always true
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree is closed. Open it before calling CreateNode()");
+    }
+    if (ok) {
+        ok = pathStr.Seek(0Lu);
+    }
     if (ok) {
         ok = (pathStr.Size() > 0u);
     }
@@ -693,11 +846,10 @@ bool MDSStructuredDataI::CreateNodes(const MARTe::char8 * const path) {
                 found = (StringHelper::Compare(GetChildName(i), token.Buffer()) == 0);
             }
             if (found) {
-                MoveToChild(i);
+                ok = MoveToChild(i - 1u);
             }
             else {
-                Reference ref1("StreamString", GlobalObjectsDatabase::Instance()->GetStandardHeap());
-                ok = AddToCurrentNode(token.Buffer());
+                ok = AddChildToCurrentNode(token.Buffer());
                 if (ok) {
                     created = true;
                 }
@@ -717,6 +869,41 @@ bool MDSStructuredDataI::CreateNodes(const MARTe::char8 * const path) {
     if (!ok) {
         currentNode = currentNodeOld;
     }
+    return ok;
+}
+
+bool MDSStructuredDataI::AddChildToCurrentNode(const MARTe::char8 * const path) {
+    bool ok = IsOpen();
+    if (!ok) { //Since it is private and IsOpen() is already checked this statement always evaluates true.
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree is closed. Open it before calling AddChildToCurrentNode()");
+    }
+    if (ok) { //Since it is private and editModeSet is already checked this statement always evaluates true.
+        ok = editModeSet;
+    }
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. Tree is not in editable mode");
+    }
+
+    MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
+
+    if (ok) {
+        try {
+            //lint -e{613} Possible use of null pointer --> Not possible because ok checks that the pointer is not NULL
+            node = currentNode->addNode(path, "STRUCTURE");
+        }
+        catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Fail to create node %s: %s", path, exc.what());
+            node = NULL_PTR(MDSplus::TreeNode *);
+            ok = false;
+        }
+    }
+    if (ok) {
+        ok = (node != NULL_PTR(MDSplus::TreeNode *));
+        if (ok) {
+            currentNode = node;
+        }
+    }
+
     return ok;
 }
 
