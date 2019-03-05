@@ -70,20 +70,6 @@ bool MDSStructuredDataI::Read(const char8* const name,
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error. The tree is closed! Open it before calling read");
     }
-    /*
-     if (ok) {
-     //lint -e{534} Ignoring return value of function --> It is a mechanism to test if tree pointers are valid
-     //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> rootNode is not NULL because IsOpen() ensure that
-     //the pointer is not NULL.
-     try {
-     rootNode->getNodeName();
-     }
-     catch (const MDSplus::MdsException &exc) {
-     REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Impossible to read: %s", exc.what());
-     ok = false;
-     }
-     }
-     */
     MDSplus::TreeNode *node = NULL_PTR(MDSplus::TreeNode *);
     if (ok) {
         //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> rootNode is not NULL because IsOpen() ensure that
@@ -187,6 +173,7 @@ bool MDSStructuredDataI::Write(const char8 * const name,
             //the pointer is not NULL.
             node = currentNode->getNode(name);
         }
+        //lint -e{715} Symbol 'exc' (line 190) not referenced [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12] --> only used to catch the exception
         catch (const MDSplus::MdsException &exc) {
             node = NULL_PTR(MDSplus::TreeNode *);
             //REPORT_ERROR_STATIC(ErrorManagement::Information, "System error: %s. Node %s not found try to add it.", exc.what(), name);
