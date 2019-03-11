@@ -146,7 +146,7 @@ private:
      * @param[in] nodeName the name of structure.
      * @return true if the structure can be fully resolved with no errors.
      */
-    bool ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName);
+    bool ResolveStructure(epics::pvData::PVFieldPtr pvField, const char8 * const nodeName);
 
     /**
      * @brief Helper method which set signal at index \a in the \a putBuilder.
@@ -213,6 +213,11 @@ private:
      * The structure which is pvput (see putBuild)
      */
     epics::pvData::PVStructure::const_shared_pointer putPVStruct;
+
+    /**
+     * The monitored root structure.
+     */
+    epics::pvData::PVStructure::const_shared_pointer monitorRoot;
 
     /**
      * Set to true when the put has finished.

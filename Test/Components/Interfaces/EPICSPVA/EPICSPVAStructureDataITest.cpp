@@ -1256,9 +1256,9 @@ bool EPICSPVAStructureDataITest::TestAddToCurrentNode() {
     test.InitStructure();
     Reference r;
     /*bool ok = test.AddToCurrentNode(cdb2.GetCurrentNode());
-    test.FinaliseStructure();
-    ok &= !test.AddToCurrentNode(r);
-    return ok;*/
+     test.FinaliseStructure();
+     ok &= !test.AddToCurrentNode(r);
+     return ok;*/
     return true;
 }
 
@@ -1865,5 +1865,69 @@ bool EPICSPVAStructureDataITest::TestCopyValuesFrom_False() {
         ok = !dest.CopyValuesFrom(cdb);
     }
     return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestPerformance() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    test.InitStructure();
+    bool ok = test.CreateAbsolute("R");
+    ok &= test.CreateAbsolute("R.A");
+    ok &= test.CreateAbsolute("R.B");
+    uint32 numberOfArrayNodes = 100;
+    uint32 n;
+
+    uint64 cstart = HighResolutionTimer::Counter();
+    for (n = 0; (n < numberOfArrayNodes) && (ok); n++) {
+        StreamString nid;
+        nid.Printf("R.A.C[%d]", n);
+        ok &= test.CreateAbsolute(nid.Buffer());
+        ok &= test.Write("a", 0);
+    }
+    uint64 cend = HighResolutionTimer::Counter();
+    float64 tend = ((cend - cstart) * HighResolutionTimer::Period());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "To create an array of %d nodes took me [%e] seconds", numberOfArrayNodes, tend);
+
+    cstart = HighResolutionTimer::Counter();
+    for (n = 0; (n < numberOfArrayNodes) && (ok); n++) {
+        StreamString nid;
+        nid.Printf("R.B.C[%d]", n);
+        ok &= test.CreateAbsolute(nid.Buffer());
+        ok &= test.Write("a", 0);
+    }
+    cend = HighResolutionTimer::Counter();
+    tend = ((cend - cstart) * HighResolutionTimer::Period());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "To create an array of %d nodes took me [%e] seconds", numberOfArrayNodes, tend);
+
+    cstart = HighResolutionTimer::Counter();
+    test.FinaliseStructure();
+    cend = HighResolutionTimer::Counter();
+    tend = ((cend - cstart) * HighResolutionTimer::Period());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "To finalise a structure with 2 arrays of %d nodes took me [%e] seconds", numberOfArrayNodes, tend);
+
+    cstart = HighResolutionTimer::Counter();
+    for (n = 0; (n < numberOfArrayNodes) && (ok); n++) {
+        StreamString nid;
+        nid.Printf("R.B.C[%d]", n);
+        ok &= test.MoveAbsolute(nid.Buffer());
+    }
+    cend = HighResolutionTimer::Counter();
+    tend = ((cend - cstart) * HighResolutionTimer::Period());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "To move absolute on %d nodes took me [%e] seconds", numberOfArrayNodes, tend);
+
+    test.MoveAbsolute("R.A");
+    cstart = HighResolutionTimer::Counter();
+    for (n = 0; (n < numberOfArrayNodes) && (ok); n++) {
+        StreamString nid;
+        nid.Printf("C[%d]", n);
+        ok &= test.MoveRelative(nid.Buffer());
+        ok &= test.MoveToAncestor(1u);
+    }
+    cend = HighResolutionTimer::Counter();
+    tend = ((cend - cstart) * HighResolutionTimer::Period());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "To move relative (and to ancestor) on %d nodes took me [%e] seconds", numberOfArrayNodes, tend);
+
+    return ok;
+
 }
 

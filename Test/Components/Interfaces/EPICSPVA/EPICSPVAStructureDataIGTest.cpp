@@ -628,3 +628,8 @@ TEST(EPICSPVAStructureDataIGTest,TestCopyValuesFrom_False) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestCopyValuesFrom_False());
 }
+
+TEST(EPICSPVAStructureDataIGTest,TestPerformance) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestPerformance());
+}

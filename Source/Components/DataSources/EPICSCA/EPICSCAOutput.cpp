@@ -333,7 +333,7 @@ bool EPICSCAOutput::Synchronise() {
             for (n = 0u; (n < nOfSignals); n++) {
                 uint32 nRetries = 5u;
                 ok = false;
-                while((nRetries > 0) && (!ok)) {
+                while((nRetries > 0u) && (!ok)) {
                     /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
                     if (pvs[n].pvType == DBR_STRING) {
                         ok = (ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);

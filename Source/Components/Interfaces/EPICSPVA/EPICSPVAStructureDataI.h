@@ -278,34 +278,8 @@ private:
      * The cached ConfigurationDatabase that is used until the FinaliseStructure is called.
      */
     ConfigurationDatabase cachedCDB;
-    /**
-     * TODO
-     */
-    ConfigurationDatabase perfCDB;
-    /**
-     * TODO
-     */
-    bool perfCDBReady;
-
-    /**
-     * TODO
-     */
-    ReferenceContainer hackNodeHolder;
 };
 
-
-class EPICSPVAStructureDataIHackNode : public Object {
-public:
-    CLASS_REGISTER_DECLARATION()
-    EPICSPVAStructureDataIHackNode() {
-
-    }
-    virtual ~EPICSPVAStructureDataIHackNode() {
-
-    }
-    epics::pvData::PVStructureArray::svector ptr;
-
-};
 }
 
 /*---------------------------------------------------------------------------*/
@@ -314,82 +288,82 @@ public:
 namespace MARTe {
 template<typename T>
 bool EPICSPVAStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
-bool ok = true;
-epics::pvData::shared_vector<const T> out;
-scalarArrayPtr->getAs<T>(out);
-uint32 numberOfElements = storedType.GetNumberOfElements(0u);
-uint32 i;
-//Should allow to convert from numeric anytype to anytype. Note that this is called with the T of the value.
-Vector<T> readVec(reinterpret_cast<T *>(value.GetDataPointer()), numberOfElements);
-Vector<T> srcVec(const_cast<T *>(reinterpret_cast<const T *>(out.data())), numberOfElements);
-for (i = 0u; i < numberOfElements; i++) {
-    readVec[i] = srcVec[i];
-}
+    bool ok = true;
+    epics::pvData::shared_vector<const T> out;
+    scalarArrayPtr->getAs<T>(out);
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    uint32 i;
+    //Should allow to convert from numeric anytype to anytype. Note that this is called with the T of the value.
+    Vector<T> readVec(reinterpret_cast<T *>(value.GetDataPointer()), numberOfElements);
+    Vector<T> srcVec(const_cast<T *>(reinterpret_cast<const T *>(out.data())), numberOfElements);
+    for (i = 0u; i < numberOfElements; i++) {
+        readVec[i] = srcVec[i];
+    }
 
-return ok;
+    return ok;
 }
 
 template<>
 inline bool EPICSPVAStructureDataI::ReadArray<std::string>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
-epics::pvData::shared_vector<const std::string> srcStr;
-scalarArrayPtr->getAs<std::string>(srcStr);
-uint32 numberOfElements = storedType.GetNumberOfElements(0u);
-uint32 i;
-Vector<StreamString> dst(static_cast<StreamString *>(value.GetDataPointer()), numberOfElements);
-for (i = 0u; i < numberOfElements; i++) {
-    dst[i] = srcStr[i].c_str();
-}
-return true;
+    epics::pvData::shared_vector<const std::string> srcStr;
+    scalarArrayPtr->getAs<std::string>(srcStr);
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    uint32 i;
+    Vector<StreamString> dst(static_cast<StreamString *>(value.GetDataPointer()), numberOfElements);
+    for (i = 0u; i < numberOfElements; i++) {
+        dst[i] = srcStr[i].c_str();
+    }
+    return true;
 }
 
 template<>
 inline bool EPICSPVAStructureDataI::ReadArray<bool>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
-bool ok = true;
-epics::pvData::shared_vector<const epics::pvData::boolean> out;
-scalarArrayPtr->getAs<epics::pvData::boolean>(out);
-uint32 numberOfElements = storedType.GetNumberOfElements(0u);
-uint32 i;
-Vector<uint8> readVec(reinterpret_cast<uint8 *>(value.GetDataPointer()), numberOfElements);
-Vector<bool> srcVec(const_cast<bool *>(reinterpret_cast<const bool *>(out.data())), numberOfElements);
-for (i = 0u; i < numberOfElements; i++) {
-    readVec[i] = (srcVec[i] ? 1u : 0u);
-}
+    bool ok = true;
+    epics::pvData::shared_vector<const epics::pvData::boolean> out;
+    scalarArrayPtr->getAs<epics::pvData::boolean>(out);
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    uint32 i;
+    Vector<uint8> readVec(reinterpret_cast<uint8 *>(value.GetDataPointer()), numberOfElements);
+    Vector<bool> srcVec(const_cast<bool *>(reinterpret_cast<const bool *>(out.data())), numberOfElements);
+    for (i = 0u; i < numberOfElements; i++) {
+        readVec[i] = (srcVec[i] ? 1u : 0u);
+    }
 
-return ok;
+    return ok;
 }
 
 template<typename T>
 bool EPICSPVAStructureDataI::WriteArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value, const uint32 &size) {
-epics::pvData::shared_vector<T> out;
-out.resize(storedType.GetNumberOfElements(0u));
-bool ok = MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), value.GetDataPointer(), size);
-epics::pvData::shared_vector<const T> outF = freeze(out);
-scalarArrayPtr->putFrom<T>(outF);
-return ok;
+    epics::pvData::shared_vector<T> out;
+    out.resize(storedType.GetNumberOfElements(0u));
+    bool ok = MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), value.GetDataPointer(), size);
+    epics::pvData::shared_vector<const T> outF = freeze(out);
+    scalarArrayPtr->putFrom<T>(outF);
+    return ok;
 }
 
 template<>
 inline bool EPICSPVAStructureDataI::WriteArray<std::string>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value, const uint32 &size) {
-epics::pvData::shared_vector<const std::string> out;
-uint32 numberOfElements = storedType.GetNumberOfElements(0u);
-out.resize(numberOfElements);
-if (value.GetTypeDescriptor().type == SString) {
-    StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
-    uint32 i;
-    for (i = 0; i < numberOfElements; i++) {
-        *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i].Buffer();
+    epics::pvData::shared_vector<const std::string> out;
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+    out.resize(numberOfElements);
+    if (value.GetTypeDescriptor().type == SString) {
+        StreamString *src = static_cast<StreamString *>(value.GetDataPointer());
+        uint32 i;
+        for (i = 0; i < numberOfElements; i++) {
+            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i].Buffer();
+        }
+        scalarArrayPtr->putFrom<std::string>(out);
     }
-    scalarArrayPtr->putFrom<std::string>(out);
-}
-else {
-    const char8 **src = static_cast<const char8 **>(value.GetDataPointer());
-    uint32 i;
-    for (i = 0; i < numberOfElements; i++) {
-        *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i];
+    else {
+        const char8 **src = static_cast<const char8 **>(value.GetDataPointer());
+        uint32 i;
+        for (i = 0; i < numberOfElements; i++) {
+            *const_cast<std::string *>(reinterpret_cast<const std::string *>(&out[i])) = src[i];
+        }
+        scalarArrayPtr->putFrom<std::string>(out);
     }
-    scalarArrayPtr->putFrom<std::string>(out);
-}
-return true;
+    return true;
 }
 
 }

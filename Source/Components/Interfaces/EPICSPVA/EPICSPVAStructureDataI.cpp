@@ -45,7 +45,7 @@ EPICSPVAStructureDataI::EPICSPVAStructureDataI() :
         Object() {
     structureFinalised = true;
     currentStructPtr.resize(0);
-    perfCDBReady = false;
+    currentStructPtr.reserve(16u);
 }
 
 EPICSPVAStructureDataI::~EPICSPVAStructureDataI() {
@@ -581,9 +581,6 @@ bool EPICSPVAStructureDataI::AddToCurrentNode(Reference node) {
 bool EPICSPVAStructureDataI::MoveToRoot() {
     bool ok = true;
     if (structureFinalised) {
-        if (perfCDBReady) {
-            ok = perfCDB.MoveToRoot();
-        }
         currentStructPtr.resize(0u);
         currentStructPtr.push_back(rootStructPtr);
     }
@@ -600,11 +597,6 @@ bool EPICSPVAStructureDataI::MoveToAncestor(uint32 generations) {
         if (ok) {
             currentStructPtr.resize(currentStructPtr.size() - generations);
         }
-        if (ok) {
-            if (perfCDBReady) {
-                ok = perfCDB.MoveToAncestor(generations);
-            }
-        }
     }
     else {
         ok = cachedCDB.MoveToAncestor(generations);
@@ -613,90 +605,64 @@ bool EPICSPVAStructureDataI::MoveToAncestor(uint32 generations) {
 }
 
 bool EPICSPVAStructureDataI::Move(const char8 * const path) {
-    bool ok = true;
-    if (perfCDBReady) {
-        const char8 *thisNodeId = perfCDB.GetName();
-        ok = perfCDB.MoveToAncestor(1u);
-        if (ok) {
-            uint64 ptr64;
-            StreamString nid;
-            (void) nid.Printf("N%s", thisNodeId);
-            ok = perfCDB.Read(nid.Buffer(), ptr64);
-            if (ok) {
-                EPICSPVAStructureDataIHackNode *nn = (EPICSPVAStructureDataIHackNode *) (ptr64);
-                currentStructPtr = nn->ptr;
-            }
-            if (ok) {
-                ok = perfCDB.MoveRelative(thisNodeId);
-            }
-        }
+    epics::pvData::PVStructurePtr movePtr;
+    epics::pvData::PVStructureArray::svector tempStructPtr;
+    tempStructPtr = currentStructPtr;
+    //Very important to resize. Otherwise there is a huge performance hit.
+    tempStructPtr.reserve(16u);
+    StreamString spath = path;
+    StreamString token;
+    char8 term;
+    bool ok = (currentStructPtr.size() > 0u);
+    if (ok) {
+        movePtr = currentStructPtr[currentStructPtr.size() - 1u];
+        ok = spath.Seek(0LLU);
     }
-    else {
-        epics::pvData::PVStructurePtr movePtr;
-        epics::pvData::PVStructureArray::svector tempStructPtr;
-        tempStructPtr = currentStructPtr;
-        StreamString spath = path;
-        StreamString token;
-        char8 term;
-        ok = (currentStructPtr.size() > 0u);
-        if (ok) {
-            movePtr = currentStructPtr[currentStructPtr.size() - 1u];
-            ok = spath.Seek(0LLU);
-        }
-        while ((ok) && (spath.GetToken(token, ".[", term))) {
-            //const epics::pvData::PVFieldPtrArray & fields = movePtr->getPVFields();
-            //uint32 c;
-            int32 idx = -1;
-            if (term == '[') {
-                StreamString neStr;
-                if (ok) {
-                    ok = spath.GetToken(neStr, "]", term);
-                }
-                idx = atoi(neStr.Buffer());
+    while ((ok) && (spath.GetToken(token, ".[", term))) {
+        int32 idx = -1;
+        if (term == '[') {
+            StreamString neStr;
+            if (ok) {
+                ok = spath.GetToken(neStr, "]", term);
             }
-            //bool found = false;
-            //for (c = 0u; (c < fields.size()) && (!found) && (ok); c++) {
-            //    epics::pvData::PVFieldPtr field = fields[c];
-            //    found = (token == field->getFieldName().c_str());
-            epics::pvData::PVFieldPtr field = movePtr->getSubField(token.Buffer());
-            //found = (token == field->getFieldName().c_str());
-            bool found = (field ? true : false);
-            if (found) {
-                //Cannot be a leaf!
-                epics::pvData::Type pvType = field->getField()->getType();
-                if (pvType == epics::pvData::structure) {
-                    ok = (idx == -1);
-                    if (ok) {
-                        movePtr = std::dynamic_pointer_cast < epics::pvData::PVStructure > (field->shared_from_this());
-                    }
-                }
-                else if (pvType == epics::pvData::structureArray) {
-                    ok = (idx != -1);
-                    if (ok) {
-                        epics::pvData::PVStructureArrayPtr arrPtr = std::dynamic_pointer_cast < epics::pvData::PVStructureArray > (field->shared_from_this());
-                        movePtr = arrPtr->view()[idx];
-                    }
-                }
-                else {
-                    ok = false;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Trying to index a leaf.");
-                }
+            idx = atoi(neStr.Buffer());
+        }
+        epics::pvData::PVFieldPtr field = movePtr->getSubField(token.Buffer());
+        bool found = (field ? true : false);
+        if (found) {
+            //Cannot be a leaf!
+            epics::pvData::Type pvType = field->getField()->getType();
+            if (pvType == epics::pvData::structure) {
+                ok = (idx == -1);
                 if (ok) {
-                    ok = (movePtr ? true : false);
-                    if (ok) {
-                        tempStructPtr.push_back(movePtr);
-                    }
+                    movePtr = std::dynamic_pointer_cast < epics::pvData::PVStructure > (field->shared_from_this());
                 }
-
+            }
+            else if (pvType == epics::pvData::structureArray) {
+                ok = (idx != -1);
+                if (ok) {
+                    epics::pvData::PVStructureArrayPtr arrPtr = std::dynamic_pointer_cast < epics::pvData::PVStructureArray > (field->shared_from_this());
+                    movePtr = arrPtr->view()[idx];
+                }
+            }
+            else {
+                ok = false;
+                REPORT_ERROR(ErrorManagement::ParametersError, "Trying to index a leaf.");
             }
             if (ok) {
-                ok = found;
+                ok = (movePtr ? true : false);
+                if (ok) {
+                    tempStructPtr.push_back(movePtr);
+                }
             }
-            token = "";
         }
         if (ok) {
-            currentStructPtr = tempStructPtr;
+            ok = found;
         }
+        token = "";
+    }
+    if (ok) {
+        currentStructPtr = tempStructPtr;
     }
     return ok;
 }
@@ -705,11 +671,6 @@ bool EPICSPVAStructureDataI::MoveAbsolute(const char8 * const path) {
     bool ok = true;
     if (structureFinalised) {
         ok = MoveToRoot();
-        if (ok) {
-            if (perfCDBReady) {
-                ok = perfCDB.MoveAbsolute(path);
-            }
-        }
         if (ok) {
             ok = Move(path);
         }
@@ -723,14 +684,7 @@ bool EPICSPVAStructureDataI::MoveAbsolute(const char8 * const path) {
 bool EPICSPVAStructureDataI::MoveRelative(const char8 * const path) {
     bool ok = true;
     if (structureFinalised) {
-        if (ok) {
-            if (perfCDBReady) {
-                ok = perfCDB.MoveRelative(path);
-            }
-        }
-        if (ok) {
-            ok = Move(path);
-        }
+        ok = Move(path);
     }
     else {
         ok = cachedCDB.MoveRelative(path);
@@ -754,9 +708,6 @@ bool EPICSPVAStructureDataI::MoveToChild(const uint32 childIdx) {
             if (ok) {
                 currentStructPtr.push_back(movePtr);
             }
-        }
-        if (perfCDBReady) {
-            ok = perfCDB.MoveRelative(GetName());
         }
     }
     else {
@@ -849,7 +800,6 @@ void EPICSPVAStructureDataI::InitStructure() {
 
 bool EPICSPVAStructureDataI::FinaliseStructure() {
     bool ok = cachedCDB.MoveToRoot();
-//ReferenceT<ReferenceContainer> rootNode = cachedCDB.GetCurrentNode();
     epics::pvData::StructureConstPtr topStructure;
     if (ok) {
         topStructure = EPICSPVAHelper::GetStructure(cachedCDB);
@@ -874,7 +824,6 @@ bool EPICSPVAStructureDataI::FinaliseStructure() {
     }
     if (ok) {
         ok = CopyValuesFrom(cachedCDB);
-        perfCDBReady = true;
     }
     cachedCDB.Purge();
     return ok;
@@ -999,23 +948,6 @@ bool EPICSPVAStructureDataI::CopyValuesFrom(StructuredDataI &source) {
                     fullChildName.Printf("[%d]", n);
                 }
                 ok = MoveRelative(fullChildName.Buffer());
-
-                if (ok) {
-                    if (!perfCDBReady) {
-                        StreamString nid;
-                        nid.Printf("N%s", fullChildName.Buffer());
-                        ReferenceT<EPICSPVAStructureDataIHackNode> nn(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-                        hackNodeHolder.Insert(nn);
-                        nn->ptr = currentStructPtr;
-                        void *ptr = nn.operator ->();
-                        uint64 ptr64 = reinterpret_cast<uint64>(ptr);
-                        ok = perfCDB.Write(nid.Buffer(), ptr64);
-                        if (ok) {
-                            ok = perfCDB.CreateRelative(fullChildName.Buffer());
-                        }
-                    }
-                }
-
                 if (ok) {
                     if (!source.MoveRelative(fullChildName.Buffer())) {
                         ok = false;
@@ -1033,11 +965,6 @@ bool EPICSPVAStructureDataI::CopyValuesFrom(StructuredDataI &source) {
                     if (ok) {
                         ok = source.MoveToAncestor(1u);
                     }
-                    if (ok) {
-                        if (!perfCDBReady) {
-                            ok = perfCDB.MoveToAncestor(1u);
-                        }
-                    }
                 }
             }
         }
@@ -1046,5 +973,4 @@ bool EPICSPVAStructureDataI::CopyValuesFrom(StructuredDataI &source) {
 }
 
 CLASS_REGISTER(EPICSPVAStructureDataI, "")
-CLASS_REGISTER(EPICSPVAStructureDataIHackNode, "")
 }

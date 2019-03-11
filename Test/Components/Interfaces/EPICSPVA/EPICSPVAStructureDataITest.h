@@ -638,6 +638,11 @@ public:
      */
     bool TestCopyValuesFrom_False();
 
+    /**
+     * @brief Tests the performance.
+     */
+    bool TestPerformance();
+
 private:
     /**
      * @brief Tests the Read method with any of the supported template types.
