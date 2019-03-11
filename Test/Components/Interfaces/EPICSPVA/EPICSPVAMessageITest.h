@@ -52,6 +52,11 @@ public:
      * @brief Tests the request message method.
      */
     bool Testrequest();
+
+    /**
+     * @brief Tests the request message method with an EPICSPVAStructuredDataI.
+     */
+    bool Testrequest_EPICSPVAStructuredDataI();
 };
 
 
