@@ -1285,16 +1285,12 @@ bool EPICSPVAStructureDataITest::TestCopy_Structures() {
     }
     if (ok) {
         ok = EPICSPVAHelper::InitStructure(intro, pvStructure);
-        std::cout << pvStructure << std::endl;
     }
     test.SetStructure(pvStructure);
     ConfigurationDatabase destCDB;
     ok = test.Copy(destCDB);
 
     destCDB.MoveToRoot();
-    StreamString temp;
-    temp.Printf("%!", destCDB);
-    printf("%s", temp.Buffer());
     return ok;
 }
 
@@ -1305,21 +1301,6 @@ bool EPICSPVAStructureDataITest::TestCopy_False_FinaliseStructure() {
     test.InitStructure();
     bool ok = !test.Copy(cdb);
     return ok;
-}
-
-bool EPICSPVAStructureDataITest::TestAddToCurrentNode() {
-    using namespace MARTe;
-    EPICSPVAStructureDataI test;
-    ConfigurationDatabase cdb;
-    ConfigurationDatabase cdb2;
-    cdb2.CreateAbsolute("A");
-    test.InitStructure();
-    Reference r;
-    /*bool ok = test.AddToCurrentNode(cdb2.GetCurrentNode());
-     test.FinaliseStructure();
-     ok &= !test.AddToCurrentNode(r);
-     return ok;*/
-    return true;
 }
 
 bool EPICSPVAStructureDataITest::TestMoveToRoot() {
@@ -1989,5 +1970,30 @@ bool EPICSPVAStructureDataITest::TestPerformance() {
 
     return ok;
 
+}
+
+bool EPICSPVAStructureDataITest::TestToString() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    test.InitStructure();
+    bool ok = test.CreateAbsolute("R");
+    ok &= test.CreateAbsolute("R.A");
+    ok &= test.CreateAbsolute("R.B");
+    test.FinaliseStructure();
+    StreamString out;
+    ok &= test.ToString(out);
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestToString_False() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    test.InitStructure();
+    bool ok = test.CreateAbsolute("R");
+    ok &= test.CreateAbsolute("R.A");
+    ok &= test.CreateAbsolute("R.B");
+    StreamString out;
+    ok &= !test.ToString(out);
+    return ok;
 }
 

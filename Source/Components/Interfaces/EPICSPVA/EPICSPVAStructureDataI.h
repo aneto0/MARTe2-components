@@ -215,6 +215,14 @@ EPICSPVAStructureDataI    ();
      */
     bool CopyValuesFrom(StructuredDataI &source);
 
+    /**
+     * @brief Writes the structure content to a StreamString.
+     * @param[out] out the string where to write the structure into.
+     * @pre
+     *    IsStructureFinalised() => structure is fixed.
+     */
+    bool ToString(StreamString &out);
+
 private:
     /**
      * @brief Implementation of the move which allows to navigate inside arrays of structures by parsing the path and extracting []

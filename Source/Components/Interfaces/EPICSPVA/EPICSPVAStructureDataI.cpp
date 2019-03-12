@@ -973,5 +973,16 @@ bool EPICSPVAStructureDataI::CopyValuesFrom(StructuredDataI &source) {
     return ok;
 }
 
+bool EPICSPVAStructureDataI::ToString(StreamString &out) {
+    bool ok = IsStructureFinalised();
+    if (ok) {
+        std::ostringstream stream;
+        stream << GetRootStruct();
+        out = stream.str().c_str();
+    }
+    return ok;
+}
+
+
 CLASS_REGISTER(EPICSPVAStructureDataI, "")
 }

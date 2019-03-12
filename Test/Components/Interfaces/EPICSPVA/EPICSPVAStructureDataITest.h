@@ -514,11 +514,6 @@ public:
     bool TestCopy_False_FinaliseStructure();
 
     /**
-     * @brief Tests that the AddToCurrentNode fails if called after FinaliseStructure.
-     */
-    bool TestAddToCurrentNode();
-
-    /**
      * @brief Tests the MoveToRoot method.
      */
     bool TestMoveToRoot();
@@ -642,6 +637,16 @@ public:
      * @brief Tests the performance.
      */
     bool TestPerformance();
+
+    /**
+     * @brief Tests the ToString method.
+     */
+    bool TestToString();
+
+    /**
+     * @brief Tests that the ToString method fails if FinaliseStructure is not called before.
+     */
+    bool TestToString_False();
 
 private:
     /**
