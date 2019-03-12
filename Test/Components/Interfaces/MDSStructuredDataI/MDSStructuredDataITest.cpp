@@ -1420,7 +1420,10 @@ bool MDSStructuredDataITest::TestMoveToChild2() {
         ret = mdsStructuredDataI.MoveToAncestor(1u);
     }
     if (ret) {
-        ret = mdsStructuredDataI.Delete("A.A3");
+        ret = mdsStructuredDataI.MoveAbsolute("A");
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.Delete("A3");
     }
     if (ret) {
         ret = mdsStructuredDataI.MoveToChild(2);
@@ -2705,7 +2708,6 @@ bool MDSStructuredDataITest::TestRead_StreamString(MARTe::StreamString val) {
     if (ret) {
         ret = mdsStructuredDataI.SaveTree();
     }
-    AnyType auxAnyType = mdsStructuredDataI.GetType("NodeVal");
     StreamString auxStreamString;
     if (ret) {
         ret = !mdsStructuredDataI.Read("NodeVal", auxStreamString);

@@ -22,8 +22,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef MDSStructuredDataI_H_
-#define MDSStructuredDataI_H_
+#ifndef MDSSTRUCTUREDATAI_H_
+#define MDSSTRUCTUREDATAI_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -42,8 +42,11 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 /**
- * @brief
- * @details Read/Write String arrays is not supported.
+ * @brief Wraps an MDSplus tree as a StructuredDataI.
+ * @details Read/Write of string arrays is not supported.
+ *
+ * @details Operations in the StructuredDataI require the tree to be in a valid state.
+ * See: SetTree, SetEditMode, OpenTree, CreateTree and SaveTree.
  */
 class MDSStructuredDataI: public Object, public StructuredDataI {
 public:
@@ -67,11 +70,11 @@ MDSStructuredDataI    ();
     virtual ~MDSStructuredDataI();
 
     /**
-     * @brief Read the value of the node specified by the name
+     * @brief Reads the value of the node specified by the name.
      * @details Reads the value of a leaf from the current node. The type of the variable to be read is given by the type of value (See class description for a list of supported types).
      * Before calling Read() the memory to hold the values must be allocated.
-     * @param[in] name Is the name of the leave to be read. name could include a relative path from the current node position. i.e name = "A.B.nameleafToBeRead"
-     * @param[in, out] value Is the variable where node data is stored. value give the type to be read. i.e. if value is the type float whatever is in the node will be converted in floats.
+     * @param[in] name is the name of the leaf to be read. name could include a relative path from the current node position. i.e name = "A.B.nameleafToBeRead"
+     * @param[in, out] value is the variable where node data is stored. value gives the type to be read, e.g. if value is of type float32, then the values stored in in the node will be converted into float32s.
      * @pre
      *   IsOpen() == true
      *   rootNode must be valid
@@ -84,7 +87,7 @@ MDSStructuredDataI    ();
      * @brief Queries the type of the leaf node.
      * @details The function creates an AnyType from the characteristics of the leaf node specified. The functions loads in the return value
      * the type of the leaf and the number of elements.
-     * @param[in] name Is the name of the leaf. name could include the relative path the the current position. i.e name = "A.B.nameLeaf"
+     * @param[in] name is the name of the leaf. name could include the relative path the the current position. i.e name = "A.B.nameLeaf"
      * @pre
      *   IsOpen() == true
      *   currentNode must be valid
@@ -93,10 +96,10 @@ MDSStructuredDataI    ();
     virtual AnyType GetType(const char8 * const name);
 
     /**
-     * @brief Write value in the node specified by name
+     * @brief Writes the value in the node specified by name
      * @details If the node does not exist it is created.
-     * @param[in] name Is the name of the leaf where the value is stored. name can include relative path. i.e name = "A.B.nameLeaf"
-     * @param[in] value Is the data to be stored. The type of value give the type of the node.
+     * @param[in] name is the name of the leaf where the value is to be stored. name can include relative path. i.e name = "A.B.nameLeaf"
+     * @param[in] value is the data to be stored. The type of value defines the type of the node.
      * @pre
      *   editModeSet == true
      *   IsOpen() == true
@@ -108,7 +111,7 @@ MDSStructuredDataI    ();
 
     /**
      * @brief Copy the tree to the specified destination
-     * @details Copy recursively all nodes from the current node. Notice that the current note is not
+     * @details Copy recursively all nodes from the current node. Notice that the current node is not
      * copied to the destination.
      * @param[out] destination Is where the current tree will be copied to.
      * @pre
@@ -135,9 +138,9 @@ MDSStructuredDataI    ();
 
     /**
      * @brief Move to n ancestor.
-     * @details move the current node to the specified ancestor. if the generation is larger
+     * @details Moves the current node to the specified ancestor. If the generation is larger
      * than the depth of the tree, the node is moved to "TOP" (which is the first node by default).
-     * @param[in] generations Indicates how many positions the tree must be moved
+     * @param[in] generations number of positions to move up in the tree.
      * @pre
      *   IsOpen() == true
      *   rootNode must be valid
@@ -147,10 +150,10 @@ MDSStructuredDataI    ();
     virtual bool MoveToAncestor(const uint32 generations);
 
     /**
-     * @brief Move to specified path.
-     * @details If the tree is opened and the path exists, this function move from the current node to
+     * @brief Moves to specified path.
+     * @details If the tree is opened and the path exists, this function moves from the current node to
      * the specified node.
-     * @param[in] path Indicates the absolute path to the target node.
+     * @param[in] path the absolute path to the target node.
      * @pre
      *   IsOpen() == true
      *   rootNode must be valid
@@ -160,8 +163,8 @@ MDSStructuredDataI    ();
     virtual bool MoveAbsolute(const char8 * const path);
 
     /**
-     * @brief Move from the current node to the child specified by path.
-     * @param[in] path Indicated the relative path to the target node.
+     * @brief Moves from the current node to the child specified path.
+     * @param[in] path the relative path to the target node.
      * @pre
      *   IsOpen() == true
      *   currentNode must be valid
@@ -170,10 +173,10 @@ MDSStructuredDataI    ();
     virtual bool MoveRelative(const char8 * const path);
 
     /**
-     * @brief Move to the specified child
+     * @brief Moves to the specified child
      * @details move from the current node to the specified child. If the tree is not opened the function
      * returns error
-     * @param[in] childIdx Indicates the number of the child to be moved. It starts to count from 0
+     * @param[in] childIdx indicates the number of the child to be moved.
      * @pre
      *   IsOpen() == true
      *   currentNode must be valid
@@ -182,10 +185,10 @@ MDSStructuredDataI    ();
     virtual bool MoveToChild(const uint32 childIdx);
 
     /**
-     * @brief Create a node from the root node
-     * @details the tree must be opened in the editable mode and the path must exist.
-     * If the function succeeds the current node is updated with the node created.
-     * @param[in] path indicated the absolute path where the new node will be created.
+     * @brief Create a node from the root node.
+     * @details The tree must be opened in editable mode.
+     * If the function succeeds, the current node is updated with the node created.
+     * @param[in] path the absolute path where the new node will be created.
      * @pre
      *   editModeSet == true
      *   IsOpen() == true
@@ -196,10 +199,9 @@ MDSStructuredDataI    ();
     virtual bool CreateAbsolute(const char8 * const path);
 
     /**
-     * @brief Create a child node from the current node
-     * @details if editable mode and tree open the function creates a child node with name path and the current node
-     * is updated to the new child.
-     * @param[in] path indicated the relative path where the new node will be created.
+     * @brief Create a child node from the current node.
+     * @details The tree must be opened in editable mode.  If the function succeeds, the current node is updated with the node created.
+     * @param[in] path the relative path where the new node will be created.
      * @pre
      *   editModeSet == true
      *   IsOpen() == true
@@ -209,10 +211,9 @@ MDSStructuredDataI    ();
     virtual bool CreateRelative(const char8 * const path);
 
     /**
-     * @brief Delete the node specified by name
-     * @details if the tree is open in editable mode the node specified by name is removed.
-     * Notice that the name must be full path
-     * @param[in] name is the name of the node to be removed. Notice that name must include the absolute path
+     * @brief Deletes the node specified by name.
+     * @details If the tree is open in editable mode the node specified by name is removed.
+     * @param[in] name is the name of the node to be removed.
      * @pre
      *   editModeSet == true
      *   IsOpen() == true
@@ -222,8 +223,8 @@ MDSStructuredDataI    ();
     virtual bool Delete(const char8 * const name);
 
     /**
-     * @brief Get the current node name
-     * @details if the tree is not opened GetName returns NULL pointer
+     * @brief Gets the current node name.
+     * @details if the tree is not opened GetName returns NULL pointer.
      * @pre
      *   IsOpen() == true
      *   currentNode must be valid
@@ -252,8 +253,8 @@ MDSStructuredDataI    ();
     virtual uint32 GetNumberOfChildren();
 
     /**
-     * @brief set a tree
-     * @details if the tree is already open the treeIn isn't open.
+     * @brief Set an existent tree.
+     * @details If the tree is already open the treeIn is not opened.
      * @return true if the treeIn is opened
      */
     bool SetTree(MDSplus::Tree * const treeIn);
@@ -263,14 +264,14 @@ MDSStructuredDataI    ();
      * @details In MDSplus editable mode means that the structure of the tree can be changed.
      * In no editable mode the nodes cannot be created but data can be added to a node.
      * If SetEditMode is called when the tree is already opened, it is reopened in the specified mode. Nevertheless
-     * if changes on the structure of the tree are done but are not save, the mode cannot be changed.
+     * if changes on the structure of the tree are done but are not saved, the mode cannot be changed.
      * @param[in] edit Selects the editable mode. true--> editable, false--> not editable
      * @return true if the mode is changed
      */
     bool SetEditMode(bool edit);
 
     /**
-     * @brief Open a tree
+     * @brief Opens a tree.
      * @details Open a tree with name treeName and pulse number pulseNumber with the mode
      * specified in editModeSet. If a tree is already opened and the opened tree name is treeName the function
      * exits normally
@@ -287,10 +288,10 @@ MDSStructuredDataI    ();
     bool OpenTree(const char8 *const treeName, int32 pulseNumber);
 
     /**
-     * @brief close the tree
+     * @brief Closes the tree.
      * @warning If changes are done in the structure of the tree and they are not saved, closing the
      * tree will lose all the changes made.
-     * If the tree is not open CloseTree() return false
+     * If the tree is not open CloseTree() return false.
      * @post
      *   tree = NULL_PTR(MDSplus::Tree *)
      *   RootNode = NULL_PTR(MDSplus::TreeNode *)
@@ -303,10 +304,10 @@ MDSStructuredDataI    ();
 
     /**
      * @brief Creates a tree
-     * @details creates a tree if it is not created. If the tree already exist and force is false no
-     * tree is created but the function exits with true value.
+     * @details creates a tree if it is not already created. If the tree already exists and force is set to false, no
+     * tree is created but the function returns with true value.
      * @param[in] treeName tree name to be created
-     * @param[in] force Indicates if the tree must be created even it is already created.
+     * @param[in] force if true the tree will be recreated even it is already created.
      * @return true if the tree is created or if it already exists
      */
     bool CreateTree(const char8 * const treeName, const bool force = false) const;
@@ -321,7 +322,7 @@ MDSStructuredDataI    ();
 
     /**
      * @brief Queries if the tree is open
-     * @details Queries if the tree is open. Even the tree is open the tree nodes may are not valid
+     * @details Queries if the tree is open. Even if the tree is open, the tree nodes may still not be valid
      * since the tree can be opened externally and passed to the MDSStructuredDataI
      * @return true if the tree is open
      */
@@ -385,4 +386,4 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* MDSStructuredDataI_H_ */
+#endif /* MDSSTRUCTUREDATAI_H_ */

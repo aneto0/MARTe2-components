@@ -69,14 +69,37 @@ bool EPICSPVAStructureDataITest::TestRead_Boolean() {
     bool val = true;
     scalarFieldPtr->putFrom<epics::pvData::boolean>(val);
     test.SetStructure(currentStructPtr);
-    uint8 value;
-    test.Read("Test", value);
-    bool ok = (value == 1);
+    uint8 value8;
+    test.Read("Test", value8);
+    bool ok = (value8 == 1);
+    int8 value8i;
+    test.Read("Test", value8i);
+    ok &= (value8i == 1);
+    uint16 value16;
+    test.Read("Test", value16);
+    ok &= (value16 == 1);
+    int16 value16i;
+    test.Read("Test", value16i);
+    ok &= (value16i == 1);
+    uint32 value32;
+    test.Read("Test", value32);
+    ok &= (value32 == 1);
+    int32 value32i;
+    test.Read("Test", value32i);
+    ok &= (value32i == 1);
+    uint64 value64;
+    test.Read("Test", value64);
+    ok &= (value64 == 1);
+    int64 value64i;
+    test.Read("Test", value64i);
+    ok &= (value64i == 1);
+    float32 value32f;
+    ok &= !test.Read("Test", value32f);
     val = false;
     scalarFieldPtr->putFrom<epics::pvData::boolean>(val);
     test.SetStructure(currentStructPtr);
-    test.Read("Test", value);
-    ok &= (value == 0);
+    test.Read("Test", value8);
+    ok &= (value8 == 0);
     return ok;
 }
 
@@ -176,6 +199,43 @@ bool EPICSPVAStructureDataITest::TestRead_Boolean_Array() {
     for (i = 0; (i < vsize) && (ok); i++) {
         ok = (rvalue[i] == (uint8) (!(bool) (i % 2)));
     }
+    MARTe::Vector<int8> rvalue8i(vsize);
+    ok &= test.Read("Test", rvalue8i);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue8i[i] == (int8) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<uint16> rvalue16(vsize);
+    ok &= test.Read("Test", rvalue16);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue16[i] == (uint16) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<int16> rvalue16i(vsize);
+    ok &= test.Read("Test", rvalue16i);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue16i[i] == (int16) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<uint32> rvalue32(vsize);
+    ok &= test.Read("Test", rvalue32);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue32[i] == (uint32) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<int32> rvalue32i(vsize);
+    ok &= test.Read("Test", rvalue32i);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue32i[i] == (int32) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<uint64> rvalue64(vsize);
+    ok &= test.Read("Test", rvalue64);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue64[i] == (uint64) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<int64> rvalue64i(vsize);
+    ok &= test.Read("Test", rvalue64i);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue64i[i] == (int64) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<float32> rvalue32f(vsize);
+    ok &= !test.Read("Test", rvalue32f);
     return ok;
 }
 
@@ -1225,16 +1285,12 @@ bool EPICSPVAStructureDataITest::TestCopy_Structures() {
     }
     if (ok) {
         ok = EPICSPVAHelper::InitStructure(intro, pvStructure);
-        std::cout << pvStructure << std::endl;
     }
     test.SetStructure(pvStructure);
     ConfigurationDatabase destCDB;
     ok = test.Copy(destCDB);
 
     destCDB.MoveToRoot();
-    StreamString temp;
-    temp.Printf("%!", destCDB);
-    printf("%s", temp.Buffer());
     return ok;
 }
 
@@ -1244,20 +1300,6 @@ bool EPICSPVAStructureDataITest::TestCopy_False_FinaliseStructure() {
     ConfigurationDatabase cdb;
     test.InitStructure();
     bool ok = !test.Copy(cdb);
-    return ok;
-}
-
-bool EPICSPVAStructureDataITest::TestAddToCurrentNode() {
-    using namespace MARTe;
-    EPICSPVAStructureDataI test;
-    ConfigurationDatabase cdb;
-    ConfigurationDatabase cdb2;
-    cdb2.CreateAbsolute("A");
-    test.InitStructure();
-    Reference r;
-    bool ok = test.AddToCurrentNode(cdb2.GetCurrentNode());
-    test.FinaliseStructure();
-    ok &= !test.AddToCurrentNode(r);
     return ok;
 }
 
@@ -1863,6 +1905,95 @@ bool EPICSPVAStructureDataITest::TestCopyValuesFrom_False() {
     if (ok) {
         ok = !dest.CopyValuesFrom(cdb);
     }
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestPerformance() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    test.InitStructure();
+    bool ok = test.CreateAbsolute("R");
+    ok &= test.CreateAbsolute("R.A");
+    ok &= test.CreateAbsolute("R.B");
+    uint32 numberOfArrayNodes = 100;
+    uint32 n;
+
+    uint64 cstart = HighResolutionTimer::Counter();
+    for (n = 0; (n < numberOfArrayNodes) && (ok); n++) {
+        StreamString nid;
+        nid.Printf("R.A.C[%d]", n);
+        ok &= test.CreateAbsolute(nid.Buffer());
+        ok &= test.Write("a", 0);
+    }
+    uint64 cend = HighResolutionTimer::Counter();
+    float64 tend = ((cend - cstart) * HighResolutionTimer::Period());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "To create an array of %d nodes took me [%e] seconds", numberOfArrayNodes, tend);
+
+    cstart = HighResolutionTimer::Counter();
+    for (n = 0; (n < numberOfArrayNodes) && (ok); n++) {
+        StreamString nid;
+        nid.Printf("R.B.C[%d]", n);
+        ok &= test.CreateAbsolute(nid.Buffer());
+        ok &= test.Write("a", 0);
+    }
+    cend = HighResolutionTimer::Counter();
+    tend = ((cend - cstart) * HighResolutionTimer::Period());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "To create an array of %d nodes took me [%e] seconds", numberOfArrayNodes, tend);
+
+    cstart = HighResolutionTimer::Counter();
+    test.FinaliseStructure();
+    cend = HighResolutionTimer::Counter();
+    tend = ((cend - cstart) * HighResolutionTimer::Period());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "To finalise a structure with 2 arrays of %d nodes took me [%e] seconds", numberOfArrayNodes, tend);
+
+    cstart = HighResolutionTimer::Counter();
+    for (n = 0; (n < numberOfArrayNodes) && (ok); n++) {
+        StreamString nid;
+        nid.Printf("R.B.C[%d]", n);
+        ok &= test.MoveAbsolute(nid.Buffer());
+    }
+    cend = HighResolutionTimer::Counter();
+    tend = ((cend - cstart) * HighResolutionTimer::Period());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "To move absolute on %d nodes took me [%e] seconds", numberOfArrayNodes, tend);
+
+    test.MoveAbsolute("R.A");
+    cstart = HighResolutionTimer::Counter();
+    for (n = 0; (n < numberOfArrayNodes) && (ok); n++) {
+        StreamString nid;
+        nid.Printf("C[%d]", n);
+        ok &= test.MoveRelative(nid.Buffer());
+        ok &= test.MoveToAncestor(1u);
+    }
+    cend = HighResolutionTimer::Counter();
+    tend = ((cend - cstart) * HighResolutionTimer::Period());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "To move relative (and to ancestor) on %d nodes took me [%e] seconds", numberOfArrayNodes, tend);
+
+    return ok;
+
+}
+
+bool EPICSPVAStructureDataITest::TestToString() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    test.InitStructure();
+    bool ok = test.CreateAbsolute("R");
+    ok &= test.CreateAbsolute("R.A");
+    ok &= test.CreateAbsolute("R.B");
+    test.FinaliseStructure();
+    StreamString out;
+    ok &= test.ToString(out);
+    return ok;
+}
+
+bool EPICSPVAStructureDataITest::TestToString_False() {
+    using namespace MARTe;
+    EPICSPVAStructureDataI test;
+    test.InitStructure();
+    bool ok = test.CreateAbsolute("R");
+    ok &= test.CreateAbsolute("R.A");
+    ok &= test.CreateAbsolute("R.B");
+    StreamString out;
+    ok &= !test.ToString(out);
     return ok;
 }
 

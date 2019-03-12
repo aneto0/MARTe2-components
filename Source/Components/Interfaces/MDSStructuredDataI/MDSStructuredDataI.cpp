@@ -563,8 +563,8 @@ bool MDSStructuredDataI::Delete(const char8* const name) {
         }
         if (ok) {
             try {
-                //lint -e{613} Possible use of null pointer --> Not Possible because IsOpen() return false if tree = NULL
-                tree->remove(name);
+                //lint -e{613} Possible use of null pointer --> Not Possible because IsOpen() returns false if tree == NULL
+                currentNode->remove(name);
             }
             catch (const MDSplus::MdsException &exc) {
                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Fail deleting node %s: %s", name, exc.what());

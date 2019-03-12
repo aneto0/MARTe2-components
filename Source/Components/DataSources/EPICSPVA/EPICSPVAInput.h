@@ -65,7 +65,7 @@ namespace MARTe {
  *             Type = MyStruct1 //See e.g. InstrospectionStructure
  *         }
  *         RecordIn1Status = {//Record name if the Alias field is not set
- *             Alias = "alternative::channel::name" //Note that this is the same record as RecordOut1Value
+ *             Alias = "alternative::channel::name" //Note that this is the same record as RecordIn1Value
  *             Field = "value"
  *             Type = uint32
  *         }

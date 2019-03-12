@@ -432,6 +432,9 @@ bool EPICSPVAHelperTransverseStructureInit(StructuredDataI &data, epics::pvData:
                             if (ok) {
                                 ok = EPICSPVAHelper::ReplaceStructureArray(data, pvStructMemberArr, detectedNumberOfElements, memberTypeName);
                             }
+                            if (ok) {
+                                i += (detectedNumberOfElements - 1u);
+                            }
                         }
                         else {
                             REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Member %s not found in PVStructurePtr or is not a PVStructureArrayPtr", memberName);

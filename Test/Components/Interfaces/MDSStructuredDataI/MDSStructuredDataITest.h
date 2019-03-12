@@ -886,47 +886,6 @@ bool MDSStructuredDataITest::TestRead(T value) {
     }
     return ret;
 }
-/*
- //home/lcapella/Documents/MARTe2/Source/Core/BareMetal/L1Portability/TimeoutType.h:147: multiple definition of `bool MDSStructuredDataITest::TestRead<MARTe::StreamString>(MARTe::StreamString)'
- //I don't get what is the problem... no template will be used for StreamString
- template<>
- bool MDSStructuredDataITest::TestRead<MARTe::StreamString>(MARTe::StreamString type) {
-
- using namespace MARTe;
- MDSStructuredDataI mdsStructuredDataI;
- bool force = true;
- bool ret = mdsStructuredDataI.CreateTree(treeName.Buffer(), force);
- if (ret) {
- remove_mds_sdi = true;
- }
- if (ret) {
- mdsStructuredDataI.SetEditMode(true);
- ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
- }
- if (ret) {
- ret = mdsStructuredDataI.OpenTree(treeName.Buffer(), -1);
- }
- if (ret) {
- ret = mdsStructuredDataI.CreateAbsolute("A");
- }
- if (ret) {
- ret = mdsStructuredDataI.Write("NodeVal", type.Buffer());
- }
- if (ret) {
- ret = mdsStructuredDataI.SaveTree();
- }
- StreamString typeRead;
- if (ret) {
- ret = mdsStructuredDataI.Read("NodeVal", typeRead.Buffer());
- }
- if (ret) {
- ret = (typeRead == type);
- }
- return ret;
-
- return false;
- }
- */
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/

@@ -45,6 +45,7 @@ EPICSPVAStructureDataI::EPICSPVAStructureDataI() :
         Object() {
     structureFinalised = true;
     currentStructPtr.resize(0);
+    currentStructPtr.reserve(16u);
 }
 
 EPICSPVAStructureDataI::~EPICSPVAStructureDataI() {
@@ -78,105 +79,106 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
     }
     if (ok) {
         if (isScalar) {
-            if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
-                if (scalarFieldPtr->getScalar()->getScalarType() == epics::pvData::pvBoolean) {
-                    bool bval = scalarFieldPtr->getAs<epics::pvData::boolean>();
-                    *reinterpret_cast<uint8 *>(value.GetDataPointer()) = (bval ? 1u : 0u);
-                }
-                else {
-                    *reinterpret_cast<uint8 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint8>();
-                }
-            }
-            else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
-                *reinterpret_cast<uint16 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint16>();
-            }
-            else if (value.GetTypeDescriptor() == UnsignedInteger32Bit) {
-                *reinterpret_cast<uint32 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint32>();
-            }
-            else if (value.GetTypeDescriptor() == UnsignedInteger64Bit) {
-                *reinterpret_cast<uint64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<long unsigned int>();
-            }
-            else if (value.GetTypeDescriptor() == SignedInteger8Bit) {
-                *reinterpret_cast<int8 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<int8>();
-            }
-            else if (value.GetTypeDescriptor() == SignedInteger16Bit) {
-                *reinterpret_cast<int16 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<int16>();
-            }
-            else if (value.GetTypeDescriptor() == SignedInteger32Bit) {
-                *reinterpret_cast<int32 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<int32>();
-            }
-            else if (value.GetTypeDescriptor() == SignedInteger64Bit) {
-                *reinterpret_cast<int64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<long int>();
-            }
-            else if (value.GetTypeDescriptor() == Float32Bit) {
-                *reinterpret_cast<float32 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<float32>();
-            }
-            else if (value.GetTypeDescriptor() == Float64Bit) {
-                *reinterpret_cast<float64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<float64>();
-            }
-            else if (value.GetTypeDescriptor().type == SString) {
-                std::string src = scalarFieldPtr->getAs<std::string>();
-                StreamString *dst = static_cast<StreamString *>(value.GetDataPointer());
-                if (dst != NULL_PTR(StreamString *)) {
-                    *dst = src.c_str();
-                }
+            bool isBoolean = (scalarFieldPtr->getScalar()->getScalarType() == epics::pvData::pvBoolean);
+            if (isBoolean) {
+                ok = ReadValue<bool>(scalarFieldPtr, value);
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported read type");
-                ok = false;
+                if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
+                    ok = ReadValue<uint8>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                    ok = ReadValue<uint16>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                    ok = ReadValue<uint32>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                    ok = ReadValue<long unsigned int>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger8Bit) {
+                    ok = ReadValue<int8>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger16Bit) {
+                    ok = ReadValue<int16>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger32Bit) {
+                    ok = ReadValue<int32>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger64Bit) {
+                    ok = ReadValue<long int>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == Float32Bit) {
+                    ok = ReadValue<float32>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == Float64Bit) {
+                    ok = ReadValue<float64>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor().type == SString) {
+                    std::string src = scalarFieldPtr->getAs<std::string>();
+                    StreamString *dst = static_cast<StreamString *>(value.GetDataPointer());
+                    if (dst != NULL_PTR(StreamString *)) {
+                        *dst = src.c_str();
+                    }
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported read type");
+                    ok = false;
+                }
             }
         }
         else {
             ok = (storedType.GetNumberOfElements(0u) == value.GetNumberOfElements(0u));
             if (ok) {
-                if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
-                    if (scalarArrayPtr->getScalarArray()->getElementType() == epics::pvData::pvBoolean) {
-                        ok = ReadArray<bool>(scalarArrayPtr, storedType, value);
-                    }
-                    else {
-                        ok = ReadArray<uint8>(scalarArrayPtr, storedType, value);
-                    }
-                }
-                else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
-                    ok = ReadArray<uint16>(scalarArrayPtr, storedType, value);
-                }
-                else if (value.GetTypeDescriptor() == UnsignedInteger32Bit) {
-                    ok = ReadArray<uint32>(scalarArrayPtr, storedType, value);
-                }
-                else if (value.GetTypeDescriptor() == UnsignedInteger64Bit) {
-                    ok = ReadArray<unsigned long int>(scalarArrayPtr, storedType, value);
-                }
-                else if (value.GetTypeDescriptor() == SignedInteger8Bit) {
-                    ok = ReadArray<int8>(scalarArrayPtr, storedType, value);
-                }
-                else if (value.GetTypeDescriptor() == SignedInteger16Bit) {
-                    ok = ReadArray<int16>(scalarArrayPtr, storedType, value);
-                }
-                else if (value.GetTypeDescriptor() == SignedInteger32Bit) {
-                    ok = ReadArray<int32>(scalarArrayPtr, storedType, value);
-                }
-                else if (value.GetTypeDescriptor() == SignedInteger64Bit) {
-                    ok = ReadArray<long int>(scalarArrayPtr, storedType, value);
-                }
-                else if (value.GetTypeDescriptor() == Float32Bit) {
-                    ok = ReadArray<float32>(scalarArrayPtr, storedType, value);
-                }
-                else if (value.GetTypeDescriptor() == Float64Bit) {
-                    ok = ReadArray<float64>(scalarArrayPtr, storedType, value);
-                }
-                else if (value.GetTypeDescriptor().type == SString) {
-                    epics::pvData::shared_vector<const std::string> srcStr;
-                    scalarArrayPtr->getAs<std::string>(srcStr);
-                    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
-                    uint32 i;
-                    Vector<StreamString> dst(static_cast<StreamString *>(value.GetDataPointer()), numberOfElements);
-                    for (i = 0u; i < numberOfElements; i++) {
-                        dst[i] = srcStr[i].c_str();
-                    }
+                bool isBoolean = (scalarArrayPtr->getScalarArray()->getElementType() == epics::pvData::pvBoolean);
+                if (isBoolean) {
+                    ok = ReadArray<bool>(scalarArrayPtr, storedType, value);
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
-                    ok = false;
+                    if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
+                        ok = ReadArray<uint8>(scalarArrayPtr, storedType, value);
+                    }
+                    else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                        ok = ReadArray<uint16>(scalarArrayPtr, storedType, value);
+                    }
+                    else if (value.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                        ok = ReadArray<uint32>(scalarArrayPtr, storedType, value);
+                    }
+                    else if (value.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                        ok = ReadArray<unsigned long int>(scalarArrayPtr, storedType, value);
+                    }
+                    else if (value.GetTypeDescriptor() == SignedInteger8Bit) {
+                        ok = ReadArray<int8>(scalarArrayPtr, storedType, value);
+                    }
+                    else if (value.GetTypeDescriptor() == SignedInteger16Bit) {
+                        ok = ReadArray<int16>(scalarArrayPtr, storedType, value);
+                    }
+                    else if (value.GetTypeDescriptor() == SignedInteger32Bit) {
+                        ok = ReadArray<int32>(scalarArrayPtr, storedType, value);
+                    }
+                    else if (value.GetTypeDescriptor() == SignedInteger64Bit) {
+                        ok = ReadArray<long int>(scalarArrayPtr, storedType, value);
+                    }
+                    else if (value.GetTypeDescriptor() == Float32Bit) {
+                        ok = ReadArray<float32>(scalarArrayPtr, storedType, value);
+                    }
+                    else if (value.GetTypeDescriptor() == Float64Bit) {
+                        ok = ReadArray<float64>(scalarArrayPtr, storedType, value);
+                    }
+                    else if (value.GetTypeDescriptor().type == SString) {
+                        epics::pvData::shared_vector<const std::string> srcStr;
+                        scalarArrayPtr->getAs<std::string>(srcStr);
+                        uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+                        uint32 i;
+                        Vector<StreamString> dst(static_cast<StreamString *>(value.GetDataPointer()), numberOfElements);
+                        for (i = 0u; i < numberOfElements; i++) {
+                            dst[i] = srcStr[i].c_str();
+                        }
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
+                        ok = false;
+                    }
                 }
             }
             else {
@@ -607,6 +609,8 @@ bool EPICSPVAStructureDataI::Move(const char8 * const path) {
     epics::pvData::PVStructurePtr movePtr;
     epics::pvData::PVStructureArray::svector tempStructPtr;
     tempStructPtr = currentStructPtr;
+    //Very important to resize. Otherwise there is a huge performance hit.
+    tempStructPtr.reserve(16u);
     StreamString spath = path;
     StreamString token;
     char8 term;
@@ -616,8 +620,6 @@ bool EPICSPVAStructureDataI::Move(const char8 * const path) {
         ok = spath.Seek(0LLU);
     }
     while ((ok) && (spath.GetToken(token, ".[", term))) {
-        const epics::pvData::PVFieldPtrArray & fields = movePtr->getPVFields();
-        uint32 c;
         int32 idx = -1;
         if (term == '[') {
             StreamString neStr;
@@ -626,35 +628,32 @@ bool EPICSPVAStructureDataI::Move(const char8 * const path) {
             }
             idx = atoi(neStr.Buffer());
         }
-        bool found = false;
-        for (c = 0u; (c < fields.size()) && (!found) && (ok); c++) {
-            epics::pvData::PVFieldPtr field = fields[c];
-            found = (token == field->getFieldName().c_str());
-            if (found) {
-                //Cannot be a leaf!
-                epics::pvData::Type pvType = field->getField()->getType();
-                if (pvType == epics::pvData::structure) {
-                    ok = (idx == -1);
-                    if (ok) {
-                        movePtr = std::dynamic_pointer_cast < epics::pvData::PVStructure > (field->shared_from_this());
-                    }
-                }
-                else if (pvType == epics::pvData::structureArray) {
-                    ok = (idx != -1);
-                    if (ok) {
-                        epics::pvData::PVStructureArrayPtr arrPtr = std::dynamic_pointer_cast < epics::pvData::PVStructureArray > (field->shared_from_this());
-                        movePtr = arrPtr->view()[idx];
-                    }
-                }
-                else {
-                    ok = false;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Trying to index a leaf.");
-                }
+        epics::pvData::PVFieldPtr field = movePtr->getSubField(token.Buffer());
+        bool found = (field ? true : false);
+        if (found) {
+            //Cannot be a leaf!
+            epics::pvData::Type pvType = field->getField()->getType();
+            if (pvType == epics::pvData::structure) {
+                ok = (idx == -1);
                 if (ok) {
-                    ok = (movePtr ? true : false);
-                    if (ok) {
-                        tempStructPtr.push_back(movePtr);
-                    }
+                    movePtr = std::dynamic_pointer_cast < epics::pvData::PVStructure > (field->shared_from_this());
+                }
+            }
+            else if (pvType == epics::pvData::structureArray) {
+                ok = (idx != -1);
+                if (ok) {
+                    epics::pvData::PVStructureArrayPtr arrPtr = std::dynamic_pointer_cast < epics::pvData::PVStructureArray > (field->shared_from_this());
+                    movePtr = arrPtr->view()[idx];
+                }
+            }
+            else {
+                ok = false;
+                REPORT_ERROR(ErrorManagement::ParametersError, "Trying to index a leaf.");
+            }
+            if (ok) {
+                ok = (movePtr ? true : false);
+                if (ok) {
+                    tempStructPtr.push_back(movePtr);
                 }
             }
         }
@@ -802,7 +801,6 @@ void EPICSPVAStructureDataI::InitStructure() {
 
 bool EPICSPVAStructureDataI::FinaliseStructure() {
     bool ok = cachedCDB.MoveToRoot();
-    ReferenceT<ReferenceContainer> rootNode = cachedCDB.GetCurrentNode();
     epics::pvData::StructureConstPtr topStructure;
     if (ok) {
         topStructure = EPICSPVAHelper::GetStructure(cachedCDB);
@@ -974,6 +972,17 @@ bool EPICSPVAStructureDataI::CopyValuesFrom(StructuredDataI &source) {
     }
     return ok;
 }
+
+bool EPICSPVAStructureDataI::ToString(StreamString &out) {
+    bool ok = IsStructureFinalised();
+    if (ok) {
+        std::ostringstream stream;
+        stream << GetRootStruct();
+        out = stream.str().c_str();
+    }
+    return ok;
+}
+
 
 CLASS_REGISTER(EPICSPVAStructureDataI, "")
 }

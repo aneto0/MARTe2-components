@@ -504,11 +504,6 @@ TEST(EPICSPVAStructureDataIGTest,TestCopy_False_FinaliseStructure) {
     ASSERT_TRUE(test.TestCopy_False_FinaliseStructure());
 }
 
-TEST(EPICSPVAStructureDataIGTest,TestAddToCurrentNode) {
-    EPICSPVAStructureDataITest test;
-    ASSERT_TRUE(test.TestAddToCurrentNode());
-}
-
 TEST(EPICSPVAStructureDataIGTest,TestMoveAbsolute) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestMoveAbsolute());
@@ -627,4 +622,19 @@ TEST(EPICSPVAStructureDataIGTest,TestCopyValuesFrom) {
 TEST(EPICSPVAStructureDataIGTest,TestCopyValuesFrom_False) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestCopyValuesFrom_False());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestPerformance) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestPerformance());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestToString) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestToString());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestToString_False) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestToString_False());
 }
