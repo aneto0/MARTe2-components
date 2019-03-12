@@ -79,52 +79,52 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
     }
     if (ok) {
         if (isScalar) {
-            if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
-                if (scalarFieldPtr->getScalar()->getScalarType() == epics::pvData::pvBoolean) {
-                    bool bval = scalarFieldPtr->getAs<epics::pvData::boolean>();
-                    *reinterpret_cast<uint8 *>(value.GetDataPointer()) = (bval ? 1u : 0u);
-                }
-                else {
-                    *reinterpret_cast<uint8 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint8>();
-                }
-            }
-            else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
-                *reinterpret_cast<uint16 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint16>();
-            }
-            else if (value.GetTypeDescriptor() == UnsignedInteger32Bit) {
-                *reinterpret_cast<uint32 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<uint32>();
-            }
-            else if (value.GetTypeDescriptor() == UnsignedInteger64Bit) {
-                *reinterpret_cast<uint64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<long unsigned int>();
-            }
-            else if (value.GetTypeDescriptor() == SignedInteger8Bit) {
-                *reinterpret_cast<int8 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<int8>();
-            }
-            else if (value.GetTypeDescriptor() == SignedInteger16Bit) {
-                *reinterpret_cast<int16 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<int16>();
-            }
-            else if (value.GetTypeDescriptor() == SignedInteger32Bit) {
-                *reinterpret_cast<int32 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<int32>();
-            }
-            else if (value.GetTypeDescriptor() == SignedInteger64Bit) {
-                *reinterpret_cast<int64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<long int>();
-            }
-            else if (value.GetTypeDescriptor() == Float32Bit) {
-                *reinterpret_cast<float32 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<float32>();
-            }
-            else if (value.GetTypeDescriptor() == Float64Bit) {
-                *reinterpret_cast<float64 *>(value.GetDataPointer()) = scalarFieldPtr->getAs<float64>();
-            }
-            else if (value.GetTypeDescriptor().type == SString) {
-                std::string src = scalarFieldPtr->getAs<std::string>();
-                StreamString *dst = static_cast<StreamString *>(value.GetDataPointer());
-                if (dst != NULL_PTR(StreamString *)) {
-                    *dst = src.c_str();
-                }
+            bool isBoolean = (scalarFieldPtr->getScalar()->getScalarType() == epics::pvData::pvBoolean);
+            if (isBoolean) {
+                ok = ReadValue<bool>(scalarFieldPtr, value);
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported read type");
-                ok = false;
+                if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
+                    ok = ReadValue<uint8>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                    ok = ReadValue<uint16>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                    ok = ReadValue<uint32>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                    ok = ReadValue<long unsigned int>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger8Bit) {
+                    ok = ReadValue<int8>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger16Bit) {
+                    ok = ReadValue<int16>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger32Bit) {
+                    ok = ReadValue<int32>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger64Bit) {
+                    ok = ReadValue<long int>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == Float32Bit) {
+                    ok = ReadValue<float32>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor() == Float64Bit) {
+                    ok = ReadValue<float64>(scalarFieldPtr, value);
+                }
+                else if (value.GetTypeDescriptor().type == SString) {
+                    std::string src = scalarFieldPtr->getAs<std::string>();
+                    StreamString *dst = static_cast<StreamString *>(value.GetDataPointer());
+                    if (dst != NULL_PTR(StreamString *)) {
+                        *dst = src.c_str();
+                    }
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported read type");
+                    ok = false;
+                }
             }
         }
         else {

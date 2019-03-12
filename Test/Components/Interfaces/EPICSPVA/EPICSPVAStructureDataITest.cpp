@@ -69,14 +69,37 @@ bool EPICSPVAStructureDataITest::TestRead_Boolean() {
     bool val = true;
     scalarFieldPtr->putFrom<epics::pvData::boolean>(val);
     test.SetStructure(currentStructPtr);
-    uint8 value;
-    test.Read("Test", value);
-    bool ok = (value == 1);
+    uint8 value8;
+    test.Read("Test", value8);
+    bool ok = (value8 == 1);
+    int8 value8i;
+    test.Read("Test", value8i);
+    ok &= (value8i == 1);
+    uint16 value16;
+    test.Read("Test", value16);
+    ok &= (value16 == 1);
+    int16 value16i;
+    test.Read("Test", value16i);
+    ok &= (value16i == 1);
+    uint32 value32;
+    test.Read("Test", value32);
+    ok &= (value32 == 1);
+    int32 value32i;
+    test.Read("Test", value32i);
+    ok &= (value32i == 1);
+    uint64 value64;
+    test.Read("Test", value64);
+    ok &= (value64 == 1);
+    int64 value64i;
+    test.Read("Test", value64i);
+    ok &= (value64i == 1);
+    float32 value32f;
+    ok &= !test.Read("Test", value32f);
     val = false;
     scalarFieldPtr->putFrom<epics::pvData::boolean>(val);
     test.SetStructure(currentStructPtr);
-    test.Read("Test", value);
-    ok &= (value == 0);
+    test.Read("Test", value8);
+    ok &= (value8 == 0);
     return ok;
 }
 
@@ -176,6 +199,8 @@ bool EPICSPVAStructureDataITest::TestRead_Boolean_Array() {
     for (i = 0; (i < vsize) && (ok); i++) {
         ok = (rvalue[i] == (uint8) (!(bool) (i % 2)));
     }
+    MARTe::Vector<uint32> rvalue32(vsize);
+    ok &= !test.Read("Test", rvalue32);
     return ok;
 }
 
