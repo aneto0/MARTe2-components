@@ -199,8 +199,43 @@ bool EPICSPVAStructureDataITest::TestRead_Boolean_Array() {
     for (i = 0; (i < vsize) && (ok); i++) {
         ok = (rvalue[i] == (uint8) (!(bool) (i % 2)));
     }
+    MARTe::Vector<int8> rvalue8i(vsize);
+    ok &= test.Read("Test", rvalue8i);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue8i[i] == (int8) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<uint16> rvalue16(vsize);
+    ok &= test.Read("Test", rvalue16);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue16[i] == (uint16) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<int16> rvalue16i(vsize);
+    ok &= test.Read("Test", rvalue16i);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue16i[i] == (int16) (!(bool) (i % 2)));
+    }
     MARTe::Vector<uint32> rvalue32(vsize);
-    ok &= !test.Read("Test", rvalue32);
+    ok &= test.Read("Test", rvalue32);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue32[i] == (uint32) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<int32> rvalue32i(vsize);
+    ok &= test.Read("Test", rvalue32i);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue32i[i] == (int32) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<uint64> rvalue64(vsize);
+    ok &= test.Read("Test", rvalue64);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue64[i] == (uint64) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<int64> rvalue64i(vsize);
+    ok &= test.Read("Test", rvalue64i);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue64i[i] == (int64) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<float32> rvalue32f(vsize);
+    ok &= !test.Read("Test", rvalue32f);
     return ok;
 }
 
