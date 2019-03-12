@@ -38,6 +38,9 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+/**
+ * @brief Helper class to compute the CRC.
+ */
 class CRCHelper {
 public:
     /**
@@ -50,7 +53,7 @@ public:
     /**
      * @brief To be specialised by CRCHelperT for all the supported types.
      * @details Compute a lookup table for a given polynomial.
-     * @param[in] The given divisor polynomial.
+     * @param[in] pol the given divisor polynomial.
      */
     virtual void ComputeTable(void * const pol) = 0;
 
@@ -61,7 +64,7 @@ public:
      * @param[in] size the number of bytes in \a data.
      * @param[in] initCRC the initial CRC value.
      * @param[in] inputInverted if true, the order of the bytes to compute the CRC will be data[0], data[-1], data[-2] ... data[-size + 1].
-     * @param[out] retval the computed CRC checksum.
+     * @param[out] retVal the computed CRC checksum.
      */
     virtual void Compute(const uint8 * const data, int32 const size, void * const initCRC, bool const inputInverted, void * const retVal) = 0;
 

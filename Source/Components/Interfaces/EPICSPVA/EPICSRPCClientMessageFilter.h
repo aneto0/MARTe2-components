@@ -38,6 +38,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
 /**
  * @brief MessageFilter for the EPICSRPCClient.
  * @details Serialises the received Messages as PVStructures.
@@ -46,7 +47,6 @@
  *
  * The first element of the Message is expected to be a StructuredDataI with the structure to be serialised as a PVStructure.
  */
-namespace MARTe {
 class EPICSRPCClientMessageFilter: public Object, public MessageFilter {
 public:
     CLASS_REGISTER_DECLARATION()

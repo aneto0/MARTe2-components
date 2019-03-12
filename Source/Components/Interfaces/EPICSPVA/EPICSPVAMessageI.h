@@ -41,6 +41,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
 /**
  * @brief Message interface through an epics::pvAccess::RPCService.
  * @details The PVStructure received from pvaccess shall encode a valid MARTe message configuration, which may contain any arbitrary payload.
@@ -62,7 +63,6 @@
  * }
  * </pre>
  */
-namespace MARTe {
 class EPICSPVAMessageI: public EPICSRPCService, public Object, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()

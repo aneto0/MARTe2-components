@@ -39,6 +39,9 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+/**
+ * @brief Helper class to compute the CRC using different templates.
+ */
 template <typename T>
 class CRCHelperT : public CRCHelper {
 public:

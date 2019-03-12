@@ -95,7 +95,6 @@ public:
     /**
      * @brief Setup all the signal memory information.
      * @param[in] dataSource the data source holding the signals.
-     * @parma[in] direction the signal direction.
      * @return true if the memory setup was successfully set.
      */
     bool Setup(DataSourceI &dataSource);
@@ -120,7 +119,7 @@ public:
     const char8 * const GetChannelName();
 
     /**
-     * @brief Gets the field name (see SetAliasAndField)..
+     * @brief Gets the field name (see SetAliasAndField).
      * @return the field name.
      */
     const char8 * const GetFieldName();

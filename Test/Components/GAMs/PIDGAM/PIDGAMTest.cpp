@@ -268,7 +268,7 @@ bool PIDGAMTest::TestInitialiseMissingUpperSaturationLimit() {
     config.Write("Kp", kp);
     float64 sampleTime = 0.001;
     config.Write("SampleTime", sampleTime);
-    ret = !gam.Initialise(config);
+    ret = gam.Initialise(config);
     return ret;
 }
 
@@ -282,7 +282,7 @@ bool PIDGAMTest::TestInitialiseMissingLowerSaturationLimit() {
     config.Write("SampleTime", sampleTime);
     float64 maxOutput = 1.5;
     config.Write("MaxOutput", maxOutput);
-    ret = !gam.Initialise(config);
+    ret = gam.Initialise(config);
     return ret;
 }
 

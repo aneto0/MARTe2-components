@@ -44,6 +44,8 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+
+namespace MARTe {
 /**
  * @brief Serialises the declared Structure into a flat list of EPICS V3 PVs.
  *
@@ -88,7 +90,6 @@
  *
  * Note that the seed will be generated after every "init", so that if more than one client use this component, there is the possibility that a "load" will be refused due to an unexpected seed.
  */
-namespace MARTe {
 class EPICSPVA2V3Service: public EPICSRPCService, public ReferenceContainer, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
