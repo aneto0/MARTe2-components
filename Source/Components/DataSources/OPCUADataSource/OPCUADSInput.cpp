@@ -82,6 +82,7 @@ OPCUADSInput::~OPCUADSInput() {
     if(masterClient != NULL_PTR(OPCUAClientWrapper *)){
         delete masterClient;
     }
+
 }
 
 bool OPCUADSInput::Initialise(StructuredDataI & data) {

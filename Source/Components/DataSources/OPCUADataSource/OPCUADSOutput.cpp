@@ -132,6 +132,7 @@ bool OPCUADSOutput::Initialise(StructuredDataI & data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Error during Initialise!");
     }
     return ok;
+
 }
 
 bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {

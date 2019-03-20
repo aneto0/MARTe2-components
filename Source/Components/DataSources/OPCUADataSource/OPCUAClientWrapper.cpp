@@ -434,6 +434,7 @@ void OPCUAClientWrapper::SetWriteRequest(uint32 idx,
 
     writeValues[idx].value.value = static_cast<const UA_Variant>(tempVariant[idx]);
     writeValues[idx].value.hasValue = true;
+
 }
 
 bool OPCUAClientWrapper::Write(uint32 numberOfNodes) {
