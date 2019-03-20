@@ -35,6 +35,7 @@
 #include "/home/lporzio/open62541/build/open62541.h"
 #include "OPCUATypes.h"
 #include "ReferenceContainer.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
