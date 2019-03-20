@@ -1,7 +1,7 @@
 /**
  * @file OPCUAServer.h
  * @brief Header file for class OPCUAServer
- * @date 24/01/2019
+ * @date 12/03/2019
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -35,12 +35,12 @@
 #include "/home/lporzio/open62541/build/open62541.h"
 #include "AdvancedErrorManagement.h"
 #include "EmbeddedServiceMethodBinderT.h"
-#include "SingleThreadService.h"
-#include "ReferenceContainer.h"
 #include "ObjectRegistryDatabase.h"
-#include "OPCUAReferenceContainer.h"
-#include "OPCUAObject.h"
 #include "OPCUANode.h"
+#include "OPCUAObject.h"
+#include "OPCUAReferenceContainer.h"
+#include "ReferenceContainer.h"
+#include "SingleThreadService.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -59,12 +59,17 @@ namespace MARTe {
  * +OPCUAServer
  *     Class = OPCUA::OPCUAServer
  *     Port = 4840 //Optional. Default is 4840
+ *     CPUMask = 0x4
  *     AddressSpace = {
  *         MyNodeStructure1 = {
  *             Type = MyIntrospectionStructure1
  *         }
  *         MyNodeStructure2 = {
  *             Type = MyIntrospectionStructure2
+ *         }
+ *         ...
+ *         MyNode = {
+ *             Type = float64
  *         }
  *     }
  * </pre>
@@ -103,8 +108,29 @@ OPCUAServer    ();
     void SetRunning(bool const running);
 
     /**
+     * @brief Provides running mode
+     */
+    const bool GetRunning();
+
+    /**
+     * @brief Provides CPU mask
+     */
+    const uint32 GetCPUMask();
+
+    /**
+     * @brief Provides Thread Stack Size
+     */
+    const uint32 GetStackSize();
+
+    /**
+     * @brief Provides Port number where Server is listen to
+     */
+    const uint16 GetPort();
+
+    /**
      * @brief Create the OPCUA Address Space starting from a OPCUAReferenceContainer.
      * @details Recursively read all the OPCUAReferenceContainer and create the OPCUAObject or OPCUANode.
+     * All the NodeID will be numeric, starting from 3000.
      * @return true if all the nodes and object are added to the OPCUAServer correctly.
      */
     bool InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref);
@@ -114,22 +140,46 @@ OPCUAServer    ();
      */
     bool GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer, const Introspection *intro);
 
+    /**
+     * The thread that manage the OPC UA Server functionalities.
+     */
     SingleThreadService service;
 
 private:
 
+    /**
+     * open62541 server object declaration
+     */
     UA_Server * opcuaServer;
 
+    /**
+     * open62541 server configuration structure
+     */
     UA_ServerConfig * opcuaConfig;
 
+    /**
+     * The number to assign to each node during Address Space initialization
+     */
     uint32 nodeNumber;
 
+    /**
+     * Running mode
+     */
     bool opcuaRunning;
 
+    /**
+     * The port where the Server listen
+     */
     uint16 port;
 
+    /**
+     * The number to set Cpu affinity
+     */
     uint32 cpuMask;
 
+    /**
+     * The size of the stack memory for the SignleThreadService
+     */
     uint32 stackSize;
 
     /**

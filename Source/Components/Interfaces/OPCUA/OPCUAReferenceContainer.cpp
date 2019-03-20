@@ -72,8 +72,6 @@ bool OPCUAReferenceContainer::GetOPCVariable(OPCUANodeSettings &settings,
 }
 
 void OPCUAReferenceContainer::SetParent(const uint32 parentId) {
-    /*parentNodeId = new char[strlen(parentId) + 1];
-    StringHelper::Copy(parentNodeId, parentId);*/
     parentNodeId = parentId;
 }
 
@@ -82,8 +80,6 @@ const uint32 OPCUAReferenceContainer::GetParentNodeId() {
 }
 
 void OPCUAReferenceContainer::SetNodeId(const uint32 newNodeId) {
-    /*nodeId = new char[strlen(newNodeId) + 1];
-    StringHelper::Copy(nodeId, newNodeId);*/
     nodeId = newNodeId;
 }
 
@@ -115,6 +111,14 @@ void OPCUAReferenceContainer::SetNumberOfElements(const uint32 dimension,
 void OPCUAReferenceContainer::SetNumberOfDimensions(const uint8 nDimensions) {
     numberOfElements = new uint32[nDimensions];
     numberOfDimensions = nDimensions;
+}
+
+uint32* OPCUAReferenceContainer::GetNumberOfElements() {
+    return numberOfElements;
+}
+
+const uint8 OPCUAReferenceContainer::GetNumberOfDimensions() {
+    return numberOfDimensions;
 }
 
 CLASS_REGISTER(OPCUAReferenceContainer, "");

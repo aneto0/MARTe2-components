@@ -1,7 +1,7 @@
 /**
  * @file OPCUANode.h
  * @brief Header file for class OPCUANode
- * @date 24/01/2019
+ * @date 12/03/2019
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -32,53 +32,68 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
-#include "ReferenceContainer.h"
+#include <cstring>
+#include "/home/lporzio/open62541/build/open62541.h"
 #include "ConfigurationDatabase.h"
 #include "ObjectRegistryDatabase.h"
 #include "OPCUAReferenceContainer.h"
-#include "/home/lporzio/open62541/build/open62541.h"
-#include <cstring>
+#include "ReferenceContainer.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-
 namespace MARTe {
 
 /**
  * @brief Class that manages the OPCUA Node structure
+ * @details The class inherit from OPCUAReferenceContainer and implements the GetOPCVariable method
  */
-class OPCUANode : public OPCUAReferenceContainer {
+class OPCUANode: public OPCUAReferenceContainer {
 public:
     CLASS_REGISTER_DECLARATION()
 
-    OPCUANode();
+    /**
+     * @brief Default Constructor
+     */
+OPCUANode    ();
 
+    /**
+     * Default Destructor
+     */
     ~OPCUANode();
 
+    /**
+     * @see OPCUAReferenceContainer::GetOPCVariable
+     * @return true if all the parameters and attributes are set correctly
+     */
     virtual bool GetOPCVariable(OPCUANodeSettings &settings, TypeDescriptor nodeType, uint32 nodeNumber);
 
+    /**
+     * @see OPCUAReferenceContainer::IsNode
+     * @return true
+     */
     virtual bool IsNode();
-
-
 
 private:
 
+    /**
+     * @brief Sets all the array related attributes and build the UA_Variant
+     */
     void InitArray(OPCUANodeSettings &settings, const UA_DataType *type, uint64 nElem);
 
+    /**
+     * Numeric ID of the parent reference for the current Node
+     */
     uint32 parentReferenceNodeId;
 
 };
 
-
 }
-
-
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
 #endif /* SOURCE_COMPONENTS_INTERFACES_OPCUA_OPCUANODE_H_ */
-	
+

@@ -146,6 +146,7 @@ bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_DOUBLE]);
         }
     }
+#if 0
     else if ((nodeType.type == CArray) || (nodeType.type == BT_CCString) || (nodeType.type == PCString) || (nodeType.type == SString)) {
         if (isArray) {
             //InitArray(settings, &UA_TYPES[UA_TYPES_STRING], nElements);
@@ -158,6 +159,7 @@ bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
 
         }
     }
+#endif
     //settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
     settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
     char * readName = new char[strlen(GetName()) + 1];
@@ -172,7 +174,6 @@ bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
         ok = true;
     }
     else {
-        //settings->parentNodeId = UA_NODEID_STRING(1, parentNodeId);
         settings->parentNodeId = UA_NODEID_NUMERIC(1, parentNodeId);
     }
     if (parentReferenceNodeId == 1u) {

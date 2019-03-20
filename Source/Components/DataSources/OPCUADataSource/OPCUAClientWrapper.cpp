@@ -1,7 +1,7 @@
 /**
  * @file OPCUAClientWrapper.cpp
  * @brief Source file for class OPCUAClientWrapper
- * @date 21 Nov 2018 TODO Verify the value and format of the date
+ * @date 12/03/2019
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -45,66 +45,29 @@ namespace MARTe {
 
 uint32 nOfClients = 0u;
 
-/* Global arrays to store clients and wrapper pointer in order to call top level callback functions */
-UA_Client* clients[1000];
-OPCUAClientWrapper * wrappers[1000];
+/*************************************************************
+ * Global arrays to store clients and wrapper pointer in order to call top level callback functions
+ **************************************************************/
+UA_Client* clients[1];
+OPCUAClientWrapper * wrappers[1];
 
-/**
+/*************************************************************
  * Top level callback functions
- */
-void OPCUAClientWrapperUpdateMemory(UA_Client *client,
-                                    UA_UInt32 subId,
-                                    void *subContext,
-                                    UA_UInt32 monId,
-                                    void *monContext,
-                                    UA_DataValue *value) {
-    uint32 i;
-    for (i = 0u; i < nOfClients; i++) {
-        if (clients[i] == client) {
-            wrappers[i]->UpdateMemory(value);
-        }
-    }
-}
+ **************************************************************/
 
-void OPCUAClientWrapperHandlerInactivity(UA_Client *client,
-                                         UA_UInt32 subId,
-                                         void *subContext) {
-    uint32 i;
-    for (i = 0u; i < nOfClients; i++) {
-        if (clients[i] == client) {
-            wrappers[i]->SubscriptionInactivity();
-        }
-    }
-}
-
-void OPCUAClientWrapperHandlerState(UA_Client *client,
-                                    UA_ClientState clientState) {
-    uint32 i;
-    for (i = 0u; i < nOfClients; i++) {
-        if (clients[i] == client) {
-            wrappers[i]->StateCallback(clientState);
-        }
-    }
-}
-
-void OPCUAClientWrapperSubscriptionStatus(UA_Client *client,
-                                          UA_UInt32 subId,
-                                          void *subContext,
-                                          UA_StatusChangeNotification *notification) {
-    REPORT_ERROR_STATIC(ErrorManagement::Information, "SUBSCRIPTION STATUS CHANGED");
-}
-
-/**
+/*************************************************************
  * Class members implementation
- */
+ **************************************************************/
+
 OPCUAClientWrapper::OPCUAClientWrapper(const char8* const modeType) {
     mode = modeType;
     config = UA_ClientConfig_default;
-    config.stateCallback = OPCUAClientWrapperHandlerState;
-    config.subscriptionInactivityCallback = OPCUAClientWrapperHandlerInactivity;
+    /* These are for MonitoredItem
+     config.stateCallback = OPCUAClientWrapperHandlerState;
+     config.subscriptionInactivityCallback = OPCUAClientWrapperHandlerInactivity;
+     */
     opcuaClient = UA_Client_new(config);
     monitoredNodes = NULL_PTR(UA_NodeId *);
-    outValueMem = new UA_Variant;
     request = UA_CreateSubscriptionRequest_default();
     response.subscriptionId = 0;
     monitorRequest.itemToMonitor.nodeId.identifier.numeric = 0;
@@ -114,19 +77,36 @@ OPCUAClientWrapper::OPCUAClientWrapper(const char8* const modeType) {
     clients[nOfClients - 1] = opcuaClient;
     wrappers[nOfClients - 1] = this;
     serverAddress = NULL_PTR(char *);
-    numberOfCharElements = 0u;
     samplingTime = 0;
     readValues = NULL_PTR(UA_ReadValueId *);
     writeValues = NULL_PTR(UA_WriteValue *);
     tempVariant = NULL_PTR(UA_Variant *);
+    nOfNodes = 0u;
 }
 
 OPCUAClientWrapper::~OPCUAClientWrapper() {
     UA_Client_disconnect(opcuaClient);
     UA_Client_delete(opcuaClient);
-    delete[] monitoredNodes;
-    delete[] valueMemories;
-
+    if (monitoredNodes != NULL_PTR(UA_NodeId *)) {
+        delete[] monitoredNodes;
+    }
+    if (readValues != NULL_PTR(UA_ReadValueId *)) {
+        delete[] readValues;
+    }
+    if (writeValues != NULL_PTR(UA_WriteValue *)) {
+        delete[] writeValues;
+    }
+    if (tempVariant != NULL_PTR(UA_Variant *)) {
+        delete[] tempVariant;
+    }
+    for (uint32 j = 0u; j < nOfNodes; j++) {
+        if (valueMemories[j] != NULL_PTR(void*)) {
+            free(valueMemories[j]);
+        }
+    }
+    if (valueMemories != NULL_PTR(void **)) {
+        delete[] valueMemories;
+    }
 }
 
 void OPCUAClientWrapper::SetServerAddress(char* address) {
@@ -143,7 +123,7 @@ bool OPCUAClientWrapper::SetTargetNodes(uint32 * namespaceIndexes,
                                         StreamString * nodePaths,
                                         uint32 numberOfNodes) {
     bool ok = false;
-
+    nOfNodes = numberOfNodes;
     monitoredNodes = new UA_NodeId[numberOfNodes];
     tempVariant = new UA_Variant[numberOfNodes];
     if (mode == "Read") {
@@ -239,6 +219,9 @@ bool OPCUAClientWrapper::SetTargetNodes(uint32 * namespaceIndexes,
         readRequest.nodesToReadSize = numberOfNodes;
     }
     valueMemories = new void*[numberOfNodes];
+    for (uint32 i = 0u; i < numberOfNodes; i++) {
+        valueMemories[i] = NULL_PTR(void*);
+    }
     return ok;
 }
 
@@ -248,66 +231,22 @@ bool OPCUAClientWrapper::GetSignalMemory(void *&mem,
                                          const uint32 nElem,
                                          const uint8 nDimensions) {
     bool ok = true;
-    if (monitoredNodes[idx].identifier.numeric == 0) {
-        REPORT_ERROR_STATIC(ErrorManagement::IllegalOperation, "Cannot get the signal memory.");
-        ok = false;
+    uint32 valueTypeSize = sizeof(TypeDescriptor::GetTypeNameFromTypeDescriptor(valueTd));
+    valueMemories[idx] = malloc(valueTypeSize * nElem);
+
+    mem = valueMemories[idx];
+    if (mode == "Write") {
+        this->SetWriteRequest(idx, nDimensions, nElem, valueTd);
     }
-    else {
-        if (valueTd == CharString || valueTd == Character8Bit) {
-            //valueMemory = malloc(sizeof(char) * numberOfCharElements);
-            valueMemories[idx] = malloc(sizeof(char) * 100);
-        }
-        else {
-            uint32 valueTypeSize = sizeof(TypeDescriptor::GetTypeNameFromTypeDescriptor(valueTd));
-            valueMemories[idx] = malloc(valueTypeSize * nElem);
-        }
-        mem = valueMemories[idx];
-        if (mode == "Write") {
-            this->SetWriteRequest(idx, nDimensions, nElem, valueTd);
-        }
-    }
+
     return ok;
 
 }
 
 bool OPCUAClientWrapper::Monitor() {
     bool ok = false;
-#if 0
-    UA_StatusCode code = 1u;
-    if (monitoredNode.identifier.numeric != 0 && valueMemory != NULL_PTR(void *)) {
-        /* Create a subscription */
-        if (response.subscriptionId == 0) {
-            request.requestedPublishingInterval = samplingTime;
-            request.maxNotificationsPerPublish = 10;
-            request.requestedLifetimeCount = 3;
-            request.requestedMaxKeepAliveCount = 1;
-            response = UA_Client_Subscriptions_create(opcuaClient, request, NULL, OPCUAClientWrapperSubscriptionStatus, NULL);
-            ok = (response.responseHeader.serviceResult == UA_STATUSCODE_GOOD);
-        }
-        /* Add a MonitoredItem */
-        if (monitorRequest.itemToMonitor.nodeId.identifier.numeric == 0 && ok) {
-            if (monitoredNode.identifierType == UA_NODEIDTYPE_NUMERIC) {
-                monitorRequest = UA_MonitoredItemCreateRequest_default(UA_NODEID_NUMERIC(monitoredNode.namespaceIndex, monitoredNode.identifier.numeric));
-            }
-            else if (monitoredNode.identifierType == UA_NODEIDTYPE_STRING) {
-                monitorRequest = UA_MonitoredItemCreateRequest_default(
-                        UA_NODEID_STRING(monitoredNode.namespaceIndex, reinterpret_cast<char*>(monitoredNode.identifier.string.data)));
-            }
-            monitorRequest.requestedParameters.samplingInterval = samplingTime;
-            monitorRequest.requestedParameters.queueSize = 1;
-        }
-        if (monitorResponse.monitoredItemId == 0) {
-            monitorResponse = UA_Client_MonitoredItems_createDataChange(opcuaClient, response.subscriptionId, UA_TIMESTAMPSTORETURN_BOTH, monitorRequest, NULL,
-                    OPCUAClientWrapperUpdateMemory, NULL);
-        }
-        /* Asynchronous call */
-        code = UA_Client_run_iterate(opcuaClient, static_cast<UA_UInt16>(samplingTime + 1));
-        ok = (code == UA_STATUSCODE_GOOD);
-    }
-    else {
-        ok = true;
-    }
-#endif
+    REPORT_ERROR_STATIC(ErrorManagement::UnsupportedFeature, "Monitored Items not supported yet.");
+
     return ok;
 }
 
@@ -325,7 +264,6 @@ bool OPCUAClientWrapper::Read(uint32 numberOfNodes,
     return ok;
 }
 
-//namespaceIndex, numericNodeId e stringNodeId servono davvero?
 uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
                                             char* path,
                                             uint16 &namespaceIndex,
@@ -509,108 +447,23 @@ bool OPCUAClientWrapper::Write(uint32 numberOfNodes) {
 }
 
 void OPCUAClientWrapper::UpdateMemory(UA_DataValue *value) {
-    /*outValueMem->data = value->value.data;
-     uint32 arraySize = value->value.arrayLength;
-     bool isArray = (arraySize > 1);
-     if (isArray) {
-     if (valueTypeDesc == UnsignedInteger8Bit) {
-     uint8 * vals = reinterpret_cast<uint8*>(outValueMem->data);
-     uint8 * vMem = reinterpret_cast<uint8*>(valueMemory);
-     for (uint32 i = 0u; i < arraySize; i++) {
-     vMem[i] = vals[i];
-     }
-     }
-     else if (valueTypeDesc == UnsignedInteger16Bit) {
-     uint16 * vals = reinterpret_cast<uint16*>(outValueMem->data);
-     uint16 * vMem = reinterpret_cast<uint16*>(valueMemory);
-     for (uint32 i = 0u; i < arraySize; i++) {
-     vMem[i] = vals[i];
-     }
-     }
-     else if (valueTypeDesc == UnsignedInteger32Bit) {
-     uint32 * vals = reinterpret_cast<uint32*>(outValueMem->data);
-     uint32 * vMem = reinterpret_cast<uint32*>(valueMemory);
-     for (uint32 i = 0u; i < arraySize; i++) {
-     vMem[i] = vals[i];
-     }
-     }
-     else if (valueTypeDesc == UnsignedInteger64Bit) {
-     uint64 * vals = reinterpret_cast<uint64*>(outValueMem->data);
-     uint64 * vMem = reinterpret_cast<uint64*>(valueMemory);
-     for (uint32 i = 0u; i < arraySize; i++) {
-     vMem[i] = vals[i];
-     }
-     }
-     else if (valueTypeDesc == SignedInteger8Bit) {
-     int8 * vals = reinterpret_cast<int8*>(outValueMem->data);
-     int8 * vMem = reinterpret_cast<int8*>(valueMemory);
-     for (uint32 i = 0u; i < arraySize; i++) {
-     vMem[i] = vals[i];
-     }
-     }
-     else if (valueTypeDesc == SignedInteger16Bit) {
-     int16 * vals = reinterpret_cast<int16*>(outValueMem->data);
-     int16 * vMem = reinterpret_cast<int16*>(valueMemory);
-     for (uint32 i = 0u; i < arraySize; i++) {
-     vMem[i] = vals[i];
-     }
-     }
-     else if (valueTypeDesc == SignedInteger32Bit) {
-     int32 * vals = reinterpret_cast<int32*>(outValueMem->data);
-     int32 * vMem = reinterpret_cast<int32*>(valueMemory);
-     for (uint32 i = 0u; i < arraySize; i++) {
-     vMem[i] = vals[i];
-     }
-     }
-     else if (valueTypeDesc == SignedInteger64Bit) {
-     int64 * vals = reinterpret_cast<int64*>(outValueMem->data);
-     int64 * vMem = reinterpret_cast<int64*>(valueMemory);
-     for (uint32 i = 0u; i < arraySize; i++) {
-     vMem[i] = vals[i];
-     }
-     }
-     else if (valueTypeDesc == Float32Bit) {
-     float32 * vals = reinterpret_cast<float32*>(outValueMem->data);
-     float32 * vMem = reinterpret_cast<float32*>(valueMemory);
-     for (uint32 i = 0u; i < arraySize; i++) {
-     vMem[i] = vals[i];
-     }
-     }
-     else if (valueTypeDesc == Float64Bit) {
-     float64 * vals = reinterpret_cast<float64*>(outValueMem->data);
-     float64 * vMem = reinterpret_cast<float64*>(valueMemory);
-     for (uint32 i = 0u; i < arraySize; i++) {
-     vMem[i] = vals[i];
-     }
-     }
-     else if (valueTypeDesc == CharString || valueTypeDesc == Character8Bit) {
-     REPORT_ERROR_STATIC(ErrorManagement::Information, "Array of String non supported yet.");
-     }
-     }
-     else if (valueTypeDesc == CharString || valueTypeDesc == Character8Bit) {
-     UA_String * stringValueMem = reinterpret_cast<UA_String*>(outValueMem->data);
-     char8 * vMem = reinterpret_cast<char8*>(valueMemory);
-     //memcpy(vMem, stringValueMem->data, numberOfCharElements);
-     memcpy(vMem, stringValueMem->data, 100);
-     vMem[stringValueMem->length] = '\0';
-     }
-     else {
-     memcpy(valueMemory, outValueMem->data, valueTypeDesc.numberOfBits / 8);
-     }*/
-}
+    //Delete this before implementing this method
+    value = NULL_PTR(UA_DataValue *);
 
+}
+#if 0
 void OPCUAClientWrapper::StateCallback(UA_ClientState clientState) {
 }
 
 void OPCUAClientWrapper::SubscriptionInactivity() {
 }
-
-void OPCUAClientWrapper::SetMaxNumberOfChar(uint32 nElements) {
-    numberOfCharElements = nElements;
-}
-
+#endif
 void OPCUAClientWrapper::SetSamplingTime(float64 sampleTime) {
     samplingTime = sampleTime;
+}
+
+UA_NodeId * OPCUAClientWrapper::GetMonitoredNodes() {
+    return monitoredNodes;
 }
 
 }

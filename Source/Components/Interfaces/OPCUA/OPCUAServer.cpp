@@ -49,7 +49,7 @@ OPCUAServer::OPCUAServer() :
         service(*this) {
     opcuaConfig = NULL_PTR(UA_ServerConfig *);
     opcuaServer = NULL_PTR(UA_Server *);
-    opcuaRunning = true;
+    opcuaRunning = false;
     port = 4840u;
     cpuMask = 0xffu;
     stackSize = THREADS_DEFAULT_STACKSIZE;
@@ -97,17 +97,18 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
+        opcuaConfig = UA_ServerConfig_new_minimal(port, NULL);
+        opcuaConfig->maxSessions = 1000;
+        opcuaConfig->maxSecureChannels = 1000;
+        opcuaServer = UA_Server_new(opcuaConfig);
+    }
+    if (ok) {
         ok = cdb.MoveRelative("AddressSpace");
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "No Address Space defined!");
         }
     }
     if (ok) {
-        opcuaConfig = UA_ServerConfig_new_minimal(port, NULL);
-        opcuaConfig->maxSessions = 1000;
-        opcuaConfig->maxSecureChannels = 1000;
-        opcuaServer = UA_Server_new(opcuaConfig);
-        SetRunning(true);
         service.SetCPUMask(cpuMask);
         service.SetStackSize(stackSize);
         ok = (service.Start() == ErrorManagement::NoError);
@@ -142,9 +143,6 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
                     const Introspection *intro = NULL_PTR(const Introspection *);
                     intro = cri->GetIntrospection();
                     ok = (intro != NULL_PTR(const Introspection *));
-                    if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Type %s has no introspection", typeStr.Buffer());
-                    }
                     if (ok) {
                         ok = GetStructure(mainObject, intro);
                         if (ok) {
@@ -155,8 +153,24 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
                 else {
                     ReferenceT<OPCUANode> mainNode("OPCUANode", GlobalObjectsDatabase::Instance()->GetStandardHeap());
                     mainNode->SetName(cdb.GetChildName(i));
-                    ok = InitAddressSpace(mainNode);
+                    TypeDescriptor td = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
+                    mainNode->SetNodeType(td);
+                    if (cdb.MoveToChild(0u)) {
+                        uint32 nElem = 1u;
+                        if (cdb.Read("NumberOfElements", nElem)) {
+                            mainNode->SetNumberOfDimensions(1u);
+                            mainNode->SetNumberOfElements(0u, nElem);
+                        }
+                        REPORT_ERROR(ErrorManagement::Information, "Number Of Elements = %d", nElem);
+                    }
+                    if (ok) {
+                        ok = InitAddressSpace(mainNode);
+                        ok = cdb.MoveToAncestor(1u);
+                    }
                 }
+            }
+            if (ok) {
+                SetRunning(true);
             }
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Cannot initialise Address Space");
@@ -196,12 +210,6 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
                                                UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE), settings->attr, NULL, NULL);
             }
             if (code == UA_STATUSCODE_BADNODEIDEXISTS) {
-                /*char8* newNodeId = new char[StringHelper::Length(ref->GetNodeId()) + StringHelper::Length(".") + StringHelper::Length(ref->GetParentNodeId())
-                        + 1];
-                StringHelper::Concatenate(ref->GetParentNodeId(), ".", newNodeId);
-                StringHelper::Concatenate(newNodeId, ref->GetNodeId(), newNodeId);
-                ref->SetNodeId(newNodeId);
-                settings->nodeId = UA_NODEID_STRING(1, newNodeId);*/
                 nodeNumber++;
                 ref->SetNodeId(nodeNumber);
                 settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
@@ -224,15 +232,9 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
                                                  UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), settings->attr, NULL, NULL);
             }
             if (code == UA_STATUSCODE_BADNODEIDEXISTS) {
-                /*char8* newNodeId = new char[StringHelper::Length(ref->GetNodeId()) + StringHelper::Length(".") + StringHelper::Length(ref->GetParentNodeId())
-                        + 1];
-                StringHelper::Concatenate(ref->GetParentNodeId(), ".", newNodeId);
-                StringHelper::Concatenate(newNodeId, ref->GetNodeId(), newNodeId);
-                ref->SetNodeId(newNodeId);
-                settings->nodeId = UA_NODEID_STRING(1, newNodeId);*/
                 nodeNumber++;
                 ref->SetNodeId(nodeNumber);
-                settings->nodeId = UA_NODEID_NUMERIC(1,nodeNumber);
+                settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
             }
         }
         while (code != UA_STATUSCODE_GOOD);
@@ -296,6 +298,22 @@ bool OPCUAServer::GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer,
 
 void OPCUAServer::SetRunning(bool const running) {
     opcuaRunning = running;
+}
+
+const bool OPCUAServer::GetRunning() {
+    return opcuaRunning;
+}
+
+const uint32 OPCUAServer::GetCPUMask() {
+    return cpuMask;
+}
+
+const uint32 OPCUAServer::GetStackSize() {
+    return stackSize;
+}
+
+const uint16 OPCUAServer::GetPort() {
+    return port;
 }
 
 CLASS_REGISTER(OPCUAServer, "");

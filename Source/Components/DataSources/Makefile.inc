@@ -105,6 +105,10 @@ ifdef EPICSPVA
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVADataSource$(LIBEXT)
 endif
 
+ifdef OPEN62541_INCLUDE
+LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUADataSource/OPCUADataSource$(LIBEXT)
+endif
+
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
 LIBRARIES_STATIC+=$(BUILD_DIR)/SDN/SDN$(LIBEXT)

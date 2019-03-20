@@ -1,7 +1,7 @@
 /**
  * @file OPCUATypes.h
  * @brief Header file for class OPCUATypes
- * @date 24/01/2019
+ * @date 12/03/2019
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -31,13 +31,18 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "CompilerTypes.h"
+
 #include "/home/lporzio/open62541/build/open62541.h"
+#include "CompilerTypes.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+/*
+ * Struct containing all the attributes and properties that belongs to a
+ * OPC UA Node Variable
+ */
 struct NodeProperties {
     UA_VariableAttributes attr;
     void* value;
@@ -49,6 +54,10 @@ struct NodeProperties {
 
 typedef struct NodeProperties * OPCUANodeSettings;
 
+/*
+ * Struct containing all the attributes and properties that belongs to a
+ * OPC UA Node Object
+ */
 struct ObjectProperties {
     UA_ObjectAttributes attr;
     UA_NodeId nodeId;

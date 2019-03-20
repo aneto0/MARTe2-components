@@ -1,7 +1,7 @@
 /**
  * @file OPCUAObject.h
  * @brief Header file for class OPCUAObject
- * @date 24/01/2019
+ * @date 12/03/2019
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -32,10 +32,10 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
-#include "ConfigurationDatabase.h"
-#include "ReferenceContainer.h"
-#include "OPCUAReferenceContainer.h"
 #include "/home/lporzio/open62541/build/open62541.h"
+#include "ConfigurationDatabase.h"
+#include "OPCUAReferenceContainer.h"
+#include "ReferenceContainer.h"
 #include "string.h"
 
 /*---------------------------------------------------------------------------*/
@@ -44,24 +44,52 @@
 
 namespace MARTe {
 
+/**
+ * @brief Class that manages the OPCUA Object structure
+ * @details The class inherit from OPCUAReferenceContainer and implements the GetOPCObject method
+ */
 class OPCUAObject: public OPCUAReferenceContainer {
 public:
     CLASS_REGISTER_DECLARATION()
 
+/**
+ * @brief Default constructor
+ */
 OPCUAObject    ();
 
+    /**
+     * @brief Default Destructor
+     */
     ~OPCUAObject();
 
+    /**
+     * @see OPCUAReferenceContainer::GetOPCObject
+     * @return true if all the parameters and attributes are set correctly
+     */
     virtual bool GetOPCObject(OPCUAObjectSettings &settings, uint32 nodeNumber);
 
+    /**
+     * @see OPCUAReferenceContainer::IsObject
+     * @return true
+     */
     virtual bool IsObject();
 
+    /**
+     * @see OPCUAReferenceContainer::SetFirst
+     */
     virtual void SetFirst(const bool value);
 
+    /**
+     * @see OPCUAReferenceContainer::IsFirstObject
+     * @return true
+     */
     virtual const bool IsFirstObject();
 
 private:
 
+    /**
+     * Boolean flag that indicates if the current Node is the first of the Address Space
+     */
     bool isFirstObject;
 
 };

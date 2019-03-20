@@ -1,8 +1,8 @@
 /**
  * @file OPCUAClientWrapper.h
  * @brief Header file for class OPCUAClientWrapper
- * @date 21 Nov 2018 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 12/03/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -28,15 +28,15 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
+
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
 #include "/home/lporzio/open62541/build/open62541.h"
+#include "AdvancedErrorManagement.h"
 #include "Reference.h"
 #include "StreamString.h"
-#include "AdvancedErrorManagement.h"
-#include <string.h>
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -50,7 +50,6 @@ namespace MARTe {
  * for each signal. It offers all the methods to read/write Nodes from an OPCUA Address Space and
  * to manage the Monitored Item and Subscription services with the callbacks.
  */
-
 class OPCUAClientWrapper {
 
 public:
@@ -80,7 +79,11 @@ public:
 
     /**
      * @brief Links the target Node memory with the signal memory in input
-     * @param[in] mem The signal memory buffer
+     * @param[in, out] mem The signal memory buffer
+     * @param[in] index the number of the monitored node position within the array that manages them
+     * @param[in] valueTd the TypeDescriptor associated to the value related to the node
+     * @param[in] nElem the number of elements of the value related to the node
+     * @param[in] nDimensions the number of dimensions of the value related to the node
      * @return true if the monitored node has been set.
      */
     bool GetSignalMemory(void *&mem,
@@ -90,12 +93,14 @@ public:
                          const uint8 nDimensions);
 
     /**
-     * @brief Browse the OPCUA Address Space and sets the monitored node declared by the path.
-     * @details This method extracts the all the node names from the path and uses them to
-     * browse the create a TranslateBrowsePathToNodeId service request. Then it sets the monitored
+     * @brief Browse the OPCUA Address Space and create the read and write request.
+     * @details This method extracts all the node names from the paths and uses them to
+     * browse the address space through a TranslateBrowsePathToNodeId service request. Then it sets the monitored
      * node id from the result.
-     * @param[in] namespaceIndex The namespace index of the node to be monitored.
-     * @param[in] nodePath The relative browse path of the node to be monitored.
+     * It also creates the Read and Write service requests with the Monitored Node ID.
+     * @param[in] namespaceIndexes the array with the namespace indexes of the nodes to be monitored.
+     * @param[in] nodePaths the array with all the relative browse paths of the nodes to be monitored.
+     * @param[in] numberOfnodes the size of the above arrays.
      * @return true if the result of the TranslateBrowsePathToNodeId service request is not empty.
      * @pre Connect
      */
@@ -109,17 +114,31 @@ public:
      * A data change callback is registered for the OPCUA Monitored Item Create Data Change service.
      * When all the services has been started, it runs the OPCUA Client Iteration service.
      * @return true if the server is still initialising or all the requests has been executed successfully.
-     * @pre BrowseAddressSpace
+     * @pre SetTargetNodes
      */
     bool Monitor();
 
     /**
-     * @brief Calls the OPCUA Write Value Attribute service.
+     * @brief Calls the OPCUA Write service.
      * @details Gets the data from valueMemory and calls the OPCUA Write Value Attribute service
-     * on the monitored node.
-     * @pre BrowseAddressSpace
+     * on the monitored nodes.
+     * @param[in] numberOfNodes the number of nodes to write
+     * @pre SetTargetNodes, SetWriteRequest
      */
     bool Write(uint32 numberOfNodes);
+
+    /**
+     * @brief Calls the OPCUA Read service.
+     * @details Gets the data from the OPCUA Secure Channel and wwrites them to the valueMemory of each monitoredNode.
+     * @param[in] numberOfnodes the number of nodes to read
+     * @param[in] types the array with all the TypeDescriptor for each node to read.
+     * @param[in] nElements the array with all the number of elements for each node to read.
+     * @return true if the Read Service is executed correctly.
+     * @pre SetTargetNodes
+     */
+    bool Read(uint32 numberOfNodes,
+              TypeDescriptor * types,
+              uint32 * nElements);
 
     /**
      * @brief Update the valueMemory with the new data.
@@ -127,7 +146,7 @@ public:
      * @pre GetSignalMemory
      */
     void UpdateMemory(UA_DataValue *value);
-
+#if 0
     /**
      * @brief [DEBUG ONLY] Prints the client state.
      * param[in] clientState The OPCUA Client State
@@ -138,14 +157,18 @@ public:
      * @brief [DEBUG ONLY] Prints the client subscription state. NOOP
      */
     void SubscriptionInactivity();
+#endif
 
-    void SetMaxNumberOfChar(uint32 nElements);
-
+    /**
+     * @brief Set the sampling time
+     * @param[in] sampleTime The sampling time desired.
+     */
     void SetSamplingTime(float64 sampleTime);
 
-    bool Read(uint32 numberOfNodes,
-              TypeDescriptor * types,
-              uint32 * nElements);
+    /***
+     * @brief Gets the pointer to the monitored nodes array
+     */
+    UA_NodeId * GetMonitoredNodes();
 
 private:
 
@@ -160,48 +183,104 @@ private:
                             uint32 &numericNodeId,
                             char* &stringNodeId);
 
+    /**
+     * @brief Sets the OPC UA Write request
+     * @details This method create the correct Write request based on the properties of the value to write in the address space.
+     */
     void SetWriteRequest(uint32 idx,
                          uint8 nDimensions,
                          uint32 nElements,
                          TypeDescriptor type);
 
+    /**
+     * Holds the server address
+     */
     char* serverAddress;
 
-    UA_Variant * outValueMem;
-
+    /**
+     * The array that stores all the pointers to the memories related to all the monitored Nodes.
+     */
     void** valueMemories;
 
-    uint32 numberOfCharElements;
-
+    /**
+     * Holds the sampling time
+     */
     float64 samplingTime;
 
+    /**
+     * The array that stores all the open62541 NodeIDs of the monitored nodes.
+     */
     UA_NodeId * monitoredNodes;
 
+    /**
+     * open62541 client configuration structure
+     */
     UA_ClientConfig config;
 
+    /**
+     * open62541 client declaration
+     */
     UA_Client * opcuaClient;
 
+    /**
+     * open62541 subscription request structure
+     */
     UA_CreateSubscriptionRequest request;
 
+    /**
+     * open62541 subscription response structure
+     */
     UA_CreateSubscriptionResponse response;
 
+    /**
+     * open62541 monitored item request structure
+     */
     UA_MonitoredItemCreateRequest monitorRequest;
 
+    /**
+     * open62541 monitored item result structure
+     */
     UA_MonitoredItemCreateResult monitorResponse;
 
+    /**
+     * open62541 read request structure
+     */
     UA_ReadRequest readRequest;
 
+    /**
+     * open62541 read response structure
+     */
     UA_ReadResponse readResponse;
 
+    /**
+     * The array that stores all the open62541 read values from nodes to read
+     */
     UA_ReadValueId * readValues;
 
+    /**
+     * open62541 write request structure
+     */
     UA_WriteRequest writeRequest;
 
+    /**
+     * The array that stores all the open62541 write values for the nodes to write
+     */
     UA_WriteValue * writeValues;
 
+    /**
+     * Holds the ClientWrapper running mode. "Read" or "Write"
+     */
     StreamString mode;
 
+    /**
+     * Temporary open62541 void structure for internal operations.
+     */
     UA_Variant * tempVariant;
+
+    /**
+     * Number of nodes to be managed
+     */
+    uint32 nOfNodes;
 
 };
 

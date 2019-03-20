@@ -65,7 +65,6 @@ bool OPCUAObject::GetOPCObject(OPCUAObjectSettings &settings, uint32 nodeNumber)
         settings->parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
     }
     else {
-        //settings->parentNodeId = UA_NODEID_STRING(1, parentNodeId);
         settings->parentNodeId = UA_NODEID_NUMERIC(1, parentNodeId);
     }
     settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);

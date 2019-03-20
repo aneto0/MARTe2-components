@@ -1,7 +1,7 @@
 /**
  * @file OPCUADSInput.cpp
  * @brief Source file for class OPCUADSInput
- * @date Nov 16, 2018 TODO Verify the value and format of the date
+ * @date 12/03/2019
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -48,7 +48,7 @@ OPCUADSInput::OPCUADSInput() :
         EmbeddedServiceMethodBinderI(),
         executor(*this) {
     masterClient = NULL_PTR(OPCUAClientWrapper *);
-    numberOfClients = 0u;
+    numberOfSignals = 0u;
     numberOfNodes = 0u;
     paths = NULL_PTR(StreamString *);
     namespaceIndexes = NULL_PTR(uint32 *);
@@ -62,7 +62,25 @@ OPCUADSInput::OPCUADSInput() :
 
 OPCUADSInput::~OPCUADSInput() {
     if (!executor.Stop()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not stop MultiThreadService.");
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
+    }
+    if (nElements != NULL_PTR(uint32 *)) {
+        delete[] nElements;
+    }
+    if (types != NULL_PTR(TypeDescriptor *)) {
+        delete[] types;
+    }
+    if (namespaceIndexes != NULL_PTR(uint32 *)) {
+        delete[] namespaceIndexes;
+    }
+    if (tempPaths != NULL_PTR(StreamString *)) {
+        delete[] tempPaths;
+    }
+    if (tempNamespaceIndexes != NULL_PTR(uint32 *)) {
+        delete[] tempNamespaceIndexes;
+    }
+    if(masterClient != NULL_PTR(OPCUAClientWrapper *)){
+        delete masterClient;
     }
 }
 
@@ -79,19 +97,23 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
             ok = data.Read("Synchronise", sync);
             if (!ok) {
                 sync = "no";
-                REPORT_ERROR(ErrorManagement::ParametersError, "Synchronise option is not enabled. Using MultiThreadService.");
+                REPORT_ERROR(ErrorManagement::ParametersError, "Synchronise option is not enabled. Using SingleThreadService.");
+                ok = true;
             }
         }
         if (ok) {
             ok = data.Read("SamplingTime", samplingTime);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::Information, "Sampling Time not set. Usingdefault value: 250ms");
+                REPORT_ERROR(ErrorManagement::Information, "Sampling Time not set. Using default value: 250ms");
                 samplingTime = 250;
+                ok = true;
             }
         }
-        ok = data.MoveRelative("Signals");
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
+        if (ok) {
+            ok = data.MoveRelative("Signals");
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
+            }
         }
         if (ok) {
             ok = signalsDatabase.MoveRelative("Signals");
@@ -99,10 +121,10 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
         /* Do not allow to add signals in run-time */
         if (ok) {
             ok = signalsDatabase.Write("Locked", 1u);
-            numberOfClients = (signalsDatabase.GetNumberOfChildren() - 1u);
-            tempPaths = new StreamString[numberOfClients];
-            tempNamespaceIndexes = new uint32[numberOfClients];
-            for (uint32 i = 0u; (i < numberOfClients) && (ok); i++) {
+            numberOfSignals = (signalsDatabase.GetNumberOfChildren() - 1u);
+            tempPaths = new StreamString[numberOfSignals];
+            tempNamespaceIndexes = new uint32[numberOfSignals];
+            for (uint32 i = 0u; (i < numberOfSignals) && (ok); i++) {
                 ok = signalsDatabase.MoveRelative(signalsDatabase.GetChildName(i));
                 if (ok) {
                     ok = signalsDatabase.Read("Path", tempPaths[i]);
@@ -116,7 +138,9 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the NamespaceIndex attribute from signal %d", i);
                     }
                 }
-                ok = signalsDatabase.MoveToAncestor(1u);
+                if (ok) {
+                    ok = signalsDatabase.MoveToAncestor(1u);
+                }
             }
         }
         if (ok) {
@@ -124,10 +148,6 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
         }
         if (ok) {
             ok = data.MoveToAncestor(1u);
-        }
-        /* Initialise the OPCUA ReadRequest */
-        if (ok && samplingTime < 5) {
-
         }
     }
     if (!ok) {
@@ -159,12 +179,6 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
             types[k] = GetSignalType(k);
         }
     }
-    if (ok) {
-        ok = (numberOfNodes > 0u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "At least one signal shall be defined");
-        }
-    }
     /* Setting path and namespace for each signal */
     if (ok) {
         paths = new StreamString[numberOfNodes];
@@ -178,7 +192,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
             sigName.Seek(0LLU);
             ok = sigName.GetToken(sigToken, ".", ignore);
 
-            for (uint32 j = 0u; j < numberOfClients; j++) {
+            for (uint32 j = 0u; j < numberOfSignals; j++) {
                 /* This cycle will save the last token found */
                 tempPaths[j].Seek(0LLU);
                 do {
@@ -233,10 +247,6 @@ bool OPCUADSInput::AllocateMemory() {
     return true;
 }
 
-uint32 OPCUADSInput::GetNumberOfMemoryBuffers() {
-    return 1u;
-}
-
 bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          const uint32 bufferIdx,
                                          void *&signalAddress) {
@@ -289,12 +299,8 @@ bool OPCUADSInput::PrepareNextState(const char8 * const currentStateName,
 ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo & info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        if (samplingTime >= 5.0) {
-            //err.communicationError = !clients[info.GetThreadNumber()].Monitor();
-        }
-        else if (samplingTime < 5.0) {
-            err.communicationError = !masterClient->Read(numberOfNodes, types, nElements);
-        }
+        //err.communicationError = !masterClient->Monitor();
+        err.communicationError = !masterClient->Read(numberOfNodes, types, nElements);
     }
     return err;
 }
@@ -305,6 +311,14 @@ bool OPCUADSInput::Synchronise() {
         masterClient->Read(numberOfNodes, types, nElements);
     }
     return ok;
+}
+
+const char8 * OPCUADSInput::GetServerAddress() {
+    return serverAddress.Buffer();
+}
+
+OPCUAClientWrapper * OPCUADSInput::GetClient() {
+    return masterClient;
 }
 
 CLASS_REGISTER(OPCUADSInput, "1.0");
