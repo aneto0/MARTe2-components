@@ -419,8 +419,6 @@ void OPCUAClientWrapper::SetWriteRequest(uint32 idx,
             UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_DOUBLE]);
         }
     }
-    else if ((type.type == CArray) || (type.type == BT_CCString) || (type.type == PCString) || (type.type == SString)) {
-    }
 
     writeValues[idx].value.value = static_cast<const UA_Variant>(tempVariant[idx]);
     writeValues[idx].value.hasValue = true;
