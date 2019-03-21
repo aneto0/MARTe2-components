@@ -53,8 +53,9 @@ bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
                                TypeDescriptor nodeType,
                                uint32 nodeNumber) {
     bool ok = true;
-    char * localization = new char[strlen("en-US") + 1];
-    strcpy(localization, "en-US");
+//    char * localization = new char[strlen("en-US") + 1];
+//    strcpy(localization, "en-US");
+    //StreamString localization = "en-US";
     settings->attr = UA_VariableAttributes_default;
     settings->attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
     SetNodeId(nodeNumber);
@@ -163,10 +164,11 @@ bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
 #endif
     //settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
     settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
-    char * readName = new char[strlen(GetName()) + 1];
-    strcpy(readName, GetName());
-    settings->nodeName = UA_QUALIFIEDNAME(1, readName);
-    settings->attr.displayName = UA_LOCALIZEDTEXT(localization, readName);
+    /*char * readName = new char[strlen(GetName()) + 1];
+    strcpy(readName, GetName());*/
+    //StreamString readName = GetName();
+    settings->nodeName = UA_QUALIFIEDNAME(1, const_cast<char8*>(GetName()));
+    settings->attr.displayName = UA_LOCALIZEDTEXT(const_cast<char8*>("en-US"), const_cast<char8*>(GetName()));
 
     if (parentNodeId == 0u) {
         settings->parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
@@ -180,7 +182,6 @@ bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
     if (parentReferenceNodeId == 1u) {
         settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);
     }
-
     return ok;
 }
 

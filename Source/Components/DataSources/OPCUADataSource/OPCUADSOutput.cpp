@@ -64,6 +64,9 @@ OPCUADSOutput::~OPCUADSOutput() {
     if (types != NULL_PTR(TypeDescriptor *)) {
         delete[] types;
     }
+    if (paths != NULL_PTR(StreamString *)) {
+        delete[] paths;
+    }
     if (namespaceIndexes != NULL_PTR(uint32 *)) {
         delete[] namespaceIndexes;
     }
@@ -73,7 +76,7 @@ OPCUADSOutput::~OPCUADSOutput() {
     if (tempNamespaceIndexes != NULL_PTR(uint32 *)) {
         delete[] tempNamespaceIndexes;
     }
-    if(masterClient != NULL_PTR(OPCUAClientWrapper *)){
+    if (masterClient != NULL_PTR(OPCUAClientWrapper *)) {
         delete masterClient;
     }
 }
@@ -202,10 +205,10 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
     }
     if (ok) {
         /* Setting up the master Client who will perform the operations */
-        char* s = new char[strlen(reinterpret_cast<const char*>(serverAddress.Buffer()))];
-        strcpy(s, reinterpret_cast<const char*>(serverAddress.Buffer()));
+        /*char* s = new char[strlen(reinterpret_cast<const char*>(serverAddress.Buffer()))];
+         strcpy(s, reinterpret_cast<const char*>(serverAddress.Buffer()));*/
         masterClient = new OPCUAClientWrapper("Write");
-        masterClient->SetServerAddress(s);
+        masterClient->SetServerAddress(serverAddress);
         ok = masterClient->Connect();
         if (ok) {
             REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
@@ -246,6 +249,11 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
     }
     if (ok) {
         ok = (signalAddress != NULL_PTR(void *));
+    }
+    if (ok) {
+        types[signalIdx] = TypeDescriptor();
+        nElements[signalIdx] = 0u;
+        nDimensions[signalIdx] = 0u;
     }
     return ok;
 }

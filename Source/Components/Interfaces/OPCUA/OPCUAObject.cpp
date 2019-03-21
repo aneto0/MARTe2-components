@@ -56,12 +56,14 @@ bool OPCUAObject::GetOPCObject(OPCUAObjectSettings &settings, uint32 nodeNumber)
     SetNodeId(nodeNumber);
     //settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
     settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
-    char * localization = new char[strlen("en-US") + 1];
-    StringHelper::Copy(localization, "en-US");
-    char * readName = new char[StringHelper::Length(GetName()) + 1];
-    StringHelper::Copy(readName, GetName());
-    settings->nodeName = UA_QUALIFIEDNAME(1, readName);
-    settings->attr.displayName = UA_LOCALIZEDTEXT(localization, readName);
+    /*char * localization = new char[strlen("en-US") + 1];
+    StringHelper::Copy(localization, "en-US");*/
+    //StreamString localization = "en-US";
+    /*char * readName = new char[StringHelper::Length(GetName()) + 1];
+    StringHelper::Copy(readName, GetName());*/
+    //StreamString readName = GetName();
+    settings->nodeName = UA_QUALIFIEDNAME(1, const_cast<char8*>(GetName()));
+    settings->attr.displayName = UA_LOCALIZEDTEXT(const_cast<char8*>("en-US"), const_cast<char8*>(GetName()));
     if (parentNodeId == 0u) {
         settings->parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
     }
@@ -69,7 +71,6 @@ bool OPCUAObject::GetOPCObject(OPCUAObjectSettings &settings, uint32 nodeNumber)
         settings->parentNodeId = UA_NODEID_NUMERIC(1, parentNodeId);
     }
     settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
-
     return ok;
 }
 

@@ -68,7 +68,7 @@ public:
      * @brief Sets the server address to allow the client to connect to the right source.
      * @param[in] address The OPCUA Server address with port
      */
-    void SetServerAddress(char* address);
+    void SetServerAddress(StreamString address);
 
     /**
      * @brief Call the OPCUA Connect service on the client.
@@ -129,7 +129,7 @@ public:
 
     /**
      * @brief Calls the OPCUA Read service.
-     * @details Gets the data from the OPCUA Secure Channel and wwrites them to the valueMemory of each monitoredNode.
+     * @details Gets the data from the OPCUA Secure Channel and writes them to the valueMemory of each monitoredNode.
      * @param[in] numberOfnodes the number of nodes to read
      * @param[in] types the array with all the TypeDescriptor for each node to read.
      * @param[in] nElements the array with all the number of elements for each node to read.
@@ -146,18 +146,6 @@ public:
      * @pre GetSignalMemory
      */
     void UpdateMemory(UA_DataValue *value);
-#if 0
-    /**
-     * @brief [DEBUG ONLY] Prints the client state.
-     * param[in] clientState The OPCUA Client State
-     */
-    void StateCallback(UA_ClientState clientState);
-
-    /**
-     * @brief [DEBUG ONLY] Prints the client subscription state. NOOP
-     */
-    void SubscriptionInactivity();
-#endif
 
     /**
      * @brief Set the sampling time
@@ -195,7 +183,7 @@ private:
     /**
      * Holds the server address
      */
-    char* serverAddress;
+    StreamString serverAddress;
 
     /**
      * The array that stores all the pointers to the memories related to all the monitored Nodes.

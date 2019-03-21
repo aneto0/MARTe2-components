@@ -62,6 +62,8 @@ public:
 
     bool Test_FailSetTargetNodes();
 
+    bool Test_Read();
+
 };
 
 

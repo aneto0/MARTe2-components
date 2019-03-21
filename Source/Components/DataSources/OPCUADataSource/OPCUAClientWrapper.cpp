@@ -62,10 +62,6 @@ OPCUAClientWrapper * wrappers[1];
 OPCUAClientWrapper::OPCUAClientWrapper(const char8* const modeType) {
     mode = modeType;
     config = UA_ClientConfig_default;
-    /* These are for MonitoredItem
-     config.stateCallback = OPCUAClientWrapperHandlerState;
-     config.subscriptionInactivityCallback = OPCUAClientWrapperHandlerInactivity;
-     */
     opcuaClient = UA_Client_new(config);
     monitoredNodes = NULL_PTR(UA_NodeId *);
     request = UA_CreateSubscriptionRequest_default();
@@ -76,7 +72,7 @@ OPCUAClientWrapper::OPCUAClientWrapper(const char8* const modeType) {
     valueMemories = NULL_PTR(void **);
     clients[nOfClients - 1] = opcuaClient;
     wrappers[nOfClients - 1] = this;
-    serverAddress = NULL_PTR(char *);
+    serverAddress = NULL_PTR(char8 *);
     samplingTime = 0;
     readValues = NULL_PTR(UA_ReadValueId *);
     writeValues = NULL_PTR(UA_WriteValue *);
@@ -109,13 +105,12 @@ OPCUAClientWrapper::~OPCUAClientWrapper() {
     }
 }
 
-void OPCUAClientWrapper::SetServerAddress(char* address) {
-    serverAddress = new char[strlen(address)];
-    strcpy(serverAddress, address);
+void OPCUAClientWrapper::SetServerAddress(StreamString address) {
+    serverAddress = address;
 }
 
 bool OPCUAClientWrapper::Connect() {
-    UA_StatusCode retval = UA_Client_connect(opcuaClient, serverAddress);
+    UA_StatusCode retval = UA_Client_connect(opcuaClient, const_cast<char8*>(serverAddress.Buffer()));
     return (retval == UA_STATUSCODE_GOOD);
 }
 
@@ -154,67 +149,79 @@ bool OPCUAClientWrapper::SetTargetNodes(uint32 * namespaceIndexes,
             }
             while (ok);
         }
-        char** path = new char*[pathSize];
+        StreamString* path = new StreamString[pathSize];
         uint32* ids = new uint32[pathSize];
         ok = nodePaths[i].Seek(0LLU);
         if (ok) {
             for (uint32 k = 0u; k < pathSize; k++) {
                 ok = nodePaths[i].GetToken(pathTokenized, ".", ignore);
                 if (ok) {
-                    char * s = new char[strlen(pathTokenized.Buffer())];
-                    strcpy(s, pathTokenized.Buffer());
+                    //char * s = new char[strlen(pathTokenized.Buffer())];
+                    StreamString s = pathTokenized;
+                    //strcpy(s, pathTokenized.Buffer());
                     path[k] = s;
+                    //delete [] s;
                 }
                 pathTokenized = "";
             }
         }
-
-        /* Building request for Browse Service */
-        UA_BrowseRequest bReq;
-        UA_BrowseRequest_init(&bReq);
-        bReq.requestedMaxReferencesPerNode = 0;
-        bReq.nodesToBrowse = UA_BrowseDescription_new();
-        bReq.nodesToBrowseSize = 1;
-
-        /* Building request for TranslateBrowsePathsToNodeIds */
-        UA_BrowsePath browsePath;
-        UA_BrowsePath_init(&browsePath);
-        browsePath.startingNode = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
-        browsePath.relativePath.elements = (UA_RelativePathElement*) UA_Array_new(pathSize, &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
-        browsePath.relativePath.elementsSize = pathSize;
-
-        uint32 tempNumericNodeId = UA_NS0ID_OBJECTSFOLDER;
-        uint16 tempNamespaceIndex = 0u;
-        char* tempStringNodeId;
-
-        for (uint32 j = 0u; j < pathSize; j++) {
-            ids[j] = GetReferenceType(bReq, path[j], tempNamespaceIndex, tempNumericNodeId, tempStringNodeId);
-            UA_RelativePathElement *elem = &browsePath.relativePath.elements[j];
-            elem->referenceTypeId = UA_NODEID_NUMERIC(0, ids[j]);
-            elem->targetName = UA_QUALIFIEDNAME_ALLOC(namespaceIndexes[i], path[j]);
-        }
-        UA_TranslateBrowsePathsToNodeIdsRequest tbpReq;
-        UA_TranslateBrowsePathsToNodeIdsRequest_init(&tbpReq);
-        tbpReq.browsePaths = &browsePath;
-        tbpReq.browsePathsSize = 1;
-        UA_TranslateBrowsePathsToNodeIdsResponse tbpResp = UA_Client_Service_translateBrowsePathsToNodeIds(opcuaClient, tbpReq);
-        ok = (tbpResp.results[0].statusCode == UA_STATUSCODE_GOOD);
         if (ok) {
-            UA_BrowsePathTarget *ref = &(tbpResp.results[0].targets[0]);
-            monitoredNodes[i] = ref->targetId.nodeId;
-        }
-        if (mode == "Read") {
-            UA_ReadValueId_init(&readValues[i]);
-            readValues[i].attributeId = UA_ATTRIBUTEID_VALUE;
-            readValues[i].nodeId = monitoredNodes[i];
-        }
-        else if (mode == "Write") {
-            UA_WriteValue_init(&writeValues[i]);
-            writeValues[i].attributeId = UA_ATTRIBUTEID_VALUE;
-            writeValues[i].nodeId = monitoredNodes[i];
+            /* Building request for Browse Service */
+            UA_BrowseRequest bReq;
+            UA_BrowseRequest_init(&bReq);
+            bReq.requestedMaxReferencesPerNode = 0;
+            bReq.nodesToBrowse = UA_BrowseDescription_new();
+            bReq.nodesToBrowseSize = 1;
+
+            /* Building request for TranslateBrowsePathsToNodeIds */
+            UA_BrowsePath browsePath;
+            UA_BrowsePath_init(&browsePath);
+            browsePath.startingNode = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
+            browsePath.relativePath.elements = (UA_RelativePathElement*) UA_Array_new(pathSize, &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
+            browsePath.relativePath.elementsSize = pathSize;
+
+            uint32 tempNumericNodeId = UA_NS0ID_OBJECTSFOLDER;
+            uint16 tempNamespaceIndex = 0u;
+            char* tempStringNodeId;
+
+            for (uint32 j = 0u; j < pathSize; j++) {
+                ids[j] = GetReferenceType(bReq, const_cast<char8*>(path[j].Buffer()), tempNamespaceIndex, tempNumericNodeId, tempStringNodeId);
+                UA_RelativePathElement *elem = &browsePath.relativePath.elements[j];
+                elem->referenceTypeId = UA_NODEID_NUMERIC(0, ids[j]);
+                elem->targetName = UA_QUALIFIEDNAME_ALLOC(namespaceIndexes[i], const_cast<char8*>(path[j].Buffer()));
+            }
+            UA_TranslateBrowsePathsToNodeIdsRequest tbpReq;
+            UA_TranslateBrowsePathsToNodeIdsRequest_init(&tbpReq);
+            tbpReq.browsePaths = &browsePath;
+            tbpReq.browsePathsSize = 1;
+            UA_TranslateBrowsePathsToNodeIdsResponse tbpResp = UA_Client_Service_translateBrowsePathsToNodeIds(opcuaClient, tbpReq);
+            ok = (tbpResp.results[0].statusCode == UA_STATUSCODE_GOOD);
+            if (ok) {
+                UA_BrowsePathTarget *ref = &(tbpResp.results[0].targets[0]);
+                monitoredNodes[i] = ref->targetId.nodeId;
+            }
+
+            if (ok && mode == "Read") {
+                UA_ReadValueId_init(&readValues[i]);
+                readValues[i].attributeId = UA_ATTRIBUTEID_VALUE;
+                readValues[i].nodeId = monitoredNodes[i];
+            }
+            else if (ok && mode == "Write") {
+                UA_WriteValue_init(&writeValues[i]);
+                writeValues[i].attributeId = UA_ATTRIBUTEID_VALUE;
+                writeValues[i].nodeId = monitoredNodes[i];
+            }
+            if (ok) {
+                UA_TranslateBrowsePathsToNodeIdsResponse_deleteMembers(&tbpResp);
+                UA_Array_delete(browsePath.relativePath.elements, pathSize, &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
+                UA_BrowseDescription_delete(bReq.nodesToBrowse);
+                //UA_BrowseRequest_delete(&bReq);
+                delete[] ids;
+                delete[] path;
+            }
         }
     }
-    if (mode == "Read") {
+    if (ok && mode == "Read") {
         readRequest.nodesToRead = readValues;
         readRequest.nodesToReadSize = numberOfNodes;
     }
@@ -231,8 +238,8 @@ bool OPCUAClientWrapper::GetSignalMemory(void *&mem,
                                          const uint32 nElem,
                                          const uint8 nDimensions) {
     bool ok = true;
-    uint32 valueTypeSize = sizeof(TypeDescriptor::GetTypeNameFromTypeDescriptor(valueTd));
-    valueMemories[idx] = malloc(valueTypeSize * nElem);
+    //uint32 valueTypeSize = sizeof(TypeDescriptor::GetTypeNameFromTypeDescriptor(valueTd));
+    valueMemories[idx] = malloc((valueTd.numberOfBits / 8) * nElem);
 
     mem = valueMemories[idx];
     if (mode == "Write") {
@@ -326,6 +333,7 @@ uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
                 break;
             }
         }
+        UA_BrowseResponse_delete(bResp);
     }
     else {
         REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Browse Service fail: bad status code.");
@@ -339,6 +347,7 @@ void OPCUAClientWrapper::SetWriteRequest(uint32 idx,
                                          TypeDescriptor type) {
     bool isArray = false;
     isArray = (nDimensions > 0);
+    TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
     if (type == UnsignedInteger8Bit) {
         uint8 *value = reinterpret_cast<uint8*>(valueMemories[idx]);
         if (isArray) {
@@ -452,13 +461,6 @@ void OPCUAClientWrapper::UpdateMemory(UA_DataValue *value) {
     value = NULL_PTR(UA_DataValue *);
 
 }
-#if 0
-void OPCUAClientWrapper::StateCallback(UA_ClientState clientState) {
-}
-
-void OPCUAClientWrapper::SubscriptionInactivity() {
-}
-#endif
 void OPCUAClientWrapper::SetSamplingTime(float64 sampleTime) {
     samplingTime = sampleTime;
 }

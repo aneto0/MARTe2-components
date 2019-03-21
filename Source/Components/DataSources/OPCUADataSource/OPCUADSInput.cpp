@@ -224,10 +224,10 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
     }
     if (ok) {
         /* Setting up the master Client who will perform the operations */
-        char* s = new char[strlen(reinterpret_cast<const char*>(serverAddress.Buffer()))];
-        strcpy(s, reinterpret_cast<const char*>(serverAddress.Buffer()));
+        /*char* s = new char[strlen(reinterpret_cast<const char*>(serverAddress.Buffer()))];
+        strcpy(s, reinterpret_cast<const char*>(serverAddress.Buffer()));*/
         masterClient = new OPCUAClientWrapper("Read");
-        masterClient->SetServerAddress(s);
+        masterClient->SetServerAddress(serverAddress);
         masterClient->SetSamplingTime(samplingTime);
         ok = masterClient->Connect();
         if (ok) {
@@ -300,8 +300,8 @@ bool OPCUADSInput::PrepareNextState(const char8 * const currentStateName,
 ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo & info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        //err.communicationError = !masterClient->Monitor();
-        err.communicationError = !masterClient->Read(numberOfNodes, types, nElements);
+        err.communicationError = !masterClient->Monitor();
+        //err.communicationError = !masterClient->Read(numberOfNodes, types, nElements);
     }
     return err;
 }

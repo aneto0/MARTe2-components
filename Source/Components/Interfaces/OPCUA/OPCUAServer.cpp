@@ -221,7 +221,6 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
         }
         while (code != UA_STATUSCODE_GOOD);
         delete settings;
-
     }
     else if (ref->IsNode()) {
         TypeDescriptor typeName = ref->GetNodeType();
