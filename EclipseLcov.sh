@@ -2,6 +2,7 @@
 OUTPUT_DIR=Build
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_DIR/Build/x86-linux/Core
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/EPICS/base-7.0-dev/lib/linux-x86_64/
 
 #Build with coverage enabled
 make -f Makefile.cov clean

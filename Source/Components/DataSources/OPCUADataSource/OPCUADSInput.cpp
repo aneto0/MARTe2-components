@@ -318,9 +318,6 @@ const char8 * OPCUADSInput::GetServerAddress() {
     return serverAddress.Buffer();
 }
 
-OPCUAClientWrapper * OPCUADSInput::GetClient() {
-    return masterClient;
-}
 
 CLASS_REGISTER(OPCUADSInput, "1.0");
 

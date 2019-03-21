@@ -140,13 +140,13 @@ public:
               TypeDescriptor * types,
               uint32 * nElements);
 
-    /**
+#if 0    /**
      * @brief Update the valueMemory with the new data.
      * @param[in] value The new data value to write into the valueMemory.
      * @pre GetSignalMemory
      */
     void UpdateMemory(UA_DataValue *value);
-
+#endif
     /**
      * @brief Set the sampling time
      * @param[in] sampleTime The sampling time desired.

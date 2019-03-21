@@ -43,44 +43,19 @@ TEST(OPCUADSOutputGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(OPCUADSOutputGTest,TestInitialise) {
+TEST(OPCUADSOutputGTest,Test_Write_uint64) {
     OPCUADSOutputTest test;
-    ASSERT_TRUE(test.TestInitialise());
+    ASSERT_TRUE(test.Test_Write_uint64());
 }
 
-TEST(OPCUADSOutputGTest,TestInitialise_Introspection) {
+TEST(OPCUADSOutputGTest,Test_Write_float32) {
     OPCUADSOutputTest test;
-    ASSERT_TRUE(test.TestInitialise_Introspection());
+    ASSERT_TRUE(test.Test_Write_float32());
 }
 
-TEST(OPCUADSOutputGTest,TestInitialise_NoAddress) {
+TEST(OPCUADSOutputGTest,Test_Write_float64) {
     OPCUADSOutputTest test;
-    ASSERT_TRUE(test.TestInitialise_NoAddress());
-}
-
-TEST(OPCUADSOutputGTest,TestInitialise_NoSignals) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.TestInitialise_NoSignals());
-}
-
-TEST(OPCUADSOutputGTest,TestInitialise_NoPath) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.TestInitialise_NoPath());
-}
-
-TEST(OPCUADSOutputGTest,TestInitialise_NoNamespaceIndex) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.TestInitialise_NoNamespaceIndex());
-}
-
-TEST(OPCUADSOutputGTest,Test_NumberOfDimensionsGreater1) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_NumberOfDimensionsGreater1());
-}
-
-TEST(OPCUADSOutputGTest,Test_FailSetTargetNodes) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_FailSetTargetNodes());
+    ASSERT_TRUE(test.Test_Write_float64());
 }
 
 TEST(OPCUADSOutputGTest,Test_Write_uint8) {
@@ -98,20 +73,6 @@ TEST(OPCUADSOutputGTest,Test_Write_uint32) {
     ASSERT_TRUE(test.Test_Write_uint32());
 }
 
-TEST(OPCUADSOutputGTest,Test_Write_uint64) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_uint64());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_float32) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_float32());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_float64) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_float64());
-}
 
 TEST(OPCUADSOutputGTest,Test_Write_int8) {
     OPCUADSOutputTest test;
@@ -131,11 +92,6 @@ TEST(OPCUADSOutputGTest,Test_Write_int32) {
 TEST(OPCUADSOutputGTest,Test_Write_int64) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_Write_int64());
-}
-
-TEST(OPCUADSOutputGTest,Test_WrongNodeId) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_WrongNodeId());
 }
 
 TEST(OPCUADSOutputGTest,Test_Write_uint8_array) {
@@ -186,6 +142,51 @@ TEST(OPCUADSOutputGTest,Test_Write_float32_array) {
 TEST(OPCUADSOutputGTest,Test_Write_float64_array) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_Write_float64_array());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise_Introspection) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_Introspection());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise_NoAddress) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_NoAddress());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise_NoSignals) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_NoSignals());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise_NoPath) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_NoPath());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise_NoNamespaceIndex) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_NoNamespaceIndex());
+}
+
+TEST(OPCUADSOutputGTest,Test_NumberOfDimensionsGreater1) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_NumberOfDimensionsGreater1());
+}
+
+TEST(OPCUADSOutputGTest,Test_FailSetTargetNodes) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_FailSetTargetNodes());
+}
+
+TEST(OPCUADSOutputGTest,Test_WrongNodeId) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_WrongNodeId());
 }
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

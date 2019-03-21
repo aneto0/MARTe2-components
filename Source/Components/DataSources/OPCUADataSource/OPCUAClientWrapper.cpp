@@ -43,18 +43,6 @@
 
 namespace MARTe {
 
-uint32 nOfClients = 0u;
-
-/*************************************************************
- * Global arrays to store clients and wrapper pointer in order to call top level callback functions
- **************************************************************/
-UA_Client* clients[1];
-OPCUAClientWrapper * wrappers[1];
-
-/*************************************************************
- * Top level callback functions
- **************************************************************/
-
 /*************************************************************
  * Class members implementation
  **************************************************************/
@@ -68,10 +56,7 @@ OPCUAClientWrapper::OPCUAClientWrapper(const char8* const modeType) {
     response.subscriptionId = 0;
     monitorRequest.itemToMonitor.nodeId.identifier.numeric = 0;
     monitorResponse.monitoredItemId = 0;
-    nOfClients++;
     valueMemories = NULL_PTR(void **);
-    clients[nOfClients - 1] = opcuaClient;
-    wrappers[nOfClients - 1] = this;
     serverAddress = NULL_PTR(char8 *);
     samplingTime = 0;
     readValues = NULL_PTR(UA_ReadValueId *);
@@ -238,7 +223,6 @@ bool OPCUAClientWrapper::GetSignalMemory(void *&mem,
                                          const uint32 nElem,
                                          const uint8 nDimensions) {
     bool ok = true;
-    //uint32 valueTypeSize = sizeof(TypeDescriptor::GetTypeNameFromTypeDescriptor(valueTd));
     valueMemories[idx] = malloc((valueTd.numberOfBits / 8) * nElem);
 
     mem = valueMemories[idx];
@@ -334,9 +318,6 @@ uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
             }
         }
         UA_BrowseResponse_delete(bResp);
-    }
-    else {
-        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Browse Service fail: bad status code.");
     }
     return id;
 }
@@ -455,12 +436,13 @@ bool OPCUAClientWrapper::Write(uint32 numberOfNodes) {
     UA_WriteResponse_deleteMembers(&response);
     return ok;
 }
-
+#if 0
 void OPCUAClientWrapper::UpdateMemory(UA_DataValue *value) {
     //Delete this before implementing this method
     value = NULL_PTR(UA_DataValue *);
 
 }
+#endif
 void OPCUAClientWrapper::SetSamplingTime(float64 sampleTime) {
     samplingTime = sampleTime;
 }

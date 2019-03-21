@@ -164,10 +164,6 @@ OPCUADSInput    ();
      * @brief Gets the server address
      */
     const char8 * GetServerAddress();
-    /**
-     * @brief Gets the OPCUA Client pointer
-     */
-    OPCUAClientWrapper * GetClient();
 
 private:
 

@@ -1279,6 +1279,145 @@ bool OPCUADSInputTest::Test_FailSetTargetNodes() {
     return !ok;
 }
 
+bool OPCUADSInputTest::Test_Read() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+ServerTest = {"
+            "     Class = OPCUA::OPCUAServer"
+            "     AddressSpace = {"
+            "         MyNode = {"
+            "             Type = uint32"
+            "         }"
+            "     }"
+            "}"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAMTimer = {\n"
+            "            Class = IOGAM\n"
+            "            InputSignals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = Timer\n"
+            "                }\n"
+            "                Time = {\n"
+            "                    Frequency = 1\n"
+            "                    Type = uint32\n"
+            "                    DataSource = Timer\n"
+            "                }\n"
+            "            }\n"
+            "            OutputSignals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = DDB1\n"
+            "                }\n"
+            "                Time = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = DDB1\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +GAMDisplay = {\n"
+            "            Class = IOGAM\n"
+            "            InputSignals = {\n"
+            "                MyNode = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = OPCUAIn\n"
+            "                }\n"
+            "            }\n"
+            "            OutputSignals = {\n"
+            "                MyNode = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = DDB1\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "        +DDB1 = {\n"
+            "            Class = GAMDataSource\n"
+            "        }\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +OPCUAIn = {\n"
+            "            Class = OPCUADataSource::OPCUADSInput\n"
+            "            Address = \"opc.tcp://localhost.localdomain:4840\""
+            "            Synchronise = \"yes\""
+            "            SamplingTime = 1"
+            "            Signals = {\n"
+            "                MyNode = {\n"
+            "                    NamespaceIndex = 1\n"
+            "                    Path = MyNode\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "      +Timer = {\n"
+            "          Class = LinuxTimer\n"
+            "          SleepNature = \"Default\"\n"
+            "          Signals = {\n"
+            "             Counter = {\n"
+            "               Type = uint32\n"
+            "             }\n"
+            "             Time = {\n"
+            "               Type = uint32\n"
+            "             }\n"
+            "       }\n"
+            "    }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    CPUs = 0x2\n"
+            "                    Functions = {GAMTimer GAMDisplay}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = GAMScheduler\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("Test");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        ok = app->ConfigureApplication();
+    }
+    if(ok) {
+        ok = app->PrepareNextState("State1");
+    }
+    if(ok) {
+        app->StartNextStateExecution();
+    }
+    Sleep::MSec(200);
+    app->StopCurrentStateExecution();
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

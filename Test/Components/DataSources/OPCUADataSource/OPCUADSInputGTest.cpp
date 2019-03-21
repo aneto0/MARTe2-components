@@ -91,6 +91,11 @@ TEST(OPCUADSInputGTest,Test_FailSetTargetNodes) {
     OPCUADSInputTest test;
     ASSERT_TRUE(test.Test_FailSetTargetNodes());
 }
+
+TEST(OPCUADSInputGTest,Test_Read) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_Read());
+}
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
