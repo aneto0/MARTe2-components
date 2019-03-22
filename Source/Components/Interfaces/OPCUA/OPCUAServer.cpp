@@ -33,7 +33,6 @@
 
 #include "OPCUAServer.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -41,7 +40,8 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
+/*-e909 and -e9133 redefines bool*/
+/*lint -save -e909 -e9133*/
 namespace MARTe {
 
 OPCUAServer::OPCUAServer() :
@@ -66,9 +66,7 @@ OPCUAServer::~OPCUAServer() {
         REPORT_ERROR(ErrorManagement::Information, "Service Stopped");
     }
     UA_Server_delete(opcuaServer);
-    REPORT_ERROR(ErrorManagement::Information, "Server Deleted");
     UA_ServerConfig_delete(opcuaConfig);
-    REPORT_ERROR(ErrorManagement::Information, "Server Config Deleted");
 }
 
 bool OPCUAServer::Initialise(StructuredDataI &data) {
@@ -98,9 +96,9 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
-        opcuaConfig = UA_ServerConfig_new_minimal(port, NULL);
-        opcuaConfig->maxSessions = 1000;
-        opcuaConfig->maxSecureChannels = 1000;
+        opcuaConfig = UA_ServerConfig_new_minimal(port, NULL_PTR(const UA_ByteString *));
+        opcuaConfig->maxSessions = 1000u;
+        opcuaConfig->maxSecureChannels = 1000u;
         opcuaServer = UA_Server_new(opcuaConfig);
     }
     if (ok) {
@@ -134,15 +132,16 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "A Type shall be defined for every node");
                 }
             }
-            cdb.MoveToAncestor(1u);
+            if (ok) {
+                ok = cdb.MoveToAncestor(1u);
+            }
             if (ok) {
                 const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(typeStr.Buffer());
                 if (cri != NULL_PTR(const ClassRegistryItem *)) {
                     ReferenceT<OPCUAObject> mainObject("OPCUAObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
                     mainObject->SetName(cdb.GetChildName(i));
                     mainObject->SetFirst(true);
-                    const Introspection *intro = NULL_PTR(const Introspection *);
-                    intro = cri->GetIntrospection();
+                    const Introspection *intro = cri->GetIntrospection();
                     ok = (intro != NULL_PTR(const Introspection *));
                     if (ok) {
                         ok = GetStructure(mainObject, intro);
@@ -164,10 +163,11 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
                         }
                         REPORT_ERROR(ErrorManagement::Information, "Number Of Elements = %d", nElem);
                     }
+                    ok = InitAddressSpace(mainNode);
                     if (ok) {
-                        ok = InitAddressSpace(mainNode);
                         ok = cdb.MoveToAncestor(1u);
                     }
+
                 }
             }
             if (ok) {
@@ -188,6 +188,9 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
     else if (info.GetStage() != ExecutionInfo::AsyncTerminationStage) {
         SetRunning(false);
     }
+    else {
+        SetRunning(false);
+    }
     return err;
 }
 
@@ -200,7 +203,7 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
         OPCUAObjectSettings settings = new ObjectProperties;
         ok = ref->GetOPCObject(settings, nodeNumber);
         do {
-            if (!ref->IsFirstObject() && ok) {
+            if (!(ref->IsFirstObject()) && ok) {
                 if (ok) {
                     code = UA_Server_addObjectNode(opcuaServer, settings->nodeId, settings->parentNodeId, settings->parentReferenceNodeId, settings->nodeName,
                                                    UA_NODEID_NUMERIC(0, UA_NS0ID_FOLDERTYPE), settings->attr, NULL, NULL);
@@ -240,7 +243,7 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
         while (code != UA_STATUSCODE_GOOD);
         delete settings;
     }
-    uint32 i = 0u;
+    uint32 i;
     uint32 size = ref->Size();
     nodeNumber++;
     for (i = 0u; (i < size) && (ok); i++) {
@@ -319,3 +322,4 @@ const uint16 OPCUAServer::GetPort() {
 CLASS_REGISTER(OPCUAServer, "");
 
 }
+/*lint -restore*/

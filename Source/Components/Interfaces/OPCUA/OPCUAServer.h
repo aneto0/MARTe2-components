@@ -27,12 +27,13 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
+#include "open62541.h"
+/*lint -D__cplusplus*/
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
-#include "/home/lporzio/open62541/build/open62541.h"
 #include "AdvancedErrorManagement.h"
 #include "EmbeddedServiceMethodBinderT.h"
 #include "ObjectRegistryDatabase.h"

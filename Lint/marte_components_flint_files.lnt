@@ -1,6 +1,7 @@
 -i%EFDA_MARTe_DIR%/Interfaces/BaseLib2Adapter/
 -i%CODAC_ROOT_INCLUDE_DIR%
 -i%EPICS_BASE%/include
+-i%OPEN62541_INCLUDE%
 -i%MDSPLUS_DIR%/include
 -i%SDN_CORE_INCLUDE_DIR%
 
@@ -18,6 +19,7 @@
 -i./Source/Components/DataSources/NI6259/
 -i./Source/Components/DataSources/NI6368/
 -i./Source/Components/DataSources/NI9157/
+-i./Source/Components/DataSources/OPCUADataSource/
 -i./Source/Components/DataSources/RealTimeThreadAsyncBridge/
 -i./Source/Components/DataSources/RealTimeThreadSynchronisation/
 -i./Source/Components/DataSources/SDN/
@@ -40,9 +42,10 @@
 -i./Source/Components/Interfaces/EPICSPVA/
 -i./Source/Components/Interfaces/MemoryGate/
 -i./Source/Components/Interfaces/NI9157Device/
+-i./Source/Components/Interfaces/OPCUA/
 -i./Source/Components/Interfaces/SysLogger/
 
-Atomic2.h
+/*Atomic2.h
 BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
@@ -106,8 +109,9 @@ NI9157CircularFifoReader.cpp
 NI9157DeviceOperatorDatabase.cpp
 NI9157DeviceOperatorT.cpp
 NI9157DeviceOperatorTI.cpp
-NI9157MxiDataSource.cpp
-Platform.cpp
+NI9157MxiDataSource.cpp*/
+OPCUAServer.cpp
+/*Platform.cpp
 PIDGAM.cpp
 RealTimeThreadAsyncBridge.cpp
 RealTimeThreadSynchBroker.cpp
@@ -133,4 +137,4 @@ WaveformChirp.h
 WaveformSin.cpp
 WaveformSin.h
 WaveformPointsDef.cpp
-WaveformPointsDef.h
+WaveformPointsDef.h*/

@@ -109,8 +109,6 @@ bool OPCUAClientWrapper::SetTargetNodes(uint32 * namespaceIndexes,
     if (mode == "Read") {
         /* Setting up Read request */
         UA_ReadRequest_init(&readRequest);
-        //UA_ReadResponse_init(&readResponse);
-        //readResponse.resultsSize = numberOfNodes;
         readValues = new UA_ReadValueId[numberOfNodes];
     }
     else if (mode == "Write") {
@@ -141,11 +139,8 @@ bool OPCUAClientWrapper::SetTargetNodes(uint32 * namespaceIndexes,
             for (uint32 k = 0u; k < pathSize; k++) {
                 ok = nodePaths[i].GetToken(pathTokenized, ".", ignore);
                 if (ok) {
-                    //char * s = new char[strlen(pathTokenized.Buffer())];
                     StreamString s = pathTokenized;
-                    //strcpy(s, pathTokenized.Buffer());
                     path[k] = s;
-                    //delete [] s;
                 }
                 pathTokenized = "";
             }
@@ -200,7 +195,6 @@ bool OPCUAClientWrapper::SetTargetNodes(uint32 * namespaceIndexes,
                 UA_TranslateBrowsePathsToNodeIdsResponse_deleteMembers(&tbpResp);
                 UA_Array_delete(browsePath.relativePath.elements, pathSize, &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
                 UA_BrowseDescription_delete(bReq.nodesToBrowse);
-                //UA_BrowseRequest_delete(&bReq);
                 delete[] ids;
                 delete[] path;
             }
@@ -268,7 +262,7 @@ uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
         bReq.nodesToBrowse[0].nodeId = UA_NODEID_NUMERIC(namespaceIndex, numericNodeId);
     }
     bReq.nodesToBrowse[0].includeSubtypes = true;
-    bReq.nodesToBrowse[0].resultMask = UA_BROWSERESULTMASK_ALL; /* return everything */
+    bReq.nodesToBrowse[0].resultMask = UA_BROWSERESULTMASK_ALL;
     UA_BrowseResponse *bResp = UA_BrowseResponse_new();
     *bResp = UA_Client_Service_browse(opcuaClient, bReq);
     bool ok = (bResp->responseHeader.serviceResult == UA_STATUSCODE_GOOD);
@@ -297,8 +291,6 @@ uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
                 }
             }
             if (!found && bResp->results->continuationPoint.length) {
-                /* Debug only */
-                //REPORT_ERROR_STATIC(ErrorManagement::Information, "Browse Next Service");
                 UA_BrowseNextRequest nextReq;
                 UA_BrowseNextRequest_init(&nextReq);
                 nextReq.continuationPoints = UA_ByteString_new();

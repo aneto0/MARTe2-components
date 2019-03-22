@@ -27,13 +27,12 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "open62541.h"
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
-#include <cstring>
-#include "/home/lporzio/open62541/build/open62541.h"
 #include "ConfigurationDatabase.h"
 #include "ObjectRegistryDatabase.h"
 #include "OPCUAReferenceContainer.h"
