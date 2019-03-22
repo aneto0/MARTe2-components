@@ -243,7 +243,9 @@ bool OPCUAClientWrapper::Read(uint32 numberOfNodes,
     ok = (response.responseHeader.serviceResult == UA_STATUSCODE_GOOD);
     if (ok) {
         for (uint32 i = 0u; i < numberOfNodes; i++) {
-            memcpy(valueMemories[i], readResponse.results[i].value.data, sizeof(TypeDescriptor::GetTypeNameFromTypeDescriptor(types[i])) * nElements[i]);
+            if (valueMemories[i] != NULL_PTR(void*)) {
+                memcpy(valueMemories[i], readResponse.results[i].value.data, sizeof(TypeDescriptor::GetTypeNameFromTypeDescriptor(types[i])) * nElements[i]);
+            }
         }
     }
     return ok;

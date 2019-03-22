@@ -112,22 +112,22 @@ OPCUAServer    ();
     /**
      * @brief Provides running mode
      */
-    const bool GetRunning();
+    const bool GetRunning() const;
 
     /**
      * @brief Provides CPU mask
      */
-    const uint32 GetCPUMask();
+    const uint32 GetCPUMask() const;
 
     /**
      * @brief Provides Thread Stack Size
      */
-    const uint32 GetStackSize();
+    const uint32 GetStackSize() const;
 
     /**
      * @brief Provides Port number where Server is listen to
      */
-    const uint16 GetPort();
+    const uint16 GetPort() const;
 
     /**
      * @brief Create the OPCUA Address Space starting from a OPCUAReferenceContainer.

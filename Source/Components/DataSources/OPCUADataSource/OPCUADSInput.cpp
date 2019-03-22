@@ -300,8 +300,8 @@ bool OPCUADSInput::PrepareNextState(const char8 * const currentStateName,
 ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo & info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        err.communicationError = !masterClient->Monitor();
-        //err.communicationError = !masterClient->Read(numberOfNodes, types, nElements);
+        //err.communicationError = !masterClient->Monitor();
+        err.communicationError = !masterClient->Read(numberOfNodes, types, nElements);
     }
     return err;
 }
