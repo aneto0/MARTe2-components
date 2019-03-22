@@ -277,8 +277,8 @@ bool OPCUAServer::GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer,
             //node->SetNodeType(td);
             node->SetName(memberName);
             ok = refContainer->Insert(node);
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
             if (ok) {
-                const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
                 ok = (cri != NULL_PTR(const ClassRegistryItem *));
             }
             if (ok) {
