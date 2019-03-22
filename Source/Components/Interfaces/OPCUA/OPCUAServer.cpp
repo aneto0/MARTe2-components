@@ -59,7 +59,14 @@ OPCUAServer::OPCUAServer() :
 
 OPCUAServer::~OPCUAServer() {
     SetRunning(false);
-    (void) service.Stop();
+    if (!service.Stop()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::Information, "Service Stopped");
+    }
+    UA_Server_delete(opcuaServer);
+    UA_ServerConfig_delete(opcuaConfig);
 }
 
 bool OPCUAServer::Initialise(StructuredDataI &data) {
@@ -172,26 +179,17 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
         }
         //This is a blocking call
         if (ok) {
-            UA_StatusCode code = UA_Server_run(opcuaServer, &opcuaRunning);
-            code = 0x00U;
+            UA_Server_run(opcuaServer, &opcuaRunning);
         }
-        UA_Server_delete(opcuaServer);
-        UA_ServerConfig_delete(opcuaConfig);
     }
     else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         SetRunning(false);
-        UA_Server_delete(opcuaServer);
-        UA_ServerConfig_delete(opcuaConfig);
     }
     else if (info.GetStage() != ExecutionInfo::AsyncTerminationStage) {
         SetRunning(false);
-        UA_Server_delete(opcuaServer);
-        UA_ServerConfig_delete(opcuaConfig);
     }
     else {
         SetRunning(false);
-        UA_Server_delete(opcuaServer);
-        UA_ServerConfig_delete(opcuaConfig);
     }
     return err;
 }
@@ -205,25 +203,26 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
         OPCUAObjectSettings settings = new ObjectProperties;
         ok = ref->GetOPCObject(settings, nodeNumber);
         do {
-            ok = ref->IsFirstObject();
-            if (ok) {
-                code = UA_Server_addObjectNode(opcuaServer, settings->nodeId, settings->parentNodeId, settings->parentReferenceNodeId, settings->nodeName,
-                                               UA_NODEID_NUMERIC(0u, 61u), settings->attr, NULL_PTR(void*), NULL_PTR(UA_NodeId *));
+            if (!ref->IsFirstObject() && ok) {
+                if (ok) {
+                    code = UA_Server_addObjectNode(opcuaServer, settings->nodeId, settings->parentNodeId, settings->parentReferenceNodeId, settings->nodeName,
+                                                   UA_NODEID_NUMERIC(0, UA_NS0ID_FOLDERTYPE), settings->attr, NULL, NULL);
+                }
             }
             else {
                 code = UA_Server_addObjectNode(opcuaServer, settings->nodeId, settings->parentNodeId, settings->parentReferenceNodeId, settings->nodeName,
-                                               UA_NODEID_NUMERIC(0u, 58u), settings->attr, NULL_PTR(void*), NULL_PTR(UA_NodeId *));
+                                               UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE), settings->attr, NULL, NULL);
             }
-            if (code == 0x805E0000U) {
+            if (code == UA_STATUSCODE_BADNODEIDEXISTS) {
                 nodeNumber++;
                 ref->SetNodeId(nodeNumber);
-                settings->nodeId = UA_NODEID_NUMERIC(1u, nodeNumber);
+                settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
             }
             else {
                 parentId = ref->GetNodeId();
             }
         }
-        while (code != 0x00U);
+        while (code != UA_STATUSCODE_GOOD);
         delete settings;
     }
     else if (ref->IsNode()) {
@@ -233,19 +232,16 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
         do {
             if (ok) {
                 code = UA_Server_addVariableNode(opcuaServer, settings->nodeId, settings->parentNodeId, settings->parentReferenceNodeId, settings->nodeName,
-                                                 UA_NODEID_NUMERIC(0u, 63u), settings->attr, NULL_PTR(void *), NULL_PTR(UA_NodeId *));
+                                                 UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), settings->attr, NULL, NULL);
             }
-            if (code == 0x805E0000U) {
+            if (code == UA_STATUSCODE_BADNODEIDEXISTS) {
                 nodeNumber++;
                 ref->SetNodeId(nodeNumber);
-                settings->nodeId = UA_NODEID_NUMERIC(1u, nodeNumber);
+                settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
             }
         }
-        while (code != 0x00U);
+        while (code != UA_STATUSCODE_GOOD);
         delete settings;
-    }
-    else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Problem occurred during Address Space Initialisation. Is the node type correct?");
     }
     uint32 i;
     uint32 size = ref->Size();
@@ -258,7 +254,7 @@ bool OPCUAServer::InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref) {
         }
     }
 
-    return (code == 0x00U);
+    return (code == UA_STATUSCODE_GOOD);
 }
 
 bool OPCUAServer::GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer,
@@ -276,11 +272,9 @@ bool OPCUAServer::GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer,
             ReferenceT<OPCUAObject> node("OPCUAObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
             //node->SetNodeType(td);
             node->SetName(memberName);
-            ok = refContainer->Insert(node);
+            refContainer->Insert(node);
             const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
-            if (ok) {
-                ok = (cri != NULL_PTR(const ClassRegistryItem *));
-            }
+            ok = (cri != NULL_PTR(const ClassRegistryItem *));
             if (ok) {
                 ok = GetStructure(node, cri->GetIntrospection());
             }
@@ -288,20 +282,18 @@ bool OPCUAServer::GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer,
         else {
             ReferenceT<OPCUANode> finalNode("OPCUANode", GlobalObjectsDatabase::Instance()->GetStandardHeap());
             uint8 nDimensions = entry.GetNumberOfDimensions();
-            if (nDimensions > 1u) {
+            if (nDimensions > 1) {
                 REPORT_ERROR(ErrorManagement::ParametersError,
                              "the Introspection entry [%s] has Number of Dimensions = %d. Multidimensional array not supported yet. ", memberName, nDimensions);
-                ok = false;
+                return false;
             }
-            if (ok) {
-                finalNode->SetNumberOfDimensions(nDimensions);
-                for (uint32 i = 0u; i < nDimensions; i++) {
-                    finalNode->SetNumberOfElements(i, entry.GetNumberOfElements(i));
-                }
-                finalNode->SetNodeType(td);
-                finalNode->SetName(memberName);
-                ok = refContainer->Insert(finalNode);
+            finalNode->SetNumberOfDimensions(nDimensions);
+            for (uint32 i = 0; i < nDimensions; i++) {
+                finalNode->SetNumberOfElements(i, entry.GetNumberOfElements(i));
             }
+            finalNode->SetNodeType(td);
+            finalNode->SetName(memberName);
+            refContainer->Insert(finalNode);
         }
     }
     return ok;
@@ -311,19 +303,19 @@ void OPCUAServer::SetRunning(bool const running) {
     opcuaRunning = running;
 }
 
-const bool OPCUAServer::GetRunning() const {
+const bool OPCUAServer::GetRunning() {
     return opcuaRunning;
 }
 
-const uint32 OPCUAServer::GetCPUMask() const {
+const uint32 OPCUAServer::GetCPUMask() {
     return cpuMask;
 }
 
-const uint32 OPCUAServer::GetStackSize() const {
+const uint32 OPCUAServer::GetStackSize() {
     return stackSize;
 }
 
-const uint16 OPCUAServer::GetPort() const {
+const uint16 OPCUAServer::GetPort() {
     return port;
 }
 
