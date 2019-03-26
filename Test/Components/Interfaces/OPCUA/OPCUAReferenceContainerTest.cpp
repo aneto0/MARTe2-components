@@ -60,7 +60,7 @@ bool OPCUAReferenceContainerTest::Test_IsNode() {
 bool OPCUAReferenceContainerTest::Test_GetOPCVariable() {
     using namespace MARTe;
     OPCUAReferenceContainer orc;
-    OPCUANodeSettings settings = new NodeProperties;
+    OPCUA::OPCUANodeSettings settings = new OPCUA::NodeProperties;
     TypeDescriptor td;
     uint32 nodeNumber = 3000u;
     return !(orc.GetOPCVariable(settings, td, nodeNumber));
@@ -69,7 +69,7 @@ bool OPCUAReferenceContainerTest::Test_GetOPCVariable() {
 bool OPCUAReferenceContainerTest::Test_GetOPCObject() {
     using namespace MARTe;
     OPCUAReferenceContainer orc;
-    OPCUAObjectSettings settings = new ObjectProperties;
+    OPCUA::OPCUAObjectSettings settings = new OPCUA::ObjectProperties;
     uint32 nodeNumber = 3000u;
     return !(orc.GetOPCObject(settings, nodeNumber));
 }

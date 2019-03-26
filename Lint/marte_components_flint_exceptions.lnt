@@ -89,3 +89,7 @@
 -estring(1960,*epics*::*)
 -estring(451,*NiFpga.h*)
 
+/* Exceptions related to the open62541*/
+-estring(843,*UA_Boolean*)
+-estring(728,*UA_Boolean*)
+-estring(551,*UA_Boolean*)

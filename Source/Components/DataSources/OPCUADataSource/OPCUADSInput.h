@@ -63,6 +63,7 @@ namespace MARTe {
  *     Class = OPCUADataSource::OPCUADSInput
  *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
  *     SamplingTime = 1
+ *     ReadMode = "Read" //"Read" if you want to use OPCUA Read Service, "Monitor" if you want to use OPCUA MonitoredItem Service
  *     Synchronise = "yes" //"yes" if you want to use Synchronise method, "no" to enable SingleThreadService Execute method
  *     Signals = {
  *         Node1 = {
@@ -178,6 +179,11 @@ private:
     OPCUAClientWrapper * masterClient;
 
     /**
+     * Holds the value of the configuration parameter ReadMode
+     */
+    StreamString readMode;
+
+    /**
      * Holds the value of the configuration parameter Synchronise
      */
     StreamString sync;
@@ -190,7 +196,7 @@ private:
     /**
      * The number of signals during initialise
      */
-    uint32 numberOfSignals;
+    uint32 nOfSignals;
 
     /**
      * The number of OPC UA Nodes
@@ -217,12 +223,12 @@ private:
      * The array that stores all the namespaceIndexes for each
      * node to read
      */
-    uint32 * namespaceIndexes;
+    uint16 * namespaceIndexes;
 
     /**
      * Temporary array to store value read from configuration
      */
-    uint32 *tempNamespaceIndexes;
+    uint16 *tempNamespaceIndexes;
 
     /**
      * The array that stores the NumberOfElements for each node to read

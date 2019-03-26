@@ -27,8 +27,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
 #include "open62541.h"
-
+/*lint -D__cplusplus*/
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -67,7 +68,7 @@ OPCUANode    ();
      * @see OPCUAReferenceContainer::GetOPCVariable
      * @return true if all the parameters and attributes are set correctly
      */
-    virtual bool GetOPCVariable(OPCUANodeSettings &settings, TypeDescriptor nodeType, uint32 nodeNumber);
+    virtual bool GetOPCVariable(OPCUA::OPCUANodeSettings &settings, const TypeDescriptor nType, const uint32 nNumber);
 
     /**
      * @see OPCUAReferenceContainer::IsNode
@@ -80,7 +81,7 @@ private:
     /**
      * @brief Sets all the array related attributes and build the UA_Variant
      */
-    void InitArray(OPCUANodeSettings &settings, const UA_DataType *type, uint64 nElem);
+    bool InitArray(OPCUA::OPCUANodeSettings const &settings, const UA_DataType * const type, const uint64 nElem);
 
     /**
      * Numeric ID of the parent reference for the current Node

@@ -33,11 +33,11 @@
 
 #include "OPCUAReferenceContainer.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-
+/*-e909 and -e9133 redefines bool. -e578 symbol ovveride in CLASS_REGISTER*/
+/*lint -save -e909 -e9133 -e578*/
 namespace MARTe {
 
 OPCUAReferenceContainer::OPCUAReferenceContainer() :
@@ -47,10 +47,11 @@ OPCUAReferenceContainer::OPCUAReferenceContainer() :
     parentNodeId = 0u;
     numberOfElements = NULL_PTR(uint32 *);
     numberOfDimensions = 0u;
+    isFirstObject = false;
 }
 
 OPCUAReferenceContainer::~OPCUAReferenceContainer() {
-
+    delete[] numberOfElements;
 }
 
 bool OPCUAReferenceContainer::IsNode() {
@@ -61,14 +62,17 @@ bool OPCUAReferenceContainer::IsObject() {
     return false;
 }
 
-bool OPCUAReferenceContainer::GetOPCObject(OPCUAObjectSettings &settings,
-                                           uint32 nodeNumber) {
+bool OPCUAReferenceContainer::GetOPCObject(OPCUA::OPCUAObjectSettings &settings,
+                                           const uint32 nodeNumber) {
+    settings->nodeId = UA_NODEID_NUMERIC(1u, nodeNumber);
     return false;
 }
 
-bool OPCUAReferenceContainer::GetOPCVariable(OPCUANodeSettings &settings,
-                                             TypeDescriptor nodeType,
-                                             uint32 nodeNumber) {
+bool OPCUAReferenceContainer::GetOPCVariable(OPCUA::OPCUANodeSettings &settings,
+                                             const TypeDescriptor nType,
+                                             const uint32 nNumber) {
+    settings->nodeId = UA_NODEID_NUMERIC(1u, nNumber);
+    nodeType = nType;
     return false;
 }
 
@@ -76,7 +80,7 @@ void OPCUAReferenceContainer::SetParent(const uint32 parentId) {
     parentNodeId = parentId;
 }
 
-const uint32 OPCUAReferenceContainer::GetParentNodeId() {
+const uint32 OPCUAReferenceContainer::GetParentNodeId() const {
     return parentNodeId;
 }
 
@@ -84,29 +88,31 @@ void OPCUAReferenceContainer::SetNodeId(const uint32 newNodeId) {
     nodeId = newNodeId;
 }
 
-const uint32 OPCUAReferenceContainer::GetNodeId() {
+const uint32 OPCUAReferenceContainer::GetNodeId() const {
     return nodeId;
 }
 
 void OPCUAReferenceContainer::SetFirst(const bool value) {
-
+    isFirstObject = value;
 }
 
 const bool OPCUAReferenceContainer::IsFirstObject() {
     return false;
 }
 
-void OPCUAReferenceContainer::SetNodeType(TypeDescriptor type) {
+void OPCUAReferenceContainer::SetNodeType(const TypeDescriptor &type) {
     nodeType = type;
 }
 
-TypeDescriptor OPCUAReferenceContainer::GetNodeType() {
+TypeDescriptor OPCUAReferenceContainer::GetNodeType() const {
     return nodeType;
 }
 
 void OPCUAReferenceContainer::SetNumberOfElements(const uint32 dimension,
                                                   const uint32 nElements) {
-    numberOfElements[dimension] = nElements;
+    if (numberOfElements != NULL_PTR(uint32 *)) {
+        numberOfElements[dimension] = nElements;
+    }
 }
 
 void OPCUAReferenceContainer::SetNumberOfDimensions(const uint8 nDimensions) {
@@ -118,14 +124,14 @@ uint32* OPCUAReferenceContainer::GetNumberOfElements() {
     return numberOfElements;
 }
 
-const uint8 OPCUAReferenceContainer::GetNumberOfDimensions() {
+const uint8 OPCUAReferenceContainer::GetNumberOfDimensions() const {
     return numberOfDimensions;
 }
 
 CLASS_REGISTER(OPCUAReferenceContainer, "");
 
 }
-
+/*lint -restore*/
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

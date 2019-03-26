@@ -27,7 +27,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
 #include "open62541.h"
+/*lint -D__cplusplus*/
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -51,11 +53,10 @@ namespace MARTe {
 class OPCUAClientWrapper {
 
 public:
-
     /**
-     * @brief Default constructor.
+     * @brief Default Constructor.
      */
-    OPCUAClientWrapper(const char8* const modeType);
+    OPCUAClientWrapper();
 
     /**
      * @brief Default destructor.
@@ -85,7 +86,7 @@ public:
      * @return true if the monitored node has been set.
      */
     bool GetSignalMemory(void *&mem,
-                         uint32 index,
+                         const uint32 idx,
                          const TypeDescriptor & valueTd,
                          const uint32 nElem,
                          const uint8 nDimensions);
@@ -102,9 +103,9 @@ public:
      * @return true if the result of the TranslateBrowsePathToNodeId service request is not empty.
      * @pre Connect
      */
-    bool SetTargetNodes(uint32 * namespaceIndexes,
-                        StreamString * nodePaths,
-                        uint32 numberOfNodes);
+    bool SetTargetNodes(const uint16 * const namespaceIndexes,
+                        StreamString * const nodePaths,
+                        const uint32 numberOfNodes);
 
     /**
      * @brief Creates the OPCUA Subscription and Monitored Item request. Runs the Client iteration service.
@@ -114,7 +115,7 @@ public:
      * @return true if the server is still initialising or all the requests has been executed successfully.
      * @pre SetTargetNodes
      */
-    bool Monitor();
+    bool Monitor() const;
 
     /**
      * @brief Calls the OPCUA Write service.
@@ -123,7 +124,7 @@ public:
      * @param[in] numberOfNodes the number of nodes to write
      * @pre SetTargetNodes, SetWriteRequest
      */
-    bool Write(uint32 numberOfNodes);
+    bool Write(const uint32 numberOfNodes);
 
     /**
      * @brief Calls the OPCUA Read service.
@@ -134,9 +135,9 @@ public:
      * @return true if the Read Service is executed correctly.
      * @pre SetTargetNodes
      */
-    bool Read(uint32 numberOfNodes,
-              TypeDescriptor * types,
-              uint32 * nElements);
+    bool Read(const uint32 numberOfNodes,
+              const TypeDescriptor * const types,
+              const uint32 * const nElements);
 
 #if 0    /**
      * @brief Update the valueMemory with the new data.
@@ -149,12 +150,18 @@ public:
      * @brief Set the sampling time
      * @param[in] sampleTime The sampling time desired.
      */
-    void SetSamplingTime(float64 sampleTime);
+    void SetSamplingTime(const float64 sampleTime);
 
-    /***
+    /**
      * @brief Gets the pointer to the monitored nodes array
      */
     UA_NodeId * GetMonitoredNodes();
+
+    /**
+     * @brief Set the operation mode.
+     * @details mode could be "Read" or "Write"
+     */
+    void SetOperationMode(const char8* const modeType);
 
 private:
 
@@ -163,20 +170,20 @@ private:
      * @details This method uses the OPCUA Browse and BrowseNext services to obtain the OPCUA Reference Type
      * of the node declared in the path.
      */
-    uint32 GetReferenceType(UA_BrowseRequest bReq,
-                            char* path,
+    uint32 GetReferenceType(const UA_BrowseRequest &bReq,
+                            const char8* const path,
                             uint16 &namespaceIndex,
                             uint32 &numericNodeId,
-                            char* &stringNodeId);
+                            char8* &stringNodeId);
 
     /**
      * @brief Sets the OPC UA Write request
      * @details This method create the correct Write request based on the properties of the value to write in the address space.
      */
-    void SetWriteRequest(uint32 idx,
-                         uint8 nDimensions,
-                         uint32 nElements,
-                         TypeDescriptor type);
+    void SetWriteRequest(const uint32 idx,
+                         const uint8 nDimensions,
+                         const uint32 nElements,
+                         const TypeDescriptor &type);
 
     /**
      * Holds the server address

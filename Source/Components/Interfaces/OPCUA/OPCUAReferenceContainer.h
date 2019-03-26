@@ -27,8 +27,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
 #include "open62541.h"
-
+/*lint -D__cplusplus*/
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -38,7 +39,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 namespace MARTe {
 
 /**
@@ -82,7 +82,7 @@ OPCUAReferenceContainer    ();
      * @param[in] nodeNumber The numeric ID to be assigned to the OPCUA NodeID related to the current Node Variable
      * @return false
      */
-    virtual bool GetOPCVariable(OPCUANodeSettings &settings, TypeDescriptor nodeType, uint32 nodeNumber);
+    virtual bool GetOPCVariable(OPCUA::OPCUANodeSettings &settings, const TypeDescriptor nType, const uint32 nNumber);
 
     /**
      * @brief Generate a new OPCUA NodeID for the Node Object and sets all the ObjectProperties
@@ -92,7 +92,7 @@ OPCUAReferenceContainer    ();
      * @param[in] nodeNumber The numeric ID to be assigned to the OPCUA NodeID related to the current Node Object
      * @return false
      */
-    virtual bool GetOPCObject(OPCUAObjectSettings &settings, uint32 nodeNumber);
+    virtual bool GetOPCObject(OPCUA::OPCUAObjectSettings &settings, const uint32 nodeNumber);
 
     /**
      * @brief Set the related parameter if the current Node is the first of the Address Space to be constructed
@@ -112,7 +112,7 @@ OPCUAReferenceContainer    ();
     /**
      * @brief Gets the numeric ID of the parentNodeID for the current Node
      */
-    const uint32 GetParentNodeId();
+    const uint32 GetParentNodeId() const;
 
     /**
      *
@@ -123,18 +123,18 @@ OPCUAReferenceContainer    ();
     /**
      * @brief Gets the numeric node ID for the current Node
      */
-    const uint32 GetNodeId();
+    const uint32 GetNodeId() const;
 
     /**
      * @brief Sets the data type to be managed by the current Node
      */
-    void SetNodeType(TypeDescriptor type);
+    void SetNodeType(const TypeDescriptor &type);
 
     /**
      * @brief Gets the data type managed by the current Node
      * @return The TypeDescriptor of the data type
      */
-    TypeDescriptor GetNodeType();
+    TypeDescriptor GetNodeType() const;
 
     /**
      * @brief Sets the number of elements of the data managed by the current Node
@@ -157,7 +157,7 @@ OPCUAReferenceContainer    ();
     /**
      * @brief Gets the number of dimensions of the current node
      */
-    const uint8 GetNumberOfDimensions();
+    const uint8 GetNumberOfDimensions() const;
 
 
 protected:
@@ -187,10 +187,14 @@ protected:
      */
     uint32* numberOfElements;
 
+    /**
+     * Boolean flag that indicates if the current Node is the first of the Address Space
+     */
+    bool isFirstObject;
+
 };
 
 }
-
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/

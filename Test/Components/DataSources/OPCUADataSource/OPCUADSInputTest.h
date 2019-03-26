@@ -48,7 +48,15 @@ public:
 
     bool TestInitialise_Sync();
 
+    bool TestInitialise_SyncMonitor();
+
+    bool TestInitialise_SyncWrongMode();
+
     bool TestInitialise_Thread();
+
+    bool TestInitialise_ThreadMonitor();
+
+    bool TestInitialise_ThreadWrongMode();
 
     bool TestInitialise_NoAddress();
 

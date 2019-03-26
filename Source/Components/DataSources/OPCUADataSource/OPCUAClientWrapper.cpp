@@ -40,34 +40,40 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
+/*-e909 and -e9133 redefines bool. -e1938 UA_ClientConfig_default is global*/
+/*lint -save -e909 -e9133 -e1938*/
 namespace MARTe {
 
 /*************************************************************
  * Class members implementation
  **************************************************************/
-
-OPCUAClientWrapper::OPCUAClientWrapper(const char8* const modeType) {
-    mode = modeType;
+OPCUAClientWrapper::OPCUAClientWrapper() {
     config = UA_ClientConfig_default;
     opcuaClient = UA_Client_new(config);
     monitoredNodes = NULL_PTR(UA_NodeId *);
     request = UA_CreateSubscriptionRequest_default();
-    response.subscriptionId = 0;
-    monitorRequest.itemToMonitor.nodeId.identifier.numeric = 0;
-    monitorResponse.monitoredItemId = 0;
+    response.subscriptionId = 0u;
+    monitorRequest.itemToMonitor.nodeId.identifier.numeric = 0u;
+    monitorResponse.monitoredItemId = 0u;
     valueMemories = NULL_PTR(void **);
     serverAddress = NULL_PTR(char8 *);
-    samplingTime = 0;
+    samplingTime = 0.0;
     readValues = NULL_PTR(UA_ReadValueId *);
     writeValues = NULL_PTR(UA_WriteValue *);
     tempVariant = NULL_PTR(UA_Variant *);
     nOfNodes = 0u;
+    UA_ReadRequest_init(&readRequest);
+    UA_WriteRequest_init(&writeRequest);
+    readResponse.responseHeader.serviceResult = 0x00U; /* UA_STATUSCODE_GOOD */
 }
 
+/*lint -e{1551} No exception thrown.*/
+/*lint -e{1740} opcuaClient freed by UA_Client_delete.*/
 OPCUAClientWrapper::~OPCUAClientWrapper() {
-    UA_Client_disconnect(opcuaClient);
-    UA_Client_delete(opcuaClient);
+    UA_StatusCode code = UA_Client_disconnect(opcuaClient);
+    if (code == 0x00U) { /* UA_STATUSCODE_GOOD */
+        UA_Client_delete(opcuaClient);
+    }
     if (monitoredNodes != NULL_PTR(UA_NodeId *)) {
         delete[] monitoredNodes;
     }
@@ -80,12 +86,15 @@ OPCUAClientWrapper::~OPCUAClientWrapper() {
     if (tempVariant != NULL_PTR(UA_Variant *)) {
         delete[] tempVariant;
     }
-    for (uint32 j = 0u; j < nOfNodes; j++) {
-        if (valueMemories[j] != NULL_PTR(void*)) {
-            free(valueMemories[j]);
-        }
-    }
     if (valueMemories != NULL_PTR(void **)) {
+        for (uint32 j = 0u; j < nOfNodes; j++) {
+            if (valueMemories[j] != NULL_PTR(void*)) {
+                bool ok = HeapManager::Free(valueMemories[j]);
+                if (ok) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Information, "Value memories have been freed successfully.");
+                }
+            }
+        }
         delete[] valueMemories;
     }
 }
@@ -96,24 +105,22 @@ void OPCUAClientWrapper::SetServerAddress(StreamString address) {
 
 bool OPCUAClientWrapper::Connect() {
     UA_StatusCode retval = UA_Client_connect(opcuaClient, const_cast<char8*>(serverAddress.Buffer()));
-    return (retval == UA_STATUSCODE_GOOD);
+    return (retval == 0x00U); /* UA_STATUSCODE_GOOD */
 }
 
-bool OPCUAClientWrapper::SetTargetNodes(uint32 * namespaceIndexes,
-                                        StreamString * nodePaths,
-                                        uint32 numberOfNodes) {
+bool OPCUAClientWrapper::SetTargetNodes(const uint16 * const namespaceIndexes,
+                                        StreamString * const nodePaths,
+                                        const uint32 numberOfNodes) {
     bool ok = false;
     nOfNodes = numberOfNodes;
     monitoredNodes = new UA_NodeId[numberOfNodes];
     tempVariant = new UA_Variant[numberOfNodes];
     if (mode == "Read") {
         /* Setting up Read request */
-        UA_ReadRequest_init(&readRequest);
         readValues = new UA_ReadValueId[numberOfNodes];
     }
-    else if (mode == "Write") {
+    else { /* mode == "Write" */
         /* Setting up write request */
-        UA_WriteRequest_init(&writeRequest);
         writeValues = new UA_WriteValue[numberOfNodes];
     }
     for (uint32 i = 0u; i < numberOfNodes; i++) {
@@ -132,130 +139,153 @@ bool OPCUAClientWrapper::SetTargetNodes(uint32 * namespaceIndexes,
             }
             while (ok);
         }
-        StreamString* path = new StreamString[pathSize];
-        uint32* ids = new uint32[pathSize];
+        StreamString* path = NULL_PTR(StreamString*);
+        uint32* ids;
+        if (pathSize > 0u) {
+            path = new StreamString[pathSize];
+        }
+        ids = new uint32[pathSize];
         ok = nodePaths[i].Seek(0LLU);
         if (ok) {
-            for (uint32 k = 0u; k < pathSize; k++) {
-                ok = nodePaths[i].GetToken(pathTokenized, ".", ignore);
-                if (ok) {
-                    StreamString s = pathTokenized;
-                    path[k] = s;
+            if (path != NULL_PTR(StreamString*)) {
+                for (uint32 k = 0u; k < pathSize; k++) {
+                    ok = nodePaths[i].GetToken(pathTokenized, ".", ignore);
+                    if (ok) {
+                        StreamString s = pathTokenized;
+                        path[k] = s;
+                    }
+                    pathTokenized = "";
                 }
-                pathTokenized = "";
             }
         }
         if (ok) {
             /* Building request for Browse Service */
             UA_BrowseRequest bReq;
             UA_BrowseRequest_init(&bReq);
-            bReq.requestedMaxReferencesPerNode = 0;
+            bReq.requestedMaxReferencesPerNode = 0u;
             bReq.nodesToBrowse = UA_BrowseDescription_new();
-            bReq.nodesToBrowseSize = 1;
+            bReq.nodesToBrowseSize = 1u;
 
             /* Building request for TranslateBrowsePathsToNodeIds */
             UA_BrowsePath browsePath;
             UA_BrowsePath_init(&browsePath);
-            browsePath.startingNode = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
-            browsePath.relativePath.elements = (UA_RelativePathElement*) UA_Array_new(pathSize, &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
+            browsePath.startingNode = UA_NODEID_NUMERIC(0u, 85u); /* UA_NS0ID_OBJECTSFOLDER */
+            browsePath.relativePath.elements = static_cast<UA_RelativePathElement*>(UA_Array_new(static_cast<osulong>(pathSize),
+                                                                                                 &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]));
             browsePath.relativePath.elementsSize = pathSize;
 
-            uint32 tempNumericNodeId = UA_NS0ID_OBJECTSFOLDER;
+            uint32 tempNumericNodeId = 85u; /* UA_NS0ID_OBJECTSFOLDER */
             uint16 tempNamespaceIndex = 0u;
-            char* tempStringNodeId;
-
-            for (uint32 j = 0u; j < pathSize; j++) {
-                ids[j] = GetReferenceType(bReq, const_cast<char8*>(path[j].Buffer()), tempNamespaceIndex, tempNumericNodeId, tempStringNodeId);
-                UA_RelativePathElement *elem = &browsePath.relativePath.elements[j];
-                elem->referenceTypeId = UA_NODEID_NUMERIC(0, ids[j]);
-                elem->targetName = UA_QUALIFIEDNAME_ALLOC(namespaceIndexes[i], const_cast<char8*>(path[j].Buffer()));
+            char8* tempStringNodeId;
+            if ((path != NULL_PTR(StreamString*)) && (ids != NULL_PTR(uint32*))) {
+                for (uint32 j = 0u; j < pathSize; j++) {
+                    ids[j] = GetReferenceType(bReq, const_cast<char8*>(path[j].Buffer()), tempNamespaceIndex, tempNumericNodeId, tempStringNodeId);
+                    UA_RelativePathElement *elem = &browsePath.relativePath.elements[j];
+                    elem->referenceTypeId = UA_NODEID_NUMERIC(0u, ids[j]);
+                    /*lint -e{1055} -e{64} -e{746} UA_QUALIFIEDNAME is declared in the open62541 library.*/
+                    elem->targetName = UA_QUALIFIEDNAME_ALLOC(namespaceIndexes[i], const_cast<char8*>(path[j].Buffer()));
+                }
             }
             UA_TranslateBrowsePathsToNodeIdsRequest tbpReq;
             UA_TranslateBrowsePathsToNodeIdsRequest_init(&tbpReq);
             tbpReq.browsePaths = &browsePath;
-            tbpReq.browsePathsSize = 1;
+            tbpReq.browsePathsSize = 1u;
             UA_TranslateBrowsePathsToNodeIdsResponse tbpResp = UA_Client_Service_translateBrowsePathsToNodeIds(opcuaClient, tbpReq);
-            ok = (tbpResp.results[0].statusCode == UA_STATUSCODE_GOOD);
+            ok = (tbpResp.results[0].statusCode == 0x00U); /* UA_STATUSCODE_GOOD */
             if (ok) {
                 UA_BrowsePathTarget *ref = &(tbpResp.results[0].targets[0]);
                 monitoredNodes[i] = ref->targetId.nodeId;
             }
-
-            if (ok && mode == "Read") {
-                UA_ReadValueId_init(&readValues[i]);
-                readValues[i].attributeId = UA_ATTRIBUTEID_VALUE;
-                readValues[i].nodeId = monitoredNodes[i];
-            }
-            else if (ok && mode == "Write") {
-                UA_WriteValue_init(&writeValues[i]);
-                writeValues[i].attributeId = UA_ATTRIBUTEID_VALUE;
-                writeValues[i].nodeId = monitoredNodes[i];
-            }
             if (ok) {
+                if (mode == "Read") {
+                    if (readValues != NULL_PTR(UA_ReadValueId *)) {
+                        UA_ReadValueId_init(&readValues[i]);
+                        readValues[i].attributeId = 13u; /* UA_ATTRIBUTEID_VALUE */
+                        readValues[i].nodeId = monitoredNodes[i];
+                    }
+                }
+                else {
+                    if (writeValues != NULL_PTR(UA_WriteValue *)) {
+                        UA_WriteValue_init(&writeValues[i]);
+                        writeValues[i].attributeId = 13u; /* UA_ATTRIBUTEID_VALUE */
+                        writeValues[i].nodeId = monitoredNodes[i];
+                    }
+                }
                 UA_TranslateBrowsePathsToNodeIdsResponse_deleteMembers(&tbpResp);
-                UA_Array_delete(browsePath.relativePath.elements, pathSize, &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
+                UA_Array_delete(browsePath.relativePath.elements, static_cast<osulong>(pathSize), &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
                 UA_BrowseDescription_delete(bReq.nodesToBrowse);
-                delete[] ids;
-                delete[] path;
             }
         }
+        delete[] ids;
+        delete[] path;
     }
-    if (ok && mode == "Read") {
-        readRequest.nodesToRead = readValues;
-        readRequest.nodesToReadSize = numberOfNodes;
-    }
-    valueMemories = new void*[numberOfNodes];
-    for (uint32 i = 0u; i < numberOfNodes; i++) {
-        valueMemories[i] = NULL_PTR(void*);
+    if (ok) {
+        if (mode == "Read") {
+            readRequest.nodesToRead = readValues;
+            readRequest.nodesToReadSize = numberOfNodes;
+        }
+        valueMemories = new void*[numberOfNodes];
+        for (uint32 i = 0u; i < numberOfNodes; i++) {
+            valueMemories[i] = NULL_PTR(void*);
+        }
     }
     return ok;
 }
 
 bool OPCUAClientWrapper::GetSignalMemory(void *&mem,
-                                         uint32 idx,
+                                         const uint32 idx,
                                          const TypeDescriptor & valueTd,
                                          const uint32 nElem,
                                          const uint8 nDimensions) {
     bool ok = true;
-    valueMemories[idx] = malloc((valueTd.numberOfBits / 8) * nElem);
+    if (valueMemories != NULL_PTR(void **)) {
+        uint32 nOfBytes = valueTd.numberOfBits;
+        nOfBytes /= 8u;
+        nOfBytes *= nElem;
+        valueMemories[idx] = HeapManager::Malloc(nOfBytes);
 
-    mem = valueMemories[idx];
-    if (mode == "Write") {
-        this->SetWriteRequest(idx, nDimensions, nElem, valueTd);
+        mem = valueMemories[idx];
+        if (mode == "Write") {
+            this->SetWriteRequest(idx, nDimensions, nElem, valueTd);
+        }
     }
 
     return ok;
 
 }
 
-bool OPCUAClientWrapper::Monitor() {
+bool OPCUAClientWrapper::Monitor() const {
     bool ok = false;
     REPORT_ERROR_STATIC(ErrorManagement::UnsupportedFeature, "Monitored Items not supported yet.");
 
     return ok;
 }
 
-bool OPCUAClientWrapper::Read(uint32 numberOfNodes,
-                              TypeDescriptor * types,
-                              uint32 * nElements) {
-    bool ok = true;
+bool OPCUAClientWrapper::Read(const uint32 numberOfNodes,
+                              const TypeDescriptor * const types,
+                              const uint32 * const nElements) {
     readResponse = UA_Client_Service_read(opcuaClient, readRequest);
-    ok = (response.responseHeader.serviceResult == UA_STATUSCODE_GOOD);
+    bool ok = (readResponse.responseHeader.serviceResult == 0x00U); /* UA_STATUSCODE_GOOD */
     if (ok) {
-        for (uint32 i = 0u; i < numberOfNodes; i++) {
-            if (valueMemories[i] != NULL_PTR(void*)) {
-                memcpy(valueMemories[i], readResponse.results[i].value.data, sizeof(TypeDescriptor::GetTypeNameFromTypeDescriptor(types[i])) * nElements[i]);
+        if (valueMemories != NULL_PTR(void **)) {
+            for (uint32 i = 0u; i < numberOfNodes; i++) {
+                if (valueMemories[i] != NULL_PTR(void*)) {
+                    uint32 nOfBytes = types[i].numberOfBits;
+                    nOfBytes /= 8u;
+                    nOfBytes *= nElements[i];
+                    ok = MemoryOperationsHelper::Copy(valueMemories[i], readResponse.results[i].value.data, nOfBytes);
+                }
             }
         }
     }
     return ok;
 }
 
-uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
-                                            char* path,
+uint32 OPCUAClientWrapper::GetReferenceType(const UA_BrowseRequest &bReq,
+                                            const char8* const path,
                                             uint16 &namespaceIndex,
                                             uint32 &numericNodeId,
-                                            char* &stringNodeId) {
+                                            char8* &stringNodeId) {
     uint32 id = 0u;
     if (numericNodeId == 0u) {
         bReq.nodesToBrowse[0].nodeId = UA_NODEID_STRING(namespaceIndex, stringNodeId);
@@ -263,11 +293,12 @@ uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
     else {
         bReq.nodesToBrowse[0].nodeId = UA_NODEID_NUMERIC(namespaceIndex, numericNodeId);
     }
+    /*lint -e{1013} -e{63} -e{40} includeSubtypes is a member of struct UA_BrowseDescription.*/
     bReq.nodesToBrowse[0].includeSubtypes = true;
-    bReq.nodesToBrowse[0].resultMask = UA_BROWSERESULTMASK_ALL;
+    bReq.nodesToBrowse[0].resultMask = 63u; /* UA_BROWSERESULTMASK_ALL */
     UA_BrowseResponse *bResp = UA_BrowseResponse_new();
     *bResp = UA_Client_Service_browse(opcuaClient, bReq);
-    bool ok = (bResp->responseHeader.serviceResult == UA_STATUSCODE_GOOD);
+    bool ok = (bResp->responseHeader.serviceResult == 0x00U); /* UA_STATUSCODE_GOOD */
     if (ok) {
         bool found = false;
         uint64 initCheckTime = HighResolutionTimer::Counter();
@@ -277,29 +308,41 @@ uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
             for (uint32 i = 0u; i < bResp->resultsSize; ++i) {
                 for (uint32 j = 0u; j < bResp->results[i].referencesSize; ++j) {
                     UA_ReferenceDescription *ref = &(bResp->results[i].references[j]);
-                    if (strcmp(reinterpret_cast<char*>(ref->browseName.name.data), path) == 0) {
+                    if (StringHelper::Compare(reinterpret_cast<char8*>(ref->browseName.name.data), path) == 0) {
                         id = ref->referenceTypeId.identifier.numeric;
                         namespaceIndex = ref->nodeId.nodeId.namespaceIndex;
                         if (ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_NUMERIC) {
                             numericNodeId = ref->nodeId.nodeId.identifier.numeric;
+                            ok = true;
                         }
                         else if (ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_STRING) {
-                            stringNodeId = new char[ref->nodeId.nodeId.identifier.string.length];
-                            strcpy(stringNodeId, reinterpret_cast<char*>(ref->nodeId.nodeId.identifier.string.data));
-                            numericNodeId = 0u;
+                            stringNodeId = new char8[ref->nodeId.nodeId.identifier.string.length];
+                            ok = StringHelper::Copy(stringNodeId, reinterpret_cast<char8*>(ref->nodeId.nodeId.identifier.string.data));
+                            if (ok) {
+                                numericNodeId = 0u;
+                            }
                         }
-                        found = true;
+                        else {
+                            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "NodeID identifier type not supported.");
+                            ok = false;
+                        }
+                        if (ok) {
+                            found = true;
+                        }
                     }
                 }
             }
-            if (!found && bResp->results->continuationPoint.length) {
+            if ((!found) && bResp->results->continuationPoint.length) {
                 UA_BrowseNextRequest nextReq;
                 UA_BrowseNextRequest_init(&nextReq);
                 nextReq.continuationPoints = UA_ByteString_new();
-                UA_ByteString_copy(&(bResp->results->continuationPoint), nextReq.continuationPoints);
-                nextReq.continuationPointsSize = 1;
-                *reinterpret_cast<UA_BrowseNextResponse *>(bResp) = UA_Client_Service_browseNext(opcuaClient, nextReq);
-                UA_BrowseNextRequest_deleteMembers(&nextReq);
+                UA_StatusCode code = UA_ByteString_copy(&(bResp->results->continuationPoint), nextReq.continuationPoints);
+                if (code == 0x00U) { /* UA_STATUSCODE_GOOD */
+                    nextReq.continuationPointsSize = 1u;
+                    /*lint -e{740} The library need the recast of bResp .*/
+                    *reinterpret_cast<UA_BrowseNextResponse *>(bResp) = UA_Client_Service_browseNext(opcuaClient, nextReq);
+                    UA_BrowseNextRequest_deleteMembers(&nextReq);
+                }
             }
             finalCheckTime = HighResolutionTimer::Counter();
             if (HighResolutionTimer::TicksToTime(finalCheckTime, initCheckTime) > 5.0) {
@@ -316,116 +359,124 @@ uint32 OPCUAClientWrapper::GetReferenceType(UA_BrowseRequest bReq,
     return id;
 }
 
-void OPCUAClientWrapper::SetWriteRequest(uint32 idx,
-                                         uint8 nDimensions,
-                                         uint32 nElements,
-                                         TypeDescriptor type) {
-    bool isArray = false;
-    isArray = (nDimensions > 0);
-    TypeDescriptor::GetTypeNameFromTypeDescriptor(type);
-    if (type == UnsignedInteger8Bit) {
-        uint8 *value = reinterpret_cast<uint8*>(valueMemories[idx]);
-        if (isArray) {
-            UA_Variant_setArray(&tempVariant[idx], value, nElements, &UA_TYPES[UA_TYPES_BYTE]);
+/*lint -e{746} -e{1055} -e{534} -e{516} UA_Variant_setScalar is defined in open62541.*/
+void OPCUAClientWrapper::SetWriteRequest(const uint32 idx,
+                                         const uint8 nDimensions,
+                                         const uint32 nElements,
+                                         const TypeDescriptor &type) {
+    if (tempVariant != NULL_PTR(UA_Variant *)) {
+        bool isArray = (nDimensions > 0u);
+        if (valueMemories != NULL_PTR(void**)) {
+            if (valueMemories[idx] != NULL_PTR(void*)) {
+                if (type == UnsignedInteger8Bit) {
+                    uint8 *value = reinterpret_cast<uint8*>(valueMemories[idx]);
+                    if (isArray) {
+                        UA_Variant_setArray(&tempVariant[idx], value, static_cast<osulong>(nElements), &UA_TYPES[UA_TYPES_BYTE]);
+                    }
+                    else {
+                        UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_BYTE]);
+                    }
+                }
+                else if (type == UnsignedInteger16Bit) {
+                    uint16 *value = reinterpret_cast<uint16*>(valueMemories[idx]);
+                    if (isArray) {
+                        UA_Variant_setArray(&tempVariant[idx], value, static_cast<osulong>(nElements), &UA_TYPES[UA_TYPES_UINT16]);
+                    }
+                    else {
+                        UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_UINT16]);
+                    }
+                }
+                else if (type == UnsignedInteger32Bit) {
+                    uint32 *value = reinterpret_cast<uint32*>(valueMemories[idx]);
+                    if (isArray) {
+                        UA_Variant_setArray(&tempVariant[idx], value, static_cast<osulong>(nElements), &UA_TYPES[UA_TYPES_UINT32]);
+                    }
+                    else {
+                        UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_UINT32]);
+                    }
+                }
+                else if (type == UnsignedInteger64Bit) {
+                    uint64 *value = reinterpret_cast<uint64*>(valueMemories[idx]);
+                    if (isArray) {
+                        UA_Variant_setArray(&tempVariant[idx], value, static_cast<osulong>(nElements), &UA_TYPES[UA_TYPES_UINT64]);
+                    }
+                    else {
+                        UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_UINT64]);
+                    }
+                }
+                else if (type == SignedInteger8Bit) {
+                    int8 *value = reinterpret_cast<int8*>(valueMemories[idx]);
+                    if (isArray) {
+                        UA_Variant_setArray(&tempVariant[idx], value, static_cast<osulong>(nElements), &UA_TYPES[UA_TYPES_SBYTE]);
+                    }
+                    else {
+                        UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_SBYTE]);
+                    }
+                }
+                else if (type == SignedInteger16Bit) {
+                    int16 *value = reinterpret_cast<int16*>(valueMemories[idx]);
+                    if (isArray) {
+                        UA_Variant_setArray(&tempVariant[idx], value, static_cast<osulong>(nElements), &UA_TYPES[UA_TYPES_INT16]);
+                    }
+                    else {
+                        UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_INT16]);
+                    }
+                }
+                else if (type == SignedInteger32Bit) {
+                    int32 *value = reinterpret_cast<int32*>(valueMemories[idx]);
+                    if (isArray) {
+                        UA_Variant_setArray(&tempVariant[idx], value, static_cast<osulong>(nElements), &UA_TYPES[UA_TYPES_INT32]);
+                    }
+                    else {
+                        UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_INT32]);
+                    }
+                }
+                else if (type == SignedInteger64Bit) {
+                    int64 *value = reinterpret_cast<int64*>(valueMemories[idx]);
+                    if (isArray) {
+                        UA_Variant_setArray(&tempVariant[idx], value, static_cast<osulong>(nElements), &UA_TYPES[UA_TYPES_INT64]);
+                    }
+                    else {
+                        UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_INT64]);
+                    }
+                }
+                else if (type == Float32Bit) {
+                    float32 *value = reinterpret_cast<float32*>(valueMemories[idx]);
+                    if (isArray) {
+                        UA_Variant_setArray(&tempVariant[idx], value, static_cast<osulong>(nElements), &UA_TYPES[UA_TYPES_FLOAT]);
+                    }
+                    else {
+                        UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_FLOAT]);
+                    }
+                }
+                else if (type == Float64Bit) {
+                    float64 *value = reinterpret_cast<float64*>(valueMemories[idx]);
+                    if (isArray) {
+                        UA_Variant_setArray(&tempVariant[idx], value, static_cast<osulong>(nElements), &UA_TYPES[UA_TYPES_DOUBLE]);
+                    }
+                    else {
+                        UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_DOUBLE]);
+                    }
+                }
+                else {
+                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Write request: Type not supported.");
+                }
+            }
         }
-        else {
-            UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_BYTE]);
+        if (writeValues != NULL_PTR(UA_WriteValue *)) {
+            writeValues[idx].value.value = static_cast<const UA_Variant>(tempVariant[idx]);
+            /*lint -e{1013} -e{63} -e{40} hasValue is a member of struct UA_DataValue.*/
+            writeValues[idx].value.hasValue = true;
         }
     }
-    else if (type == UnsignedInteger16Bit) {
-        uint16 *value = reinterpret_cast<uint16*>(valueMemories[idx]);
-        if (isArray) {
-            UA_Variant_setArray(&tempVariant[idx], value, nElements, &UA_TYPES[UA_TYPES_UINT16]);
-        }
-        else {
-            UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_UINT16]);
-        }
-    }
-    else if (type == UnsignedInteger32Bit) {
-        uint32 *value = reinterpret_cast<uint32*>(valueMemories[idx]);
-        if (isArray) {
-            UA_Variant_setArray(&tempVariant[idx], value, nElements, &UA_TYPES[UA_TYPES_UINT32]);
-        }
-        else {
-            UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_UINT32]);
-        }
-    }
-    else if (type == UnsignedInteger64Bit) {
-        uint64 *value = reinterpret_cast<uint64*>(valueMemories[idx]);
-        if (isArray) {
-            UA_Variant_setArray(&tempVariant[idx], value, nElements, &UA_TYPES[UA_TYPES_UINT64]);
-        }
-        else {
-            UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_UINT64]);
-        }
-    }
-    else if (type == SignedInteger8Bit) {
-        int8 *value = reinterpret_cast<int8*>(valueMemories[idx]);
-        if (isArray) {
-            UA_Variant_setArray(&tempVariant[idx], value, nElements, &UA_TYPES[UA_TYPES_SBYTE]);
-        }
-        else {
-            UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_SBYTE]);
-        }
-    }
-    else if (type == SignedInteger16Bit) {
-        int16 *value = reinterpret_cast<int16*>(valueMemories[idx]);
-        if (isArray) {
-            UA_Variant_setArray(&tempVariant[idx], value, nElements, &UA_TYPES[UA_TYPES_INT16]);
-        }
-        else {
-            UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_INT16]);
-        }
-    }
-    else if (type == SignedInteger32Bit) {
-        int32 *value = reinterpret_cast<int32*>(valueMemories[idx]);
-        if (isArray) {
-            UA_Variant_setArray(&tempVariant[idx], value, nElements, &UA_TYPES[UA_TYPES_INT32]);
-        }
-        else {
-            UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_INT32]);
-        }
-    }
-    else if (type == SignedInteger64Bit) {
-        int64 *value = reinterpret_cast<int64*>(valueMemories[idx]);
-        if (isArray) {
-            UA_Variant_setArray(&tempVariant[idx], value, nElements, &UA_TYPES[UA_TYPES_INT64]);
-        }
-        else {
-            UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_INT64]);
-        }
-    }
-    else if (type == Float32Bit) {
-        float32 *value = reinterpret_cast<float32*>(valueMemories[idx]);
-        if (isArray) {
-            UA_Variant_setArray(&tempVariant[idx], value, nElements, &UA_TYPES[UA_TYPES_FLOAT]);
-        }
-        else {
-            UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_FLOAT]);
-        }
-    }
-    else if (type == Float64Bit) {
-        float64 *value = reinterpret_cast<float64*>(valueMemories[idx]);
-        if (isArray) {
-            UA_Variant_setArray(&tempVariant[idx], value, nElements, &UA_TYPES[UA_TYPES_DOUBLE]);
-        }
-        else {
-            UA_Variant_setScalar(&tempVariant[idx], value, &UA_TYPES[UA_TYPES_DOUBLE]);
-        }
-    }
-
-    writeValues[idx].value.value = static_cast<const UA_Variant>(tempVariant[idx]);
-    writeValues[idx].value.hasValue = true;
-
 }
 
-bool OPCUAClientWrapper::Write(uint32 numberOfNodes) {
+bool OPCUAClientWrapper::Write(const uint32 numberOfNodes) {
     writeRequest.nodesToWrite = writeValues;
     writeRequest.nodesToWriteSize = numberOfNodes;
-    bool ok = true;
-    UA_WriteResponse response = UA_Client_Service_write(opcuaClient, writeRequest);
-    ok = (response.responseHeader.serviceResult == UA_STATUSCODE_GOOD);
-    UA_WriteResponse_deleteMembers(&response);
+    UA_WriteResponse wResp = UA_Client_Service_write(opcuaClient, writeRequest);
+    bool ok = (wResp.responseHeader.serviceResult == 0x00U); /* UA_STATUSCODE_GOOD */
+    UA_WriteResponse_deleteMembers(&wResp);
     return ok;
 }
 #if 0
@@ -435,7 +486,7 @@ void OPCUAClientWrapper::UpdateMemory(UA_DataValue *value) {
 
 }
 #endif
-void OPCUAClientWrapper::SetSamplingTime(float64 sampleTime) {
+void OPCUAClientWrapper::SetSamplingTime(const float64 sampleTime) {
     samplingTime = sampleTime;
 }
 
@@ -443,4 +494,9 @@ UA_NodeId * OPCUAClientWrapper::GetMonitoredNodes() {
     return monitoredNodes;
 }
 
+void OPCUAClientWrapper::SetOperationMode(const char8* const modeType) {
+    mode = modeType;
 }
+
+}
+/*lint -restore*/

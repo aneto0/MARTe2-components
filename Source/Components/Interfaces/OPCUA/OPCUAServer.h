@@ -112,22 +112,22 @@ OPCUAServer    ();
     /**
      * @brief Provides running mode
      */
-    const bool GetRunning();
+    const bool GetRunning() const;
 
     /**
      * @brief Provides CPU mask
      */
-    const uint32 GetCPUMask();
+    const uint32 GetCPUMask() const;
 
     /**
      * @brief Provides Thread Stack Size
      */
-    const uint32 GetStackSize();
+    const uint32 GetStackSize() const;
 
     /**
      * @brief Provides Port number where Server is listen to
      */
-    const uint16 GetPort();
+    const uint16 GetPort() const;
 
     /**
      * @brief Create the OPCUA Address Space starting from a OPCUAReferenceContainer.
@@ -140,7 +140,7 @@ OPCUAServer    ();
     /**
      * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
      */
-    bool GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer, const Introspection *intro);
+    bool GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer, const Introspection * const intro);
 
     /**
      * The thread that manage the OPC UA Server functionalities.

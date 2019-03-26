@@ -34,11 +34,10 @@
 /*---------------------------------------------------------------------------*/
 #include "CompilerTypes.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
+namespace OPCUA {
 /*
  * Struct containing all the attributes and properties that belongs to a
  * OPC UA Node Variable
@@ -67,6 +66,7 @@ struct ObjectProperties {
 };
 
 typedef struct ObjectProperties * OPCUAObjectSettings;
+}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

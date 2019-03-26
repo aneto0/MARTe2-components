@@ -170,7 +170,7 @@ private:
     /**
      * The number of Signals during initialise
      */
-    uint32 numberOfSignals;
+    uint32 nOfSignals;
 
     /**
      * The number of OPC UA Nodes
@@ -192,12 +192,12 @@ private:
      * The array that stores all the namespaceIndexes for each
      * node to write
      */
-    uint32 * namespaceIndexes;
+    uint16 * namespaceIndexes;
 
     /**
      * Temporary array to store value read from configuration
      */
-    uint32 *tempNamespaceIndexes;
+    uint16 *tempNamespaceIndexes;
 
     /**
      * The array that stores the data's number of dimension for each node to write

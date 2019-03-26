@@ -27,7 +27,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
 #include "open62541.h"
+/*lint -D__cplusplus*/
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -66,7 +68,7 @@ OPCUAObject    ();
      * @see OPCUAReferenceContainer::GetOPCObject
      * @return true if all the parameters and attributes are set correctly
      */
-    virtual bool GetOPCObject(OPCUAObjectSettings &settings, uint32 nodeNumber);
+    virtual bool GetOPCObject(OPCUA::OPCUAObjectSettings &settings, const uint32 nodeNumber);
 
     /**
      * @see OPCUAReferenceContainer::IsObject
@@ -85,12 +87,6 @@ OPCUAObject    ();
      */
     virtual const bool IsFirstObject();
 
-private:
-
-    /**
-     * Boolean flag that indicates if the current Node is the first of the Address Space
-     */
-    bool isFirstObject;
 
 };
 

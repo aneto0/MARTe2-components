@@ -37,12 +37,12 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-
+/*-e909 and -e9133 redefines bool. -e578 symbol ovveride in CLASS_REGISTER*/
+/*lint -save -e909 -e9133 -e578*/
 namespace MARTe {
 
 OPCUAObject::OPCUAObject() :
         OPCUAReferenceContainer() {
-    isFirstObject = false;
     //parentNodeId = 0u;
 }
 
@@ -50,27 +50,22 @@ OPCUAObject::~OPCUAObject() {
 
 }
 
-bool OPCUAObject::GetOPCObject(OPCUAObjectSettings &settings, uint32 nodeNumber) {
+bool OPCUAObject::GetOPCObject(OPCUA::OPCUAObjectSettings &settings, const uint32 nodeNumber) {
     bool ok = true;
     settings->attr = UA_ObjectAttributes_default;
     SetNodeId(nodeNumber);
     //settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
-    settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
-    /*char * localization = new char[strlen("en-US") + 1];
-    StringHelper::Copy(localization, "en-US");*/
-    //StreamString localization = "en-US";
-    /*char * readName = new char[StringHelper::Length(GetName()) + 1];
-    StringHelper::Copy(readName, GetName());*/
-    //StreamString readName = GetName();
-    settings->nodeName = UA_QUALIFIEDNAME(1, const_cast<char8*>(GetName()));
+    settings->nodeId = UA_NODEID_NUMERIC(1u, nodeNumber);
+    /*lint -e{1055} -e{64} -estring(628, *UA_QUALIFIEDNAME*) -estring(526, *UA_QUALIFIEDNAME*) UA_QUALIFIEDNAME is declared in the open62541 library.*/
+    settings->nodeName = UA_QUALIFIEDNAME(1u, const_cast<char8*>(GetName()));
     settings->attr.displayName = UA_LOCALIZEDTEXT(const_cast<char8*>("en-US"), const_cast<char8*>(GetName()));
     if (parentNodeId == 0u) {
-        settings->parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
+        settings->parentNodeId = UA_NODEID_NUMERIC(0u, 85u); /* UA_NS0ID_OBJECTSFOLDER = 85 */
     }
     else {
-        settings->parentNodeId = UA_NODEID_NUMERIC(1, parentNodeId);
+        settings->parentNodeId = UA_NODEID_NUMERIC(1u, parentNodeId);
     }
-    settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
+    settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0u, 35u); /* UA_NS0ID_ORGANIZES = 35 */
     return ok;
 }
 
@@ -89,7 +84,7 @@ const bool OPCUAObject::IsFirstObject() {
 CLASS_REGISTER(OPCUAObject, "");
 
 }
-
+/*lint -restore*/
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

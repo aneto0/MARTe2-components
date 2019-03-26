@@ -110,6 +110,12 @@ NI9157DeviceOperatorDatabase.cpp
 NI9157DeviceOperatorT.cpp
 NI9157DeviceOperatorTI.cpp
 NI9157MxiDataSource.cpp*/
+OPCUAClientWrapper.cpp
+OPCUADSInput.cpp
+OPCUADSOutput.cpp
+OPCUANode.cpp
+OPCUAObject.cpp
+OPCUAReferenceContainer.cpp
 OPCUAServer.cpp
 /*Platform.cpp
 PIDGAM.cpp

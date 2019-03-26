@@ -21,7 +21,6 @@
  * methods, such as those inline could be defined on the header file, instead.
  */
 
-
 #define DLL_API
 
 /*---------------------------------------------------------------------------*/
@@ -34,11 +33,11 @@
 
 #include "OPCUANode.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-
+/*-e909 and -e9133 redefines bool. -e578 symbol ovveride in CLASS_REGISTER*/
+/*lint -save -e909 -e9133 -e578*/
 namespace MARTe {
 
 OPCUANode::OPCUANode() :
@@ -49,18 +48,16 @@ OPCUANode::OPCUANode() :
 OPCUANode::~OPCUANode() {
 
 }
-
-bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
-                               TypeDescriptor nodeType,
-                               uint32 nodeNumber) {
+/*lint -e{534} No returning value is ignored.*/
+/*lint -e{746} -e{1055} -e{534} -e{516} UA_Variant_setScalar is defined in open62541.*/
+bool OPCUANode::GetOPCVariable(OPCUA::OPCUANodeSettings &settings,
+                               const TypeDescriptor nType,
+                               const uint32 nNumber) {
     bool ok = true;
-//    char * localization = new char[strlen("en-US") + 1];
-//    strcpy(localization, "en-US");
-    //StreamString localization = "en-US";
     settings->attr = UA_VariableAttributes_default;
-    settings->attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
-    SetNodeId(nodeNumber);
-    bool isArray = (numberOfDimensions > 0);
+    settings->attr.accessLevel = (0x1u)|static_cast<uint8>((0x1u<<1u));//static_cast<uint8>(static_cast<uint8>(0x01U) | ((static_cast<uint8>(0x01U))<<1u)); /* UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE */
+    SetNodeId(nNumber);
+    bool isArray = (numberOfDimensions > 0u);
     uint64 nElements = 1u;
     /* Setting the array parameters in the OPCUA Variable */
     if (isArray) {
@@ -68,89 +65,93 @@ bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
             nElements *= numberOfElements[i];
         }
     }
-    if (nodeType == UnsignedInteger8Bit) {
+    if (nType == UnsignedInteger8Bit) {
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_BYTE], nElements);
+            ok = InitArray(settings, &UA_TYPES[UA_TYPES_BYTE], nElements);
         }
         else {
+            /*lint -estring(628, *UA_Variant_setScalar*) -estring(526, *UA_Variant_setScalar*) UA_Variant_setScalar is defined in open62541 */
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_BYTE]);
         }
     }
-    else if (nodeType == UnsignedInteger16Bit) {
+    else if (nType == UnsignedInteger16Bit) {
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_UINT16], nElements);
+            ok = InitArray(settings, &UA_TYPES[UA_TYPES_UINT16], nElements);
         }
         else {
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_UINT16]);
         }
     }
-    else if (nodeType == UnsignedInteger32Bit) {
+    else if (nType == UnsignedInteger32Bit) {
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_UINT32], nElements);
+            ok = InitArray(settings, &UA_TYPES[UA_TYPES_UINT32], nElements);
         }
         else {
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_UINT32]);
         }
     }
-    else if (nodeType == UnsignedInteger64Bit) {
+    else if (nType == UnsignedInteger64Bit) {
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_UINT64], nElements);
+            ok = InitArray(settings, &UA_TYPES[UA_TYPES_UINT64], nElements);
         }
         else {
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_UINT64]);
         }
     }
-    else if (nodeType == SignedInteger8Bit) {
+    else if (nType == SignedInteger8Bit) {
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_SBYTE], nElements);
+            ok = InitArray(settings, &UA_TYPES[UA_TYPES_SBYTE], nElements);
         }
         else {
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_SBYTE]);
         }
     }
-    else if (nodeType == SignedInteger16Bit) {
+    else if (nType == SignedInteger16Bit) {
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_INT16], nElements);
+            ok = InitArray(settings, &UA_TYPES[UA_TYPES_INT16], nElements);
         }
         else {
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_INT16]);
         }
     }
-    else if (nodeType == SignedInteger32Bit) {
+    else if (nType == SignedInteger32Bit) {
         settings->attr.dataType = UA_TYPES[UA_TYPES_INT32].typeId;
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_INT32], nElements);
+            ok = InitArray(settings, &UA_TYPES[UA_TYPES_INT32], nElements);
         }
         else {
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_INT32]);
         }
     }
-    else if (nodeType == SignedInteger64Bit) {
+    else if (nType == SignedInteger64Bit) {
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_INT64], nElements);
+            ok = InitArray(settings, &UA_TYPES[UA_TYPES_INT64], nElements);
         }
         else {
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_INT64]);
         }
     }
-    else if (nodeType == Float32Bit) {
+    else if (nType == Float32Bit) {
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_FLOAT], nElements);
+            ok = InitArray(settings, &UA_TYPES[UA_TYPES_FLOAT], nElements);
         }
         else {
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_FLOAT]);
         }
     }
-    else if (nodeType == Float64Bit) {
+    else if (nType == Float64Bit) {
         if (isArray) {
-            InitArray(settings, &UA_TYPES[UA_TYPES_DOUBLE], nElements);
+            ok = InitArray(settings, &UA_TYPES[UA_TYPES_DOUBLE], nElements);
         }
         else {
             UA_Variant_setScalar(&settings->attr.value, &settings->value, &UA_TYPES[UA_TYPES_DOUBLE]);
         }
     }
+    else {
+        ok = false;
+    }
 #if 0
-    else if ((nodeType.type == CArray) || (nodeType.type == BT_CCString) || (nodeType.type == PCString) || (nodeType.type == SString)) {
+    else if ((nType.type == CArray) || (nType.type == BT_CCString) || (nType.type == PCString) || (nType.type == SString)) {
         if (isArray) {
             //InitArray(settings, &UA_TYPES[UA_TYPES_STRING], nElements);
             ok = false;
@@ -163,26 +164,29 @@ bool OPCUANode::GetOPCVariable(OPCUANodeSettings &settings,
         }
     }
 #endif
-    //settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
-    settings->nodeId = UA_NODEID_NUMERIC(1, nodeNumber);
-    /*char * readName = new char[strlen(GetName()) + 1];
-    strcpy(readName, GetName());*/
-    //StreamString readName = GetName();
-    settings->nodeName = UA_QUALIFIEDNAME(1, const_cast<char8*>(GetName()));
-    settings->attr.displayName = UA_LOCALIZEDTEXT(const_cast<char8*>("en-US"), const_cast<char8*>(GetName()));
+    if (ok) {
+        //settings->nodeId = UA_NODEID_STRING_ALLOC(1, GetName());
+        settings->nodeId = UA_NODEID_NUMERIC(1u, nNumber);
+        /*char * readName = new char[strlen(GetName()) + 1];
+         strcpy(readName, GetName());*/
+        //StreamString readName = GetName();
+        /*lint -e{1055} -e{64} -e{746} UA_QUALIFIEDNAME is declared in the open62541 library.*/
+        settings->nodeName = UA_QUALIFIEDNAME(1, const_cast<char8*>(GetName()));
+        settings->attr.displayName = UA_LOCALIZEDTEXT(const_cast<char8*>("en-US"), const_cast<char8*>(GetName()));
+        if (parentNodeId == 0u) {
+            settings->parentNodeId = UA_NODEID_NUMERIC(0u, 85u); /* UA_NS0ID_OBJECTSFOLDER = 85 */
+            settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0u, 35u); /* UA_NS0ID_ORGANIZES = 35 */
+            parentReferenceNodeId = 0u;
+            ok = true;
+        }
+        else {
+            settings->parentNodeId = UA_NODEID_NUMERIC(1u, parentNodeId);
+        }
+        if (parentReferenceNodeId == 1u) {
+            settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0u, 47u); /* UA_NS0ID_HASCOMPONENT = 47 */
+        }
+    }
 
-    if (parentNodeId == 0u) {
-        settings->parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
-        settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
-        parentReferenceNodeId = 0u;
-        ok = true;
-    }
-    else {
-        settings->parentNodeId = UA_NODEID_NUMERIC(1, parentNodeId);
-    }
-    if (parentReferenceNodeId == 1u) {
-        settings->parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);
-    }
     return ok;
 }
 
@@ -190,25 +194,31 @@ bool OPCUANode::IsNode() {
     return true;
 }
 
-void OPCUANode::InitArray(OPCUANodeSettings &settings,
-                          const UA_DataType *type,
-                          uint64 nElem) {
-    settings->attr.valueRank = numberOfDimensions;
-    settings->attr.arrayDimensions = static_cast<uint32 *>(UA_Array_new(numberOfDimensions, type));
+bool OPCUANode::InitArray(OPCUA::OPCUANodeSettings const & settings,
+                          const UA_DataType * const type,
+                          const uint64 nElem) {
+    bool ok = true;
+    //settings->attr.valueRank = numberOfDimensions;
+    settings->attr.valueRank = 1; /*numberOfDimensions */
+    settings->attr.arrayDimensions = static_cast<uint32 *>(UA_Array_new(static_cast<osulong>(numberOfDimensions), type));
     settings->attr.arrayDimensionsSize = numberOfDimensions;
-    settings->attr.value.arrayDimensions = static_cast<uint32 *>(UA_Array_new(numberOfDimensions, type));
+    settings->attr.value.arrayDimensions = static_cast<uint32 *>(UA_Array_new(static_cast<osulong>(numberOfDimensions), type));
     settings->attr.value.arrayDimensionsSize = numberOfDimensions;
     for (uint8 k = 0u; k < numberOfDimensions; k++) {
         settings->attr.arrayDimensions[k] = numberOfElements[k];
         settings->attr.value.arrayDimensions[k] = numberOfElements[k];
     }
-    UA_Variant_setArrayCopy(&settings->attr.value, &settings->value, nElem, type);
+    UA_StatusCode code = UA_Variant_setArrayCopy(&settings->attr.value, &settings->value, nElem, type);
+    if (code != 0x00U) { /* UA_STATUSCODE_GOOD */
+        ok = false;
+    }
+    return ok;
 }
 
 CLASS_REGISTER(OPCUANode, "");
 
 }
-
+/*lint -restore*/
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
