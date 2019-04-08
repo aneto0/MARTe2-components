@@ -117,6 +117,7 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
         bool ok = false;
         uint32 nOfChildren = cdb.GetNumberOfChildren();
         StreamString typeStr;
+        typeStr.SetSize(0LLU);
         uint32 i;
         for (i = 0u; i < nOfChildren; i++) {
             ok = cdb.MoveToChild(i);
@@ -149,7 +150,7 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
                     mainNode->SetName(cdb.GetChildName(i));
                     TypeDescriptor td = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
                     mainNode->SetNodeType(td);
-                    if (cdb.MoveToChild(0u)) {
+                    if (cdb.MoveToChild(i)) {
                         uint32 nElem = 1u;
                         ok = cdb.Read("NumberOfElements", nElem);
                         if ((nElem > 1u) && ok) {
