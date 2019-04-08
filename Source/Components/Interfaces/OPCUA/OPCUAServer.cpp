@@ -165,12 +165,13 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
 
                 }
             }
-            if (ok) {
-                SetRunning(true);
-            }
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Cannot initialise Address Space");
             }
+            typeStr.Seek(0LLU);
+        }
+        if (ok) {
+            SetRunning(true);
         }
         //This is a blocking call
         /*lint -e{64} No type mismatch because open62541 redefines boolean.*/
