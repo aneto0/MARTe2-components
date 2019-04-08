@@ -44,9 +44,6 @@
 /*lint -save -e909 -e9133 -e1938*/
 namespace MARTe {
 
-/*************************************************************
- * Class members implementation
- **************************************************************/
 OPCUAClientWrapper::OPCUAClientWrapper() {
     config = UA_ClientConfig_default;
     opcuaClient = UA_Client_new(config);

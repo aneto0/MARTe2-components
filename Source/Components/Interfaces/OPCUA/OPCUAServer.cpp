@@ -151,7 +151,8 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
                     mainNode->SetNodeType(td);
                     if (cdb.MoveToChild(0u)) {
                         uint32 nElem = 1u;
-                        if (cdb.Read("NumberOfElements", nElem)) {
+                        ok = cdb.Read("NumberOfElements", nElem);
+                        if ((nElem > 1u) && ok) {
                             mainNode->SetNumberOfDimensions(1u);
                             mainNode->SetNumberOfElements(0u, nElem);
                         }
