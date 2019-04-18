@@ -44,7 +44,6 @@ TEST(EPICSPVAOutputGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-
 TEST(EPICSPVAOutputGTest,TestAllocateMemory) {
     EPICSPVAOutputTest test;
     ASSERT_TRUE(test.TestAllocateMemory());
@@ -88,11 +87,6 @@ TEST(EPICSPVAOutputGTest,TestInitialise_Defaults) {
 TEST(EPICSPVAOutputGTest,TestInitialise_False_Signals) {
     EPICSPVAOutputTest test;
     ASSERT_TRUE(test.TestInitialise_False_Signals());
-}
-
-TEST(EPICSPVAOutputGTest,TestInitialise_False_NumberOfBuffers) {
-    EPICSPVAOutputTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers());
 }
 
 TEST(EPICSPVAOutputGTest,TestGetCPUMask) {
@@ -145,4 +139,23 @@ TEST(EPICSPVAOutputGTest,TestSynchronise_Arrays) {
     ASSERT_TRUE(test.TestSynchronise_Arrays());
 }
 
-	
+TEST(EPICSPVAOutputGTest,TestSynchronise_StructuredType) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSynchronise_StructuredType());
+}
+
+TEST(EPICSPVAOutputGTest,TestSynchronise_Arrays_StructuredType) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSynchronise_Arrays_StructuredType());
+}
+
+TEST(EPICSPVAOutputGTest,TestSynchronise_Arrays_Elements) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSynchronise_Arrays_Elements());
+}
+
+TEST(EPICSPVAOutputGTest,TestSynchronise_False_BadSignal) {
+    EPICSPVAOutputTest test;
+    ASSERT_TRUE(test.TestSynchronise_False_BadSignal());
+}
+

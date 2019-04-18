@@ -93,11 +93,6 @@ public:
     bool TestInitialise_False_Signals();
 
     /**
-     * @brief Tests the Initialise method without specifying the NumberOfBuffers
-     */
-    bool TestInitialise_False_NumberOfBuffers();
-
-    /**
      * @brief Tests the SetConfiguredDatabase method.
      */
     bool TestSetConfiguredDatabase();
@@ -116,16 +111,6 @@ public:
      * @brief Tests the SetConfiguredDatabase method with more than one GAM interacting with the DataSourceI.
      */
     bool TestSetConfiguredDatabase_False_MoreThanOneGAM();
-
-    /**
-     * @brief Tests that the PV values are correctly written by the DataSourceI
-     */
-    bool TestExecute();
-
-    /**
-     * @brief Tests that the PV values are correctly written by the DataSourceI when using arrays.
-     */
-    bool TestExecute_Arrays();
 
     /**
      * @brief Tests the GetCPUMask method.
@@ -156,6 +141,32 @@ public:
      * @brief Tests the Synchronise method with arrays.
      */
     bool TestSynchronise_Arrays();
+
+    /**
+     * @brief Tests the Synchronise method with array elements.
+     */
+    bool TestSynchronise_Arrays_Elements();
+
+    /**
+     * @brief Tests the Synchronise method with a structured type.
+     */
+    bool TestSynchronise_StructuredType();
+
+    /**
+     * @brief Tests the Synchronise method with a structured type with arrays.
+     */
+    bool TestSynchronise_Arrays_StructuredType();
+
+    /**
+     * @brief Tests that the Synchronise method fails with a CharString.
+     */
+    bool TestSynchronise_False_CharString();
+
+    /**
+     * @brief Tests that the Synchronise method fails with a badly specified signal.
+     */
+    bool TestSynchronise_False_BadSignal();
+
 };
 
 /*---------------------------------------------------------------------------*/

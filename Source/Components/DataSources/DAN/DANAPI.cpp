@@ -59,6 +59,19 @@ bool InitLibrary() {
     return ok;
 }
 
+bool InitLibraryICProg(const char8 * const progName) {
+    bool ok = true;
+    if (danDataCore == NULL_PTR(dan_DataCore)) {
+#ifdef CCS_LT_60
+        ok = (danDataCore != NULL_PTR(dan_DataCore));
+#else
+        danDataCore = dan_initLibrary_icprog(progName); // CCSv6.0 and above
+#endif
+        ok = (danDataCore != NULL_PTR(dan_DataCore));
+    }
+    return ok;
+}
+
 void CloseLibrary() {
     if (danDataCore != NULL_PTR(dan_DataCore)) {
         dan_closeLibrary(danDataCore);

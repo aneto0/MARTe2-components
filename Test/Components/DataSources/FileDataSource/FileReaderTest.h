@@ -92,6 +92,16 @@ public:
     bool TestSynchronise_CSV();
 
     /**
+     * @brief Tests the Synchronise method with csv files and using the comma as the separator.
+     */
+    bool TestSynchronise_CSV_Comma();
+
+    /**
+     * @brief Tests the Synchronise method with csv files and strings.
+     */
+    bool TestSynchronise_CSV_Strings();
+
+    /**
      * @brief Tests the Synchronise method with csv files and interpolation.
      */
     bool TestSynchronise_CSV_Interpolation();
@@ -175,6 +185,11 @@ public:
      * @brief Tests the Initialise method without specifying the CSVSeparator.
      */
     bool TestInitialise_False_CSVSeparator();
+
+    /**
+     * @brief Tests the Initialise method specifying a bad EOF option.
+     */
+    bool TestInitialise_False_EOF();
 
     /**
      * @brief Tests the Initialise method without specifying the XAxisSignal.
@@ -275,6 +290,46 @@ public:
      * @brief Tests that an Invalid message type is correctly captured.
      */
     bool TestInvalidMessageType();
+
+    /**
+     * @brief Tests the EOF for the CVS files with the default behaviour (Rewind).
+     */
+    bool TestEOF_CSV();
+
+    /**
+     * @brief Tests the EOF for binary files with the default behaviour (Rewind).
+     */
+    bool TestEOF_Binary();
+
+    /**
+     * @brief Tests the EOF for the CVS files with the Rewind behaviour.
+     */
+    bool TestEOF_Rewind_CSV();
+
+    /**
+     * @brief Tests the EOF for binary files with the Rewind behaviour.
+     */
+    bool TestEOF_Rewind_Binary();
+
+    /**
+     * @brief Tests the EOF for the CVS files with the Last behaviour.
+     */
+    bool TestEOF_Last_CSV();
+
+    /**
+     * @brief Tests the EOF for binary files with the Last behaviour.
+     */
+    bool TestEOF_Last_Binary();
+
+    /**
+     * @brief Tests the EOF for the CVS files with the Error behaviour.
+     */
+    bool TestEOF_Error_CSV();
+
+    /**
+     * @brief Tests the EOF for binary files with the Error behaviour.
+     */
+    bool TestEOF_Error_Binary();
 };
 
 /*---------------------------------------------------------------------------*/

@@ -49,4 +49,9 @@ TEST(EPICSPVAMessageIGTest,TestConsumeMessage) {
     ASSERT_TRUE(test.Testrequest());
 }
 
+TEST(EPICSPVAMessageIGTest,TestConsumeMessage_EPICSPVAStructuredDataI) {
+    EPICSPVAMessageITest test;
+    ASSERT_TRUE(test.Testrequest_EPICSPVAStructuredDataI());
+}
+
 	

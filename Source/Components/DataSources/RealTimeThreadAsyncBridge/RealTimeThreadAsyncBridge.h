@@ -196,7 +196,7 @@ protected:
     /**
      * Stores the signal offset in case of more write operations.
      */
-    uint32 offsetStore;
+    uint32 *offsetStore;
 
     /**
      * The timeout in millisecs to lock the other \a spinlocksWrite semaphores

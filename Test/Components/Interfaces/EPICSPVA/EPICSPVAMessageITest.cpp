@@ -35,6 +35,7 @@
 #include "EPICSPVAMessageI.h"
 #include "EPICSPVAMessageITest.h"
 #include "EPICSRPCServer.h"
+#include "EPICSPVAStructureDataI.h"
 #include "ObjectRegistryDatabase.h"
 #include "RegisteredMethodsMessageFilter.h"
 #include "MessageI.h"
@@ -143,7 +144,89 @@ bool EPICSPVAMessageITest::Testrequest() {
         Object notReallyUsed;
         ok = MessageI::SendMessageAndWaitReply(msg, &notReallyUsed);
     }
-    ReferenceT<ConfigurationDatabase> payloadReply;
+    ReferenceT<StructuredDataI> payloadReply;
+    if (ok) {
+        payloadReply = msg->Get(1);
+        ok = payloadReply.IsValid();
+    }
+    uint32 val;
+    if (ok) {
+        ok = payloadReply->Read("param1", val);
+    }
+    if (ok) {
+        ok = (val == 50);
+    }
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+
+bool EPICSPVAMessageITest::Testrequest_EPICSPVAStructuredDataI() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+EPICSPVAMessageITestObject = {"
+            "    Class = EPICSPVAMessageITestObject"
+            "}"
+            "+EPICSRPCServer = {"
+            "    Class = EPICSPVA::EPICSRPCServer"
+            "    +EPICSPVAMessageI = {"
+            "        Class = EPICSPVA::EPICSPVAMessageI"
+            "    }"
+            "}"
+            "+EPICSRPCClient = {"
+            "    Class = EPICSPVA::EPICSRPCClient"
+            "}";
+
+    ConfigurationDatabase cdb;
+    config.Seek(0LLU);
+    StandardParser parser(config, cdb);
+
+    bool ok = parser.Parse();
+    if (ok) {
+        cdb.MoveToRoot();
+        ok = ObjectRegistryDatabase::Instance()->Initialise(cdb);
+    }
+    if (ok) {
+        ReferenceT<Message> msgStart(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        ConfigurationDatabase msgConfig;
+        msgStart->SetName("EPICSRPCServerStart");
+        msgConfig.Write("Destination", "EPICSRPCServer");
+        msgConfig.Write("Function", "Start");
+        msgStart->Initialise(msgConfig);
+        MessageI::SendMessage(msgStart);
+    }
+    if (ok) {
+        ReferenceT<Message> msgStart(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        ConfigurationDatabase msgConfig;
+        msgStart->SetName("EPICSRPCClientStart");
+        msgConfig.Write("Destination", "EPICSRPCClient");
+        msgConfig.Write("Function", "Start");
+        msgStart->Initialise(msgConfig);
+        MessageI::SendMessage(msgStart);
+    }
+    ReferenceT<Message> msg(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ReferenceT<EPICSPVAStructureDataI> payload(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    payload->InitStructure();
+    if (ok) {
+        ConfigurationDatabase msgConfig;
+        msg->SetName("EPICSPVAMessageI");
+        msgConfig.Write("Destination", "EPICSRPCClient");
+        msgConfig.Write("Function", "");
+        msg->Initialise(msgConfig);
+        payload->Write("Destination", "EPICSPVAMessageITestObject");
+        payload->Write("Function", "HandleMessage");
+        payload->Write("Mode", "ExpectsReply");
+        payload->CreateAbsolute("_Parameters");
+        payload->Write("Class", "ConfigurationDatabase");
+        payload->Write("param1", 5);
+        payload->FinaliseStructure();
+        payload->MoveToRoot();
+        msg->SetExpectsReply(true);
+        msg->Insert(payload);
+        Object notReallyUsed;
+        ok = MessageI::SendMessageAndWaitReply(msg, &notReallyUsed);
+    }
+    ReferenceT<StructuredDataI> payloadReply;
     if (ok) {
         payloadReply = msg->Get(1);
         ok = payloadReply.IsValid();

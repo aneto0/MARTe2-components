@@ -31,10 +31,10 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "DataSourceI.h"
 #include "EmbeddedServiceMethodBinderI.h"
 #include "EPICSPVAChannelWrapper.h"
 #include "EventSem.h"
+#include "MemoryDataSourceI.h"
 #include "MultiThreadService.h"
 
 /*---------------------------------------------------------------------------*/
@@ -51,52 +51,27 @@ namespace MARTe {
  * Each signal root name defines the name of the record (signal).
  * The configuration syntax is (names are only given as an example):
  *
+ * Note that strings shall be specified with Type = string (also inside structured types).
+ *
  * <pre>
  * +EPICSPVAInput_1 = {
  *     Class = EPICSPVADataSource::EPICSPVAInput
  *     StackSize = 1048576 //Optional the EmbeddedThread stack size. Default value is THREADS_DEFAULT_STACKSIZE * 4u
  *     CPUs = 0xff //Optional the affinity of the EmbeddedThread which actually performs the PVA monitoring.
  *     Signals = {
- *         RecordOut1 = {//Record name if the Alias field is not set
+ *         RecordIn1Value = {//Record name if the Alias field is not set
  *             Alias = "alternative::channel::name"
- *             UnsignedIntegers = {
- *                 UInt8 = {
- *                     Type = uint8
- *                     NumberOfElements = 8
- *                 }
- *                 UInt16 = {
- *                     Type = uint16
- *                     NumberOfElements = 1
- *                 }
- *                 UInt32 = {
- *                     Type = uint32
- *                     NumberOfElements = 1
- *                 }
- *                 UInt64 = {
- *                     Type = uint64
- *                     NumberOfElements = 1
- *                 }
- *             }
+ *             Field = "value" //If not set "value" is assumed
+ *             Type = MyStruct1 //See e.g. InstrospectionStructure
  *         }
- *         RecordOut2 = {
- *             SignedIntegers = {
- *                 Int8 = {
- *                     Type = int8
- *                     NumberOfElements = 2
- *                 }
- *                 Int16 = {
- *                     Type = int16
- *                     NumberOfElements = 4
- *                 }
- *                 Int32 = {
- *                     Type = int32
- *                     NumberOfElements = 1
- *                 }
- *                 Int64 = {
- *                     Type = int64
- *                     NumberOfElements = 1
- *                 }
- *             }
+ *         RecordIn1Status = {//Record name if the Alias field is not set
+ *             Alias = "alternative::channel::name" //Note that this is the same record as RecordIn1Value
+ *             Field = "value"
+ *             Type = uint32
+ *         }
+ *         RecordIn2 = {
+ *             Field = "test"
+ *             Type = MyStruct3
  *         }
  *         ...
  *     }
@@ -104,7 +79,7 @@ namespace MARTe {
  *
  * </pre>
  */
-class EPICSPVAInput: public DataSourceI, public EmbeddedServiceMethodBinderI {
+class EPICSPVAInput: public MemoryDataSourceI, public EmbeddedServiceMethodBinderI {
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -117,27 +92,6 @@ EPICSPVAInput    ();
      * @brief Destructor. NOOP.
      */
     virtual ~EPICSPVAInput();
-
-    /**
-     * @brief See DataSourceI::AllocateMemory. NOOP.
-     * @return true.
-     */
-    virtual bool AllocateMemory();
-
-    /**
-     * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @return 1.
-     */
-    virtual uint32 GetNumberOfMemoryBuffers();
-
-    /**
-     * @brief See DataSourceI::GetSignalMemoryBuffer.
-     * @pre
-     *   SetConfiguredDatabase
-     */
-    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
@@ -169,6 +123,13 @@ EPICSPVAInput    ();
      * @return true if all the parameters are valid and the conditions above are met.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
+
+    /**
+     * @brief Calls EPICSPVAChannelWrapper::Setup and start the threading service.
+     * @details see MemoryDataSourceI::AllocateMemory
+     * @return true if the EPICSPVAChannelWrapper::Setup was successful and the service started.
+     */
+    virtual bool AllocateMemory();
 
     /**
      * @brief Gets the affinity of the thread which is going to be used to asynchronously read data from the pvac::MonitorSync.

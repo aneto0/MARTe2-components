@@ -66,6 +66,9 @@ OPCUANode    ();
 
     /**
      * @see OPCUAReferenceContainer::GetOPCVariable
+     * @param[in] setting the OPCUANodeSettings.
+     * @param[in] nType the node type.
+     * @param[in] nNumber the node number.
      * @return true if all the parameters and attributes are set correctly
      */
     virtual bool GetOPCVariable(OPCUA::OPCUANodeSettings &settings, const TypeDescriptor nType, const uint32 nNumber);

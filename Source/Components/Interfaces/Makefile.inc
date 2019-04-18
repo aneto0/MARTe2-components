@@ -41,6 +41,10 @@ ifdef EPICS_BASE
 SPB+=EPICS.x
 endif
 
+ifdef MDSPLUS_DIR
+SPB+= MDSStructuredDataI.x
+endif
+
 ifdef CODAC_ROOT
 ## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
@@ -79,6 +83,11 @@ endif
 ifdef OPEN62541_LIB
 LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUA/OPCUA$(LIBEXT)
 endif
+
+ifdef MDSPLUS_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/MDSStructuredDataI/MDSStructuredDataI$(LIBEXT)
+endif
+
 
 all: $(OBJS)  $(SUBPROJ)  \
     $(BUILD_DIR)/Interfaces$(LIBEXT) \

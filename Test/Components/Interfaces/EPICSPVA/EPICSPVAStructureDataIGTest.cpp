@@ -49,6 +49,11 @@ TEST(EPICSPVAStructureDataIGTest,TestRead_UInt8) {
     ASSERT_TRUE(test.TestRead_UInt8());
 }
 
+TEST(EPICSPVAStructureDataIGTest,TestRead_Boolean) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Boolean());
+}
+
 TEST(EPICSPVAStructureDataIGTest,TestRead_UInt16) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestRead_UInt16());
@@ -102,6 +107,11 @@ TEST(EPICSPVAStructureDataIGTest,TestRead_StreamString) {
 TEST(EPICSPVAStructureDataIGTest,TestRead_UInt8_Array) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestRead_UInt8_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestRead_Boolean_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestRead_Boolean_Array());
 }
 
 TEST(EPICSPVAStructureDataIGTest,TestRead_UInt16_Array) {
@@ -484,14 +494,14 @@ TEST(EPICSPVAStructureDataIGTest,TestCopy) {
     ASSERT_TRUE(test.TestCopy());
 }
 
+TEST(EPICSPVAStructureDataIGTest,TestCopy_Structures) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestCopy_Structures());
+}
+
 TEST(EPICSPVAStructureDataIGTest,TestCopy_False_FinaliseStructure) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestCopy_False_FinaliseStructure());
-}
-
-TEST(EPICSPVAStructureDataIGTest,TestAddToCurrentNode) {
-    EPICSPVAStructureDataITest test;
-    ASSERT_TRUE(test.TestAddToCurrentNode());
 }
 
 TEST(EPICSPVAStructureDataIGTest,TestMoveAbsolute) {
@@ -602,4 +612,29 @@ TEST(EPICSPVAStructureDataIGTest,TestGetRootStruct) {
 TEST(EPICSPVAStructureDataIGTest,TestIsStructureFinalised) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestIsStructureFinalised());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestCopyValuesFrom) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestCopyValuesFrom());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestCopyValuesFrom_False) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestCopyValuesFrom_False());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestPerformance) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestPerformance());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestToString) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestToString());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestToString_False) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestToString_False());
 }

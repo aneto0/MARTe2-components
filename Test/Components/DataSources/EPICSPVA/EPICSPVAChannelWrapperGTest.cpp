@@ -49,14 +49,9 @@ TEST(EPICSPVAChannelWrapperGTest,TestSetup) {
     ASSERT_TRUE(test.TestSetup());
 }
 
-TEST(EPICSPVAChannelWrapperGTest,TestSetup_False_Dimensions) {
+TEST(EPICSPVAChannelWrapperGTest,TestSetAliasAndField) {
     EPICSPVAChannelWrapperTest test;
-    ASSERT_TRUE(test.TestSetup_False_Dimensions());
-}
-
-TEST(EPICSPVAChannelWrapperGTest,TestSetup_False_InvalidLeaf) {
-    EPICSPVAChannelWrapperTest test;
-    ASSERT_TRUE(test.TestSetup_False_InvalidLeaf());
+    ASSERT_TRUE(test.TestSetAliasAndField());
 }
 
 TEST(EPICSPVAChannelWrapperGTest,TestGetChannelName) {
@@ -64,14 +59,9 @@ TEST(EPICSPVAChannelWrapperGTest,TestGetChannelName) {
     ASSERT_TRUE(test.TestGetChannelName());
 }
 
-TEST(EPICSPVAChannelWrapperGTest,TestGetChannelUnaliasedName) {
+TEST(EPICSPVAChannelWrapperGTest,TestGetFieldName) {
     EPICSPVAChannelWrapperTest test;
-    ASSERT_TRUE(test.TestGetChannelUnaliasedName());
-}
-
-TEST(EPICSPVAChannelWrapperGTest,TestGetSignalMemory) {
-    EPICSPVAChannelWrapperTest test;
-    ASSERT_TRUE(test.TestGetSignalMemory());
+    ASSERT_TRUE(test.TestGetFieldName());
 }
 
 TEST(EPICSPVAChannelWrapperGTest,TestMonitor) {
@@ -82,4 +72,9 @@ TEST(EPICSPVAChannelWrapperGTest,TestMonitor) {
 TEST(EPICSPVAChannelWrapperGTest,TestPut) {
     EPICSPVAChannelWrapperTest test;
     ASSERT_TRUE(test.TestPut());
+}
+
+TEST(EPICSPVAChannelWrapperGTest,TestPut_False_CharString) {
+    EPICSPVAChannelWrapperTest test;
+    ASSERT_TRUE(test.TestPut_False_CharString());
 }

@@ -132,6 +132,7 @@ bool PIDGAM::Initialise(StructuredDataI &data) {
         if (!ok) {
             minOutput = -MAX_FLOAT64;
         }
+        ok = true;
         if (maxOutput < minOutput) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "maxOutput < minOutput. maxOutput must be larger than minOutput");
             ok = false;

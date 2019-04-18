@@ -31,6 +31,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
+#include "EPICSPVAHelper.h"
 #include "EPICSPVARecord.h"
 #include "EPICSPVAStructureDataI.h"
 
@@ -38,14 +39,23 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-//The PVRecord has some protected members... that need to be exposed
+/**
+ * @brief The PVRecord has some protected members... that need to be exposed
+ */
 class epicsShareClass MARTe2PVARecord: public epics::pvDatabase::PVRecord {
 public:
-    //POINTER_DEFINITIONS(MARTe2PVARecord);
+    /**
+     * @brief Constructor.
+     * @param[in] recordName the name of the record.
+     * @param[in] pvStructure the structure to associate to the record.
+     */
     MARTe2PVARecord(std::string const & recordName, epics::pvData::PVStructurePtr const & pvStructure) :
             epics::pvDatabase::PVRecord(recordName, pvStructure) {
     }
 
+    /**
+     * @brief Expose the initPvt function.
+     */
     void initPvt() {
         initPVRecord();
     }
@@ -66,71 +76,67 @@ EPICSPVARecord::~EPICSPVARecord() {
 
 }
 
-bool EPICSPVARecord::InitEPICSStructure(StructuredDataI &pvaDB) {
+bool EPICSPVARecord::GetArrayNumberOfElements(TypeDescriptor &typeDesc, StructuredDataI & cdb, uint32 &totalElements, uint8 &numberOfDimensions) {
     bool ok = true;
-    uint32 nChildren = pvaDB.GetNumberOfChildren();
-    uint32 n;
-    for (n = 0u; (n < nChildren) && (ok); n++) {
-        if (pvaDB.MoveToChild(n)) {
-            ok = InitEPICSStructure(pvaDB);
-            if (ok) {
-                ok = pvaDB.MoveToAncestor(1u);
+    uint32 *numberOfElements = NULL_PTR(uint32 *);
+    AnyType arrayDescription = cdb.GetType("NumberOfElements");
+    if (arrayDescription.GetDataPointer() == NULL_PTR(void *)) {
+        numberOfElements = new uint32[1u];
+        numberOfElements[0u] = 1u;
+    }
+    else {
+        numberOfDimensions = arrayDescription.GetNumberOfElements(0u);
+        if (numberOfDimensions < 2u) {
+            numberOfElements = new uint32[1u];
+            Vector<uint32> readVector(numberOfElements, numberOfDimensions);
+            if (!cdb.Read("NumberOfElements", readVector)) {
+                uint32 nElementsRead = 1u;
+                ok = cdb.Read("NumberOfElements", nElementsRead);
+                if (ok) {
+                    if (nElementsRead > 1u) {
+                        numberOfDimensions = 1u;
+                    }
+                    numberOfElements[0u] = nElementsRead;
+                }
+            }
+            if (numberOfDimensions == 1u) {
+                if (numberOfElements[0u] == 1u) {
+                    numberOfDimensions = 0u;
+                }
             }
         }
         else {
-            const char8 * const name = pvaDB.GetChildName(n);
-            AnyType type = pvaDB.GetType(name);
-            bool isArray = (type.GetNumberOfDimensions() > 0u);
-            if (isArray) {
-                isArray = (type.GetNumberOfElements(0u) > 1u);
-            }
-            if (isArray) {
-                uint32 numberOfElements = type.GetNumberOfElements(0u);
-                if (type.GetTypeDescriptor() == UnsignedInteger8Bit) {
-                    InitArray<uint8>(pvaDB, name, numberOfElements);
-                }
-                else if (type.GetTypeDescriptor() == UnsignedInteger16Bit) {
-                    InitArray<uint16>(pvaDB, name, numberOfElements);
-                }
-                else if (type.GetTypeDescriptor() == UnsignedInteger32Bit) {
-                    InitArray<uint32>(pvaDB, name, numberOfElements);
-                }
-                else if (type.GetTypeDescriptor() == UnsignedInteger64Bit) {
-                    InitArray<uint64>(pvaDB, name, numberOfElements);
-                }
-                else if (type.GetTypeDescriptor() == SignedInteger8Bit) {
-                    InitArray<int8>(pvaDB, name, numberOfElements);
-                }
-                else if (type.GetTypeDescriptor() == SignedInteger16Bit) {
-                    InitArray<int16>(pvaDB, name, numberOfElements);
-                }
-                else if (type.GetTypeDescriptor() == SignedInteger32Bit) {
-                    InitArray<int32>(pvaDB, name, numberOfElements);
-                }
-                else if (type.GetTypeDescriptor() == SignedInteger64Bit) {
-                    InitArray<int64>(pvaDB, name, numberOfElements);
-                }
-                else if (type.GetTypeDescriptor() == Float32Bit) {
-                    InitArray<float32>(pvaDB, name, numberOfElements);
-                }
-                else if (type.GetTypeDescriptor() == Float64Bit) {
-                    InitArray<float64>(pvaDB, name, numberOfElements);
-                }
-                else if ((type.GetTypeDescriptor().type == CArray) || (type.GetTypeDescriptor().type == BT_CCString) || (type.GetTypeDescriptor().type == PCString)
-                        || (type.GetTypeDescriptor().type == SString)) {
-                    Vector<StreamString> vec(numberOfElements);
-                    uint32 n;
-                    for (n = 0u; n < numberOfElements; n++) {
-                        vec[n] = "";
-                    }
-                    ok = pvaDB.Write(name, vec);
-
-                }
-                else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
-                }
+            numberOfElements = new uint32[numberOfDimensions];
+            Vector<uint32> readVector(numberOfElements, numberOfDimensions);
+            ok = cdb.Read("NumberOfElements", readVector);
+        }
+    }
+    if (ok) {
+        uint32 nd;
+        if (typeDesc == Character8Bit) {
+            if (numberOfDimensions > 0u) {
+                numberOfDimensions -= 1u;
+                numberOfElements[numberOfDimensions] = 1u;
             }
         }
+        for (nd = 0u; nd < numberOfDimensions; nd++) {
+            uint32 nde = numberOfElements[nd];
+            if (nde != 0u) {
+                if (totalElements == 0u) {
+                    totalElements = 1u;
+                }
+                totalElements *= nde; //[1][1][1] has size 1x
+            }
+        }
+        if (totalElements == 0u) {
+            totalElements = numberOfElements[0U];
+        }
+        if (totalElements == 0u) {
+            totalElements = 1u;
+        }
+    }
+    if (numberOfElements != NULL_PTR(uint32 *)) {
+        delete[] numberOfElements;
     }
     return ok;
 }
@@ -140,78 +146,152 @@ bool EPICSPVARecord::GetEPICSStructure(epics::pvData::FieldBuilderPtr &fieldBuil
     uint32 nOfChildren = cdb.GetNumberOfChildren();
     bool ok = true;
 
-    //If I cannot read the Type it shall be a node. Otherwise it might or not be a node (which contains other nodes but also a type)
-    StreamString typeStr;
-    if (cdb.Read("Type", typeStr)) {
-        //Check if the number of elements is defined
+    for (i = 0u; (i < nOfChildren) && (ok); i++) {
+        uint32 totalElements = 0u;
+        uint8 numberOfDimensions = 0u;
+        ok = cdb.MoveToChild(i);
+        StreamString typeStr;
+        if (ok) {
+            ok = cdb.Read("Type", typeStr);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "A Type shall be defined for every node");
+            }
+        }
         TypeDescriptor typeDesc = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
-        epics::pvData::ScalarType epicsType;
-        if (typeDesc == UnsignedInteger8Bit) {
-            epicsType = epics::pvData::pvUByte;
+        if (ok) {
+            ok = GetArrayNumberOfElements(typeDesc, cdb, totalElements, numberOfDimensions);
         }
-        else if (typeDesc == UnsignedInteger16Bit) {
-            epicsType = epics::pvData::pvUShort;
-        }
-        else if (typeDesc == UnsignedInteger32Bit) {
-            epicsType = epics::pvData::pvUInt;
-        }
-        else if (typeDesc == UnsignedInteger64Bit) {
-            epicsType = epics::pvData::pvULong;
-        }
-        else if (typeDesc == SignedInteger8Bit) {
-            epicsType = epics::pvData::pvByte;
-        }
-        else if (typeDesc == SignedInteger16Bit) {
-            epicsType = epics::pvData::pvShort;
-        }
-        else if (typeDesc == SignedInteger32Bit) {
-            epicsType = epics::pvData::pvInt;
-        }
-        else if (typeDesc == SignedInteger64Bit) {
-            epicsType = epics::pvData::pvLong;
-        }
-        else if (typeDesc == Float32Bit) {
-            epicsType = epics::pvData::pvFloat;
-        }
-        else if (typeDesc == Float64Bit) {
-            epicsType = epics::pvData::pvDouble;
-        }
-        else if ((typeDesc.type == CArray) || (typeDesc.type == BT_CCString) || (typeDesc.type == PCString) || (typeDesc.type == SString)) {
-            epicsType = epics::pvData::pvString;
+        if (typeDesc == InvalidType) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(typeStr.Buffer());
+            const Introspection *intro = NULL_PTR(const Introspection *);
+            ok = (cri != NULL_PTR(const ClassRegistryItem *));
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Type %s is not registered", typeStr.Buffer());
+            }
+            if (ok) {
+                intro = cri->GetIntrospection();
+                ok = (intro != NULL_PTR(const Introspection *));
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Type %s has no introspection", typeStr.Buffer());
+                }
+            }
+            if (ok) {
+                epics::pvData::StructureConstPtr memberStruct = EPICSPVAHelper::GetStructure(intro, typeStr.Buffer());
+                if (totalElements > 1u) {
+                    fieldBuilder = fieldBuilder->addArray(cdb.GetName(), memberStruct);
+                }
+                else {
+                    fieldBuilder = fieldBuilder->add(cdb.GetName(), memberStruct);
+                }
+            }
         }
         else {
-            ok = false;
-            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type %s", typeStr.Buffer());
+            epics::pvData::ScalarType epicsType;
+            if (ok) {
+                ok = (typeStr != "string");
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "For node %s use the type char8[]", cdb.GetName());
+                }
+            }
+            if (ok) {
+                ok = EPICSPVAHelper::GetType(typeStr.Buffer(), epicsType);
+            }
+            if (ok) {
+                if (totalElements > 1u) {
+                    //Do not allow for arrays of strings.
+                    if ((epicsType == epics::pvData::pvString) && (numberOfDimensions < 2u)) {
+                        fieldBuilder = fieldBuilder->add(cdb.GetName(), epicsType);
+                        REPORT_ERROR(
+                                ErrorManagement::Warning,
+                                "Registering scalar %s with type %s - the number of elements is being ignored. If you wish to register an array of strings, declare it has an nxm matrix {n, m}, where n is the number of strings and m the size of the string ",
+                                cdb.GetName(), typeStr.Buffer());
+                    }
+                    else {
+                        fieldBuilder = fieldBuilder->addArray(cdb.GetName(), epicsType);
+                        REPORT_ERROR(ErrorManagement::Debug, "Registering scalar array %s with type %s and %d elements", cdb.GetName(), typeStr.Buffer(), totalElements);
+                    }
+                }
+                else {
+                    fieldBuilder = fieldBuilder->add(cdb.GetName(), epicsType);
+                    REPORT_ERROR(ErrorManagement::Debug, "Registering scalar %s with type %s", cdb.GetName(), typeStr.Buffer());
+                }
+            }
         }
         if (ok) {
-            uint32 numberOfElements = 1u;
-            (void) cdb.Read("NumberOfElements", numberOfElements);
-            if (numberOfElements > 1u) {
-                fieldBuilder = fieldBuilder->addBoundedArray(cdb.GetName(), epicsType, numberOfElements);
-            }
-            else {
-                fieldBuilder = fieldBuilder->add(cdb.GetName(), epicsType);
-            }
+            ok = cdb.MoveToAncestor(1u);
         }
-    }
-    else {
-        for (i = 0u; (i < nOfChildren) && (ok); i++) {
-            const char8 * const nodeName = cdb.GetChildName(i);
-            if (cdb.MoveRelative(nodeName)) {
-                StreamString typeStr;
-                bool hasType = (cdb.Read("Type", typeStr));
-                if (!hasType) {
-                    fieldBuilder = fieldBuilder->addNestedStructure(nodeName);
-                }
-                ok = GetEPICSStructure(fieldBuilder);
-                cdb.MoveToAncestor(1);
-                if (!hasType) {
-                    fieldBuilder = fieldBuilder->endNested();
-                }
-            }
-        }
-    }
 
+    }
+    return ok;
+}
+
+bool EPICSPVARecord::InitEPICSStructure(epics::pvData::PVStructurePtr pvStructure) {
+    uint32 i;
+    uint32 nOfChildren = cdb.GetNumberOfChildren();
+    bool ok = true;
+
+    for (i = 0u; (i < nOfChildren) && (ok); i++) {
+        uint8 numberOfDimensions = 0u;
+        uint32 totalElements = 0u;
+        ok = cdb.MoveToChild(i);
+        StreamString typeStr;
+        if (ok) {
+            ok = cdb.Read("Type", typeStr);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "A Type shall be defined for every node");
+            }
+        }
+        TypeDescriptor typeDesc = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
+        if (ok) {
+            ok = GetArrayNumberOfElements(typeDesc, cdb, totalElements, numberOfDimensions);
+        }
+        if (typeDesc == InvalidType) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(typeStr.Buffer());
+            const Introspection *intro = NULL_PTR(const Introspection *);
+            ok = (cri != NULL_PTR(const ClassRegistryItem *));
+            if (!ok) {
+                //Should not be reachable as it trapped by the GetEPICSStructure
+                REPORT_ERROR(ErrorManagement::ParametersError, "Type %s is not registered", typeStr.Buffer());
+            }
+            if (ok) {
+                intro = cri->GetIntrospection();
+                ok = (intro != NULL_PTR(const Introspection *));
+                if (!ok) {
+                    //Should not be reachable as it trapped by the GetEPICSStructure
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Type %s has no introspection", typeStr.Buffer());
+                }
+            }
+            if (ok) {
+                if (totalElements > 1u) {
+                    epics::pvData::PVStructureArrayPtr pvStructureMemberArray = pvStructure->getSubField<epics::pvData::PVStructureArray>(cdb.GetName());
+                    ok = (pvStructureMemberArray ? true : false);
+                    if (ok) {
+                        ok = EPICSPVAHelper::ReplaceStructureArray(intro, pvStructureMemberArray, totalElements, typeStr.Buffer());
+                    }
+                }
+                else {
+                    epics::pvData::PVStructurePtr pvStructureMember = pvStructure->getSubField<epics::pvData::PVStructure>(cdb.GetName());
+                    ok = (pvStructureMember ? true : false);
+                    if (ok) {
+                        ok = EPICSPVAHelper::InitStructure(intro, pvStructureMember);
+                    }
+                }
+            }
+        }
+        else {
+            if (totalElements > 1u) {
+                epics::pvData::PVScalarArrayPtr pvScalarMemberArray = pvStructure->getSubField<epics::pvData::PVScalarArray>(cdb.GetName());
+                ok = (pvScalarMemberArray ? true : false);
+                if (ok) {
+                    EPICSPVAHelper::InitArray(pvScalarMemberArray, totalElements);
+                }
+            }
+        }
+        if (ok) {
+            ok = cdb.MoveToAncestor(1u);
+        }
+
+    }
     return ok;
 }
 
@@ -241,18 +321,16 @@ epics::pvDatabase::PVRecordPtr EPICSPVARecord::CreatePVRecord() {
     std::shared_ptr<MARTe2PVARecord> pvRecordWrapper;
     bool ok = GetEPICSStructure(fieldBuilder);
     if (ok) {
-        epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
-        pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
-        pvRecordWrapper = std::shared_ptr < MARTe2PVARecord > (new MARTe2PVARecord(recordName.Buffer(), pvStructure));
-        pvRecordWrapper->initPvt();
+        ok = cdb.MoveAbsolute("Structure");
     }
     if (ok) {
-        EPICSPVAStructureDataI cdb;
-        cdb.SetStructure(pvStructure);
-        ok = cdb.MoveToRoot();
-        if (ok) {
-            ok = InitEPICSStructure(cdb);
-        }
+        epics::pvData::StructureConstPtr topStructure = fieldBuilder->createStructure();
+        pvStructure = epics::pvData::getPVDataCreate()->createPVStructure(topStructure);
+        ok = InitEPICSStructure(pvStructure);
+    }
+    if (ok) {
+        pvRecordWrapper = std::shared_ptr < MARTe2PVARecord > (new MARTe2PVARecord(recordName.Buffer(), pvStructure));
+        pvRecordWrapper->initPvt();
     }
     return pvRecordWrapper;
 

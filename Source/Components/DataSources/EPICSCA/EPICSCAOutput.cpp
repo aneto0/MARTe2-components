@@ -178,7 +178,19 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
 
             if (ok) {
                 (void) StringHelper::CopyN(&pvs[n].pvName[0], pvName.Buffer(), PV_NAME_MAX_SIZE);
-                if (td == SignedInteger16Bit) {
+                if (td == CharString) {
+                    pvs[n].pvType = DBR_STRING;
+                }
+                else if (td == Character8Bit) {
+                    pvs[n].pvType = DBR_STRING;
+                }
+                else if (td == SignedInteger8Bit) {
+                    pvs[n].pvType = DBR_CHAR;
+                }
+                else if (td == UnsignedInteger8Bit) {
+                    pvs[n].pvType = DBR_CHAR;
+                }
+                else if (td == SignedInteger16Bit) {
                     pvs[n].pvType = DBR_SHORT;
                 }
                 else if (td == UnsignedInteger16Bit) {
@@ -204,6 +216,16 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
             uint32 numberOfElements = 1u;
             if (ok) {
                 ok = GetSignalNumberOfElements(n, numberOfElements);
+            }
+            if (ok) {
+                if (pvs[n].pvType == DBR_STRING) {
+                    ok = (numberOfElements == 40u);
+                }
+                if (!ok) {
+                    //Could support arrays of strings with multiples of char8[40]
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "Strings shall be defined with 40 elements char8[40]. Arrays of strings are not currently supported");
+                }
             }
             if (ok) {
                 pvs[n].numberOfElements = numberOfElements;
@@ -309,12 +331,22 @@ bool EPICSCAOutput::Synchronise() {
     if (threadContextSet) {
         if (pvs != NULL_PTR(PVWrapper *)) {
             for (n = 0u; (n < nOfSignals); n++) {
-                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                ok = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                uint32 nRetries = 5u;
+                ok = false;
+                while((nRetries > 0u) && (!ok)) {
+                    /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                    if (pvs[n].pvType == DBR_STRING) {
+                        ok = (ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                    }
+                    else {
+                        ok = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                    }
+                    nRetries--;
+                    (void) ca_pend_io(0.5);
+                }
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::FatalError, "ca_put failed for PV: %s", pvs[n].pvName);
                 }
-                (void) ca_pend_io(0.1);
             }
         }
     }
@@ -325,7 +357,6 @@ bool EPICSCAOutput::Synchronise() {
 bool EPICSCAOutput::IsIgnoringBufferOverrun() const {
     return (ignoreBufferOverrun == 1u);
 }
-
 
 CLASS_REGISTER(EPICSCAOutput, "1.0")
 

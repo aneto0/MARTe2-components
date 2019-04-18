@@ -67,7 +67,7 @@ bool EPICSRPCServerTest::TestInitialise() {
     ok &= (rpcServer.GetCPUMask() == cpus);
     ok &= (rpcServer.GetStackSize() == stackSize);
     ok &= (rpcServer.GetStatus() == EmbeddedThread::OffState);
-
+    Sleep::Sec(0.5);
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
@@ -80,6 +80,7 @@ bool EPICSRPCServerTest::TestInitialise_Defaults() {
     ok &= (rpcServer.GetCPUMask() == 0xffu);
     ok &= (rpcServer.GetStackSize() == THREADS_DEFAULT_STACKSIZE * 4u);
     ok &= (rpcServer.GetStatus() != EmbeddedThread::OffState);
+    Sleep::Sec(0.5);
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
@@ -94,6 +95,7 @@ bool EPICSRPCServerTest::TestStart() {
     bool ok = rpcServer.Initialise(cdb);
     ok = (rpcServer.Start() == ErrorManagement::NoError);
     ok &= (rpcServer.GetStatus() != EmbeddedThread::OffState);
+    Sleep::Sec(0.5);
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
@@ -157,6 +159,7 @@ bool EPICSRPCServerTest::TestExecute() {
     if (ok) {
         ok = replyStruct->MoveAbsolute("EPICSRPCServer.EPICSObjectRegistryDatabaseService");
     }
+    Sleep::Sec(0.5);
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }

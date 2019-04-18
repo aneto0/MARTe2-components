@@ -61,8 +61,12 @@ OPCUAServer::OPCUAServer() :
 OPCUAServer::~OPCUAServer() {
     SetRunning(false);
     (void) service.Stop();
-    UA_Server_delete(opcuaServer);
-    UA_ServerConfig_delete(opcuaConfig);
+    if (opcuaServer != NULL_PTR(UA_ServerConfig *)) {
+        UA_Server_delete(opcuaServer);
+    }
+    if (opcuaConfig != NULL_PTR(UA_Server *)) {
+        UA_ServerConfig_delete(opcuaConfig);
+    }
 }
 
 bool OPCUAServer::Initialise(StructuredDataI &data) {
