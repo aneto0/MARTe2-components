@@ -61,10 +61,10 @@ OPCUAServer::OPCUAServer() :
 OPCUAServer::~OPCUAServer() {
     SetRunning(false);
     (void) service.Stop();
-    if (opcuaServer != NULL_PTR(UA_ServerConfig *)) {
+    if (opcuaConfig != NULL_PTR(UA_ServerConfig *)) {
         UA_Server_delete(opcuaServer);
     }
-    if (opcuaConfig != NULL_PTR(UA_Server *)) {
+    if (opcuaServer != NULL_PTR(UA_Server *)) {
         UA_ServerConfig_delete(opcuaConfig);
     }
 }
@@ -121,7 +121,7 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
         bool ok = false;
         uint32 nOfChildren = cdb.GetNumberOfChildren();
         StreamString typeStr;
-        typeStr.SetSize(0LLU);
+        (void) typeStr.SetSize(0LLU);
         uint32 i;
         for (i = 0u; i < nOfChildren; i++) {
             ok = cdb.MoveToChild(i);
@@ -173,7 +173,7 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Cannot initialise Address Space");
             }
-            typeStr.Seek(0LLU);
+            (void) typeStr.Seek(0LLU);
         }
         if (ok) {
             SetRunning(true);

@@ -63,8 +63,8 @@ namespace MARTe {
  *     Class = OPCUADataSource::OPCUADSInput
  *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
  *     SamplingTime = 1
- *     ReadMode = "Read" //"Read" if you want to use OPCUA Read Service, "Monitor" if you want to use OPCUA MonitoredItem Service
- *     Synchronise = "yes" //"yes" if you want to use Synchronise method, "no" to enable SingleThreadService Execute method
+ *     ReadMode = "Read" //"Read" uses OPCUA Read Service, "Monitor" uses OPCUA MonitoredItem Service
+ *     Synchronise = "yes" //"yes" uses the Synchronise method (and thus is executed in the context of the real-time thread, "no" to enable a decoupled SingleThreadService Execute method
  *     Signals = {
  *         Node1 = {
  *             Type = uint32

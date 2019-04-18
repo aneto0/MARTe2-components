@@ -1,0 +1,12 @@
+-i%OPEN62541_INCLUDE%
+
+-i./Source/Components/DataSources/OPCUADataSource/
+-i./Source/Components/Interfaces/OPCUA/
+
+OPCUAClientWrapper.cpp
+OPCUADSInput.cpp
+OPCUADSOutput.cpp
+OPCUANode.cpp
+OPCUAObject.cpp
+OPCUAReferenceContainer.cpp
+OPCUAServer.cpp

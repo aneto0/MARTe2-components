@@ -209,7 +209,7 @@ bool TriggerOnChangeGAM::Setup() {
             }
         }
 
-//build the lookup table
+        //build the lookup table
         events = this->Find("Events");
         ret = events.IsValid();
         if (ret) {
