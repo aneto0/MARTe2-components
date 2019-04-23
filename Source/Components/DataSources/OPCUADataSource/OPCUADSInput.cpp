@@ -56,9 +56,13 @@ OPCUADSInput::OPCUADSInput() :
     tempPaths = NULL_PTR(StreamString *);
     tempNamespaceIndexes = NULL_PTR(uint16 *);
     serverAddress = "";
+    readMode = "";
+    sync = "";
     samplingTime = 0.0;
     nElements = NULL_PTR(uint32 *);
     types = NULL_PTR(TypeDescriptor *);
+    cpuMask = 0xffu;
+    stackSize = THREADS_DEFAULT_STACKSIZE;
 }
 
 /*lint -e{1551} must stop the SingleThreadService in the destructor.*/
@@ -107,7 +111,23 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
             ok = data.Read("Synchronise", sync);
             if (!ok) {
                 sync = "no";
-                REPORT_ERROR(ErrorManagement::ParametersError, "Synchronise option is not enabled. Using SingleThreadService.");
+                REPORT_ERROR(ErrorManagement::Information, "Synchronise option is not enabled. Using SingleThreadService.");
+                ok = true;
+            }
+        }
+        if (sync == "no") {
+            if (ok) {
+                ok = data.Read("CpuMask", cpuMask);
+                if(!ok) {
+                    REPORT_ERROR(ErrorManagement::Information, "CpuMask not set. Using default.");
+                }
+                ok = true;
+            }
+            if (ok) {
+                ok = data.Read("StackSize", stackSize);
+                if(!ok) {
+                    REPORT_ERROR(ErrorManagement::Information, "StackSize not set. Using default.");
+                }
                 ok = true;
             }
         }
@@ -266,6 +286,8 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
         }
     }
     if ((sync == "no") && ok) {
+        executor.SetCPUMask(cpuMask);
+        executor.SetStackSize(stackSize);
         ok = (executor.Start() == ErrorManagement::NoError);
     }
     return ok;

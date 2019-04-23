@@ -72,9 +72,14 @@ public:
     bool TestInitialise_SyncWrongMode();
 
     /**
-     * @brief Tests the Initialise method with Thread mode enabled.
+     * @brief Tests the Initialise method with Thread mode enabled and default parameters.
      */
-    bool TestInitialise_Thread();
+    bool TestInitialise_Thread_Default();
+
+    /**
+     * @brief Tests the Initialise method with Thread mode enabled and CpuMask and StackSize defined.
+     */
+    bool TestInitialise_Thread_NoDefault();
 
     /**
      * @brief Tests the Initialise method with Thread mode and MonitoredItem enabled.

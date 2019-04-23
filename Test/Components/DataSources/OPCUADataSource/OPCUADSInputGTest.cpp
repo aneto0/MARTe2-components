@@ -67,9 +67,14 @@ TEST(OPCUADSInputGTest,TestInitialise_SyncWrongMode) {
     ASSERT_TRUE(test.TestInitialise_SyncWrongMode());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_Thread) {
+TEST(OPCUADSInputGTest,TestInitialise_Thread_Default) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_Thread());
+    ASSERT_TRUE(test.TestInitialise_Thread_Default());
+}
+
+TEST(OPCUADSInputGTest,TestInitialise_Thread_NoDefault) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.TestInitialise_Thread_NoDefault());
 }
 
 TEST(OPCUADSInputGTest,TestInitialise_ThreadMonitor) {

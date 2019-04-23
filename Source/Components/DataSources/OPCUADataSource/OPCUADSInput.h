@@ -62,9 +62,11 @@ namespace MARTe {
  * +OPCUA = {
  *     Class = OPCUADataSource::OPCUADSInput
  *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
- *     SamplingTime = 1
- *     ReadMode = "Read" //"Read" uses OPCUA Read Service, "Monitor" uses OPCUA MonitoredItem Service
- *     Synchronise = "yes" //"yes" uses the Synchronise method (and thus is executed in the context of the real-time thread, "no" to enable a decoupled SingleThreadService Execute method
+ *     ReadMode = "Read" //"Read" uses OPCUA Read Service, "Monitor" uses OPCUA MonitoredItem Service. (Optional) Default = "Read"
+ *     SamplingTime = 1 //ms. Only if ReadMode is "Monitor"
+ *     Synchronise = "yes" //"yes" uses the Synchronise method (and thus is executed in the context of the real-time thread, "no" to enable a decoupled SingleThreadService Execute method). Default = "no"
+ *     CpuMask = 0xffu //(Optional) Only if Synchronise option is "no". Default = 0xffu
+ *     StackSize = 10000000 //(Optional) Only if Synchronise option is "no". Default = THREADS_DEFAULT_STACKSIZE
  *     Signals = {
  *         Node1 = {
  *             Type = uint32
@@ -239,6 +241,16 @@ private:
      * The array that stores all the data types, as TypeDescritor, for each node to read
      */
     TypeDescriptor * types;
+
+    /**
+     * CPU affinity number for the executor thread
+     */
+    uint32 cpuMask;
+
+    /**
+     * The stack size
+     */
+    uint32 stackSize;
 
 };
 
