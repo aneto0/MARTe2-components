@@ -23,6 +23,7 @@
 #############################################################
 
 OBJSX = OPCUADSOutputGTest.x \
-	OPCUADSInputGTest.x 
+	OPCUADSInputGTest.x \
+	OPCUAClientWrapperGTest.x
 
 include Makefile.inc

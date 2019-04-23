@@ -1,8 +1,8 @@
 /**
  * @file OPCUADSInputTest.h
  * @brief Header file for class OPCUADSInputTest
- * @date 15 Mar 2019 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 15/03/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -36,41 +36,85 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
+/**
+ * @brief Tests the OPCUADSInput public methods.
+ */
 class OPCUADSInputTest {
 public:
-
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestConstructor();
 
+    /**
+     * @brief Tests the Initialise method with default parameters.
+     */
     bool TestInitialise_Default();
 
+    /**
+     * @brief Tests the Initialise method with Introspections Structures.
+     */
     bool TestInitialise_Introspection();
 
+    /**
+     * @brief Tests the Initialise method with Sync option enabled.
+     */
     bool TestInitialise_Sync();
 
+    /**
+     * @brief Tests the Initialise method with Sync option and MonitoredItem service enabled.
+     */
     bool TestInitialise_SyncMonitor();
 
+    /**
+     * @brief Tests the Initialise method with Sync option enabled and specifying a not supported read service.
+     */
     bool TestInitialise_SyncWrongMode();
 
+    /**
+     * @brief Tests the Initialise method with Thread mode enabled.
+     */
     bool TestInitialise_Thread();
 
+    /**
+     * @brief Tests the Initialise method with Thread mode and MonitoredItem enabled.
+     */
     bool TestInitialise_ThreadMonitor();
 
+    /**
+     * @brief Tests the Initialise method with Thread mode enabled and specifying a not supported read service.
+     */
     bool TestInitialise_ThreadWrongMode();
 
+    /**
+     * @brief Tests the Initialise method without specifying Address parameter.
+     */
     bool TestInitialise_NoAddress();
 
+    /**
+     * @brief Tests the Initialise method without specifying any signal.
+     */
     bool TestInitialise_NoSignals();
 
+    /**
+     * @brief Tests the Initialise method without specifying Path parameter.
+     */
     bool TestInitialise_NoPath();
 
+    /**
+     * @brief Tests the Initialise method without specifying NAmespaceIndex parameter.
+     */
     bool TestInitialise_NoNamespaceIndex();
 
+    /**
+     * @brief Tests the Initialise method specifying a signal number of dimensions greater than 1.
+     */
     bool Test_NumberOfDimensionsGreater1();
 
+    /**
+     * @brief Tests the SetTargetNodes method with a wrong path that doesn't match any variable path on the server.
+     */
     bool Test_FailSetTargetNodes();
-
-    bool Test_Read();
 
 };
 

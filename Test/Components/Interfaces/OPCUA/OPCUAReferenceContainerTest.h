@@ -36,30 +36,64 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
+/**
+ * @brief Tests the OPCUAReferenceContainer public methods.
+ */
 class OPCUAReferenceContainerTest {
 public:
-
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestConstructor();
 
+    /**
+     * @brief Tests the IsObject method.
+     */
     bool Test_IsObject();
 
+    /**
+     * @brief Tests the IsNode method.
+     */
     bool Test_IsNode();
 
+    /**
+     * @brief Tests the GetOPCVariable method.
+     */
     bool Test_GetOPCVariable();
 
+    /**
+     * @brief Tests the GetOPCObject method.
+     */
     bool Test_GetOPCObject();
 
+    /**
+     * @brief Tests the SetParent and GetParent methods.
+     */
     bool Test_SetGetParent();
 
+    /**
+     * @brief Tests the SetNodeId and GetNodeId methods.
+     */
     bool Test_SetGetNodeId();
 
+    /**
+     * @brief Tests the SetNodeType and GetNodeType methods.
+     */
     bool Test_SetGetNodeType();
 
+    /**
+     * @brief Tests the IsFirst method.
+     */
     bool Test_IsFirst();
 
+    /**
+     * @brief Tests the SetFirst method.
+     */
     bool Test_SetFirst();
 
+    /**
+     * @brief Tests the SetNumberOfDimensions, SetNumberOfElements and GetNumberOfDimensions, GetNumberOfElements.
+     */
     bool Test_NumberOfElementsDimensions();
 };
 

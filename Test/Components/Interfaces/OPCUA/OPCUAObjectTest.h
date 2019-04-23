@@ -36,12 +36,19 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
+/**
+ * @brief Tests the OPCUAObject public methods.
+ */
 class OPCUAObjectTest {
 public:
-
+    /**
+     * @brief Tests the GetOPCObject when the Server instantiates a base object.
+     */
     bool TestGetOPCObject_First();
 
+    /**
+     * @brief Tests the GetOPCObject when the Server instantiates a folder.
+     */
     bool TestGetOPCObject_NotFirst();
 
 };

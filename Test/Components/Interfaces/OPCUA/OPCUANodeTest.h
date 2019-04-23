@@ -36,48 +36,109 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
+/**
+ * @brief Tests the OPCUANode public methods.
+ */
 class OPCUANodeTest {
 public:
-
+    /**
+     * @brief Tests the GetOPCVariable with a uint8 variable.
+     */
     bool TestGetOPCVariable_uint8();
 
+    /**
+     * @brief Tests the GetOPCVariable with a uint16 variable.
+     */
     bool TestGetOPCVariable_uint16();
 
+    /**
+     * @brief Tests the GetOPCVariable with a uint32 variable.
+     */
     bool TestGetOPCVariable_uint32();
 
+    /**
+     * @brief Tests the GetOPCVariable with a uint64 variable.
+     */
     bool TestGetOPCVariable_uint64();
 
+    /**
+     * @brief Tests the GetOPCVariable with a float32 variable.
+     */
     bool TestGetOPCVariable_float32();
 
+    /**
+     * @brief Tests the GetOPCVariable with a float64 variable.
+     */
     bool TestGetOPCVariable_float64();
 
+    /**
+     * @brief Tests the GetOPCVariable with a int8 variable.
+     */
     bool TestGetOPCVariable_int8();
 
+    /**
+     * @brief Tests the GetOPCVariable with a int16 variable.
+     */
     bool TestGetOPCVariable_int16();
 
+    /**
+     * @brief Tests the GetOPCVariable with a int32 variable.
+     */
     bool TestGetOPCVariable_int32();
 
+    /**
+     * @brief Tests the GetOPCVariable with a int64 variable.
+     */
     bool TestGetOPCVariable_int64();
 
+    /**
+     * @brief Tests the GetOPCVariable with a uint8 array variable.
+     */
     bool TestGetOPCVariable_array_uint8();
 
+    /**
+     * @brief Tests the GetOPCVariable with a uint16 array variable.
+     */
     bool TestGetOPCVariable_array_uint16();
 
+    /**
+     * @brief Tests the GetOPCVariable with a uint32 array variable.
+     */
     bool TestGetOPCVariable_array_uint32();
 
+    /**
+     * @brief Tests the GetOPCVariable with a uint64 array variable.
+     */
     bool TestGetOPCVariable_array_uint64();
 
+    /**
+     * @brief Tests the GetOPCVariable with a float32 array variable.
+     */
     bool TestGetOPCVariable_array_float32();
 
+    /**
+     * @brief Tests the GetOPCVariable with a float64 array variable.
+     */
     bool TestGetOPCVariable_array_float64();
 
+    /**
+     * @brief Tests the GetOPCVariable with a int8 array variable.
+     */
     bool TestGetOPCVariable_array_int8();
 
+    /**
+     * @brief Tests the GetOPCVariable with a int16 array variable.
+     */
     bool TestGetOPCVariable_array_int16();
 
+    /**
+     * @brief Tests the GetOPCVariable with a int32 array variable.
+     */
     bool TestGetOPCVariable_array_int32();
 
+    /**
+     * @brief Tests the GetOPCVariable with a int64 array variable.
+     */
     bool TestGetOPCVariable_array_int64();
 
 

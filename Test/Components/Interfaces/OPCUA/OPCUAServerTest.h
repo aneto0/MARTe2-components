@@ -36,24 +36,49 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
+/**
+ * @brief Tests the OPCUAServer public methods.
+ */
 class OPCUAServerTest {
 public:
-
+    /**
+     * @brief Tests the Initialise method with default parameters.
+     */
     bool TestInitialise_Default();
 
+    /**
+     * @brief Tests the Initialise method specifying all the optional parameters.
+     */
     bool TestInitialise_NoDefault();
 
+    /**
+     * @brief Tests the Initialise method without specifying any Address Space.
+     */
     bool TestInitialise_NoAddressSpace();
 
+    /**
+     * @brief Tests the Execute method.
+     */
     bool TestExecute();
 
+    /**
+     * @brief Tests the Execute method when the Address Space has to be constructed from an Introspection Structure.
+     */
     bool TestExecute_Introspection();
 
+    /**
+     * @brief Tests the Execute method.
+     */
     bool TestExecute_NoType();
 
+    /**
+     * @brief Tests the Execute method when the Address Space has to be constructed from an Introspection Structure with array variables.
+     */
     bool TestExecute_IntrospectionArray();
 
+    /**
+     * @brief Tests the GetStructure method when a variable number of dimensions is greater than 1.
+     */
     bool TestGetStructure_WrongNDimensions();
 
 };

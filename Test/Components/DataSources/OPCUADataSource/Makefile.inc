@@ -23,7 +23,8 @@
 #############################################################
 
 OBJSX +=  OPCUADSOutputTest.x \
-    OPCUADSInputTest.x
+    OPCUADSInputTest.x \
+    OPCUAClientWrapperTest.x
 
 PACKAGE=Components/DataSources
 

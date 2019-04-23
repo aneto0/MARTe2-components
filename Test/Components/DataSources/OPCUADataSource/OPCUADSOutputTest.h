@@ -1,8 +1,8 @@
 /**
  * @file OPCUADSOutputTest.h
  * @brief Header file for class OPCUADSOutputTest
- * @date 14 Mar 2019 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 15/03/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -11,7 +11,8 @@
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
  *
- * @warning Unless required by applicable law or agreed to in writing, 
+ * @warning Unless?
+ *  required by applicable law or agreed to in writing,
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
@@ -35,69 +36,55 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
+/**
+ * @brief Tests the OPCUADSOutput public methods.
+ */
 class OPCUADSOutputTest {
 public:
-
+    /**
+     * @brief Tests the constructor.
+     */
     bool TestConstructor();
 
+    /**
+     * @brief Tests the Initialise method.
+     */
     bool TestInitialise();
 
+    /**
+     * @brief Tests the Initialise method when the signals are Introspection Structures.
+     */
     bool TestInitialise_Introspection();
 
+    /**
+     * @brief Tests the Initialise method without specifying the address parameter.
+     */
     bool TestInitialise_NoAddress();
 
+    /**
+     * @brief Tests the Initialise method without specifying any signal.
+     */
     bool TestInitialise_NoSignals();
 
+    /**
+     * @brief Tests the Initialise method without specifying the path parameter.
+     */
     bool TestInitialise_NoPath();
 
+    /**
+     * @brief Tests the Initialise method without specifying the NamespaceIndex parameter.
+     */
     bool TestInitialise_NoNamespaceIndex();
 
+    /**
+     * @brief Tests the Initialise method specifying a signal number of dimensions greater than 1.
+     */
     bool Test_NumberOfDimensionsGreater1();
 
+    /**
+     * @brief Tests the SetTargetNodes method with a wrong path that doesn't match any variable path on the server.
+     */
     bool Test_FailSetTargetNodes();
-
-    bool Test_Write_uint8();
-
-    bool Test_Write_uint16();
-
-    bool Test_Write_uint32();
-
-    bool Test_Write_uint64();
-
-    bool Test_Write_int8();
-
-    bool Test_Write_int16();
-
-    bool Test_Write_int32();
-
-    bool Test_Write_int64();
-
-    bool Test_Write_float32();
-
-    bool Test_Write_float64();
-
-    bool Test_WrongNodeId();
-
-    bool Test_Write_uint8_array();
-
-    bool Test_Write_uint16_array();
-
-    bool Test_Write_uint32_array();
-
-    bool Test_Write_uint64_array();
-
-    bool Test_Write_int8_array();
-
-    bool Test_Write_int16_array();
-
-    bool Test_Write_int32_array();
-
-    bool Test_Write_int64_array();
-
-    bool Test_Write_float32_array();
-
-    bool Test_Write_float64_array();
 
 };
 

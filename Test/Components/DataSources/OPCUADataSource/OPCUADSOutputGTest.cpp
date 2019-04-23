@@ -1,8 +1,8 @@
 /**
  * @file OPCUADSOutputGTest.cpp
  * @brief Source file for class OPCUADSOutputGTest
- * @date 14 Mar 2019 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 15/03/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -43,107 +43,6 @@ TEST(OPCUADSOutputGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(OPCUADSOutputGTest,Test_Write_uint64) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_uint64());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_float32) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_float32());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_float64) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_float64());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_uint8) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_uint8());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_uint16) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_uint16());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_uint32) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_uint32());
-}
-
-
-TEST(OPCUADSOutputGTest,Test_Write_int8) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_int8());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_int16) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_int16());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_int32) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_int32());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_int64) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_int64());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_uint8_array) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_uint8_array());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_uint16_array) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_uint16_array());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_uint32_array) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_uint32_array());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_uint64_array) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_uint64_array());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_int8_array) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_int8_array());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_int16_array) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_int16_array());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_int32_array) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_int32_array());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_int64_array) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_int64_array());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_float32_array) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_float32_array());
-}
-
-TEST(OPCUADSOutputGTest,Test_Write_float64_array) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_Write_float64_array());
-}
-
 TEST(OPCUADSOutputGTest,TestInitialise) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.TestInitialise());
@@ -182,11 +81,6 @@ TEST(OPCUADSOutputGTest,Test_NumberOfDimensionsGreater1) {
 TEST(OPCUADSOutputGTest,Test_FailSetTargetNodes) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_FailSetTargetNodes());
-}
-
-TEST(OPCUADSOutputGTest,Test_WrongNodeId) {
-    OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_WrongNodeId());
 }
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
