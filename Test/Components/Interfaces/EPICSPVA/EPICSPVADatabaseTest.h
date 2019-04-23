@@ -63,6 +63,16 @@ public:
     bool TestExecute();
 
     /**
+     * @brief Tests that the Execute method fails if a non-record component is inserted.
+     */
+    bool TestExecute_False_NoRecord();
+
+    /**
+     * @brief Tests the Execute method with structured types .
+     */
+    bool TestExecute_StructuredTypes();
+
+    /**
      * @brief Tests the Execute method writing in an array.
      */
     bool TestExecute_Array();

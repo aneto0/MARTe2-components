@@ -110,6 +110,11 @@ TEST(FileReaderGTest,TestInitialise_False_CSVSeparator) {
     ASSERT_TRUE(test.TestInitialise_False_CSVSeparator());
 }
 
+TEST(FileReaderGTest,TestInitialise_False_EOF) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestInitialise_False_EOF());
+}
+
 TEST(FileReaderGTest,TestInitialise_False_CorruptedFile) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestInitialise_False_CorruptedFile());
@@ -200,6 +205,16 @@ TEST(FileReaderGTest,TestSynchronise_CSV) {
     ASSERT_TRUE(test.TestSynchronise_CSV());
 }
 
+TEST(FileReaderGTest,TestSynchronise_CSV_Strings) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise_CSV_Strings());
+}
+
+TEST(FileReaderGTest,TestSynchronise_CSV_Comma) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise_CSV_Comma());
+}
+
 TEST(FileReaderGTest,TestSynchronise_CSV_Interpolation) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSynchronise_CSV_Interpolation());
@@ -274,3 +289,44 @@ TEST(FileReaderGTest,TestInvalidMessageType) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestInvalidMessageType());
 }
+
+TEST(FileReaderGTest,TestEOF_CSV) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_CSV());
+}
+
+TEST(FileReaderGTest,TestEOF_Binary) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Binary());
+}
+
+TEST(FileReaderGTest,TestEOF_Rewind_CSV) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Rewind_CSV());
+}
+
+TEST(FileReaderGTest,TestEOF_Rewind_Binary) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Rewind_Binary());
+}
+
+TEST(FileReaderGTest,TestEOF_Last_CSV) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Last_CSV());
+}
+
+TEST(FileReaderGTest,TestEOF_Last_Binary) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Last_Binary());
+}
+
+TEST(FileReaderGTest,TestEOF_Error_CSV) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Error_CSV());
+}
+
+TEST(FileReaderGTest,TestEOF_Error_Binary) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Error_Binary());
+}
+

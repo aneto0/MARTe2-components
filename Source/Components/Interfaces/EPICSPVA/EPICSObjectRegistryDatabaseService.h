@@ -40,6 +40,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
 /**
  * @brief Query the contents of the ObjectRegistryDatabase using an epics::pvAccess::RPCService.
  *
@@ -58,7 +59,6 @@
  * }
  * </pre>
  */
-namespace MARTe {
 class  EPICSObjectRegistryDatabaseService: public EPICSRPCService, public Object {
 public:
     CLASS_REGISTER_DECLARATION()

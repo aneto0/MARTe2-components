@@ -51,7 +51,9 @@ OPCUAReferenceContainer::OPCUAReferenceContainer() :
 }
 
 OPCUAReferenceContainer::~OPCUAReferenceContainer() {
-    delete[] numberOfElements;
+    if (numberOfElements != NULL_PTR(uint32 *)) {
+        delete[] numberOfElements;
+    }
 }
 
 bool OPCUAReferenceContainer::IsNode() {
@@ -116,8 +118,10 @@ void OPCUAReferenceContainer::SetNumberOfElements(const uint32 dimension,
 }
 
 void OPCUAReferenceContainer::SetNumberOfDimensions(const uint8 nDimensions) {
-    numberOfElements = new uint32[nDimensions];
-    numberOfDimensions = nDimensions;
+    if (numberOfElements == NULL_PTR(uint32 *)) {
+        numberOfElements = new uint32[nDimensions];
+        numberOfDimensions = nDimensions;
+    }
 }
 
 uint32* OPCUAReferenceContainer::GetNumberOfElements() {

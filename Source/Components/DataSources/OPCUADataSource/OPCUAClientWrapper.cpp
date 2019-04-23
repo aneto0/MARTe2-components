@@ -69,7 +69,9 @@ OPCUAClientWrapper::OPCUAClientWrapper() {
 OPCUAClientWrapper::~OPCUAClientWrapper() {
     UA_StatusCode code = UA_Client_disconnect(opcuaClient);
     if (code == 0x00U) { /* UA_STATUSCODE_GOOD */
-        UA_Client_delete(opcuaClient);
+        if (opcuaClient != NULL_PTR(UA_Client *)) {
+            UA_Client_delete(opcuaClient);
+        }
     }
     if (monitoredNodes != NULL_PTR(UA_NodeId *)) {
         delete[] monitoredNodes;
@@ -356,7 +358,7 @@ uint32 OPCUAClientWrapper::GetReferenceType(const UA_BrowseRequest &bReq,
     return id;
 }
 
-/*lint -e{746} -e{1055} -e{534} -e{516} UA_Variant_setScalar is defined in open62541.*/
+/*lint -e{746} -e{1055} -e{534} -e{516} -e{526} -e{628} UA_Variant_setScalar is defined in open62541.*/
 void OPCUAClientWrapper::SetWriteRequest(const uint32 idx,
                                          const uint8 nDimensions,
                                          const uint32 nElements,

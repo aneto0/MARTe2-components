@@ -50,11 +50,11 @@
 namespace MARTe {
 
 /**
- * @brief OPCUAServer class. It manages the OPCUA Server life cycle.
+ * @brief OPCUAServer class. Manages the OPCUA Server life cycle.
  * @details A SingleThreadService which offers all the functionalities to read data from IntrospectionStructures
  * and to create the OPCUA Address Space correctly.
  *
- * All the nodes added in the AddressSpace will be OPCUA Variable type.
+ * All the nodes added in the AddressSpace will be of OPCUA Variable type.
  *
  * The configuration syntax is  (names are only given as an example):
  * <pre>

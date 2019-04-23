@@ -53,75 +53,57 @@ bool EPICSPVAChannelWrapperTest::TestConstructor() {
     return (chName.Size() == 0u);
 }
 
+bool EPICSPVAChannelWrapperTest::TestSetAliasAndField() {
+    using namespace MARTe;
+    using namespace MARTe;
+    bool ok = false;
+    {
+        EPICSPVAChannelWrapper test;
+        ConfigurationDatabase cdb;
+        cdb.CreateAbsolute("Record1");
+        ok = test.SetAliasAndField(cdb);
+        if (ok) {
+            StreamString chName = test.GetChannelName();
+            ok = (chName == "Record1");
+        }
+        if (ok) {
+            StreamString fieldName = test.GetFieldName();
+            ok = (fieldName == "value");
+        }
+    }
+    {
+        EPICSPVAChannelWrapper test;
+        ConfigurationDatabase cdb;
+        cdb.CreateAbsolute("Record1");
+        cdb.Write("Alias", "A:B:C");
+        cdb.Write("Field", "Test");
+        ok = test.SetAliasAndField(cdb);
+        if (ok) {
+            StreamString chName = test.GetChannelName();
+            ok = (chName == "A:B:C");
+        }
+        if (ok) {
+            StreamString fieldName = test.GetFieldName();
+            ok = (fieldName == "Test");
+        }
+    }
+    return ok;
+}
+
 bool EPICSPVAChannelWrapperTest::TestSetup() {
     using namespace MARTe;
-    EPICSPVAChannelWrapper test;
-    ConfigurationDatabase cdb;
-    cdb.CreateAbsolute("Record1.value");
-    cdb.Write("Type", "uint32");
-    cdb.Write("NumberOfElements", 1);
-    cdb.CreateAbsolute("Record1.NodeA.NodeB.Element1");
-    cdb.Write("Type", "float64");
-    cdb.Write("NumberOfElements", 24);
-    cdb.MoveAbsolute("Record1");
-    bool ok = test.Setup(cdb);
-    if (ok) {
-        StreamString chName = test.GetChannelName();
-        ok = (chName == "Record1");
-    }
-    if (ok) {
-        void *mem = NULL;
-        test.GetSignalMemory("value", mem);
-        ok = (mem != NULL);
-    }
-    if (ok) {
-        void *mem = NULL;
-        test.GetSignalMemory("NodeA.NodeB.Element1", mem);
-        ok = (mem != NULL);
-    }
-    if (ok) {
-        void *mem = NULL;
-        test.GetSignalMemory("NodeA.NodeB.DoesNotExist", mem);
-        ok = (mem == NULL);
-    }
-    return ok;
-}
-
-bool EPICSPVAChannelWrapperTest::TestSetup_False_Dimensions() {
-    using namespace MARTe;
-    EPICSPVAChannelWrapper test;
-    ConfigurationDatabase cdb;
-    cdb.CreateAbsolute("Record1.value");
-    cdb.Write("Type", "uint32");
-    cdb.Write("NumberOfElements", 10);
-    cdb.Write("NumberOfDimensions", 2);
-    cdb.MoveAbsolute("Record1");
-    bool ok = !test.Setup(cdb);
-    return ok;
-}
-
-bool EPICSPVAChannelWrapperTest::TestSetup_False_InvalidLeaf() {
-    using namespace MARTe;
-    EPICSPVAChannelWrapper test;
-    ConfigurationDatabase cdb;
-    cdb.CreateAbsolute("Record1.value");
-    cdb.Write("Type", "uint32");
-    cdb.Write("NumberOfElements", 10);
-    cdb.Write("NumberOfDimensions", 1);
-    cdb.CreateAbsolute("Record1.value2");
-    cdb.MoveAbsolute("Record1");
-    bool ok = !test.Setup(cdb);
-    return ok;
-}
-
-bool EPICSPVAChannelWrapperTest::TestGetSignalMemory() {
-    return TestSetup();
+    return TestMonitor();
 }
 
 bool EPICSPVAChannelWrapperTest::TestPut() {
     EPICSPVAOutputTest test;
     return test.TestSynchronise();
+}
 
+bool EPICSPVAChannelWrapperTest::TestPut_False_CharString() {
+    using namespace MARTe;
+    EPICSPVAOutputTest test;
+    return test.TestSynchronise_False_CharString();
 }
 
 bool EPICSPVAChannelWrapperTest::TestMonitor() {
@@ -130,52 +112,9 @@ bool EPICSPVAChannelWrapperTest::TestMonitor() {
 }
 
 bool EPICSPVAChannelWrapperTest::TestGetChannelName() {
-    using namespace MARTe;
-    bool ok = false;
-    {
-        EPICSPVAChannelWrapper test;
-        ConfigurationDatabase cdb;
-        cdb.CreateAbsolute("Record1.value");
-        cdb.Write("Type", "uint32");
-        cdb.Write("NumberOfElements", 1);
-        cdb.CreateAbsolute("Record1.NodeA.NodeB.Element1");
-        cdb.Write("Type", "float64");
-        cdb.Write("NumberOfElements", 24);
-        cdb.MoveAbsolute("Record1");
-        ok = test.Setup(cdb);
-        if (ok) {
-            StreamString chName = test.GetChannelName();
-            ok = (chName == "Record1");
-        }
-        if (ok) {
-            StreamString chName = test.GetChannelUnaliasedName();
-            ok = (chName == "Record1");
-        }
-    }
-    if (ok) {
-        EPICSPVAChannelWrapper test;
-        ConfigurationDatabase cdb;
-        cdb.CreateAbsolute("Record1.value");
-        cdb.Write("Type", "uint32");
-        cdb.Write("NumberOfElements", 1);
-        cdb.CreateAbsolute("Record1.NodeA.NodeB.Element1");
-        cdb.Write("Type", "float64");
-        cdb.Write("NumberOfElements", 24);
-        cdb.MoveAbsolute("Record1");
-        cdb.Write("Alias", "Test::Rec");
-        ok = test.Setup(cdb);
-        if (ok) {
-            StreamString chName = test.GetChannelName();
-            ok = (chName == "Test::Rec");
-        }
-        if (ok) {
-            StreamString chName = test.GetChannelUnaliasedName();
-            ok = (chName == "Record1");
-        }
-    }
-    return ok;
+    return TestSetAliasAndField();
 }
 
-bool EPICSPVAChannelWrapperTest::TestGetChannelUnaliasedName() {
-    return TestGetChannelName();
+bool EPICSPVAChannelWrapperTest::TestGetFieldName() {
+    return TestSetAliasAndField();
 }

@@ -31,10 +31,10 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "DataSourceI.h"
 #include "EmbeddedServiceMethodBinderI.h"
 #include "EPICSPVAChannelWrapper.h"
 #include "EventSem.h"
+#include "MemoryDataSourceI.h"
 #include "SingleThreadService.h"
 
 /*---------------------------------------------------------------------------*/
@@ -48,6 +48,8 @@ namespace MARTe {
  * Each signal root name defines the name of the record (signal).
  * The configuration syntax is (names are only given as an example):
  *
+ * Note that strings shall be specified with Type = string (also inside structured types).
+ *
  * <pre>
  * +EPICSPVAOutput_1 = {
  *     Class = EPICSPVADataSource::EPICSPVAOutput
@@ -56,46 +58,19 @@ namespace MARTe {
  *     IgnoreBufferOverrun = 1 //Optional. If true no error will be triggered when the thread that writes into EPICS does not consume the data fast enough.
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in a circular buffer that asynchronously writes the values. Each buffer is capable of holding a copy of all the DataSourceI signals.
  *     Signals = {
- *         RecordOut1 = {//Record name if the Alias field is not set
+ *         RecordOut1Value = {//Record name if the Alias field is not set
  *             Alias = "alternative::channel::name"
- *             UnsignedIntegers = {
- *                 UInt8 = {
- *                     Type = uint8
- *                     NumberOfElements = 8
- *                 }
- *                 UInt16 = {
- *                     Type = uint16
- *                     NumberOfElements = 1
- *                 }
- *                 UInt32 = {
- *                     Type = uint32
- *                     NumberOfElements = 1
- *                 }
- *                 UInt64 = {
- *                     Type = uint64
- *                     NumberOfElements = 1
- *                 }
- *             }
+ *             Field = "value" //If not set "value" is assumed
+ *             Type = MyStruct1 //See e.g. InstrospectionStructure
+ *         }
+ *         RecordOut1Status = {//Record name if the Alias field is not set
+ *             Alias = "alternative::channel::name" //Note that this is the same record as RecordOut1Value
+ *             Field = "value"
+ *             Type = uint32
  *         }
  *         RecordOut2 = {
- *             SignedIntegers = {
- *                 Int8 = {
- *                     Type = int8
- *                     NumberOfElements = 2
- *                 }
- *                 Int16 = {
- *                     Type = int16
- *                     NumberOfElements = 4
- *                 }
- *                 Int32 = {
- *                     Type = int32
- *                     NumberOfElements = 1
- *                 }
- *                 Int64 = {
- *                     Type = int64
- *                     NumberOfElements = 1
- *                 }
- *             }
+ *             Field = "test"
+ *             Type = MyStruct3
  *         }
  *         ...
  *     }
@@ -103,7 +78,7 @@ namespace MARTe {
  *
  * </pre>
  */
-class EPICSPVAOutput: public DataSourceI {
+class EPICSPVAOutput: public MemoryDataSourceI {
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -114,30 +89,15 @@ EPICSPVAOutput    ();
 
     /**
      * @brief Destructor.
-     * @details TODO.
+     * @details Frees the allocated memory.
      */
     virtual ~EPICSPVAOutput();
-
-    /**
-     * @brief See DataSourceI::AllocateMemory. NOOP.
-     * @return true.
-     */
-    virtual bool AllocateMemory();
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
      * @return 1.
      */
     virtual uint32 GetNumberOfMemoryBuffers();
-
-    /**
-     * @brief See DataSourceI::GetSignalMemoryBuffer.
-     * @pre
-     *   SetConfiguredDatabase
-     */
-    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
@@ -184,10 +144,11 @@ EPICSPVAOutput    ();
     uint32 GetStackSize() const;
 
     /**
-     * @brief Gets the number of buffers in the circular buffer that asynchronously writes the pva values.
-     * @return the number of buffers in the circular buffer that asynchronously writes the pva values.
+     * @brief Calls EPICSPVAChannelWrapper::Setup and start the threading service.
+     * @details see MemoryDataSourceI::AllocateMemory
+     * @return true if the EPICSPVAChannelWrapper::Setup was successful and the service started.
      */
-    uint32 GetNumberOfBuffers() const;
+    virtual bool AllocateMemory();
 
     /**
      * @brief Provides the context to execute all the EPICS calls.
@@ -233,14 +194,14 @@ private:
     uint32 stackSize;
 
     /**
-     * The number of buffers for the circular buffer that flushes data into EPICS
-     */
-    uint32 numberOfBuffers;
-
-    /**
      * If true no error will be triggered when the data cannot be consumed by the thread doing the pva::set/exec.
      */
     uint32 ignoreBufferOverrun;
+
+    /**
+     * The number of buffers for the circular buffer that flushes data into EPICS
+     */
+    uint32 numberOfBrokerBuffers;
 };
 }
 

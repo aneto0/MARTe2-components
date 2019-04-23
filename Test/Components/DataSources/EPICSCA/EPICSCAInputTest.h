@@ -131,6 +131,11 @@ public:
     bool TestSetConfiguredDatabase_False_UnsupportedType();
 
     /**
+     * @brief Tests the SetConfiguredDatabase method with a string that does not have 40 bytes.
+     */
+    bool TestSetConfiguredDatabase_False_WrongStringSize();
+
+    /**
      * @brief Tests that the PV values are correctly captured by the DataSourceI
      */
     bool TestExecute();

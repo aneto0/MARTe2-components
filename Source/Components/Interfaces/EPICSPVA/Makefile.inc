@@ -25,6 +25,7 @@
 OBJSX=EPICSObjectRegistryDatabaseService.x \
     EPICSPVA2V3Service.x \
     EPICSPVADatabase.x \
+    EPICSPVAHelper.x \
     EPICSPVAMessageI.x \
     EPICSPVARecord.x \
     EPICSPVAStructureDataI.x \

@@ -288,6 +288,7 @@ template<typename Type> bool StatisticsHelperT<Type>::Reset() {
 
 /**
  * @brief float32 implementation of StatisticsHelperT<>::Reset()
+ * @return See StatisticsHelperT::Reset
  */
 template<> inline bool StatisticsHelperT<float32>::Reset() { // Must be declared/defined before use in the constructor
 

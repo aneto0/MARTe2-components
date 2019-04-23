@@ -467,38 +467,39 @@ bool MDSWriterNode::ForceSegment() {
         start += static_cast<float64>(numberOfSamplesPerSegment) * period;
     }
     if (nodeType == DTYPE_B) {
-        array = new MDSplus::Int8Array(reinterpret_cast<char8 *>(bufferedData), 3, &segmentDim[0]);
+        array = new MDSplus::Int8Array(reinterpret_cast<char8 *>(bufferedData), 2, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_BU) {
-        array = new MDSplus::Uint8Array(reinterpret_cast<uint8 *>(bufferedData), 3, &segmentDim[0]);
+        array = new MDSplus::Uint8Array(reinterpret_cast<uint8 *>(bufferedData), 2, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_W) {
-        array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), 3, &segmentDim[0]);
+        array = new MDSplus::Int16Array(reinterpret_cast<int16 *>(bufferedData), 2, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_WU) {
-        array = new MDSplus::Uint16Array(reinterpret_cast<uint16 *>(bufferedData), 3, &segmentDim[0]);
+        array = new MDSplus::Uint16Array(reinterpret_cast<uint16 *>(bufferedData), 2, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_L) {
-        array = new MDSplus::Int32Array(reinterpret_cast<int32 *>(bufferedData), 3, &segmentDim[0]);
+        array = new MDSplus::Int32Array(reinterpret_cast<int32 *>(bufferedData), 2, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_LU) {
-        array = new MDSplus::Uint32Array(reinterpret_cast<uint32 *>(bufferedData), 3, &segmentDim[0]);
+        array = new MDSplus::Uint32Array(reinterpret_cast<uint32 *>(bufferedData), 2, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_Q) {
-        array = new MDSplus::Int64Array(reinterpret_cast<int64_t *>(bufferedData), 3, &segmentDim[0]);
+        array = new MDSplus::Int64Array(reinterpret_cast<int64_t *>(bufferedData), 2, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_QU) {
-        array = new MDSplus::Uint64Array(reinterpret_cast<uint64_t *>(bufferedData), 3, &segmentDim[0]);
+        array = new MDSplus::Uint64Array(reinterpret_cast<uint64_t *>(bufferedData), 2, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_FLOAT) {
-        array = new MDSplus::Float32Array(reinterpret_cast<float32*>(bufferedData), 3, &segmentDim[0]);
+        array = new MDSplus::Float32Array(reinterpret_cast<float32*>(bufferedData), 2, &segmentDim[0]);
     }
     else if (nodeType == DTYPE_DOUBLE) {
-        array = new MDSplus::Float64Array(reinterpret_cast<float64*>(bufferedData), 3, &segmentDim[0]);
+        array = new MDSplus::Float64Array(reinterpret_cast<float64*>(bufferedData), 2, &segmentDim[0]);
     }
     else {
         //An invalid nodeType is trapped before.
     }
+
     if (array != NULL_PTR(MDSplus::Array *)) {
         if (decimatedMinMax) {
             //lint -e{613} node is checked not to be null in the beginning of the function
@@ -539,50 +540,100 @@ bool MDSWriterNode::AddDataToSegment() {
         if (!useTimeVector) {
             start += period;
         }
-        MDSplus::Scalar *value = NULL_PTR(MDSplus::Scalar *);
-        if (nodeType == DTYPE_B) {
-            value = new MDSplus::Int8(reinterpret_cast<char8 *>(bufferedData)[i]);
-        }
-        else if (nodeType == DTYPE_BU) {
-            value = new MDSplus::Uint8(reinterpret_cast<uint8 *>(bufferedData)[i]);
-        }
-        else if (nodeType == DTYPE_W) {
-            value = new MDSplus::Int16(reinterpret_cast<int16 *>(bufferedData)[i]);
-        }
-        else if (nodeType == DTYPE_WU) {
-            value = new MDSplus::Uint16(reinterpret_cast<uint16 *>(bufferedData)[i]);
-        }
-        else if (nodeType == DTYPE_L) {
-            value = new MDSplus::Int32(reinterpret_cast<int32 *>(bufferedData)[i]);
-        }
-        else if (nodeType == DTYPE_LU) {
-            value = new MDSplus::Uint32(reinterpret_cast<uint32 *>(bufferedData)[i]);
-        }
-        else if (nodeType == DTYPE_Q) {
-            value = new MDSplus::Int64(reinterpret_cast<int64_t *>(bufferedData)[i]);
-        }
-        else if (nodeType == DTYPE_QU) {
-            value = new MDSplus::Uint64(reinterpret_cast<uint64_t *>(bufferedData)[i]);
-        }
-        else if (nodeType == DTYPE_FLOAT) {
-            value = new MDSplus::Float32(reinterpret_cast<float32*>(bufferedData)[i]);
-        }
-        else if (nodeType == DTYPE_DOUBLE) {
-            value = new MDSplus::Float64(reinterpret_cast<float64*>(bufferedData)[i]);
+        if (numberOfElements > 1u) {
+            int32 numberElementsInt32 = static_cast<int32>(numberOfElements);
+            MDSplus::Array *value = NULL_PTR(MDSplus::Array *);
+            if (nodeType == DTYPE_B) {
+                value = new MDSplus::Int8Array(&(reinterpret_cast<char8 *>(bufferedData)[i]), numberElementsInt32);
+            }
+            else if (nodeType == DTYPE_BU) {
+                value = new MDSplus::Uint8Array(&(reinterpret_cast<uint8 *>(bufferedData)[i]), numberElementsInt32);
+            }
+            else if (nodeType == DTYPE_W) {
+                value = new MDSplus::Int16Array(&(reinterpret_cast<int16 *>(bufferedData)[i]), numberElementsInt32);
+            }
+            else if (nodeType == DTYPE_WU) {
+                value = new MDSplus::Uint16Array(&(reinterpret_cast<uint16 *>(bufferedData)[i]), numberElementsInt32);
+            }
+            else if (nodeType == DTYPE_L) {
+                value = new MDSplus::Int32Array(&(reinterpret_cast<int32 *>(bufferedData)[i]), numberElementsInt32);
+            }
+            else if (nodeType == DTYPE_LU) {
+                value = new MDSplus::Uint32Array(&(reinterpret_cast<uint32 *>(bufferedData)[i]), numberElementsInt32);
+            }
+            else if (nodeType == DTYPE_Q) {
+                value = new MDSplus::Int64Array(&(reinterpret_cast<int64_t *>(bufferedData)[i]), numberElementsInt32);
+            }
+            else if (nodeType == DTYPE_QU) {
+                value = new MDSplus::Uint64Array(&(reinterpret_cast<uint64_t *>(bufferedData)[i]), numberElementsInt32);
+            }
+            else if (nodeType == DTYPE_FLOAT) {
+                value = new MDSplus::Float32Array(&(reinterpret_cast<float32*>(bufferedData)[i]), numberElementsInt32);
+            }
+            else if (nodeType == DTYPE_DOUBLE) {
+                value = new MDSplus::Float64Array(&(reinterpret_cast<float64*>(bufferedData)[i]), numberElementsInt32);
+            }
+            else {
+                //An invalid nodeType is trapped before.
+            }
+            if (value != NULL_PTR(MDSplus::Array *)) {
+                //lint -e{613} node is checked not to be null in the beginning of the function
+                try {
+                    node->putRow(value, &auxCurrentTime);
+                }
+                catch (const MDSplus::MdsException &exc) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
+                    ok = false;
+                }
+                MDSplus::deleteData(value);
+            }
         }
         else {
-            //An invalid nodeType is trapped before.
-        }
-        if (value != NULL_PTR(MDSplus::Scalar *)) {
-            //lint -e{613} node is checked not to be null in the beginning of the function
-            try {
-                node->putRow(value, &auxCurrentTime);
+            MDSplus::Scalar *value = NULL_PTR(MDSplus::Scalar *);
+            if (nodeType == DTYPE_B) {
+                value = new MDSplus::Int8(reinterpret_cast<char8 *>(bufferedData)[i]);
             }
-            catch (const MDSplus::MdsException &exc) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
-                ok = false;
+            else if (nodeType == DTYPE_BU) {
+                value = new MDSplus::Uint8(reinterpret_cast<uint8 *>(bufferedData)[i]);
             }
-            MDSplus::deleteData(value);
+            else if (nodeType == DTYPE_W) {
+                value = new MDSplus::Int16(reinterpret_cast<int16 *>(bufferedData)[i]);
+            }
+            else if (nodeType == DTYPE_WU) {
+                value = new MDSplus::Uint16(reinterpret_cast<uint16 *>(bufferedData)[i]);
+            }
+            else if (nodeType == DTYPE_L) {
+                value = new MDSplus::Int32(reinterpret_cast<int32 *>(bufferedData)[i]);
+            }
+            else if (nodeType == DTYPE_LU) {
+                value = new MDSplus::Uint32(reinterpret_cast<uint32 *>(bufferedData)[i]);
+            }
+            else if (nodeType == DTYPE_Q) {
+                value = new MDSplus::Int64(reinterpret_cast<int64_t *>(bufferedData)[i]);
+            }
+            else if (nodeType == DTYPE_QU) {
+                value = new MDSplus::Uint64(reinterpret_cast<uint64_t *>(bufferedData)[i]);
+            }
+            else if (nodeType == DTYPE_FLOAT) {
+                value = new MDSplus::Float32(reinterpret_cast<float32*>(bufferedData)[i]);
+            }
+            else if (nodeType == DTYPE_DOUBLE) {
+                value = new MDSplus::Float64(reinterpret_cast<float64*>(bufferedData)[i]);
+            }
+            else {
+                //An invalid nodeType is trapped before.
+            }
+            if (value != NULL_PTR(MDSplus::Scalar *)) {
+                //lint -e{613} node is checked not to be null in the beginning of the function
+                try {
+                    node->putRow(value, &auxCurrentTime);
+                }
+                catch (const MDSplus::MdsException &exc) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed putRow() Error: %s", exc.what());
+                    ok = false;
+                }
+                MDSplus::deleteData(value);
+            }
         }
     }
     return ok;

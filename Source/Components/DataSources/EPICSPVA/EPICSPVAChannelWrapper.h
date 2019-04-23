@@ -1,8 +1,8 @@
 /**
  * @file EPICSPVAChannelWrapper.h
  * @brief Header file for class EPICSPVAChannelWrapper
- * @date Oct 21, 2018
- * @author aneto
+ * @date 21/10/2018
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -34,6 +34,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "ConfigurationDatabase.h"
+#include "DataSourceI.h"
 #include "StreamString.h"
 #include "StructuredDataI.h"
 
@@ -62,12 +63,16 @@ struct EPICSPVAChannelWrapperCachedSignal {
      * Allocate memory with sufficient space to hold a copy of the signal.
      */
     void *memory;
+    /**
+     * The pv field
+     */
+    epics::pvData::PVFieldPtr pvField;
 };
 
 /**
  * @brief Helper class which encapsulates a PVA signal (record) and allows to put/monitor.
  */
-class EPICSPVAChannelWrapper {
+class EPICSPVAChannelWrapper: public pvac::ClientChannel::PutCallback {
 public:
     /**
      * @brief Constructor. NOOP.
@@ -77,20 +82,22 @@ public:
     /**
      * @brief Destructor. NOOP.
      */
-    ~EPICSPVAChannelWrapper();
+    virtual ~EPICSPVAChannelWrapper();
 
     /**
      * @brief Registers the channel with a name given by data.Read("Alias") or data.GetName(), if the former does not exist.
+     * @details Also tries to read the field name data.Read("Field"). If not set Field = value is assumed. The Field cannot be set as
+     *  node as this would prevent the RealTimeApplicationConfigurationBuilder from properly expanding the structured types.
      * @param[in] data the structure to be registered against the channel.
      */
-    bool Setup(StructuredDataI &data);
+    bool SetAliasAndField(StructuredDataI &data);
 
     /**
-     * @brief Gets the memory associated to the signal with the provided \a qualifiedName (that shall exist in the structure provide in Setup).
-     * @param[in] qualifiedName the full signal name inside the structure (dot separated).
-     * @param[out] mem the signal memory or NULL if the signal cannot be found.
+     * @brief Setup all the signal memory information.
+     * @param[in] dataSource the data source holding the signals.
+     * @return true if the memory setup was successfully set.
      */
-    void GetSignalMemory(const char8 * const qualifiedName, void *&mem);
+    bool Setup(DataSourceI &dataSource);
 
     /**
      * @brief Copies from each signal memory (see GetSignalMemory) into the relevant PVA structure fields and commit the changes.
@@ -106,26 +113,46 @@ public:
     bool Monitor();
 
     /**
-     * @brief Gets this channel name (see Setup).
+     * @brief Gets this channel name (see SetAliasAndField).
      * @return this channel name .
      */
     const char8 * const GetChannelName();
 
     /**
-     * @brief Gets this channel name irrespectively of the Alias.
-     * @return this channel name irrespectively of the Alias.
+     * @brief Gets the field name (see SetAliasAndField).
+     * @return the field name.
      */
-    const char8 * const GetChannelUnaliasedName();
+    const char8 * const GetFieldName();
+
+    /**
+     * @brief The callback function that is called when the channel.put method is called. Sets the args.root to pvStruct.
+     * @param[in] build see pvac::ClientChannel::PutCallback
+     * @param[in,out] args see pvac::ClientChannel::PutCallback
+     */
+    virtual void putBuild(const epics::pvData::StructureConstPtr& build, pvac::ClientChannel::PutCallback::Args& args);
+
+    /**
+     * @brief The callback function that is called when the put operation concludes.
+     * @param[in] evt see pvac::ClientChannel::PutCallback
+     */
+    virtual void putDone(const pvac::PutEvent& evt);
 
 private:
 
     /**
+     * @brief Recursively populates the cachedSignals (flat list of the structure identified with the qualifiedName) array from the input structure.
+     * @param[in] pvStruct the structure to be resolved.
+     * @param[in] nodeName the name of structure.
+     * @return true if the structure can be fully resolved with no errors.
+     */
+    bool ResolveStructure(epics::pvData::PVFieldPtr pvField, const char8 * const nodeName);
+
+    /**
      * @brief Helper method which set signal at index \a in the \a putBuilder.
-     * @param[in] putBuilder a valid builder which will be updated with the signal[n] value.
      * @param[in] n the index of the signal to write.
      */
     template<typename T>
-    void PutHelper(pvac::detail::PutBuilder &putBuilder, uint32 n);
+    void PutHelper(uint32 n);
 
     /**
      * @brief Helper method which gets the value of the signal at index \a from the relevant field in the \a scalarArrayPtr.
@@ -135,15 +162,6 @@ private:
      */
     template<typename T>
     bool GetArrayHelper(epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr, uint32 n);
-
-    /**
-     * @brief Recursively loads the signal structures into a ConfigurationDatabase (which is used as a memory backend).
-     * @param[in] cdbSignalStructure the signals to be loaded (see Setup).
-     * @param[in] fullNodeName the full name of the node currently being queried.
-     * @param[in] relativeNodeName the name of the node currently being queried.
-     * @return true if all the ConfigurationDatabase read/write operations are successful.
-     */
-    bool LoadSignalStructure(StructuredDataI &cdbSignalStructure, StreamString fullNodeName, StreamString relativeNodeName);
 
     /**
      * The EPICS PVA channel
@@ -166,14 +184,14 @@ private:
     StreamString channelName;
 
     /**
-     * The channelName without considering the alias
+     * The original signal name
      */
-    StreamString unliasedChannelName;
+    StreamString originalName;
 
     /**
-     * The backend memory
+     * The EPICSPVA fieldName
      */
-    ConfigurationDatabase memoryBackend;
+    StreamString fieldName;
 
     /**
      * The number of signals that were found while loading the structure.
@@ -181,14 +199,29 @@ private:
     uint32 numberOfSignals;
 
     /**
-     * Number of signals actually being used by the broker.
-     */
-    uint32 numberOfRequestedSignals;
-
-    /**
      * The cached signals (flat list of the structure identified with the qualifiedName).
      */
     EPICSPVAChannelWrapperCachedSignal *cachedSignals;
+
+    /**
+     * Was the structured resolved at least once?
+     */
+    bool structureResolved;
+
+    /**
+     * The structure which is pvput (see putBuild)
+     */
+    epics::pvData::PVStructure::const_shared_pointer putPVStruct;
+
+    /**
+     * The monitored root structure.
+     */
+    epics::pvData::PVStructure::const_shared_pointer monitorRoot;
+
+    /**
+     * Set to true when the put has finished.
+     */
+    bool putFinished;
 };
 }
 
@@ -197,16 +230,42 @@ private:
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 template<typename T>
-void EPICSPVAChannelWrapper::PutHelper(pvac::detail::PutBuilder &putBuilder, uint32 n) {
+void EPICSPVAChannelWrapper::PutHelper(uint32 n) {
     if ((cachedSignals[n].numberOfElements) == 1u) {
-        putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), *static_cast<T *>(cachedSignals[n].memory));
+        epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar > (cachedSignals[n].pvField);
+        if (scalarFieldPtr ? true : false) {
+            scalarFieldPtr->putFrom<T>(*static_cast<T *>(cachedSignals[n].memory));
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field", cachedSignals[n].qualifiedName.Buffer());
+        }
     }
     else {
-        epics::pvData::shared_vector<T> out;
-        out.resize(cachedSignals[n].numberOfElements);
-        (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory, cachedSignals[n].numberOfElements * sizeof(T));
-        epics::pvData::shared_vector<const T> outF = freeze(out);
-        putBuilder.set(cachedSignals[n].qualifiedName.Buffer(), outF);
+        epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray > (cachedSignals[n].pvField);
+        if (scalarArrayPtr ? true : false) {
+            epics::pvData::shared_vector<T> out;
+            out.resize(cachedSignals[n].numberOfElements);
+            (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory, cachedSignals[n].numberOfElements * sizeof(T));
+            epics::pvData::shared_vector<const T> outF = freeze(out);
+            scalarArrayPtr->putFrom<T>(outF);
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field", cachedSignals[n].qualifiedName.Buffer());
+        }
+    }
+}
+
+template<>
+inline void EPICSPVAChannelWrapper::PutHelper<char8>(uint32 n) {
+    epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar > (cachedSignals[n].pvField);
+    if (scalarFieldPtr ? true : false) {
+        std::string value = reinterpret_cast<char8 *>(cachedSignals[n].memory);
+        scalarFieldPtr->putFrom<std::string>(value);
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError,
+                            "Signal %s has an invalid pv field. Note that arrays of strings are not supported in the data-source yet",
+                            cachedSignals[n].qualifiedName.Buffer());
     }
 }
 

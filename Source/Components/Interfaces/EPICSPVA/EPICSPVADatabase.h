@@ -58,33 +58,20 @@ namespace MARTe {
  *   +Record1 = {
  *     Class = EPICSPVA::EPICSPVARecord
  *     Alias = "f4e::falcon::Fast::Record1" //Optional. If set this will be the record name (as opposed to the Object name).
- *     Structure = {
- *       ElementsA = {
- *         Element1 = {
- *           Type = uint32
- *           NumberOfElements = 10
- *         }
- *         Element2 = {
- *           Type = float32
- *         }
- *         ElementsB = {
- *           ElementB1 = {
- *             Type = uint8
- *             NumberOfElements = 100
- *           }
- *           ElementB2 = {
- *             Type = float32
- *             NumberOfElements = 5
- *           }
- *         }
+ *     Structure = {//Use structured types for nested structures.
+ *       A = {
+ *         Type = uint32
+ *       }
+ *       B = {
+ *         Type = AStructuredType //e.g. registered with IntrospectionStructure
  *       }
  *     }
  *   }
  *   +Record2 = {
  *     Class = EPICSPVA::EPICSPVARecord
  *     Structure = {
- *       Element1 = {
- *         Type = float64
+ *       value = {
+ *         Type = AStructuredType2 //e.g. another structured type
  *         NumberOfElements = 1
  *       }
  *     }

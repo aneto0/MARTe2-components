@@ -1,7 +1,6 @@
 -i%EFDA_MARTe_DIR%/Interfaces/BaseLib2Adapter/
 -i%CODAC_ROOT_INCLUDE_DIR%
 -i%EPICS_BASE%/include
--i%OPEN62541_INCLUDE%
 -i%MDSPLUS_DIR%/include
 -i%SDN_CORE_INCLUDE_DIR%
 
@@ -19,13 +18,13 @@
 -i./Source/Components/DataSources/NI6259/
 -i./Source/Components/DataSources/NI6368/
 -i./Source/Components/DataSources/NI9157/
--i./Source/Components/DataSources/OPCUADataSource/
 -i./Source/Components/DataSources/RealTimeThreadAsyncBridge/
 -i./Source/Components/DataSources/RealTimeThreadSynchronisation/
 -i./Source/Components/DataSources/SDN/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConstantGAM/
 -i./Source/Components/GAMs/ConversionGAM/
+-i./Source/Components/GAMs/CRCGAM/
 -i./Source/Components/GAMs/FilterGAM/
 -i./Source/Components/GAMs/HistogramGAM/
 -i./Source/Components/GAMs/Interleaved2FlatGAM/
@@ -40,12 +39,12 @@
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 -i./Source/Components/Interfaces/EPICS/
 -i./Source/Components/Interfaces/EPICSPVA/
+-i./Source/Components/Interfaces/MDSStructuredDataI/
 -i./Source/Components/Interfaces/MemoryGate/
 -i./Source/Components/Interfaces/NI9157Device/
--i./Source/Components/Interfaces/OPCUA/
 -i./Source/Components/Interfaces/SysLogger/
 
-/*Atomic2.h
+Atomic2.h
 BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
@@ -54,6 +53,8 @@ ConversionGAM.cpp
 ConversionHelper.cpp
 CreateNI9157DeviceOperator.cpp
 CreateNI9157DeviceOperatorI.cpp
+CRCGAM.cpp
+CRCHelperT.h
 DANSource.cpp
 DANStream.cpp
 EpicsInputDataSource.cpp
@@ -89,6 +90,7 @@ LinkDataSource.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
+MDSStructuredDataI.cpp
 MDSReader.cpp
 MDSWriter.cpp
 MDSWriterNode.cpp
@@ -109,15 +111,8 @@ NI9157CircularFifoReader.cpp
 NI9157DeviceOperatorDatabase.cpp
 NI9157DeviceOperatorT.cpp
 NI9157DeviceOperatorTI.cpp
-NI9157MxiDataSource.cpp*/
-OPCUAClientWrapper.cpp
-OPCUADSInput.cpp
-OPCUADSOutput.cpp
-OPCUANode.cpp
-OPCUAObject.cpp
-OPCUAReferenceContainer.cpp
-OPCUAServer.cpp
-/*Platform.cpp
+NI9157MxiDataSource.cpp
+Platform.cpp
 PIDGAM.cpp
 RealTimeThreadAsyncBridge.cpp
 RealTimeThreadSynchBroker.cpp
@@ -143,4 +138,4 @@ WaveformChirp.h
 WaveformSin.cpp
 WaveformSin.h
 WaveformPointsDef.cpp
-WaveformPointsDef.h*/
+WaveformPointsDef.h

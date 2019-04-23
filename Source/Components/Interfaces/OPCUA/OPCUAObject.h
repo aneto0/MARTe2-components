@@ -66,6 +66,8 @@ OPCUAObject    ();
 
     /**
      * @see OPCUAReferenceContainer::GetOPCObject
+     * @param[out] settings The NodeProperties struct to be populated with all the data available
+     * @param[in] nodeNumber The numeric ID to be assigned to the OPCUA NodeID related to the current Node Variable
      * @return true if all the parameters and attributes are set correctly
      */
     virtual bool GetOPCObject(OPCUA::OPCUAObjectSettings &settings, const uint32 nodeNumber);

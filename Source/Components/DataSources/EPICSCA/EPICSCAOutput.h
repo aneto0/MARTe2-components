@@ -60,7 +60,7 @@ namespace MARTe {
  *     Signals = {
  *          PV1 = { //At least one shall be defined
  *             PVName = My::PV1 //Compulsory. Name of the PV.
- *             Type = uint32 //Compulsory. Supported types are int32, uint32, float32 and float64
+ *             Type = uint32 //Compulsory. Supported types are char8[40], string[40], uint8, int8, uint16, int16, int32, uint32, float32 and float64
  *          }
  *          ...
  *     }
