@@ -25,8 +25,10 @@
 OBJSX=OPCUANode.x \
     OPCUAObject.x \
     OPCUAReferenceContainer.x \
-    OPCUAServer.x
-
+    OPCUAServer.x \
+    OPCUAClient.x \
+    OPCUAVariable.x
+    
 PACKAGE=Components/Interfaces
 
 ROOT_DIR=../../../../
