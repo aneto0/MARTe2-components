@@ -215,6 +215,14 @@ EPICSPVAStructureDataI    ();
      */
     bool CopyValuesFrom(StructuredDataI &source);
 
+    /**
+     * @brief Writes the structure content to a StreamString.
+     * @param[out] out the string where to write the structure into.
+     * @pre
+     *    IsStructureFinalised() => structure is fixed.
+     */
+    bool ToString(StreamString &out);
+
 private:
     /**
      * @brief Implementation of the move which allows to navigate inside arrays of structures by parsing the path and extracting []
@@ -228,6 +236,15 @@ private:
      * @return the subNode Id
      */
     virtual const char8 *GetChildId(const uint32 index);
+
+    /**
+     * @brief Helper method to read a value from an epics::pvData::PVScalarPtr into an AnyType. Required to handle the special boolean type.
+     * @param[in] scalarFieldPtr the scalar where to read the data from.
+     * @param[out] value where to store the read value.
+     * @return true if the value can be successfully read.
+     */
+    template<typename T>
+    bool ReadValue(epics::pvData::PVScalarPtr scalarFieldPtr, const AnyType &value);
 
     /**
      * @brief Helper method to read an array from an epics::pvData::PVScalarArray into an AnyType. Should allow to convert from any numeric type to any numeric type.
@@ -286,6 +303,36 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+
+template<typename T>
+bool EPICSPVAStructureDataI::ReadValue(epics::pvData::PVScalarPtr scalarFieldPtr, const AnyType &value) {
+    *reinterpret_cast<T *>(value.GetDataPointer()) = scalarFieldPtr->getAs<T>();
+    return true;
+}
+
+template<>
+inline bool EPICSPVAStructureDataI::ReadValue<bool>(epics::pvData::PVScalarPtr scalarFieldPtr, const AnyType &value) {
+    bool readVal = scalarFieldPtr->getAs<epics::pvData::boolean>();
+    bool ok = true;
+    if ((value.GetTypeDescriptor() == UnsignedInteger8Bit) || (value.GetTypeDescriptor() == SignedInteger8Bit)) {
+        *reinterpret_cast<uint8 *>(value.GetDataPointer()) = (readVal ? 1u : 0u);
+    }
+    else if ((value.GetTypeDescriptor() == UnsignedInteger16Bit) || (value.GetTypeDescriptor() == SignedInteger16Bit)) {
+        *reinterpret_cast<uint16 *>(value.GetDataPointer()) = (readVal ? 1u : 0u);
+    }
+    else if ((value.GetTypeDescriptor() == UnsignedInteger32Bit) || (value.GetTypeDescriptor() == SignedInteger32Bit)) {
+        *reinterpret_cast<uint32 *>(value.GetDataPointer()) = (readVal ? 1u : 0u);
+    }
+    else if ((value.GetTypeDescriptor() == UnsignedInteger64Bit) || (value.GetTypeDescriptor() == SignedInteger64Bit)) {
+        *reinterpret_cast<uint64 *>(value.GetDataPointer()) = (readVal ? 1u : 0u);
+    }
+    else {
+        ok = false;
+    }
+
+    return ok;
+}
+
 template<typename T>
 bool EPICSPVAStructureDataI::ReadArray(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
     bool ok = true;
@@ -319,14 +366,38 @@ inline bool EPICSPVAStructureDataI::ReadArray<std::string>(epics::pvData::PVScal
 template<>
 inline bool EPICSPVAStructureDataI::ReadArray<bool>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, AnyType &storedType, const AnyType &value) {
     bool ok = true;
+    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
     epics::pvData::shared_vector<const epics::pvData::boolean> out;
     scalarArrayPtr->getAs<epics::pvData::boolean>(out);
-    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
-    uint32 i;
-    Vector<uint8> readVec(reinterpret_cast<uint8 *>(value.GetDataPointer()), numberOfElements);
     Vector<bool> srcVec(const_cast<bool *>(reinterpret_cast<const bool *>(out.data())), numberOfElements);
-    for (i = 0u; i < numberOfElements; i++) {
-        readVec[i] = (srcVec[i] ? 1u : 0u);
+
+    uint32 i;
+    if ((value.GetTypeDescriptor() == UnsignedInteger8Bit) || (value.GetTypeDescriptor() == SignedInteger8Bit)) {
+        Vector<uint8> readVec(reinterpret_cast<uint8 *>(value.GetDataPointer()), numberOfElements);
+        for (i = 0u; i < numberOfElements; i++) {
+            readVec[i] = (srcVec[i] ? 1u : 0u);
+        }
+    }
+    else if ((value.GetTypeDescriptor() == UnsignedInteger16Bit) || (value.GetTypeDescriptor() == SignedInteger16Bit)) {
+        Vector<uint16> readVec(reinterpret_cast<uint16 *>(value.GetDataPointer()), numberOfElements);
+        for (i = 0u; i < numberOfElements; i++) {
+            readVec[i] = (srcVec[i] ? 1u : 0u);
+        }
+    }
+    else if ((value.GetTypeDescriptor() == UnsignedInteger32Bit) || (value.GetTypeDescriptor() == SignedInteger32Bit)) {
+        Vector<uint32> readVec(reinterpret_cast<uint32 *>(value.GetDataPointer()), numberOfElements);
+        for (i = 0u; i < numberOfElements; i++) {
+            readVec[i] = (srcVec[i] ? 1u : 0u);
+        }
+    }
+    else if ((value.GetTypeDescriptor() == UnsignedInteger64Bit) || (value.GetTypeDescriptor() == SignedInteger64Bit)) {
+        Vector<uint64> readVec(reinterpret_cast<uint64 *>(value.GetDataPointer()), numberOfElements);
+        for (i = 0u; i < numberOfElements; i++) {
+            readVec[i] = (srcVec[i] ? 1u : 0u);
+        }
+    }
+    else {
+        ok = false;
     }
 
     return ok;

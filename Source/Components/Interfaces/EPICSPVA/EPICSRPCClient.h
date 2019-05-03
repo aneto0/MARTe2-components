@@ -41,6 +41,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
 /**
  * @brief EPICS PVA RPC client.
  * @details Messages sent to this component are relayed as a PVStructure through an epics::pvAccess::RPCClient.
@@ -57,7 +58,6 @@
  * }
  * </pre>
  */
-namespace MARTe {
 class EPICSRPCClient: public Object, public QueuedMessageI {
 public:
     CLASS_REGISTER_DECLARATION()

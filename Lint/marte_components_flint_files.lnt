@@ -39,6 +39,7 @@
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 -i./Source/Components/Interfaces/EPICS/
 -i./Source/Components/Interfaces/EPICSPVA/
+-i./Source/Components/Interfaces/MDSStructuredDataI/
 -i./Source/Components/Interfaces/MemoryGate/
 -i./Source/Components/Interfaces/NI9157Device/
 -i./Source/Components/Interfaces/SysLogger/
@@ -89,6 +90,7 @@ LinkDataSource.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
+MDSStructuredDataI.cpp
 MDSReader.cpp
 MDSWriter.cpp
 MDSWriterNode.cpp

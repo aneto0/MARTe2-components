@@ -39,14 +39,23 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-//The PVRecord has some protected members... that need to be exposed
+/**
+ * @brief The PVRecord has some protected members... that need to be exposed
+ */
 class epicsShareClass MARTe2PVARecord: public epics::pvDatabase::PVRecord {
 public:
-    //POINTER_DEFINITIONS(MARTe2PVARecord);
+    /**
+     * @brief Constructor.
+     * @param[in] recordName the name of the record.
+     * @param[in] pvStructure the structure to associate to the record.
+     */
     MARTe2PVARecord(std::string const & recordName, epics::pvData::PVStructurePtr const & pvStructure) :
             epics::pvDatabase::PVRecord(recordName, pvStructure) {
     }
 
+    /**
+     * @brief Expose the initPvt function.
+     */
     void initPvt() {
         initPVRecord();
     }

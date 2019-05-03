@@ -95,7 +95,6 @@ public:
     /**
      * @brief Setup all the signal memory information.
      * @param[in] dataSource the data source holding the signals.
-     * @parma[in] direction the signal direction.
      * @return true if the memory setup was successfully set.
      */
     bool Setup(DataSourceI &dataSource);
@@ -120,7 +119,7 @@ public:
     const char8 * const GetChannelName();
 
     /**
-     * @brief Gets the field name (see SetAliasAndField)..
+     * @brief Gets the field name (see SetAliasAndField).
      * @return the field name.
      */
     const char8 * const GetFieldName();
@@ -146,7 +145,7 @@ private:
      * @param[in] nodeName the name of structure.
      * @return true if the structure can be fully resolved with no errors.
      */
-    bool ResolveStructure(const epics::pvData::PVStructure* pvStruct, const char8 * const nodeName);
+    bool ResolveStructure(epics::pvData::PVFieldPtr pvField, const char8 * const nodeName);
 
     /**
      * @brief Helper method which set signal at index \a in the \a putBuilder.
@@ -213,6 +212,11 @@ private:
      * The structure which is pvput (see putBuild)
      */
     epics::pvData::PVStructure::const_shared_pointer putPVStruct;
+
+    /**
+     * The monitored root structure.
+     */
+    epics::pvData::PVStructure::const_shared_pointer monitorRoot;
 
     /**
      * Set to true when the put has finished.

@@ -68,18 +68,24 @@ ErrorManagement::ErrorType EPICSRPCClientMessageFilter::ConsumeMessage(Reference
         config = configRef;
     }
 
-    EPICSPVAStructureDataI pvaStructureDataI;
+    ReferenceT<EPICSPVAStructureDataI> pvaStructureDataI = config;
     if (err.ErrorsCleared()) {
-        pvaStructureDataI.InitStructure();
-        err.parametersError = !config->Copy(pvaStructureDataI);
-        if (!err.ErrorsCleared()) {
-            REPORT_ERROR(err, "Could not copy the received StructuredDataI");
+        if (!pvaStructureDataI.IsValid()) {
+            pvaStructureDataI = ReferenceT<EPICSPVAStructureDataI>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+            pvaStructureDataI->InitStructure();
+            err.parametersError = !config->Copy(*pvaStructureDataI.operator ->());
+            if (err.ErrorsCleared()) {
+                pvaStructureDataI->FinaliseStructure();
+            }
+            else {
+                REPORT_ERROR(err, "Could not copy the received StructuredDataI");
+            }
         }
     }
+
     if (err.ErrorsCleared()) {
-        pvaStructureDataI.FinaliseStructure();
         epics::pvData::FieldBuilderPtr fieldBuilder = epics::pvData::getFieldCreate()->createFieldBuilder();
-        epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(pvaStructureDataI.GetRootStruct());
+        epics::pvData::PVStructurePtr structPtr = epics::pvData::getPVDataCreate()->createPVStructure(pvaStructureDataI->GetRootStruct());
         epics::pvAccess::RPCClient::shared_pointer client = epics::pvAccess::RPCClient::create(destination.Buffer());
         epics::pvData::PVStructurePtr response;
         if (client) {
@@ -92,13 +98,12 @@ ErrorManagement::ErrorType EPICSRPCClientMessageFilter::ConsumeMessage(Reference
         }
         if (messageToTest->ExpectsReply()) {
             if (response) {
-                EPICSPVAStructureDataI pvaStructureDataIReply;
-                pvaStructureDataIReply.SetStructure(response);
-                //In theory I could have put the reply directly here...
-                ReferenceT<ConfigurationDatabase> replyCopy(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-                err.parametersError = !pvaStructureDataIReply.Copy(*replyCopy.operator ->());
+                ReferenceT<EPICSPVAStructureDataI> pvaStructureDataIReply(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+                pvaStructureDataIReply->SetStructure(response);
+                /*ReferenceT<EPICSPVAStructureDataI> replyCopy(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+                err.parametersError = !pvaStructureDataIReply.Copy(*replyCopy.operator ->());*/
                 if (err.ErrorsCleared()) {
-                    err.parametersError = !messageToTest->Insert(replyCopy);
+                    err.parametersError = !messageToTest->Insert(pvaStructureDataIReply);
                 }
             }
             messageToTest->SetAsReply(true);

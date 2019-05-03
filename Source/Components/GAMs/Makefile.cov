@@ -40,6 +40,6 @@ LIBRARIES_STATIC+=StatisticsGAM/cov/StatisticsGAM$(LIBEXT)
 LIBRARIES_STATIC+=TimeCorrectionGAM/cov/TimeCorrectionGAM$(LIBEXT)
 LIBRARIES_STATIC+=TriggerOnChangeGAM/cov/TriggerOnChangeGAM$(LIBEXT)
 LIBRARIES_STATIC+=WaveformGAM/cov/WaveformGAM$(LIBEXT)
-ifdef EFDA_MARTe_DIR)
+ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=BaseLib2GAM/cov/BaseLib2GAM$(LIBEXT)
 endif

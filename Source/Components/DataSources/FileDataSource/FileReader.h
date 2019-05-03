@@ -79,6 +79,7 @@ namespace MARTe {
  *     CSVSeparator = "," //Compulsory if Format=csv. Sets the file separator type.
  *     XAxisSignal = "Time" //Compulsory if Interpolate = "yes" and none of the signals interacting with this FileReader has Frequency > 0. Name of the signal containing the independent variable to generate the interpolation samples.
  *     InterpolationPeriod = 1000 //Compulsory if Interpolate = "yes" and none of the signals interacting with this FileReader has Frequency > 0. InterpolatedXAxisSignal += InterpolationPeriod. It will be read as an uint64.
+ *     EOF = "Rewind" //Optional behaviour to have when reaching the end of the file. If not set EOF = "Rewind". Possible options are: "Error", "Rewind" and "Last". If "Rewind" the file will be read from the start; if "Error" an error will be issues when EOF is reached; if "Last" the last read values are sent.
  *     //All the signals are automatically added against the information stored in the header of the input file (format described above).
  *     +Messages = { //Optional. If set a message will be fired every time one of the events below occur
  *         Class = ReferenceContainer
@@ -346,6 +347,31 @@ private:
      * The message to send if there is a runtime error.
      */
     ReferenceT<Message> fileRuntimeErrorMsg;
+
+    /**
+     * The possible EOF behaviours.
+     */
+    enum EOFBehaviour {
+        /**
+         * Error.
+         */
+        EOFError = -1,
+        /**
+         * Rewind to the beginning of the file
+         */
+        EOFRewind = 0,
+        /**
+         * Keep the last value
+         */
+        EOFLast = 1
+    };
+
+
+    /**
+     * The eof behaviour.
+     */
+    EOFBehaviour eofBehaviour;
+
 };
 }
 

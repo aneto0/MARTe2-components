@@ -195,119 +195,146 @@ void FileReader::ConvertXAxisSignal() {
 bool FileReader::Synchronise() {
     bool ok = !fatalFileError;
     if (ok) {
-        if (fileFormat == FILE_FORMAT_BINARY) {
-            uint32 readSize = numberOfBinaryBytes;
-            ok = inputFile.Read(dataSourceMemory, readSize);
-            if (ok) {
-                ok = (readSize == numberOfBinaryBytes);
-            }
-        }
-        else {
-            StreamString token;
-            char8 saveTerminator;
-            uint32 nSignals = GetNumberOfSignals();
-            uint32 signalIdx = 0u;
-            StreamString line;
-            ok = inputFile.GetLine(line);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Failed to read line.");
-            }
-
-            if (ok) {
-                ok = line.Seek(0LLU);
-            }
-            if (ok) {
-                ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
-            }
-            /*lint -e{613} signalsAnyType cannot be NULL as otherwise SetConfiguredDatabase would have failed.*/
-            while ((ok) && (signalIdx < nSignals)) {
-                bool isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == CharString);
-                if (!isString) {
-                    isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == Character8Bit);
-                }
-                if ((signalsAnyType[signalIdx].GetNumberOfDimensions() == 1u) && (!isString)) {
-                    uint32 nElements = signalsAnyType[signalIdx].GetNumberOfElements(0u);
-                    StreamString tokenArray;
-                    uint32 arrayIdx = 0u;
-                    void *signalAddress = signalsAnyType[signalIdx].GetDataPointer();
-                    char8 *signalAddressChr = reinterpret_cast<char8 *>(signalAddress);
-                    if (token[static_cast<uint32>(token.Size()) - 1u] != '}') {
-                        token += csvSeparator;
-                        ok = line.GetToken(token, "}", saveTerminator);
-                        if (ok) {
-                            token += saveTerminator;
-                        }
-                    }
+        bool lockAtLast = false;
+        if (inputFile.Position() == inputFile.Size()) {
+            if (eofBehaviour == EOFRewind) {
+                if (fileFormat == FILE_FORMAT_BINARY) {
+                    const uint32 SIGNAL_NAME_MAX_SIZE = 32u;
+                    uint32 headerSize = static_cast<uint32>(sizeof(uint16));
+                    headerSize += SIGNAL_NAME_MAX_SIZE;
+                    headerSize += static_cast<uint32>(sizeof(uint32));
+                    headerSize *= GetNumberOfSignals();
+                    headerSize += static_cast<uint32>(sizeof(uint32));
+                    ok = inputFile.Seek(0LLU);
                     if (ok) {
-                        ok = token.Seek(0LLU);
-                    }
-                    if (ok) {
-                        ok = token.GetToken(tokenArray, "{},", saveTerminator);
-                    }
-                    while ((ok) && (arrayIdx < nElements)) {
-                        AnyType sourceStr(CharString, 0u, tokenArray.Buffer());
-                        uint32 byteSize = signalsAnyType[signalIdx].GetByteSize();
-                        uint32 arrayIdxByteSize = (arrayIdx * byteSize);
-                        AnyType destination(signalsAnyType[signalIdx].GetTypeDescriptor(), 0u, &signalAddressChr[arrayIdxByteSize]);
-                        ok = TypeConvert(destination, sourceStr);
-                        tokenArray = "";
-                        arrayIdx++;
-                        if (ok) {
-                            ok = token.GetToken(tokenArray, "{},", saveTerminator);
-                        }
-                    }
-                    ok = (arrayIdx == nElements);
-                    if (!ok) {
-                        StreamString signalName;
-                        (void) GetSignalName(signalIdx, signalName);
-                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(),
-                                     line.Buffer());
+                        ok = inputFile.Seek(static_cast<uint64>(headerSize));
                     }
                 }
                 else {
+                    ok = inputFile.Seek(0LLU);
+                    if (ok) {
+                        StreamString header;
+                        //Skip the header
+                        ok = inputFile.GetLine(header);
+                    }
+                }
+            }
+            else if (eofBehaviour == EOFLast) {
+                lockAtLast = true;
+            }
+            else {
+                //Unreachable by design.
+            }
+        }
+        if (!lockAtLast) {
+            if (fileFormat == FILE_FORMAT_BINARY) {
+                uint32 readSize = numberOfBinaryBytes;
+                ok = inputFile.Read(dataSourceMemory, readSize);
+                if (ok) {
+                    ok = (readSize == numberOfBinaryBytes);
+                }
+            }
+            else {
+                StreamString token;
+                char8 saveTerminator;
+                uint32 nSignals = GetNumberOfSignals();
+                uint32 signalIdx = 0u;
+                StreamString line;
+                ok = inputFile.GetLine(line);
+                if (ok) {
+                    ok = line.Seek(0LLU);
+                }
+                if (ok) {
+                    ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
+                }
+                /*lint -e{613} signalsAnyType cannot be NULL as otherwise SetConfiguredDatabase would have failed.*/
+                while ((ok) && (signalIdx < nSignals)) {
+                    bool isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == CharString);
                     if (!isString) {
-                        AnyType sourceStr(CharString, 0u, token.Buffer());
-                        ok = TypeConvert(signalsAnyType[signalIdx], sourceStr);
+                        isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == Character8Bit);
+                    }
+                    if ((signalsAnyType[signalIdx].GetNumberOfDimensions() == 1u) && (!isString)) {
+                        uint32 nElements = signalsAnyType[signalIdx].GetNumberOfElements(0u);
+                        StreamString tokenArray;
+                        uint32 arrayIdx = 0u;
+                        void *signalAddress = signalsAnyType[signalIdx].GetDataPointer();
+                        char8 *signalAddressChr = reinterpret_cast<char8 *>(signalAddress);
+                        if (token[static_cast<uint32>(token.Size()) - 1u] != '}') {
+                            token += csvSeparator;
+                            ok = line.GetToken(token, "}", saveTerminator);
+                            if (ok) {
+                                token += saveTerminator;
+                            }
+                        }
+                        if (ok) {
+                            ok = token.Seek(0LLU);
+                        }
+                        if (ok) {
+                            ok = token.GetToken(tokenArray, "{},", saveTerminator);
+                        }
+                        while ((ok) && (arrayIdx < nElements)) {
+                            AnyType sourceStr(CharString, 0u, tokenArray.Buffer());
+                            uint32 byteSize = signalsAnyType[signalIdx].GetByteSize();
+                            uint32 arrayIdxByteSize = (arrayIdx * byteSize);
+                            AnyType destination(signalsAnyType[signalIdx].GetTypeDescriptor(), 0u, &signalAddressChr[arrayIdxByteSize]);
+                            ok = TypeConvert(destination, sourceStr);
+                            tokenArray = "";
+                            arrayIdx++;
+                            if (ok) {
+                                ok = token.GetToken(tokenArray, "{},", saveTerminator);
+                            }
+                        }
+                        ok = (arrayIdx == nElements);
+                        if (!ok) {
+                            StreamString signalName;
+                            (void) GetSignalName(signalIdx, signalName);
+                            REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(), line.Buffer());
+                        }
                     }
                     else {
-                        ok = StringHelper::CopyN(reinterpret_cast<char8 *>(signalsAnyType[signalIdx].GetDataPointer()), token.Buffer(),
-                                                 signalsAnyType[signalIdx].GetNumberOfElements(0u));
+                        if (!isString) {
+                            AnyType sourceStr(CharString, 0u, token.Buffer());
+                            ok = TypeConvert(signalsAnyType[signalIdx], sourceStr);
+                        }
+                        else {
+                            ok = StringHelper::CopyN(reinterpret_cast<char8 *>(signalsAnyType[signalIdx].GetDataPointer()), token.Buffer(), signalsAnyType[signalIdx].GetNumberOfElements(0u));
+                        }
+                    }
+                    signalIdx++;
+                    token = "";
+                    if (ok) {
+                        if (signalIdx != nSignals) {
+                            ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
+                        }
                     }
                 }
-                signalIdx++;
-                token = "";
                 if (ok) {
-                    if (signalIdx != nSignals) {
-                        ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
+                    ok = (signalIdx == nSignals);
+                    if (!ok) {
+                        StreamString signalName;
+                        (void) GetSignalName(signalIdx, signalName);
+                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of signals found [%s]", line.Buffer());
                     }
                 }
             }
-            if (ok) {
-                ok = (signalIdx == nSignals);
-                if (!ok) {
-                    StreamString signalName;
-                    (void) GetSignalName(signalIdx, signalName);
-                    REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of signals found [%s]", line.Buffer());
+            fatalFileError = !ok;
+            if (fatalFileError) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Failed to read from file. No more attempts will be performed.");
+                if (fileRuntimeErrorMsg.IsValid()) {
+                    //Reset any previous replies
+                    fileRuntimeErrorMsg->SetAsReply(false);
+                    if (!MessageI::SendMessage(fileRuntimeErrorMsg, this)) {
+                        StreamString destination = fileRuntimeErrorMsg->GetDestination();
+                        StreamString function = fileRuntimeErrorMsg->GetFunction();
+                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(), function.Buffer());
+                    }
                 }
             }
         }
-        fatalFileError = !ok;
-        if (fatalFileError) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Failed to read from file. No more attempts will be performed.");
-            if (fileRuntimeErrorMsg.IsValid()) {
-                //Reset any previous replies
-                fileRuntimeErrorMsg->SetAsReply(false);
-                if (!MessageI::SendMessage(fileRuntimeErrorMsg, this)) {
-                    StreamString destination = fileRuntimeErrorMsg->GetDestination();
-                    StreamString function = fileRuntimeErrorMsg->GetFunction();
-                    REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(), function.Buffer());
-                }
+        if (ok) {
+            if (interpolate) {
+                ConvertXAxisSignal();
             }
-        }
-    }
-    if (ok) {
-        if (interpolate) {
-            ConvertXAxisSignal();
         }
     }
     return ok;
@@ -373,15 +400,40 @@ bool FileReader::Initialise(StructuredDataI& data) {
     if (ok) {
         if (interpolate) {
             if (!data.Read("XAxisSignal", xAxisSignalName)) {
-                REPORT_ERROR(
-                        ErrorManagement::Warning,
-                        "Interpolate=yes and the XAxisSignal was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
+                REPORT_ERROR(ErrorManagement::Warning,
+                             "Interpolate=yes and the XAxisSignal was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
             }
             if (!data.Read("InterpolationPeriod", interpolationPeriod)) {
-                REPORT_ERROR(
-                        ErrorManagement::Warning,
-                        "Interpolate=yes and the InterpolationPeriod was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
+                REPORT_ERROR(ErrorManagement::Warning,
+                             "Interpolate=yes and the InterpolationPeriod was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
             }
+        }
+    }
+    if (ok) {
+        StreamString eofStr;
+        if (data.Read("EOF", eofStr)) {
+            if (eofStr == "Error") {
+                eofBehaviour = EOFError;
+            }
+            else if (eofStr == "Rewind") {
+                eofBehaviour = EOFRewind;
+            }
+            else if (eofStr == "Last") {
+                eofBehaviour = EOFLast;
+            }
+            else {
+                ok = false;
+            }
+            if (ok) {
+                REPORT_ERROR(ErrorManagement::Information, "EOF set to %s", eofStr.Buffer());
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Unknown EOF %s", eofStr.Buffer());
+            }
+        }
+        else {
+            eofBehaviour = EOFRewind;
+            REPORT_ERROR(ErrorManagement::Information, "EOF set to Rewind");
         }
     }
     if (ok) {
@@ -611,16 +663,36 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                     fatalFileError = !TypeConvert(dst, src);
                 }
                 if (!fatalFileError) {
-                    fatalFileError = !cdb.CreateRelative(signalName.Buffer());
+                    if (!cdb.CreateRelative(signalName.Buffer())) {
+                        fatalFileError = !cdb.MoveRelative(signalName.Buffer());
+                    }
                 }
                 if (!fatalFileError) {
-                    fatalFileError = !cdb.Write("Type", signalTypeStr.Buffer());
+                    if (!cdb.Write("Type", signalTypeStr.Buffer())) {
+                        StreamString declaredType;
+                        fatalFileError = !cdb.Read("Type", declaredType);
+                        if (!fatalFileError) {
+                            fatalFileError = (declaredType != signalTypeStr);
+                        }
+                    }
                 }
                 if (!fatalFileError) {
-                    fatalFileError = !cdb.Write("NumberOfElements", nElements);
+                    if (!cdb.Write("NumberOfElements", nElements)) {
+                        uint32 declaredElements;
+                        fatalFileError = !cdb.Read("NumberOfElements", declaredElements);
+                        if (!fatalFileError) {
+                            fatalFileError = (nElements != declaredElements);
+                        }
+                    }
                 }
                 if (nElements > 1u) {
-                    fatalFileError = !cdb.Write("NumberOfDimensions", 1u);
+                    if (!cdb.Write("NumberOfDimensions", 1u)) {
+                        uint32 declaredDimensions;
+                        fatalFileError = !cdb.Read("NumberOfDimensions", declaredDimensions);
+                        if (!fatalFileError) {
+                            fatalFileError = (declaredDimensions != 1u);
+                        }
+                    }
                 }
                 if (!fatalFileError) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
@@ -679,8 +751,7 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
                 }
                 if (!fatalFileError) {
-                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(),
-                                 TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
+                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
                 }
             }
         }

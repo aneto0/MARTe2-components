@@ -40,6 +40,8 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+namespace MARTe {
+
 /**
  * @brief Serve a MARTe StructureDataI as an epics::pvDatabase::PVRecord.
  * @details It shall be used with EPICSPVADatabase in order to register the PVRecord in a epics::pvDatabase::PVDatabase.
@@ -60,7 +62,6 @@
  * }
  * </pre>
  */
-namespace MARTe {
 class EPICSPVARecord: public Object {
 public:
     CLASS_REGISTER_DECLARATION()
@@ -76,8 +77,7 @@ EPICSPVARecord    ();
 
     /**
      * @brief Called by the EPICSPVADatabase in order to trigger the creation of the record from the Structure defined in the object configuration (see Initialise).
-     * @param[out] pvRecordPtr the PVRecord created from the structured data.
-     * @return true if the record was successfully created.
+     * @return the created record.
      */
     epics::pvDatabase::PVRecordPtr CreatePVRecord();
 

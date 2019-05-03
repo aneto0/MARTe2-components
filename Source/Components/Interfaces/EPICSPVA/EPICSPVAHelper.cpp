@@ -37,8 +37,13 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+/**
+ * @brief Helper function to initialise an array entry.
+ * @param[in] scalarArrayPtr the array to initialise.
+ * @param[in] size the size of the array to be initialised.
+ */
 template<typename T>
-void EPICSPVAHelperInitArrayT(epics::pvData::PVScalarArrayPtr scalarArrayPtr, const uint32 &size) {
+static void EPICSPVAHelperInitArrayT(epics::pvData::PVScalarArrayPtr scalarArrayPtr, const uint32 &size) {
     epics::pvData::shared_vector<T> out(size);
     uint32 n;
     for (n = 0u; n < size; n++) {
@@ -48,6 +53,11 @@ void EPICSPVAHelperInitArrayT(epics::pvData::PVScalarArrayPtr scalarArrayPtr, co
     scalarArrayPtr->putFrom<T>(outF);
 }
 
+/**
+ * @brief Helper function to initialise an array entry.
+ * @param[in] scalarArrayPtr the array to initialise.
+ * @param[in] size the size of the array to be initialised.
+ */
 template<>
 void EPICSPVAHelperInitArrayT<std::string>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, const uint32 &size) {
     epics::pvData::shared_vector<std::string> out(size);
@@ -59,7 +69,12 @@ void EPICSPVAHelperInitArrayT<std::string>(epics::pvData::PVScalarArrayPtr scala
     scalarArrayPtr->putFrom<std::string>(outF);
 }
 
-uint32 EPICSPVAHelperGetNumberOfElements(const IntrospectionEntry &entry) {
+/**
+ * @brief Helper function to compute the number of elements in a given structure entry.
+ * @param[in] entry the input structure element.
+ * @return the number of elements in the structure element.
+ */
+static uint32 EPICSPVAHelperGetNumberOfElements(const IntrospectionEntry &entry) {
     uint32 numberOfElements = 1u;
     uint8 nOfDimensions = entry.GetNumberOfDimensions();
     if (nOfDimensions > 0u) {
@@ -173,7 +188,13 @@ bool EPICSPVAHelper::GetType(const char8 * const memberTypeName, epics::pvData::
     return GetType(typeDesc, epicsType);
 }
 
-epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(const Introspection *intro, const char8 * const typeName) {
+/**
+ * @brief Helper function to create a PVA structure from an introspection structure.
+ * @param[in] intro the structure to be transversed.
+ * @param[in] typeName the name of the type which defines the structure.
+ * @return the created PVA structure.
+ */
+static epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(const Introspection *intro, const char8 * const typeName) {
     epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
     epics::pvData::StructureConstPtr topStructure;
@@ -241,6 +262,12 @@ epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(const Introsp
     return topStructure;
 }
 
+/**
+ * @brief Helper function to initialise a PVA structure from an introspection structure.
+ * @param[in] intro the structure to be transversed.
+ * @param[in] pvStructPtr the structure created with EPICSPVAHelperTransverseStructure.
+ * @return true if the PVA structure was correctly initialised.
+ */
 bool EPICSPVAHelperTransverseStructureInit(const Introspection *intro, epics::pvData::PVStructurePtr pvStructPtr) {
     bool ok = (intro != NULL_PTR(const Introspection *));
 
@@ -309,6 +336,12 @@ bool EPICSPVAHelperTransverseStructureInit(const Introspection *intro, epics::pv
     return ok;
 }
 
+/**
+ * @brief Helper function to create a PVA structure from a StructureDataI entry.
+ * @param[in] data the structure to be transversed.
+ * @param[in] typeName the name of the type which defines the structure.
+ * @return the created PVA structure.
+ */
 epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(StructuredDataI &data, const char8 * const typeName) {
     epics::pvData::FieldCreatePtr fieldCreate = epics::pvData::getFieldCreate();
     epics::pvData::FieldBuilderPtr fieldBuilder = fieldCreate->createFieldBuilder();
@@ -384,6 +417,12 @@ epics::pvData::StructureConstPtr EPICSPVAHelperTransverseStructure(StructuredDat
     return topStructure;
 }
 
+/**
+ * @brief Helper function to initialise a PVA structure from a StructuredDataI.
+ * @param[in] data the structure to be transversed.
+ * @param[in] pvStructPtr the structure created with EPICSPVAHelperTransverseStructure.
+ * @return true if the PVA structure was correctly initialised.
+ */
 bool EPICSPVAHelperTransverseStructureInit(StructuredDataI &data, epics::pvData::PVStructurePtr pvStructPtr) {
     bool ok = true;
     bool arrayStructureDetected = false;
@@ -431,6 +470,9 @@ bool EPICSPVAHelperTransverseStructureInit(StructuredDataI &data, epics::pvData:
                             }
                             if (ok) {
                                 ok = EPICSPVAHelper::ReplaceStructureArray(data, pvStructMemberArr, detectedNumberOfElements, memberTypeName);
+                            }
+                            if (ok) {
+                                i += (detectedNumberOfElements - 1u);
                             }
                         }
                         else {
