@@ -49,6 +49,9 @@ ifdef SDN_CORE_LIBRARY_DIR
 LIBRARIES += -L$(SDN_CORE_LIBRARY_DIR) -lsdn-core -lxml2
 endif
 
+ifdef OPEN62541_LIB
+LIBRARIES_STATIC += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
+endif
 
 all: $(OBJS) $(SUBPROJ)   \
         $(BUILD_DIR)/MainGTest$(EXEEXT)

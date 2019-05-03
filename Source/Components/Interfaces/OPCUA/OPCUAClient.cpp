@@ -46,10 +46,13 @@ namespace MARTe {
 /*---------------------------------------------------------------------------*/
 
 OPCUAClient::OPCUAClient() :
-    ReferenceContainer(), EmbeddedServiceMethodBinderI(), MessageI(), executor(*this){
+        ReferenceContainer(),
+        EmbeddedServiceMethodBinderI(),
+        MessageI(),
+        executor(*this) {
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
-    
+
     ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
@@ -58,10 +61,10 @@ OPCUAClient::OPCUAClient() :
     }
     config = UA_ClientConfig_default;
     opcuaClient = UA_Client_new(config);
-    serverAddress.Seek(0LLU) ;
-   // monitoredItemsContainer=this;
-   OPCUAVariable::CreateLock();
-   OPCUAVariable::SetContainer(this);
+    serverAddress.Seek(0LLU);
+    // monitoredItemsContainer=this;
+    OPCUAVariable::CreateLock();
+    OPCUAVariable::SetContainer(this);
 }
 
 OPCUAClient::~OPCUAClient() {
@@ -95,23 +98,22 @@ bool OPCUAClient::Initialise(StructuredDataI & data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Address attribute");
         }
         else {
-	  REPORT_ERROR(ErrorManagement::Information, "CPUs = %d", cpuMask); // <<< CP
-	  REPORT_ERROR(ErrorManagement::Information, "StackSize = %d", stackSize); // <<< CP
-	  executor.SetStackSize(stackSize);
-	  executor.SetCPUMask(cpuMask);
-	  uint32 autoStart = 1u;
-	  (void) (data.Read("AutoStart", autoStart));
-	  if (autoStart == 1u) {
-	      ok = (Start() == ErrorManagement::NoError);
-	  }
-	}
+            REPORT_ERROR(ErrorManagement::Information, "CPUs = %d", cpuMask); // <<< CP
+            REPORT_ERROR(ErrorManagement::Information, "StackSize = %d", stackSize); // <<< CP
+            executor.SetStackSize(stackSize);
+            executor.SetCPUMask(cpuMask);
+            uint32 autoStart = 1u;
+            (void) (data.Read("AutoStart", autoStart));
+            if (autoStart == 1u) {
+                ok = (Start() == ErrorManagement::NoError);
+            }
+        }
     }
     else {
-	REPORT_ERROR(ErrorManagement::Information, "OPCUAClient: Client is NOT initilised"); // <<< CP
-    }    
+        REPORT_ERROR(ErrorManagement::Information, "OPCUAClient: Client is NOT initilised"); // <<< CP
+    }
     return ok;
 }
-
 
 bool OPCUAClient::Connect() {
     UA_StatusCode retval = UA_Client_connect(opcuaClient, const_cast<char8*>(serverAddress.Buffer()));
@@ -134,30 +136,29 @@ ErrorManagement::ErrorType OPCUAClient::Execute(ExecutionInfo& info) {
 
         bool ok = Connect();
         if (ok) {
-          //REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
-	  uint32 j;
-	  for (j = 0u; j < Size(); j++) {	  
-	      ReferenceT<OPCUAVariable> child = Get(j);
-	      if (child.IsValid()) {
-		ok=child->PostInit(opcuaClient);
-		if(!ok)
-		  err = ErrorManagement::FatalError;
-	      }
-	  }
+            //REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
+            uint32 j;
+            for (j = 0u; j < Size(); j++) {
+                ReferenceT<OPCUAVariable> child = Get(j);
+                if (child.IsValid()) {
+                    ok = child->PostInit(opcuaClient);
+                    if (!ok)
+                        err = ErrorManagement::FatalError;
+                }
+            }
         }
         else {
-	  err = ErrorManagement::FatalError;
-	  REPORT_ERROR(err, "Connection failed");
-	}
-	  
-       
+            err = ErrorManagement::FatalError;
+            REPORT_ERROR(err, "Connection failed");
+        }
+
     }
     else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         //Sleep::Sec(0.999F);
-	OPCUAVariable::Lock();
+        OPCUAVariable::Lock();
         //UA_Client_runAsync(opcuaClient,100);//changed from run_iterate
-        UA_Client_run_iterate(opcuaClient,100);
-	OPCUAVariable::UnLock();
+        UA_Client_run_iterate(opcuaClient, 100);
+        OPCUAVariable::UnLock();
     }
     else {
 
