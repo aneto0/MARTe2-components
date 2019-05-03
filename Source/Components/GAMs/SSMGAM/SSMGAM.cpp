@@ -340,7 +340,7 @@ bool SSMGAM::Initialise(StructuredDataI &data) {
             }
             //lint -e{613} Possible use of null pointer--> Pointers previously checked.
             if (ok) {
-                Matrix<float64> outputMatrix1(&outputMatrixPointer[0][0], outputMatrixNumberOfRows, outputMatrixNumberOfColumns);
+                Matrix<float64> outputMatrix1(outputMatrixPointer, outputMatrixNumberOfRows, outputMatrixNumberOfColumns);
                 ok = (data.Read("OutputMatrix", outputMatrix1));
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading outputMatrix");
