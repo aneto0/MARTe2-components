@@ -156,8 +156,8 @@ ErrorManagement::ErrorType OPCUAClient::Execute(ExecutionInfo& info) {
     else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         //Sleep::Sec(0.999F);
         OPCUAVariable::Lock();
-        //UA_Client_runAsync(opcuaClient,100);//changed from run_iterate
-        UA_Client_run_iterate(opcuaClient, 100);
+        UA_Client_runAsync(opcuaClient,100);//changed from run_iterate
+        //UA_Client_run_iterate(opcuaClient, 100);
         OPCUAVariable::UnLock();
     }
     else {
