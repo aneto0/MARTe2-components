@@ -173,7 +173,7 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo & info) {
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Cannot initialise Address Space");
             }
-            (void) typeStr.Seek(0LLU);
+            typeStr = "";
         }
         if (ok) {
             SetRunning(true);
