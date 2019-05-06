@@ -453,8 +453,8 @@ bool OPCUAVariable::SetSubscriptionRequest() {
                                                                     OPCUAClientDataChange, NULL);
     }
     /* Asynchronous call */
-    //code = UA_Client_runAsync(opcuaClient,1000);        //changed from run_iterate
-    code = UA_Client_run_iterate(opcuaClient, 1000);
+    code = UA_Client_runAsync(opcuaClient,1000);        //changed from run_iterate
+    //code = UA_Client_run_iterate(opcuaClient, 1000);
     ok = (code == UA_STATUSCODE_GOOD);
     return ok;
 }
