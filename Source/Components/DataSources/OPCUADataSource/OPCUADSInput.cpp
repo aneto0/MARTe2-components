@@ -118,14 +118,14 @@ bool OPCUADSInput::Initialise(StructuredDataI & data) {
         if (sync == "no") {
             if (ok) {
                 ok = data.Read("CpuMask", cpuMask);
-                if(!ok) {
+                if (!ok) {
                     REPORT_ERROR(ErrorManagement::Information, "CpuMask not set. Using default.");
                 }
                 ok = true;
             }
             if (ok) {
                 ok = data.Read("StackSize", stackSize);
-                if(!ok) {
+                if (!ok) {
                     REPORT_ERROR(ErrorManagement::Information, "StackSize not set. Using default.");
                 }
                 ok = true;
@@ -233,6 +233,19 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI & data) {
             }
             if (ok) {
                 for (uint32 j = 0u; j < nOfSignals; j++) {
+                    StreamString lastToken;
+                    sigToken = "";
+                    ok = tempPaths[j].Seek(0LLU);
+                    if (ok) {
+                        do {
+                            ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                            if (ok) {
+                                sigToken = lastToken;
+                            }
+                            lastToken = "";
+                        }
+                        while (ok);
+                    }
                     if (tempPaths != NULL_PTR(StreamString *)) {
                         /* This cycle will save the last token found */
                         ok = tempPaths[j].Seek(0LLU);
