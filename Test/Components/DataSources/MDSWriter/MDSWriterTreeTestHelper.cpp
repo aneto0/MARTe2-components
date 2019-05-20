@@ -122,8 +122,10 @@ void MDSWriterTreeTestHelper::Create(MARTe::StreamString treeNameIn) {
 void MDSWriterTreeTestHelper::Destroy() {
     MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), -1);
     MARTe::uint32 shotNumber = tree->getCurrent(treeName.Buffer());
-    tree->deletePulse(shotNumber);
-    delete tree;
+    if (shotNumber > 0) {
+        tree->deletePulse(shotNumber);
+        delete tree;
+    }
     MARTe::StreamString strChar = getenv("HOME");
     strChar += "/";
     strChar += treeName.Buffer();
