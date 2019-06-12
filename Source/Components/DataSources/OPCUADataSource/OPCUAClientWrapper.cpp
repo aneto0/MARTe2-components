@@ -175,7 +175,7 @@ bool OPCUAClientWrapper::SetTargetNodes(const uint16 * const namespaceIndexes,
 
             uint32 tempNumericNodeId = 85u; /* UA_NS0ID_OBJECTSFOLDER */
             uint16 tempNamespaceIndex = 0u;
-            char8* tempStringNodeId;
+            char8* tempStringNodeId = NULL_PTR(char8*);
             if ((path != NULL_PTR(StreamString*)) && (ids != NULL_PTR(uint32*))) {
                 for (uint32 j = 0u; j < pathSize; j++) {
                     ids[j] = GetReferenceType(bReq, const_cast<char8*>(path[j].Buffer()), tempNamespaceIndex, tempNumericNodeId, tempStringNodeId);
@@ -183,6 +183,9 @@ bool OPCUAClientWrapper::SetTargetNodes(const uint16 * const namespaceIndexes,
                     elem->referenceTypeId = UA_NODEID_NUMERIC(0u, ids[j]);
                     /*lint -e{1055} -e{64} -e{746} UA_QUALIFIEDNAME is declared in the open62541 library.*/
                     elem->targetName = UA_QUALIFIEDNAME_ALLOC(namespaceIndexes[i], const_cast<char8*>(path[j].Buffer()));
+                }
+                if (tempStringNodeId != NULL_PTR(char8*)) {
+                    delete tempStringNodeId;
                 }
             }
             UA_TranslateBrowsePathsToNodeIdsRequest tbpReq;
@@ -315,6 +318,9 @@ uint32 OPCUAClientWrapper::GetReferenceType(const UA_BrowseRequest &bReq,
                             ok = true;
                         }
                         else if (ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_STRING) {
+                            if (stringNodeId != NULL_PTR(char8*)) {
+                                delete stringNodeId;
+                            }
                             stringNodeId = new char8[ref->nodeId.nodeId.identifier.string.length];
                             ok = StringHelper::Copy(stringNodeId, reinterpret_cast<char8*>(ref->nodeId.nodeId.identifier.string.data));
                             if (ok) {
