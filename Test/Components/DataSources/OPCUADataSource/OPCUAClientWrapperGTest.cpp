@@ -40,6 +40,76 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+TEST(OPCUAClientWrapperGTest,TestConstructor) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.TestConstructor());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_SetServerAddress) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_SetServerAddress());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_Connect) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_Connect());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_GetSignalMemory) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_GetSignalMemory());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_SetTargetNodes) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_SetTargetNodes());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_Monitor) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_Monitor());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_SetSamplingTime) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_SetSamplingTime());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_GetMonitoredNodes) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_GetMonitoredNodes());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_SetOperationMode) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_SetOperationMode());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_GetReferenceType) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_GetReferenceType());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_SetWriteRequest) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_SetWriteRequest());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_GetSamplingTime) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_GetSamplingTime());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_GetOperationMode) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_GetOperationMode());
+}
+
+TEST(OPCUAClientWrapperGTest,Test_GetServerAddress) {
+    OPCUAClientWrapperTest test;
+    ASSERT_TRUE(test.Test_GetServerAddress());
+}
+
 TEST(OPCUAClientWrapperGTest,Test_Write_uint8) {
     OPCUAClientWrapperTest test;
     ASSERT_TRUE(test.Test_Write_uint8());

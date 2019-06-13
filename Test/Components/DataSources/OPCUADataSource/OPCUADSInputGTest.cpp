@@ -42,6 +42,76 @@ TEST(OPCUADSInputGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+TEST(OPCUADSInputGTest,Test_Initialise) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_Initialise());
+}
+
+TEST(OPCUADSInputGTest,Test_SetConfiguredDatabase) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase());
+}
+
+TEST(OPCUADSInputGTest,Test_AllocateMemory) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_AllocateMemory());
+}
+
+TEST(OPCUADSInputGTest,Test_GetSignalMemoryBuffer) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_GetSignalMemoryBuffer());
+}
+
+TEST(OPCUADSInputGTest,Test_GetBrokerName_Sync) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_GetBrokerName_Sync());
+}
+
+TEST(OPCUADSInputGTest,Test_GetBrokerName_NoSync) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_GetBrokerName_NoSync());
+}
+
+TEST(OPCUADSInputGTest,Test_GetBrokerName_Error) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_GetBrokerName_Error());
+}
+
+TEST(OPCUADSInputGTest,Test_PrepareNextState) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_PrepareNextState());
+}
+
+TEST(OPCUADSInputGTest,Test_Execute_Read) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_Execute_Read());
+}
+
+TEST(OPCUADSInputGTest,Test_Execute_Monitor) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_Execute_Monitor());
+}
+
+TEST(OPCUADSInputGTest,Test_Execute_Error) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_Execute_Error());
+}
+
+TEST(OPCUADSInputGTest,Test_Synchronise) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_Synchronise());
+}
+
+TEST(OPCUADSInputGTest,Test_GetServerAddress) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_GetServerAddress());
+}
+
+TEST(OPCUADSInputGTest,Test_GetThreadError) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_GetThreadError());
+}
+
 TEST(OPCUADSInputGTest,TestInitialise_Default) {
     OPCUADSInputTest test;
     ASSERT_TRUE(test.TestInitialise_Default());

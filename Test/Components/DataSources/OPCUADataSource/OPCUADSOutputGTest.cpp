@@ -48,6 +48,46 @@ TEST(OPCUADSOutputGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase());
+}
+
+TEST(OPCUADSOutputGTest,Test_AllocateMemory) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_AllocateMemory());
+}
+
+TEST(OPCUADSOutputGTest,Test_GetSignalMemoryBuffer) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_GetSignalMemoryBuffer());
+}
+
+TEST(OPCUADSOutputGTest,Test_PrepareNextState) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_PrepareNextState());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise());
+}
+
+TEST(OPCUADSOutputGTest,Test_GetBrokerName) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_GetBrokerName());
+}
+
+TEST(OPCUADSOutputGTest,Test_GetServerAddress) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_GetServerAddress());
+}
+
+TEST(OPCUADSOutputGTest,Test_GetClient) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_GetClient());
+}
+
 TEST(OPCUADSOutputGTest,TestInitialise_Introspection) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.TestInitialise_Introspection());

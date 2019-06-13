@@ -163,6 +163,21 @@ public:
      */
     void SetOperationMode(const char8* const modeType);
 
+    /**
+     * @brief Returns the sampling time
+     */
+    const float64 GetSamplingTime();
+
+    /**
+     * @brief Returns the current operation mode
+     */
+    const char8* const GetOperationMode();
+
+    /**
+     * @brief Returns the server address
+     */
+    const char8* const GetServerAddress();
+
 private:
 
     /**

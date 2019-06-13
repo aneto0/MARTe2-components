@@ -63,6 +63,7 @@ OPCUADSInput::OPCUADSInput() :
     types = NULL_PTR(TypeDescriptor *);
     cpuMask = 0xffu;
     stackSize = THREADS_DEFAULT_STACKSIZE;
+    threadError = ErrorManagement::NoError;
 }
 
 /*lint -e{1551} must stop the SingleThreadService in the destructor.*/
@@ -374,16 +375,20 @@ ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo & info) {
                 ok = masterClient->Read(numberOfNodes, types, nElements);
                 if (!ok) {
                     err = ErrorManagement::CommunicationError;
+                    threadError = err;
                 }
             }
             else if (readMode == "Monitor") {
                 ok = masterClient->Monitor();
                 if (!ok) {
                     err = ErrorManagement::UnsupportedFeature;
+                    threadError = err;
                 }
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "ReadMode defines an unsupported service.");
+                err = ErrorManagement::UnsupportedFeature;
+                threadError = err;
             }
         }
     }
@@ -411,6 +416,11 @@ bool OPCUADSInput::Synchronise() {
 const char8 * OPCUADSInput::GetServerAddress() {
     return serverAddress.Buffer();
 }
+
+ErrorManagement::ErrorType OPCUADSInput::GetThreadError() {
+    return threadError;
+}
+
 
 CLASS_REGISTER(OPCUADSInput, "1.0");
 

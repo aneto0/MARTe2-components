@@ -160,6 +160,244 @@ CLASS_REGISTER(OPCUATestHelperGam, "1.0")
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+bool OPCUAClientWrapperTest::TestConstructor() {
+    using namespace MARTe;
+    OPCUAClientWrapper test;
+    return (StringHelper::Compare(test.GetOperationMode(), "") == 0);
+}
+
+bool OPCUAClientWrapperTest::Test_SetServerAddress() {
+    using namespace MARTe;
+    OPCUAClientWrapper test;
+    StreamString addr = "localhost";
+    test.SetServerAddress(addr);
+    return (StringHelper::Compare(test.GetServerAddress(), addr.Buffer()) == 0);
+}
+
+bool OPCUAClientWrapperTest::Test_Connect() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+ServerTest = {"
+            "     Class = OPCUA::OPCUAServer"
+            "     AddressSpace = {"
+            "         MyNode = {"
+            "             Type = uint8"
+            "         }"
+            "     }"
+            "}";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    Sleep::MSec(100);
+    OPCUAClientWrapper test;
+    test.SetServerAddress("opc.tcp://localhost:4840");
+    if (ok) {
+        ok = test.Connect();
+    }
+    ord->Purge();
+    return ok;
+}
+
+bool OPCUAClientWrapperTest::Test_GetSignalMemory() {
+    using namespace MARTe;
+    OPCUAClientWrapper test;
+    void * mem = NULL_PTR(void *);
+    const TypeDescriptor td = InvalidType;
+    return test.GetSignalMemory(mem, 0u, td, 0u, 0u);
+}
+
+bool OPCUAClientWrapperTest::Test_SetTargetNodes() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+ServerTest = {\n"
+            "  Class = OPCUA::OPCUAServer\n"
+            "  CPUMask = 0x2\n"
+            "  AddressSpace = {\n"
+            "    MyNode = {\n"
+            "      Type = uint8\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "   +Functions = {\n"
+            "     Class = ReferenceContainer\n"
+            "     +GAMTimer = {\n"
+            "       Class = IOGAM\n"
+            "       InputSignals = {\n"
+            "         Counter = {\n"
+            "           DataSource = Timer\n"
+            "           Type = uint32\n"
+            "         }\n"
+            "         Time = {\n"
+            "           Frequency = 1\n"
+            "           DataSource = Timer\n"
+            "           Type = uint32\n"
+            "         }\n"
+            "       }\n"
+            "       OutputSignals = {\n"
+            "         Counter = {\n"
+            "           DataSource = DDB1\n"
+            "           Type = uint32\n"
+            "         }\n"
+            "         Time = {\n"
+            "           DataSource = DDB1\n"
+            "           Type = uint32\n"
+            "         }\n"
+            "       }\n"
+            "     }\n"
+            "     +GAMValue = {\n"
+            "       Class = OPCUATestHelperGam\n"
+            "       OutputSignals = {\n"
+            "         MyNode = {\n"
+            "           DataSource = OPCUAOut\n"
+            "           Type = uint8\n"
+            "         }\n"
+            "       }\n"
+            "     }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "    +LoggerDataSource = {\n"
+            "      Class = LoggerDataSource\n"
+            "    }\n"
+            "    +OPCUAOut = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "      Signals = {\n"
+            "        MyNode = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = MyNode\n"
+            "          Type = uint8\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "       Class = TimingDataSource\n"
+            "    }\n"
+            "    +Timer = {\n"
+            "      Class = LinuxTimer\n"
+            "      SleepNature = \"Default\"\n"
+            "      Signals = {\n"
+            "        Counter = {\n"
+            "          Type = uint32\n"
+            "        }\n"
+            "        Time = {\n"
+            "          Type = uint32\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          CPUs = 0x2\n"
+            "          Functions = {GAMTimer GAMValue}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = GAMScheduler\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    ReferenceT<OPCUADSOutput> odo;
+    if (ok) {
+        odo = ord->Find("TestApp.Data.OPCUAOut");
+        ok = odo.IsValid();
+    }
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("TestApp");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        ok = app->ConfigureApplication();
+    }
+    Sleep::MSec(200);
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool OPCUAClientWrapperTest::Test_Monitor() {
+    using namespace MARTe;
+    OPCUAClientWrapper test;
+    return !(test.Monitor());
+}
+
+bool OPCUAClientWrapperTest::Test_SetSamplingTime() {
+    using namespace MARTe;
+    OPCUAClientWrapper test;
+    const float64 time = 1.0;
+    test.SetSamplingTime(time);
+    return (test.GetSamplingTime() == time);
+}
+
+bool OPCUAClientWrapperTest::Test_GetMonitoredNodes() {
+    using namespace MARTe;
+    OPCUAClientWrapper test;
+    return (test.GetMonitoredNodes() == NULL_PTR(UA_NodeId *));
+}
+
+bool OPCUAClientWrapperTest::Test_SetOperationMode() {
+    using namespace MARTe;
+    OPCUAClientWrapper test;
+    StreamString mode = "Read";
+    test.SetOperationMode(mode.Buffer());
+    return (StringHelper::Compare(test.GetOperationMode(), mode.Buffer()) == 0);
+}
+
+bool OPCUAClientWrapperTest::Test_GetReferenceType() {
+    return Test_SetTargetNodes();
+}
+
+bool OPCUAClientWrapperTest::Test_SetWriteRequest() {
+    return Test_SetTargetNodes();
+}
+
+bool OPCUAClientWrapperTest::Test_GetSamplingTime() {
+    using namespace MARTe;
+    OPCUAClientWrapper test;
+    return (test.GetSamplingTime() == 0.0);
+}
+
+bool OPCUAClientWrapperTest::Test_GetOperationMode() {
+    using namespace MARTe;
+    OPCUAClientWrapper test;
+    return (StringHelper::Compare(test.GetOperationMode(), "") == 0);
+}
+
+bool OPCUAClientWrapperTest::Test_GetServerAddress() {
+    using namespace MARTe;
+    OPCUAClientWrapper test;
+    return (StringHelper::Compare(test.GetServerAddress(), "") == 0);
+}
+
 bool OPCUAClientWrapperTest::Test_Write_uint8() {
     using namespace MARTe;
     StreamString config = ""
@@ -3475,7 +3713,7 @@ bool OPCUAClientWrapperTest::Test_Read() {
         ok = ord->Initialise(cdb);
     }
     Sleep::MSec(200);
-    ReferenceT < RealTimeApplication > app;
+    ReferenceT<RealTimeApplication> app;
     if (ok) {
         app = ord->Find("Test");
         ok = app.IsValid();

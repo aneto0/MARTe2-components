@@ -40,6 +40,75 @@
  */
 class OPCUAClientWrapperTest {
 public:
+    /**
+     * @brief Tests the constructor.
+     */
+    bool TestConstructor();
+
+    /**
+     * @brief Tests the SetServeraddress method.
+     */
+    bool Test_SetServerAddress();
+
+    /**
+     * @brief Tests the Connect method.
+     */
+    bool Test_Connect();
+
+    /**
+     * @brief Tests the GetSignalMemory method.
+     */
+    bool Test_GetSignalMemory();
+
+    /**
+     * @brief Tests the SetTargetNodes method.
+     */
+    bool Test_SetTargetNodes();
+
+    /**
+     * @brief Tests the Monitor method.
+     */
+    bool Test_Monitor();
+
+    /**
+     * @brief Tests the SetSamplingTime method.
+     */
+    bool Test_SetSamplingTime();
+
+    /**
+     * @brief Tests the GetMonitoredNodes method.
+     */
+    bool Test_GetMonitoredNodes();
+
+    /**
+     * @brief Tests the SetOperationMode method.
+     */
+    bool Test_SetOperationMode();
+
+    /**
+     * @brief Tests the GetReferenceType method.
+     */
+    bool Test_GetReferenceType();
+
+    /**
+     * @brief Tests the SetWriteRequest method.
+     */
+    bool Test_SetWriteRequest();
+
+    /**
+     * @brief Tests the GetSamplingTime method.
+     */
+    bool Test_GetSamplingTime();
+
+    /**
+     * @brief Tests the GetOperationMode method.
+     */
+    bool Test_GetOperationMode();
+
+    /**
+     * @brief Tests the GetServerAddress method.
+     */
+    bool Test_GetServerAddress();
 
     /**
      * @brief Tests the Write method with a uint8 single variable

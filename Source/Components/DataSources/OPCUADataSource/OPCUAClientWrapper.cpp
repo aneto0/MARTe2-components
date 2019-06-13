@@ -53,7 +53,7 @@ OPCUAClientWrapper::OPCUAClientWrapper() {
     monitorRequest.itemToMonitor.nodeId.identifier.numeric = 0u;
     monitorResponse.monitoredItemId = 0u;
     valueMemories = NULL_PTR(void **);
-    serverAddress = NULL_PTR(char8 *);
+    serverAddress = "";
     samplingTime = 0.0;
     readValues = NULL_PTR(UA_ReadValueId *);
     writeValues = NULL_PTR(UA_WriteValue *);
@@ -62,6 +62,7 @@ OPCUAClientWrapper::OPCUAClientWrapper() {
     UA_ReadRequest_init(&readRequest);
     UA_WriteRequest_init(&writeRequest);
     readResponse.responseHeader.serviceResult = 0x00U; /* UA_STATUSCODE_GOOD */
+    mode = "";
 }
 
 /*lint -e{1551} No exception thrown.*/
@@ -487,6 +488,18 @@ UA_NodeId * OPCUAClientWrapper::GetMonitoredNodes() {
 
 void OPCUAClientWrapper::SetOperationMode(const char8* const modeType) {
     mode = modeType;
+}
+
+const float64 OPCUAClientWrapper::GetSamplingTime() {
+    return samplingTime;
+}
+
+const char8* const OPCUAClientWrapper::GetOperationMode() {
+    return mode.Buffer();
+}
+
+const char8* const OPCUAClientWrapper::GetServerAddress() {
+    return serverAddress.Buffer();
 }
 
 }

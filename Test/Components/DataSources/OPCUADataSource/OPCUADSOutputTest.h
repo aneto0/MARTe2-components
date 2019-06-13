@@ -52,6 +52,46 @@ public:
     bool TestInitialise();
 
     /**
+     * @brief Tests the SetConfiguredDatabase method.
+     */
+    bool Test_SetConfiguredDatabase();
+
+    /**
+     * @brief Tests the AllocateMemory method.
+     */
+    bool Test_AllocateMemory();
+
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method.
+     */
+    bool Test_GetSignalMemoryBuffer();
+
+    /**
+     * @brief Tests the PrepareNextState method.
+     */
+    bool Test_PrepareNextState();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool Test_Synchronise();
+
+    /**
+     * @brief Tests the GetBrokerName method.
+     */
+    bool Test_GetBrokerName();
+
+    /**
+     * @brief Tests the GetServerAddress method.
+     */
+    bool Test_GetServerAddress();
+
+    /**
+     * @brief Tests the GetClient method.
+     */
+    bool Test_GetClient();
+
+    /**
      * @brief Tests the Initialise method when the signals are Introspection Structures.
      */
     bool TestInitialise_Introspection();

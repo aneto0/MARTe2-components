@@ -168,6 +168,13 @@ OPCUADSInput    ();
      */
     const char8 * GetServerAddress();
 
+    /**
+     * @brief Return the threadError parameter value.
+     * @details This function will return an error different from NoError if the EmbeddedThread has failed once.
+     * @return The value of threadError
+     */
+    ErrorManagement::ErrorType GetThreadError();
+
 private:
 
     /**
@@ -251,6 +258,11 @@ private:
      * The stack size
      */
     uint32 stackSize;
+
+    /**
+     * The thread error
+     */
+    ErrorManagement::ErrorType threadError;
 
 };
 
