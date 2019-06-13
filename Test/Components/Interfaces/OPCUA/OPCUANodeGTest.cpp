@@ -38,6 +38,21 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+TEST(OPCUANodeGTest,TestConstructor) {
+    OPCUANodeTest test;
+    ASSERT_TRUE(test.TestConstructor());
+}
+
+TEST(OPCUANodeGTest,Test_IsNode) {
+    OPCUANodeTest test;
+    ASSERT_TRUE(test.Test_IsNode());
+}
+
+TEST(OPCUANodeGTest,Test_InitArray) {
+    OPCUANodeTest test;
+    ASSERT_TRUE(test.Test_InitArray());
+}
+
 TEST(OPCUANodeGTest,TestGetOPCVariable_uint8) {
     OPCUANodeTest test;
     ASSERT_TRUE(test.TestGetOPCVariable_uint8());

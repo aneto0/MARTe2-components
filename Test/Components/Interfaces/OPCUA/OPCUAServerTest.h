@@ -41,6 +41,42 @@
  */
 class OPCUAServerTest {
 public:
+
+    /**
+     * @brief Tests the constructor
+     */
+    bool TestConstructor();
+
+    /**
+     * @brief Tests the SetRunning method
+     */
+    bool Test_SetRunning();
+
+    /**
+     * @brief Tests the GetRunning method
+     */
+    bool Test_GetRunning();
+
+    /**
+     * @brief Tests the GetCPUMask method
+     */
+    bool Test_GetCPUMask();
+
+    /**
+     * @brief Tests the GetStackSize method
+     */
+    bool Test_GetStackSize();
+
+    /**
+     * @brief Tests the GetPort method
+     */
+    bool Test_GetPort();
+
+    /**
+     * @brief Tests the InitAddressSpace method
+     */
+    bool Test_InitAddressSpace();
+
     /**
      * @brief Tests the Initialise method with default parameters.
      */

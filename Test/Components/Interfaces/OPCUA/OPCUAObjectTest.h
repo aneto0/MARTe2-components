@@ -41,6 +41,27 @@
  */
 class OPCUAObjectTest {
 public:
+
+    /**
+     * @brief Tests the constructor.
+     */
+    bool TestConstructor();
+
+    /**
+     * @brief Tests the IsObject method.
+     */
+    bool Test_IsObject();
+
+    /**
+     * @brief Tests the SetFirst method.
+     */
+    bool Test_SetFirst();
+
+    /**
+     * @brief Tests the IsFirst method.
+     */
+    bool Test_IsFirst();
+
     /**
      * @brief Tests the GetOPCObject when the Server instantiates a base object.
      */

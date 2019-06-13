@@ -62,19 +62,34 @@ TEST(OPCUAReferenceContainerGTest,Test_GetOPCObject) {
     ASSERT_TRUE(test.Test_GetOPCObject());
 }
 
-TEST(OPCUAReferenceContainerGTest,Test_SetGetParent) {
+TEST(OPCUAReferenceContainerGTest,Test_SetParent) {
     OPCUAReferenceContainerTest test;
-    ASSERT_TRUE(test.Test_SetGetParent());
+    ASSERT_TRUE(test.Test_SetParent());
 }
 
-TEST(OPCUAReferenceContainerGTest,Test_SetGetNodeId) {
+TEST(OPCUAReferenceContainerGTest,Test_GetParent) {
     OPCUAReferenceContainerTest test;
-    ASSERT_TRUE(test.Test_SetGetNodeId());
+    ASSERT_TRUE(test.Test_GetParent());
 }
 
-TEST(OPCUAReferenceContainerGTest,Test_SetGetNodeType) {
+TEST(OPCUAReferenceContainerGTest,Test_SetNodeId) {
     OPCUAReferenceContainerTest test;
-    ASSERT_TRUE(test.Test_SetGetNodeType());
+    ASSERT_TRUE(test.Test_SetNodeId());
+}
+
+TEST(OPCUAReferenceContainerGTest,Test_GetNodeId) {
+    OPCUAReferenceContainerTest test;
+    ASSERT_TRUE(test.Test_GetNodeId());
+}
+
+TEST(OPCUAReferenceContainerGTest,Test_SetNodeType) {
+    OPCUAReferenceContainerTest test;
+    ASSERT_TRUE(test.Test_SetNodeType());
+}
+
+TEST(OPCUAReferenceContainerGTest,Test_GetNodeType) {
+    OPCUAReferenceContainerTest test;
+    ASSERT_TRUE(test.Test_GetNodeType());
 }
 
 TEST(OPCUAReferenceContainerGTest,Test_IsFirst) {
@@ -87,10 +102,26 @@ TEST(OPCUAReferenceContainerGTest,Test_SetFirst) {
     ASSERT_TRUE(test.Test_SetFirst());
 }
 
-TEST(OPCUAReferenceContainerGTest,Test_NumberOfElementsDimensions) {
+TEST(OPCUAReferenceContainerGTest,Test_SetNumberOfElements) {
     OPCUAReferenceContainerTest test;
-    ASSERT_TRUE(test.Test_NumberOfElementsDimensions());
+    ASSERT_TRUE(test.Test_SetNumberOfElements());
 }
+
+TEST(OPCUAReferenceContainerGTest,Test_GetNumberOfElements) {
+    OPCUAReferenceContainerTest test;
+    ASSERT_TRUE(test.Test_GetNumberOfElements());
+}
+
+TEST(OPCUAReferenceContainerGTest,Test_SetNumberOfDimensions) {
+    OPCUAReferenceContainerTest test;
+    ASSERT_TRUE(test.Test_SetNumberOfDimensions());
+}
+
+TEST(OPCUAReferenceContainerGTest,Test_GetNumberOfDimensions) {
+    OPCUAReferenceContainerTest test;
+    ASSERT_TRUE(test.Test_GetNumberOfDimensions());
+}
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

@@ -40,6 +40,47 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+bool OPCUAServerTest::TestConstructor() {
+    using namespace MARTe;
+    OPCUAServer test;
+    return (test.GetPort() == 4840u);
+}
+
+bool OPCUAServerTest::Test_SetRunning() {
+    using namespace MARTe;
+    OPCUAServer test;
+    test.SetRunning(true);
+    return test.GetRunning();
+}
+
+bool OPCUAServerTest::Test_GetRunning() {
+    using namespace MARTe;
+    OPCUAServer test;
+    return !(test.GetRunning());
+}
+
+bool OPCUAServerTest::Test_GetCPUMask() {
+    using namespace MARTe;
+    OPCUAServer test;
+    return (test.GetCPUMask() == 0xffu);
+}
+
+bool OPCUAServerTest::Test_GetStackSize() {
+    using namespace MARTe;
+    OPCUAServer test;
+    return (test.GetStackSize() == THREADS_DEFAULT_STACKSIZE);
+}
+
+bool OPCUAServerTest::Test_GetPort() {
+    using namespace MARTe;
+    OPCUAServer test;
+    return (test.GetPort() == 4840u);
+}
+
+bool OPCUAServerTest::Test_InitAddressSpace() {
+    return TestExecute();
+}
+
 bool OPCUAServerTest::TestInitialise_Default() {
     using namespace MARTe;
     StreamString config = ""

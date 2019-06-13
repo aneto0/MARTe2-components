@@ -74,7 +74,7 @@ bool OPCUAReferenceContainerTest::Test_GetOPCObject() {
     return !(orc.GetOPCObject(settings, nodeNumber));
 }
 
-bool OPCUAReferenceContainerTest::Test_SetGetParent() {
+bool OPCUAReferenceContainerTest::Test_SetParent() {
     using namespace MARTe;
     OPCUAReferenceContainer orc;
     uint32 parentNumber = 1u;
@@ -83,7 +83,21 @@ bool OPCUAReferenceContainerTest::Test_SetGetParent() {
     return (check == 1u);
 }
 
-bool OPCUAReferenceContainerTest::Test_SetGetNodeId() {
+bool OPCUAReferenceContainerTest::Test_GetParent() {
+    using namespace MARTe;
+    OPCUAReferenceContainer orc;
+    uint32 check = orc.GetParentNodeId();
+    return (check == 0u);
+}
+
+bool OPCUAReferenceContainerTest::Test_SetNodeId() {
+    using namespace MARTe;
+    OPCUAReferenceContainer orc;
+    uint32 check = orc.GetNodeId();
+    return (check == 0u);
+}
+
+bool OPCUAReferenceContainerTest::Test_GetNodeId() {
     using namespace MARTe;
     OPCUAReferenceContainer orc;
     uint32 Number = 1u;
@@ -92,13 +106,20 @@ bool OPCUAReferenceContainerTest::Test_SetGetNodeId() {
     return (check == 1u);
 }
 
-bool OPCUAReferenceContainerTest::Test_SetGetNodeType() {
+bool OPCUAReferenceContainerTest::Test_SetNodeType() {
     using namespace MARTe;
     OPCUAReferenceContainer orc;
     orc.SetNodeType(TypeDescriptor::GetTypeDescriptorFromTypeName("uint32"));
     TypeDescriptor td = orc.GetNodeType();
     const char8* typeStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(td);
     return (StringHelper::Compare(typeStr, "uint32") == 0);
+}
+
+bool OPCUAReferenceContainerTest::Test_GetNodeType() {
+    using namespace MARTe;
+    OPCUAReferenceContainer orc;
+    TypeDescriptor td = InvalidType;
+    return (orc.GetNodeType() == td);
 }
 
 bool OPCUAReferenceContainerTest::Test_IsFirst() {
@@ -114,15 +135,36 @@ bool OPCUAReferenceContainerTest::Test_SetFirst() {
     return !(orc.IsFirstObject());
 }
 
-bool OPCUAReferenceContainerTest::Test_NumberOfElementsDimensions() {
+bool OPCUAReferenceContainerTest::Test_SetNumberOfElements() {
     using namespace MARTe;
     OPCUAReferenceContainer orc;
     orc.SetNumberOfDimensions(2u);
     orc.SetNumberOfElements(0u, 2u);
     orc.SetNumberOfElements(1u, 2u);
-    uint8 nd = orc.GetNumberOfDimensions();
     uint32* ne = orc.GetNumberOfElements();
-    return (nd == 2u && ne[0] == 2u && ne[1] == 2u);
+    return (ne[0] == 2u && ne[1] == 2u);
+}
+
+bool OPCUAReferenceContainerTest::Test_GetNumberOfElements() {
+    using namespace MARTe;
+    OPCUAReferenceContainer orc;
+    uint32* ne = orc.GetNumberOfElements();
+    return (ne == NULL_PTR(uint32 *));
+}
+
+bool OPCUAReferenceContainerTest::Test_SetNumberOfDimensions() {
+    using namespace MARTe;
+    OPCUAReferenceContainer orc;
+    orc.SetNumberOfDimensions(2u);
+    const uint8 ne = orc.GetNumberOfDimensions();
+    return (ne == 2u);
+}
+
+bool OPCUAReferenceContainerTest::Test_GetNumberOfDimensions() {
+    using namespace MARTe;
+    OPCUAReferenceContainer orc;
+    const uint8 ne = orc.GetNumberOfDimensions();
+    return (ne == 0u);
 }
 
 /*---------------------------------------------------------------------------*/

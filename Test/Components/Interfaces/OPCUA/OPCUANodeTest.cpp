@@ -43,6 +43,22 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+bool OPCUANodeTest::TestConstructor() {
+    using namespace MARTe;
+    OPCUANode test;
+    return test.IsNode();
+}
+
+bool OPCUANodeTest::Test_IsNode() {
+    using namespace MARTe;
+    OPCUANode test;
+    return test.IsNode();
+}
+
+bool OPCUANodeTest::Test_InitArray() {
+    return TestGetOPCVariable_array_uint8();
+}
+
 bool OPCUANodeTest::TestGetOPCVariable_uint8() {
     using namespace MARTe;
     StreamString config = ""

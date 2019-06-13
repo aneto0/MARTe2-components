@@ -39,6 +39,41 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+TEST(OPCUAServerGTest,TestConstructor) {
+    OPCUAServerTest test;
+    ASSERT_TRUE(test.TestConstructor());
+}
+
+TEST(OPCUAServerGTest,Test_SetRunning) {
+    OPCUAServerTest test;
+    ASSERT_TRUE(test.Test_SetRunning());
+}
+
+TEST(OPCUAServerGTest,Test_GetRunning) {
+    OPCUAServerTest test;
+    ASSERT_TRUE(test.Test_GetRunning());
+}
+
+TEST(OPCUAServerGTest,Test_GetCPUMask) {
+    OPCUAServerTest test;
+    ASSERT_TRUE(test.Test_GetCPUMask());
+}
+
+TEST(OPCUAServerGTest,Test_GetStackSize) {
+    OPCUAServerTest test;
+    ASSERT_TRUE(test.Test_GetStackSize());
+}
+
+TEST(OPCUAServerGTest,Test_GetPort) {
+    OPCUAServerTest test;
+    ASSERT_TRUE(test.Test_GetPort());
+}
+
+TEST(OPCUAServerGTest,Test_InitAddressSpace) {
+    OPCUAServerTest test;
+    ASSERT_TRUE(test.Test_InitAddressSpace());
+}
+
 TEST(OPCUAServerGTest,TestInitialise_Default) {
     OPCUAServerTest test;
     ASSERT_TRUE(test.TestInitialise_Default());
