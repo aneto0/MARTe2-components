@@ -107,9 +107,7 @@ bool OPCUAClientWrapper::Connect() {
     return (retval == 0x00U); /* UA_STATUSCODE_GOOD */
 }
 
-bool OPCUAClientWrapper::SetTargetNodes(const uint16 * const namespaceIndexes,
-                                        StreamString * const nodePaths,
-                                        const uint32 numberOfNodes) {
+bool OPCUAClientWrapper::SetTargetNodes(const uint16 * const namespaceIndexes, StreamString * const nodePaths, const uint32 numberOfNodes) {
     bool ok = false;
     nOfNodes = numberOfNodes;
     monitoredNodes = new UA_NodeId[numberOfNodes];
@@ -185,7 +183,7 @@ bool OPCUAClientWrapper::SetTargetNodes(const uint16 * const namespaceIndexes,
                     elem->targetName = UA_QUALIFIEDNAME_ALLOC(namespaceIndexes[i], const_cast<char8*>(path[j].Buffer()));
                 }
                 if (tempStringNodeId != NULL_PTR(char8*)) {
-                    delete tempStringNodeId;
+                    delete [] tempStringNodeId;
                 }
             }
             UA_TranslateBrowsePathsToNodeIdsRequest tbpReq;
@@ -234,11 +232,7 @@ bool OPCUAClientWrapper::SetTargetNodes(const uint16 * const namespaceIndexes,
     return ok;
 }
 
-bool OPCUAClientWrapper::GetSignalMemory(void *&mem,
-                                         const uint32 idx,
-                                         const TypeDescriptor & valueTd,
-                                         const uint32 nElem,
-                                         const uint8 nDimensions) {
+bool OPCUAClientWrapper::GetSignalMemory(void *&mem, const uint32 idx, const TypeDescriptor & valueTd, const uint32 nElem, const uint8 nDimensions) {
     bool ok = true;
     if (valueMemories != NULL_PTR(void **)) {
         uint32 nOfBytes = valueTd.numberOfBits;
@@ -263,9 +257,7 @@ bool OPCUAClientWrapper::Monitor() const {
     return ok;
 }
 
-bool OPCUAClientWrapper::Read(const uint32 numberOfNodes,
-                              const TypeDescriptor * const types,
-                              const uint32 * const nElements) {
+bool OPCUAClientWrapper::Read(const uint32 numberOfNodes, const TypeDescriptor * const types, const uint32 * const nElements) {
     readResponse = UA_Client_Service_read(opcuaClient, readRequest);
     bool ok = (readResponse.responseHeader.serviceResult == 0x00U); /* UA_STATUSCODE_GOOD */
     if (ok) {
@@ -283,10 +275,7 @@ bool OPCUAClientWrapper::Read(const uint32 numberOfNodes,
     return ok;
 }
 
-uint32 OPCUAClientWrapper::GetReferenceType(const UA_BrowseRequest &bReq,
-                                            const char8* const path,
-                                            uint16 &namespaceIndex,
-                                            uint32 &numericNodeId,
+uint32 OPCUAClientWrapper::GetReferenceType(const UA_BrowseRequest &bReq, const char8* const path, uint16 &namespaceIndex, uint32 &numericNodeId,
                                             char8* &stringNodeId) {
     uint32 id = 0u;
     if (numericNodeId == 0u) {
@@ -319,7 +308,7 @@ uint32 OPCUAClientWrapper::GetReferenceType(const UA_BrowseRequest &bReq,
                         }
                         else if (ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_STRING) {
                             if (stringNodeId != NULL_PTR(char8*)) {
-                                delete stringNodeId;
+                                delete [] stringNodeId;
                             }
                             stringNodeId = new char8[ref->nodeId.nodeId.identifier.string.length];
                             ok = StringHelper::Copy(stringNodeId, reinterpret_cast<char8*>(ref->nodeId.nodeId.identifier.string.data));
@@ -365,10 +354,7 @@ uint32 OPCUAClientWrapper::GetReferenceType(const UA_BrowseRequest &bReq,
 }
 
 /*lint -e{746} -e{1055} -e{534} -e{516} -e{526} -e{628} UA_Variant_setScalar is defined in open62541.*/
-void OPCUAClientWrapper::SetWriteRequest(const uint32 idx,
-                                         const uint8 nDimensions,
-                                         const uint32 nElements,
-                                         const TypeDescriptor &type) {
+void OPCUAClientWrapper::SetWriteRequest(const uint32 idx, const uint8 nDimensions, const uint32 nElements, const TypeDescriptor &type) {
     if (tempVariant != NULL_PTR(UA_Variant *)) {
         bool isArray = (nDimensions > 0u);
         if (valueMemories != NULL_PTR(void**)) {
