@@ -490,7 +490,7 @@ void OPCUAClientWrapper::SetOperationMode(const char8* const modeType) {
     mode = modeType;
 }
 
-const float64 OPCUAClientWrapper::GetSamplingTime() {
+const float64 OPCUAClientWrapper::GetSamplingTime() const {
     return samplingTime;
 }
 

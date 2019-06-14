@@ -166,7 +166,7 @@ public:
     /**
      * @brief Returns the sampling time
      */
-    const float64 GetSamplingTime();
+    const float64 GetSamplingTime() const;
 
     /**
      * @brief Returns the current operation mode

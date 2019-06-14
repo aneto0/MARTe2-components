@@ -186,21 +186,22 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
                 ok = sigName.GetToken(sigToken, ".", ignore);
             }
             if (ok) {
-                for (uint32 j = 0u; j < nOfSignals; j++) {
-                    StreamString lastToken;
-                    sigToken = "";
-                    ok = tempPaths[j].Seek(0LLU);
-                    if (ok) {
-                        do {
-                            ok = tempPaths[j].GetToken(lastToken, ".", ignore);
-                            if (ok) {
-                                sigToken = lastToken;
+                if (tempPaths != NULL_PTR(StreamString *)) {
+                    for (uint32 j = 0u; j < nOfSignals; j++) {
+                        StreamString lastToken;
+                        sigToken = "";
+                        ok = tempPaths[j].Seek(0LLU);
+                        if (ok) {
+                            do {
+                                ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                                if (ok) {
+                                    sigToken = lastToken;
+                                }
+                                lastToken = "";
                             }
-                            lastToken = "";
+                            while (ok);
                         }
-                        while (ok);
-                    }
-                    if (tempPaths != NULL_PTR(StreamString *)) {
+
                         /* This cycle will save the last token found */
                         ok = tempPaths[j].Seek(0LLU);
                         if (ok) {
@@ -263,9 +264,7 @@ bool OPCUADSOutput::AllocateMemory() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
-                                          const uint32 bufferIdx,
-                                          void *&signalAddress) {
+bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) {
     StreamString opcDisplayName;
     bool ok = GetSignalName(signalIdx, opcDisplayName);
     /* Debug only */
@@ -295,8 +294,7 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
-const char8 * OPCUADSOutput::GetBrokerName(StructuredDataI &data,
-                                           const SignalDirection direction) {
+const char8 * OPCUADSOutput::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
     const char8* brokerName = "";
     if (direction == OutputSignals) {
         brokerName = "MemoryMapSynchronisedOutputBroker";
@@ -305,8 +303,7 @@ const char8 * OPCUADSOutput::GetBrokerName(StructuredDataI &data,
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool OPCUADSOutput::PrepareNextState(const char8 * const currentStateName,
-                                     const char8 * const nextStateName) {
+bool OPCUADSOutput::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
     return true;
 }
 
