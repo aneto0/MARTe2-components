@@ -59,8 +59,10 @@ OPCUAClient::OPCUAClient() :
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
     }
-    config = UA_ClientConfig_default;
-    opcuaClient = UA_Client_new(config);
+//    config = UA_ClientConfig_default;
+//    opcuaClient = UA_Client_new(config);
+    opcuaClient = UA_Client_new();
+    UA_ClientConfig_setDefault(UA_Client_getConfig(opcuaClient));
     serverAddress.Seek(0LLU);
     // monitoredItemsContainer=this;
     OPCUAVariable::CreateLock();
@@ -154,10 +156,10 @@ ErrorManagement::ErrorType OPCUAClient::Execute(ExecutionInfo& info) {
 
     }
     else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        //Sleep::Sec(0.999F);
+        Sleep::Sec(0.999F);
         OPCUAVariable::Lock();
-        UA_Client_runAsync(opcuaClient,100);//changed from run_iterate
-        //UA_Client_run_iterate(opcuaClient, 100);
+//        UA_Client_runAsync(opcuaClient,100);//changed from run_iterate
+        UA_Client_run_iterate(opcuaClient, 100);
         OPCUAVariable::UnLock();
     }
     else {

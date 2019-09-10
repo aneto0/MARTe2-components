@@ -166,7 +166,7 @@ public:
 private:
 
     /**
-     * @brief Gets the OCUA Reference Type Id for each node of the path.
+     * @brief Gets the OPCUA Reference Type Id for each node of the path.
      * @details This method uses the OPCUA Browse and BrowseNext services to obtain the OPCUA Reference Type
      * of the node declared in the path.
      */

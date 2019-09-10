@@ -62,8 +62,7 @@ void OPCUAClientDataChange(UA_Client *client,
                     child->SetNoMoreFirstTime();
 
                 else {
-                    REPORT_ERROR_STATIC(ErrorManagement::Information, "value has changed for subId %d value %f!", subId, *(float64* )(value->value.data));
-
+                    REPORT_ERROR_STATIC(ErrorManagement::Information, "Value has changed for subscription n %d!", subId);
                     child->HandlePVEvent(value);
                 }
             }
@@ -453,8 +452,8 @@ bool OPCUAVariable::SetSubscriptionRequest() {
                                                                     OPCUAClientDataChange, NULL);
     }
     /* Asynchronous call */
-    code = UA_Client_runAsync(opcuaClient,1000);        //changed from run_iterate
-    //code = UA_Client_run_iterate(opcuaClient, 1000);
+//    code = UA_Client_runAsync(opcuaClient,1000);        //changed from run_iterate
+    code = UA_Client_run_iterate(opcuaClient, 1000);
     ok = (code == UA_STATUSCODE_GOOD);
     return ok;
 }
@@ -604,8 +603,12 @@ ErrorManagement::ErrorType OPCUAVariable::OPCUAWrite(StructuredDataI & data) {
     writeRequest.nodesToWriteSize = 1u;
 
     (void) eventCallbackFastMux.FastLock();
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "Trying to write ...");
+
     UA_WriteResponse wResp = UA_Client_Service_write(opcuaClient, writeRequest);
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "Write: done! ");
     eventCallbackFastMux.FastUnLock();
+
 
     bool ok = (wResp.responseHeader.serviceResult == 0x00U); /* UA_STATUSCODE_GOOD */
     UA_WriteResponse_deleteMembers(&wResp);

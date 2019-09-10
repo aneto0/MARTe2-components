@@ -45,8 +45,10 @@
 namespace MARTe {
 
 OPCUAClientWrapper::OPCUAClientWrapper() {
-    config = UA_ClientConfig_default;
-    opcuaClient = UA_Client_new(config);
+    //config = UA_ClientConfig_default;
+    //opcuaClient = UA_Client_new(config);
+    opcuaClient = UA_Client_new();
+    UA_ClientConfig_setDefault(UA_Client_getConfig(opcuaClient));
     monitoredNodes = NULL_PTR(UA_NodeId *);
     request = UA_CreateSubscriptionRequest_default();
     response.subscriptionId = 0u;
@@ -124,6 +126,7 @@ bool OPCUAClientWrapper::SetTargetNodes(const uint16 * const namespaceIndexes,
     }
     for (uint32 i = 0u; i < numberOfNodes; i++) {
         ok = nodePaths[i].Seek(0LLU);
+
         StreamString pathTokenized;
         uint32 pathSize = 0u;
         char8 ignore;
@@ -179,6 +182,7 @@ bool OPCUAClientWrapper::SetTargetNodes(const uint16 * const namespaceIndexes,
             if ((path != NULL_PTR(StreamString*)) && (ids != NULL_PTR(uint32*))) {
                 for (uint32 j = 0u; j < pathSize; j++) {
                     ids[j] = GetReferenceType(bReq, const_cast<char8*>(path[j].Buffer()), tempNamespaceIndex, tempNumericNodeId, tempStringNodeId);
+                    REPORT_ERROR_STATIC(ErrorManagement::Information, "OPCUA: Getting Node Information for Signal %s", tempStringNodeId);
                     UA_RelativePathElement *elem = &browsePath.relativePath.elements[j];
                     elem->referenceTypeId = UA_NODEID_NUMERIC(0u, ids[j]);
                     /*lint -e{1055} -e{64} -e{746} UA_QUALIFIEDNAME is declared in the open62541 library.*/
@@ -210,7 +214,8 @@ bool OPCUAClientWrapper::SetTargetNodes(const uint16 * const namespaceIndexes,
                         writeValues[i].nodeId = monitoredNodes[i];
                     }
                 }
-                UA_TranslateBrowsePathsToNodeIdsResponse_deleteMembers(&tbpResp);
+                /* open62541 v1.0 does not require delete members function for TranslateBrowsePathsToNodeIdsResponse */
+                //UA_TranslateBrowsePathsToNodeIdsResponse_deleteMembers(&tbpResp);
                 UA_Array_delete(browsePath.relativePath.elements, static_cast<osulong>(pathSize), &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
                 UA_BrowseDescription_delete(bReq.nodesToBrowse);
             }
@@ -353,7 +358,7 @@ uint32 OPCUAClientWrapper::GetReferenceType(const UA_BrowseRequest &bReq,
                 break;
             }
         }
-        UA_BrowseResponse_delete(bResp);
+        //UA_BrowseResponse_delete(bResp);
     }
     return id;
 }

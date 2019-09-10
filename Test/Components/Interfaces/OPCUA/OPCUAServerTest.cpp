@@ -166,7 +166,9 @@ bool OPCUAServerTest::TestExecute() {
         ok = ord->Initialise(cdb);
     }
     Sleep::MSec(100);
-    UA_Client *client = UA_Client_new(UA_ClientConfig_default);
+//    UA_Client *client = UA_Client_new(UA_ClientConfig_default);
+    UA_Client *client = UA_Client_new();
+    UA_ClientConfig_setDefault(UA_Client_getConfig(client));
     UA_StatusCode retval = UA_Client_connect(client, "opc.tcp://localhost:4840");
     ok = (retval ==  UA_STATUSCODE_GOOD);
     ord->Purge();
@@ -211,7 +213,8 @@ bool OPCUAServerTest::TestExecute_Introspection() {
         ok = ord->Initialise(cdb);
     }
     Sleep::MSec(100);
-    UA_Client *client = UA_Client_new(UA_ClientConfig_default);
+    UA_Client *client = UA_Client_new();
+    UA_ClientConfig_setDefault(UA_Client_getConfig(client));
     UA_StatusCode retval = UA_Client_connect(client, "opc.tcp://localhost:4840");
     ok = (retval ==  UA_STATUSCODE_GOOD);
     ord->Purge();
