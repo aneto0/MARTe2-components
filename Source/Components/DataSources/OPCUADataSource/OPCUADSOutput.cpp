@@ -46,48 +46,48 @@ namespace MARTe {
 
 OPCUADSOutput::OPCUADSOutput() :
         DataSourceI() {
-    masterClient = NULL_PTR(OPCUAClientWrapper *);
+    masterClient = NULL_PTR(OPCUAClientWrapper*);
     nOfSignals = 0u;
     numberOfNodes = 0u;
-    paths = NULL_PTR(StreamString *);
-    namespaceIndexes = NULL_PTR(uint16 *);
-    tempPaths = NULL_PTR(StreamString *);
-    tempNamespaceIndexes = NULL_PTR(uint16 *);
+    paths = NULL_PTR(StreamString*);
+    namespaceIndexes = NULL_PTR(uint16*);
+    tempPaths = NULL_PTR(StreamString*);
+    tempNamespaceIndexes = NULL_PTR(uint16*);
     serverAddress = "";
-    nDimensions = NULL_PTR(uint8 *);
-    nElements = NULL_PTR(uint32 *);
-    types = NULL_PTR(TypeDescriptor *);
+    nDimensions = NULL_PTR(uint8*);
+    nElements = NULL_PTR(uint32*);
+    types = NULL_PTR(TypeDescriptor*);
 }
 
 /*lint -e{1551} No exception thrown.*/
 OPCUADSOutput::~OPCUADSOutput() {
-    if (nDimensions != NULL_PTR(uint8 *)) {
+    if (nDimensions != NULL_PTR(uint8*)) {
         delete[] nDimensions;
     }
-    if (nElements != NULL_PTR(uint32 *)) {
+    if (nElements != NULL_PTR(uint32*)) {
         delete[] nElements;
     }
-    if (types != NULL_PTR(TypeDescriptor *)) {
+    if (types != NULL_PTR(TypeDescriptor*)) {
         delete[] types;
     }
-    if (paths != NULL_PTR(StreamString *)) {
+    if (paths != NULL_PTR(StreamString*)) {
         delete[] paths;
     }
-    if (namespaceIndexes != NULL_PTR(uint16 *)) {
+    if (namespaceIndexes != NULL_PTR(uint16*)) {
         delete[] namespaceIndexes;
     }
-    if (tempPaths != NULL_PTR(StreamString *)) {
+    if (tempPaths != NULL_PTR(StreamString*)) {
         delete[] tempPaths;
     }
-    if (tempNamespaceIndexes != NULL_PTR(uint16 *)) {
+    if (tempNamespaceIndexes != NULL_PTR(uint16*)) {
         delete[] tempNamespaceIndexes;
     }
-    if (masterClient != NULL_PTR(OPCUAClientWrapper *)) {
+    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
         delete masterClient;
     }
 }
 
-bool OPCUADSOutput::Initialise(StructuredDataI & data) {
+bool OPCUADSOutput::Initialise(StructuredDataI &data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("Address", serverAddress);
@@ -144,7 +144,7 @@ bool OPCUADSOutput::Initialise(StructuredDataI & data) {
 
 }
 
-bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
+bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     numberOfNodes = GetNumberOfSignals();
     nDimensions = new uint8[numberOfNodes];
@@ -168,6 +168,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
             types[k] = GetSignalType(k);
         }
     }
+
     if (ok) {
         paths = new StreamString[numberOfNodes];
         namespaceIndexes = new uint16[numberOfNodes];
@@ -177,8 +178,37 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
         char8 ignore;
         for (uint32 i = 0u; i < numberOfNodes; i++) {
             sigName = "";
-            /* Getting the first name from the signal path */
             ok = GetSignalName(i, sigName);
+
+            /* Patch for ExtensionObject
+             * Substituting square brackets with dots */
+            if (ok) {
+                char8 *leftBracketPointer = NULL_PTR(char8*);
+                const char8 *dot = ".";
+                do {
+                    const char8 *leftBracket = "[";
+                    leftBracketPointer = const_cast<char8*>(StringHelper::SearchChar(sigName.Buffer(), leftBracket[0]));
+                    if (leftBracketPointer != NULL) {
+                        StringHelper::CopyN(leftBracketPointer, dot, 1u);
+                    }
+                }
+                while (leftBracketPointer != NULL);
+
+                ok = sigName.Seek(0LLU);
+                if (ok) {
+                    char8 *rightBracketPointer = NULL_PTR(char8*);
+                    do {
+                        const char8 *rightBracket = "]";
+                        rightBracketPointer = const_cast<char8*>(StringHelper::SearchChar(sigName.Buffer(), rightBracket[0]));
+                        if (rightBracketPointer != NULL) {
+                            StringHelper::CopyN(rightBracketPointer, dot, 1u);
+                        }
+                    }
+                    while (rightBracketPointer != NULL);
+                }
+            }
+
+            /* Getting the first name from the signal path */
             if (ok) {
                 ok = sigName.Seek(0LLU);
             }
@@ -200,7 +230,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
                         }
                         while (ok);
                     }
-                    if (tempPaths != NULL_PTR(StreamString *)) {
+                    if (tempPaths != NULL_PTR(StreamString*)) {
                         /* This cycle will save the last token found */
                         ok = tempPaths[j].Seek(0LLU);
                         if (ok) {
@@ -208,8 +238,8 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
                                 pathToken = "";
 
                                 ok = tempPaths[j].GetToken(pathToken, ".", ignore);
-                                if ((paths != NULL_PTR(StreamString *)) && ok) {
-                                    if ((namespaceIndexes != NULL_PTR(uint16 *)) && (tempNamespaceIndexes != NULL_PTR(uint16 *))) {
+                                if ((paths != NULL_PTR(StreamString*)) && ok) {
+                                    if ((namespaceIndexes != NULL_PTR(uint16*)) && (tempNamespaceIndexes != NULL_PTR(uint16*))) {
                                         if (pathToken == sigToken) {
                                             paths[i] = tempPaths[j];
                                             namespaceIndexes[i] = tempNamespaceIndexes[j];
@@ -229,7 +259,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
             do {
                 sigToken = "";
                 ok = sigName.GetToken(sigToken, ".", ignore);
-                if ((paths != NULL_PTR(StreamString *)) && ok) {
+                if ((paths != NULL_PTR(StreamString*)) && ok) {
                     paths[i] += dotToken;
                     paths[i] += sigToken;
                 }
@@ -246,8 +276,14 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI & data) {
         ok = masterClient->Connect();
         if (ok) {
             REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
-            ok = masterClient->SetTargetNodes(namespaceIndexes, paths, numberOfNodes);
         }
+        if (numberOfNodes > 1) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Going to  SetTargetNodes: %d Signals", numberOfNodes);
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Going to  SetTargetNodes: %d Signal", numberOfNodes);
+        }
+        ok = masterClient->SetTargetNodes(namespaceIndexes, paths, numberOfNodes);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find one or more signals in the Server.");
         }
@@ -270,8 +306,8 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
     bool ok = GetSignalName(signalIdx, opcDisplayName);
     /* Debug only */
     //REPORT_ERROR(ErrorManagement::Information, "Searching for signal [%s]", opcDisplayName.Buffer());
-    if ((types != NULL_PTR(TypeDescriptor *)) && (nElements != NULL_PTR(uint32 *)) && (masterClient != NULL_PTR(OPCUAClientWrapper *))
-            && (nDimensions != NULL_PTR(uint8 *))) {
+    if ((types != NULL_PTR(TypeDescriptor*)) && (nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientWrapper*))
+            && (nDimensions != NULL_PTR(uint8*))) {
         if (ok) {
 #if 0
             if ((types[signalIdx].type == CArray) || (types[signalIdx].type == BT_CCString) || (types[signalIdx].type == PCString)
@@ -283,7 +319,7 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
             ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx], nDimensions[signalIdx]);
         }
         if (ok) {
-            ok = (signalAddress != NULL_PTR(void *));
+            ok = (signalAddress != NULL_PTR(void*));
         }
         if (ok) {
             types[signalIdx] = TypeDescriptor();
@@ -295,9 +331,9 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
-const char8 * OPCUADSOutput::GetBrokerName(StructuredDataI &data,
-                                           const SignalDirection direction) {
-    const char8* brokerName = "";
+const char8* OPCUADSOutput::GetBrokerName(StructuredDataI &data,
+                                          const SignalDirection direction) {
+    const char8 *brokerName = "";
     if (direction == OutputSignals) {
         brokerName = "MemoryMapSynchronisedOutputBroker";
     }
@@ -305,24 +341,24 @@ const char8 * OPCUADSOutput::GetBrokerName(StructuredDataI &data,
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool OPCUADSOutput::PrepareNextState(const char8 * const currentStateName,
-                                     const char8 * const nextStateName) {
+bool OPCUADSOutput::PrepareNextState(const char8 *const currentStateName,
+                                     const char8 *const nextStateName) {
     return true;
 }
 
 bool OPCUADSOutput::Synchronise() {
     bool ok = true;
-    if (masterClient != NULL_PTR(OPCUAClientWrapper *)) {
+    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
         ok = masterClient->Write(numberOfNodes);
     }
     return ok;
 }
 
-const char8 * OPCUADSOutput::GetServerAddress() {
+const char8* OPCUADSOutput::GetServerAddress() {
     return serverAddress.Buffer();
 }
 
-OPCUAClientWrapper * OPCUADSOutput::GetClient() {
+OPCUAClientWrapper* OPCUADSOutput::GetClient() {
     return masterClient;
 }
 

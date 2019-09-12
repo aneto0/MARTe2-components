@@ -321,6 +321,12 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
         if (ok) {
             REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
         }
+        if (numberOfNodes > 1) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Going to  SetTargetNodes: %d Signals", numberOfNodes);
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Going to  SetTargetNodes: %d Signal", numberOfNodes);
+        }
         ok = masterClient->SetTargetNodes(namespaceIndexes, paths, numberOfNodes);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find one or more signals in the Server.");
@@ -401,6 +407,7 @@ ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo &info) {
             if (readMode == "Read") {
                 ok = masterClient->Read(numberOfNodes, types, nElements);
                 if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "WTF?");
                     err = ErrorManagement::CommunicationError;
                 }
             }
