@@ -258,49 +258,19 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
         }
         signalName = "";
     }
-
-    for (uint32 j = 0u; j < nOfSignals; j++) {
-        if (ok) {
-            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[j].Buffer());
-            if (cri != NULL_PTR(const ClassRegistryItem*)) {
-                if (ok) {
-                    const Introspection *intro = cri->GetIntrospection();
-                    ok = (intro != NULL_PTR(const Introspection*));
-                    if (ok) {
-                        REPORT_ERROR(ErrorManagement::Information, "Loading Structure Information...");
-                        ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, entryArraySize);
-                        if (ok) {
-                            REPORT_ERROR(ErrorManagement::Information, "Structured DataType successfully loaded!");
-                        }
-                    }
-                }
-            }
-        }
-        if (ok) {
-            ok = data.MoveToAncestor(1u);
-        }
-    }
     if (ok) {
-        ok = data.MoveToAncestor(1u);
-    }
-
-    /* If ExtensionObject parameter is equal to "no", then we need to setup paths for each signal */
-    if (extensionObject[0u] == "no") {
-        /* Setting path and namespace for each signal */
-        if (ok) {
-            paths = new StreamString[numberOfNodes];
-            namespaceIndexes = new uint16[numberOfNodes];
-            StreamString sigName;
-            StreamString pathToken;
-            StreamString sigToken;
-            char8 ignore;
-            for (uint32 i = 0u; i < numberOfNodes; i++) {
-                sigName = "";
-                ok = GetSignalName(i, sigName);
-
-                /* Getting the first name from the signal path */
+        paths = new StreamString[numberOfNodes];
+        namespaceIndexes = new uint16[numberOfNodes];
+        StreamString sigName;
+        StreamString pathToken;
+        StreamString sigToken;
+        char8 ignore;
+        for (uint32 i = 0u; i < numberOfNodes; i++) {
+            sigName = "";
+            /* Getting the first name from the signal path */
+            ok = GetSignalName(i, sigName);
+            if (ok) {
                 ok = sigName.Seek(0LLU);
-
             }
             if (ok) {
                 ok = sigName.GetToken(sigToken, ".", ignore);
@@ -320,7 +290,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                         }
                         while (ok);
                     }
-                    if (tempPaths != NULL_PTR(StreamString *)) {
+                    if (tempPaths != NULL_PTR(StreamString*)) {
                         /* This cycle will save the last token found */
                         ok = tempPaths[j].Seek(0LLU);
                         if (ok) {
@@ -339,7 +309,6 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                             if (ok) {
                                 do {
                                     pathToken = "";
-
                                     ok = tempPaths[j].GetToken(pathToken, ".", ignore);
                                     if ((paths != NULL_PTR(StreamString*)) && ok) {
                                         if ((namespaceIndexes != NULL_PTR(uint16*)) && (tempNamespaceIndexes != NULL_PTR(uint16*))) {
@@ -356,6 +325,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                         }
                     }
                 }
+
                 /* Then we add to the path the remaining node names */
                 StreamString dotToken = ".";
                 do {
@@ -407,9 +377,6 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
 }
 
 bool OPCUADSInput::AllocateMemory() {
-
-    /* Length computation */
-
 
     return true;
 }

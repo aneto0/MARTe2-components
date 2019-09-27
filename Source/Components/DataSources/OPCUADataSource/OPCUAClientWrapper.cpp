@@ -186,11 +186,7 @@ bool OPCUAClientWrapper::SetTargetNodes(const uint16 *const namespaceIndexes,
 
             uint32 tempNumericNodeId = 85u; /* UA_NS0ID_OBJECTSFOLDER */
             uint16 tempNamespaceIndex = 0u;
-<<<<<<< HEAD
-            char8 *tempStringNodeId;
-=======
             char8* tempStringNodeId = NULL_PTR(char8*);
->>>>>>> 1276af273a6a01cefe075d3fa5b4e9f6f273a926
             if ((path != NULL_PTR(StreamString*)) && (ids != NULL_PTR(uint32*))) {
                 for (uint32 j = 0u; j < pathSize; j++) {
                     ids[j] = GetReferenceType(bReq, const_cast<char8*>(path[j].Buffer()), tempNamespaceIndex, tempNumericNodeId, tempStringNodeId);
