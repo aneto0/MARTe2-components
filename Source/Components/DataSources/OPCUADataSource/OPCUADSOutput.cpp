@@ -49,11 +49,17 @@ OPCUADSOutput::OPCUADSOutput() :
     masterClient = NULL_PTR(OPCUAClientWrapper*);
     nOfSignals = 0u;
     numberOfNodes = 0u;
+    extensionObject = NULL_PTR(StreamString*);
     paths = NULL_PTR(StreamString*);
     namespaceIndexes = NULL_PTR(uint16*);
+    structuredTypeNames = NULL_PTR(StreamString*);
     tempPaths = NULL_PTR(StreamString*);
     tempNamespaceIndexes = NULL_PTR(uint16*);
     serverAddress = "";
+    entryArrayElements = NULL_PTR(uint32*);
+    entryNumberOfMembers = NULL_PTR(uint32*);
+    entryArraySize = 1u;
+    entryTypes = NULL_PTR(TypeDescriptor*);
     nDimensions = NULL_PTR(uint8*);
     nElements = NULL_PTR(uint32*);
     types = NULL_PTR(TypeDescriptor*);
@@ -73,6 +79,12 @@ OPCUADSOutput::~OPCUADSOutput() {
     if (paths != NULL_PTR(StreamString*)) {
         delete[] paths;
     }
+    if (extensionObject != NULL_PTR(StreamString*)) {
+        delete[] extensionObject;
+    }
+    if (structuredTypeNames != NULL_PTR(StreamString*)) {
+        delete[] structuredTypeNames;
+    }
     if (namespaceIndexes != NULL_PTR(uint16*)) {
         delete[] namespaceIndexes;
     }
@@ -84,6 +96,15 @@ OPCUADSOutput::~OPCUADSOutput() {
     }
     if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
         delete masterClient;
+    }
+    if (entryArrayElements != NULL_PTR(uint32*)) {
+        delete[] entryArrayElements;
+    }
+    if (entryNumberOfMembers != NULL_PTR(uint32*)) {
+        delete[] entryNumberOfMembers;
+    }
+    if (entryTypes != NULL_PTR(TypeDescriptor*)) {
+        delete[] entryTypes;
     }
 }
 
@@ -109,8 +130,12 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
             nOfSignals = (signalsDatabase.GetNumberOfChildren() - 1u);
             tempPaths = new StreamString[nOfSignals];
             tempNamespaceIndexes = new uint16[nOfSignals];
+            extensionObject = new StreamString[nOfSignals];
+            structuredTypeNames = new StreamString[nOfSignals];
             for (uint32 i = 0u; (i < nOfSignals) && (ok); i++) {
-                ok = signalsDatabase.MoveRelative(signalsDatabase.GetChildName(i));
+                if (ok) {
+                    ok = signalsDatabase.MoveRelative(signalsDatabase.GetChildName(i));
+                }
                 if (ok) {
                     ok = signalsDatabase.Read("Path", tempPaths[i]);
                     if (!ok) {
@@ -123,6 +148,24 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
                     if (!ok) {
                         uint32 k = i;
                         REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the NamespaceIndex attribute from signal %d", k);
+                    }
+                }
+                if (ok) {
+                    ok = signalsDatabase.Read("ExtensionObject", extensionObject[i]);
+                    if (ok && (extensionObject[i] == "yes")) {
+                        ok = signalsDatabase.Read("Type", structuredTypeNames[i]);
+                        if (!ok) {
+                            uint32 k = i;
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Type attribute from signal %d", k);
+                        }
+                        entryArrayElements = new uint32[entryArraySize];
+                        entryNumberOfMembers = new uint32[entryArraySize];
+                        entryTypes = new TypeDescriptor[entryArraySize];
+                        REPORT_ERROR(ErrorManagement::Information, "Reading Structure with OPC UA Complex DataType Extension");
+                    }
+                    else {
+                        extensionObject[i] = "no";
+                        ok = true;
                     }
                 }
                 if (ok) {
@@ -141,7 +184,6 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Error during Initialise!");
     }
     return ok;
-
 }
 
 bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
@@ -169,103 +211,101 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
 
-    if (ok) {
-        paths = new StreamString[numberOfNodes];
-        namespaceIndexes = new uint16[numberOfNodes];
-        StreamString sigName;
-        StreamString pathToken;
-        StreamString sigToken;
-        char8 ignore;
-        for (uint32 i = 0u; i < numberOfNodes; i++) {
-            sigName = "";
-            ok = GetSignalName(i, sigName);
-
-            /* Patch for ExtensionObject
-             * Substituting square brackets with dots */
-            if (ok) {
-                char8 *leftBracketPointer = NULL_PTR(char8*);
-                const char8 *dot = ".";
-                do {
-                    const char8 *leftBracket = "[";
-                    leftBracketPointer = const_cast<char8*>(StringHelper::SearchChar(sigName.Buffer(), leftBracket[0]));
-                    if (leftBracketPointer != NULL) {
-                        StringHelper::CopyN(leftBracketPointer, dot, 1u);
-                    }
-                }
-                while (leftBracketPointer != NULL);
-
-                ok = sigName.Seek(0LLU);
+    for (uint32 j = 0u; j < nOfSignals; j++) {
+        if (ok) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[j].Buffer());
+            if (cri != NULL_PTR(const ClassRegistryItem*)) {
                 if (ok) {
-                    char8 *rightBracketPointer = NULL_PTR(char8*);
-                    do {
-                        const char8 *rightBracket = "]";
-                        rightBracketPointer = const_cast<char8*>(StringHelper::SearchChar(sigName.Buffer(), rightBracket[0]));
-                        if (rightBracketPointer != NULL) {
-                            StringHelper::CopyN(rightBracketPointer, dot, 1u);
+                    const Introspection *intro = cri->GetIntrospection();
+                    ok = (intro != NULL_PTR(const Introspection*));
+                    if (ok) {
+                        REPORT_ERROR(ErrorManagement::Information, "Loading Structure Information...");
+                        ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, entryArraySize);
+                        if (ok) {
+                            REPORT_ERROR(ErrorManagement::Information, "Structured DataType successfully loaded!");
                         }
                     }
-                    while (rightBracketPointer != NULL);
                 }
             }
+        }
+        if (ok) {
+            ok = data.MoveToAncestor(1u);
+        }
+    }
+    if (ok) {
+        ok = data.MoveToAncestor(1u);
+    }
 
-            /* Getting the first name from the signal path */
-            if (ok) {
-                ok = sigName.Seek(0LLU);
-            }
-            if (ok) {
-                ok = sigName.GetToken(sigToken, ".", ignore);
-            }
-            if (ok) {
-                for (uint32 j = 0u; j < nOfSignals; j++) {
-                    StreamString lastToken;
-                    sigToken = "";
-                    ok = tempPaths[j].Seek(0LLU);
-                    if (ok) {
-                        do {
-                            ok = tempPaths[j].GetToken(lastToken, ".", ignore);
-                            if (ok) {
-                                sigToken = lastToken;
-                            }
-                            lastToken = "";
-                        }
-                        while (ok);
-                    }
-                    if (tempPaths != NULL_PTR(StreamString*)) {
-                        /* This cycle will save the last token found */
+    /* If ExtensionObject parameter is equal to "no", then we need to setup paths for each signal */
+    if (extensionObject[0u] == "no") {
+        if (ok) {
+            paths = new StreamString[numberOfNodes];
+            namespaceIndexes = new uint16[numberOfNodes];
+            StreamString sigName;
+            StreamString pathToken;
+            StreamString sigToken;
+            char8 ignore;
+            for (uint32 i = 0u; i < numberOfNodes; i++) {
+                sigName = "";
+                ok = GetSignalName(i, sigName);
+                /* Getting the first name from the signal path */
+                if (ok) {
+                    ok = sigName.Seek(0LLU);
+                }
+                if (ok) {
+                    ok = sigName.GetToken(sigToken, ".", ignore);
+                }
+                if (ok) {
+                    for (uint32 j = 0u; j < nOfSignals; j++) {
+                        StreamString lastToken;
+                        sigToken = "";
                         ok = tempPaths[j].Seek(0LLU);
                         if (ok) {
                             do {
-                                pathToken = "";
-
-                                ok = tempPaths[j].GetToken(pathToken, ".", ignore);
-                                if ((paths != NULL_PTR(StreamString*)) && ok) {
-                                    if ((namespaceIndexes != NULL_PTR(uint16*)) && (tempNamespaceIndexes != NULL_PTR(uint16*))) {
-                                        if (pathToken == sigToken) {
-                                            paths[i] = tempPaths[j];
-                                            namespaceIndexes[i] = tempNamespaceIndexes[j];
-                                            ok = false; /* Exit from the cycle */
-                                        }
-                                    }
+                                ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                                if (ok) {
+                                    sigToken = lastToken;
                                 }
+                                lastToken = "";
                             }
                             while (ok);
                         }
+                        if (tempPaths != NULL_PTR(StreamString*)) {
+                            /* This cycle will save the last token found */
+                            ok = tempPaths[j].Seek(0LLU);
+                            if (ok) {
+                                do {
+                                    pathToken = "";
+                                    ok = tempPaths[j].GetToken(pathToken, ".", ignore);
+                                    if ((paths != NULL_PTR(StreamString*)) && ok) {
+                                        if ((namespaceIndexes != NULL_PTR(uint16*)) && (tempNamespaceIndexes != NULL_PTR(uint16*))) {
+                                            if (pathToken == sigToken) {
+                                                paths[i] = tempPaths[j];
+                                                namespaceIndexes[i] = tempNamespaceIndexes[j];
+                                                ok = false; /* Exit from the cycle */
+                                            }
+                                        }
+                                    }
+                                }
+                                while (ok);
+                            }
+                        }
                     }
                 }
-            }
 
-            /* Then we add to the path the remaining node names */
-            StreamString dotToken = ".";
-            do {
-                sigToken = "";
-                ok = sigName.GetToken(sigToken, ".", ignore);
-                if ((paths != NULL_PTR(StreamString*)) && ok) {
-                    paths[i] += dotToken;
-                    paths[i] += sigToken;
+                /* Then we add to the path the remaining node names */
+                StreamString dotToken = ".";
+                do {
+                    sigToken = "";
+                    ok = sigName.GetToken(sigToken, ".", ignore);
+                    if ((paths != NULL_PTR(StreamString*)) && ok) {
+                        paths[i] += dotToken;
+                        paths[i] += sigToken;
+                    }
                 }
+                while (ok);
+                ok = true;
             }
-            while (ok);
-            ok = true;
         }
     }
     if (ok) {
@@ -277,13 +317,19 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
         if (ok) {
             REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
         }
-        if (numberOfNodes > 1) {
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Going to  SetTargetNodes: %d Signals", numberOfNodes);
+        if (extensionObject[0u] == "no") {
+            if (numberOfNodes > 1) {
+                REPORT_ERROR_STATIC(ErrorManagement::Information, "Going to  SetTargetNodes: %d Signals", numberOfNodes);
+            }
+            else {
+                REPORT_ERROR_STATIC(ErrorManagement::Information, "Going to  SetTargetNodes: %d Signal", numberOfNodes);
+            }
+            ok = masterClient->SetTargetNodes(namespaceIndexes, paths, numberOfNodes);
         }
         else {
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Going to  SetTargetNodes: %d Signal", numberOfNodes);
+            ok = masterClient->SetTargetNodes(tempNamespaceIndexes, tempPaths, nOfSignals);
         }
-        ok = masterClient->SetTargetNodes(namespaceIndexes, paths, numberOfNodes);
+        masterClient->SetValueMemories(numberOfNodes);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find one or more signals in the Server.");
         }
@@ -317,6 +363,9 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
             }
 #endif
             ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx], nDimensions[signalIdx]);
+            if(ok && (extensionObject[0u] == "no")) {
+                masterClient->SetWriteRequest(signalIdx, nDimensions[signalIdx], nElements[signalIdx], types[signalIdx]);
+            }
         }
         if (ok) {
             ok = (signalAddress != NULL_PTR(void*));
@@ -349,7 +398,12 @@ bool OPCUADSOutput::PrepareNextState(const char8 *const currentStateName,
 bool OPCUADSOutput::Synchronise() {
     bool ok = true;
     if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
-        ok = masterClient->Write(numberOfNodes);
+        if(extensionObject[0u] == "yes") {
+            ok = masterClient->Write(numberOfNodes, 1u, entryArrayElements, entryTypes, entryNumberOfMembers, entryArraySize);
+        }
+        else {
+            ok = masterClient->Write(numberOfNodes, 0u);
+        }
     }
     return ok;
 }
@@ -361,6 +415,75 @@ const char8* OPCUADSOutput::GetServerAddress() {
 OPCUAClientWrapper* OPCUADSOutput::GetClient() {
     return masterClient;
 }
+
+bool OPCUADSOutput::GetStructure(const Introspection *intro,
+                                uint32 *&entryArrayElements,
+                                TypeDescriptor *&entryTypes,
+                                uint32 *&entryNumberOfMembers,
+                                uint32 &arraySize) {
+    bool ok = true;
+    uint32 numberOfMembers = intro->GetNumberOfMembers();
+
+    uint32 j;
+    for (j = 0u; j < numberOfMembers; j++) {
+        const IntrospectionEntry entry = intro->operator[](j);
+
+        /* Updating entryArrayElements */
+        uint32 *tempArray = new uint32[arraySize + 1u];
+        for (uint32 k = 0u; k < arraySize; k++) {
+            tempArray[k] = entryArrayElements[k];
+        }
+        tempArray[arraySize] = entry.GetNumberOfElements(0u);
+        delete[] entryArrayElements;
+        entryArrayElements = tempArray;
+
+        /* Updating entryTypes */
+        TypeDescriptor *tempTypes = new TypeDescriptor[arraySize + 1u];
+        for (uint32 k = 0u; k < arraySize; k++) {
+            tempTypes[k] = entryTypes[k];
+        }
+        tempTypes[arraySize] = entry.GetMemberTypeDescriptor();
+        delete[] entryTypes;
+        entryTypes = tempTypes;
+
+        const char8 *const memberTypeName = entry.GetMemberTypeName();
+
+        uint32 nMembers = 1u;
+
+        bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
+        if (isStructured) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
+            ok = (cri != NULL_PTR(const ClassRegistryItem*));
+            nMembers = cri->GetIntrospection()->GetNumberOfMembers();
+            /* Updating entryNumberOfMembers */
+            uint32 *tempMembers = new uint32[arraySize + 1u];
+            for (uint32 k = 0u; k < arraySize; k++) {
+                tempMembers[k] = entryNumberOfMembers[k];
+            }
+            tempMembers[arraySize] = nMembers;
+            arraySize = arraySize + 1u;
+            delete[] entryNumberOfMembers;
+            entryNumberOfMembers = tempMembers;
+
+            if (ok) {
+                ok = GetStructure(cri->GetIntrospection(), entryArrayElements, entryTypes, entryNumberOfMembers, arraySize);
+            }
+        }
+        else {
+            /* Updating entryNumberOfMembers */
+            uint32 *tempMembers = new uint32[arraySize + 1u];
+            for (uint32 k = 0u; k < arraySize; k++) {
+                tempMembers[k] = entryNumberOfMembers[k];
+            }
+            tempMembers[arraySize] = nMembers;
+            arraySize = arraySize + 1u;
+            delete[] entryNumberOfMembers;
+            entryNumberOfMembers = tempMembers;
+        }
+    }
+    return ok;
+}
+
 
 CLASS_REGISTER(OPCUADSOutput, "1.0")
 

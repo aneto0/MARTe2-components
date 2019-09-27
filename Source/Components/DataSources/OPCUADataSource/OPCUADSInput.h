@@ -39,7 +39,6 @@
 #include "MultiThreadService.h"
 #include "OPCUAClientWrapper.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -82,6 +81,7 @@ namespace MARTe {
  *             Type = MyStructure
  *             NamespaceIndex = 3
  *             Path = Object3.Block1.Block2.NodeStructure1
+ *             ExtensionObject = "yes"
  *         }
  *     }
  * }
@@ -96,7 +96,7 @@ public:
     /**
      * @brief Default constructor. NOOP
      */
-OPCUADSInput    ();
+    OPCUADSInput();
 
     /**
      * @brief Default destructor.
@@ -107,7 +107,7 @@ OPCUADSInput    ();
      * @brief Loads and verifies all the configuration parameters detailed in the class description.
      * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
      */
-    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief Gets the actual number of nodes and sets the correct browse path for each signal. Starts the client if Thread Service is enabled.
@@ -115,7 +115,7 @@ OPCUADSInput    ();
      * adding all the child nodes if the signal is an Introspection Structure.
      * @return true if all the paths were successfully constructed and the thread service is running.
      */
-    virtual bool SetConfiguredDatabase(StructuredDataI & data);
+    virtual bool SetConfiguredDatabase(StructuredDataI &data);
 
     /**
      * @see DataSourceI::AllocateMemory
@@ -130,23 +130,23 @@ OPCUADSInput    ();
      * @pre SetConfiguredDatabase
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress);
 
     /**
      * @see DataSourceI::GetBrokerName
      * @details Only InputSignals are supported.
      * @return MemoryMapInputBroker if Synchronise option is set to "no", otherwise it returns MemoryMapSynchronisedInputBroker.
      */
-    virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+    virtual const char8* GetBrokerName(StructuredDataI &data,
+                                       const SignalDirection direction);
 
     /**
      * @see DataSourceI::PrepareNextState
      * @return true
      */
-    virtual bool PrepareNextState(const char8 * const currentStateName,
-            const char8 * const nextStateName);
+    virtual bool PrepareNextState(const char8 *const currentStateName,
+                                  const char8 *const nextStateName);
 
     /**
      * @brief Provides the context to create the OPCUA Subscription and Monitored Item request or the Read service request.
@@ -154,7 +154,7 @@ OPCUADSInput    ();
      * OPCUA Monitored Item create data change service are successfully created and the client is running with no error, or
      * the OPCUA Read Service has been executed correctly.
      */
-    virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
+    virtual ErrorManagement::ErrorType Execute(ExecutionInfo &info);
 
     /**
      * @see DataSourceI::Synchronise
@@ -166,9 +166,14 @@ OPCUADSInput    ();
     /**
      * @brief Gets the server address
      */
-    const char8 * GetServerAddress();
+    const char8* GetServerAddress();
 
 private:
+
+    /**
+     * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
+     */
+    bool GetStructure(const Introspection *const intro, uint32 * &entryArrayElements, TypeDescriptor * &entryTypes, uint32* &entryNumberOfMembers, uint32 &arraySize);
 
     /**
      * The Thread service executor
@@ -178,12 +183,17 @@ private:
     /**
      * Pointer to the Helper Class for the main Client
      */
-    OPCUAClientWrapper * masterClient;
+    OPCUAClientWrapper *masterClient;
 
     /**
      * Holds the value of the configuration parameter ReadMode
      */
     StreamString readMode;
+
+    /**
+     * Holds the value of the configuration parameter ExtensionObject
+     */
+    StreamString * extensionObject;
 
     /**
      * Holds the value of the configuration parameter Synchronise
@@ -214,7 +224,7 @@ private:
      * The array that stores all the browse paths for each
      * node to read
      */
-    StreamString * paths;
+    StreamString *paths;
 
     /**
      * Temporary array to store paths read from configuration
@@ -225,7 +235,7 @@ private:
      * The array that stores all the namespaceIndexes for each
      * node to read
      */
-    uint16 * namespaceIndexes;
+    uint16 *namespaceIndexes;
 
     /**
      * Temporary array to store value read from configuration
@@ -235,12 +245,28 @@ private:
     /**
      * The array that stores the NumberOfElements for each node to read
      */
-    uint32 * nElements;
+    uint32 *nElements;
+
+    /**
+     * The array that stores the NumberOfElements for each IntrospectionEntry (for ExtensionObject)
+     */
+    uint32 * entryArrayElements;
+
+    TypeDescriptor *entryTypes;
+
+    uint32 * entryNumberOfMembers;
+
+    uint32 entryArraySize;
 
     /**
      * The array that stores all the data types, as TypeDescritor, for each node to read
      */
-    TypeDescriptor * types;
+    TypeDescriptor *types;
+
+    /**
+     * The array that stores the type name for structured data types (for ExtensionObject)
+     */
+    StreamString * structuredTypeNames;
 
     /**
      * CPU affinity number for the executor thread
@@ -251,6 +277,8 @@ private:
      * The stack size
      */
     uint32 stackSize;
+
+    uint32 byteStringLength;
 
 };
 

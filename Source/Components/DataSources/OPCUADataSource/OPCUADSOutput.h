@@ -158,6 +158,11 @@ OPCUADSOutput    ();
 private:
 
     /**
+     * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
+     */
+    bool GetStructure(const Introspection *const intro, uint32 * &entryArrayElements, TypeDescriptor * &entryTypes, uint32* &entryNumberOfMembers, uint32 &arraySize);
+
+    /**
      * Pointer to the Helper Class for the main Client
      */
     OPCUAClientWrapper * masterClient;
@@ -176,6 +181,11 @@ private:
      * The number of OPC UA Nodes
      */
     uint32 numberOfNodes;
+
+    /**
+     * Holds the value of the configuration parameter ExtensionObject
+     */
+    StreamString * extensionObject;
 
     /**
      * The array that stores all the browse paths for each
@@ -200,6 +210,17 @@ private:
     uint16 *tempNamespaceIndexes;
 
     /**
+     * The array that stores the NumberOfElements for each IntrospectionEntry (for ExtensionObject)
+     */
+    uint32 * entryArrayElements;
+
+    TypeDescriptor *entryTypes;
+
+    uint32 * entryNumberOfMembers;
+
+    uint32 entryArraySize;
+
+    /**
      * The array that stores the data's number of dimension for each node to write
      */
     uint8 * nDimensions;
@@ -213,6 +234,11 @@ private:
      * The array that stores all the data types, as TypeDescritor, for each node to write
      */
     TypeDescriptor * types;
+
+    /**
+     * The array that stores the type name for structured data types (for ExtensionObject)
+     */
+    StreamString * structuredTypeNames;
 
 };
 

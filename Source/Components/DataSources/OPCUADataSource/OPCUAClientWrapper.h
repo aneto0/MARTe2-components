@@ -87,7 +87,7 @@ public:
      */
     bool GetSignalMemory(void *&mem,
                          const uint32 idx,
-                         const TypeDescriptor & valueTd,
+                         const TypeDescriptor &valueTd,
                          const uint32 nElem,
                          const uint8 nDimensions);
 
@@ -103,9 +103,11 @@ public:
      * @return true if the result of the TranslateBrowsePathToNodeId service request is not empty.
      * @pre Connect
      */
-    bool SetTargetNodes(const uint16 * const namespaceIndexes,
-                        StreamString * const nodePaths,
+    bool SetTargetNodes(const uint16 *const namespaceIndexes,
+                        StreamString *const nodePaths,
                         const uint32 numberOfNodes);
+
+    void SetValueMemories(const uint32 numberOfNodes);
 
     /**
      * @brief Creates the OPCUA Subscription and Monitored Item request. Runs the Client iteration service.
@@ -124,7 +126,12 @@ public:
      * @param[in] numberOfNodes the number of nodes to write
      * @pre SetTargetNodes, SetWriteRequest
      */
-    bool Write(const uint32 numberOfNodes);
+    bool Write(const uint32 numberOfNodes,
+               const uint32 extensionObjectFlag,
+               const uint32 *const entryArrayElements = NULL_PTR(uint32*),
+               const TypeDescriptor *const entryTypes = NULL_PTR(TypeDescriptor*),
+               const uint32 *const entryNumberOfMembers = NULL_PTR(uint32*),
+               const uint32 entryArraySize = 0u);
 
     /**
      * @brief Calls the OPCUA Read service.
@@ -136,8 +143,12 @@ public:
      * @pre SetTargetNodes
      */
     bool Read(const uint32 numberOfNodes,
-              const TypeDescriptor * const types,
-              const uint32 * const nElements);
+              const TypeDescriptor *const types,
+              const uint32 *const nElements,
+              const uint32 *const entryArrayElements = NULL_PTR(uint32*),
+              const TypeDescriptor *const entryTypes = NULL_PTR(TypeDescriptor*),
+              const uint32 *const entryNumberOfMembers = NULL_PTR(uint32*),
+              const uint32 entryArraySize = 0u);
 
 #if 0    /**
      * @brief Update the valueMemory with the new data.
@@ -155,26 +166,13 @@ public:
     /**
      * @brief Gets the pointer to the monitored nodes array
      */
-    UA_NodeId * GetMonitoredNodes();
+    UA_NodeId* GetMonitoredNodes();
 
     /**
      * @brief Set the operation mode.
      * @details mode could be "Read" or "Write"
      */
-    void SetOperationMode(const char8* const modeType);
-
-private:
-
-    /**
-     * @brief Gets the OPCUA Reference Type Id for each node of the path.
-     * @details This method uses the OPCUA Browse and BrowseNext services to obtain the OPCUA Reference Type
-     * of the node declared in the path.
-     */
-    uint32 GetReferenceType(const UA_BrowseRequest &bReq,
-                            const char8* const path,
-                            uint16 &namespaceIndex,
-                            uint32 &numericNodeId,
-                            char8* &stringNodeId);
+    void SetOperationMode(const char8 *const modeType);
 
     /**
      * @brief Sets the OPC UA Write request
@@ -185,6 +183,35 @@ private:
                          const uint32 nElements,
                          const TypeDescriptor &type);
 
+    bool DecodeExtensionObjectByteString(const TypeDescriptor *const&entryType,
+                                         const uint32 *const&entryArrayElement,
+                                         const uint32 *const&entryNumberOfMembers,
+                                         const uint32 entryArraySize,
+                                         uint32 &nodeCounter,
+                                         uint8 *&dataPtr,
+                                         uint32 &index);
+
+    bool EncodeExtensionObjectByteString(const TypeDescriptor *const&entryType,
+                                         const uint32 *const&entryArrayElement,
+                                         const uint32 *const&entryNumberOfMembers,
+                                         const uint32 entryArraySize,
+                                         uint32 &nodeCounter,
+                                         uint8 *&dataPtr,
+                                         uint32 &index);
+
+private:
+
+    /**
+     * @brief Gets the OPCUA Reference Type Id for each node of the path.
+     * @details This method uses the OPCUA Browse and BrowseNext services to obtain the OPCUA Reference Type
+     * of the node declared in the path.
+     */
+    uint32 GetReferenceType(const UA_BrowseRequest &bReq,
+                            const char8 *const path,
+                            uint16 &namespaceIndex,
+                            uint32 &numericNodeId,
+                            char8 *&stringNodeId);
+
     /**
      * Holds the server address
      */
@@ -193,7 +220,7 @@ private:
     /**
      * The array that stores all the pointers to the memories related to all the monitored Nodes.
      */
-    void** valueMemories;
+    void **valueMemories;
 
     /**
      * Holds the sampling time
@@ -203,17 +230,17 @@ private:
     /**
      * The array that stores all the open62541 NodeIDs of the monitored nodes.
      */
-    UA_NodeId * monitoredNodes;
+    UA_NodeId *monitoredNodes;
 
     /**
      * open62541 client configuration structure
      */
-    UA_ClientConfig config;
+    UA_ClientConfig *config;
 
     /**
      * open62541 client declaration
      */
-    UA_Client * opcuaClient;
+    UA_Client *opcuaClient;
 
     /**
      * open62541 subscription request structure
@@ -248,7 +275,7 @@ private:
     /**
      * The array that stores all the open62541 read values from nodes to read
      */
-    UA_ReadValueId * readValues;
+    UA_ReadValueId *readValues;
 
     /**
      * open62541 write request structure
@@ -258,7 +285,7 @@ private:
     /**
      * The array that stores all the open62541 write values for the nodes to write
      */
-    UA_WriteValue * writeValues;
+    UA_WriteValue *writeValues;
 
     /**
      * Holds the ClientWrapper running mode. "Read" or "Write"
@@ -268,13 +295,12 @@ private:
     /**
      * Temporary open62541 void structure for internal operations.
      */
-    UA_Variant * tempVariant;
+    UA_Variant *tempVariant;
 
     /**
      * Number of nodes to be managed
      */
     uint32 nOfNodes;
-
 
 };
 
