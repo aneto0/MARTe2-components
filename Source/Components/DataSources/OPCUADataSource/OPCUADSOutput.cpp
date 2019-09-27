@@ -211,54 +211,40 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
 
-    for (uint32 j = 0u; j < nOfSignals; j++) {
-        if (ok) {
-            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[j].Buffer());
-            if (cri != NULL_PTR(const ClassRegistryItem*)) {
-                if (ok) {
-                    const Introspection *intro = cri->GetIntrospection();
-                    ok = (intro != NULL_PTR(const Introspection*));
-                    if (ok) {
-                        REPORT_ERROR(ErrorManagement::Information, "Loading Structure Information...");
-                        ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, entryArraySize);
-                        if (ok) {
-                            REPORT_ERROR(ErrorManagement::Information, "Structured DataType successfully loaded!");
-                        }
-                    }
-                }
-            }
-        }
-        if (ok) {
-            ok = data.MoveToAncestor(1u);
-        }
-    }
     if (ok) {
-        ok = data.MoveToAncestor(1u);
-    }
-
-    /* If ExtensionObject parameter is equal to "no", then we need to setup paths for each signal */
-    if (extensionObject[0u] == "no") {
-        if (ok) {
-            paths = new StreamString[numberOfNodes];
-            namespaceIndexes = new uint16[numberOfNodes];
-            StreamString sigName;
-            StreamString pathToken;
-            StreamString sigToken;
-            char8 ignore;
-            for (uint32 i = 0u; i < numberOfNodes; i++) {
-                sigName = "";
-                ok = GetSignalName(i, sigName);
-                /* Getting the first name from the signal path */
-                if (ok) {
-                    ok = sigName.Seek(0LLU);
-                }
-                if (ok) {
-                    ok = sigName.GetToken(sigToken, ".", ignore);
-                }
-                if (ok) {
-                    for (uint32 j = 0u; j < nOfSignals; j++) {
-                        StreamString lastToken;
-                        sigToken = "";
+        paths = new StreamString[numberOfNodes];
+        namespaceIndexes = new uint16[numberOfNodes];
+        StreamString sigName;
+        StreamString pathToken;
+        StreamString sigToken;
+        char8 ignore;
+        for (uint32 i = 0u; i < numberOfNodes; i++) {
+            sigName = "";
+            /* Getting the first name from the signal path */
+            ok = GetSignalName(i, sigName);
+            if (ok) {
+                ok = sigName.Seek(0LLU);
+            }
+            if (ok) {
+                ok = sigName.GetToken(sigToken, ".", ignore);
+            }
+            if (ok) {
+                for (uint32 j = 0u; j < nOfSignals; j++) {
+                    StreamString lastToken;
+                    sigToken = "";
+                    ok = tempPaths[j].Seek(0LLU);
+                    if (ok) {
+                        do {
+                            ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                            if (ok) {
+                                sigToken = lastToken;
+                            }
+                            lastToken = "";
+                        }
+                        while (ok);
+                    }
+                    if (tempPaths != NULL_PTR(StreamString *)) {
+                        /* This cycle will save the last token found */
                         ok = tempPaths[j].Seek(0LLU);
                         if (ok) {
                             do {
