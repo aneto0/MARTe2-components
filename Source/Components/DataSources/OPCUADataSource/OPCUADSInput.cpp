@@ -300,15 +300,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
 
                 /* Getting the first name from the signal path */
                 ok = sigName.Seek(0LLU);
-<<<<<<< HEAD
-                if (ok) {
-                    ok = sigName.GetToken(sigToken, ".", ignore);
-                }
-                if (ok) {
-                    for (uint32 j = 0u; j < nOfSignals; j++) {
-                        StreamString lastToken;
-                        sigToken = "";
-=======
+
             }
             if (ok) {
                 ok = sigName.GetToken(sigToken, ".", ignore);
@@ -330,7 +322,6 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                     }
                     if (tempPaths != NULL_PTR(StreamString *)) {
                         /* This cycle will save the last token found */
->>>>>>> 1276af273a6a01cefe075d3fa5b4e9f6f273a926
                         ok = tempPaths[j].Seek(0LLU);
                         if (ok) {
                             do {
