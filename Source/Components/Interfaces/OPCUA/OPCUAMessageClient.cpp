@@ -196,7 +196,7 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
                         }
                         if (ok) {
                             bodyLength *= tempNElements[j];
-                        }Could not Initialise the loader with name Loader
+                        }
 
                         if (ok) {
                             ok = GetNumberOfNodes(intro, numberOfNodes);
