@@ -64,7 +64,8 @@ OPCUAClientWrapper::OPCUAClientWrapper() {
     nOfNodes = 0u;
     UA_ReadRequest_init(&readRequest);
     UA_WriteRequest_init(&writeRequest);
-    readResponse.responseHeader.serviceResult = 0x00U; /* UA_STATUSCODE_GOOD */
+    dataPtr = NULL_PTR(void*);
+    tempDataPtr = NULL_PTR(uint8*);
 }
 
 /*lint -e{1551} No exception thrown.*/
@@ -96,9 +97,7 @@ OPCUAClientWrapper::~OPCUAClientWrapper() {
             }
         }
         if (ok) {
-            if (ok) {
-                REPORT_ERROR_STATIC(ErrorManagement::Information, "Value memories have been freed successfully.");
-            }
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Value memories have been freed successfully.");
         }
         delete[] valueMemories;
     }
@@ -186,7 +185,7 @@ bool OPCUAClientWrapper::SetTargetNodes(const uint16 *const namespaceIndexes,
 
             uint32 tempNumericNodeId = 85u; /* UA_NS0ID_OBJECTSFOLDER */
             uint16 tempNamespaceIndex = 0u;
-            char8* tempStringNodeId = NULL_PTR(char8*);
+            char8 *tempStringNodeId = NULL_PTR(char8*);
             if ((path != NULL_PTR(StreamString*)) && (ids != NULL_PTR(uint32*))) {
                 for (uint32 j = 0u; j < pathSize; j++) {
                     ids[j] = GetReferenceType(bReq, const_cast<char8*>(path[j].Buffer()), tempNamespaceIndex, tempNumericNodeId, tempStringNodeId);
@@ -227,8 +226,8 @@ bool OPCUAClientWrapper::SetTargetNodes(const uint16 *const namespaceIndexes,
                     }
                 }
                 //UA_TranslateBrowsePathsToNodeIdsResponse_deleteMembers(&tbpResp);
-                UA_Array_delete(browsePath.relativePath.elements, static_cast<osulong>(pathSize), &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
-                UA_BrowseDescription_delete(bReq.nodesToBrowse);
+                //UA_Array_delete(browsePath.relativePath.elements, static_cast<osulong>(pathSize), &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
+                //UA_BrowseDescription_delete(bReq.nodesToBrowse);
             }
         }
         delete[] ids;
@@ -250,6 +249,15 @@ void OPCUAClientWrapper::SetValueMemories(const uint32 numberOfNodes) {
     }
 }
 
+void OPCUAClientWrapper::SetDataPtr(const uint32 bodyLength) {
+    dataPtr = HeapManager::Malloc(bodyLength);
+    tempDataPtr = reinterpret_cast<uint8*>(dataPtr);
+}
+
+void OPCUAClientWrapper::SeekDataPtr(const uint32 bodyLength) {
+    dataPtr = reinterpret_cast<uint8*>(dataPtr) - bodyLength;
+}
+
 bool OPCUAClientWrapper::GetSignalMemory(void *&mem,
                                          const uint32 idx,
                                          const TypeDescriptor &valueTd,
@@ -260,8 +268,7 @@ bool OPCUAClientWrapper::GetSignalMemory(void *&mem,
         uint32 nOfBytes = valueTd.numberOfBits;
         nOfBytes /= 8u;
         nOfBytes *= nElem;
-        valueMemories[idx] = HeapManager::Malloc(nOfBytes);
-
+        //valueMemories[idx] = HeapManager::Malloc(nOfBytes);
         mem = valueMemories[idx];
     }
 
@@ -278,39 +285,31 @@ bool OPCUAClientWrapper::Monitor() const {
 
 bool OPCUAClientWrapper::Read(const uint32 numberOfNodes,
                               const TypeDescriptor *const types,
-                              const uint32 *const nElements,
-                              const uint32 *const entryArrayElements,
-                              const TypeDescriptor *const entryTypes,
-                              const uint32 *const entryNumberOfMembers,
-                              const uint32 entryArraySize) {
+                              const uint32 *const nElements) {
     readResponse = UA_Client_Service_read(opcuaClient, readRequest);
     bool ok = (readResponse.responseHeader.serviceResult == 0x00U); /* UA_STATUSCODE_GOOD */
     if (ok) {
         if (valueMemories != NULL_PTR(void**)) {
             if (readResponse.results[0].value.type->typeId.identifier.numeric == 22) { /* EXTENSION_OBJECT */
-                if (entryArrayElements != NULL_PTR(uint32*)) {
-                    UA_ExtensionObject *eo = UA_ExtensionObject_new();
-                    UA_ExtensionObject *valuePtr = reinterpret_cast<UA_ExtensionObject*>(readResponse.results[0].value.data);
-                    uint32 nodeCounter = 0u;
-                    uint32 index = 0u;
-                    uint8 *dataPtr = NULL_PTR(uint8*);
-                    for (uint32 j = 0u; j < readResponse.results[0].value.arrayLength; j++) {
-                        ok = (UA_ExtensionObject_copy(&valuePtr[j], eo) == 0x00U);
+                UA_ExtensionObject *eos = new UA_ExtensionObject[readResponse.results[0].value.arrayLength];
+                UA_ExtensionObject *valuePtr = reinterpret_cast<UA_ExtensionObject*>(readResponse.results[0].value.data);
+                for (uint32 j = 0u; j < readResponse.results[0].value.arrayLength; j++) {
+                    if (ok) {
+                        ok = (UA_ExtensionObject_copy(&valuePtr[j], &eos[j]) == 0x00U);
+                    }
+                }
+                if (ok) {
+                    for (uint32 i = 0u; i < readResponse.results[0].value.arrayLength; i++) {
                         if (ok) {
-                            dataPtr = reinterpret_cast<uint8*>(eo->content.encoded.body.data);
-                            index = 1u;
-                            uint32 numberOfNodesForEachIteration = (numberOfNodes / readResponse.results[0].value.arrayLength) * (j + 1);
-                            while (nodeCounter < numberOfNodesForEachIteration) {
-                                DecodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, dataPtr,
-                                                                index);
-                            }
-                            dataPtr = NULL_PTR(uint8*);
+                            ok = MemoryOperationsHelper::Copy(dataPtr, eos[i].content.encoded.body.data, eos[i].content.encoded.body.length);
+                            dataPtr = reinterpret_cast<uint8*>(dataPtr) + eos[i].content.encoded.body.length;
                         }
                     }
                 }
+                uint32 actualBodyLength = (readResponse.results[0].value.arrayLength * eos[0u].content.encoded.body.length);
+                SeekDataPtr(actualBodyLength);
             }
             else {
-
                 for (uint32 i = 0u; i < numberOfNodes; i++) {
                     if (valueMemories[i] != NULL_PTR(void*)) {
                         uint32 nOfBytes = types[i].numberOfBits;
@@ -523,12 +522,14 @@ void OPCUAClientWrapper::SetWriteRequest(const uint32 idx,
 }
 
 bool OPCUAClientWrapper::Write(const uint32 numberOfNodes,
-                               const uint32 extensionObjectFlag,
                                const uint32 *const entryArrayElements,
                                const TypeDescriptor *const entryTypes,
                                const uint32 *const entryNumberOfMembers,
                                const uint32 entryArraySize) {
-    if (extensionObjectFlag == 1u) {
+    bool ok = true;
+    uint32 testMode;
+    testMode = 0u;
+    if (entryArrayElements != NULL_PTR(uint32*)) {
         readValues = new UA_ReadValueId[1u];
         UA_ReadValueId_init(&readValues[0u]);
         readValues[0u].attributeId = 13u; /* UA_ATTRIBUTEID_VALUE */
@@ -538,18 +539,16 @@ bool OPCUAClientWrapper::Write(const uint32 numberOfNodes,
         readResponse = UA_Client_Service_read(opcuaClient, readRequest);
         UA_ExtensionObject *valuePtr = reinterpret_cast<UA_ExtensionObject*>(readResponse.results[0].value.data);
         UA_ExtensionObject *eos = new UA_ExtensionObject[readResponse.results[0].value.arrayLength];
-        uint8 *dataPtr = NULL_PTR(uint8*);
-        uint32 index = 0u;
-        uint32 nodeCounter = 0u;
         for (uint32 j = 0u; j < readResponse.results[0].value.arrayLength; j++) {
-            UA_ExtensionObject_copy(&valuePtr[j], &eos[j]);
-            dataPtr = reinterpret_cast<uint8*>(eos[j].content.encoded.body.data);
-            index = 1u;
-            uint32 numberOfNodesForEachIteration = (numberOfNodes / readResponse.results[0].value.arrayLength) * (j + 1);
-            while (nodeCounter < numberOfNodesForEachIteration) {
-                EncodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, dataPtr, index);
+            if (ok) {
+                UA_ExtensionObject_copy(&valuePtr[j], &eos[j]);
+                ok = MemoryOperationsHelper::Copy(eos[j].content.encoded.body.data, dataPtr, eos[j].content.encoded.body.length);
+                dataPtr = reinterpret_cast<uint8*>(dataPtr) + eos[j].content.encoded.body.length;
             }
         }
+        uint32 actualBodyLength = (readResponse.results[0].value.arrayLength * eos[0u].content.encoded.body.length);
+        SeekDataPtr(actualBodyLength);
+
         if (readResponse.results[0].value.arrayLength > 1u) {
             UA_Variant_setArray(&tempVariant[0u], eos, static_cast<osulong>(readResponse.results[0].value.arrayLength), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
         }
@@ -557,23 +556,82 @@ bool OPCUAClientWrapper::Write(const uint32 numberOfNodes,
             UA_Variant_setScalar(&tempVariant[0u], eos, &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
         }
 
-        if (writeValues != NULL_PTR(UA_WriteValue*)) {
-            writeValues[0u].value.value = static_cast<const UA_Variant>(tempVariant[0u]);
-            /*lint -e{1013} -e{63} -e{40} hasValue is a member of struct UA_DataValue.*/
-            writeValues[0u].value.hasValue = true;
+        if (testMode != 1u) {
+            if (writeValues != NULL_PTR(UA_WriteValue*)) {
+                writeValues[0u].value.value = static_cast<const UA_Variant>(tempVariant[0u]);
+                /*lint -e{1013} -e{63} -e{40} hasValue is a member of struct UA_DataValue.*/
+                writeValues[0u].value.hasValue = true;
+            }
+            writeRequest.nodesToWriteSize = 1u;
         }
-        writeRequest.nodesToWriteSize = 1u;
     }
     else {
         writeRequest.nodesToWriteSize = numberOfNodes;
     }
-    writeRequest.nodesToWrite = writeValues;
-    UA_WriteResponse wResp = UA_Client_Service_write(opcuaClient, writeRequest);
-    bool ok = (wResp.responseHeader.serviceResult == 0x00U); /* UA_STATUSCODE_GOOD */
-    if (!ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "WriteError - OPC UA Status Code (Part 4 - 7.34): %x", wResp.responseHeader.serviceResult);
+    if (testMode == 1u) {
+        UA_Variant *output;
+        size_t outSize = 1u;
+        UA_Variant *variantOut;
+        UA_StatusCode retval = UA_Client_call(opcuaClient, UA_NODEID_STRING(3, const_cast<char8*>("\"OPC_UA_Method_DB\"")),
+                                              UA_NODEID_STRING(3, const_cast<char8*>("\"OPC_UA_Method_DB\".Method")), 1, tempVariant, &outSize, &output);
+        ok = (retval == 0x00U); /* UA_STATUSCODE_GOOD */
+        if (ok) {
+            uint32 oSize = static_cast<uint32>(outSize);
+            variantOut = new UA_Variant[outSize];
+            for (uint32 i = 0u; i < oSize; i++) {
+                UA_Variant_init(&variantOut[i]);
+                UA_Variant_copy(&output[i], &variantOut[i]);
+            }
+        }
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "MethodCallError - OPC UA Status Code (Part 4 - 7.34): %x", retval);
+        }
     }
-    UA_WriteResponse_deleteMembers(&wResp);
+    else {
+        writeRequest.nodesToWrite = writeValues;
+        UA_WriteResponse wResp = UA_Client_Service_write(opcuaClient, writeRequest);
+        ok = (wResp.responseHeader.serviceResult == 0x00U); /* UA_STATUSCODE_GOOD */
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "WriteError - OPC UA Status Code (Part 4 - 7.34): %x", wResp.responseHeader.serviceResult);
+        }
+        UA_WriteResponse_deleteMembers(&wResp);
+    }
+    return ok;
+}
+
+bool OPCUAClientWrapper::MethodCall() {
+    bool ok = true;
+    readValues = new UA_ReadValueId[1u];
+    UA_ReadValueId_init(&readValues[0u]);
+    readValues[0u].attributeId = 13u; /* UA_ATTRIBUTEID_VALUE */
+    readValues[0u].nodeId = monitoredNodes[0u];
+    readRequest.nodesToRead = readValues;
+    readRequest.nodesToReadSize = 1u;
+    readResponse = UA_Client_Service_read(opcuaClient, readRequest);
+    UA_ExtensionObject *valuePtr = reinterpret_cast<UA_ExtensionObject*>(readResponse.results[0].value.data);
+    UA_ExtensionObject *eos = new UA_ExtensionObject[readResponse.results[0].value.arrayLength];
+    for (uint32 j = 0u; j < readResponse.results[0].value.arrayLength; j++) {
+        if (ok) {
+            UA_ExtensionObject_copy(&valuePtr[j], &eos[j]);
+            ok = MemoryOperationsHelper::Copy(eos[j].content.encoded.body.data, dataPtr, eos[j].content.encoded.body.length);
+            dataPtr = reinterpret_cast<uint8*>(dataPtr) + eos[j].content.encoded.body.length;
+        }
+    }
+    uint32 actualBodyLength = (readResponse.results[0].value.arrayLength * eos[0u].content.encoded.body.length);
+    SeekDataPtr(actualBodyLength);
+
+    if (readResponse.results[0].value.arrayLength > 1u) {
+        UA_Variant_setArray(&tempVariant[0u], eos, static_cast<osulong>(readResponse.results[0].value.arrayLength), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
+    }
+    else {
+        UA_Variant_setScalar(&tempVariant[0u], eos, &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
+    }
+    UA_Variant *output;
+    size_t outSize = 1u;
+    //UA_Variant *variantOut;
+    UA_StatusCode retval = UA_Client_call(opcuaClient, UA_NODEID_STRING(3, const_cast<char8*>("\"OPC_UA_Method_DB\"")),
+                                          UA_NODEID_STRING(3, const_cast<char8*>("\"OPC_UA_Method_DB\".Method")), 1, tempVariant, &outSize, &output);
+    ok = (retval == 0x00U); /* UA_STATUSCODE_GOOD */
     return ok;
 }
 
@@ -602,25 +660,22 @@ bool OPCUAClientWrapper::DecodeExtensionObjectByteString(const TypeDescriptor *c
                                                          const uint32 *const&entryNumberOfMembers,
                                                          const uint32 entryArraySize,
                                                          uint32 &nodeCounter,
-                                                         uint8 *&dataPtr,
                                                          uint32 &index) {
-    bool ok;
+    bool ok = true;
     if (!entryTypes[index].isStructuredData) {
         if (entryArrayElements[index] == 1u) {
             uint32 nOfBytes = entryTypes[index].numberOfBits;
             nOfBytes /= 8u;
-            ok = MemoryOperationsHelper::Copy(valueMemories[nodeCounter], dataPtr, nOfBytes);
-            //valueMemories[nodeCounter] = &dataPtr;
-            dataPtr += nOfBytes;
+            valueMemories[nodeCounter] = reinterpret_cast<void*>(tempDataPtr);
+            tempDataPtr = tempDataPtr + nOfBytes;
         }
         else {
-            dataPtr += 4; /* Skip 4 bytes */
+            tempDataPtr = tempDataPtr + 4; /* Skip 4 bytes */
             uint32 nOfBytes = entryTypes[index].numberOfBits;
             nOfBytes /= 8u;
             nOfBytes *= entryArrayElements[index];
-            ok = MemoryOperationsHelper::Copy(valueMemories[nodeCounter], dataPtr, nOfBytes);
-            //valueMemories[nodeCounter] = &dataPtr;
-            dataPtr += nOfBytes;
+            valueMemories[nodeCounter] = reinterpret_cast<void*>(tempDataPtr);
+            tempDataPtr = tempDataPtr + nOfBytes;
         }
         nodeCounter++;
         index++;
@@ -630,16 +685,16 @@ bool OPCUAClientWrapper::DecodeExtensionObjectByteString(const TypeDescriptor *c
         if (entryArrayElements[index] == 1u) {
             index++;
             for (uint32 j = 0u; j < entryNumberOfMembers[index - 1u]; j++) {
-                DecodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, dataPtr, index);
+                ok = DecodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, index);
             }
         }
         if (entryArrayElements[index] > 1u) {
-            dataPtr += 4u; /* Skip 4 bytes */
+            tempDataPtr = tempDataPtr + 4; /* Skip 4 bytes */
             uint32 nMembers = entryNumberOfMembers[index];
             for (uint32 i = 0u; i < entryArrayElements[index]; i++) {
                 newIndex = index + 1u;
                 for (uint32 j = 0u; j < entryNumberOfMembers[index]; j++) {
-                    DecodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, dataPtr, newIndex);
+                    ok = DecodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, newIndex);
                 }
             }
             index += (nMembers + 1u);
@@ -653,25 +708,24 @@ bool OPCUAClientWrapper::EncodeExtensionObjectByteString(const TypeDescriptor *c
                                                          const uint32 *const&entryNumberOfMembers,
                                                          const uint32 entryArraySize,
                                                          uint32 &nodeCounter,
-                                                         uint8 *&dataPtr,
                                                          uint32 &index) {
-    bool ok;
+    bool ok = true;
     if (!entryTypes[index].isStructuredData) {
         if (entryArrayElements[index] == 1u) {
             uint32 nOfBytes = entryTypes[index].numberOfBits;
             nOfBytes /= 8u;
-            ok = MemoryOperationsHelper::Copy(dataPtr, valueMemories[nodeCounter], nOfBytes);
-            dataPtr += nOfBytes;
+            valueMemories[nodeCounter] = reinterpret_cast<void*>(tempDataPtr);
+            tempDataPtr = tempDataPtr + nOfBytes;
         }
         else {
-            ok = MemoryOperationsHelper::Copy(dataPtr, &entryArrayElements[index], sizeof(int32));
+            ok = MemoryOperationsHelper::Copy(tempDataPtr, &entryArrayElements[index], sizeof(int32));
             if (ok) {
-                dataPtr += 4; /* Skip 4 bytes */
+                tempDataPtr = tempDataPtr + 4; /* Skip 4 bytes */
                 uint32 nOfBytes = entryTypes[index].numberOfBits;
                 nOfBytes /= 8u;
                 nOfBytes *= entryArrayElements[index];
-                ok = MemoryOperationsHelper::Copy(dataPtr, valueMemories[nodeCounter], nOfBytes);
-                dataPtr += nOfBytes;
+                valueMemories[nodeCounter] = reinterpret_cast<void*>(tempDataPtr);
+                tempDataPtr = tempDataPtr + nOfBytes;
             }
         }
         if (ok) {
@@ -684,18 +738,18 @@ bool OPCUAClientWrapper::EncodeExtensionObjectByteString(const TypeDescriptor *c
         if (entryArrayElements[index] == 1u) {
             index++;
             for (uint32 j = 0u; j < entryNumberOfMembers[index - 1u]; j++) {
-                EncodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, dataPtr, index);
+                EncodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, index);
             }
         }
         if (entryArrayElements[index] > 1u) {
-            ok = MemoryOperationsHelper::Copy(dataPtr, &entryArrayElements[index], sizeof(int32));
+            ok = MemoryOperationsHelper::Copy(tempDataPtr, &entryArrayElements[index], sizeof(int32));
             if (ok) {
-                dataPtr += 4u; /* Skip 4 bytes */
+                tempDataPtr = tempDataPtr + 4; /* Skip 4 bytes */
                 uint32 nMembers = entryNumberOfMembers[index];
                 for (uint32 i = 0u; i < entryArrayElements[index]; i++) {
                     newIndex = index + 1u;
                     for (uint32 j = 0u; j < entryNumberOfMembers[index]; j++) {
-                        EncodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, dataPtr, newIndex);
+                        EncodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, newIndex);
                     }
                 }
                 index += (nMembers + 1u);

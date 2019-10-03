@@ -36,7 +36,6 @@
 #include "MemoryMapAsyncOutputBroker.h"
 #include "OPCUAClientWrapper.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -80,13 +79,12 @@ namespace MARTe {
  */
 class OPCUADSOutput: public DataSourceI {
 
-public:
-    CLASS_REGISTER_DECLARATION()
+public:CLASS_REGISTER_DECLARATION()
 
-/**
- * @brief Default Constructor
- */
-OPCUADSOutput    ();
+    /**
+     * @brief Default Constructor
+     */
+    OPCUADSOutput();
 
     /**
      * @brief Default Destructor
@@ -97,7 +95,7 @@ OPCUADSOutput    ();
      * @brief Loads and verifies all the configuration parameters detailed in the class description.
      * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
      */
-    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief Gets the actual number of nodes and sets the correct browse path for each signal.
@@ -105,7 +103,7 @@ OPCUADSOutput    ();
      * adding all the child nodes if the signal is an Introspection Structure.
      * @return true if all the paths were successfully constructed.
      */
-    virtual bool SetConfiguredDatabase(StructuredDataI & data);
+    virtual bool SetConfiguredDatabase(StructuredDataI &data);
 
     /**
      * @see DataSourceI::AllocateMemory
@@ -120,23 +118,23 @@ OPCUADSOutput    ();
      * @pre SetConfiguredDatabase
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress);
 
     /**
      * @see DataSourceI::GetBrokerName
      * @details Only OutputSignals are supported.
      * @return MemoryMapSynchronisedOutputBroker
      */
-    virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+    virtual const char8* GetBrokerName(StructuredDataI &data,
+                                       const SignalDirection direction);
 
     /**
      * @see DataSourceI::PrepareNextState
      * @return true
      */
-    virtual bool PrepareNextState(const char8 * const currentStateName,
-            const char8 * const nextStateName);
+    virtual bool PrepareNextState(const char8 *const currentStateName,
+                                  const char8 *const nextStateName);
 
     /**
      * @see DataSourceI::Synchronise
@@ -148,24 +146,34 @@ OPCUADSOutput    ();
     /**
      * @brief Gets the server address
      */
-    const char8 * GetServerAddress();
+    const char8* GetServerAddress();
 
     /**
      * @brief Gets the OPCUA Client pointer
      */
-    OPCUAClientWrapper * GetClient();
+    OPCUAClientWrapper* GetClient();
 
 private:
+
+    bool GetBodyLength(const Introspection *const intro,
+                       uint32 &bodyLength);
+
+    void GetStructureDimensions(const Introspection *const intro,
+                                uint32 &arraySize);
 
     /**
      * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
      */
-    bool GetStructure(const Introspection *const intro, uint32 * &entryArrayElements, TypeDescriptor * &entryTypes, uint32* &entryNumberOfMembers, uint32 &arraySize);
+    bool GetStructure(const Introspection *const intro,
+                      uint32 *&entryArrayElements,
+                      TypeDescriptor *&entryTypes,
+                      uint32 *&entryNumberOfMembers,
+                      uint32 &index);
 
     /**
      * Pointer to the Helper Class for the main Client
      */
-    OPCUAClientWrapper * masterClient;
+    OPCUAClientWrapper *masterClient;
 
     /**
      * Holds the value of the configuration parameter Address
@@ -185,13 +193,13 @@ private:
     /**
      * Holds the value of the configuration parameter ExtensionObject
      */
-    StreamString * extensionObject;
+    StreamString *extensionObject;
 
     /**
      * The array that stores all the browse paths for each
      * node to write.
      */
-    StreamString * paths;
+    StreamString *paths;
 
     /**
      * Temporary array to store paths read from configuration
@@ -202,43 +210,45 @@ private:
      * The array that stores all the namespaceIndexes for each
      * node to write
      */
-    uint16 * namespaceIndexes;
+    uint16 *namespaceIndexes;
 
     /**
      * Temporary array to store value read from configuration
      */
     uint16 *tempNamespaceIndexes;
 
+    uint32 *tempNElements;
+
     /**
      * The array that stores the NumberOfElements for each IntrospectionEntry (for ExtensionObject)
      */
-    uint32 * entryArrayElements;
+    uint32 *entryArrayElements;
 
     TypeDescriptor *entryTypes;
 
-    uint32 * entryNumberOfMembers;
+    uint32 *entryNumberOfMembers;
 
     uint32 entryArraySize;
 
     /**
      * The array that stores the data's number of dimension for each node to write
      */
-    uint8 * nDimensions;
+    uint8 *nDimensions;
 
     /**
      * The array that stores the number of elements for each node to write
      */
-    uint32 * nElements;
+    uint32 *nElements;
 
     /**
      * The array that stores all the data types, as TypeDescritor, for each node to write
      */
-    TypeDescriptor * types;
+    TypeDescriptor *types;
 
     /**
      * The array that stores the type name for structured data types (for ExtensionObject)
      */
-    StreamString * structuredTypeNames;
+    StreamString *structuredTypeNames;
 
 };
 

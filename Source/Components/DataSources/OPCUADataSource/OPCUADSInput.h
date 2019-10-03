@@ -170,10 +170,20 @@ public:
 
 private:
 
+    bool GetBodyLength(const Introspection *const intro,
+                       uint32 &bodyLength);
+
+    void GetStructureDimensions(const Introspection *const intro,
+                                uint32 &arraySize);
+
     /**
      * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
      */
-    bool GetStructure(const Introspection *const intro, uint32 * &entryArrayElements, TypeDescriptor * &entryTypes, uint32* &entryNumberOfMembers, uint32 &arraySize);
+    bool GetStructure(const Introspection *const intro,
+                      uint32 *&entryArrayElements,
+                      TypeDescriptor *&entryTypes,
+                      uint32 *&entryNumberOfMembers,
+                      uint32 &index);
 
     /**
      * The Thread service executor
@@ -193,7 +203,7 @@ private:
     /**
      * Holds the value of the configuration parameter ExtensionObject
      */
-    StreamString * extensionObject;
+    StreamString *extensionObject;
 
     /**
      * Holds the value of the configuration parameter Synchronise
@@ -242,6 +252,8 @@ private:
      */
     uint16 *tempNamespaceIndexes;
 
+    uint32 *tempNElements;
+
     /**
      * The array that stores the NumberOfElements for each node to read
      */
@@ -250,11 +262,11 @@ private:
     /**
      * The array that stores the NumberOfElements for each IntrospectionEntry (for ExtensionObject)
      */
-    uint32 * entryArrayElements;
+    uint32 *entryArrayElements;
 
     TypeDescriptor *entryTypes;
 
-    uint32 * entryNumberOfMembers;
+    uint32 *entryNumberOfMembers;
 
     uint32 entryArraySize;
 
@@ -266,7 +278,7 @@ private:
     /**
      * The array that stores the type name for structured data types (for ExtensionObject)
      */
-    StreamString * structuredTypeNames;
+    StreamString *structuredTypeNames;
 
     /**
      * CPU affinity number for the executor thread

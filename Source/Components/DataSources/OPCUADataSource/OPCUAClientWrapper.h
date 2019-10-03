@@ -109,6 +109,8 @@ public:
 
     void SetValueMemories(const uint32 numberOfNodes);
 
+    void SetDataPtr(const uint32 bodyLength);
+
     /**
      * @brief Creates the OPCUA Subscription and Monitored Item request. Runs the Client iteration service.
      * @details This method manages the creation of Subscription and Monitored Item requests for the monitored node.
@@ -127,7 +129,6 @@ public:
      * @pre SetTargetNodes, SetWriteRequest
      */
     bool Write(const uint32 numberOfNodes,
-               const uint32 extensionObjectFlag,
                const uint32 *const entryArrayElements = NULL_PTR(uint32*),
                const TypeDescriptor *const entryTypes = NULL_PTR(TypeDescriptor*),
                const uint32 *const entryNumberOfMembers = NULL_PTR(uint32*),
@@ -144,11 +145,9 @@ public:
      */
     bool Read(const uint32 numberOfNodes,
               const TypeDescriptor *const types,
-              const uint32 *const nElements,
-              const uint32 *const entryArrayElements = NULL_PTR(uint32*),
-              const TypeDescriptor *const entryTypes = NULL_PTR(TypeDescriptor*),
-              const uint32 *const entryNumberOfMembers = NULL_PTR(uint32*),
-              const uint32 entryArraySize = 0u);
+              const uint32 *const nElements);
+
+    bool MethodCall();
 
 #if 0    /**
      * @brief Update the valueMemory with the new data.
@@ -183,12 +182,13 @@ public:
                          const uint32 nElements,
                          const TypeDescriptor &type);
 
+
+
     bool DecodeExtensionObjectByteString(const TypeDescriptor *const&entryType,
                                          const uint32 *const&entryArrayElement,
                                          const uint32 *const&entryNumberOfMembers,
                                          const uint32 entryArraySize,
                                          uint32 &nodeCounter,
-                                         uint8 *&dataPtr,
                                          uint32 &index);
 
     bool EncodeExtensionObjectByteString(const TypeDescriptor *const&entryType,
@@ -196,10 +196,11 @@ public:
                                          const uint32 *const&entryNumberOfMembers,
                                          const uint32 entryArraySize,
                                          uint32 &nodeCounter,
-                                         uint8 *&dataPtr,
                                          uint32 &index);
 
 private:
+
+    void SeekDataPtr(const uint32 bodyLength);
 
     /**
      * @brief Gets the OPCUA Reference Type Id for each node of the path.
@@ -301,6 +302,10 @@ private:
      * Number of nodes to be managed
      */
     uint32 nOfNodes;
+
+    uint8 * tempDataPtr;
+
+    void * dataPtr;
 
 };
 
