@@ -76,6 +76,8 @@ public:
      */
     bool Connect();
 
+    bool Disconnect();
+
     /**
      * @brief Links the target Node memory with the signal memory in input
      * @param[in, out] mem The signal memory buffer
@@ -103,11 +105,13 @@ public:
      * @return true if the result of the TranslateBrowsePathToNodeId service request is not empty.
      * @pre Connect
      */
-    bool SetTargetNodes(const uint16 *const namespaceIndexes,
+    bool SetServiceRequest(const uint16 *const namespaceIndexes,
                         StreamString *const nodePaths,
                         const uint32 numberOfNodes);
 
-    void SetValueMemories(const uint32 numberOfNodes);
+    bool SetMethodRequest(const uint16 methodNamespaceIndex, StreamString const methodPath);
+
+    void SetValueMemories(const uint32 nOfNodes);
 
     void SetDataPtr(const uint32 bodyLength);
 
@@ -207,7 +211,7 @@ private:
      * @details This method uses the OPCUA Browse and BrowseNext services to obtain the OPCUA Reference Type
      * of the node declared in the path.
      */
-    uint32 GetReferenceType(const UA_BrowseRequest &bReq,
+    uint32 GetReferences(const UA_BrowseRequest &bReq,
                             const char8 *const path,
                             uint16 &namespaceIndex,
                             uint32 &numericNodeId,
@@ -232,6 +236,12 @@ private:
      * The array that stores all the open62541 NodeIDs of the monitored nodes.
      */
     UA_NodeId *monitoredNodes;
+
+    UA_NodeId methodNodeId;
+
+    UA_NodeId objectMethod;
+
+    UA_ExtensionObject *eos;
 
     /**
      * open62541 client configuration structure

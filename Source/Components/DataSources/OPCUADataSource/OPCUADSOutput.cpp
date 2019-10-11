@@ -338,11 +338,11 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
         }
         if (extensionObject[0u] == "no") {
-            ok = masterClient->SetTargetNodes(namespaceIndexes, paths, numberOfNodes);
+            ok = masterClient->SetServiceRequest(namespaceIndexes, paths, numberOfNodes);
             masterClient->SetValueMemories(numberOfNodes);
         }
         else {
-            ok = masterClient->SetTargetNodes(tempNamespaceIndexes, tempPaths, nOfSignals);
+            ok = masterClient->SetServiceRequest(tempNamespaceIndexes, tempPaths, nOfSignals);
             if (ok) {
                 masterClient->SetValueMemories(numberOfNodes);
                 masterClient->SetDataPtr(bodyLength);

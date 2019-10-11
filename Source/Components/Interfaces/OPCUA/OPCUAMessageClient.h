@@ -1,8 +1,8 @@
 /**
  * @file OPCUAMessageClient.h
  * @brief Header file for class OPCUAMessageClient
- * @date Sep 27, 2019 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 27/09/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -33,11 +33,9 @@
 /*---------------------------------------------------------------------------*/
 
 #include "CLASSMETHODREGISTER.h"
-#include "ConfigurationDatabase.h"
 #include "MessageI.h"
 #include "OPCUAClientWrapper.h"
 #include "RegisteredMethodsMessageFilter.h"
-#include "SingleThreadService.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -64,17 +62,20 @@ private:
     /**
      * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
      */
-    bool GetStructure(const Introspection *const intro,
+    bool GetStructure(const Introspection *intro,
                       uint32 *&entryArrayElements,
                       TypeDescriptor *&entryTypes,
                       uint32 *&entryNumberOfMembers,
-                      uint32 &arraySize);
+                      const char8 **&entryMemberNames,
+                      uint32 &index);
 
     bool GetBodyLength(const Introspection *const intro,
                        uint32 &bodyLength);
 
     bool GetNumberOfNodes(const Introspection *const intro,
                           uint32 &nOfNodes);
+
+    bool MapStructuredData(StructuredDataI &data, AnyType** &values, uint32 &index, uint32 &nodeCounter);
 
     /**
      * Pointer to the Helper Class for the main Client
@@ -95,6 +96,8 @@ private:
 
     uint32 *entryNumberOfMembers;
 
+    const char8 **entryMemberNames;
+
     uint32 entryArraySize;
 
     /**
@@ -103,36 +106,14 @@ private:
     StreamString *tempPaths;
 
     /**
-     * The array that stores all the namespaceIndexes for each
-     * node to read
-     */
-    uint16 *namespaceIndexes;
-
-    /**
      * Temporary array to store value read from configuration
      */
     uint16 *tempNamespaceIndexes;
 
     /**
-     * The array that stores all the data types, as TypeDescritor, for each node to read
-     */
-    TypeDescriptor *types;
-
-    /**
      * The array that stores the type name for structured data types (for ExtensionObject)
      */
     StreamString *structuredTypeNames;
-
-    /**
-     * The array that stores the NumberOfElements for each node to read
-     */
-    uint32 *nElements;
-
-    /**
-     * The array that stores all the browse paths for each
-     * node to read
-     */
-    StreamString *paths;
 
     /**
      * The number of signals during initialise
@@ -150,6 +131,14 @@ private:
     StreamString *extensionObject;
 
     uint32 *tempNElements;
+
+    void **signalAddresses;
+
+    AnyType ** values;
+
+    uint16 methodNamespaceIndex;
+
+    StreamString methodPath;
 
     ReferenceT<RegisteredMethodsMessageFilter> filter;
 
