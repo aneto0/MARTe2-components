@@ -61,15 +61,14 @@ OPCUADSOutput::OPCUADSOutput() :
     entryNumberOfMembers = NULL_PTR(uint32*);
     entryArraySize = 0u;
     entryTypes = NULL_PTR(TypeDescriptor*);
-    nDimensions = NULL_PTR(uint8*);
     nElements = NULL_PTR(uint32*);
     types = NULL_PTR(TypeDescriptor*);
 }
 
 /*lint -e{1551} No exception thrown.*/
 OPCUADSOutput::~OPCUADSOutput() {
-    if (nDimensions != NULL_PTR(uint8*)) {
-        delete[] nDimensions;
+    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
+        delete masterClient;
     }
     if (nElements != NULL_PTR(uint32*)) {
         delete[] nElements;
@@ -94,9 +93,6 @@ OPCUADSOutput::~OPCUADSOutput() {
     }
     if (tempNamespaceIndexes != NULL_PTR(uint16*)) {
         delete[] tempNamespaceIndexes;
-    }
-    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
-        delete masterClient;
     }
     if (entryArrayElements != NULL_PTR(uint32*)) {
         delete[] entryArrayElements;
@@ -133,7 +129,6 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
             tempNamespaceIndexes = new uint16[nOfSignals];
             extensionObject = new StreamString[nOfSignals];
             tempNElements = new uint32[nOfSignals];
-            structuredTypeNames = new StreamString[nOfSignals];
             for (uint32 i = 0u; (i < nOfSignals) && (ok); i++) {
                 if (ok) {
                     ok = signalsDatabase.MoveRelative(signalsDatabase.GetChildName(i));
@@ -159,13 +154,11 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
                 if (ok) {
                     ok = signalsDatabase.Read("ExtensionObject", extensionObject[i]);
                     if (ok && (extensionObject[i] == "yes")) {
+                        structuredTypeNames = new StreamString[nOfSignals];
                         ok = signalsDatabase.Read("Type", structuredTypeNames[i]);
                         if (!ok) {
                             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Type attribute from signal %d", i);
                         }
-                        entryArrayElements = new uint32[entryArraySize];
-                        entryNumberOfMembers = new uint32[entryArraySize];
-                        entryTypes = new TypeDescriptor[entryArraySize];
                         REPORT_ERROR(ErrorManagement::Information, "Reading Structure with OPC UA Complex DataType Extension");
                     }
                     else {
@@ -194,17 +187,17 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
 bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     numberOfNodes = GetNumberOfSignals();
-    nDimensions = new uint8[numberOfNodes];
+    uint8 nDimensions = 0u;
     nElements = new uint32[numberOfNodes];
     types = new TypeDescriptor[numberOfNodes];
     StreamString signalName;
     for (uint32 k = 0u; k < numberOfNodes; k++) {
-        ok = GetSignalNumberOfDimensions(k, nDimensions[k]);
-        if ((nDimensions[k] > 1u) && ok) {
+        ok = GetSignalNumberOfDimensions(k, nDimensions);
+        if ((nDimensions > 1u) && ok) {
             ok = GetSignalName(k, signalName);
             if (ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Signal %s has Number Of Dimensions = %d. Multidimensional arrays not supported yet.",
-                             signalName.Buffer(), nDimensions[k]);
+                             signalName.Buffer(), nDimensions);
                 ok = false;
             }
         }
@@ -219,25 +212,27 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
 
     uint32 bodyLength = 0u;
 
-    for (uint32 k = 0u; k < nOfSignals; k++) {
-        const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[k].Buffer());
-        if (cri != NULL_PTR(const ClassRegistryItem*)) {
-            const Introspection *intro = cri->GetIntrospection();
-            ok = (intro != NULL_PTR(const Introspection*));
-            if (ok) {
-                GetStructureDimensions(intro, entryArraySize);
-
-                entryArrayElements = new uint32[entryArraySize];
-                entryNumberOfMembers = new uint32[entryArraySize];
-                entryTypes = new TypeDescriptor[entryArraySize];
-
-                uint32 index = 0u;
-                ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, index);
+    if (structuredTypeNames != NULL_PTR(StreamString*)) {
+        for (uint32 k = 0u; k < nOfSignals; k++) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[k].Buffer());
+            if (cri != NULL_PTR(const ClassRegistryItem*)) {
+                const Introspection *intro = cri->GetIntrospection();
+                ok = (intro != NULL_PTR(const Introspection*));
                 if (ok) {
-                    ok = GetBodyLength(intro, bodyLength);
-                }
-                if (ok) {
-                    bodyLength *= tempNElements[k];
+                    GetStructureDimensions(intro, entryArraySize);
+
+                    entryArrayElements = new uint32[entryArraySize];
+                    entryNumberOfMembers = new uint32[entryArraySize];
+                    entryTypes = new TypeDescriptor[entryArraySize];
+
+                    uint32 index = 0u;
+                    ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, index);
+                    if (ok) {
+                        ok = GetBodyLength(intro, bodyLength);
+                    }
+                    if (ok) {
+                        bodyLength *= tempNElements[k];
+                    }
                 }
             }
         }
@@ -334,34 +329,41 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
         masterClient->SetOperationMode("Write");
         masterClient->SetServerAddress(serverAddress);
         ok = masterClient->Connect();
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not connect to the Server.");
+        }
         if (ok) {
             REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
-        }
-        if (extensionObject[0u] == "no") {
-            ok = masterClient->SetServiceRequest(namespaceIndexes, paths, numberOfNodes);
-            masterClient->SetValueMemories(numberOfNodes);
-        }
-        else {
-            ok = masterClient->SetServiceRequest(tempNamespaceIndexes, tempPaths, nOfSignals);
-            if (ok) {
-                masterClient->SetValueMemories(numberOfNodes);
-                masterClient->SetDataPtr(bodyLength);
-                for (uint32 k = 0u; k < nOfSignals; k++) {
-                    uint32 nodeCounter = 0u;
-                    uint32 index;
-                    for (uint32 j = 0u; j < tempNElements[k]; j++) {
-                        index = 0u;
-                        uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1);
-                        while (nodeCounter < numberOfNodesForEachIteration) {
-                            masterClient->EncodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter,
-                                                                          index);
+            if (extensionObject[0u] == "no") {
+                ok = masterClient->SetServiceRequest(namespaceIndexes, paths, numberOfNodes);
+                if (ok) {
+                    masterClient->SetValueMemories();
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "SetServiceRequest Failed.");
+                }
+            }
+            else {
+                ok = masterClient->SetServiceRequest(tempNamespaceIndexes, tempPaths, nOfSignals);
+                if (ok) {
+                    masterClient->SetValueMemories();
+                    masterClient->SetDataPtr(bodyLength);
+                    for (uint32 k = 0u; k < nOfSignals; k++) {
+                        uint32 nodeCounter = 0u;
+                        uint32 index;
+                        for (uint32 j = 0u; j < tempNElements[k]; j++) {
+                            index = 0u;
+                            uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1);
+                            while (nodeCounter < numberOfNodesForEachIteration) {
+                                if (ok) {
+                                    ok = masterClient->EncodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize,
+                                                                                       nodeCounter, index);
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find one or more signals in the Server.");
         }
     }
     if (!ok) {
@@ -380,28 +382,25 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
                                           void *&signalAddress) {
     StreamString opcDisplayName;
     bool ok = GetSignalName(signalIdx, opcDisplayName);
-    if ((types != NULL_PTR(TypeDescriptor*)) && (nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientWrapper*))
-            && (nDimensions != NULL_PTR(uint8*))) {
-        if (ok) {
-#if 0
+    if (ok) {
+        if (types != NULL_PTR(TypeDescriptor*)) {
+            /*lint -e{9007}  [MISRA C++ Rule 5-14-1] Justification: No side effects.*/
             if ((types[signalIdx].type == CArray) || (types[signalIdx].type == BT_CCString) || (types[signalIdx].type == PCString)
                     || (types[signalIdx].type == SString)) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "String are not supported yet.");
-                ok = false;
+                REPORT_ERROR(ErrorManagement::ParametersError, "Type String is not supported yet.");
             }
-#endif
-            ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx], nDimensions[signalIdx]);
+            ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx], 0u);
             if (ok && (extensionObject[0u] == "no")) {
-                masterClient->SetWriteRequest(signalIdx, nDimensions[signalIdx], nElements[signalIdx], types[signalIdx]);
+                masterClient->SetWriteRequest(signalIdx, 0u, nElements[signalIdx], types[signalIdx]);
             }
-        }
-        if (ok) {
-            ok = (signalAddress != NULL_PTR(void*));
-        }
-        if (ok) {
-            types[signalIdx] = TypeDescriptor();
-            nElements[signalIdx] = 0u;
-            nDimensions[signalIdx] = 0u;
+            else {
+                if (ok) {
+                    ok = masterClient->GetExtensionObject();
+                }
+            }
+            if (ok) {
+                ok = (signalAddress != NULL_PTR(void*));
+            }
         }
     }
     return ok;
@@ -427,10 +426,10 @@ bool OPCUADSOutput::Synchronise() {
     bool ok = true;
     if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
         if (extensionObject[0u] == "yes") {
-            ok = masterClient->Write(numberOfNodes, entryArrayElements, entryTypes, entryNumberOfMembers, entryArraySize);
+            ok = masterClient->Write();
         }
         else {
-            ok = masterClient->Write(numberOfNodes);
+            ok = masterClient->Write();
         }
     }
     return ok;

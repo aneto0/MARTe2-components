@@ -70,12 +70,14 @@ OPCUADSInput::OPCUADSInput() :
     entryTypes = NULL_PTR(TypeDescriptor*);
     cpuMask = 0xffu;
     stackSize = THREADS_DEFAULT_STACKSIZE;
-    byteStringLength = 0u;
 }
 
 /*lint -e{1551} must stop the SingleThreadService in the destructor.*/
 OPCUADSInput::~OPCUADSInput() {
     (void) executor.Stop();
+    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
+        delete masterClient;
+    }
     if (nElements != NULL_PTR(uint32*)) {
         delete[] nElements;
     }
@@ -102,9 +104,6 @@ OPCUADSInput::~OPCUADSInput() {
     }
     if (tempNamespaceIndexes != NULL_PTR(uint16*)) {
         delete[] tempNamespaceIndexes;
-    }
-    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
-        delete masterClient;
     }
     if (entryArrayElements != NULL_PTR(uint32*)) {
         delete[] entryArrayElements;
@@ -182,7 +181,6 @@ bool OPCUADSInput::Initialise(StructuredDataI &data) {
             tempNamespaceIndexes = new uint16[nOfSignals];
             extensionObject = new StreamString[nOfSignals];
             tempNElements = new uint32[nOfSignals];
-            structuredTypeNames = new StreamString[nOfSignals];
             for (uint32 i = 0u; (i < nOfSignals) && (ok); i++) {
                 if (ok) {
                     ok = signalsDatabase.MoveRelative(signalsDatabase.GetChildName(i));
@@ -208,6 +206,7 @@ bool OPCUADSInput::Initialise(StructuredDataI &data) {
                 if (ok) {
                     ok = signalsDatabase.Read("ExtensionObject", extensionObject[i]);
                     if (ok && (extensionObject[i] == "yes")) {
+                        structuredTypeNames = new StreamString[nOfSignals];
                         ok = signalsDatabase.Read("Type", structuredTypeNames[i]);
                         if (!ok) {
                             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Type attribute from signal %d", i);
@@ -265,26 +264,27 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
     }
 
     uint32 bodyLength = 0u;
-
-    for (uint32 k = 0u; k < nOfSignals; k++) {
-        const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[k].Buffer());
-        if (cri != NULL_PTR(const ClassRegistryItem*)) {
-            const Introspection *intro = cri->GetIntrospection();
-            ok = (intro != NULL_PTR(const Introspection*));
-            if (ok) {
-                GetStructureDimensions(intro, entryArraySize);
-
-                entryArrayElements = new uint32[entryArraySize];
-                entryNumberOfMembers = new uint32[entryArraySize];
-                entryTypes = new TypeDescriptor[entryArraySize];
-
-                uint32 index = 0u;
-                ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, index);
+    if (structuredTypeNames != NULL_PTR(StreamString*)) {
+        for (uint32 k = 0u; k < nOfSignals; k++) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[k].Buffer());
+            if (cri != NULL_PTR(const ClassRegistryItem*)) {
+                const Introspection *intro = cri->GetIntrospection();
+                ok = (intro != NULL_PTR(const Introspection*));
                 if (ok) {
-                    ok = GetBodyLength(intro, bodyLength);
-                }
-                if (ok) {
-                    bodyLength *= tempNElements[k];
+                    GetStructureDimensions(intro, entryArraySize);
+
+                    entryArrayElements = new uint32[entryArraySize];
+                    entryNumberOfMembers = new uint32[entryArraySize];
+                    entryTypes = new TypeDescriptor[entryArraySize];
+
+                    uint32 index = 0u;
+                    ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, index);
+                    if (ok) {
+                        ok = GetBodyLength(intro, bodyLength);
+                    }
+                    if (ok) {
+                        bodyLength *= tempNElements[k];
+                    }
                 }
             }
         }
@@ -381,34 +381,41 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
         masterClient->SetServerAddress(serverAddress);
         masterClient->SetSamplingTime(samplingTime);
         ok = masterClient->Connect();
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot Connect to the Server.");
+        }
         if (ok) {
             REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
-        }
-        if (extensionObject[0u] == "no") {
-            ok = masterClient->SetServiceRequest(namespaceIndexes, paths, numberOfNodes);
-            masterClient->SetValueMemories(numberOfNodes);
-        }
-        else {
-            ok = masterClient->SetServiceRequest(tempNamespaceIndexes, tempPaths, nOfSignals);
-            if (ok) {
-                masterClient->SetValueMemories(numberOfNodes);
-                masterClient->SetDataPtr(bodyLength);
-                for (uint32 k = 0u; k < nOfSignals; k++) {
-                    uint32 nodeCounter = 0u;
-                    uint32 index;
-                    for (uint32 j = 0u; j < tempNElements[k]; j++) {
-                        index = 0u;
-                        uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1);
-                        while (nodeCounter < numberOfNodesForEachIteration) {
-                            masterClient->DecodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter,
-                                                                          index);
+            if (extensionObject[0u] == "no") {
+                ok = masterClient->SetServiceRequest(namespaceIndexes, paths, numberOfNodes);
+                if (ok) {
+                    masterClient->SetValueMemories();
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "SetServiceRequest Failed.");
+                }
+            }
+            else {
+                ok = masterClient->SetServiceRequest(tempNamespaceIndexes, tempPaths, nOfSignals);
+                if (ok) {
+                    masterClient->SetValueMemories();
+                    masterClient->SetDataPtr(bodyLength);
+                    for (uint32 k = 0u; k < nOfSignals; k++) {
+                        uint32 nodeCounter = 0u;
+                        uint32 index;
+                        for (uint32 j = 0u; j < tempNElements[k]; j++) {
+                            index = 0u;
+                            uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1);
+                            while (nodeCounter < numberOfNodesForEachIteration) {
+                                if (ok) {
+                                    masterClient->DecodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize,
+                                                                                  nodeCounter, index);
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find one or more signals in the Server.");
         }
     }
     if ((sync == "no") && ok) {
@@ -416,13 +423,15 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
         executor.SetStackSize(stackSize);
         ok = (executor.Start() == ErrorManagement::NoError);
     }
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::ParametersError, "Error during configuration.");
+    }
     return ok;
 }
 
 bool OPCUADSInput::AllocateMemory() {
     return true;
 }
-uint32 *tempNElements;
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
 bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx,
                                          const uint32 bufferIdx,
@@ -479,7 +488,7 @@ ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo &info) {
         if ((types != NULL_PTR(TypeDescriptor*)) && (nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientWrapper*))) {
             bool ok;
             if (readMode == "Read") {
-                ok = masterClient->Read(numberOfNodes, types, nElements);
+                ok = masterClient->Read(types, nElements);
                 if (!ok) {
                     err = ErrorManagement::CommunicationError;
                 }
@@ -503,7 +512,7 @@ bool OPCUADSInput::Synchronise() {
     if (sync == "yes") {
         if ((types != NULL_PTR(TypeDescriptor*)) && (nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientWrapper*))) {
             if (readMode == "Read") {
-                ok = masterClient->Read(numberOfNodes, types, nElements);
+                ok = masterClient->Read(types, nElements);
             }
             else if (readMode == "Monitor") {
                 ok = masterClient->Monitor();

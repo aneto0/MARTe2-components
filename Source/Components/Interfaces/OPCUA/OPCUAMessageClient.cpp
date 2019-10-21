@@ -53,7 +53,6 @@ OPCUAMessageClient::OPCUAMessageClient() :
     entryMemberNames = NULL_PTR(const char8**);
     entryArraySize = 0u;
     entryTypes = NULL_PTR(TypeDescriptor*);
-    extensionObject = NULL_PTR(StreamString*);
     values = NULL_PTR(AnyType**);
     methodNamespaceIndex = 0u;
     methodPath = "";
@@ -76,9 +75,6 @@ OPCUAMessageClient::~OPCUAMessageClient() {
     if (tempNamespaceIndexes != NULL_PTR(uint16*)) {
         delete[] tempNamespaceIndexes;
     }
-    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
-        delete masterClient;
-    }
     if (entryArrayElements != NULL_PTR(uint32*)) {
         delete[] entryArrayElements;
     }
@@ -91,15 +87,15 @@ OPCUAMessageClient::~OPCUAMessageClient() {
     if (entryTypes != NULL_PTR(TypeDescriptor*)) {
         delete[] entryTypes;
     }
-    if (extensionObject != NULL_PTR(StreamString*)) {
-        delete[] extensionObject;
-    }
     if (values != NULL_PTR(AnyType**)) {
         for (uint32 i = 0; i < numberOfNodes; i++) {
             if (values[i] != NULL_PTR(AnyType*))
                 delete values[i];
         }
         delete[] values;
+    }
+    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
+        delete masterClient;
     }
 }
 
@@ -145,7 +141,6 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
             nOfSignals = data.GetNumberOfChildren() - 1u;
             tempPaths = new StreamString[nOfSignals];
             tempNamespaceIndexes = new uint16[nOfSignals];
-            extensionObject = new StreamString[nOfSignals];
             tempNElements = new uint32[nOfSignals];
             structuredTypeNames = new StreamString[nOfSignals];
             for (uint32 i = 0u; (i < nOfSignals) && (ok); i++) {
@@ -173,18 +168,10 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
                     }
                 }
                 if (ok) {
-                    ok = data.Read("ExtensionObject", extensionObject[i]);
-                    if (ok && (extensionObject[i] == "yes")) {
-                        ok = data.Read("Type", structuredTypeNames[i]);
-                        if (!ok) {
-                            uint32 k = i;
-                            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Type attribute from signal %d", k);
-                        }
-                        REPORT_ERROR(ErrorManagement::Information, "Reading Structure with OPC UA Complex DataType Extension");
-                    }
-                    else {
-                        extensionObject[i] = "no";
-                        ok = true;
+                    ok = data.Read("Type", structuredTypeNames[i]);
+                    if (!ok) {
+                        uint32 k = i;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Type attribute from signal %d", k);
                     }
                 }
                 if (ok) {
@@ -234,10 +221,6 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
                 if (ok) {
                     REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
                 }
-                ok = masterClient->SetServiceRequest(tempNamespaceIndexes, tempPaths, nOfSignals);
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find one or more signals in the Server.");
-                }
                 if (ok) {
                     ok = masterClient->SetMethodRequest(methodNamespaceIndex, methodPath);
                     if (!ok) {
@@ -245,7 +228,13 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
                     }
                 }
                 if (ok) {
-                    masterClient->SetValueMemories(numberOfNodes);
+                    ok = masterClient->SetServiceRequest(tempNamespaceIndexes, tempPaths, nOfSignals);
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find one or more signals in the Server.");
+                    }
+                }
+                if (ok) {
+                    masterClient->SetValueMemories();
                     masterClient->SetDataPtr(bodyLength);
                     REPORT_ERROR(ErrorManagement::Information, "Encoding Structure (%d nodes) into ByteString", numberOfNodes);
                     for (uint32 k = 0u; k < nOfSignals; k++) {
@@ -269,8 +258,9 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
                             signalAddresses[j] = NULL_PTR(void*);
                             values[j] = NULL_PTR(AnyType*);
                         }
+                        ok = masterClient->GetExtensionObject();
                     }
-                    if(!ok){
+                    if (!ok) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "ByteString Encoding Failed!");
                     }
                 }
@@ -285,8 +275,8 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
 
 ErrorManagement::ErrorType OPCUAMessageClient::OPCUAMethodCall(StructuredDataI &data) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
-    REPORT_ERROR(ErrorManagement::Information, "METHOD CALL ----------------------------> START!");
     bool ok = true;
+    REPORT_ERROR(ErrorManagement::Information, "Mapping StructuredData");
     for (uint32 k = 0u; k < nOfSignals; k++) {
         uint32 nodeCounter = 0u;
         uint32 index;
@@ -300,12 +290,14 @@ ErrorManagement::ErrorType OPCUAMessageClient::OPCUAMethodCall(StructuredDataI &
     }
     if (ok) {
         if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
+            REPORT_ERROR(ErrorManagement::Information, "OPCUA Method Call");
             ok = masterClient->MethodCall();
         }
         if (ok) {
             REPORT_ERROR(ErrorManagement::Information, "METHOD CALL ----------------------------> SUCCESS!");
         }
         if (!ok) {
+            err = ErrorManagement::CommunicationError;
             REPORT_ERROR(ErrorManagement::ParametersError, "METHOD CALL ----------------------------> FAIL!");
         }
     }

@@ -76,8 +76,6 @@ public:
      */
     bool Connect();
 
-    bool Disconnect();
-
     /**
      * @brief Links the target Node memory with the signal memory in input
      * @param[in, out] mem The signal memory buffer
@@ -86,6 +84,7 @@ public:
      * @param[in] nElem the number of elements of the value related to the node
      * @param[in] nDimensions the number of dimensions of the value related to the node
      * @return true if the monitored node has been set.
+     * @pre SetValueMemories
      */
     bool GetSignalMemory(void *&mem,
                          const uint32 idx,
@@ -106,13 +105,32 @@ public:
      * @pre Connect
      */
     bool SetServiceRequest(const uint16 *const namespaceIndexes,
-                        StreamString *const nodePaths,
-                        const uint32 numberOfNodes);
+                           StreamString *const nodePaths,
+                           const uint32 numberOfNodes);
 
-    bool SetMethodRequest(const uint16 methodNamespaceIndex, StreamString const methodPath);
+    /**
+     * @brief Browse the OPCUA Address Space in order to retrieve information about the method to be called and the owner object.
+     * @details This method extracts all the node names from the paths and uses them to
+     * browse the address space through a TranslateBrowsePathToNodeId service request. Then it sets the owner object and the
+     * method node ids from the result.
+     * @param[in] methodNamespaceIndex the namespace index of the method to be called.
+     * @param[in] methodPath the relative browse path of the method to be called.
+     * @return true if the result of the TranslateBrowsePathToNodeId service requests is not empty.
+     * @pre Connect
+     */
+    bool SetMethodRequest(const uint16 methodNamespaceIndex,
+                          StreamString const methodPath);
 
-    void SetValueMemories(const uint32 nOfNodes);
+    /**
+     * @brief Initialise the value memory pointers.
+     */
+    void SetValueMemories();
 
+    /**
+     * @brief Initialise the dataPtr pointer (for ExtensionObject).
+     * @details Allocate a memory area of bodyLength bytes.
+     * @param[in] bodyLength the length of the ByteString
+     */
     void SetDataPtr(const uint32 bodyLength);
 
     /**
@@ -129,37 +147,29 @@ public:
      * @brief Calls the OPCUA Write service.
      * @details Gets the data from valueMemory and calls the OPCUA Write Value Attribute service
      * on the monitored nodes.
-     * @param[in] numberOfNodes the number of nodes to write
-     * @pre SetTargetNodes, SetWriteRequest
+     * @pre SetServiceRequest, SetWriteRequest
      */
-    bool Write(const uint32 numberOfNodes,
-               const uint32 *const entryArrayElements = NULL_PTR(uint32*),
-               const TypeDescriptor *const entryTypes = NULL_PTR(TypeDescriptor*),
-               const uint32 *const entryNumberOfMembers = NULL_PTR(uint32*),
-               const uint32 entryArraySize = 0u);
+    bool Write();
 
     /**
      * @brief Calls the OPCUA Read service.
      * @details Gets the data from the OPCUA Secure Channel and writes them to the valueMemory of each monitoredNode.
-     * @param[in] numberOfnodes the number of nodes to read
      * @param[in] types the array with all the TypeDescriptor for each node to read.
      * @param[in] nElements the array with all the number of elements for each node to read.
      * @return true if the Read Service is executed correctly.
-     * @pre SetTargetNodes
+     * @pre SetServiceRequest
      */
-    bool Read(const uint32 numberOfNodes,
-              const TypeDescriptor *const types,
+    bool Read(const TypeDescriptor *const types,
               const uint32 *const nElements);
 
+    /**
+     * @brief Calls the OPCUA Call service.
+     * @details Uses Method Call Service to send an Extension Object through the Secure Channel.
+     * @return true if the Call Service is executed correctly.
+     * @pre SetMethodRequest
+     */
     bool MethodCall();
 
-#if 0    /**
-     * @brief Update the valueMemory with the new data.
-     * @param[in] value The new data value to write into the valueMemory.
-     * @pre GetSignalMemory
-     */
-    void UpdateMemory(UA_DataValue *value);
-#endif
     /**
      * @brief Set the sampling time
      * @param[in] sampleTime The sampling time desired.
@@ -173,7 +183,7 @@ public:
 
     /**
      * @brief Set the operation mode.
-     * @details mode could be "Read" or "Write"
+     * @details mode could be "Read", "Write" or "MethodCall"
      */
     void SetOperationMode(const char8 *const modeType);
 
@@ -186,8 +196,25 @@ public:
                          const uint32 nElements,
                          const TypeDescriptor &type);
 
+    /**
+     * @brief Retrieve information from the Secure Channel about the ExtensionObject to be sent.
+     * @details This method creates a ReadRequest and saves the ExtensionObject.
+     * @return true if the ReadRequest returns StatusCode GOOD
+     */
+    bool GetExtensionObject();
 
-
+    /**
+     * @brief Decode a ByteString according to the OPCUA Standard Part 6 - 5.2.6
+     * @details This methods decodes a ByteString according to the OPC UA Standard and assigns the correct pointers
+     * to the value memories.
+     * @param[in] entryType the TypeDescriptor array associated to each Introspection entry
+     * @param[in] entryArrayElement the array that stores number of elements associated to each Introspection entry
+     * @param[in] entryNumberOfMembers the array that stores number of members associated to each Introspection entry
+     * @param[in] entryArraySize the size of the previous arrays
+     * @param[in, out] nodeCounter the number of the current node
+     * @param[in, out] index the index indicating the element from which the research shall start
+     * @return true if the ByteString data pointer has been decoded successfully and all the value memories have been assigned.
+     */
     bool DecodeExtensionObjectByteString(const TypeDescriptor *const&entryType,
                                          const uint32 *const&entryArrayElement,
                                          const uint32 *const&entryNumberOfMembers,
@@ -195,6 +222,18 @@ public:
                                          uint32 &nodeCounter,
                                          uint32 &index);
 
+    /**
+     * @brief Encode a ByteString according to the OPCUA Standard Part 6 - 5.2.6
+     * @details This methods encode a ByteString according to the OPC UA Standard assigning the memory of each signal to a specific position
+     * into the ByteString Data Pointer.
+     * @param[in] entryType the TypeDescriptor array associated to each Introspection entry
+     * @param[in] entryArrayElement the array that stores number of elements associated to each Introspection entry
+     * @param[in] entryNumberOfMembers the array that stores number of members associated to each Introspection entry
+     * @param[in] entryArraySize the size of the previous arrays
+     * @param[in, out] nodeCounter the number of the current node
+     * @param[in, out] index the index indicating the element from which the research shall start
+     * @return true if the ByteString data pointer has been encode successfully and all the value memories have been assigned.
+     */
     bool EncodeExtensionObjectByteString(const TypeDescriptor *const&entryType,
                                          const uint32 *const&entryArrayElement,
                                          const uint32 *const&entryNumberOfMembers,
@@ -202,8 +241,19 @@ public:
                                          uint32 &nodeCounter,
                                          uint32 &index);
 
+#if 0    /**
+     * @brief Update the valueMemory with the new data.
+     * @param[in] value The new data value to write into the valueMemory.
+     * @pre GetSignalMemory
+     */
+    void UpdateMemory(UA_DataValue *value);
+#endif
+
 private:
 
+    /**
+     * @brief Move back the ByteString data pointer according to a specific offset
+     */
     void SeekDataPtr(const uint32 bodyLength);
 
     /**
@@ -211,11 +261,25 @@ private:
      * @details This method uses the OPCUA Browse and BrowseNext services to obtain the OPCUA Reference Type
      * of the node declared in the path.
      */
-    uint32 GetReferences(const UA_BrowseRequest &bReq,
-                            const char8 *const path,
-                            uint16 &namespaceIndex,
-                            uint32 &numericNodeId,
-                            char8 *&stringNodeId);
+    uint32 GetReferences(const UA_BrowseRequest bReq,
+                         const char8 *const path,
+                         uint16 &namespaceIndex,
+                         uint32 &numericNodeId,
+                         char8 *&stringNodeId);
+
+    /**
+     * @brief Wrapper of RegisterNodes OPCUA Service
+     * @param[in] monitoredItems the nodes to be registered
+     * @return true if the RegisterNodes Request return a StatusCode GOOD
+     */
+    bool RegisterNodes(UA_NodeId *const monitoredItems);
+
+    /**
+     * @brief Wrapper of UnregisterNodes OPCUA Service
+     * @param[in] monitoredItems the nodes to be unregistered
+     * @return true if the UnregisterNodes Request return a StatusCode GOOD
+     */
+    bool UnregisterNodes(UA_NodeId *const monitoredItems);
 
     /**
      * Holds the server address
@@ -237,49 +301,38 @@ private:
      */
     UA_NodeId *monitoredNodes;
 
+    /**
+     * The NodeId of the method to be called in MethodCall function.
+     */
     UA_NodeId methodNodeId;
 
+    /**
+     * The NodeId of the object that owns the method.
+     */
     UA_NodeId objectMethod;
 
+    /**
+     * The array that stores all the ExtensionObjects when using Complex DataType Extensions.
+     */
     UA_ExtensionObject *eos;
 
     /**
-     * open62541 client configuration structure
+     * open62541 client configuration structure.
      */
     UA_ClientConfig *config;
 
     /**
-     * open62541 client declaration
+     * open62541 client declaration.
      */
     UA_Client *opcuaClient;
 
     /**
-     * open62541 subscription request structure
-     */
-    UA_CreateSubscriptionRequest request;
-
-    /**
-     * open62541 subscription response structure
-     */
-    UA_CreateSubscriptionResponse response;
-
-    /**
-     * open62541 monitored item request structure
-     */
-    UA_MonitoredItemCreateRequest monitorRequest;
-
-    /**
-     * open62541 monitored item result structure
-     */
-    UA_MonitoredItemCreateResult monitorResponse;
-
-    /**
-     * open62541 read request structure
+     * open62541 read request structure.
      */
     UA_ReadRequest readRequest;
 
     /**
-     * open62541 read response structure
+     * open62541 read response structure.
      */
     UA_ReadResponse readResponse;
 
@@ -309,13 +362,54 @@ private:
     UA_Variant *tempVariant;
 
     /**
+     * OPCUA BrowseRequest for SetServiceRequest.
+     */
+    UA_BrowseRequest bReq;
+
+    /**
+     * OPCUA BrowseRequest for SetMethodRequest.
+     */
+    UA_BrowseRequest mbReq;
+
+    /**
+     * OPCUA BrowsePath for SetServiceRequest.
+     */
+    UA_BrowsePath browsePath;
+
+    /**
+     * OPCUA BrowsePath for SetMethodRequest.
+     */
+    UA_BrowsePath mBrowsePath;
+
+    /**
+     * OPCUA TranslateBrowsePathsToNodeIdsRequest for SetServiceRequest.
+     */
+    UA_TranslateBrowsePathsToNodeIdsRequest tbpReq;
+
+    /**
+     * OPCUA TranslateBrowsePathsToNodeIdsRequest for SetMethodRequest to get owner object.
+     */
+    UA_TranslateBrowsePathsToNodeIdsRequest objectTbpReq;
+
+    /**
+     * OPCUA TranslateBrowsePathsToNodeIdsRequest for SetMethodRequest to get the method.
+     */
+    UA_TranslateBrowsePathsToNodeIdsRequest methodTbpReq;
+
+    /**
      * Number of nodes to be managed
      */
     uint32 nOfNodes;
 
-    uint8 * tempDataPtr;
+    /**
+     * The dataPtr associated to the Extension Object ByteString.
+     */
+    void *dataPtr;
 
-    void * dataPtr;
+    /**
+     * A copy of the dataPtr associated to the Extension Object ByteString to perform operations.
+     */
+    uint8 *tempDataPtr;
 
 };
 

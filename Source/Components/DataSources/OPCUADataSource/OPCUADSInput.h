@@ -49,12 +49,13 @@ namespace MARTe {
  * @brief OPCUADSInput class. It is the OPCUA Input DataSource that manages the read-only OPCUA client life cycle.
  * @details This DataSource allows to read Node Variables from an OPCUA Server. Data is read
  * from an OPCUA Address Space in the context of a thread or in the context of Synchronise method.
- * This class uses the OPC UA Read Service and the OPC UA Monitored Item Service.
+ * This class uses the OPC UA RegisteredRead Service and the OPC UA Monitored Item Service.
  * You must assign the actual name of the Node you want to read as signal name.
  * Since it uses the TranslateBrowsePathToNodeId service, you must indicate the relative browse path of the Address Space
  * starting from the OPCUA Object of interest inside the "Objects" folder.
  *
- * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. Strings are not supported yet.
+ * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. It also support OPCUA ExtensionObject structure.
+ * Strings are not supported yet.
  *
  * The configuration syntax is (names are only given as an example):
  * <pre>
@@ -81,11 +82,29 @@ namespace MARTe {
  *             Type = MyStructure
  *             NamespaceIndex = 3
  *             Path = Object3.Block1.Block2.NodeStructure1
+ *         }
+ *     }
+ * }
+ * </pre>
+ *
+ * In the case one wants to read a structure as an OPCUA ExtensionObject using the Complex DataType Extension, the syntax is the following:
+ * <pre>
+ * +OPCUA = {
+ *     Class = OPCUADataSource::OPCUADSInput
+ *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     Synchronise = "yes"
+ *     Signals = {
+ *         NodeStructure1 = {
+ *             Type = MyStructure
+ *             NamespaceIndex = 3
+ *             Path = Object3.Block1.Block2.NodeStructure1
  *             ExtensionObject = "yes"
  *         }
  *     }
  * }
  * </pre>
+ * When using Complex DataType Extension, the DataSource only allows to write 1 structure. If you need to add more signals you must add
+ * another OPCUADSInput DataSource to your real time application.
  */
 class OPCUADSInput: public DataSourceI, public EmbeddedServiceMethodBinderI {
 
@@ -170,14 +189,30 @@ public:
 
 private:
 
+    /**
+     * @brief Read the structure recursively and gets informations about the length of the ByteString (for ExtensionObject).
+     * @param[in] intro the first introspection from which starting the research
+     * @param[out] bodyLength the length of the ByteString
+     * @return true if the structure has been introspected correctly
+     */
     bool GetBodyLength(const Introspection *const intro,
                        uint32 &bodyLength);
 
+    /**
+     * @brief Read the structure recursively and gets informations about the dimension (for ExtensionObject).
+     * @param[in] intro the first introspection from which starting the research
+     * @param[out] arraySize the dimension of the structure
+     */
     void GetStructureDimensions(const Introspection *const intro,
                                 uint32 &arraySize);
 
     /**
      * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
+     * @param[out] entryArrayElements the array that holds the number of elements for introspection entry
+     * @param[out] entryTypes the array that holds the type for introspection entry
+     * @param[out] entryNumberOfMembers the array that holds the number of members for introspection entry
+     * @param[out] index which elements shall be taken from the previous arrays
+     * @return true if the structure has been introspected correctly
      */
     bool GetStructure(const Introspection *const intro,
                       uint32 *&entryArrayElements,
@@ -242,8 +277,7 @@ private:
     StreamString *tempPaths;
 
     /**
-     * The array that stores all the namespaceIndexes for each
-     * node to read
+     * The array that stores all the namespaceIndexes for each node to read
      */
     uint16 *namespaceIndexes;
 
@@ -252,6 +286,9 @@ private:
      */
     uint16 *tempNamespaceIndexes;
 
+    /**
+     * Temporary array to store numberOfElements read from configuration
+     */
     uint32 *tempNElements;
 
     /**
@@ -264,10 +301,19 @@ private:
      */
     uint32 *entryArrayElements;
 
+    /**
+     * The array that stores the Type for each IntrospectionEntry (for ExtensionObject)
+     */
     TypeDescriptor *entryTypes;
 
+    /**
+     * The array that stores the NumberOfMembers for each IntrospectionEntry (for ExtensionObject)
+     */
     uint32 *entryNumberOfMembers;
 
+    /**
+     * The array that stores the array size of the structure properties array (for ExtensionObject)
+     */
     uint32 entryArraySize;
 
     /**
@@ -289,8 +335,6 @@ private:
      * The stack size
      */
     uint32 stackSize;
-
-    uint32 byteStringLength;
 
 };
 
