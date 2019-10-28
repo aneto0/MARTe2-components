@@ -34,7 +34,7 @@
 
 #include "DataSourceI.h"
 #include "MemoryMapAsyncOutputBroker.h"
-#include "OPCUAClientWrapper.h"
+#include "OPCUAClientWrite.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -170,7 +170,8 @@ public:CLASS_REGISTER_DECLARATION()
     /**
      * @brief Gets the OPCUA Client pointer
      */
-    OPCUAClientWrapper* GetClient();
+    //OPCUAClientWrapper* GetClient();
+    OPCUAClientWrite * GetClient();
 
 private:
 
@@ -208,7 +209,8 @@ private:
     /**
      * Pointer to the Helper Class for the main Client
      */
-    OPCUAClientWrapper *masterClient;
+    //OPCUAClientWrapper *masterClient;
+    OPCUAClientWrite * masterClient;
 
     /**
      * Holds the value of the configuration parameter Address

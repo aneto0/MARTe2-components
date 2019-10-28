@@ -34,7 +34,7 @@
 
 #include "CLASSMETHODREGISTER.h"
 #include "MessageI.h"
-#include "OPCUAClientWrapper.h"
+#include "OPCUAClientMethod.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
@@ -99,6 +99,11 @@ public:CLASS_REGISTER_DECLARATION()
      */
     ErrorManagement::ErrorType OPCUAMethodCall(StructuredDataI &data);
 
+    /**
+     * @brief Returns the ServerAddress (for testing purposes)
+     */
+    const char8* GetServerAddress() const;
+
 private:
 
     /**
@@ -161,7 +166,7 @@ private:
     /**
      * Pointer to the Helper Class for the main Client
      */
-    OPCUAClientWrapper *masterClient;
+    OPCUAClientMethod *masterClient;
 
     /**
      * Holds the value of the configuration parameter Address

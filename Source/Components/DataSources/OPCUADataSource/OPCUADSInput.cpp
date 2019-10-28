@@ -48,7 +48,7 @@ OPCUADSInput::OPCUADSInput() :
         DataSourceI(),
         EmbeddedServiceMethodBinderI(),
         executor(*this) {
-    masterClient = NULL_PTR(OPCUAClientWrapper*);
+    masterClient = NULL_PTR(OPCUAClientRead*);
     nOfSignals = 0u;
     numberOfNodes = 0u;
     paths = NULL_PTR(StreamString*);
@@ -75,7 +75,7 @@ OPCUADSInput::OPCUADSInput() :
 /*lint -e{1551} must stop the SingleThreadService in the destructor.*/
 OPCUADSInput::~OPCUADSInput() {
     (void) executor.Stop();
-    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
+    if (masterClient != NULL_PTR(OPCUAClientRead*)) {
         delete masterClient;
     }
     if (nElements != NULL_PTR(uint32*)) {
@@ -376,10 +376,11 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
     }
     if (ok) {
         /* Setting up the master Client who will perform the operations */
-        masterClient = new OPCUAClientWrapper();
-        masterClient->SetOperationMode("Read");
+        //masterClient = new OPCUAClientWrapper();
+        //masterClient->SetOperationMode("Read");
+        masterClient = new OPCUAClientRead;
         masterClient->SetServerAddress(serverAddress);
-        masterClient->SetSamplingTime(samplingTime);
+        //masterClient->SetSamplingTime(samplingTime);
         ok = masterClient->Connect();
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot Connect to the Server.");
@@ -408,7 +409,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                             uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1);
                             while (nodeCounter < numberOfNodesForEachIteration) {
                                 if (ok) {
-                                    masterClient->DecodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize,
+                                    masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize,
                                                                                   nodeCounter, index);
                                 }
                             }
@@ -445,8 +446,8 @@ bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx,
                     || (types[signalIdx].type == SString)) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Type String is not supported yet.");
             }
-            if ((nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientWrapper*))) {
-                ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx], 0u);
+            if ((nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientRead*))) {
+                ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx]);
             }
         }
     }
@@ -485,7 +486,7 @@ bool OPCUADSInput::PrepareNextState(const char8 *const currentStateName,
 ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo &info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        if ((types != NULL_PTR(TypeDescriptor*)) && (nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientWrapper*))) {
+        if ((types != NULL_PTR(TypeDescriptor*)) && (nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientRead*))) {
             bool ok;
             if (readMode == "Read") {
                 ok = masterClient->Read(types, nElements);
@@ -494,7 +495,7 @@ ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo &info) {
                 }
             }
             else if (readMode == "Monitor") {
-                ok = masterClient->Monitor();
+                //ok = masterClient->Monitor();
                 if (!ok) {
                     err = ErrorManagement::UnsupportedFeature;
                 }
@@ -510,12 +511,12 @@ ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo &info) {
 bool OPCUADSInput::Synchronise() {
     bool ok = true;
     if (sync == "yes") {
-        if ((types != NULL_PTR(TypeDescriptor*)) && (nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientWrapper*))) {
+        if ((types != NULL_PTR(TypeDescriptor*)) && (nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientRead*))) {
             if (readMode == "Read") {
                 ok = masterClient->Read(types, nElements);
             }
             else if (readMode == "Monitor") {
-                ok = masterClient->Monitor();
+                //ok = masterClient->Monitor();
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "ReadMode defines an unsupported service.");

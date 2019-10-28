@@ -37,7 +37,7 @@
 #include "EmbeddedServiceMethodBinderI.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "MultiThreadService.h"
-#include "OPCUAClientWrapper.h"
+#include "OPCUAClientRead.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -228,7 +228,8 @@ private:
     /**
      * Pointer to the Helper Class for the main Client
      */
-    OPCUAClientWrapper *masterClient;
+    //OPCUAClientWrapper *masterClient;
+    OPCUAClientRead * masterClient;
 
     /**
      * Holds the value of the configuration parameter ReadMode

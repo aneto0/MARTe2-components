@@ -30,7 +30,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
+#include "AdvancedErrorManagement.h"
 #include "OPCUADSOutput.h"
 
 /*---------------------------------------------------------------------------*/
@@ -46,7 +46,7 @@ namespace MARTe {
 
 OPCUADSOutput::OPCUADSOutput() :
         DataSourceI() {
-    masterClient = NULL_PTR(OPCUAClientWrapper*);
+    masterClient = NULL_PTR(OPCUAClientWrite*);
     nOfSignals = 0u;
     numberOfNodes = 0u;
     extensionObject = NULL_PTR(StreamString*);
@@ -67,7 +67,7 @@ OPCUADSOutput::OPCUADSOutput() :
 
 /*lint -e{1551} No exception thrown.*/
 OPCUADSOutput::~OPCUADSOutput() {
-    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
+    if (masterClient != NULL_PTR(OPCUAClientWrite*)) {
         delete masterClient;
     }
     if (nElements != NULL_PTR(uint32*)) {
@@ -325,8 +325,9 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
     }
     if (ok) {
         /* Setting up the master Client who will perform the operations */
-        masterClient = new OPCUAClientWrapper();
-        masterClient->SetOperationMode("Write");
+        //masterClient = new OPCUAClientWrapper();
+        masterClient = new OPCUAClientWrite();
+        //masterClient->SetOperationMode("Write");
         masterClient->SetServerAddress(serverAddress);
         ok = masterClient->Connect();
         if (!ok) {
@@ -356,7 +357,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
                             uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1);
                             while (nodeCounter < numberOfNodesForEachIteration) {
                                 if (ok) {
-                                    ok = masterClient->EncodeExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize,
+                                    ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize,
                                                                                        nodeCounter, index);
                                 }
                             }
@@ -389,7 +390,7 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
                     || (types[signalIdx].type == SString)) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Type String is not supported yet.");
             }
-            ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx], 0u);
+            ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx]);
             if (ok && (extensionObject[0u] == "no")) {
                 masterClient->SetWriteRequest(signalIdx, 0u, nElements[signalIdx], types[signalIdx]);
             }
@@ -424,7 +425,7 @@ bool OPCUADSOutput::PrepareNextState(const char8 *const currentStateName,
 
 bool OPCUADSOutput::Synchronise() {
     bool ok = true;
-    if (masterClient != NULL_PTR(OPCUAClientWrapper*)) {
+    if (masterClient != NULL_PTR(OPCUAClientWrite*)) {
         if (extensionObject[0u] == "yes") {
             ok = masterClient->Write();
         }
@@ -439,7 +440,7 @@ const char8* OPCUADSOutput::GetServerAddress() {
     return serverAddress.Buffer();
 }
 
-OPCUAClientWrapper* OPCUADSOutput::GetClient() {
+OPCUAClientWrite* OPCUADSOutput::GetClient() {
     return masterClient;
 }
 
