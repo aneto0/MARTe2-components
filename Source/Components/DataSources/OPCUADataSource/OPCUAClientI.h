@@ -40,6 +40,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+/*lint -e9150 no need to make non POD members private.*/
 class OPCUAClientI {
 public:
 
@@ -51,7 +52,7 @@ public:
 
     bool Connect();
 
-    void SetValueMemories();
+    void SetValueMemories(const uint32 numberOfNodes);
 
     void SetDataPtr(const uint32 bodyLength);
 
@@ -71,6 +72,25 @@ public:
                                    StreamString *const nodePaths,
                                    const uint32 numberOfNodes) = 0;
 
+    /**
+     * Testing purpose
+     */
+    StreamString GetServerAddress() const;
+
+    /**
+     * Testing purpose
+     */
+    void ** GetValueMemories();
+
+    /**
+     * Testing purpose
+     */
+    uint32 GetNumberOfNodes() const;
+
+    /**
+     * Testing purpose
+     */
+    void * GetDataPtr();
 
 protected:
 

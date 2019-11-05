@@ -37,6 +37,10 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------*/
+/*                           Method definitions                              */
+/*---------------------------------------------------------------------------*/
+
 TEST(OPCUADSInputGTest,TestConstructor) {
     OPCUADSInputTest test;
     ASSERT_TRUE(test.TestConstructor());
@@ -50,6 +54,11 @@ TEST(OPCUADSInputGTest,TestInitialise_Default) {
 TEST(OPCUADSInputGTest,TestInitialise_Introspection) {
     OPCUADSInputTest test;
     ASSERT_TRUE(test.TestInitialise_Introspection());
+}
+
+TEST(OPCUADSInputGTest,TestInitialise_ExtensionObject) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.TestInitialise_ExtensionObject());
 }
 
 TEST(OPCUADSInputGTest,TestInitialise_Sync) {
@@ -112,15 +121,15 @@ TEST(OPCUADSInputGTest,Test_NumberOfDimensionsGreater1) {
     ASSERT_TRUE(test.Test_NumberOfDimensionsGreater1());
 }
 
-TEST(OPCUADSInputGTest,Test_FailSetTargetNodes) {
+TEST(OPCUADSInputGTest,Test_SetConfiguredDatabase_FailSetServiceRequest) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_FailSetTargetNodes());
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_FailSetServiceRequest());
 }
 
-/*---------------------------------------------------------------------------*/
-/*                           Method definitions                              */
-/*---------------------------------------------------------------------------*/
-
+TEST(OPCUADSInputGTest,Test_SetConfiguredDatabase_ExtensionObject) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject());
+}
 
 
 	

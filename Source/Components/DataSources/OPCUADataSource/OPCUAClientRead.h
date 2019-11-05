@@ -67,6 +67,9 @@ public:
                                               uint32 &nodeCounter,
                                               uint32 &index);
 
+    UA_NodeId * GetMonitoredNodes();
+
+
 private:
 
     /**
@@ -74,14 +77,14 @@ private:
      * @param[in] monitoredItems the nodes to be registered
      * @return true if the RegisterNodes Request return a StatusCode GOOD
      */
-    bool RegisterNodes(UA_NodeId *const monitoredItems);
+    bool RegisterNodes(const UA_NodeId *const monitoredNodes);
 
     /**
      * @brief Wrapper of UnregisterNodes OPCUA Service
      * @param[in] monitoredItems the nodes to be unregistered
      * @return true if the UnregisterNodes Request return a StatusCode GOOD
      */
-    bool UnregisterNodes(UA_NodeId *const monitoredItems);
+    bool UnregisterNodes(const UA_NodeId *const monitoredNodes);
 
     /**
      * The array that stores all the open62541 NodeIDs of the monitored nodes.

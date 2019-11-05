@@ -93,10 +93,10 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
-//        opcuaConfig = UA_ServerConfig_new_minimal(port, NULL_PTR(const UA_ByteString *));
-//        opcuaServer = UA_Server_new(opcuaConfig);
+        /*lint -e{118} no argument needed*/
         opcuaServer = UA_Server_new();
-        UA_ServerConfig_setDefault(UA_Server_getConfig(opcuaServer));
+        /*lint -e{526} -e{628} -e{1055} -e{746} function defined in open62541*/
+        (void)UA_ServerConfig_setDefault(UA_Server_getConfig(opcuaServer));
     }
     if (ok) {
         ok = cdb.MoveRelative("AddressSpace");

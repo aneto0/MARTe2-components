@@ -24,7 +24,10 @@
 
 OBJSX +=  OPCUADSOutputTest.x \
     OPCUADSInputTest.x \
-    OPCUAClientWrapperTest.x
+    OPCUAClientITest.x \
+    OPCUAClientReadTest.x \
+    OPCUAClientWriteTest.x \
+    OPCUAClientMethodTest.x
 
 PACKAGE=Components/DataSources
 
@@ -54,6 +57,7 @@ INCLUDES += -I$(OPEN62541_INCLUDE)/
 
 INCLUDES += -I../../../../Source/Components/Interfaces/OPCUA
 INCLUDES += -I../../../../Source/Components/DataSources/OPCUADataSource
+INCLUDES += -I../../../../Source/Components/GAMs/IOGAM
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
 all: $(OBJS)    \

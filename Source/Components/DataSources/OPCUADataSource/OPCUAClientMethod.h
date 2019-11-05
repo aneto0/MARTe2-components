@@ -63,7 +63,11 @@ public:
 
     bool MethodCall();
 
-    bool GetExtensionObject();
+    bool SetExtensionObject();
+
+    UA_NodeId * GetMonitoredNodes();
+
+    UA_ExtensionObject * GetExtensionObject();
 
 private:
 

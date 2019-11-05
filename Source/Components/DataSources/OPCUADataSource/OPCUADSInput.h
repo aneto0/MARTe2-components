@@ -187,6 +187,9 @@ public:
      */
     const char8* GetServerAddress();
 
+    OPCUAClientRead * GetOPCUAClient();
+
+
 private:
 
     /**
@@ -228,7 +231,6 @@ private:
     /**
      * Pointer to the Helper Class for the main Client
      */
-    //OPCUAClientWrapper *masterClient;
     OPCUAClientRead * masterClient;
 
     /**

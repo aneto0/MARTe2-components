@@ -104,6 +104,8 @@ public:CLASS_REGISTER_DECLARATION()
      */
     const char8* GetServerAddress() const;
 
+    OPCUAClientMethod * GetOPCUAClient();
+
 private:
 
     /**
@@ -124,7 +126,7 @@ private:
      * @param[in,out] index which elements shall be taken from the previous arrays
      * @return true if the structure has been introspected correctly
      */
-    bool GetStructure(const Introspection *intro,
+    bool GetStructure(const Introspection * const intro,
                       uint32 *&entryArrayElements,
                       TypeDescriptor *&entryTypes,
                       uint32 *&entryNumberOfMembers,

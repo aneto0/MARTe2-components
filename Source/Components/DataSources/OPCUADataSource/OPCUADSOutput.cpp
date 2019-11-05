@@ -103,6 +103,9 @@ OPCUADSOutput::~OPCUADSOutput() {
     if (entryTypes != NULL_PTR(TypeDescriptor*)) {
         delete[] entryTypes;
     }
+    if (tempNElements != NULL_PTR(uint32*)) {
+        delete[] tempNElements;
+    }
 }
 
 bool OPCUADSOutput::Initialise(StructuredDataI &data) {
@@ -130,34 +133,38 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
             extensionObject = new StreamString[nOfSignals];
             tempNElements = new uint32[nOfSignals];
             for (uint32 i = 0u; (i < nOfSignals) && (ok); i++) {
-                if (ok) {
-                    ok = signalsDatabase.MoveRelative(signalsDatabase.GetChildName(i));
-                }
+                ok = signalsDatabase.MoveRelative(signalsDatabase.GetChildName(i));
                 if (ok) {
                     ok = signalsDatabase.Read("Path", tempPaths[i]);
                     if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Path attribute from signal %d", i);
+                        uint32 k = i;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Path attribute from signal %d", k);
                     }
                 }
                 if (ok) {
                     ok = signalsDatabase.Read("NamespaceIndex", tempNamespaceIndexes[i]);
                     if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the NamespaceIndex attribute from signal %d", i);
+                        uint32 k = i;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the NamespaceIndex attribute from signal %d", k);
                     }
                 }
                 if (ok) {
-                    signalsDatabase.Read("NumberOfElements", tempNElements[i]);
+                    ok = signalsDatabase.Read("NumberOfElements", tempNElements[i]);
                     if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the NumberOfelements of signal %d", i);
+                        tempNElements[i] = 1u;
+                        ok = true;
+                        uint32 k = i;
+                        REPORT_ERROR(ErrorManagement::Information, "No NumberOfElements set up for signal %d. Using N = 1", k);
                     }
                 }
                 if (ok) {
                     ok = signalsDatabase.Read("ExtensionObject", extensionObject[i]);
-                    if (ok && (extensionObject[i] == "yes")) {
+                    if ((extensionObject[i] == "yes") && ok) {
                         structuredTypeNames = new StreamString[nOfSignals];
                         ok = signalsDatabase.Read("Type", structuredTypeNames[i]);
                         if (!ok) {
-                            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Type attribute from signal %d", i);
+                            uint32 k = i;
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Type attribute from signal %d", k);
                         }
                         REPORT_ERROR(ErrorManagement::Information, "Reading Structure with OPC UA Complex DataType Extension");
                     }
@@ -190,10 +197,10 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
     uint8 nDimensions = 0u;
     nElements = new uint32[numberOfNodes];
     types = new TypeDescriptor[numberOfNodes];
-    StreamString signalName;
     for (uint32 k = 0u; k < numberOfNodes; k++) {
         ok = GetSignalNumberOfDimensions(k, nDimensions);
         if ((nDimensions > 1u) && ok) {
+            StreamString signalName;
             ok = GetSignalName(k, signalName);
             if (ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Signal %s has Number Of Dimensions = %d. Multidimensional arrays not supported yet.",
@@ -207,11 +214,9 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
         if (ok) {
             types[k] = GetSignalType(k);
         }
-        signalName = "";
     }
 
     uint32 bodyLength = 0u;
-
     if (structuredTypeNames != NULL_PTR(StreamString*)) {
         for (uint32 k = 0u; k < nOfSignals; k++) {
             const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[k].Buffer());
@@ -237,54 +242,54 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
             }
         }
     }
-
-    if (extensionObject[0u] == "no") {
-        if (ok) {
-            paths = new StreamString[numberOfNodes];
-            namespaceIndexes = new uint16[numberOfNodes];
-            StreamString sigName;
-            StreamString pathToken;
-            StreamString sigToken;
-            char8 ignore;
-            for (uint32 i = 0u; i < numberOfNodes; i++) {
-                sigName = "";
-                /* Getting the first name from the signal path */
-                ok = GetSignalName(i, sigName);
-                if (ok) {
-                    ok = sigName.Seek(0LLU);
-                }
-                if (ok) {
-                    ok = sigName.GetToken(sigToken, ".", ignore);
-                }
-                if (ok) {
-                    for (uint32 j = 0u; j < nOfSignals; j++) {
-                        StreamString lastToken;
-                        sigToken = "";
-                        ok = tempPaths[j].Seek(0LLU);
-                        if (ok) {
-                            do {
-                                ok = tempPaths[j].GetToken(lastToken, ".", ignore);
-                                if (ok) {
-                                    sigToken = lastToken;
-                                }
-                                lastToken = "";
-                            }
-                            while (ok);
-                        }
-                        if (tempPaths != NULL_PTR(StreamString*)) {
-                            /* This cycle will save the last token found */
-                            ok = tempPaths[j].Seek(0LLU);
-                            if (ok) {
-                                do {
-                                    ok = tempPaths[j].GetToken(lastToken, ".", ignore);
-                                    if (ok) {
-                                        sigToken = lastToken;
-                                    }
-                                    lastToken = "";
-                                }
-                                while (ok);
-                            }
+    if (extensionObject != NULL_PTR(StreamString*)) {
+        if (extensionObject[0u] == "no") {
+            if (ok) {
+                paths = new StreamString[numberOfNodes];
+                namespaceIndexes = new uint16[numberOfNodes];
+                StreamString sigName;
+                StreamString pathToken;
+                StreamString sigToken;
+                char8 ignore;
+                for (uint32 i = 0u; i < numberOfNodes; i++) {
+                    sigName = "";
+                    /* Getting the first name from the signal path */
+                    ok = GetSignalName(i, sigName);
+                    if (ok) {
+                        ok = sigName.Seek(0LLU);
+                    }
+                    if (ok) {
+                        ok = sigName.GetToken(sigToken, ".", ignore);
+                    }
+                    if (ok) {
+                        for (uint32 j = 0u; j < nOfSignals; j++) {
+                            StreamString lastToken;
+                            sigToken = "";
                             if (tempPaths != NULL_PTR(StreamString*)) {
+                                ok = tempPaths[j].Seek(0LLU);
+                                if (ok) {
+                                    do {
+                                        ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                                        if (ok) {
+                                            sigToken = lastToken;
+                                        }
+                                        lastToken = "";
+                                    }
+                                    while (ok);
+                                }
+
+                                /* This cycle will save the last token found */
+                                ok = tempPaths[j].Seek(0LLU);
+                                if (ok) {
+                                    do {
+                                        ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                                        if (ok) {
+                                            sigToken = lastToken;
+                                        }
+                                        lastToken = "";
+                                    }
+                                    while (ok);
+                                }
                                 /* This cycle will save the last token found */
                                 ok = tempPaths[j].Seek(0LLU);
                                 if (ok) {
@@ -294,8 +299,14 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
                                         if ((paths != NULL_PTR(StreamString*)) && ok) {
                                             if ((namespaceIndexes != NULL_PTR(uint16*)) && (tempNamespaceIndexes != NULL_PTR(uint16*))) {
                                                 if (pathToken == sigToken) {
-                                                    paths[i] = tempPaths[j];
-                                                    namespaceIndexes[i] = tempNamespaceIndexes[j];
+                                                    if (numberOfNodes == nOfSignals) {
+                                                        paths[j] = tempPaths[j];
+                                                        namespaceIndexes[j] = tempNamespaceIndexes[j];
+                                                    }
+                                                    else {
+                                                        paths[i] = tempPaths[j];
+                                                        namespaceIndexes[i] = tempNamespaceIndexes[j];
+                                                    }
                                                     ok = false; /* Exit from the cycle */
                                                 }
                                             }
@@ -303,31 +314,30 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
                                     }
                                     while (ok);
                                 }
+
                             }
                         }
-                    }
 
-                    /* Then we add to the path the remaining node names */
-                    StreamString dotToken = ".";
-                    do {
-                        sigToken = "";
-                        ok = sigName.GetToken(sigToken, ".", ignore);
-                        if ((paths != NULL_PTR(StreamString*)) && ok) {
-                            paths[i] += dotToken;
-                            paths[i] += sigToken;
+                        /* Then we add to the path the remaining node names */
+                        StreamString dotToken = ".";
+                        do {
+                            sigToken = "";
+                            ok = sigName.GetToken(sigToken, ".", ignore);
+                            if ((paths != NULL_PTR(StreamString*)) && ok) {
+                                paths[i] += dotToken;
+                                paths[i] += sigToken;
+                            }
                         }
+                        while (ok);
+                        ok = true;
                     }
-                    while (ok);
-                    ok = true;
                 }
             }
         }
     }
     if (ok) {
         /* Setting up the master Client who will perform the operations */
-        //masterClient = new OPCUAClientWrapper();
         masterClient = new OPCUAClientWrite();
-        //masterClient->SetOperationMode("Write");
         masterClient->SetServerAddress(serverAddress);
         ok = masterClient->Connect();
         if (!ok) {
@@ -335,30 +345,39 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
         }
         if (ok) {
             REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
-            if (extensionObject[0u] == "no") {
-                ok = masterClient->SetServiceRequest(namespaceIndexes, paths, numberOfNodes);
-                if (ok) {
-                    masterClient->SetValueMemories();
+            if (extensionObject != NULL_PTR(StreamString*)) {
+                if (extensionObject[0u] == "no") {
+                    ok = masterClient->SetServiceRequest(namespaceIndexes, paths, numberOfNodes);
+                    if (ok) {
+                        masterClient->SetValueMemories(numberOfNodes);
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "SetServiceRequest Failed.");
+                    }
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "SetServiceRequest Failed.");
-                }
-            }
-            else {
-                ok = masterClient->SetServiceRequest(tempNamespaceIndexes, tempPaths, nOfSignals);
-                if (ok) {
-                    masterClient->SetValueMemories();
-                    masterClient->SetDataPtr(bodyLength);
-                    for (uint32 k = 0u; k < nOfSignals; k++) {
-                        uint32 nodeCounter = 0u;
-                        uint32 index;
-                        for (uint32 j = 0u; j < tempNElements[k]; j++) {
-                            index = 0u;
-                            uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1);
-                            while (nodeCounter < numberOfNodesForEachIteration) {
-                                if (ok) {
-                                    ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize,
-                                                                                       nodeCounter, index);
+                    ok = masterClient->SetServiceRequest(tempNamespaceIndexes, tempPaths, nOfSignals);
+                    if (ok) {
+                        masterClient->SetValueMemories(numberOfNodes);
+                        masterClient->SetDataPtr(bodyLength);
+                        for (uint32 k = 0u; k < nOfSignals; k++) {
+                            uint32 nodeCounter = 0u;
+                            uint32 index;
+                            if (tempNElements != NULL_PTR(uint32*)) {
+                                for (uint32 j = 0u; j < tempNElements[k]; j++) {
+                                    index = 0u;
+                                    uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1u);
+                                    while (nodeCounter < numberOfNodesForEachIteration) {
+                                        if (ok) {
+                                            ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers,
+                                                                                            entryArraySize, nodeCounter, index);
+                                        }
+                                    }
+
+                                    if (ok) {
+                                        ok = masterClient->SetExtensionObject();
+                                    }
+
                                 }
                             }
                         }
@@ -390,17 +409,21 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
                     || (types[signalIdx].type == SString)) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Type String is not supported yet.");
             }
-            ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx]);
-            if (ok && (extensionObject[0u] == "no")) {
-                masterClient->SetWriteRequest(signalIdx, 0u, nElements[signalIdx], types[signalIdx]);
-            }
-            else {
-                if (ok) {
-                    ok = masterClient->GetExtensionObject();
+            if ((masterClient != NULL_PTR(OPCUAClientWrite*)) && (extensionObject != NULL_PTR(StreamString*)) && (nElements != NULL_PTR(uint32*))) {
+                ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx]);
+                if ((extensionObject[0u] == "no") && ok) {
+                    uint8 nDimensions;
+                    if (nElements[signalIdx] > 1u) {
+                        nDimensions = 1u;
+                    }
+                    else {
+                        nDimensions = 0u;
+                    }
+                    masterClient->SetWriteRequest(signalIdx, nDimensions, nElements[signalIdx], types[signalIdx]);
                 }
-            }
-            if (ok) {
-                ok = (signalAddress != NULL_PTR(void*));
+                if (ok) {
+                    ok = (signalAddress != NULL_PTR(void*));
+                }
             }
         }
     }
@@ -425,7 +448,7 @@ bool OPCUADSOutput::PrepareNextState(const char8 *const currentStateName,
 
 bool OPCUADSOutput::Synchronise() {
     bool ok = true;
-    if (masterClient != NULL_PTR(OPCUAClientWrite*)) {
+    if ((masterClient != NULL_PTR(OPCUAClientWrite*)) && (extensionObject != NULL_PTR(StreamString*))) {
         if (extensionObject[0u] == "yes") {
             ok = masterClient->Write();
         }
@@ -440,7 +463,7 @@ const char8* OPCUADSOutput::GetServerAddress() {
     return serverAddress.Buffer();
 }
 
-OPCUAClientWrite* OPCUADSOutput::GetClient() {
+OPCUAClientWrite* OPCUADSOutput::GetOPCUAClient() {
     return masterClient;
 }
 
@@ -452,7 +475,7 @@ bool OPCUADSOutput::GetBodyLength(const Introspection *const intro,
     for (j = 0u; j < numberOfMembers; j++) {
         const IntrospectionEntry entry = intro->operator[](j);
         const char8 *const memberTypeName = entry.GetMemberTypeName();
-        uint32 nElem = 1u;
+        uint32 nElem;
         nElem = entry.GetNumberOfElements(0u);
         if (nElem > 1u) {
             bodyLength += 4u;
@@ -497,7 +520,7 @@ void OPCUADSOutput::GetStructureDimensions(const Introspection *const intro,
     }
 }
 
-bool OPCUADSOutput::GetStructure(const Introspection *intro,
+bool OPCUADSOutput::GetStructure(const Introspection *const intro,
                                  uint32 *&entryArrayElements,
                                  TypeDescriptor *&entryTypes,
                                  uint32 *&entryNumberOfMembers,

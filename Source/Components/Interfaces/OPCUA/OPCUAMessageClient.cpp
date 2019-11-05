@@ -35,7 +35,8 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-
+/*-e909 and -e9133 redefines bool. -e578 symbol ovveride in CLASS_REGISTER*/
+/*lint -save -e909 -e9133 -e578*/
 namespace MARTe {
 
 OPCUAMessageClient::OPCUAMessageClient() :
@@ -68,13 +69,18 @@ OPCUAMessageClient::OPCUAMessageClient() :
 
 OPCUAMessageClient::~OPCUAMessageClient() {
     if (structuredTypeNames != NULL_PTR(StreamString*)) {
+        /*lint -e{1551} no exception on delete*/
         delete[] structuredTypeNames;
     }
     if (tempPaths != NULL_PTR(StreamString*)) {
+        /*lint -e{1551} no exception on delete*/
         delete[] tempPaths;
     }
     if (tempNamespaceIndexes != NULL_PTR(uint16*)) {
         delete[] tempNamespaceIndexes;
+    }
+    if (tempNElements != NULL_PTR(uint32*)) {
+        delete[] tempNElements;
     }
     if (entryArrayElements != NULL_PTR(uint32*)) {
         delete[] entryArrayElements;
@@ -89,13 +95,21 @@ OPCUAMessageClient::~OPCUAMessageClient() {
         delete[] entryTypes;
     }
     if (values != NULL_PTR(AnyType**)) {
-        for (uint32 i = 0; i < numberOfNodes; i++) {
-            if (values[i] != NULL_PTR(AnyType*))
-                delete values[i];
+        for (uint32 i = 0u; i < numberOfNodes; i++) {
+            if (values[i] != NULL_PTR(AnyType*)) {
+                /*lint -e{1551} no exception on delete*/
+                delete[] reinterpret_cast<uint8*>(values[i]->GetDataPointer());
+            }
+            /*lint -e{1551} no exception on delete*/
+            delete values[i];
         }
         delete[] values;
     }
+    if (signalAddresses != NULL_PTR(void**)) {
+        delete[] signalAddresses;
+    }
     if (masterClient != NULL_PTR(OPCUAClientMethod*)) {
+        /*lint -e{1551} no exception on delete*/
         delete masterClient;
     }
 }
@@ -111,7 +125,7 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
         if (ok) {
             ok = data.MoveRelative("Method");
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Method section");
             }
         }
         if (ok) {
@@ -145,9 +159,7 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
             tempNElements = new uint32[nOfSignals];
             structuredTypeNames = new StreamString[nOfSignals];
             for (uint32 i = 0u; (i < nOfSignals) && (ok); i++) {
-                if (ok) {
-                    ok = data.MoveRelative(data.GetChildName(i));
-                }
+                ok = data.MoveRelative(data.GetChildName(i));
                 if (ok) {
                     ok = data.Read("Path", tempPaths[i]);
                     if (!ok) {
@@ -165,7 +177,10 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
                 if (ok) {
                     ok = data.Read("NumberOfElements", tempNElements[i]);
                     if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the NumberOfelements of signal %d", i);
+                        tempNElements[i] = 1u;
+                        ok = true;
+                        uint32 k = i;
+                        REPORT_ERROR(ErrorManagement::Information, "No NumberOfElements set up for signal %d. Using N = 1", k);
                     }
                 }
                 if (ok) {
@@ -185,31 +200,42 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
         }
         if (ok) {
             uint32 bodyLength = 0u;
-
             for (uint32 k = 0u; k < nOfSignals; k++) {
-                const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[k].Buffer());
-                if (cri != NULL_PTR(const ClassRegistryItem*)) {
-                    const Introspection *intro = cri->GetIntrospection();
-                    ok = (intro != NULL_PTR(const Introspection*));
-                    if (ok) {
-                        GetStructureDimensions(intro, entryArraySize);
-
-                        entryArrayElements = new uint32[entryArraySize];
-                        entryNumberOfMembers = new uint32[entryArraySize];
-                        entryTypes = new TypeDescriptor[entryArraySize];
-                        entryMemberNames = new const char8*[entryArraySize];
-
-                        uint32 index = 0u;
-                        ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, entryMemberNames, index);
+                if (structuredTypeNames != NULL_PTR(StreamString*)) {
+                    const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[k].Buffer());
+                    if (cri != NULL_PTR(const ClassRegistryItem*)) {
+                        const Introspection *intro = cri->GetIntrospection();
+                        ok = (intro != NULL_PTR(const Introspection*));
                         if (ok) {
-                            ok = GetBodyLength(intro, bodyLength);
+                            GetStructureDimensions(intro, entryArraySize);
+
+                            entryArrayElements = new uint32[entryArraySize];
+                            entryNumberOfMembers = new uint32[entryArraySize];
+                            entryTypes = new TypeDescriptor[entryArraySize];
+                            entryMemberNames = new const char8*[entryArraySize];
+
+                            uint32 index = 0u;
+                            ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, entryMemberNames, index);
+                            if (ok) {
+                                ok = GetBodyLength(intro, bodyLength);
+                            }
+                            if (ok) {
+                                if (tempNElements != NULL_PTR(uint32*)) {
+                                    bodyLength *= tempNElements[k];
+                                }
+                            }
+                            ok = GetNumberOfNodes(intro, numberOfNodes);
+                            if (ok) {
+                                numberOfNodes *= tempNElements[k];
+                                values = new AnyType*[numberOfNodes];
+                                /* Initialising Signal memories */
+                                signalAddresses = new void*[numberOfNodes];
+                                for (uint32 j = 0u; j < numberOfNodes; j++) {
+                                    signalAddresses[j] = NULL_PTR(void*);
+                                    values[j] = NULL_PTR(AnyType*);
+                                }
+                            }
                         }
-                        if (ok) {
-                            bodyLength *= tempNElements[k];
-                        }
-                        GetNumberOfNodes(intro, numberOfNodes);
-                        numberOfNodes *= tempNElements[k];
-                        values = new AnyType*[numberOfNodes];
                     }
                 }
             }
@@ -240,32 +266,26 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
                     }
                 }
                 if (ok) {
-                    masterClient->SetValueMemories();
+                    masterClient->SetValueMemories(numberOfNodes);
                     masterClient->SetDataPtr(bodyLength);
                     REPORT_ERROR(ErrorManagement::Information, "Encoding Structure (%d nodes) into ByteString", numberOfNodes);
                     for (uint32 k = 0u; k < nOfSignals; k++) {
                         uint32 nodeCounter = 0u;
                         uint32 index;
-                        for (uint32 j = 0u; j < tempNElements[k]; j++) {
-                            index = 0u;
-                            uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1);
-                            while (nodeCounter < numberOfNodesForEachIteration) {
-                                if (ok) {
-                                    ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize,
-                                                                                    nodeCounter, index);
+                        if (tempNElements != NULL_PTR(uint32*)) {
+                            for (uint32 j = 0u; j < tempNElements[k]; j++) {
+                                index = 0u;
+                                uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1u);
+                                while (nodeCounter < numberOfNodesForEachIteration) {
+                                    if (ok) {
+                                        ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize,
+                                                                                        nodeCounter, index);
+                                    }
                                 }
                             }
                         }
                     }
-                    ok = masterClient->GetExtensionObject();
-                    if (ok) {
-                        /* Initialising Signal memories */
-                        signalAddresses = new void*[numberOfNodes];
-                        for (uint32 j = 0u; j < numberOfNodes; j++) {
-                            signalAddresses[j] = NULL_PTR(void*);
-                            values[j] = NULL_PTR(AnyType*);
-                        }
-                    }
+                    ok = masterClient->SetExtensionObject();
                 }
             }
         }
@@ -283,13 +303,15 @@ ErrorManagement::ErrorType OPCUAMessageClient::OPCUAMethodCall(StructuredDataI &
     for (uint32 k = 0u; k < nOfSignals; k++) {
         uint32 nodeCounter = 0u;
         uint32 index;
-        for (uint32 j = 0u; j < tempNElements[k]; j++) {
-            index = 0u;
-            uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1);
-            while (nodeCounter < numberOfNodesForEachIteration) {
-                ok = MapStructuredData(data, values, index, nodeCounter);
-                if (!ok) {
-                    break;
+        if (tempNElements != NULL_PTR(uint32*)) {
+            for (uint32 j = 0u; j < tempNElements[k]; j++) {
+                index = 0u;
+                uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1u);
+                while (nodeCounter < numberOfNodesForEachIteration) {
+                    ok = MapStructuredData(data, values, index, nodeCounter);
+                    if (!ok) {
+                        break;
+                    }
                 }
             }
         }
@@ -300,9 +322,7 @@ ErrorManagement::ErrorType OPCUAMessageClient::OPCUAMethodCall(StructuredDataI &
     if (ok) {
         if (masterClient != NULL_PTR(OPCUAClientMethod*)) {
             REPORT_ERROR(ErrorManagement::Information, "OPCUA Method Call");
-            if (ok) {
-                ok = masterClient->MethodCall();
-            }
+            ok = masterClient->MethodCall();
         }
         if (ok) {
             err = ErrorManagement::NoError;
@@ -335,7 +355,7 @@ void OPCUAMessageClient::GetStructureDimensions(const Introspection *const intro
     }
 }
 
-bool OPCUAMessageClient::GetStructure(const Introspection *intro,
+bool OPCUAMessageClient::GetStructure(const Introspection *const intro,
                                       uint32 *&entryArrayElements,
                                       TypeDescriptor *&entryTypes,
                                       uint32 *&entryNumberOfMembers,
@@ -389,7 +409,7 @@ bool OPCUAMessageClient::GetBodyLength(const Introspection *const intro,
     for (j = 0u; j < numberOfMembers; j++) {
         const IntrospectionEntry entry = intro->operator[](j);
         const char8 *const memberTypeName = entry.GetMemberTypeName();
-        uint32 nElem = 1u;
+        uint32 nElem;
         nElem = entry.GetNumberOfElements(0u);
         if (nElem > 1u) {
             bodyLength += 4u;
@@ -422,7 +442,7 @@ bool OPCUAMessageClient::GetNumberOfNodes(const Introspection *const intro,
     for (j = 0u; j < numberOfMembers; j++) {
         const IntrospectionEntry entry = intro->operator[](j);
         const char8 *const memberTypeName = entry.GetMemberTypeName();
-        uint32 nElem = 1u;
+        uint32 nElem;
         nElem = entry.GetNumberOfElements(0u);
         bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
         if (isStructured) {
@@ -446,92 +466,111 @@ bool OPCUAMessageClient::MapStructuredData(StructuredDataI &data,
                                            uint32 &index,
                                            uint32 &nodeCounter) {
     bool ok = true;
-    if (!entryTypes[index].isStructuredData) {
-        if (entryArrayElements[index] == 1u) {
-            uint32 nOfBytes = entryTypes[index].numberOfBits;
-            nOfBytes /= 8u;
-            values[nodeCounter] = new AnyType(entryTypes[index], 0u, HeapManager::Malloc(nOfBytes));
-            ok = data.Read(entryMemberNames[index], *values[nodeCounter]);
-            if (ok) {
-                ok = masterClient->GetSignalMemory(signalAddresses[nodeCounter], nodeCounter, entryTypes[index], entryArrayElements[index]);
+    if ((entryTypes != NULL_PTR(TypeDescriptor*)) && (entryArrayElements != NULL_PTR(uint32*)) && (entryMemberNames != NULL_PTR(const char8**))) {
+        if (!entryTypes[index].isStructuredData) {
+            if (entryArrayElements[index] == 1u) {
+                uint32 nOfBytes = entryTypes[index].numberOfBits;
+                nOfBytes /= 8u;
+                values[nodeCounter] = new AnyType(entryTypes[index], 0u, HeapManager::Malloc(nOfBytes));
+                ok = data.Read(entryMemberNames[index], *values[nodeCounter]);
                 if (ok) {
-                    ok = MemoryOperationsHelper::Copy(signalAddresses[nodeCounter], values[nodeCounter]->GetDataPointer(), nOfBytes);
-                }
-            }
-        }
-        else {
-            uint32 nOfBytes = entryTypes[index].numberOfBits;
-            nOfBytes /= 8u;
-            nOfBytes *= entryArrayElements[index];
-
-            uint8 *mem = new uint8[nOfBytes];
-            values[nodeCounter] = new AnyType(entryTypes[index], 0, mem);
-            values[nodeCounter]->SetNumberOfDimensions(1u);
-            values[nodeCounter]->SetNumberOfElements(0u, entryArrayElements[index]);
-            AnyType source = data.GetType(entryMemberNames[index]);
-            ok = TypeConvert(*values[nodeCounter], source);
-
-            if (ok) {
-                ok = masterClient->GetSignalMemory(signalAddresses[nodeCounter], nodeCounter, entryTypes[index], entryArrayElements[index]);
-                if (ok) {
-                    ok = MemoryOperationsHelper::Copy(signalAddresses[nodeCounter], values[nodeCounter]->GetDataPointer(), nOfBytes);
-                }
-            }
-        }
-        if (ok) {
-            nodeCounter++;
-            index++;
-        }
-    }
-    else { /* if isStructuredData */
-        uint32 newIndex;
-        if (entryArrayElements[index] == 1u) {
-            index++;
-            for (uint32 j = 0u; j < entryNumberOfMembers[index - 1u]; j++) {
-                if (ok) {
-                    ok = data.MoveRelative(entryMemberNames[index]);
-                    if (ok) {
-                        ok = MapStructuredData(data, values, index, nodeCounter);
-                    }
-                    if (ok) {
-                        ok = data.MoveToAncestor(1u);
-                    }
-                }
-            }
-        }
-        if (entryArrayElements[index] > 1u) {
-            StreamString childName;
-            if (ok) {
-                uint32 nMembers = entryNumberOfMembers[index];
-                for (uint32 i = 0u; i < entryArrayElements[index]; i++) {
-                    newIndex = index + 1u;
-                    for (uint32 j = 0u; j < entryNumberOfMembers[index]; j++) {
+                    if ((signalAddresses != NULL_PTR(void**)) && (masterClient != NULL_PTR(OPCUAClientMethod*))) {
+                        ok = masterClient->GetSignalMemory(signalAddresses[nodeCounter], nodeCounter, entryTypes[index], entryArrayElements[index]);
                         if (ok) {
-                            childName.Seek(0LLU);
-                            childName = entryMemberNames[index];
-                            childName += "[";
-                            childName.Printf("%d", i);
-                            childName += "]";
-                            ok = data.MoveRelative(childName.Buffer());
+                            ok = MemoryOperationsHelper::Copy(signalAddresses[nodeCounter], values[nodeCounter]->GetDataPointer(), nOfBytes);
+                        }
+                    }
+                }
+            }
+            else {
+                uint32 nOfBytes = entryTypes[index].numberOfBits;
+                nOfBytes /= 8u;
+                nOfBytes *= entryArrayElements[index];
+                uint8 *mem = new uint8[nOfBytes];
+                values[nodeCounter] = new AnyType(entryTypes[index], 0u, mem);
+                values[nodeCounter]->SetNumberOfDimensions(1u);
+                values[nodeCounter]->SetNumberOfElements(0u, entryArrayElements[index]);
+                AnyType source = data.GetType(entryMemberNames[index]);
+                ok = TypeConvert(*values[nodeCounter], source);
+
+                if (ok) {
+                    if ((signalAddresses != NULL_PTR(void**)) && (masterClient != NULL_PTR(OPCUAClientMethod*))) {
+                        ok = masterClient->GetSignalMemory(signalAddresses[nodeCounter], nodeCounter, entryTypes[index], entryArrayElements[index]);
+                        if (ok) {
+                            ok = MemoryOperationsHelper::Copy(signalAddresses[nodeCounter], values[nodeCounter]->GetDataPointer(), nOfBytes);
+                        }
+                    }
+                }
+                /*lint -e{429} mem is deleted into the destructor from Anytype->GetDataPointer*/
+            }
+            if (ok) {
+                nodeCounter++;
+                index++;
+            }
+        }
+        else { /* if isStructuredData */
+            if (entryNumberOfMembers != NULL_PTR(uint32*)) {
+                uint32 newIndex;
+                if (entryArrayElements[index] == 1u) {
+                    index++;
+                    for (uint32 j = 0u; j < entryNumberOfMembers[index - 1u]; j++) {
+                        if (ok) {
+                            ok = data.MoveRelative(entryMemberNames[index]);
                             if (ok) {
-                                ok = MapStructuredData(data, values, newIndex, nodeCounter);
+                                ok = MapStructuredData(data, values, index, nodeCounter);
                             }
                             if (ok) {
-                                childName = "";
                                 ok = data.MoveToAncestor(1u);
                             }
                         }
                     }
                 }
-                index += (nMembers + 1u);
+                if (entryArrayElements[index] > 1u) {
+                    StreamString childName;
+                    if (ok) {
+                        uint32 nMembers = entryNumberOfMembers[index];
+                        for (uint32 i = 0u; i < entryArrayElements[index]; i++) {
+                            newIndex = index + 1u;
+                            for (uint32 j = 0u; j < entryNumberOfMembers[index]; j++) {
+                                if (ok) {
+                                    ok = childName.Seek(0LLU);
+                                    if (ok) {
+                                        childName = entryMemberNames[index];
+                                        childName += "[";
+                                        uint32 k = i;
+                                        ok = childName.Printf("%d", k);
+                                    }
+                                    if(ok){
+                                        childName += "]";
+                                        ok = data.MoveRelative(childName.Buffer());
+                                    }
+                                    if (ok) {
+                                        ok = MapStructuredData(data, values, newIndex, nodeCounter);
+                                    }
+                                    if (ok) {
+                                        childName = "";
+                                        ok = data.MoveToAncestor(1u);
+                                    }
+                                }
+                            }
+                        }
+                        index += (nMembers + 1u);
+                    }
+                }
             }
         }
     }
     return ok;
 }
 
+OPCUAClientMethod* OPCUAMessageClient::GetOPCUAClient() {
+    return masterClient;
+}
+
 CLASS_REGISTER(OPCUAMessageClient, "")
 /*lint -e{1023} There is no ambiguity on the function to be called as the compiler can distinguish between both template definitions.*/
 CLASS_METHOD_REGISTER(OPCUAMessageClient, OPCUAMethodCall)
 }
+
+/*lint -restore*/
 

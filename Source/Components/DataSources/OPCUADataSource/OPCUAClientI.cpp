@@ -40,32 +40,45 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
+/*-e909 and -e9133 redefines bool.*/
+/*lint -save -e909 -e9133 -e578*/
 namespace MARTe {
 
 OPCUAClientI::OPCUAClientI() {
+    /*lint -e{118} no argument needed*/
     opcuaClient = UA_Client_new();
     UA_ClientConfig *config = UA_Client_getConfig(opcuaClient);
-    UA_ClientConfig_setDefault(config);
+    /*lint -e{526} -e{628} -e{1055} -e{746} function defined in open62541*/
+    (void)UA_ClientConfig_setDefault(config);
     valueMemories = NULL_PTR(void**);
-    serverAddress = NULL_PTR(char8*);
+    serverAddress = "";
     dataPtr = NULL_PTR(void*);
     tempDataPtr = NULL_PTR(uint8*);
     nOfNodes = 0u;
 }
 
+/*lint -e{1740} opcuaClient freed by UA_Client_delete*/
 OPCUAClientI::~OPCUAClientI() {
-    if(dataPtr == NULL_PTR(void*)) {
-        for(uint32 i = 0u; i < nOfNodes; i++) {
-            if(valueMemories[i] != NULL_PTR(void*))
-            (void)HeapManager::Free(valueMemories[i]);
+    if (dataPtr == NULL_PTR(void*)) {
+        if (valueMemories != NULL_PTR(void**)) {
+            for (uint32 i = 0u; i < nOfNodes; i++) {
+                if (valueMemories[i] != NULL_PTR(void*)) {
+                    /*lint -e{1551} no exception on delete*/
+                    (void) HeapManager::Free(valueMemories[i]);
+                }
+            }
+            delete[] valueMemories;
         }
-    } else {
-        (void)HeapManager::Free(dataPtr);
     }
-    if(valueMemories != NULL_PTR(void**)) {
-        delete [] valueMemories;
+    else {
+        if (valueMemories != NULL_PTR(void**)) {
+            delete[] valueMemories;
+        }
+        /*lint -e{1551} no exception on delete*/
+        (void) HeapManager::Free(dataPtr);
     }
+    tempDataPtr = NULL_PTR(uint8*);
+    /*lint -e{1551} no exception on delete*/
     UA_Client_delete(opcuaClient);
 }
 
@@ -78,9 +91,9 @@ bool OPCUAClientI::Connect() {
     return (retval == 0x00U); /* UA_STATUSCODE_GOOD */
 }
 
-void OPCUAClientI::SetValueMemories() {
-    valueMemories = new void*[nOfNodes];
-    for (uint32 i = 0u; i < nOfNodes; i++) {
+void OPCUAClientI::SetValueMemories(const uint32 numberOfNodes) {
+    valueMemories = new void*[numberOfNodes];
+    for (uint32 i = 0u; i < numberOfNodes; i++) {
         valueMemories[i] = NULL_PTR(void*);
     }
 }
@@ -109,9 +122,12 @@ bool OPCUAClientI::GetSignalMemory(void *&mem,
 }
 
 void OPCUAClientI::SeekDataPtr(const uint32 bodyLength) {
-    dataPtr = reinterpret_cast<uint8*>(dataPtr) - bodyLength;
+    if (dataPtr != NULL_PTR(void*)) {
+        dataPtr = reinterpret_cast<uint8*>(dataPtr) - bodyLength;
+    }
 }
 
+/*lint -e{1746} no need to make bReq const reference.*/
 uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
                                    const char8 *const path,
                                    uint16 &namespaceIndex,
@@ -137,20 +153,21 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
         while ((!found) && (bResp.resultsSize)) {
             for (uint32 i = 0u; i < bResp.resultsSize; ++i) {
                 for (uint32 j = 0u; j < bResp.results[i].referencesSize; ++j) {
-                    UA_ReferenceDescription *ref = &(bResp.results[i].references[j]);
-                    if (StringHelper::Compare(reinterpret_cast<char8*>(ref->browseName.name.data), path) == 0) {
-                        id = ref->referenceTypeId.identifier.numeric;
-                        namespaceIndex = ref->nodeId.nodeId.namespaceIndex;
-                        if (ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_NUMERIC) {
-                            numericNodeId = ref->nodeId.nodeId.identifier.numeric;
+                    UA_ReferenceDescription ref;
+                    (void) UA_ReferenceDescription_copy(&(bResp.results[i].references[j]), &ref);
+                    if (StringHelper::Compare(reinterpret_cast<char8*>(ref.browseName.name.data), path) == 0) {
+                        id = ref.referenceTypeId.identifier.numeric;
+                        namespaceIndex = ref.nodeId.nodeId.namespaceIndex;
+                        if (ref.nodeId.nodeId.identifierType == UA_NODEIDTYPE_NUMERIC) {
+                            numericNodeId = ref.nodeId.nodeId.identifier.numeric;
                             ok = true;
                         }
-                        else if (ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_STRING) {
+                        else if (ref.nodeId.nodeId.identifierType == UA_NODEIDTYPE_STRING) {
                             if (stringNodeId != NULL_PTR(char8*)) {
                                 delete stringNodeId;
                             }
-                            stringNodeId = new char8[ref->nodeId.nodeId.identifier.string.length];
-                            ok = StringHelper::Copy(stringNodeId, reinterpret_cast<char8*>(ref->nodeId.nodeId.identifier.string.data));
+                            stringNodeId = new char8[ref.nodeId.nodeId.identifier.string.length + 1u];
+                            ok = StringHelper::Copy(stringNodeId, reinterpret_cast<char8*>(ref.nodeId.nodeId.identifier.string.data));
                             if (ok) {
                                 numericNodeId = 0u;
                             }
@@ -166,6 +183,7 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
                 }
             }
             if ((!found) && bResp.results->continuationPoint.length) {
+                REPORT_ERROR_STATIC(ErrorManagement::Information, "BrowseNext");
                 UA_BrowseNextRequest nextReq;
                 UA_BrowseNextRequest_init(&nextReq);
                 nextReq.continuationPoints = UA_ByteString_new();
@@ -175,7 +193,10 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
                     /*lint -e{740} open62541 needs the recast of bResp .*/
                     *reinterpret_cast<UA_BrowseNextResponse*>(&bResp) = UA_Client_Service_browseNext(opcuaClient, nextReq);
                 }
-                UA_BrowseNextRequest_clear(&nextReq);
+                /*lint -e{526} -e{628} -e{1551} -e{1055} -e{746} no exception thrown, function defined in open62541*/
+                (void) UA_ByteString_clear(nextReq.continuationPoints);
+                UA_ByteString_delete(nextReq.continuationPoints);
+                //UA_BrowseNextRequest_clear(&nextReq);
             }
             finalCheckTime = HighResolutionTimer::Counter();
             if (HighResolutionTimer::TicksToTime(finalCheckTime, initCheckTime) > 5.0) {
@@ -184,7 +205,6 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
                 initCheckTime = HighResolutionTimer::Counter();
             }
             if (count > 1u) {
-                count = 0u;
                 break;
             }
         }
@@ -192,5 +212,22 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
     return id;
 }
 
+StreamString OPCUAClientI::GetServerAddress() const {
+    return serverAddress;
 }
+
+void** OPCUAClientI::GetValueMemories() {
+    return valueMemories;
+}
+
+uint32 OPCUAClientI::GetNumberOfNodes() const {
+    return nOfNodes;
+}
+
+void* OPCUAClientI::GetDataPtr() {
+    return dataPtr;
+}
+
+}
+/*lint -restore*/
 

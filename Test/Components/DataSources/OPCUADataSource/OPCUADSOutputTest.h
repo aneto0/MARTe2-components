@@ -57,6 +57,11 @@ public:
     bool TestInitialise_Introspection();
 
     /**
+     * @brief Tests the Initialise method with Introspections Structures read as ExtensionObject.
+     */
+    bool TestInitialise_ExtensionObject();
+
+    /**
      * @brief Tests the Initialise method without specifying the address parameter.
      */
     bool TestInitialise_NoAddress();
@@ -84,7 +89,12 @@ public:
     /**
      * @brief Tests the SetTargetNodes method with a wrong path that doesn't match any variable path on the server.
      */
-    bool Test_FailSetTargetNodes();
+    bool Test_SetConfiguredDatabase_FailSetServiceRequest();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method when ExtensionObject is "yes".
+     */
+    bool Test_SetConfiguredDatabase_ExtensionObject();
 
 };
 

@@ -31,7 +31,6 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "OPCUAClientWrapper.h"
 #include "OPCUAServer.h"
 #include "OPCUAServerTest.h"
 #include "StandardParser.h"
@@ -77,7 +76,6 @@ bool OPCUAServerTest::TestInitialise_Default() {
     }
     ord->Purge();
     return ok;
-    return true;
 }
 
 bool OPCUAServerTest::TestInitialise_NoDefault() {
@@ -166,7 +164,6 @@ bool OPCUAServerTest::TestExecute() {
         ok = ord->Initialise(cdb);
     }
     Sleep::MSec(100);
-//    UA_Client *client = UA_Client_new(UA_ClientConfig_default);
     UA_Client *client = UA_Client_new();
     UA_ClientConfig_setDefault(UA_Client_getConfig(client));
     UA_StatusCode retval = UA_Client_connect(client, "opc.tcp://localhost:4840");

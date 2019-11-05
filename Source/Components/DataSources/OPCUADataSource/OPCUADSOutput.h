@@ -167,11 +167,8 @@ public:CLASS_REGISTER_DECLARATION()
      */
     const char8* GetServerAddress();
 
-    /**
-     * @brief Gets the OPCUA Client pointer
-     */
-    //OPCUAClientWrapper* GetClient();
-    OPCUAClientWrite * GetClient();
+
+    OPCUAClientWrite * GetOPCUAClient();
 
 private:
 

@@ -62,7 +62,7 @@ public:
      * @details This method creates a ReadRequest and saves the ExtensionObject.
      * @return true if the ReadRequest returns StatusCode GOOD
      */
-    bool GetExtensionObject();
+    bool SetExtensionObject();
 
     /**
      * @brief Sets the OPC UA Write request
@@ -81,6 +81,10 @@ public:
      */
     bool Write();
 
+    UA_NodeId * GetMonitoredNodes();
+
+    UA_ExtensionObject * GetExtensionObject() ;
+
 private:
 
     /**
@@ -88,14 +92,14 @@ private:
      * @param[in] monitoredItems the nodes to be registered
      * @return true if the RegisterNodes Request return a StatusCode GOOD
      */
-    bool RegisterNodes(UA_NodeId *const monitoredItems);
+    bool RegisterNodes(const UA_NodeId *const monitoredNodes);
 
     /**
      * @brief Wrapper of UnregisterNodes OPCUA Service
      * @param[in] monitoredItems the nodes to be unregistered
      * @return true if the UnregisterNodes Request return a StatusCode GOOD
      */
-    bool UnregisterNodes(UA_NodeId *const monitoredItems);
+    bool UnregisterNodes(const UA_NodeId *const monitoredNodes);
 
     /**
      * The array that stores all the open62541 NodeIDs of the monitored nodes.
@@ -115,7 +119,7 @@ private:
     /**
      * Temporary open62541 void structure for internal operations.
      */
-    UA_Variant *tempVariant;
+    UA_Variant * tempVariant;
 
     /**
      * The array that stores all the ExtensionObjects when using Complex DataType Extensions.
