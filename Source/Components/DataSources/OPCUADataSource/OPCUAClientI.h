@@ -40,27 +40,81 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+/**
+ * @brief OPCUAClientI interface. It's the OPCUA Client Interface from which every other OPCUA client wrapper shall inherit.
+ * It comprises all the functionalities to create a valid OPCUA Client.
+ */
 /*lint -e9150 no need to make non POD members private.*/
 class OPCUAClientI {
 public:
 
+    /**
+     * @brief Default Constructor. Creates a new client and set a default configuration.
+     */
     OPCUAClientI();
 
+    /**
+     * @brief Default Destructor.
+     */
     virtual ~OPCUAClientI();
 
+    /**
+     * @brief Sets the server address in order to connect to the right endpoint.
+     * @param[in] address The address of the OPCUA Server
+     */
     void SetServerAddress(StreamString address);
 
+    /**
+     * @brief Connects the Client to the Server
+     * @pre SetServerAddress
+     * @return true if the OPCUA connection return UA_STATUSCODE_GOOD
+     */
     bool Connect();
 
+    /**
+     * @brief Allocates the right amount of memory for every node to read or write.
+     * @param[in] numberOfNodes The number of nodes to read/write
+     */
     void SetValueMemories(const uint32 numberOfNodes);
 
+    /**
+     * @brief Allocates the right amount of memory for the OPCUA Bytestring (ExtensionObject)
+     * @details When using complex data type extension, this function allocates the right amount of
+     * memory for the Bytestring of the ExtensionObject to be read/wrote.
+     * @param[in] bodyLength The number of bytes of the Bytestring
+     */
     void SetDataPtr(const uint32 bodyLength);
 
+    /**
+     * @brief Links the value memories from the outside to the node memories of the class.
+     * @details This function allows to connect the value memories of the signals allocated with the
+     * SetValueMemories function, with a memory pointer provided in input. This is useful for DataSources or
+     * Message Clients.
+     * @param[in,out] mem The memory pointer to be connected to the node memory.
+     * @param[idx] idx The index of the current node.
+     * @param[in] valueTd The TypeDescriptor associated with the current node value.
+     * @param[in] nElem The number of elements of the current node.
+     * @pre SetValueMemories || SetDataPtr
+     * @return true if valueMemories != NULL_PTR(void**)
+     */
     bool GetSignalMemory(void *&mem,
                          const uint32 idx,
                          const TypeDescriptor &valueTd,
                          const uint32 nElem);
 
+    /**
+     * @brief Encodes/Decodes the ExtensionObject Bytestring based on the structure information.
+     * @details This class expects the children classes to implement a function to encode/decode the ExtensionObject
+     * Bytestring mapping the dataPtr according to the OPCUA Standard Part 6 - Mappings.
+     * @param[in] entryTypes The TypeDescriptor array associated to each node of the structure.
+     * @param[in] entryArrayElements The array of number of elements associated to each node of the structure.
+     * @param[in] entryNumberOfMembers The array of number of members associated to each node of the structure.
+     * @param[in] entryArraySize The size of the previous arrays.
+     * @param[in, out] nodeCounter The number of the current node.
+     * @param[in, out] index The index of the current elements from the previous arrays.
+     * @pre SetDataPtr
+     * @return true if the ByteString has been encoded/decoded correctly.
+     */
     virtual bool GetExtensionObjectByteString(const TypeDescriptor *const&entryTypes,
                                          const uint32 *const&entryArrayElements,
                                          const uint32 *const&entryNumberOfMembers,
@@ -68,34 +122,54 @@ public:
                                          uint32 &nodeCounter,
                                          uint32 &index) = 0;
 
+    /**
+     * @brief Sets the OPCUA Service Request to be performed from the client wrapper.
+     * @details This function uses the information from the node paths and the namespace indexes
+     * to get the OPCUA NodeIds using OPCUA Browse Service Set. It also sets all the parameters of the read/write request
+     * when needed.
+     * @param[in] namespaceIndexes The array containing the namespace index for each node.
+     * @param[in] nodePaths The array containing the browse path for each node.
+     * @param[in] numberOfNodes The number of nodes to be browsed.
+     * @return true if all the Browse Requests return UA_STATUSCODE_GOOD
+     */
     virtual bool SetServiceRequest(const uint16 *const namespaceIndexes,
                                    StreamString *const nodePaths,
                                    const uint32 numberOfNodes) = 0;
 
     /**
-     * Testing purpose
+     * @brief Returns the Server address. (For Testing Purposes)
      */
     StreamString GetServerAddress() const;
 
     /**
-     * Testing purpose
+     * @brief Returns the value memories pointer. (For Testing Purposes)
      */
     void ** GetValueMemories();
 
     /**
-     * Testing purpose
+     * @brief Returns the number of nodes set for this client. (For Testing Purposes)
      */
     uint32 GetNumberOfNodes() const;
 
     /**
-     * Testing purpose
+     * @brief Returns the bytestring data pointer. (For Testing Purposes)
      */
     void * GetDataPtr();
 
 protected:
 
+    /**
+     * @brief Moves back the data pointer of bodyLength bytes.
+     */
     void SeekDataPtr(const uint32 bodyLength);
 
+    /**
+     * @brief Gets the reference associated to a specific OPCUA NodeId
+     * @details This function uses the OPCUA Browse Service Set to get the references
+     * associated to a NodeId.
+     * @param[in] bReq The OPCUA BrowseRequest
+     * @return the numeric Reference NodeId.
+     */
     uint32 GetReferences(const UA_BrowseRequest bReq,
                          const char8 *const path,
                          uint16 &namespaceIndex,

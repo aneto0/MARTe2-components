@@ -39,17 +39,34 @@
 
 namespace MARTe {
 
+/**
+ * @brief Wrapper of a OPCUA Client for writing data to a OPCUA Server.
+ * @details This class wraps all the functionalities to write data to a OPCUA Server.
+ * The class supports both single nodes and ExtensionObjects.
+ */
 class OPCUAClientWrite: public OPCUAClientI {
 public:
 
+    /**
+     * @brief Default Constructor. NOOP
+     */
     OPCUAClientWrite();
 
+    /**
+     * @brief Default Destructor. NOOP
+     */
     ~OPCUAClientWrite();
 
+    /**
+     * @see OPCUAClientI::SetServiceRequest
+     */
     virtual bool SetServiceRequest(const uint16 *const namespaceIndexes,
                                    StreamString *const nodePaths,
                                    const uint32 numberOfNodes);
 
+    /**
+     * @see OPCUAClientI::GetExtensionObjectByteString
+     */
     virtual bool GetExtensionObjectByteString(const TypeDescriptor *const&entryTypes,
                                               const uint32 *const&entryArrayElements,
                                               const uint32 *const&entryNumberOfMembers,
@@ -60,13 +77,18 @@ public:
     /**
      * @brief Retrieve information from the Secure Channel about the ExtensionObject to be sent.
      * @details This method creates a ReadRequest and saves the ExtensionObject.
-     * @return true if the ReadRequest returns StatusCode GOOD
+     * @return true if the ReadRequest returns UA_STATUSCODE_GOOD
      */
     bool SetExtensionObject();
 
     /**
      * @brief Sets the OPC UA Write request
      * @details This method create the correct Write request based on the properties of the value to write in the address space.
+     * Based on the input arguments, it will set the write value parameters with the correct data.
+     * @param[in] idx The index of the current node.
+     * @param[in] nDimensions The number of dimensions of the current node.
+     * @param[in] nElements The number of elements of the current node.
+     * @param[in] type The TypeDescriptor associated to the value of the current node.
      */
     void SetWriteRequest(const uint32 idx,
                          const uint8 nDimensions,
@@ -81,23 +103,29 @@ public:
      */
     bool Write();
 
+    /**
+     * @brief Gets the monitored Nodes pointer. (Testing purposes)
+     */
     UA_NodeId * GetMonitoredNodes();
 
+    /**
+     * @brief Gets the extension object pointer. (Testing purposes)
+     */
     UA_ExtensionObject * GetExtensionObject() ;
 
 private:
 
     /**
      * @brief Wrapper of RegisterNodes OPCUA Service
-     * @param[in] monitoredItems the nodes to be registered
-     * @return true if the RegisterNodes Request return a StatusCode GOOD
+     * @param[in] monitoredNodes the nodes to be registered
+     * @return true if the RegisterNodes Request return UA_STATUSCODE_GOOD
      */
     bool RegisterNodes(const UA_NodeId *const monitoredNodes);
 
     /**
      * @brief Wrapper of UnregisterNodes OPCUA Service
-     * @param[in] monitoredItems the nodes to be unregistered
-     * @return true if the UnregisterNodes Request return a StatusCode GOOD
+     * @param[in] monitoredNodes the nodes to be unregistered
+     * @return true if the UnregisterNodes Request return UA_STATUSCODE_GOOD
      */
     bool UnregisterNodes(const UA_NodeId *const monitoredNodes);
 
@@ -126,10 +154,19 @@ private:
      */
     UA_ExtensionObject *eos;
 
+    /**
+     * The array that stores the ExtensionObjects read from the Server setting up the Write Request.
+     */
     UA_ExtensionObject *valuePtr;
 
+    /**
+     * The number of ExtensionObject to be written.
+     */
     uint32 nOfEos;
 
+    /**
+     * The ReadResponse struct to be used during SetExtensionObject.
+     */
     UA_ReadResponse readResponse;
 
 };

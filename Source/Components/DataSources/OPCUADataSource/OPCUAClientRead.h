@@ -38,11 +38,22 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+/**
+ * @brief Wrapper of a OPCUA Client for reading data to a OPCUA Server.
+ * @details This class wraps all the functionalities to read data to a OPCUA Server.
+ * The class supports both single nodes and ExtensionObjects.
+ */
 class OPCUAClientRead: public OPCUAClientI {
 public:
 
+    /**
+     * @brief Default Constructor. NOOP.
+     */
     OPCUAClientRead();
 
+    /**
+     * @brief Default Destructor. NOOP.
+     */
     ~OPCUAClientRead();
 
     /**
@@ -56,17 +67,25 @@ public:
     bool Read(const TypeDescriptor *const types,
               const uint32 *const nElements);
 
+    /**
+     * @see OPCUAClientI::SetServiceRequest
+     */
     virtual bool SetServiceRequest(const uint16 *const namespaceIndexes,
                                    StreamString *const nodePaths,
                                    const uint32 numberOfNodes);
 
+    /**
+     * @see OPCUAClientI::GetExtensionObjectByteString
+     */
     virtual bool GetExtensionObjectByteString(const TypeDescriptor *const&entryTypes,
                                               const uint32 *const&entryArrayElements,
                                               const uint32 *const&entryNumberOfMembers,
                                               const uint32 entryArraySize,
                                               uint32 &nodeCounter,
                                               uint32 &index);
-
+    /**
+     * @brief Gets the monitored Nodes pointer. (Testing purposes)
+     */
     UA_NodeId * GetMonitoredNodes();
 
 
@@ -74,15 +93,15 @@ private:
 
     /**
      * @brief Wrapper of RegisterNodes OPCUA Service
-     * @param[in] monitoredItems the nodes to be registered
-     * @return true if the RegisterNodes Request return a StatusCode GOOD
+     * @param[in] monitoredNodes the nodes to be registered
+     * @return true if the RegisterNodes Request return UA_STATUSCODE_GOOD
      */
     bool RegisterNodes(const UA_NodeId *const monitoredNodes);
 
     /**
      * @brief Wrapper of UnregisterNodes OPCUA Service
-     * @param[in] monitoredItems the nodes to be unregistered
-     * @return true if the UnregisterNodes Request return a StatusCode GOOD
+     * @param[in] monitoredNodes the nodes to be unregistered
+     * @return true if the UnregisterNodes Request return UA_STATUSCODE_GOOD
      */
     bool UnregisterNodes(const UA_NodeId *const monitoredNodes);
 
@@ -96,6 +115,9 @@ private:
      */
     UA_ReadRequest readRequest;
 
+    /**
+     * open62541 readValues array.
+     */
     UA_ReadValueId *readValues;
 
 };

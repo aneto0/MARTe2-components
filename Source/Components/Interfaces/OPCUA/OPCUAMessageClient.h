@@ -104,6 +104,9 @@ public:CLASS_REGISTER_DECLARATION()
      */
     const char8* GetServerAddress() const;
 
+    /**
+     * @brief Returns the OPCUA Client pointer (for testing purposes)
+     */
     OPCUAClientMethod * GetOPCUAClient();
 
 private:

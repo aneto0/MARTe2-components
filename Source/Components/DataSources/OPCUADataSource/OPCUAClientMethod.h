@@ -37,17 +37,35 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-
+/**
+ * @brief Wrapper of a OPCUA Client for writing data as structures to a OPCUA Server using method call
+ * via MARTe Message System.
+ * @details This class wraps all the functionalities to call methods on a OPCUA Server.
+ * The class supports ExtensionObjects only.
+ */
 class OPCUAClientMethod: public OPCUAClientI {
 public:
+
+    /**
+     * @brief Default Constructor. NOOP
+     */
     OPCUAClientMethod();
 
+    /**
+     * @brief Default Destructor. NOOP
+     */
     ~OPCUAClientMethod();
 
+    /**
+     * @see OPCUAClientI::SetServiceRequest
+     */
     virtual bool SetServiceRequest(const uint16 *const namespaceIndexes,
                                    StreamString *const nodePaths,
                                    const uint32 numberOfNodes);
 
+    /**
+     * @see OPCUAClientI::GetExtensionObjectByteString
+     */
     virtual bool GetExtensionObjectByteString(const TypeDescriptor *const&entryTypes,
                                               const uint32 *const&entryArrayElements,
                                               const uint32 *const&entryNumberOfMembers,
@@ -55,18 +73,50 @@ public:
                                               uint32 &nodeCounter,
                                               uint32 &index);
 
+    /**
+     * @brief Sets the OPCUA Owner Object.
+     * @details This function uses the information from the node paths and the namespace indexes
+     * to get the OPCUA NodeIds using OPCUA Browse Service Set.
+     * @param[in] methodNamespaceIndex The namespace index of the method node.
+     * @param[in] nodePaths The browse path of the method node.
+     * @return true if all the Browse Requests return UA_STATUSCODE_GOOD
+     */
     bool SetObjectRequest(const uint16 methodNamespaceIndex,
                           StreamString methodPath);
 
+    /**
+     * @brief Sets the OPCUA Method.
+     * @details This function uses the information from the node paths and the namespace indexes
+     * to get the OPCUA NodeIds using OPCUA Browse Service Set.
+     * @param[in] methodNamespaceIndex The namespace index of the method node.
+     * @param[in] nodePaths The browse path of the method node.
+     * @return true if all the Browse Requests return UA_STATUSCODE_GOOD
+     */
     bool SetMethodRequest(const uint16 methodNamespaceIndex,
                           StreamString methodPath);
 
+    /**
+     * @brief Wraps a OPCUA Method Call.
+     * @pre SetServiceRequest && SetObjectRequest && SetMethodRequest && SetExtensionObject
+     * @return true if the method call returns UA_STATUSCODE_GOOD
+     */
     bool MethodCall();
 
+    /**
+     * @brief Retrieve information from the Secure Channel about the ExtensionObject to be sent.
+     * @details This method creates a ReadRequest and saves the ExtensionObject.
+     * @return true if the ReadRequest returns UA_STATUSCODE_GOOD
+     */
     bool SetExtensionObject();
 
+    /**
+     * @brief Gets the monitored Nodes pointer. (Testing purposes)
+     */
     UA_NodeId * GetMonitoredNodes();
 
+    /**
+     * @brief Gets the extension object pointer. (Testing purposes)
+     */
     UA_ExtensionObject * GetExtensionObject();
 
 private:
@@ -96,10 +146,19 @@ private:
      */
     UA_ExtensionObject *eos;
 
+    /**
+     * The array that stores the ExtensionObjects read from the Server setting up the Write Request.
+     */
     UA_ExtensionObject *valuePtr;
 
+    /**
+     * The number of ExtensionObject to be written.
+     */
     uint32 nOfEos;
 
+    /**
+     * The ReadResponse struct to be used during SetExtensionObject.
+     */
     UA_ReadResponse readResponse;
 
 };

@@ -187,6 +187,9 @@ public:
      */
     const char8* GetServerAddress();
 
+    /**
+     * @brief Gets the OPCUA Client Pointer
+     */
     OPCUAClientRead * GetOPCUAClient();
 
 
