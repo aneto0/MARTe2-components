@@ -467,6 +467,7 @@ bool OPCUAClientMethod::SetExtensionObject() {
 
     if (monitoredNodes != NULL_PTR(UA_NodeId*)) {
         (void) UA_NodeId_copy(&monitoredNodes[0u], &(readValues[0u].nodeId));
+//        readValues[0u].nodeId = UA_NODEID_STRING(3u, const_cast<char*>("\"SCUs_Config.SCU_Config\""));
     }
     UA_ReadRequest readRequest;
     UA_ReadRequest_init(&readRequest);

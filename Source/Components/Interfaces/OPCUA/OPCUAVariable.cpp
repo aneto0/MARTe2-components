@@ -53,6 +53,8 @@ void OPCUAClientDataChange(UA_Client *client,
                            UA_UInt32 monId,
                            void *monContext,
                            UA_DataValue *value) {
+
+
     uint32 i;
     for (i = 0u; i < monitoredItemsContainer->Size(); i++) {
         ReferenceT<OPCUAVariable> child = monitoredItemsContainer->Get(i);
@@ -387,7 +389,7 @@ bool OPCUAVariable::BrowseRequest() {
             elem->targetName = UA_QUALIFIEDNAME_ALLOC(nameSpaceIndex, const_cast<char8*>(path[j].Buffer()));
         }
     }
-    UA_TranslateBrowsePathsToNodeIdsRequest tbpReq;
+    UA_TranslateBrowsePathsToNodeIdsRequest* tbpReq;
     UA_TranslateBrowsePathsToNodeIdsRequest_init(&tbpReq);
     tbpReq.browsePaths = &browsePath;
     tbpReq.browsePathsSize = 1u;
@@ -396,6 +398,7 @@ bool OPCUAVariable::BrowseRequest() {
     if (ok) {
         UA_BrowsePathTarget *ref = &(tbpResp.results[0].targets[0]);
         nodeId = ref->targetId.nodeId;
+
     }
     else {
         REPORT_ERROR(ErrorManagement::ParametersError, "UA Browse request status code is %d", ok);
@@ -407,6 +410,8 @@ bool OPCUAVariable::BrowseRequest() {
         UA_Array_delete(browsePath.relativePath.elements, static_cast<osulong>(pathSize), &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
         UA_BrowseDescription_delete(bReq.nodesToBrowse);
     }
+
+
 
     return ok;
 }
@@ -446,6 +451,12 @@ bool OPCUAVariable::SetSubscriptionRequest() {
         }
         monitorRequest.requestedParameters.samplingInterval = samplingTime;
         monitorRequest.requestedParameters.queueSize = 1;
+
+        UA_CreateMonitoredItemsRequest mreq;
+        UA_CreateMonitoredItemsRequest_init(&mreq);
+        mreq.itemsToCreateSize = 2;
+        mreq.itemsToCreate = UA_Array_new(2, &UA_TYPES[UA_TYPES_MONITOREDITEMCREATEREQUEST]);
+
     }
     if (monitorResponse.monitoredItemId == 0) {
         monitorResponse = UA_Client_MonitoredItems_createDataChange(opcuaClient, response.subscriptionId, UA_TIMESTAMPSTORETURN_BOTH, monitorRequest, NULL,
