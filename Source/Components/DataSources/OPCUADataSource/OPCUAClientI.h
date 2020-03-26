@@ -41,8 +41,8 @@
 namespace MARTe {
 
 /**
- * @brief OPCUAClientI interface. It's the OPCUA Client Interface from which every other OPCUA client wrapper shall inherit.
- * It comprises all the functionalities to create a valid OPCUA Client.
+ * @brief OPCUA Client Interface from which every other OPCUA client wrapper shall inherit.
+ * @details This interface comprises all the functionalities to create a valid OPCUA Client.
  */
 /*lint -e9150 no need to make non POD members private.*/
 class OPCUAClientI {
@@ -91,7 +91,7 @@ public:
      * SetValueMemories function, with a memory pointer provided in input. This is useful for DataSources or
      * Message Clients.
      * @param[in,out] mem The memory pointer to be connected to the node memory.
-     * @param[idx] idx The index of the current node.
+     * @param[in] idx The index of the current node.
      * @param[in] valueTd The TypeDescriptor associated with the current node value.
      * @param[in] nElem The number of elements of the current node.
      * @pre SetValueMemories || SetDataPtr
@@ -168,6 +168,10 @@ protected:
      * @details This function uses the OPCUA Browse Service Set to get the references
      * associated to a NodeId.
      * @param[in] bReq The OPCUA BrowseRequest
+     * @param[in] path MISSING PARAMETER
+     * @param[in] namespaceIndex MISSING PARAMETER
+     * @param[in] numericNodeId MISSING PARAMETER
+     * @param[in] stringNodeId MISSING PARAMETER
      * @return the numeric Reference NodeId.
      */
     uint32 GetReferences(const UA_BrowseRequest bReq,
@@ -175,6 +179,7 @@ protected:
                          uint16 &namespaceIndex,
                          uint32 &numericNodeId,
                          char8 *&stringNodeId);
+
     /**
      * Holds the server address
      */

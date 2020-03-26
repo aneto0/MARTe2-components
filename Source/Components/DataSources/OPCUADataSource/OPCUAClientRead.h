@@ -61,8 +61,8 @@ public:
      * @details Gets the data from the OPCUA Secure Channel and writes them to the valueMemory of each monitoredNode.
      * @param[in] types the array with all the TypeDescriptor for each node to read.
      * @param[in] nElements the array with all the number of elements for each node to read.
-     * @return true if the Read Service is executed correctly.
      * @pre SetServiceRequest
+     * @return true if the Read Service is executed correctly.
      */
     bool Read(const TypeDescriptor *const types,
               const uint32 *const nElements);

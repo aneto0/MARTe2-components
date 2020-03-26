@@ -43,7 +43,7 @@
 namespace MARTe {
 
 /**
- * @brief OPCUADSOutput class. It is the OPCUA Output DataSource that manages the write-only OPCUA client life cycle.
+ * @brief Output DataSource class that manages the write-only OPCUA client life cycle.
  * @details This DataSource allows to write data to Node Variables managed by an OPCUA Server.
  * This class uses the OPC UA RegisteredWrite Service.
  * You must assign the actual name of the Node you want to read as signal name.
@@ -98,7 +98,9 @@ namespace MARTe {
  */
 class OPCUADSOutput: public DataSourceI {
 
-public:CLASS_REGISTER_DECLARATION()
+public:
+
+    CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Default Constructor
@@ -113,6 +115,7 @@ public:CLASS_REGISTER_DECLARATION()
     /**
      * @brief Loads and verifies all the configuration parameters detailed in the class description.
      * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
+     * @see DataSourceI::Initialise
      */
     virtual bool Initialise(StructuredDataI &data);
 
@@ -121,44 +124,45 @@ public:CLASS_REGISTER_DECLARATION()
      * @details This method constructs the actual browse paths for each node
      * adding all the child nodes if the signal is an Introspection Structure.
      * @return true if all the paths were successfully constructed.
+     * @see DataSourceI::SetConfiguredDatabase
      */
     virtual bool SetConfiguredDatabase(StructuredDataI &data);
 
     /**
-     * @see DataSourceI::AllocateMemory
      * @brief NOOP.
      * @return true
+     * @see DataSourceI::AllocateMemory
      */
     virtual bool AllocateMemory();
 
     /**
-     * @see DataSourceI::GetNumberOfMemoryBuffers
      * @details The memory buffer is obtained after a Browse request on the OPCUA Server's Address Space through the OPCUAClientWrapper Helper Class.
      * @pre SetConfiguredDatabase
+     * @see DataSourceI::GetSignalMemoryBuffer
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
                                        const uint32 bufferIdx,
                                        void *&signalAddress);
 
     /**
-     * @see DataSourceI::GetBrokerName
      * @details Only OutputSignals are supported.
      * @return MemoryMapSynchronisedOutputBroker
+     * @see DataSourceI::GetBrokerName
      */
     virtual const char8* GetBrokerName(StructuredDataI &data,
                                        const SignalDirection direction);
 
     /**
-     * @see DataSourceI::PrepareNextState
      * @return true
+     * @see DataSourceI::PrepareNextState
      */
     virtual bool PrepareNextState(const char8 *const currentStateName,
                                   const char8 *const nextStateName);
 
     /**
-     * @see DataSourceI::Synchronise
      * @details Provides the context to create the OPC UA Write service request.
      * @return true if all the services are executed correctly.
+     * @see DataSourceI::Synchronise
      */
     virtual bool Synchronise();
 
@@ -193,6 +197,7 @@ private:
 
     /**
      * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
+     * @param[in] intro the first introspection from which starting the research
      * @param[out] entryArrayElements the array that holds the number of elements for introspection entry
      * @param[out] entryTypes the array that holds the type for introspection entry
      * @param[out] entryNumberOfMembers the array that holds the number of members for introspection entry
@@ -208,7 +213,6 @@ private:
     /**
      * Pointer to the Helper Class for the main Client
      */
-    //OPCUAClientWrapper *masterClient;
     OPCUAClientWrite * masterClient;
 
     /**

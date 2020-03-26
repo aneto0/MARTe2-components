@@ -46,7 +46,7 @@
 namespace MARTe {
 
 /**
- * @brief OPCUADSInput class. It is the OPCUA Input DataSource that manages the read-only OPCUA client life cycle.
+ * @brief Input DataSource class that manages the read-only OPCUA client life cycle.
  * @details This DataSource allows to read Node Variables from an OPCUA Server. Data is read
  * from an OPCUA Address Space in the context of a thread or in the context of Synchronise method.
  * This class uses the OPC UA RegisteredRead Service and the OPC UA Monitored Item Service.
@@ -125,6 +125,7 @@ public:
     /**
      * @brief Loads and verifies all the configuration parameters detailed in the class description.
      * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
+     * @see DataSourceI::Initialise
      */
     virtual bool Initialise(StructuredDataI &data);
 
@@ -133,6 +134,7 @@ public:
      * @details This method constructs the actual browse paths for each node
      * adding all the child nodes if the signal is an Introspection Structure.
      * @return true if all the paths were successfully constructed and the thread service is running.
+     * @see DataSourceI::SetConfiguredDatabase
      */
     virtual bool SetConfiguredDatabase(StructuredDataI &data);
 
@@ -144,9 +146,9 @@ public:
     virtual bool AllocateMemory();
 
     /**
-     * @see DataSourceI::GetNumberOfMemoryBuffers
      * @details The memory buffer is obtained after a Browse request on the OPCUA Server's Address Space through the OPCUAClientWrapper Helper Class.
      * @pre SetConfiguredDatabase
+     * @see DataSourceI::GetSignalMemoryBuffer
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
                                        const uint32 bufferIdx,
@@ -172,13 +174,14 @@ public:
      * @return ErrorManagement::NoError if the OPCUA Subscription, the OPCUA Monitored Item request,
      * OPCUA Monitored Item create data change service are successfully created and the client is running with no error, or
      * the OPCUA Read Service has been executed correctly.
+     * @see EmbeddedServiceMethodBinderI::Execute
      */
     virtual ErrorManagement::ErrorType Execute(ExecutionInfo &info);
 
     /**
-     * @see DataSourceI::Synchronise
      * @details Provides the context to create the OPCUA Subscription and Monitored Item request or the Read service request.
      * @return true if all the services are executed correctly.
+     * @see DataSourceI::Synchronise
      */
     virtual bool Synchronise();
 
@@ -214,6 +217,7 @@ private:
 
     /**
      * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
+     * @param[in]  intro the first introspection from which starting the research
      * @param[out] entryArrayElements the array that holds the number of elements for introspection entry
      * @param[out] entryTypes the array that holds the type for introspection entry
      * @param[out] entryNumberOfMembers the array that holds the number of members for introspection entry

@@ -50,7 +50,7 @@
 namespace MARTe {
 
 /**
- * @brief OPCUAServer class. Manages the OPCUA Server life cycle.
+ * @brief Interface class that manages the OPCUA Server life cycle.
  * @details A SingleThreadService which offers all the functionalities to read data from IntrospectionStructures
  * and to create the OPCUA Address Space correctly.
  *
@@ -78,12 +78,14 @@ namespace MARTe {
  */
 class OPCUAServer: public Object, public EmbeddedServiceMethodBinderI {
 public:
+
     CLASS_REGISTER_DECLARATION()
-/**
- * @brief Default Constructor
- * @details Creates OPCUAServerConfiguration and creates a new OPCUA Server instance from OPCUA configuration.
- */
-OPCUAServer    ();
+
+    /**
+     * @brief Default Constructor
+     * @details Creates OPCUAServerConfiguration and creates a new OPCUA Server instance from OPCUA configuration.
+     */
+    OPCUAServer    ();
 
     /**
      * @brief Default Destructor
@@ -94,6 +96,7 @@ OPCUAServer    ();
     /**
      * @brief Initialise the Object and reads the Thread parameters
      * @return true if the Object and Thread parameters are successfully initialised.
+     * @see Object::Initialise
      */
     virtual bool Initialise(StructuredDataI &data);
 
@@ -101,31 +104,37 @@ OPCUAServer    ();
      * @brief Provides the context to read information from the IntrospectionStructures and Initialise
      * the Address Space.
      * @details An OPCUA Object named "MARTe2_Variables" is created in which the nodes are added.
+     * @see EmbeddedServiceMethodBinderI::Execute
      */
     virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
 
     /**
      * @brief Set the running mode
+     * @param[in] ref true to enable running mode
      */
     void SetRunning(bool const running);
 
     /**
      * @brief Provides running mode
+     * @return true if server is currently running
      */
     const bool GetRunning() const;
 
     /**
      * @brief Provides CPU mask
+     * @return Assigned CPU mask
      */
     const uint32 GetCPUMask() const;
 
     /**
      * @brief Provides Thread Stack Size
+     * @return Assigned Thread Stack Size
      */
     const uint32 GetStackSize() const;
 
     /**
-     * @brief Provides Port number where Server is listen to
+     * @brief Provides Port number where Server is listening
+     * @return Assigned Port number
      */
     const uint16 GetPort() const;
 
@@ -133,12 +142,16 @@ OPCUAServer    ();
      * @brief Create the OPCUA Address Space starting from a OPCUAReferenceContainer.
      * @details Recursively read all the OPCUAReferenceContainer and create the OPCUAObject or OPCUANode.
      * All the NodeID will be numeric, starting from 3000.
+     * @param[in] ref Reference that will serve as base of the Address Space.
      * @return true if all the nodes and object are added to the OPCUAServer correctly.
      */
     bool InitAddressSpace(ReferenceT<OPCUAReferenceContainer> ref);
 
     /**
      * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
+     * @param[out] refContainer MISSING PARAMETER
+     * @param[in] intro the first introspection from which starting the research
+     * @return MISSING RETURN
      */
     bool GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer, const Introspection * const intro);
 
