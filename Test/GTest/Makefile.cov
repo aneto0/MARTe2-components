@@ -67,3 +67,8 @@ endif
 ifdef EPICSPVA
 LIBRARIES += -lpvaClient -lpvAccess -lpvData -lpvDatabase
 endif 
+
+ifdef OPEN62541_LIB
+LIBRARIES   += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
+endif
+
