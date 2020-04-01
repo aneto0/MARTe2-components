@@ -129,6 +129,9 @@ bool OPCUAClientITest::Test_SetValueMemories() {
             }
         }
     }
+    else {
+        ok = false;
+    }
     return ok;
 }
 
@@ -152,6 +155,9 @@ bool OPCUAClientITest::Test_GetSignalMemory() {
     MARTe::TypeDescriptor td(MARTe::SignedInteger8Bit);
     ok = thc.GetSignalMemory(mem,0u,td,1u);
     void **vm = thc.GetValueMemories();
+    if (ok) {
+        ok = (mem == vm[0]);
+    }
     (void)MARTe::HeapManager::Free(vm[0u]);
     return ok;
 }
