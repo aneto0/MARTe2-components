@@ -78,8 +78,6 @@ bool OPCUAReferenceContainer::GetOPCObject(OPCUA::OPCUAObjectSettings &settings,
 bool OPCUAReferenceContainer::GetOPCVariable(OPCUA::OPCUANodeSettings &settings,
                                              const TypeDescriptor nType,
                                              const uint32 nNumber) {
-    settings->nodeId = UA_NODEID_NUMERIC(1u, nNumber);
-    nodeType = nType;
     return false;
 }
 
@@ -100,7 +98,6 @@ const uint32 OPCUAReferenceContainer::GetNodeId() const {
 }
 
 void OPCUAReferenceContainer::SetFirst(const bool value) {
-    isFirstObject = value;
 }
 
 const bool OPCUAReferenceContainer::IsFirstObject() {
