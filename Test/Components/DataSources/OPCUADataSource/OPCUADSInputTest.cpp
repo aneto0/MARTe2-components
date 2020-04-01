@@ -177,9 +177,6 @@ bool OPCUADSInputTest::TestInitialise_Default() {
         app = ord->Find("Test");
         ok = app.IsValid();
     }
-    if (ok) {
-        ok = app->ConfigureApplication();
-    }
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
@@ -331,9 +328,6 @@ bool OPCUADSInputTest::TestInitialise_Introspection() {
     if (ok) {
         app = ord->Find("Test");
         ok = app.IsValid();
-    }
-    if (ok) {
-        ok = app->ConfigureApplication();
     }
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
