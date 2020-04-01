@@ -158,8 +158,16 @@ public:
 
     bool Test_Write_ExtensionObject();
 
+    /**
+     * Tested with Siemens PLC S7-1500 - Waiting for the next version of
+     * open62541 to test it with a standalone server.
+     */
     bool Test_Write_ExtensionObject_Complex();
 
+    /**
+     * Tested with Siemens PLC S7-1500 - Waiting for the next version of
+     * open62541 to test it with a standalone server.
+     */
     bool Test_Write_ExtensionObject_Array();
 
 private:

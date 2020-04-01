@@ -132,7 +132,8 @@ public:
     bool TestOPCUAMethodCall_Single();
 
     /**
-     * @brief Tests the OPCUAMethodCall method with correct data.
+     * Tested with Siemens PLC S7-1500 - Waiting for the next version of
+     * open62541 to test it with a standalone server.
      */
     bool TestOPCUAMethodCall_Array();
 

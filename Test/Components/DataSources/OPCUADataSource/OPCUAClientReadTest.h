@@ -49,18 +49,22 @@ public:
 
     bool Test_SetServiceRequest();
 
-    /**
-     * Tested with Siemens PLC S7-1500 - Waiting for the next version of
-     * open62541 to test it with a standalone server.
-     */
     bool Test_GetExtensionObjectByteString();
 
     bool Test_Read_Single();
 
     bool Test_Read_ExtensionObject();
 
+    /**
+     * Tested with Siemens PLC S7-1500 - Waiting for the next version of
+     * open62541 to test it with a standalone server.
+     */
     bool Test_Read_ExtensionObject_Complex();
 
+    /**
+     * Tested with Siemens PLC S7-1500 - Waiting for the next version of
+     * open62541 to test it with a standalone server.
+     */
     bool Test_Read_ExtensionObject_Array();
 
 private:
