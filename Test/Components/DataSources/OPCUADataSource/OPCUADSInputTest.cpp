@@ -487,7 +487,7 @@ bool OPCUADSInputTest::TestInitialise_ExtensionObject() {
     return ok;
 }
 
-bool OPCUADSInputTest::TestInitialise_Sync() {
+bool OPCUADSInputTest::TestSynchronise_Default() {
     using namespace MARTe;
     StreamString config = ""
             "+ServerTest = {"
@@ -617,7 +617,7 @@ bool OPCUADSInputTest::TestInitialise_Sync() {
     return ok;
 }
 
-bool OPCUADSInputTest::TestInitialise_SyncMonitor() {
+bool OPCUADSInputTest::TestSynchronise_Monitor() {
     using namespace MARTe;
     StreamString config = ""
             "+ServerTest = {"
@@ -748,7 +748,7 @@ bool OPCUADSInputTest::TestInitialise_SyncMonitor() {
     return ok;
 }
 
-bool OPCUADSInputTest::TestInitialise_SyncWrongMode() {
+bool OPCUADSInputTest::TestSynchronise_WrongMode() {
     using namespace MARTe;
     StreamString config = ""
             "+ServerTest = {"
@@ -879,7 +879,7 @@ bool OPCUADSInputTest::TestInitialise_SyncWrongMode() {
     return ok;
 }
 
-bool OPCUADSInputTest::TestInitialise_Thread_Default() {
+bool OPCUADSInputTest::TestExecute_Default() {
     using namespace MARTe;
     StreamString config = ""
             "+ServerTest = {"
@@ -1009,7 +1009,7 @@ bool OPCUADSInputTest::TestInitialise_Thread_Default() {
     return ok;
 }
 
-bool OPCUADSInputTest::TestInitialise_Thread_NoDefault() {
+bool OPCUADSInputTest::TestExecute_NoDefault() {
     using namespace MARTe;
     StreamString config = ""
             "+ServerTest = {"
@@ -1141,7 +1141,7 @@ bool OPCUADSInputTest::TestInitialise_Thread_NoDefault() {
     return ok;
 }
 
-bool OPCUADSInputTest::TestInitialise_ThreadMonitor() {
+bool OPCUADSInputTest::TestExecute_Monitor() {
     using namespace MARTe;
     StreamString config = ""
             "+ServerTest = {"
@@ -1272,7 +1272,7 @@ bool OPCUADSInputTest::TestInitialise_ThreadMonitor() {
     return ok;
 }
 
-bool OPCUADSInputTest::TestInitialise_ThreadWrongMode() {
+bool OPCUADSInputTest::TestExecute_WrongMode() {
     using namespace MARTe;
     StreamString config = ""
             "+ServerTest = {"

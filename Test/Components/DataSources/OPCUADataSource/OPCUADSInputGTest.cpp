@@ -61,39 +61,39 @@ TEST(OPCUADSInputGTest,TestInitialise_ExtensionObject) {
     ASSERT_TRUE(test.TestInitialise_ExtensionObject());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_Sync) {
+TEST(OPCUADSInputGTest,TestSynchronise_Default) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_Sync());
+    ASSERT_TRUE(test.TestSynchronise_Default());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_SyncMonitor) {
+TEST(OPCUADSInputGTest,TestSynchronise_Monitor) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_SyncMonitor());
+    ASSERT_TRUE(test.TestSynchronise_Monitor());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_SyncWrongMode) {
+TEST(OPCUADSInputGTest,TestSynchronise_WrongMode) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_SyncWrongMode());
+    ASSERT_TRUE(test.TestSynchronise_WrongMode());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_Thread_Default) {
+TEST(OPCUADSInputGTest,TestExecute_Default) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_Thread_Default());
+    ASSERT_TRUE(test.TestExecute_Default());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_Thread_NoDefault) {
+TEST(OPCUADSInputGTest,TestExecute_NoDefault) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_Thread_NoDefault());
+    ASSERT_TRUE(test.TestExecute_NoDefault());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_ThreadMonitor) {
+TEST(OPCUADSInputGTest,TestExecute_Monitor) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_ThreadMonitor());
+    ASSERT_TRUE(test.TestExecute_Monitor());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_ThreadWrongMode) {
+TEST(OPCUADSInputGTest,TestExecute_WrongMode) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_ThreadWrongMode());
+    ASSERT_TRUE(test.TestExecute_WrongMode());
 }
 
 TEST(OPCUADSInputGTest,TestInitialise_NoAddress) {

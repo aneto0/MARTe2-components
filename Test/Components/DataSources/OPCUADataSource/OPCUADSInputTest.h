@@ -62,39 +62,39 @@ public:
     bool TestInitialise_ExtensionObject();
 
     /**
-     * @brief Tests the Initialise method with Sync option enabled.
+     * @brief Tests the Synchronise method with Sync option enabled.
      */
-    bool TestInitialise_Sync();
+    bool TestSynchronise_Default();
 
     /**
-     * @brief Tests the Initialise method with Sync option and MonitoredItem service enabled.
+     * @brief Tests the Synchronise method with Sync option and MonitoredItem service enabled.
      */
-    bool TestInitialise_SyncMonitor();
+    bool TestSynchronise_Monitor();
 
     /**
-     * @brief Tests the Initialise method with Sync option enabled and specifying a not supported read service.
+     * @brief Tests the Synchronise method with Sync option enabled and specifying a not supported read service.
      */
-    bool TestInitialise_SyncWrongMode();
+    bool TestSynchronise_WrongMode();
 
     /**
-     * @brief Tests the Initialise method with Thread mode enabled and default parameters.
+     * @brief Tests the Execute method with Thread mode enabled and default parameters.
      */
-    bool TestInitialise_Thread_Default();
+    bool TestExecute_Default();
 
     /**
-     * @brief Tests the Initialise method with Thread mode enabled and CpuMask and StackSize defined.
+     * @brief Tests the Execute method with Thread mode enabled and CpuMask and StackSize defined.
      */
-    bool TestInitialise_Thread_NoDefault();
+    bool TestExecute_NoDefault();
 
     /**
-     * @brief Tests the Initialise method with Thread mode and MonitoredItem enabled.
+     * @brief Tests the Execute method with Thread mode and MonitoredItem enabled.
      */
-    bool TestInitialise_ThreadMonitor();
+    bool TestExecute_Monitor();
 
     /**
-     * @brief Tests the Initialise method with Thread mode enabled and specifying a not supported read service.
+     * @brief Tests the Execute method with Thread mode enabled and specifying a not supported read service.
      */
-    bool TestInitialise_ThreadWrongMode();
+    bool TestExecute_WrongMode();
 
     /**
      * @brief Tests the Initialise method without specifying Address parameter.
