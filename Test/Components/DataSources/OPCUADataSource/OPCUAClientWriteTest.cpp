@@ -583,14 +583,14 @@ bool OPCUAClientWriteTest::Test_SetWriteRequest(const MARTe::char8 *typeUT, MART
         ok = (ocw != NULL_PTR(OPCUAClientWrite*));
         if (ok) {
             UA_NodeId *nodes = ocw->GetMonitoredNodes();
-            ok = (nodes == NULL_PTR(UA_NodeId*));
+            ok = (nodes != NULL_PTR(UA_NodeId*));
         }
     }
     if (ok) {
         ok = app->StopCurrentStateExecution();
     }
     ObjectRegistryDatabase::Instance()->Purge();
-    return !ok;
+    return ok;
 }
 
 bool OPCUAClientWriteTest::Test_WrongNodeId() {
@@ -736,25 +736,7 @@ bool OPCUAClientWriteTest::Test_WrongNodeId() {
     if (ok) {
         ok = app->ConfigureApplication();
     }
-    Sleep::MSec(200);
-    if (ok) {
-        ok = app->PrepareNextState("State1");
-    }
-    if (ok) {
-        ok = app->StartNextStateExecution();
-    }
-    Sleep::MSec(200);
-    if (ok) {
-        OPCUAClientWrite *ocw = odo->GetOPCUAClient();
-        ok = (ocw != NULL_PTR(OPCUAClientWrite*));
-        if (ok) {
-            UA_NodeId *nodes = ocw->GetMonitoredNodes();
-            ok = (nodes == NULL_PTR(UA_NodeId*));
-        }
-    }
-    if (ok) {
-        ok = app->StopCurrentStateExecution();
-    }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return !ok;
 }
