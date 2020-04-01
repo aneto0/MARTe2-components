@@ -34,9 +34,118 @@
 #include "custom_datatype.h"
 #include "EmbeddedServiceMethodBinderI.h"
 #include "SingleThreadService.h"
+#include "StreamString.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+
+static const MARTe::char8 * const SET_WRITE_REQUEST_CONFIG_TEMPLATE = ""
+"+ServerTest = {\n"
+"  Class = OPCUA::OPCUAServer\n"
+"  CPUMask = 0x2\n"
+"  AddressSpace = {\n"
+"    MyNode = {\n"
+"      Type = %s\n"
+"      NumberOfElements = %u\n"
+"    }\n"
+"  }\n"
+"}\n"
+"$TestApp = {\n"
+"  Class = RealTimeApplication\n"
+"   +Functions = {\n"
+"     Class = ReferenceContainer\n"
+"     +GAMTimer = {\n"
+"       Class = IOGAM\n"
+"       InputSignals = {\n"
+"         Counter = {\n"
+"           DataSource = Timer\n"
+"           Type = uint32\n"
+"         }\n"
+"         Time = {\n"
+"           Frequency = 1\n"
+"           DataSource = Timer\n"
+"           Type = uint32\n"
+"         }\n"
+"       }\n"
+"       OutputSignals = {\n"
+"         Counter = {\n"
+"           DataSource = DDB1\n"
+"           Type = uint32\n"
+"         }\n"
+"         Time = {\n"
+"           DataSource = DDB1\n"
+"           Type = uint32\n"
+"         }\n"
+"       }\n"
+"     }\n"
+"     +GAMValue = {\n"
+"       Class = OPCUATestHelperGam\n"
+"       OutputSignals = {\n"
+"         MyNode = {\n"
+"           DataSource = OPCUAOut\n"
+"           Type = %s\n"
+"           NumberOfElements = %u\n"
+"         }\n"
+"       }\n"
+"     }\n"
+"  }\n"
+"  +Data = {\n"
+"    Class = ReferenceContainer\n"
+"    DefaultDataSource = DDB1\n"
+"    +DDB1 = {\n"
+"      Class = GAMDataSource\n"
+"    }\n"
+"    +LoggerDataSource = {\n"
+"      Class = LoggerDataSource\n"
+"    }\n"
+"    +OPCUAOut = {\n"
+"      Class = OPCUADataSource::OPCUADSOutput\n"
+"      Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+"      Signals = {\n"
+"        MyNode = {\n"
+"          NamespaceIndex = 1\n"
+"          Path = MyNode\n"
+"          NumberOfElements = %u\n"
+"        }\n"
+"      }\n"
+"    }\n"
+"    +Timings = {\n"
+"       Class = TimingDataSource\n"
+"    }\n"
+"    +Timer = {\n"
+"      Class = LinuxTimer\n"
+"      SleepNature = \"Default\"\n"
+"      Signals = {\n"
+"        Counter = {\n"
+"          Type = uint32\n"
+"        }\n"
+"        Time = {\n"
+"          Type = uint32\n"
+"        }\n"
+"      }\n"
+"    }\n"
+"  }\n"
+"  +States = {\n"
+"    Class = ReferenceContainer\n"
+"    +State1 = {\n"
+"      Class = RealTimeState\n"
+"      +Threads = {\n"
+"        Class = ReferenceContainer\n"
+"        +Thread1 = {\n"
+"          Class = RealTimeThread\n"
+"          CPUs = 0x2\n"
+"          Functions = {GAMTimer GAMValue}\n"
+"        }\n"
+"      }\n"
+"    }\n"
+"  }\n"
+"  +Scheduler = {\n"
+"    Class = GAMScheduler\n"
+"    TimingDataSource = Timings\n"
+"  }\n"
+"}\n";
+
+
 
 class OPCUAClientWriteTest {
 public:
@@ -52,109 +161,14 @@ public:
     bool Test_SetExtensionObject();
 
     /**
-     * @brief Tests the SetWriteRequest method with a uint8 single variable
+     * @brief Tests the SetWriteRequest method
      */
-    bool Test_SetWriteRequest_uint8();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a uint16 single variable
-     */
-    bool Test_SetWriteRequest_uint16();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a uint32 single variable
-     */
-    bool Test_SetWriteRequest_uint32();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a uint64 single variable
-     */
-    bool Test_SetWriteRequest_uint64();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a int8 single variable
-     */
-    bool Test_SetWriteRequest_int8();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a int16 single variable
-     */
-    bool Test_SetWriteRequest_int16();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a int32 single variable
-     */
-    bool Test_SetWriteRequest_int32();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a int64 single variable
-     */
-    bool Test_SetWriteRequest_int64();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a float32 single variable
-     */
-    bool Test_SetWriteRequest_float32();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a float64 single variable
-     */
-    bool Test_SetWriteRequest_float64();
+    bool Test_SetWriteRequest(const MARTe::char8 *typeUT, MARTe::uint8 numberOfElementsUT);
 
     /**
      * @brief Tests the SetServiceRequest method with a wrong string identifier that doesn't match any variable on the server.
      */
     bool Test_WrongNodeId();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a uint8 array variable
-     */
-    bool Test_SetWriteRequest_uint8_array();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a uint16 array variable
-     */
-    bool Test_SetWriteRequest_uint16_array();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a uint32 array variable
-     */
-    bool Test_SetWriteRequest_uint32_array();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a uint64 array variable
-     */
-    bool Test_SetWriteRequest_uint64_array();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a int8 array variable
-     */
-    bool Test_SetWriteRequest_int8_array();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a int16 array variable
-     */
-    bool Test_SetWriteRequest_int16_array();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a int32 array variable
-     */
-    bool Test_SetWriteRequest_int32_array();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a int64 array variable
-     */
-    bool Test_SetWriteRequest_int64_array();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a float32 array variable
-     */
-    bool Test_SetWriteRequest_float32_array();
-
-    /**
-     * @brief Tests the SetWriteRequest method with a float64 array variable
-     */
-    bool Test_SetWriteRequest_float64_array();
 
     bool Test_Write_ExtensionObject();
 

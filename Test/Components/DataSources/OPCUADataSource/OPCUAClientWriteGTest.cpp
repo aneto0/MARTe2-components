@@ -63,52 +63,52 @@ TEST(OPCUAClientWriteGTest,Test_SetExtensionObject) {
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_uint8) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_uint8());
+    ASSERT_TRUE(test.Test_SetWriteRequest("uint8", 1));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_uint16) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_uint16());
+    ASSERT_TRUE(test.Test_SetWriteRequest("uint16", 1));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_uint32) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_uint32());
+    ASSERT_TRUE(test.Test_SetWriteRequest("uint32", 1));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_uint64) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_uint64());
+    ASSERT_TRUE(test.Test_SetWriteRequest("uint64", 1));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_int8) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_int8());
+    ASSERT_TRUE(test.Test_SetWriteRequest("int8", 1));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_int16) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_int16());
+    ASSERT_TRUE(test.Test_SetWriteRequest("int16", 1));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_int32) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_int32());
+    ASSERT_TRUE(test.Test_SetWriteRequest("int32", 1));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_int64) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_int64());
+    ASSERT_TRUE(test.Test_SetWriteRequest("int64", 1));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_float32) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_float32());
+    ASSERT_TRUE(test.Test_SetWriteRequest("float32", 1));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_float64) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_float64());
+    ASSERT_TRUE(test.Test_SetWriteRequest("float64", 1));
 }
 
 TEST(OPCUAClientWriteGTest,Test_WrongNodeId) {
@@ -118,52 +118,52 @@ TEST(OPCUAClientWriteGTest,Test_WrongNodeId) {
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_uint8_array) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_uint8_array());
+    ASSERT_TRUE(test.Test_SetWriteRequest("uint8", 5));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_uint16_array) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_uint16_array());
+    ASSERT_TRUE(test.Test_SetWriteRequest("uint16", 5));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_uint32_array) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_uint32_array());
+    ASSERT_TRUE(test.Test_SetWriteRequest("uint32", 5));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_uint64_array) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_uint64_array());
+    ASSERT_TRUE(test.Test_SetWriteRequest("uint64", 5));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_int8_array) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_int8_array());
+    ASSERT_TRUE(test.Test_SetWriteRequest("int8", 5));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_int16_array) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_int16_array());
+    ASSERT_TRUE(test.Test_SetWriteRequest("int16", 5));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_int32_array) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_int32_array());
+    ASSERT_TRUE(test.Test_SetWriteRequest("int32", 5));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_int64_array) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_int64_array());
+    ASSERT_TRUE(test.Test_SetWriteRequest("int64", 5));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_float32_array) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_float32_array());
+    ASSERT_TRUE(test.Test_SetWriteRequest("float32", 5));
 }
 
 TEST(OPCUAClientWriteGTest,Test_SetWriteRequest_float64_array) {
     OPCUAClientWriteTest test;
-    ASSERT_TRUE(test.Test_SetWriteRequest_float64_array());
+    ASSERT_TRUE(test.Test_SetWriteRequest("float64", 5));
 }
 
 TEST(OPCUAClientWriteGTest,Test_Write_ExtensionObject) {
