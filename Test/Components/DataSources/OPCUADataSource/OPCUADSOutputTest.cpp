@@ -1173,6 +1173,15 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject() {
             "         }\n"
             "     }\n"
             "}\n"
+            "+ServerTest = {\n"
+            "  Class = OPCUA::OPCUAServer\n"
+            "  Port = 4840\n"
+            "  AddressSpace = {\n"
+            "    MasterSet = {\n"
+            "      Type = MasterSet\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
             "$Test = {\n"
             "    Class = RealTimeApplication\n"
             "    +Functions = {\n"
@@ -1205,13 +1214,13 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject() {
             "        +GAMDisplay = {\n"
             "            Class = IOGAM\n"
             "            InputSignals = {\n"
-            "                Counter = {\n"
+            "                Sensor1 = {\n"
             "                    Type = uint32\n"
             "                    DataSource = DDB1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
-            "                Counter = {\n"
+            "                Sensor1 = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUAOut\n"
             "                }\n"
@@ -1235,7 +1244,6 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MasterSet.SensorPackage1.Sensor1\n"
             "                    Type = uint32\n"
-            "                    ExtensionObject = \"yes\"\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1280,6 +1288,15 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject() {
         ok = ord->Initialise(cdb);
     }
     Sleep::MSec(200);
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("Test");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        ok = app->ConfigureApplication();
+    }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
