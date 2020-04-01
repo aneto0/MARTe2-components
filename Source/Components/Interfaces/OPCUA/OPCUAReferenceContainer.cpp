@@ -114,7 +114,7 @@ TypeDescriptor OPCUAReferenceContainer::GetNodeType() const {
 
 void OPCUAReferenceContainer::SetNumberOfElements(const uint32 dimension,
                                                   const uint32 nElements) {
-    if (numberOfElements != NULL_PTR(uint32 *)) {
+    if ((numberOfElements != NULL_PTR(uint32 *)) && (dimension < numberOfDimensions)) {
         numberOfElements[dimension] = nElements;
     }
 }
