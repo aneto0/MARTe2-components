@@ -86,6 +86,7 @@ bool OPCUAClientMethodTest::Test_SetServiceRequest() {
     }
     Sleep::MSec(500);
     ObjectRegistryDatabase::Instance()->Purge();
+    delete path;
     return ok;
 }
 
