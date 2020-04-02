@@ -267,7 +267,7 @@ bool OPCUAServerTest::TestExecute_IntrospectionArray() {
     return ok;
 }
 
-bool OPCUAServerTest::TestGetStructure_WrongNDimensions() {
+bool OPCUAServerTest::TestExecute_WrongNDimensions() {
     using namespace MARTe;
     StreamString config = ""
             "+OPCUATypes = {"

@@ -72,9 +72,9 @@ public:
     bool TestExecute_IntrospectionArray();
 
     /**
-     * @brief Tests the GetStructure method when a variable number of dimensions is greater than 1.
+     * @brief Tests the Execute method when a variable number of dimensions is greater than 1.
      */
-    bool TestGetStructure_WrongNDimensions();
+    bool TestExecute_WrongNDimensions();
 
 };
 

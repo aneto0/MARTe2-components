@@ -69,9 +69,9 @@ TEST(OPCUAServerGTest,TestExecute_IntrospectionArray) {
     ASSERT_TRUE(test.TestExecute_IntrospectionArray());
 }
 
-TEST(OPCUAServerGTest,TestGetStructure_WrongNDimensions) {
+TEST(OPCUAServerGTest,TestExecute_WrongNDimensions) {
     OPCUAServerTest test;
-    ASSERT_TRUE(test.TestGetStructure_WrongNDimensions());
+    ASSERT_TRUE(test.TestExecute_WrongNDimensions());
 }
 
 /*---------------------------------------------------------------------------*/
