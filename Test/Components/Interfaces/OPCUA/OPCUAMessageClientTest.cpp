@@ -107,6 +107,8 @@ bool OPCUAMessageClientTest::TestInitialise() {
 
 bool OPCUAMessageClientTest::TestInitialise_NoServerAddress() {
     using namespace MARTe;
+    OPCUATestServer ots;
+    ots.service.Start();
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -150,12 +152,16 @@ bool OPCUAMessageClientTest::TestInitialise_NoServerAddress() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    ots.SetRunning(false);
+    ots.service.Stop();
     ord->Purge();
     return (!ok);
 }
 
 bool OPCUAMessageClientTest::TestInitialise_NoMethodSection() {
     using namespace MARTe;
+    OPCUATestServer ots;
+    ots.service.Start();
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -196,12 +202,16 @@ bool OPCUAMessageClientTest::TestInitialise_NoMethodSection() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    ots.SetRunning(false);
+    ots.service.Stop();
     ord->Purge();
     return (!ok);
 }
 
 bool OPCUAMessageClientTest::TestInitialise_NoNamespaceIndex_Method() {
     using namespace MARTe;
+    OPCUATestServer ots;
+    ots.service.Start();
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -245,12 +255,16 @@ bool OPCUAMessageClientTest::TestInitialise_NoNamespaceIndex_Method() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    ots.SetRunning(false);
+    ots.service.Stop();
     ord->Purge();
     return (!ok);
 }
 
 bool OPCUAMessageClientTest::TestInitialise_NoPath_Method() {
     using namespace MARTe;
+    OPCUATestServer ots;
+    ots.service.Start();
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -294,12 +308,16 @@ bool OPCUAMessageClientTest::TestInitialise_NoPath_Method() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    ots.SetRunning(false);
+    ots.service.Stop();
     ord->Purge();
     return (!ok);
 }
 
 bool OPCUAMessageClientTest::TestInitialise_NoStructureSection() {
     using namespace MARTe;
+    OPCUATestServer ots;
+    ots.service.Start();
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -336,12 +354,16 @@ bool OPCUAMessageClientTest::TestInitialise_NoStructureSection() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    ots.SetRunning(false);
+    ots.service.Stop();
     ord->Purge();
     return (!ok);
 }
 
 bool OPCUAMessageClientTest::TestInitialise_NoPath_Structure() {
     using namespace MARTe;
+    OPCUATestServer ots;
+    ots.service.Start();
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -385,12 +407,16 @@ bool OPCUAMessageClientTest::TestInitialise_NoPath_Structure() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    ots.SetRunning(false);
+    ots.service.Stop();
     ord->Purge();
     return (!ok);
 }
 
 bool OPCUAMessageClientTest::TestInitialise_NoNamespaceIndex_Structure() {
     using namespace MARTe;
+    OPCUATestServer ots;
+    ots.service.Start();
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -434,6 +460,8 @@ bool OPCUAMessageClientTest::TestInitialise_NoNamespaceIndex_Structure() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    ots.SetRunning(false);
+    ots.service.Stop();
     ord->Purge();
     return (!ok);
 }
@@ -495,6 +523,8 @@ bool OPCUAMessageClientTest::TestInitialise_NoNumberOfElements_Structure() {
 
 bool OPCUAMessageClientTest::TestInitialise_NoType_Structure() {
     using namespace MARTe;
+    OPCUATestServer ots;
+    ots.service.Start();
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -538,6 +568,8 @@ bool OPCUAMessageClientTest::TestInitialise_NoType_Structure() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    ots.SetRunning(false);
+    ots.service.Stop();
     ord->Purge();
     return (!ok);
 }
