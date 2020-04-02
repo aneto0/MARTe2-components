@@ -139,6 +139,13 @@ public:
     const uint16 GetPort() const;
 
     /**
+     * The thread that manage the OPC UA Server functionalities.
+     */
+    SingleThreadService service;
+
+private:
+
+    /**
      * @brief Create the OPCUA Address Space starting from a OPCUAReferenceContainer.
      * @details Recursively read all the OPCUAReferenceContainer and create the OPCUAObject or OPCUANode.
      * All the NodeID will be numeric, starting from 3000.
@@ -154,13 +161,6 @@ public:
      * @return MISSING RETURN
      */
     bool GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer, const Introspection * const intro);
-
-    /**
-     * The thread that manage the OPC UA Server functionalities.
-     */
-    SingleThreadService service;
-
-private:
 
     /**
      * open62541 server object declaration
