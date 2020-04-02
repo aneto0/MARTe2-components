@@ -218,37 +218,6 @@ bool OPCUAServerTest::TestExecute_Introspection() {
     return ok;
 }
 
-bool OPCUAServerTest::TestExecute_NoType() {
-    using namespace MARTe;
-    StreamString config = ""
-            "+ServerTest = {"
-            "     Class = OPCUA::OPCUAServer"
-            "     AddressSpace = {"
-            "         MyNode = {"
-            "             NumberOfElements = 1"
-            "         }"
-            "     }"
-            "}";
-    config.Seek(0LLU);
-    ConfigurationDatabase cdb;
-    StandardParser parser(config, cdb, NULL);
-    bool ok = parser.Parse();
-    cdb.MoveToRoot();
-    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
-    if (ok) {
-        ok = ord->Initialise(cdb);
-    }
-    Sleep::MSec(100);
-    ReferenceT<OPCUAServer> server;
-    if (ok) {
-        server = ord->Find("ServerTest");
-        ok = server.IsValid();
-    }
-    ok = server->GetRunning();
-    ord->Purge();
-    return !ok;
-}
-
 bool OPCUAServerTest::TestExecute_IntrospectionArray() {
     using namespace MARTe;
     StreamString config = ""

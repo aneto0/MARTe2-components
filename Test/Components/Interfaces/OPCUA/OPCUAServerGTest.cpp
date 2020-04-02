@@ -64,11 +64,6 @@ TEST(OPCUAServerGTest,TestExecute_Introspection) {
     ASSERT_TRUE(test.TestExecute_Introspection());
 }
 
-TEST(OPCUAServerGTest,TestExecute_NoType) {
-    OPCUAServerTest test;
-    ASSERT_TRUE(test.TestExecute_NoType());
-}
-
 TEST(OPCUAServerGTest,TestExecute_IntrospectionArray) {
     OPCUAServerTest test;
     ASSERT_TRUE(test.TestExecute_IntrospectionArray());
