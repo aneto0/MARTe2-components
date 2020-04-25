@@ -43,6 +43,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
+CPPFLAGS += -O3
 
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/Interleaved2FlatGAM$(LIBEXT) \
