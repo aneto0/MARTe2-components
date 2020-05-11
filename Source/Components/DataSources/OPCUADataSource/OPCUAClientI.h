@@ -160,6 +160,7 @@ protected:
 
     /**
      * @brief Moves back the data pointer of bodyLength bytes.
+     * @param[in] bodyLength how many steps the pointer has to be moved
      */
     void SeekDataPtr(const uint32 bodyLength);
 
@@ -168,10 +169,10 @@ protected:
      * @details This function uses the OPCUA Browse Service Set to get the references
      * associated to a NodeId.
      * @param[in] bReq The OPCUA BrowseRequest
-     * @param[in] path MISSING PARAMETER
-     * @param[in] namespaceIndex MISSING PARAMETER
-     * @param[in] numericNodeId MISSING PARAMETER
-     * @param[in] stringNodeId MISSING PARAMETER
+     * @param[in] path the string containing the path in the Address Space
+     * @param[in] namespaceIndex the namespace index of the current node
+     * @param[in] numericNodeId the value of the NodeId if it is numeric
+     * @param[in] stringNodeId the value of the NodId if it is string type
      * @return the numeric Reference NodeId.
      */
     uint32 GetReferences(const UA_BrowseRequest bReq,

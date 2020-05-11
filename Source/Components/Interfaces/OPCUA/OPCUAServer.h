@@ -110,7 +110,7 @@ public:
 
     /**
      * @brief Set the running mode
-     * @param[in] ref true to enable running mode
+     * @param[in] running true to enable running mode
      */
     void SetRunning(bool const running);
 
@@ -156,9 +156,9 @@ private:
 
     /**
      * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
-     * @param[out] refContainer MISSING PARAMETER
+     * @param[out] refContainer the OPCUAReferenceContainer which will be the starting point for the recursive function
      * @param[in] intro the first introspection from which starting the research
-     * @return MISSING RETURN
+     * @return true if the structure has been loaded correctly with no issues about the type or the format
      */
     bool GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer, const Introspection * const intro);
 

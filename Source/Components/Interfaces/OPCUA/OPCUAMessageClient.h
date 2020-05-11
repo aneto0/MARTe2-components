@@ -97,7 +97,7 @@ public:
      * @brief Map a StructuredDataI into signal memories and send it through OPC UA as input argument of a Method Call.
      * @details Registered method to be called via MARTe2 Message mechanism. The StructuredDataI in input is mapped
      * and it is sent via OPC UA Method Call as input argument.
-     * @param[in] data MISSING PARAMETER
+     * @param[in] data the StructureData received from the message
      * @return NoError if the structured has been transferred successfully or CommunicationError is the Method Call failed.
      */
     ErrorManagement::ErrorType OPCUAMethodCall(StructuredDataI &data);
