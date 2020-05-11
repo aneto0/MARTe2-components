@@ -32,7 +32,6 @@
 /*---------------------------------------------------------------------------*/
 
 #include "ConfigurationDatabase.h"
-#include "custom_datatype.h"
 #include "ObjectRegistryDatabase.h"
 #include "OPCUAClientMethod.h"
 #include "OPCUAClientMethodTest.h"
@@ -427,7 +426,12 @@ if (ok) {
 				if (ok) {
 					ok = (p->z == 6.0);
 				}
+			} else {
+				ok = false;
 			}
+		}
+		else {
+			ok = false;
 		}
 	}
 }

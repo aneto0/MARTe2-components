@@ -173,7 +173,7 @@ bool OPCUAServerTest::TestExecute() {
 	if (ok) {
 		UA_BrowseRequest bReq;
 		UA_BrowseRequest_init(&bReq);
-		Req.requestedMaxReferencesPerNode = 0;
+		bReq.requestedMaxReferencesPerNode = 0;
 		bReq.nodesToBrowse = UA_BrowseDescription_new();
 		bReq.nodesToBrowseSize = 1;
 		bReq.nodesToBrowse[0].nodeId = UA_NODEID_NUMERIC(1u, 3000u);
@@ -231,7 +231,7 @@ bool OPCUAServerTest::TestExecute_Introspection() {
 	if (ok) {
 		UA_BrowseRequest bReq;
 		UA_BrowseRequest_init(&bReq);
-		Req.requestedMaxReferencesPerNode = 0;
+		bReq.requestedMaxReferencesPerNode = 0;
 		bReq.nodesToBrowse = UA_BrowseDescription_new();
 		bReq.nodesToBrowseSize = 1;
 		bReq.nodesToBrowse[0].nodeId = UA_NODEID_NUMERIC(1u, 3002u);
