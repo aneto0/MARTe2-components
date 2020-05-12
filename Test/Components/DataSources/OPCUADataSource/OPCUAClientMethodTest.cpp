@@ -414,7 +414,7 @@ if (ok) {
 		if (retval == UA_STATUSCODE_GOOD) {
 			UA_Variant value; /* Variants can hold scalar values and arrays of any type */
 			UA_Variant_init(&value);
-			UA_NodeId nodeId = UA_NODEID_STRING(1u, reinterpret_cast<const char8*>("Point"));
+			UA_NodeId nodeId = UA_NODEID_STRING(1u, const_cast<char8*>("Point"));
 			retval = UA_Client_readValueAttribute(client, nodeId, &value);
 
 			if (retval == UA_STATUSCODE_GOOD) {
