@@ -23,11 +23,11 @@
 # $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
 #
 #############################################################
-OBJSX=MathExpressionGAM.x
+OBJSX=exprtkGAM.x
 
 PACKAGE=Components/GAMs
 
-ROOT_DIR=../../../../
+ROOT_DIR=../../
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
@@ -45,8 +45,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
 
 all: $(OBJS) $(SUBPROJ) \
-	$(BUILD_DIR)/MathExpressionGAM$(LIBEXT) \
-	$(BUILD_DIR)/MathExpressionGAM$(DLLEXT)
+	$(BUILD_DIR)/exprtkGAM$(DLLEXT)
 	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
