@@ -84,7 +84,7 @@ bool MathExpressionGAM::Setup() {
     for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
         
         ok = GetSignalName(InputSignals, signalIdx, inputSignals[signalIdx].name);
-        
+        ok = GetSignalNumberOfElements(InputSignals, signalIdx, inputSignals[signalIdx].numberOfElements);
         inputSignals[signalIdx].type = GetSignalType(InputSignals, signalIdx);
         
 printf("get %s of type %s\n", inputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
@@ -93,7 +93,7 @@ printf("get %s of type %s\n", inputSignals[signalIdx].name.Buffer(), TypeDescrip
     for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
         
         ok = GetSignalName(OutputSignals, signalIdx, outputSignals[signalIdx].name);
-        
+        ok = GetSignalNumberOfElements(OutputSignals, signalIdx, outputSignals[signalIdx].numberOfElements);
         outputSignals[signalIdx].type = GetSignalType(OutputSignals, signalIdx);
         
 printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
@@ -188,24 +188,141 @@ bool MathExpressionGAM::Execute() {
     bool ok = false;
     
     /// 1. Update values of input variables
-
-    for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
+    //for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
         
-        *((float32*)evaluator->GetInputVariableMemory(inputSignals[signalIdx].name)) = *((float32*)inputSignalsMemoryIndexer[signalIdx]);
+        //*((float32*)evaluator->GetInputVariableMemory(inputSignals[signalIdx].name)) = *((float32*)inputSignalsMemoryIndexer[signalIdx]);
         
-    }
+    //}
+    RefreshSignals(InputSignals);
     
     /// 2. Execute
     ok = evaluator->Execute();
     
     /// 3. Update values of output signals
-    for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
+    //for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
         
-        *((float32*)outputSignalsMemoryIndexer[signalIdx]) = *((float32*)evaluator->GetOutputVariableMemory(outputSignals[signalIdx].name));
+        //*((float32*)outputSignalsMemoryIndexer[signalIdx]) = *((float32*)evaluator->GetOutputVariableMemory(outputSignals[signalIdx].name));
+        
+    //}
+    RefreshSignals(OutputSignals);
+    
+    return ok;
+    
+}
+
+void MathExpressionGAM::RefreshSignals(const SignalDirection direction) {
+    
+    uint32 numberOfSignals;
+    SignalStruct* signals;
+    
+    switch (direction) {
+        
+        case InputSignals:
+            
+            numberOfSignals = numberOfInputSignals;
+            signals = inputSignals;
+            
+            break;
+        
+        case OutputSignals:
+            
+            numberOfSignals = numberOfOutputSignals;
+            signals = outputSignals;
+            
+            break;
+        
+        default:
+            REPORT_ERROR(ErrorManagement::Exception,
+                "Unsupported data direction.");
         
     }
     
-    return ok;
+    for (uint32 signalIdx = 0u; signalIdx < numberOfSignals; signalIdx++) {
+        
+        if (signals[signalIdx].type==UnsignedInteger8Bit) {
+            
+            SignalMemCopy<uint8>(direction, signalIdx);
+            
+        } else if (signals[signalIdx].type==UnsignedInteger16Bit) {
+            
+            SignalMemCopy<uint16>(direction, signalIdx);
+            
+        } else if (signals[signalIdx].type==UnsignedInteger32Bit) {
+            
+            SignalMemCopy<uint32>(direction, signalIdx);
+            
+        } else if (signals[signalIdx].type==UnsignedInteger64Bit) {
+            
+            SignalMemCopy<uint64>(direction, signalIdx);
+            
+        } else if (signals[signalIdx].type==SignedInteger8Bit) {
+            
+            SignalMemCopy<int8>(direction, signalIdx);
+            
+        } else if (signals[signalIdx].type==SignedInteger16Bit) {
+            
+            SignalMemCopy<int16>(direction, signalIdx);
+            
+        } else if (signals[signalIdx].type==SignedInteger32Bit) {
+            
+            SignalMemCopy<int32>(direction, signalIdx);
+            
+        } else if (signals[signalIdx].type==SignedInteger64Bit) {
+            
+            SignalMemCopy<int64>(direction, signalIdx);
+            
+        } else if (signals[signalIdx].type==Float32Bit) {
+            
+            SignalMemCopy<float32>(direction, signalIdx);
+            
+        } else if (signals[signalIdx].type==Float64Bit) {
+            
+            SignalMemCopy<float64>(direction, signalIdx);
+            
+        }  else {
+            
+            REPORT_ERROR(ErrorManagement::Exception,
+                         "Error while refreshing data between model and GAM.");
+            
+        }
+        
+    }
+    
+}
+
+template <typename T>
+void MathExpressionGAM::SignalMemCopy(const SignalDirection direction, const uint32 signalIdx) {
+    
+    switch (direction) {
+        
+        case InputSignals:
+            
+            for (uint32 elemIdx = 0u; elemIdx < inputSignals[signalIdx].numberOfElements; elemIdx++) {
+                
+                *((T*)evaluator->GetInputVariableMemory(inputSignals[signalIdx].name) + elemIdx)
+                     = *((T*)inputSignalsMemoryIndexer[signalIdx] + elemIdx);
+                
+            }
+            
+            break;
+            
+        case OutputSignals:
+            
+            for (uint32 elemIdx = 0u; elemIdx < outputSignals[signalIdx].numberOfElements; elemIdx++) {
+                
+                *((T*)outputSignalsMemoryIndexer[signalIdx] + elemIdx)
+                     = *((T*)evaluator->GetOutputVariableMemory(outputSignals[signalIdx].name) + elemIdx);
+
+                
+            }
+            
+            break;
+        
+        default:
+            REPORT_ERROR(ErrorManagement::Exception,
+                "Unsupported data direction.");
+        
+    }
     
 }
 
