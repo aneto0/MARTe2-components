@@ -28,6 +28,8 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
+#include <cstdio>   // Debug
+
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -60,7 +62,7 @@ public:
      */
     virtual ~MathExpressionGAM();
     
-    virtual bool Initialise();
+    virtual bool Initialise(StructuredDataI &data);
     
     /**
      * @brief Verifies correctness of the GAM configuration.
@@ -83,6 +85,11 @@ public:
 private:
     
     StreamString expr;
+    
+    StreamString errStr;
+    
+    MathExpressionParser* mathParser;
+    RuntimeEvaluator*     evaluator;
     
 };
 

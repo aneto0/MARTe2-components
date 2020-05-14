@@ -41,6 +41,7 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
+
 MathExpressionGAM::MathExpressionGAM() :
         GAM() {
 
@@ -55,18 +56,18 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
     bool ok = GAM::Initialise(data);
     
     // Read the mathematical expression in infix form from the configuration file.
-    //if (ok) {
+    if (ok) {
         
-        //ok = data.Read("Expression", expr);
+        ok = data.Read("Expression", expr);
         
-        //if (ok) {
-            //REPORT_ERROR(ErrorManagement::Information, "STRING: %s", expr.Buffer());
-        //}
-        //else {
-            //REPORT_ERROR(ErrorManagement::FatalError, "Cannot find Expression among MathExpressionGAM parameters.");
-        //}
+        if (ok) {
+            REPORT_ERROR(ErrorManagement::Information, "STRING: %s", expr.Buffer());
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::FatalError, "Cannot find Expression among MathExpressionGAM parameters.");
+        }
     
-    //}
+    }
     
     return ok;
     
@@ -76,27 +77,130 @@ bool MathExpressionGAM::Setup() {
     
     bool ok = false;
     
-    StreamString errStr;
-    
+    /// 1. Parser initialization
     expr.Seek(0);
+    mathParser = new MathExpressionParser(expr, &errStr);
+    ok = mathParser->Parse();
     
-    MathExpressionParser mathParser(expr, &errStr);
+    // Debug printing
+    if (ok) {
+        REPORT_ERROR(ErrorManagement::Debug, "Parsed? %u", ok);
+        REPORT_ERROR(ErrorManagement::Information, "\n%s", (mathParser->GetStackMachineExpression()).Buffer() );
+    }
     
-    bool parseOk = mathParser.Parse();
+    /// 2. Evaluator initialization
+    evaluator = new RuntimeEvaluator(mathParser->GetStackMachineExpression());
+    ok = evaluator->ExtractVariables();
     
-    REPORT_ERROR(ErrorManagement::Debug, "Parsed? %u", parseOk);
+    /// 3. Types are assigned to variables based on input signal types
+    uint32 index = 0U;
+    VariableInformation *var;
     
-    REPORT_ERROR(ErrorManagement::Information, "\n%s", (mathParser.GetStackMachineExpression()).Buffer());
+    if (ok){
+
+        while(evaluator->BrowseInputVariable(index,var)) {
+            
+            StreamString   signalName = "";
+            TypeDescriptor signalType = InvalidType;
+            
+            for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
+                
+                ok = GetSignalName(InputSignals, signalIdx, signalName);
+                if (signalName == var->name && ok) {
+                    signalType = GetSignalType(InputSignals, signalIdx);
+                    break;
+                }
+                signalName = "";
+                
+            }
+            if (signalType != InvalidType) {
+                evaluator->SetInputVariableType(index, signalType);
+                printf("%s -> %s\n", (var->name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType));
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not associate signal to variable %s", (var->name).Buffer());
+                ok = false;
+            }
+            index++;
+            
+        }
+        
+    }
     
+    if (ok) {
+        
+        index = 0;
+        
+        while(evaluator->BrowseOutputVariable(index,var)) {
+            
+            StreamString   signalName = "";
+            TypeDescriptor signalType = InvalidType;
+            
+            for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
+                
+                ok = GetSignalName(OutputSignals, signalIdx, signalName);
+                if (signalName == var->name && ok) {
+                    signalType = GetSignalType(OutputSignals, signalIdx);
+                    break;
+                }
+                signalName = "";
+                
+            }
+            
+            if (signalType != InvalidType) {
+                evaluator->SetOutputVariableType(index, signalType);
+                printf("%s -> %s\n", (var->name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType));
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not associate signal to variable %s", (var->name).Buffer());
+                ok = false;
+            }
+            index++;
+            
+        }
+    }
+    
+    /// 4. Compilation
+    if (ok) {
+        ok = evaluator->Compile();
+    }
     
     return ok;
 }
 
 bool MathExpressionGAM::Execute() {
     
-    return true;
+    bool ok = false;
+    
+    /// 1. Update values of input variables
+    StreamString   signalName = "";
+    for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
+        
+        GetSignalName(InputSignals, signalIdx, signalName);
+        
+        *((float32*)evaluator->GetInputVariableMemory(signalName)) = *((float32*)inputSignalsMemoryIndexer[signalIdx]);
+        
+        signalName = "";
+    }
+    
+    /// 2. Execute
+    ok = evaluator->Execute();
+    
+    /// 3. Update values of output signals
+    for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
+        
+        GetSignalName(OutputSignals, signalIdx, signalName);
+        
+        *((float32*)outputSignalsMemoryIndexer[signalIdx]) = *((float32*)evaluator->GetOutputVariableMemory(signalName));
+        
+        signalName = "";
+    }
+    
+    return ok;
     
 }
+
 CLASS_REGISTER(MathExpressionGAM, "1.0")
-}
+
+} /* namespace MARTe */
 

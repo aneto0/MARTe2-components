@@ -31,6 +31,7 @@ SPB=IOGAM.x\
 	FilterGAM.x\
 	HistogramGAM.x\
 	Interleaved2FlatGAM.x\
+	MathExpressionGAM.x\
 	MuxGAM.x\
 	PIDGAM.x\
 	SSMGAM.x\
