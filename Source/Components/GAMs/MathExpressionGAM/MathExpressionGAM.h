@@ -84,6 +84,17 @@ public:
 
 private:
     
+    struct SignalStruct {
+        
+        StreamString    name;
+        TypeDescriptor  type;
+        uint32          numberOfElements;
+        
+    };
+    
+    SignalStruct*  inputSignals;
+    SignalStruct* outputSignals;
+    
     StreamString expr;
     
     StreamString errStr;

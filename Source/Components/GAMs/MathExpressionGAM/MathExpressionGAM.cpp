@@ -77,6 +77,28 @@ bool MathExpressionGAM::Setup() {
     
     bool ok = false;
     
+    /// 0. Get information about signals
+    inputSignals  = new SignalStruct[numberOfInputSignals];
+    outputSignals = new SignalStruct[numberOfOutputSignals];
+    
+    for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
+        
+        ok = GetSignalName(InputSignals, signalIdx, inputSignals[signalIdx].name);
+        
+        inputSignals[signalIdx].type = GetSignalType(InputSignals, signalIdx);
+        
+printf("get %s of type %s\n", inputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
+    }
+    
+    for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
+        
+        ok = GetSignalName(OutputSignals, signalIdx, outputSignals[signalIdx].name);
+        
+        outputSignals[signalIdx].type = GetSignalType(OutputSignals, signalIdx);
+        
+printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
+    }
+    
     /// 1. Parser initialization
     expr.Seek(0);
     mathParser = new MathExpressionParser(expr, &errStr);
@@ -100,26 +122,22 @@ bool MathExpressionGAM::Setup() {
 
         while(evaluator->BrowseInputVariable(index,var)) {
             
-            StreamString   signalName = "";
-            TypeDescriptor signalType = InvalidType;
-            
             for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
-                
-                ok = GetSignalName(InputSignals, signalIdx, signalName);
-                if (signalName == var->name && ok) {
-                    signalType = GetSignalType(InputSignals, signalIdx);
+
+                if (inputSignals[signalIdx].name == var->name && ok) {
+                    
+                    evaluator->SetInputVariableType(index, inputSignals[signalIdx].type);
+                    printf("%s | %s -> %s\n", (var->name).Buffer(), (inputSignals[index].name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
                     break;
+                    
                 }
-                signalName = "";
                 
             }
-            if (signalType != InvalidType) {
-                evaluator->SetInputVariableType(index, signalType);
-                printf("%s -> %s\n", (var->name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType));
-            }
-            else {
+            
+            if (var->type == InvalidType) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not associate signal to variable %s", (var->name).Buffer());
                 ok = false;
+                break;
             }
             index++;
             
@@ -127,37 +145,34 @@ bool MathExpressionGAM::Setup() {
         
     }
     
-    if (ok) {
-        
-        index = 0;
+    // reset the index
+    index = 0u;
+    
+    if (ok){
         
         while(evaluator->BrowseOutputVariable(index,var)) {
             
-            StreamString   signalName = "";
-            TypeDescriptor signalType = InvalidType;
-            
             for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
-                
-                ok = GetSignalName(OutputSignals, signalIdx, signalName);
-                if (signalName == var->name && ok) {
-                    signalType = GetSignalType(OutputSignals, signalIdx);
+
+                if (outputSignals[signalIdx].name == var->name && ok) {
+                    
+                    evaluator->SetOutputVariableType(index, outputSignals[signalIdx].type);
+                    printf("%s | %s -> %s\n", (var->name).Buffer(), (outputSignals[index].name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(outputSignals[signalIdx].type));
                     break;
+                    
                 }
-                signalName = "";
                 
             }
             
-            if (signalType != InvalidType) {
-                evaluator->SetOutputVariableType(index, signalType);
-                printf("%s -> %s\n", (var->name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType));
-            }
-            else {
+            if (var->type == InvalidType) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not associate signal to variable %s", (var->name).Buffer());
                 ok = false;
+                break;
             }
             index++;
             
         }
+        
     }
     
     /// 4. Compilation
@@ -173,14 +188,11 @@ bool MathExpressionGAM::Execute() {
     bool ok = false;
     
     /// 1. Update values of input variables
-    StreamString   signalName = "";
+
     for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
         
-        GetSignalName(InputSignals, signalIdx, signalName);
+        *((float32*)evaluator->GetInputVariableMemory(inputSignals[signalIdx].name)) = *((float32*)inputSignalsMemoryIndexer[signalIdx]);
         
-        *((float32*)evaluator->GetInputVariableMemory(signalName)) = *((float32*)inputSignalsMemoryIndexer[signalIdx]);
-        
-        signalName = "";
     }
     
     /// 2. Execute
@@ -189,11 +201,8 @@ bool MathExpressionGAM::Execute() {
     /// 3. Update values of output signals
     for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
         
-        GetSignalName(OutputSignals, signalIdx, signalName);
+        *((float32*)outputSignalsMemoryIndexer[signalIdx]) = *((float32*)evaluator->GetOutputVariableMemory(outputSignals[signalIdx].name));
         
-        *((float32*)outputSignalsMemoryIndexer[signalIdx]) = *((float32*)evaluator->GetOutputVariableMemory(signalName));
-        
-        signalName = "";
     }
     
     return ok;
