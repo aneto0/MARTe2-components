@@ -149,7 +149,7 @@ printf("get %s of type %s\n", inputSignals[signalIdx].name.Buffer(), TypeDescrip
         ok = GetSignalNumberOfElements(OutputSignals, signalIdx, outputSignals[signalIdx].numberOfElements);
         outputSignals[signalIdx].type = GetSignalType(OutputSignals, signalIdx);
         
-printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
+printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(outputSignals[signalIdx].type));
     }
     
     /// 1. Parser initialization
@@ -175,12 +175,26 @@ printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescri
 
         while(evaluator->BrowseInputVariable(index,var)) {
             
+            // look for input variable among input signals
             for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
 
                 if (inputSignals[signalIdx].name == var->name && ok) {
                     
                     evaluator->SetInputVariableType(index, inputSignals[signalIdx].type);
-                    printf("%s | %s -> %s\n", (var->name).Buffer(), (inputSignals[index].name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
+printf("%s | %s -> %s\n", (var->name).Buffer(), (inputSignals[signalIdx].name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
+                    break;
+                    
+                }
+                
+            }
+            
+            // look for input variable among parameters
+            for (uint32 paramIdx = 0u; paramIdx < numberOfParameters; paramIdx++) {
+
+                if (parameters[paramIdx].name == var->name && ok) {
+                    
+                    evaluator->SetInputVariableType(index, parameters[paramIdx].type);
+printf("%s param %s -> %s\n", (var->name).Buffer(), (parameters[paramIdx].name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(parameters[paramIdx].type));
                     break;
                     
                 }
@@ -210,7 +224,7 @@ printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescri
                 if (outputSignals[signalIdx].name == var->name && ok) {
                     
                     evaluator->SetOutputVariableType(index, outputSignals[signalIdx].type);
-                    printf("%s | %s -> %s\n", (var->name).Buffer(), (outputSignals[index].name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(outputSignals[signalIdx].type));
+printf("%s | %s -> %s\n", (var->name).Buffer(), (outputSignals[signalIdx].name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(outputSignals[signalIdx].type));
                     break;
                     
                 }
@@ -231,6 +245,26 @@ printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescri
     /// 4. Compilation
     if (ok) {
         ok = evaluator->Compile();
+    }
+    
+    /// 5. Variables associated to parameters get their value.
+    if (ok) {
+        while(evaluator->BrowseInputVariable(index,var)) {
+            
+            // look for input variable among parameters
+            for (uint32 paramIdx = 0u; paramIdx < numberOfParameters; paramIdx++) {
+
+                if (parameters[paramIdx].name == var->name && ok) {
+                    
+                    *((float64*)evaluator->GetInputVariableMemory(index)) = parameterArray[paramIdx];
+printf("param %s = %f\n", (parameters[paramIdx].name).Buffer(), *((float64*)evaluator->GetInputVariableMemory(index)));
+                    break;
+                    
+                }
+            }
+            
+            index++;
+        }
     }
     
     return ok;
