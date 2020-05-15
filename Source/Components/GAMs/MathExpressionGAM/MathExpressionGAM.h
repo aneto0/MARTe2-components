@@ -99,6 +99,10 @@ private:
     
     SignalStruct*  inputSignals;
     SignalStruct* outputSignals;
+    SignalStruct*    parameters;
+    
+    uint32 numberOfParameters;
+    float64* parameterArray;
     
     StreamString expr;
     

@@ -69,6 +69,59 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
     
     }
     
+    // Read parameters
+    AnyType paramDescription;
+    
+    printf("hello %s\n", data.GetName());
+    ok = data.MoveRelative("Parameters");
+    if (ok) {
+        
+        numberOfParameters = data.GetNumberOfChildren();
+        
+        parameters = new SignalStruct[numberOfParameters];
+        parameterArray =  new float64[numberOfParameters];
+        
+        for (uint32 paramIdx = 0u; (paramIdx < numberOfParameters) && ok; paramIdx++) {
+            
+            parameters[paramIdx].name = data.GetChildName(paramIdx);
+            parameters[paramIdx].type = Float64Bit;
+            
+            paramDescription = data.GetType((parameters[paramIdx].name).Buffer());
+            parameters[paramIdx].numberOfElements = paramDescription.GetNumberOfElements(0u)*paramDescription.GetNumberOfElements(1u);
+            
+            // for now RuntimeEvaluator supports only scalar values
+            float64 configValue;
+            ok = parameters[paramIdx].numberOfElements == 1u;
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError,
+                     "Parameter %s has numberOfElements > 1.", (parameters[paramIdx].name).Buffer());
+            }
+            if (ok) {
+                ok = data.Read((parameters[paramIdx].name).Buffer(), configValue);
+            }
+            if (ok) {
+                parameterArray[paramIdx] = configValue;
+            }
+printf("get %s of type %s and value %f\n", parameters[paramIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(parameters[paramIdx].type), parameterArray[paramIdx]);
+        }
+        
+        if (ok) {
+            ok = data.MoveToAncestor(1u);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::FatalError,
+                         "Cannot MoveToAncestor().");
+            }
+        }
+        
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::Warning,
+                     "Cannot find Parameters node in configuration file.");
+        ok = true;
+    }
+    
+    printf("hello2 %s\n", data.GetName());
+    
     return ok;
     
 }
