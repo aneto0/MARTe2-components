@@ -61,210 +61,143 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
         ok = data.Read("Expression", expr);
         
         if (ok) {
-            REPORT_ERROR(ErrorManagement::Information, "STRING: %s", expr.Buffer());
+            REPORT_ERROR(ErrorManagement::Debug, "STRING: %s", expr.Buffer());
         }
-        else {
-            REPORT_ERROR(ErrorManagement::FatalError, "Cannot find Expression among MathExpressionGAM parameters.");
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find Expression among MathExpressionGAM parameters.");
         }
     
     }
     
-    // Read parameters
-    AnyType paramDescription;
-    
-    printf("hello %s\n", data.GetName());
-    ok = data.MoveRelative("Parameters");
+    // Parser initialization
     if (ok) {
-        
-        numberOfParameters = data.GetNumberOfChildren();
-        
-        parameters = new SignalStruct[numberOfParameters];
-        parameterArray =  new float64[numberOfParameters];
-        
-        for (uint32 paramIdx = 0u; (paramIdx < numberOfParameters) && ok; paramIdx++) {
-            
-            parameters[paramIdx].name = data.GetChildName(paramIdx);
-            parameters[paramIdx].type = Float64Bit;
-            
-            paramDescription = data.GetType((parameters[paramIdx].name).Buffer());
-            parameters[paramIdx].numberOfElements = paramDescription.GetNumberOfElements(0u)*paramDescription.GetNumberOfElements(1u);
-            
-            // for now RuntimeEvaluator supports only scalar values
-            float64 configValue;
-            ok = parameters[paramIdx].numberOfElements == 1u;
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError,
-                     "Parameter %s has numberOfElements > 1.", (parameters[paramIdx].name).Buffer());
-            }
-            if (ok) {
-                ok = data.Read((parameters[paramIdx].name).Buffer(), configValue);
-            }
-            if (ok) {
-                parameterArray[paramIdx] = configValue;
-            }
-printf("get %s of type %s and value %f\n", parameters[paramIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(parameters[paramIdx].type), parameterArray[paramIdx]);
+        expr.Seek(0);
+        mathParser = new MathExpressionParser(expr);
+        ok = mathParser->Parse();
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to initialize MathExpressionParser.");
         }
-        
-        if (ok) {
-            ok = data.MoveToAncestor(1u);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::FatalError,
-                         "Cannot MoveToAncestor().");
-            }
-        }
-        
-    }
-    else {
-        REPORT_ERROR(ErrorManagement::Warning,
-                     "Cannot find Parameters node in configuration file.");
-        ok = true;
     }
     
-    printf("hello2 %s\n", data.GetName());
     
+    // Evaluator initialization
+    evaluator = new RuntimeEvaluator(mathParser->GetStackMachineExpression());
+
     return ok;
     
 }
 
 bool MathExpressionGAM::Setup() {
     
-    bool ok = false;
+    bool ok = true;
     
     /// 0. Get information about signals
     inputSignals  = new SignalStruct[numberOfInputSignals];
     outputSignals = new SignalStruct[numberOfOutputSignals];
     
-    for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
+    for (uint32 signalIdx = 0u; (signalIdx < numberOfInputSignals) && ok; signalIdx++) {
         
-        ok = GetSignalName(InputSignals, signalIdx, inputSignals[signalIdx].name);
-        ok = GetSignalNumberOfElements(InputSignals, signalIdx, inputSignals[signalIdx].numberOfElements);
+        ok &= GetSignalName(InputSignals, signalIdx, inputSignals[signalIdx].name);
+        ok &= GetSignalNumberOfElements(InputSignals, signalIdx, inputSignals[signalIdx].numberOfElements);
         inputSignals[signalIdx].type = GetSignalType(InputSignals, signalIdx);
         
 printf("get %s of type %s\n", inputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
     }
     
-    for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
+    for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && ok; signalIdx++) {
         
-        ok = GetSignalName(OutputSignals, signalIdx, outputSignals[signalIdx].name);
-        ok = GetSignalNumberOfElements(OutputSignals, signalIdx, outputSignals[signalIdx].numberOfElements);
+        ok &= GetSignalName(OutputSignals, signalIdx, outputSignals[signalIdx].name);
+        ok &= GetSignalNumberOfElements(OutputSignals, signalIdx, outputSignals[signalIdx].numberOfElements);
         outputSignals[signalIdx].type = GetSignalType(OutputSignals, signalIdx);
         
 printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(outputSignals[signalIdx].type));
     }
     
-    /// 1. Parser initialization
-    expr.Seek(0);
-    mathParser = new MathExpressionParser(expr, &errStr);
-    ok = mathParser->Parse();
+    /// 1. Checks
+    for (uint32 signalIdx = 0u; (signalIdx < numberOfInputSignals) && ok; signalIdx++) {
+        ok = (inputSignals[signalIdx].numberOfElements == 1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::UnsupportedFeature, "Signal %s has %u elements (> 1). Only scalar signals are supported.", (inputSignals[signalIdx].name).Buffer(), inputSignals[signalIdx].numberOfElements);
+        } 
+    }
     
-    // Debug printing
-    if (ok) {
-        REPORT_ERROR(ErrorManagement::Debug, "Parsed? %u", ok);
-        REPORT_ERROR(ErrorManagement::Information, "\n%s", (mathParser->GetStackMachineExpression()).Buffer() );
+    for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && ok; signalIdx++) {
+        ok = (outputSignals[signalIdx].numberOfElements == 1u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::UnsupportedFeature, "Signal %s has %u elements (> 1). Only scalar signals are supported.", (inputSignals[signalIdx].name).Buffer(), inputSignals[signalIdx].numberOfElements);
+        } 
     }
     
     /// 2. Evaluator initialization
-    evaluator = new RuntimeEvaluator(mathParser->GetStackMachineExpression());
-    ok = evaluator->ExtractVariables();
-    
-    /// 3. Types are assigned to variables based on input signal types
-    uint32 index = 0U;
-    VariableInformation *var;
+    if (ok) {
+        ok = evaluator->ExtractVariables();
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed RuntimeEvaluator::ExtractVariables().");
+        }
+    }
     
     if (ok){
-
-        while(evaluator->BrowseInputVariable(index,var)) {
             
-            // look for input variable among input signals
-            for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
-
-                if (inputSignals[signalIdx].name == var->name && ok) {
-                    
-                    evaluator->SetInputVariableType(index, inputSignals[signalIdx].type);
-printf("%s | %s -> %s\n", (var->name).Buffer(), (inputSignals[signalIdx].name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
-                    break;
-                    
-                }
+        // look for input variable among input signals
+        for (uint32 signalIdx = 0u; (signalIdx < numberOfInputSignals) && (ok); signalIdx++) {
                 
+            ok &= evaluator->SetInputVariableType(inputSignals[signalIdx].name, inputSignals[signalIdx].type);
+            ok &= evaluator->SetInputVariableMemory(inputSignals[signalIdx].name, GetInputSignalMemory(signalIdx));
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate input signal '%s': no variable with that name in the expression.", (inputSignals[signalIdx].name).Buffer());
             }
-            
-            // look for input variable among parameters
-            for (uint32 paramIdx = 0u; paramIdx < numberOfParameters; paramIdx++) {
+        }
+        
+    }
 
-                if (parameters[paramIdx].name == var->name && ok) {
-                    
-                    evaluator->SetInputVariableType(index, parameters[paramIdx].type);
-printf("%s param %s -> %s\n", (var->name).Buffer(), (parameters[paramIdx].name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(parameters[paramIdx].type));
-                    break;
-                    
-                }
+    if (ok){
+        
+        // look for input variable among input signals
+        for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && (ok); signalIdx++) {
                 
+            ok &= evaluator->SetOutputVariableType(outputSignals[signalIdx].name, outputSignals[signalIdx].type);
+            ok &= evaluator->SetOutputVariableMemory(outputSignals[signalIdx].name, GetOutputSignalMemory(signalIdx));
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate input signal '%s': no variable with that name in the expression.", (outputSignals[signalIdx].name).Buffer());
             }
-            
-            if (var->type == InvalidType) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not associate signal to variable %s", (var->name).Buffer());
-                ok = false;
-                break;
-            }
-            index++;
-            
         }
         
     }
     
-    // reset the index
+    /// 4. Check that all variables have been assigned to a signal or parameter.
+    uint32 index;
+    VariableInformation* var;
+    
+    // input variables
     index = 0u;
-    
-    if (ok){
+    while(evaluator->BrowseInputVariable(index, var) && ok) {
         
-        while(evaluator->BrowseOutputVariable(index,var)) {
-            
-            for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
-
-                if (outputSignals[signalIdx].name == var->name && ok) {
-                    
-                    evaluator->SetOutputVariableType(index, outputSignals[signalIdx].type);
-printf("%s | %s -> %s\n", (var->name).Buffer(), (outputSignals[signalIdx].name).Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(outputSignals[signalIdx].type));
-                    break;
-                    
-                }
-                
+        if (StringHelper::CompareN((var->name).Buffer(), "Constant@", 9u) != 0) {    // exclude constants
+            ok = (var->externalLocation != NULL);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError,
+                             "Can't associate input variable '%s': no input signal or parameter with that name.",
+                             (var->name).Buffer());
             }
-            
-            if (var->type == InvalidType) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not associate signal to variable %s", (var->name).Buffer());
-                ok = false;
-                break;
-            }
-            index++;
-            
         }
-        
+        index++;
     }
     
-    /// 4. Compilation
+    // output variables (only a warning is issued, internal output variables are allowed)
+    index = 0u;
+    while(evaluator->BrowseOutputVariable(index, var) && ok) {
+        
+        if (var->externalLocation == NULL) {
+            REPORT_ERROR(ErrorManagement::Warning,
+                        "Can't associate output variable '%s': no output signal with that name. By default it is considered internal.",
+                        (var->name).Buffer());
+        }
+        index++;
+    }
+    
+    /// 5. Compilation
     if (ok) {
         ok = evaluator->Compile();
-    }
-    
-    /// 5. Variables associated to parameters get their value.
-    if (ok) {
-        while(evaluator->BrowseInputVariable(index,var)) {
-            
-            // look for input variable among parameters
-            for (uint32 paramIdx = 0u; paramIdx < numberOfParameters; paramIdx++) {
-
-                if (parameters[paramIdx].name == var->name && ok) {
-                    
-                    *((float64*)evaluator->GetInputVariableMemory(index)) = parameterArray[paramIdx];
-printf("param %s = %f\n", (parameters[paramIdx].name).Buffer(), *((float64*)evaluator->GetInputVariableMemory(index)));
-                    break;
-                    
-                }
-            }
-            
-            index++;
-        }
     }
     
     return ok;
@@ -272,144 +205,7 @@ printf("param %s = %f\n", (parameters[paramIdx].name).Buffer(), *((float64*)eval
 
 bool MathExpressionGAM::Execute() {
     
-    bool ok = false;
-    
-    /// 1. Update values of input variables
-    //for (uint32 signalIdx = 0u; signalIdx < numberOfInputSignals; signalIdx++) {
-        
-        //*((float32*)evaluator->GetInputVariableMemory(inputSignals[signalIdx].name)) = *((float32*)inputSignalsMemoryIndexer[signalIdx]);
-        
-    //}
-    RefreshSignals(InputSignals);
-    
-    /// 2. Execute
-    ok = evaluator->Execute();
-    
-    /// 3. Update values of output signals
-    //for (uint32 signalIdx = 0u; signalIdx < numberOfOutputSignals; signalIdx++) {
-        
-        //*((float32*)outputSignalsMemoryIndexer[signalIdx]) = *((float32*)evaluator->GetOutputVariableMemory(outputSignals[signalIdx].name));
-        
-    //}
-    RefreshSignals(OutputSignals);
-    
-    return ok;
-    
-}
-
-void MathExpressionGAM::RefreshSignals(const SignalDirection direction) {
-    
-    uint32 numberOfSignals;
-    SignalStruct* signals;
-    
-    switch (direction) {
-        
-        case InputSignals:
-            
-            numberOfSignals = numberOfInputSignals;
-            signals = inputSignals;
-            
-            break;
-        
-        case OutputSignals:
-            
-            numberOfSignals = numberOfOutputSignals;
-            signals = outputSignals;
-            
-            break;
-        
-        default:
-            REPORT_ERROR(ErrorManagement::Exception,
-                "Unsupported data direction.");
-        
-    }
-    
-    for (uint32 signalIdx = 0u; signalIdx < numberOfSignals; signalIdx++) {
-        
-        if (signals[signalIdx].type==UnsignedInteger8Bit) {
-            
-            SignalMemCopy<uint8>(direction, signalIdx);
-            
-        } else if (signals[signalIdx].type==UnsignedInteger16Bit) {
-            
-            SignalMemCopy<uint16>(direction, signalIdx);
-            
-        } else if (signals[signalIdx].type==UnsignedInteger32Bit) {
-            
-            SignalMemCopy<uint32>(direction, signalIdx);
-            
-        } else if (signals[signalIdx].type==UnsignedInteger64Bit) {
-            
-            SignalMemCopy<uint64>(direction, signalIdx);
-            
-        } else if (signals[signalIdx].type==SignedInteger8Bit) {
-            
-            SignalMemCopy<int8>(direction, signalIdx);
-            
-        } else if (signals[signalIdx].type==SignedInteger16Bit) {
-            
-            SignalMemCopy<int16>(direction, signalIdx);
-            
-        } else if (signals[signalIdx].type==SignedInteger32Bit) {
-            
-            SignalMemCopy<int32>(direction, signalIdx);
-            
-        } else if (signals[signalIdx].type==SignedInteger64Bit) {
-            
-            SignalMemCopy<int64>(direction, signalIdx);
-            
-        } else if (signals[signalIdx].type==Float32Bit) {
-            
-            SignalMemCopy<float32>(direction, signalIdx);
-            
-        } else if (signals[signalIdx].type==Float64Bit) {
-            
-            SignalMemCopy<float64>(direction, signalIdx);
-            
-        }  else {
-            
-            REPORT_ERROR(ErrorManagement::Exception,
-                         "Error while refreshing data between model and GAM.");
-            
-        }
-        
-    }
-    
-}
-
-template <typename T>
-void MathExpressionGAM::SignalMemCopy(const SignalDirection direction, const uint32 signalIdx) {
-    
-    switch (direction) {
-        
-        case InputSignals:
-            
-            for (uint32 elemIdx = 0u; elemIdx < inputSignals[signalIdx].numberOfElements; elemIdx++) {
-                
-                *((T*)evaluator->GetInputVariableMemory(inputSignals[signalIdx].name) + elemIdx)
-                     = *((T*)inputSignalsMemoryIndexer[signalIdx] + elemIdx);
-                
-            }
-            
-            break;
-            
-        case OutputSignals:
-            
-            for (uint32 elemIdx = 0u; elemIdx < outputSignals[signalIdx].numberOfElements; elemIdx++) {
-                
-                *((T*)outputSignalsMemoryIndexer[signalIdx] + elemIdx)
-                     = *((T*)evaluator->GetOutputVariableMemory(outputSignals[signalIdx].name) + elemIdx);
-
-                
-            }
-            
-            break;
-        
-        default:
-            REPORT_ERROR(ErrorManagement::Exception,
-                "Unsupported data direction.");
-        
-    }
+    return evaluator->Execute();
     
 }
 

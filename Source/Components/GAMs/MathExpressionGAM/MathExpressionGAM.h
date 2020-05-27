@@ -84,11 +84,6 @@ public:
 
 private:
     
-    void RefreshSignals(const SignalDirection direction);
-    
-    template <typename T>
-    void SignalMemCopy(const SignalDirection direction, const uint32 signalIdx);
-    
     struct SignalStruct {
         
         StreamString    name;
