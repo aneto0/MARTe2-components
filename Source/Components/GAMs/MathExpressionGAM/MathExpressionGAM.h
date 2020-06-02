@@ -43,9 +43,125 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-/**
+ 
+ /**
  * @brief GAM to evaluate mathematical expressions at runtime using
  *        MARTe2 internal evaluator engine RuntimeEvaluator 
+ * 
+ * @details This GAM combines the provided input signals into an arbitrary
+ * number of output signals in the way specified by the `Expression` leaf.
+ * 
+ * The `Expression` leaf must be a string containing the expressions
+ * that will be evaluated during run-time in string format. The `Expression`
+ * leaf is compulsory.
+ * 
+ * The `Expression` leaf must be in infix form and must be terminated 
+ * by a comma, a semicolon or a `\n` (e.g. `ret = A + B;`). Supported
+ * operators are the following:
+ * 
+ * | Operator | Meaning            |
+ * | :------: | :----------------- |
+ * | =        | Assignment         |
+ * | &&       | AND                |
+ * | \|\|     | OR                 |
+ * | ^        | Exclusive OR       |
+ * | !        | NOT                |
+ * | <        | Less than          |
+ * | >        | Greater than       |
+ * | <=       | Less ot equal      |
+ * | >=       | Greater or equal   |
+ * | ==       | Equal              |
+ * | !=       | Not equal          |
+ * | +        | Sum                |
+ * | -        | Subtraction        |
+ * | *        | Multiplication     |
+ * | /        | Division           |
+ * | `sin()`  | Sine               |
+ * | `cos()`  | Cosine             |
+ * | `pow()`  | Power              |
+ * | `(type)` | Typecast to `type` |
+ * | , ; \\n  | End of expression  |
+ * 
+ * Systems of equations that spans on multiple lines are supported
+ * (see example below).
+ * 
+ * The GAM supports scalar signals only.
+ * 
+ * During initialisation each variable in the expression is automatically
+ * associated to the signal with the same name:
+ * - variables on the right-hand side each expression are considered
+ *   *input variables* and are associated to input signals. Note that
+ *   each variable on the left-hand side must have an associated
+ *   input signal with the same. An input variable with no input signal
+ *   of the same name (and viceversa) will cause the GAM to fail initialisation.
+ * - variables on the left-hand side of the expression are considered
+ *   *output variables* and are associated to output signals.
+ *   Output variables are not required to have a corresponding output
+ *   signal since they can be used as bridge values between exepressions:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~
+ * OutSignal1 = In1 + In2;
+ * temp = 2*In1;
+ * OutSignal2 = Out1 + temp;
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * Constants are supported both in numeric and in literal form.
+ * Constants in literal form must be defined within the same expression
+ * as shown in the following example:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * G = 0.00000000006674;
+ * F = G*(m1 + m2)/pow(r,2);
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * In the example above, `m1`, `m2` and `r` are input signals, `G` is
+ * a literal constant and `2` is a numeric constant. Note that numeric
+ * constants are treated as `float64` if not otherwise specified.
+ * 
+ * Some combination of types may not be available based on the 
+ * availability of a corresponding function in #functionRecord (see
+ * RuntimeEvaluator and RuntimeEvaluatorFunctions documentation for details).
+ * 
+ * Lack of an adequate function for treating a certain type combination
+ * can be overcome by typecasts:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * G = 0.00000000006674;
+ * F = (float64) G*((float64) m1 + (float64) m2)/pow((float64) r, (float64) 2);
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * The configuration syntax is (signal names are only given as
+ * an example and can be changed):
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * +ExprGAM = {
+ *     Class = MathExpressionGAM
+ *     Expression = "
+ *                   pi = 3.14;
+ *                   Out1 = ( In1 + (float32) In2 ) * ((float32) 10);
+ *                   Out2 = (float64) Out1 + pi + 10;
+ *                  "
+ *     InputSignals = {               // As many as required.
+ *         In1 = {
+ *             Type = float32
+ *             NumberOfElements = 1
+ *         }
+ *         In2 = {
+ *             Type = int32
+ *             NumberOfElements = 1
+ *         }
+ *     }
+ *     OutputSignals = {              // As many as required.
+ *         Out1 = {
+ *             Type = float32
+ *         }
+ *         Out2 = {
+ *             Type = float64
+ *         }
+ *     }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
  */
 class MathExpressionGAM: public GAM {
     
@@ -62,28 +178,48 @@ public:
      */
     virtual ~MathExpressionGAM();
     
+    /**
+     * @brief Initializes and retrieves informations from configuration file. 
+     * @details During the initialization phase number of inputs and outputs are
+     * read from the configuration file and the `Expression` is stored.
+     * @param[in] data the GAM configuration specified in the configuration file.
+     * @return true on succeed.
+     */
     virtual bool Initialise(StructuredDataI &data);
     
-    /**
-     * @brief Verifies correctness of the GAM configuration.
-     * @details Checks that the number of input signals is equal to the number of output signals and that,
-     * for each signal, the same type is used.
-     * @return is the pre-conditions are met.
-     * @pre
-     *   SetConfiguredDatabase() &&
-     *   GetNumberOfInputSignals() == GetNumberOfOutputSignals() &&
-     *   for each signal i: GetSignalByteSize(InputSignals, i) * GetSignalNumberOfSamples(InputSignals, i) == GetSignalByteSize(OutputSignals, i) * GetSignalNumberOfSamples(OutputSignals, i)
+     /**
+     * @brief Checks parameters and compile the expressions. 
+     * @details This method:
+     * 1. checks if signal dimensions retrieved from the configuration file are correct
+     * 2. set the types of each variable according to signal types
+     * 3. set the external location of each variable to be the same of
+     *    the corresponding signal memory, so that no memcopy is required
+     *    during execution
+     * 4. compiles the expression
+     * 
+     * Expression does not need to be recompiled each time it is evaluated.
+     * 
+     * @return true on succeed.
+     * @pre Initialise() == `true` &&
+     *      all input variables can find an associated input signal
+     *      of the same name.
      */
     virtual bool Setup();
 
     /**
-     * @brief Copies the input signals memory to the output signal memory.
-     * @return true if all the signals memory can be successfully copied.
+     * @brief Evaluates the expression. 
+     * @return true on succeed.
+     * @pre
+     *  Initialise() == true &&
+     *  Setup() == true
      */
     virtual bool Execute();
 
 private:
     
+    /**
+     * @brief Structure to hold information about signals.
+     */
     struct SignalStruct {
         
         StreamString    name;
@@ -92,18 +228,41 @@ private:
         
     };
     
+    /**
+     * @brief Instances of SignalStruct for inputs and outputs.
+     */
+    //@{
     SignalStruct*  inputSignals;
     SignalStruct* outputSignals;
-    SignalStruct*    parameters;
+    //@}
     
+    /**
+     * @todo remove
+     */
+    SignalStruct*    parameters;
     uint32 numberOfParameters;
     float64* parameterArray;
     
+    /**
+     * @brief The expression to be evaluated.
+     */
     StreamString expr;
     
+    /**
+     * @todo remove
+     */
     StreamString errStr;
     
+    /**
+     * @brief Pointer to the instance of the MathExpressionParser
+     *        that will parse the input expression.
+     */
     MathExpressionParser* mathParser;
+    
+    /**
+     * @brief Pointer to the instance of the RuntimeEvaluator
+     *        that will evaluate the input expression.
+     */
     RuntimeEvaluator*     evaluator;
     
 };

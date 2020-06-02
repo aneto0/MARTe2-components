@@ -91,7 +91,7 @@ bool MathExpressionGAM::Setup() {
     
     bool ok = true;
     
-    /// 0. Get information about signals
+    // 0. Get information about signals
     inputSignals  = new SignalStruct[numberOfInputSignals];
     outputSignals = new SignalStruct[numberOfOutputSignals];
     
@@ -113,7 +113,7 @@ printf("get %s of type %s\n", inputSignals[signalIdx].name.Buffer(), TypeDescrip
 printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(outputSignals[signalIdx].type));
     }
     
-    /// 1. Checks
+    // 1. Checks
     for (uint32 signalIdx = 0u; (signalIdx < numberOfInputSignals) && ok; signalIdx++) {
         ok = (inputSignals[signalIdx].numberOfElements == 1u);
         if (!ok) {
@@ -128,7 +128,7 @@ printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescri
         } 
     }
     
-    /// 2. Evaluator initialization
+    // 2. Evaluator initialization
     if (ok) {
         ok = evaluator->ExtractVariables();
         if (!ok) {
@@ -164,7 +164,7 @@ printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescri
         
     }
     
-    /// 4. Check that all variables have been assigned to a signal or parameter.
+    // 4. Check that all variables have been assigned to a signal or parameter.
     uint32 index;
     VariableInformation* var;
     
@@ -195,7 +195,7 @@ printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescri
         index++;
     }
     
-    /// 5. Compilation
+    // 5. Compilation
     if (ok) {
         ok = evaluator->Compile();
     }
