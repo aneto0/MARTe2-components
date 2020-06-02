@@ -118,10 +118,10 @@ namespace MARTe {
  * a literal constant and `2` is a numeric constant. Note that numeric
  * constants are treated as `float64` if not otherwise specified.
  * 
- * Some combination of types may not be available based on the 
+ * Particular care shall be placed in *type combinations*: some operations
+ * on variables of different type may not be available based on the 
  * availability of a corresponding function in #functionRecord (see
  * RuntimeEvaluator and RuntimeEvaluatorFunctions documentation for details).
- * 
  * Lack of an adequate function for treating a certain type combination
  * can be overcome by typecasts:
  * 
@@ -237,21 +237,9 @@ private:
     //@}
     
     /**
-     * @todo remove
-     */
-    SignalStruct*    parameters;
-    uint32 numberOfParameters;
-    float64* parameterArray;
-    
-    /**
      * @brief The expression to be evaluated.
      */
     StreamString expr;
-    
-    /**
-     * @todo remove
-     */
-    StreamString errStr;
     
     /**
      * @brief Pointer to the instance of the MathExpressionParser
