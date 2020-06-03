@@ -44,11 +44,19 @@ namespace MARTe {
 
 MathExpressionGAM::MathExpressionGAM() :
         GAM() {
-
+    
+    mathParser = NULL_PTR(MathExpressionParser*);
+    evaluator  = NULL_PTR(RuntimeEvaluator*);
 }
 
 MathExpressionGAM::~MathExpressionGAM() {
-
+    
+    if (mathParser != NULL) {
+        delete mathParser;
+    }
+    if (evaluator != NULL) {
+        delete evaluator;
+    }
 }
 
 bool MathExpressionGAM::Initialise(StructuredDataI &data) {
@@ -81,7 +89,9 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
     
     
     // Evaluator initialization
-    evaluator = new RuntimeEvaluator(mathParser->GetStackMachineExpression());
+    if (ok) {
+        evaluator = new RuntimeEvaluator(mathParser->GetStackMachineExpression());
+    }
 
     return ok;
     
