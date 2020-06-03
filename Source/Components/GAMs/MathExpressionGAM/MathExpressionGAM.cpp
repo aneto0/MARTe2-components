@@ -67,10 +67,6 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
     if (ok) {
         
         ok = data.Read("Expression", expr);
-        
-        if (ok) {
-            REPORT_ERROR(ErrorManagement::Debug, "STRING: %s", expr.Buffer());
-        }
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find Expression among MathExpressionGAM parameters.");
         }
@@ -83,10 +79,9 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
         mathParser = new MathExpressionParser(expr);
         ok = mathParser->Parse();
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to initialize MathExpressionParser.");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to parse input Expression.");
         }
     }
-    
     
     // Evaluator initialization
     if (ok) {
@@ -110,8 +105,6 @@ bool MathExpressionGAM::Setup() {
         ok &= GetSignalName(InputSignals, signalIdx, inputSignals[signalIdx].name);
         ok &= GetSignalNumberOfElements(InputSignals, signalIdx, inputSignals[signalIdx].numberOfElements);
         inputSignals[signalIdx].type = GetSignalType(InputSignals, signalIdx);
-        
-printf("get %s of type %s\n", inputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(inputSignals[signalIdx].type));
     }
     
     for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && ok; signalIdx++) {
@@ -119,8 +112,6 @@ printf("get %s of type %s\n", inputSignals[signalIdx].name.Buffer(), TypeDescrip
         ok &= GetSignalName(OutputSignals, signalIdx, outputSignals[signalIdx].name);
         ok &= GetSignalNumberOfElements(OutputSignals, signalIdx, outputSignals[signalIdx].numberOfElements);
         outputSignals[signalIdx].type = GetSignalType(OutputSignals, signalIdx);
-        
-printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(outputSignals[signalIdx].type));
     }
     
     // 1. Checks
@@ -146,29 +137,26 @@ printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescri
         }
     }
     
+    // look for input variable among input signals
     if (ok){
-            
-        // look for input variable among input signals
         for (uint32 signalIdx = 0u; (signalIdx < numberOfInputSignals) && (ok); signalIdx++) {
                 
             ok &= evaluator->SetInputVariableType(inputSignals[signalIdx].name, inputSignals[signalIdx].type);
             ok &= evaluator->SetInputVariableMemory(inputSignals[signalIdx].name, GetInputSignalMemory(signalIdx));
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate input signal '%s': no variable with that name in the expression.", (inputSignals[signalIdx].name).Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate input signal '%s': no variable of the same name in the expression.", (inputSignals[signalIdx].name).Buffer());
             }
         }
-        
     }
 
+    // look for input variable among output signals
     if (ok){
-        
-        // look for input variable among input signals
         for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && (ok); signalIdx++) {
                 
             ok &= evaluator->SetOutputVariableType(outputSignals[signalIdx].name, outputSignals[signalIdx].type);
             ok &= evaluator->SetOutputVariableMemory(outputSignals[signalIdx].name, GetOutputSignalMemory(signalIdx));
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate input signal '%s': no variable with that name in the expression.", (outputSignals[signalIdx].name).Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate input signal '%s': no variable of the same name in the expression.", (outputSignals[signalIdx].name).Buffer());
             }
         }
         
@@ -186,7 +174,7 @@ printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescri
             ok = (var->externalLocation != NULL);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError,
-                             "Can't associate input variable '%s': no input signal or parameter with that name.",
+                             "Can't associate input variable '%s': no input signal of the same name.",
                              (var->name).Buffer());
             }
         }
@@ -199,7 +187,7 @@ printf("get %s of type %s\n", outputSignals[signalIdx].name.Buffer(), TypeDescri
         
         if (var->externalLocation == NULL) {
             REPORT_ERROR(ErrorManagement::Warning,
-                        "Can't associate output variable '%s': no output signal with that name. By default it is considered internal.",
+                        "Can't associate output variable '%s': no output signal of the same name. By default it is considered internal.",
                         (var->name).Buffer());
         }
         index++;
