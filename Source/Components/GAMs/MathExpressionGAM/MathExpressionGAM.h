@@ -50,14 +50,40 @@ namespace MARTe {
  * 
  * @details This GAM combines the provided input signals into an arbitrary
  * number of output signals in the way specified by the `Expression` leaf.
- * 
  * The `Expression` leaf must be a string containing the expressions
  * that will be evaluated during run-time in string format. The `Expression`
  * leaf is compulsory.
- * 
  * The `Expression` leaf must be in infix form and must be terminated 
- * by a comma, a semicolon or a `\n` (e.g. `ret = A + B;`). Supported
- * operators are the following:
+ * by a comma, a semicolon or a `\n` (e.g. `ret = A + B;`).
+ * For example, a MathExpressionGAM with two input signals `In1` and
+ * `In2` that need to be summed up in the output signal `Out` will
+ * have the following `Expression` leaf:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Expression = "Out = In1 + In2;"
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * Multiple output signals can be handled by using more than one
+ * assignment in the same expression:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Expression = "
+ *               Out1 = In1 + In2;
+ *               Out2 = 10*In1;
+ *              "
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * The output variable of a previous assignment can be used as input
+ * variable of a subsequent assignment:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Expression = "
+ *               Out1 = In1 + In2;
+ *               Out2 = 10*Out1;
+ *              "
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * Supported operators are the following:
  * 
  * | Operator | Meaning            |
  * | :------: | :----------------- |
@@ -80,18 +106,18 @@ namespace MARTe {
  * | `cos()`  | Cosine             |
  * | `pow()`  | Power              |
  * | `(type)` | Typecast to `type` |
- * | , ; \\n  | End of expression  |
+ * | , ; `\n` | End of expression  |
  * 
- * Systems of equations that spans on multiple lines are supported
- * (see example below).
  * 
- * The GAM supports scalar signals only.
+ * The GAM supports:
+ *  - signals of any numeric type
+ *  - scalar signals only
  * 
- * During initialisation each variable in the expression is automatically
+ * During initialisation, each variable in the expression is automatically
  * associated to the signal with the same name:
  * - variables on the right-hand side each expression are considered
  *   *input variables* and are associated to input signals. Note that
- *   each variable on the left-hand side must have an associated
+ *   each variable on the right-hand side must have an associated
  *   input signal with the same. An input variable with no input signal
  *   of the same name (and viceversa) will cause the GAM to fail initialisation.
  * - variables on the left-hand side of the expression are considered
@@ -99,20 +125,24 @@ namespace MARTe {
  *   Output variables are not required to have a corresponding output
  *   signal since they can be used as bridge values between exepressions:
  * 
- * ~~~~~~~~~~~~~~~~~~~~~~~~~
- * OutSignal1 = In1 + In2;
- * temp = 2*In1;
- * OutSignal2 = Out1 + temp;
- * ~~~~~~~~~~~~~~~~~~~~~~~~~
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Expression = "
+ *               Out1 = In1 + In2;
+ *               temp = 2*In1;
+ *               Out2 = Out1 + temp;
+ *              "
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
  * Constants are supported both in numeric and in literal form.
  * Constants in literal form must be defined within the same expression
  * as shown in the following example:
  * 
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * G = 0.00000000006674;
- * F = G*(m1 + m2)/pow(r,2);
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Expression = "
+ *               G = 0.00000000006674;
+ *               F = G*(m1 + m2)/pow(r,2);
+ *              "
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
  * In the example above, `m1`, `m2` and `r` are input signals, `G` is
  * a literal constant and `2` is a numeric constant. Note that numeric
@@ -120,10 +150,10 @@ namespace MARTe {
  * 
  * Particular care shall be placed in *type combinations*: some operations
  * on variables of different type may not be available based on the 
- * availability of a corresponding function in #functionRecord (see
- * RuntimeEvaluator and RuntimeEvaluatorFunctions documentation for details).
- * Lack of an adequate function for treating a certain type combination
- * can be overcome by typecasts:
+ * availability of a corresponding function in the functionRecord database
+ * (see RuntimeEvaluator and RuntimeEvaluatorFunctions documentation
+ * for details). Lack of an adequate function for treating a certain
+ * type combinations can be overcome by using typecasts:
  * 
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * G = 0.00000000006674;
@@ -179,39 +209,44 @@ public:
     virtual ~MathExpressionGAM();
     
     /**
-     * @brief Initializes and retrieves informations from configuration file. 
-     * @details During the initialization phase number of inputs and outputs are
-     * read from the configuration file and the `Expression` is stored.
-     * @param[in] data the GAM configuration specified in the configuration file.
-     * @return true on succeed.
+     * @brief     Initializes and retrieves informations from
+     *            configuration file. 
+     * @details   During the initialization phase, number of inputs
+     *            and outputs are read from the configuration file
+     *            and the `Expression` is stored.
+     * @param[in] data the GAM configuration specified in the
+     *                 configuration file.
+     * @return    `true` on succeed.
      */
     virtual bool Initialise(StructuredDataI &data);
     
      /**
-     * @brief Checks parameters and compile the expressions. 
+     * @brief   Checks parameters and compile the expressions. 
      * @details This method:
-     * 1. checks if signal dimensions retrieved from the configuration file are correct
-     * 2. set the types of each variable according to signal types
-     * 3. set the external location of each variable to be the same of
-     *    the corresponding signal memory, so that no memcopy is required
-     *    during execution
-     * 4. compiles the expression
+     *          1. checks if signal dimensions retrieved from
+     *             the configuration file are compatible with the GAM
+     *          2. set the types of each variable according
+     *             to signal types
+     *          3. set the memory location of each variable to be
+     *             the same of the corresponding signal memory,
+     *             so that no memcopy is required during execution
+     *          4. compiles the expression (the expression does not
+     *             need to be recompiled each time it is evaluated).
      * 
-     * Expression does not need to be recompiled each time it is evaluated.
-     * 
-     * @return true on succeed.
-     * @pre Initialise() == `true` &&
-     *      all input variables can find an associated input signal
-     *      of the same name.
+     * @return  `true` on succeed.
+     * @pre     
+     *          1. Initialise() == `true`
+     *          2. all input variables can find an associated
+     *            input signal of the same name.
      */
     virtual bool Setup();
 
     /**
-     * @brief Evaluates the expression. 
-     * @return true on succeed.
-     * @pre
-     *  Initialise() == true &&
-     *  Setup() == true
+     * @brief  Evaluates the expression. 
+     * @return `true` on succeed.
+     * @pre    
+     *         1. Initialise() == `true`
+     *         2. Setup() == `true`
      */
     virtual bool Execute();
 
