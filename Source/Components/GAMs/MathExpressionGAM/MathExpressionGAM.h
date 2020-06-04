@@ -250,6 +250,20 @@ public:
      */
     virtual bool Execute();
 
+protected:
+
+    /**
+     * @brief Pointer to the instance of the MathExpressionParser
+     *        that will parse the input expression.
+     */
+    MathExpressionParser* mathParser;
+    
+    /**
+     * @brief Pointer to the instance of the RuntimeEvaluator
+     *        that will evaluate the input expression.
+     */
+    RuntimeEvaluator*     evaluator;
+
 private:
     
     /**
@@ -275,18 +289,6 @@ private:
      * @brief The expression to be evaluated.
      */
     StreamString expr;
-    
-    /**
-     * @brief Pointer to the instance of the MathExpressionParser
-     *        that will parse the input expression.
-     */
-    MathExpressionParser* mathParser;
-    
-    /**
-     * @brief Pointer to the instance of the RuntimeEvaluator
-     *        that will evaluate the input expression.
-     */
-    RuntimeEvaluator*     evaluator;
     
 };
 
