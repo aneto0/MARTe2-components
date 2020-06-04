@@ -56,20 +56,40 @@ public:
      */
     bool TestInitialise(const char8* expression);
     
-    ///**
-     //* @brief Tests the Initialise method.
-     //*/
-    //bool TestInitialise();
-    
-    ///**
-     //* @brief Tests the Setup method.
-     //*/
-    //bool TestSetup();
+    /**
+     * @brief Tests the Setup method.
+     */
+    bool TestSetup();
 
-    ///**
-     //* @brief Tests the Setup method with a different number of inputs and output signals.
-     //*/
-    //bool TestSetup_LessInputs();
+    /**
+     * @brief Tests the Setup method with a different number of inputs and output signals.
+     */
+    bool TestSetup_Failed_InputSignalMissingVariable();
+    
+    /**
+     * @brief Tests the Setup method with a different number of inputs and output signals.
+     */
+    bool TestSetup_Failed_OutputSignalMissingVariable();
+    
+    /**
+     * @brief Tests the Setup method with a different number of inputs and output signals.
+     */
+    bool TestSetup_Failed_VariableMissingInputSignal();
+    
+    /**
+     * @brief Tests the Setup method with a different number of inputs and output signals.
+     */
+    bool TestSetup_Succeed_VariableMissingOutputSignal();
+    
+    /**
+     * @brief Tests the Setup method with a different number of inputs and output signals.
+     */
+    bool TestSetup_Failed_NonScalarInput();
+    
+    /**
+     * @brief Tests the Setup method with a different number of inputs and output signals.
+     */
+    bool TestSetup_Failed_NonScalarOutput();
 
     ///**
      //* @brief Tests the Setup method with different signal types.

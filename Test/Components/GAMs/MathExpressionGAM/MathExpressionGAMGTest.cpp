@@ -60,15 +60,40 @@ TEST(MathExpressionGAMGTest,TestInitialise_Failed_BadExpression) {
     ASSERT_TRUE(!test.TestInitialise("Out1 ="));
 }
 
-//TEST(MathExpressionGAMGTest,TestSetup) {
-    //IOGAMTest test;
-    //ASSERT_TRUE(test.TestSetup());
-//}
+TEST(MathExpressionGAMGTest,TestSetup) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestSetup());
+}
 
-//TEST(MathExpressionGAMGTest,TestSetup_LessInputs) {
-    //IOGAMTest test;
-    //ASSERT_TRUE(test.TestSetup_LessInputs());
-//}
+TEST(MathExpressionGAMGTest,TestSetup_Failed_InputSignalMissingVariable) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_InputSignalMissingVariable());
+}
+
+TEST(MathExpressionGAMGTest,TestSetup_Failed_OutputSignalMissingVariable) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_OutputSignalMissingVariable());
+}
+
+TEST(MathExpressionGAMGTest,TestSetup_Failed_VariableMissingInputSignal) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_VariableMissingInputSignal());
+}
+
+TEST(MathExpressionGAMGTest,TestSetup_Succeed_VariableMissingOutputSignal) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Succeed_VariableMissingOutputSignal());
+}
+
+TEST(MathExpressionGAMGTest,TestSetup_Failed_NonScalarInput) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_NonScalarInput());
+}
+
+TEST(MathExpressionGAMGTest,TestSetup_Failed_NonScalarOutput) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_NonScalarOutput());
+}
 
 //TEST(MathExpressionGAMGTest,TestSetup_DifferentType) {
     //IOGAMTest test;
