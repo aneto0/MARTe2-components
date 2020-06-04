@@ -90,6 +90,11 @@ public:
      * @brief Tests the Setup method with a different number of inputs and output signals.
      */
     bool TestSetup_Failed_NonScalarOutput();
+    
+    /**
+     * @brief Tests the Setup method.
+     */
+    bool TestMemory();
 
     ///**
      //* @brief Tests the Setup method with different signal types.

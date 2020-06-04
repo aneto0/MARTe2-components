@@ -95,6 +95,11 @@ TEST(MathExpressionGAMGTest,TestSetup_Failed_NonScalarOutput) {
     ASSERT_TRUE(test.TestSetup_Failed_NonScalarOutput());
 }
 
+TEST(MathExpressionGAMGTest,TestMemory) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestMemory());
+}
+
 //TEST(MathExpressionGAMGTest,TestSetup_DifferentType) {
     //IOGAMTest test;
     //ASSERT_TRUE(test.TestSetup_DifferentType());

@@ -63,14 +63,19 @@ public:
     ~MathExpressionGAMHelper() {
 
     }
-
-    void* GetInputSignalsMemory() {
-        return MathExpressionGAM::GetInputSignalsMemory();
+    
+    void* GetInputSignalMemory(uint32 index) {
+        return MathExpressionGAM::GetInputSignalMemory(index);
     }
-
-    void* GetOutputSignalsMemory() {
-        return MathExpressionGAM::GetOutputSignalsMemory();
+    
+    void* GetOutputSignalMemory(uint32 index) {
+        return MathExpressionGAM::GetOutputSignalMemory(index);
     }
+    
+    MARTe::RuntimeEvaluator* GetEvaluator() {
+        return evaluator;
+    } 
+    
 };
 CLASS_REGISTER(MathExpressionGAMHelper, "1.0");
 
@@ -691,6 +696,97 @@ bool MathExpressionGAMTest::TestSetup_Failed_NonScalarOutput() {
     return !ok;
 }
 
+bool MathExpressionGAMTest::TestMemory() {
+    
+    const MARTe::char8 * const config1 = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAM1 = {"
+            "            Class = MathExpressionGAMHelper"
+            "            Expression = \"GAM1_TotalTime = GAM1_ReadTime + GAM1_WriteTime + GAM1_ExecTime;\""
+            "            InputSignals = {"
+            "               GAM1_ReadTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "               GAM1_WriteTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "               GAM1_ExecTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               GAM1_TotalTime = {"
+            "                   DataSource = DDB1"
+            "                   Type = uint32"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAM1}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+            
+    bool ok = TestIntegratedInApplication(config1, false);
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ReferenceT<MathExpressionGAMHelper> gam = god->Find("Test.Functions.GAM1");
+    if (ok) {
+        ok = gam.IsValid();
+    }
+    RuntimeEvaluator* evalPtr;
+    if (ok) {
+        evalPtr = gam->GetEvaluator();
+    }
+    
+    StreamString signalName;
+    for (uint32 index = 0u; (index < gam->GetNumberOfInputSignals()) && ok; index++) {
+        ok = gam->GetSignalName(InputSignals, index, signalName);
+        if (ok) {
+            ok = (gam->GetInputSignalMemory(index) == evalPtr->GetInputVariableMemory(signalName));
+        }
+        signalName = "";
+    }
+    for (uint32 index = 0u; (index < gam->GetNumberOfOutputSignals()) && ok; index++) {
+        ok = gam->GetSignalName(OutputSignals, index, signalName);
+        if (ok) {
+            ok = (gam->GetOutputSignalMemory(index) == evalPtr->GetOutputVariableMemory(signalName));
+        }
+        signalName = "";
+    }
+    god->Purge();
+    return ok;
+
+}
 
 //bool MathExpressionGAMTest::TestExecute() {
     //using namespace MARTe;
