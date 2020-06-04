@@ -96,20 +96,15 @@ public:
      */
     bool TestMemory();
 
-    ///**
-     //* @brief Tests the Setup method with different signal types.
-     //*/
-    //bool TestSetup_DifferentType();
-
-    ///**
-     //* @brief Tests the Setup method with different signal sizes.
-     //*/
-    //bool TestSetup_False_DifferentSize();
-
-    ///**
-     //* @brief Tests the Execute method.
-     //*/
-    //bool TestExecute();
+    /**
+     * @brief Tests the Execute method.
+     */
+    bool TestExecute_SingleExpression();
+    
+    /**
+     * @brief Tests the Execute method.
+     */
+    bool TestExecute_MultipleExpressions();
 
     ///**
      //* @brief Tests the Execute method with samples > 0.

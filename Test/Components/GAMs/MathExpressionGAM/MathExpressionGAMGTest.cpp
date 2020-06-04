@@ -100,25 +100,16 @@ TEST(MathExpressionGAMGTest,TestMemory) {
     ASSERT_TRUE(test.TestMemory());
 }
 
-//TEST(MathExpressionGAMGTest,TestSetup_DifferentType) {
-    //IOGAMTest test;
-    //ASSERT_TRUE(test.TestSetup_DifferentType());
-//}
+TEST(MathExpressionGAMGTest,TestExecute_SingleExpression) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestExecute_SingleExpression());
+}
 
-//TEST(MathExpressionGAMGTest,TestSetup_False_DifferentSize) {
-    //IOGAMTest test;
-    //ASSERT_TRUE(test.TestSetup_False_DifferentSize());
-//}
+TEST(MathExpressionGAMGTest,TestExecute_MultipleExpressions) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestExecute_MultipleExpressions());
+}
 
-//TEST(MathExpressionGAMGTest,TestExecute) {
-    //IOGAMTest test;
-    //ASSERT_TRUE(test.TestExecute());
-//}
-
-//TEST(MathExpressionGAMGTest,TestExecute_Samples) {
-    //IOGAMTest test;
-    //ASSERT_TRUE(test.TestExecute_Samples());
-//}
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

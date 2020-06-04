@@ -788,181 +788,153 @@ bool MathExpressionGAMTest::TestMemory() {
 
 }
 
-//bool MathExpressionGAMTest::TestExecute() {
-    //using namespace MARTe;
-    //const MARTe::char8 * const config1 = ""
-            //"$Test = {"
-            //"    Class = RealTimeApplication"
-            //"    +Functions = {"
-            //"        Class = ReferenceContainer"
-            //"        +GAM1 = {"
-            //"            Class = IOGAMHelper"
-            //"            InputSignals = {"
-            //"               Signal1 = {"
-            //"                   DataSource = Drv1"
-            //"                   Type = float32"
-            //"                   NumberOfElements = 10"
-            //"               }"
-            //"            }"
-            //"            OutputSignals = {"
-            //"               Signal1 = {"
-            //"                   DataSource = DDB1"
-            //"                   Type = float32"
-            //"                   NumberOfElements = 10"
-            //"               }"
-            //"            }"
-            //"        }"
-            //"    }"
-            //"    +Data = {"
-            //"        Class = ReferenceContainer"
-            //"        DefaultDataSource = DDB1"
-            //"        +DDB1 = {"
-            //"            Class = GAMDataSource"
-            //"        }"
-            //"        +Timings = {"
-            //"            Class = TimingDataSource"
-            //"        }"
-            //"        +Drv1 = {"
-            //"            Class = IOGAMDataSourceHelper"
-            //"        }"
-            //"    }"
-            //"    +States = {"
-            //"        Class = ReferenceContainer"
-            //"        +State1 = {"
-            //"            Class = RealTimeState"
-            //"            +Threads = {"
-            //"                Class = ReferenceContainer"
-            //"                +Thread1 = {"
-            //"                    Class = RealTimeThread"
-            //"                    Functions = {GAM1}"
-            //"                }"
-            //"            }"
-            //"        }"
-            //"    }"
-            //"    +Scheduler = {"
-            //"        Class = GAMScheduler"
-            //"        TimingDataSource = Timings"
-            //"    }"
-            //"}";
-    //bool ok = TestIntegratedInApplication(config1, false);
-    //ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-    //ReferenceT<IOGAMHelper> gam = god->Find("Test.Functions.GAM1");
-    //if (ok) {
-        //ok = gam.IsValid();
-    //}
-    //if (ok) {
-        //uint32 *inMem = static_cast<uint32 *>(gam->GetInputSignalsMemory());
-        //uint32 *outMem = static_cast<uint32 *>(gam->GetOutputSignalsMemory());
-        //uint32 n;
-        //for (n = 0; n < 10; n++) {
-            //inMem[n] = (n * n + 1);
+bool MathExpressionGAMTest::TestExecute_SingleExpression() {
+    
+    const char8 * const config1 = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAM1 = {"
+            "            Class = MathExpressionGAM"
+            "            Expression = \"GAM1_TotalTime = GAM1_ReadTime + GAM1_WriteTime + GAM1_ExecTime;\""
+            "            InputSignals = {"
+            "               GAM1_ReadTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "               GAM1_WriteTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "               GAM1_ExecTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               GAM1_TotalTime = {"
+            "                   DataSource = DDB1"
+            "                   Type = uint32"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAM1}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+            
+    bool ok = TestIntegratedInApplication(config1, false);
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ReferenceT<MathExpressionGAM> gam = god->Find("Test.Functions.GAM1");
+    if (ok) {
+        ok = gam.IsValid();
+    }
+    if (ok) {
+        ok = gam->Execute();
+    }
+    god->Purge();
+    return ok;
+}
 
-        //}
-        //for (n = 0; n < 10; n++) {
-            //outMem[n] = 0;
-        //}
-    //}
-    //if (ok) {
-        //ok = gam->Execute();
-    //}
-    //if (ok) {
-        //uint32 *outMem = static_cast<uint32 *>(gam->GetOutputSignalsMemory());
-        //uint32 n;
-        //for (n = 0; (n < 10) && (ok); n++) {
-            //ok = (outMem[n] == (n * n + 1));
-        //}
-    //}
-    //god->Purge();
-    //return ok;
-
-//}
-
-//bool MathExpressionGAMTest::TestExecute_Samples() {
-    //using namespace MARTe;
-    //const MARTe::char8 * const config1 = ""
-            //"$Test = {"
-            //"    Class = RealTimeApplication"
-            //"    +Functions = {"
-            //"        Class = ReferenceContainer"
-            //"        +GAM1 = {"
-            //"            Class = IOGAMHelper"
-            //"            InputSignals = {"
-            //"               Signal1 = {"
-            //"                   DataSource = Drv1"
-            //"                   Type = float32"
-            //"                   NumberOfElements = 1"
-            //"                   Samples = 10"
-            //"               }"
-            //"            }"
-            //"            OutputSignals = {"
-            //"               Signal1 = {"
-            //"                   DataSource = DDB1"
-            //"                   Type = float32"
-            //"                   NumberOfElements = 10"
-            //"               }"
-            //"            }"
-            //"        }"
-            //"    }"
-            //"    +Data = {"
-            //"        Class = ReferenceContainer"
-            //"        DefaultDataSource = DDB1"
-            //"        +DDB1 = {"
-            //"            Class = GAMDataSource"
-            //"        }"
-            //"        +Timings = {"
-            //"            Class = TimingDataSource"
-            //"        }"
-            //"        +Drv1 = {"
-            //"            Class = IOGAMDataSourceHelper"
-            //"        }"
-            //"    }"
-            //"    +States = {"
-            //"        Class = ReferenceContainer"
-            //"        +State1 = {"
-            //"            Class = RealTimeState"
-            //"            +Threads = {"
-            //"                Class = ReferenceContainer"
-            //"                +Thread1 = {"
-            //"                    Class = RealTimeThread"
-            //"                    Functions = {GAM1}"
-            //"                }"
-            //"            }"
-            //"        }"
-            //"    }"
-            //"    +Scheduler = {"
-            //"        Class = GAMScheduler"
-            //"        TimingDataSource = Timings"
-            //"    }"
-            //"}";
-    //bool ok = TestIntegratedInApplication(config1, false);
-    //ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-    //ReferenceT<IOGAMHelper> gam = god->Find("Test.Functions.GAM1");
-    //if (ok) {
-        //ok = gam.IsValid();
-    //}
-    //if (ok) {
-        //uint32 *inMem = static_cast<uint32 *>(gam->GetInputSignalsMemory());
-        //uint32 *outMem = static_cast<uint32 *>(gam->GetOutputSignalsMemory());
-        //uint32 n;
-        //for (n = 0; n < 10; n++) {
-            //inMem[n] = (n * n + 1);
-
-        //}
-        //for (n = 0; n < 10; n++) {
-            //outMem[n] = 0;
-        //}
-    //}
-    //if (ok) {
-        //ok = gam->Execute();
-    //}
-    //if (ok) {
-        //uint32 *outMem = static_cast<uint32 *>(gam->GetOutputSignalsMemory());
-        //uint32 n;
-        //for (n = 0; (n < 10) && (ok); n++) {
-            //ok = (outMem[n] == (n * n + 1));
-        //}
-    //}
-    //god->Purge();
-    //return ok;
-
-//}
+bool MathExpressionGAMTest::TestExecute_MultipleExpressions() {
+    
+    const char8 * const config1 = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAM1 = {"
+            "            Class = MathExpressionGAM"
+            "            Expression = \""
+            "                           GAM1_ReadWriteTime = GAM1_ReadTime + GAM1_WriteTime;"
+            "                           GAM1_TotalTime = GAM1_ReadWriteTime + GAM1_ExecTime;"
+            "                         \""
+            "            InputSignals = {"
+            "               GAM1_ReadTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "               GAM1_WriteTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "               GAM1_ExecTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               GAM1_TotalTime = {"
+            "                   DataSource = DDB1"
+            "                   Type = uint32"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAM1}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+            
+    bool ok = TestIntegratedInApplication(config1, false);
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ReferenceT<MathExpressionGAM> gam = god->Find("Test.Functions.GAM1");
+    if (ok) {
+        ok = gam.IsValid();
+    }
+    if (ok) {
+        ok = gam->Execute();
+    }
+    god->Purge();
+    return ok;
+}
