@@ -52,7 +52,7 @@ public:
     bool TestConstructor();
     
     /**
-     * @brief Tests the constructor.
+     * @brief Tests the Initialise() method.
      */
     bool TestInitialise(const char8* expression);
     
@@ -62,37 +62,57 @@ public:
     bool TestSetup();
 
     /**
-     * @brief Tests the Setup method with a different number of inputs and output signals.
+     * @brief   Tests the Setup method.
+     * @details This test fails since one of the input signals can't
+     *          be associated with a variable (there is no variable
+     *          with the same name as the input signal).
      */
     bool TestSetup_Failed_InputSignalMissingVariable();
     
     /**
-     * @brief Tests the Setup method with a different number of inputs and output signals.
+     * @brief   Tests the Setup method.
+     * @details This test fails since one of the output signals can't
+     *          be associated with a variable (there is no variable
+     *          with the same name as the output signal).
      */
     bool TestSetup_Failed_OutputSignalMissingVariable();
     
     /**
-     * @brief Tests the Setup method with a different number of inputs and output signals.
+     * @brief   Tests the Setup method.
+     * @details This test fails since one of the right-hand side variables can't
+     *          be associated with an input signal (there is no input signal
+     *          with the same name as the variable).
      */
     bool TestSetup_Failed_VariableMissingInputSignal();
     
     /**
-     * @brief Tests the Setup method with a different number of inputs and output signals.
+     * @brief   Tests the Setup method.
+     * @details This test succeed since even if one of the left-hand side variables can't
+     *          be associated with an output signal (there is no output signal
+     *          with the same name as the variable), this is not considered
+     *          a problem (a left-hand side variable with no associated
+     *          output signal is considered a temporary variable).
      */
     bool TestSetup_Succeed_VariableMissingOutputSignal();
     
     /**
-     * @brief Tests the Setup method with a different number of inputs and output signals.
+     * @brief   Tests the Setup method.
+     * @details This test fails since MathExpressionGAM supports only
+     *          scalar signals.
      */
     bool TestSetup_Failed_NonScalarInput();
     
     /**
-     * @brief Tests the Setup method with a different number of inputs and output signals.
+     * @brief   Tests the Setup method.
+     * @details This test fails since MathExpressionGAM supports only
+     *          scalar signals.
      */
     bool TestSetup_Failed_NonScalarOutput();
     
     /**
-     * @brief Tests the Setup method.
+     * @brief   Tests the memory mapping.
+     * @details Checks that memory mapping between MathExpressionGAM
+     *          and the underlying RuntimeEvaluator is done properly.
      */
     bool TestMemory();
 
@@ -106,10 +126,6 @@ public:
      */
     bool TestExecute_MultipleExpressions();
 
-    ///**
-     //* @brief Tests the Execute method with samples > 0.
-     //*/
-    //bool TestExecute_Samples();
 };
 
 /*---------------------------------------------------------------------------*/

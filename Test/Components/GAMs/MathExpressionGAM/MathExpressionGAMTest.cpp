@@ -26,7 +26,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <cstdio>
+
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -50,7 +50,7 @@
 /*---------------------------------------------------------------------------*/
 
 /**
- * Gives access to the MathExpressionGAM memory for the Execute test
+ * Gives access to the MathExpressionGAM memory for the TestMemory test
  */
 class MathExpressionGAMHelper: public MARTe::MathExpressionGAM {
 public:
@@ -81,7 +81,7 @@ CLASS_REGISTER(MathExpressionGAMHelper, "1.0");
 
 /**
  * A dummy DataSource which can be used to test different configuration interfaces
- *  to the IOGAM
+ *  to the MathExpressionGAM
  */
 class MathExpressionGAMDataSourceHelper: public MARTe::DataSourceI {
 public:
