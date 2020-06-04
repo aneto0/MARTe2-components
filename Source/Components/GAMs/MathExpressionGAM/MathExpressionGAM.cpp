@@ -45,8 +45,10 @@ namespace MARTe {
 MathExpressionGAM::MathExpressionGAM() :
         GAM() {
     
-    mathParser = NULL_PTR(MathExpressionParser*);
-    evaluator  = NULL_PTR(RuntimeEvaluator*);
+    mathParser    = NULL_PTR(MathExpressionParser*);
+    evaluator     = NULL_PTR(RuntimeEvaluator*);
+    inputSignals  = NULL_PTR(SignalStruct*);
+    outputSignals = NULL_PTR(SignalStruct*);
 }
 
 MathExpressionGAM::~MathExpressionGAM() {
@@ -57,6 +59,12 @@ MathExpressionGAM::~MathExpressionGAM() {
     if (evaluator != NULL) {
         delete evaluator;
     }
+    if (inputSignals != NULL) {
+        delete[] inputSignals;
+    }
+    if (outputSignals != NULL) {
+        delete[] outputSignals;
+    }
 }
 
 bool MathExpressionGAM::Initialise(StructuredDataI &data) {
@@ -65,12 +73,10 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
     
     // Read the mathematical expression in infix form from the configuration file.
     if (ok) {
-        
         ok = data.Read("Expression", expr);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find Expression among MathExpressionGAM parameters.");
         }
-    
     }
     
     // Parser initialization
