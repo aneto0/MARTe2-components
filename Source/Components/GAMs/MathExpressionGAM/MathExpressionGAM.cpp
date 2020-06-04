@@ -124,14 +124,14 @@ bool MathExpressionGAM::Setup() {
     for (uint32 signalIdx = 0u; (signalIdx < numberOfInputSignals) && ok; signalIdx++) {
         ok = (inputSignals[signalIdx].numberOfElements == 1u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::UnsupportedFeature, "Signal %s has %u elements (> 1). Only scalar signals are supported.", (inputSignals[signalIdx].name).Buffer(), inputSignals[signalIdx].numberOfElements);
+            REPORT_ERROR(ErrorManagement::UnsupportedFeature, "Input signal %s has %u elements (> 1). Only scalar signals are supported.", (inputSignals[signalIdx].name).Buffer(), inputSignals[signalIdx].numberOfElements);
         } 
     }
     
     for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && ok; signalIdx++) {
         ok = (outputSignals[signalIdx].numberOfElements == 1u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::UnsupportedFeature, "Signal %s has %u elements (> 1). Only scalar signals are supported.", (inputSignals[signalIdx].name).Buffer(), inputSignals[signalIdx].numberOfElements);
+            REPORT_ERROR(ErrorManagement::UnsupportedFeature, "Output signal %s has %u elements (> 1). Only scalar signals are supported.", (outputSignals[signalIdx].name).Buffer(), outputSignals[signalIdx].numberOfElements);
         } 
     }
     
