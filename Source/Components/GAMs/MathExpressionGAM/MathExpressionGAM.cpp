@@ -155,14 +155,14 @@ bool MathExpressionGAM::Setup() {
         }
     }
 
-    // look for input variable among output signals
+    // look for output variable among output signals
     if (ok){
         for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && (ok); signalIdx++) {
                 
             ok &= evaluator->SetOutputVariableType(outputSignals[signalIdx].name, outputSignals[signalIdx].type);
             ok &= evaluator->SetOutputVariableMemory(outputSignals[signalIdx].name, GetOutputSignalMemory(signalIdx));
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate input signal '%s': no variable of the same name in the expression.", (outputSignals[signalIdx].name).Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate output signal '%s': no variable of the same name in the expression.", (outputSignals[signalIdx].name).Buffer());
             }
         }
         
