@@ -671,7 +671,7 @@ bool MathExpressionGAMTest::TestSetup_Failed_NonScalarOutput() {
             "            Class = TimingDataSource"
             "        }"
             "        +Drv1 = {"
-            "            Class = IOGAMDataSourceHelper"
+            "            Class = MathExpressionGAMDataSourceHelper"
             "        }"
             "    }"
             "    +States = {"
@@ -785,7 +785,155 @@ bool MathExpressionGAMTest::TestMemory() {
     }
     god->Purge();
     return ok;
+}
 
+bool MathExpressionGAMTest::TestTypes() {
+    
+    const MARTe::char8 * const config1 = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAM1 = {"
+            "            Class = MathExpressionGAMHelper"
+            "            Expression = \""
+            "                           GAM1_ReadWriteTime = GAM1_ReadTime + GAM1_WriteTime;"
+            "                           GAM1_TotalTime = GAM1_ReadWriteTime + GAM1_ExecTime;"
+            "                           GAM1_A_out = GAM1_A;"
+            "                           GAM1_B_out = GAM1_B;"
+            "                           GAM1_C_out = GAM1_C;"
+            "                         \""
+            "            InputSignals = {"
+            "               GAM1_ReadTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "               GAM1_WriteTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "               GAM1_ExecTime = {"
+            "                   DataSource = Timings"
+            "                   Type = uint32"
+            "               }"
+            "               GAM1_A = {"
+            "                   DataSource = Drv1"
+            "                   Type = float64"
+            "                   NumberOfDimensions = 0"
+            "                   NumberOfElements = 1"
+            "               }"
+            "               GAM1_B = {"
+            "                   DataSource = Drv1"
+            "                   Type = int16"
+            "                   NumberOfDimensions = 0"
+            "                   NumberOfElements = 1"
+            "               }"
+            "               GAM1_C = {"
+            "                   DataSource = Drv1"
+            "                   Type = float32"
+            "                   NumberOfDimensions = 0"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "            OutputSignals = {"
+            "               GAM1_TotalTime = {"
+            "                   DataSource = DDB1"
+            "                   Type = uint32"
+            "               }"
+            "               GAM1_A_out = {"
+            "                   DataSource = Drv1"
+            "                   Type = float64"
+            "                   NumberOfDimensions = 0"
+            "                   NumberOfElements = 1"
+            "               }"
+            "               GAM1_B_out = {"
+            "                   DataSource = Drv1"
+            "                   Type = int16"
+            "                   NumberOfDimensions = 0"
+            "                   NumberOfElements = 1"
+            "               }"
+            "               GAM1_C_out = {"
+            "                   DataSource = Drv1"
+            "                   Type = float32"
+            "                   NumberOfDimensions = 0"
+            "                   NumberOfElements = 1"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "        +Drv1 = {"
+            "            Class = MathExpressionGAMDataSourceHelper"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAM1}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+            
+    bool ok = TestIntegratedInApplication(config1, false);
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    ReferenceT<MathExpressionGAMHelper> gam = god->Find("Test.Functions.GAM1");
+    if (ok) {
+        ok = gam.IsValid();
+    }
+    RuntimeEvaluator* evalPtr;
+    if (ok) {
+        evalPtr = gam->GetEvaluator();
+    }
+    
+    StreamString signalName;
+    VariableInformation* var;
+
+    uint32 varIdx = 0u;
+    while (evalPtr->BrowseInputVariable(varIdx, var) && ok) {
+        for (uint32 index = 0u; (index < gam->GetNumberOfInputSignals()) && ok; index++) {
+            ok = gam->GetSignalName(InputSignals, index, signalName);
+            if ((signalName == var->name) && ok) {
+                ok = (gam->GetSignalType(InputSignals, index) == var->type);
+            }
+            signalName = "";
+        }
+        varIdx++;
+    }
+    
+    varIdx = 0u;
+    while (evalPtr->BrowseOutputVariable(varIdx, var) && ok) {
+        for (uint32 index = 0u; (index < gam->GetNumberOfOutputSignals()) && ok; index++) {
+            ok = gam->GetSignalName(OutputSignals, index, signalName);
+            if ((signalName == var->name) && ok) {
+                ok = (gam->GetSignalType(OutputSignals, index) == var->type);
+            }
+            signalName = "";
+        }
+        varIdx++;
+    }
+    
+    god->Purge();
+    
+    return ok;
 }
 
 bool MathExpressionGAMTest::TestExecute_SingleExpression() {

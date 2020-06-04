@@ -115,6 +115,13 @@ public:
      *          and the underlying RuntimeEvaluator is done properly.
      */
     bool TestMemory();
+    
+    /**
+     * @brief   Tests the type mapping.
+     * @details Checks that type mapping between MathExpressionGAM
+     *          and the underlying RuntimeEvaluator is done properly.
+     */
+    bool TestTypes();
 
     /**
      * @brief Tests the Execute method.

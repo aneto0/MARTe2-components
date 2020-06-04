@@ -99,6 +99,11 @@ TEST(MathExpressionGAMGTest,TestMemory) {
     ASSERT_TRUE(test.TestMemory());
 }
 
+TEST(MathExpressionGAMGTest,TestTypes) {
+    MathExpressionGAMTest test;
+    ASSERT_TRUE(test.TestTypes());
+}
+
 TEST(MathExpressionGAMGTest,TestExecute_SingleExpression) {
     MathExpressionGAMTest test;
     ASSERT_TRUE(test.TestExecute_SingleExpression());
