@@ -108,16 +108,20 @@ bool MathExpressionGAM::Setup() {
     
     for (uint32 signalIdx = 0u; (signalIdx < numberOfInputSignals) && ok; signalIdx++) {
         
-        ok &= GetSignalName(InputSignals, signalIdx, inputSignals[signalIdx].name);
-        ok &= GetSignalNumberOfElements(InputSignals, signalIdx, inputSignals[signalIdx].numberOfElements);
-        inputSignals[signalIdx].type = GetSignalType(InputSignals, signalIdx);
+        ok = GetSignalName(InputSignals, signalIdx, inputSignals[signalIdx].name);
+        if (ok) {
+            ok = GetSignalNumberOfElements(InputSignals, signalIdx, inputSignals[signalIdx].numberOfElements);
+            inputSignals[signalIdx].type = GetSignalType(InputSignals, signalIdx);
+        }
     }
     
     for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && ok; signalIdx++) {
         
-        ok &= GetSignalName(OutputSignals, signalIdx, outputSignals[signalIdx].name);
-        ok &= GetSignalNumberOfElements(OutputSignals, signalIdx, outputSignals[signalIdx].numberOfElements);
-        outputSignals[signalIdx].type = GetSignalType(OutputSignals, signalIdx);
+        ok = GetSignalName(OutputSignals, signalIdx, outputSignals[signalIdx].name);
+        if (ok) {
+            ok = GetSignalNumberOfElements(OutputSignals, signalIdx, outputSignals[signalIdx].numberOfElements);
+            outputSignals[signalIdx].type = GetSignalType(OutputSignals, signalIdx);
+        }
     }
     
     // 1. Checks
@@ -147,8 +151,10 @@ bool MathExpressionGAM::Setup() {
     if (ok){
         for (uint32 signalIdx = 0u; (signalIdx < numberOfInputSignals) && (ok); signalIdx++) {
                 
-            ok &= evaluator->SetInputVariableType(inputSignals[signalIdx].name, inputSignals[signalIdx].type);
-            ok &= evaluator->SetInputVariableMemory(inputSignals[signalIdx].name, GetInputSignalMemory(signalIdx));
+            ok = evaluator->SetInputVariableType(inputSignals[signalIdx].name, inputSignals[signalIdx].type);
+            if (ok) {
+                ok = evaluator->SetInputVariableMemory(inputSignals[signalIdx].name, GetInputSignalMemory(signalIdx));
+            }
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate input signal '%s': no variable of the same name in the expression.", (inputSignals[signalIdx].name).Buffer());
             }
@@ -159,8 +165,10 @@ bool MathExpressionGAM::Setup() {
     if (ok){
         for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && (ok); signalIdx++) {
                 
-            ok &= evaluator->SetOutputVariableType(outputSignals[signalIdx].name, outputSignals[signalIdx].type);
-            ok &= evaluator->SetOutputVariableMemory(outputSignals[signalIdx].name, GetOutputSignalMemory(signalIdx));
+            ok = evaluator->SetOutputVariableType(outputSignals[signalIdx].name, outputSignals[signalIdx].type);
+            if (ok) {
+                ok = evaluator->SetOutputVariableMemory(outputSignals[signalIdx].name, GetOutputSignalMemory(signalIdx));
+            }
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate output signal '%s': no variable of the same name in the expression.", (outputSignals[signalIdx].name).Buffer());
             }
