@@ -29,6 +29,7 @@
 -i./Source/Components/GAMs/HistogramGAM/
 -i./Source/Components/GAMs/Interleaved2FlatGAM/
 -i./Source/Components/GAMs/IOGAM/
+-i./Source/Components/GAMs/MathExpressionGAM/
 -i./Source/Components/GAMs/PIDGAM/
 -i./Source/Components/GAMs/MuxGAM/
 -i./Source/Components/GAMs/SSMGAM/
@@ -90,6 +91,7 @@ LinkDataSource.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
+MathExpressionGAM.cpp
 MDSStructuredDataI.cpp
 MDSReader.cpp
 MDSWriter.cpp
