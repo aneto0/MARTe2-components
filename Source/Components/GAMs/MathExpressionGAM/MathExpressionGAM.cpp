@@ -75,7 +75,8 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
     if (ok) {
         ok = data.Read("Expression", expr);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot find Expression among MathExpressionGAM parameters.");
+            REPORT_ERROR(ErrorManagement::ParametersError,
+                "Cannot find Expression among MathExpressionGAM parameters.");
         }
     }
     
@@ -85,7 +86,8 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
         mathParser = new MathExpressionParser(expr);
         ok = mathParser->Parse();
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to parse input Expression.");
+            REPORT_ERROR(ErrorManagement::InitialisationError,
+                "Failed to parse input Expression.");
         }
     }
     
@@ -128,14 +130,18 @@ bool MathExpressionGAM::Setup() {
     for (uint32 signalIdx = 0u; (signalIdx < numberOfInputSignals) && ok; signalIdx++) {
         ok = (inputSignals[signalIdx].numberOfElements == 1u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::UnsupportedFeature, "Input signal %s has %u elements (> 1). Only scalar signals are supported.", (inputSignals[signalIdx].name).Buffer(), inputSignals[signalIdx].numberOfElements);
+            REPORT_ERROR(ErrorManagement::UnsupportedFeature,
+                "Input signal %s has %u elements (> 1). Only scalar signals are supported.",
+                (inputSignals[signalIdx].name).Buffer(), inputSignals[signalIdx].numberOfElements);
         } 
     }
     
     for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && ok; signalIdx++) {
         ok = (outputSignals[signalIdx].numberOfElements == 1u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::UnsupportedFeature, "Output signal %s has %u elements (> 1). Only scalar signals are supported.", (outputSignals[signalIdx].name).Buffer(), outputSignals[signalIdx].numberOfElements);
+            REPORT_ERROR(ErrorManagement::UnsupportedFeature,
+                "Output signal %s has %u elements (> 1). Only scalar signals are supported.",
+                (outputSignals[signalIdx].name).Buffer(), outputSignals[signalIdx].numberOfElements);
         } 
     }
     
@@ -143,7 +149,8 @@ bool MathExpressionGAM::Setup() {
     if (ok) {
         ok = evaluator->ExtractVariables();
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed RuntimeEvaluator::ExtractVariables().");
+            REPORT_ERROR(ErrorManagement::InitialisationError,
+                "Failed RuntimeEvaluator::ExtractVariables().");
         }
     }
     
@@ -156,7 +163,9 @@ bool MathExpressionGAM::Setup() {
                 ok = evaluator->SetInputVariableMemory(inputSignals[signalIdx].name, GetInputSignalMemory(signalIdx));
             }
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate input signal '%s': no variable of the same name in the expression.", (inputSignals[signalIdx].name).Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError,
+                    "Can't associate input signal '%s': no variable of the same name in the expression.",
+                    (inputSignals[signalIdx].name).Buffer());
             }
         }
     }
@@ -170,7 +179,9 @@ bool MathExpressionGAM::Setup() {
                 ok = evaluator->SetOutputVariableMemory(outputSignals[signalIdx].name, GetOutputSignalMemory(signalIdx));
             }
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Can't associate output signal '%s': no variable of the same name in the expression.", (outputSignals[signalIdx].name).Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError,
+                    "Can't associate output signal '%s': no variable of the same name in the expression.",
+                    (outputSignals[signalIdx].name).Buffer());
             }
         }
         
