@@ -223,7 +223,7 @@ bool MathExpressionGAM::Setup() {
         ok = evaluator->Compile();
         if(!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError,
-                "Failed compilation of expression: %s",
+                "Failed compilation (invalid syntax?) in expression: %s",
                 expr.Buffer());
         } 
     }
