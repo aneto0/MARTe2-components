@@ -210,6 +210,11 @@ bool MathExpressionGAM::Setup() {
     // 5. Compilation
     if (ok) {
         ok = evaluator->Compile();
+        if(!ok) {
+            REPORT_ERROR(ErrorManagement::InitialisationError,
+                "Failed compilation of expression: %s",
+                expr.Buffer());
+        } 
     }
     
     return ok;
