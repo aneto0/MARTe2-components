@@ -594,6 +594,9 @@ bool SDNPublisher::Synchronise() {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to publish");
     }
 
+    // Perform housekeeping activities .. irrespective of status
+    (void)publisher->DoBackgroundActivity();
+
     return ok;
 }
 #ifdef FEATURE_10840
