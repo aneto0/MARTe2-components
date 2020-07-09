@@ -61,10 +61,6 @@ HDF5_SET_CHANNEL = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g
 ifeq "$(HDF5_SET_CHANNEL)" "0"
 CPPFLAGS += -DNO_HDF5_SET_CHANNEL
 endif
-## DAN client API dependencies
-LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
-## DAN HDF5 reader dependencies (test code)
-LIBRARIES += -ldan_base -ldan_archive -ldan_wrapper_srv -ldan_uda_reader_base -ldan_stream_reader_cpp
 endif
 
 #TODO Temporary to fix in hpn.h
