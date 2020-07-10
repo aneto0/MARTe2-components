@@ -24,3 +24,4 @@
 
 include Makefile.inc
 
+LIBRARIES   += -L$(MARTe2_Components_DIR)/Build/x86-linux/Components/DataSources/OPCUADataSource/ -lOPCUADataSource

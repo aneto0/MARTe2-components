@@ -1,8 +1,8 @@
 /**
- * @file OPCUAObject.h
- * @brief Header file for class OPCUAObject
- * @date 12/03/2019
- * @author Luca Porzio
+ * @file OPCUAClientITest.h
+ * @brief Header file for class OPCUAClientITest
+ * @date Oct 28, 2019 TODO Verify the value and format of the date
+ * @author lporzio TODO Verify the name and format of the author
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -16,88 +16,67 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class OPCUAObject
+ * @details This header file contains the declaration of the class OPCUAClientITest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef SOURCE_COMPONENTS_INTERFACES_OPCUA_OPCUAOBJECT_H_
-#define SOURCE_COMPONENTS_INTERFACES_OPCUA_OPCUAOBJECT_H_
+#ifndef TEST_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUACLIENTITEST_H_
+#define TEST_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUACLIENTITEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-/*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
-#include "open62541.h"
-/*lint -D__cplusplus*/
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "ConfigurationDatabase.h"
-#include "OPCUAReferenceContainer.h"
-#include "ReferenceContainer.h"
-#include "string.h"
-
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-namespace MARTe {
-
-/**
- * @brief Class that manages the OPCUA Object structure
- * @details The class inherit from OPCUAReferenceContainer and implements the GetOPCObject method
- */
-class OPCUAObject: public OPCUAReferenceContainer {
+class OPCUAClientITest {
 public:
 
-    CLASS_REGISTER_DECLARATION()
+    /**
+     * @brief Tests the constructor. NOOP
+     */
+    bool TestConstructor();
 
     /**
-     * @brief Default constructor
+     * @brief Tests the SetServerAddress function.
      */
-    OPCUAObject();
+    bool Test_SetServerAddress();
 
     /**
-     * @brief Default Destructor
+     * @brief Tests the Connect function.
      */
-    ~OPCUAObject();
+    bool Test_Connect();
 
     /**
-     * @see OPCUAReferenceContainer::GetOPCObject
-     * @param[out] settings The NodeProperties struct to be populated with all the data available
-     * @param[in] nodeNumber The numeric ID to be assigned to the OPCUA NodeID related to the current Node Variable
-     * @return true if all the parameters and attributes are set correctly
+     * @brief Tests the SetValueMemories function.
      */
-    virtual bool GetOPCObject(OPCUA::OPCUAObjectSettings &settings, const uint32 nodeNumber);
+    bool Test_SetValueMemories();
 
     /**
-     * @see OPCUAReferenceContainer::IsObject
-     * @return true
+     * @brief Tests the SetDataPtr function.
      */
-    virtual bool IsObject();
+    bool Test_SetDataPtr();
 
     /**
-     * @see OPCUAReferenceContainer::SetFirst
+     * @brief Tests the GetSignalMemory function.
      */
-    virtual void SetFirst(const bool value);
+    bool Test_GetSignalMemory();
 
-    /**
-     * @see OPCUAReferenceContainer::IsFirstObject
-     * @return true if this is the first Object
-     */
-    virtual const bool IsFirstObject();
 
 
 };
 
-}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* SOURCE_COMPONENTS_INTERFACES_OPCUA_OPCUAOBJECT_H_ */
-
+#endif /* TEST_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUACLIENTITEST_H_ */
+	

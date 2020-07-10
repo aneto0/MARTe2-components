@@ -51,10 +51,10 @@ class OPCUAReferenceContainer: public ReferenceContainer {
 public:
     CLASS_REGISTER_DECLARATION()
 
-/**
- * @brief Default Constructor
- */
-OPCUAReferenceContainer    ();
+    /**
+     * @brief Default Constructor
+     */
+    OPCUAReferenceContainer    ();
 
     /**
      * @brief Default Destructor
@@ -78,8 +78,8 @@ OPCUAReferenceContainer    ();
      * @details Sets all the required attributes to build a new NodeID for the current Node Variable, such as
      * qualified name, localization, value type and all the hierarchies properties (parentNodeId and References).
      * @param[out] settings The NodeProperties struct to be populated with all the data available
-     * @param[in] nodeType The TypeDescriptor of the data type the Node will manage
-     * @param[in] nodeNumber The numeric ID to be assigned to the OPCUA NodeID related to the current Node Variable
+     * @param[in] nType The TypeDescriptor of the data type the Node will manage
+     * @param[in] nNumber The numeric ID to be assigned to the OPCUA NodeID related to the current Node Variable
      * @return false
      */
     virtual bool GetOPCVariable(OPCUA::OPCUANodeSettings &settings, const TypeDescriptor nType, const uint32 nNumber);
@@ -96,37 +96,44 @@ OPCUAReferenceContainer    ();
 
     /**
      * @brief Set the related parameter if the current Node is the first of the Address Space to be constructed
+     * @param[in] value true if parameter is the first of the Address Space
      */
     virtual void SetFirst(const bool value);
 
     /**
      * @brief Checks if the current Node is the first Object to be constructed in the Address Space
+     * @return false
      */
     virtual const bool IsFirstObject();
 
     /**
      * @brief Sets the numeric ID of the ParentNodeID for the current Node
+     * @param[in] parentId Parent Identifier that will be assigned to current Node
      */
     void SetParent(const uint32 parentId);
 
     /**
      * @brief Gets the numeric ID of the parentNodeID for the current Node
+     * @return Parent Identifier of the current Node
      */
     const uint32 GetParentNodeId() const;
 
     /**
      *
      * @brief Sets the numeric node ID for the current Node
+     * @param[in] newNodeId Node Identifier that will be assigned to current Node
      */
     void SetNodeId(const uint32 newNodeId);
 
     /**
      * @brief Gets the numeric node ID for the current Node
+     * @return Node Identifier of the current Node
      */
     const uint32 GetNodeId() const;
 
     /**
      * @brief Sets the data type to be managed by the current Node
+     * @param[in] type Data Type that will be assigned to current Node
      */
     void SetNodeType(const TypeDescriptor &type);
 
@@ -138,7 +145,7 @@ OPCUAReferenceContainer    ();
 
     /**
      * @brief Sets the number of elements of the data managed by the current Node
-     * @param[in] dimension The number of dimensions
+     * @param[in] dimension The dimension to be modified
      * @param[in] nElements The number of Elements
      */
     void SetNumberOfElements(const uint32 dimension, const uint32 nElements);
@@ -151,11 +158,13 @@ OPCUAReferenceContainer    ();
 
     /**
      * @brief Gets the array that stores numbers of elements of the current node
+     * @return Pointer to an array with the number of elements
      */
     uint32* GetNumberOfElements();
 
     /**
      * @brief Gets the number of dimensions of the current node
+     * @return Number of dimensions
      */
     const uint8 GetNumberOfDimensions() const;
 

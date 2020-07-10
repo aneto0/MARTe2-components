@@ -25,7 +25,8 @@
 OBJSX +=  OPCUANodeTest.x \
     OPCUAObjectTest.x \
     OPCUAReferenceContainerTest.x \
-    OPCUAServerTest.x
+    OPCUAServerTest.x \
+    OPCUAMessageClientTest.x
 
 PACKAGE=Components/Interfaces
 

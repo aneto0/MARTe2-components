@@ -103,19 +103,14 @@ public:
     bool TestExecute_Introspection();
 
     /**
-     * @brief Tests the Execute method.
-     */
-    bool TestExecute_NoType();
-
-    /**
      * @brief Tests the Execute method when the Address Space has to be constructed from an Introspection Structure with array variables.
      */
     bool TestExecute_IntrospectionArray();
 
     /**
-     * @brief Tests the GetStructure method when a variable number of dimensions is greater than 1.
+     * @brief Tests the Execute method when a variable number of dimensions is greater than 1.
      */
-    bool TestGetStructure_WrongNDimensions();
+    bool TestExecute_WrongNDimensions();
 
 };
 
