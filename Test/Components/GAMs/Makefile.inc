@@ -43,6 +43,10 @@ ifdef EFDA_MARTe_DIR
 SPB += BaseLib2GAM.x
 endif
 
+ifdef MATLAB_DIR
+SPB += SimulinkWrapperGAM.x
+endif
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults

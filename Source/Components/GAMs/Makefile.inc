@@ -43,6 +43,10 @@ ifdef EFDA_MARTe_DIR
 SPB+=BaseLib2GAM.x
 endif
 
+ifdef MATLAB_DIR
+SPB+=SimulinkWrapperGAM.x
+endif
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -67,6 +71,10 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/WaveformGAM/WaveformGAM$(LIBEXT)
 
 ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAM$(LIBEXT)
+endif
+
+ifdef MATLAB_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/SimulinkWrapperGAM/SimulinkWrapperGAM$(LIBEXT)
 endif
 
 all: $(OBJS)  $(SUBPROJ)  \

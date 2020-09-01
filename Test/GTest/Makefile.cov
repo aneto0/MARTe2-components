@@ -67,3 +67,7 @@ endif
 ifdef EPICSPVA
 LIBRARIES += -lpvaClient -lpvAccess -lpvData -lpvDatabase
 endif 
+
+ifdef MATLAB_DIR
+LIBRARIES += -Wl,-rpath-link,$(MATLAB_DIR)/bin/glnxa64 "$(MATLAB_DIR)/sys/os/glnxa64/libstdc++.so.6" -L$(MATLAB_DIR)/extern/bin/glnxa64/ -L$(MATLAB_DIR)/bin/glnxa64/ -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
+endif
