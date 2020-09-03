@@ -95,9 +95,24 @@ TEST(SimulinkWrapperGAMGTest, TestInitialise_MissingParametersLeaf) {
     ASSERT_TRUE(test.TestInitialise_MissingParametersLeaf());
 }
 
-TEST(SimulinkWrapperGAMGTest, TestSetup) {
+TEST(SimulinkWrapperGAMGTest, TestSetup_SkipUnlinkedTunableParams) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup());
+    ASSERT_TRUE(test.TestSetup_SkipUnlinkedTunableParams());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_DontSkipUnlinkedTunableParams) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_DontSkipUnlinkedTunableParams());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfInputs) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfInputs());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfOutputs) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfOutputs());
 }
 
 /*---------------------------------------------------------------------------*/

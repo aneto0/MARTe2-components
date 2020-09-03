@@ -88,7 +88,7 @@ public:
      * @details Verify the post-conditions
      * @return  `true` if Setup() succeeds.
      */
-    bool TestSetup();
+    //bool TestSetup();
 
     /**
      * @brief  Tests the Execute() method
@@ -124,6 +124,12 @@ public:
     bool TestInitialise_Failed_LibraryMissingAllocFunction();
     
     bool TestInitialise_MissingParametersLeaf();
+    
+    bool TestSetup_SkipUnlinkedTunableParams();
+    
+    bool TestSetup_Failed_DontSkipUnlinkedTunableParams();
+    bool TestSetup_Failed_WrongNumberOfInputs();
+    bool TestSetup_Failed_WrongNumberOfOutputs();
 
 };
 

@@ -137,7 +137,7 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             
             if (!ok) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning,
-                    "Parameter %s data type not matching (MDSplus: %s, model: %s)",
+                    "Parameter %s data type not matching (parameter source: %s, model: %s)",
                     fullName.Buffer(),
                     TypeDescriptor::GetTypeNameFromTypeDescriptor(mdsType),
                     MARTeTypeName.Buffer());
@@ -158,7 +158,7 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             
             if (!ok) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning,
-                    "Parameter %s data type size not matching (MDSplus: %d, model: %d)",
+                    "Parameter %s data type size not matching (parameter source: %d, model: %d)",
                     fullName.Buffer(), mdsTypeSize, slkTypeSize);
             }
         }
@@ -170,7 +170,7 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             
             if (!ok) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning,
-                    "Parameter %s number of dimensions not matching (MDSplus: %d, model: %d)",
+                    "Parameter %s number of dimensions not matching (parameter source: %d, model: %d)",
                     fullName.Buffer(), sourceParameter.GetNumberOfDimensions(), numberOfDimensions);
             }
         }
@@ -229,7 +229,7 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             }
             if (!ok) {
                 REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
-                    "Parameter %s: dimensions not matching (MDSplus: [%u, %u, %u], model: [%u, %u, %u]).",
+                    "Parameter %s: dimensions not matching (parameter source: [%u, %u, %u], model: [%u, %u, %u]).",
                     fullName.Buffer(),
                     mdsDim1, mdsDim2, mdsDim3,
                     slkDim1, slkDim2, slkDim3);
@@ -243,7 +243,7 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             
             if(!ok) {
                 REPORT_ERROR_STATIC(ErrorManagement::Warning,
-                    "Parameter %s: total data size not matching (MDSplus: %d, model: %d)",
+                    "Parameter %s: total data size not matching (parameter source: %d, model: %d)",
                     fullName.Buffer(), sourceParameter.GetDataSize(), byteSize);
             }
         }
@@ -337,8 +337,8 @@ void SimulinkPort::PrintPort(uint32 maxNameLength) {
     StreamString additionalText = "";
     additionalText.Seek(0u);
     additionalText.Printf(
-        "offset-based size %-6u │ %-16s │",
-        offsetBasedSize, typeStr.Buffer()
+        "size by type: %-6u │ size by offset %-6u │ %-16s │",
+        typeBasedSize, offsetBasedSize, typeStr.Buffer()
     );
     
     SimulinkDataI::PrintData(maxNameLength, additionalText);

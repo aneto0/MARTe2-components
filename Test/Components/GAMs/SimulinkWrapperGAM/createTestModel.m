@@ -36,6 +36,7 @@ add_block('simulink/Signal Attributes/Data Type Conversion', [model_name '/Conve
 add_block('simulink/Signal Routing/Mux',      [model_name '/Mux1']);
 add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate1']);
 add_block('simulink/Math Operations/Add',     [model_name '/Add1']);
+add_block('simulink/Math Operations/Gain',    [model_name '/Gain1']);
 
 % subsystems
 add_block('simulink/Ports & Subsystems/Subsystem',[model_name '/Subsystem1']);
@@ -70,7 +71,6 @@ add_block('simulink/Sources/In1', [model_name '/Subsystem1/In3']);
 set_param([model_name '/Convert1'], 'OutDataTypeStr', 'double');
 set_param([model_name '/Convert2'], 'OutDataTypeStr', 'single');
 
-% in/out ports
 set_param([model_name '/Constant1'], 'Value', '10');
 
 set_param([model_name '/Constant2'], 'Value',          'matrixConstant');
@@ -79,8 +79,11 @@ set_param([model_name '/Constant2'], 'OutDataTypeStr', 'double');
 set_param([model_name '/Constant3'], 'Value',          'vectorConstant');
 set_param([model_name '/Constant3'], 'OutDataTypeStr', 'single');
 
+set_param([model_name '/Gain1'],     'Gain',          '1');
+
 set_param([model_name '/Add1'],      'Inputs',         '++');
 
+% in/out ports
 set_param([model_name '/In1_ScalarDouble'],  'IconDisplay',    'Signal name');
 set_param([model_name '/In1_ScalarDouble'],  'OutDataTypeStr', 'double');
 
@@ -128,17 +131,17 @@ delete_line([model_name '/Subsystem1'], 'In1/1', 'Out1/1');
 % 3. by using port names and IDs
 
 % method 1: get exact coordinates of the block port
-Constant1_Port      = get_param([model_name '/Constant1']      , 'PortConnectivity');
-Subsystem1_Port = get_param([model_name '/Subsystem1'] , 'PortConnectivity');
-
-add_line(model_name, [Constant1_Port.Position; Subsystem1_Port(1).Position]);
+% Constant1_Port      = get_param([model_name '/Constant1']      , 'PortConnectivity');
+% Subsystem1_Port = get_param([model_name '/Subsystem1'] , 'PortConnectivity');
+% 
+% add_line(model_name, [Constant1_Port.Position; Subsystem1_Port(1).Position]);
 
 % method 1, but using three segments of line
-Pulse1_Port      = get_param([model_name '/Pulse1']      , 'PortConnectivity');
-
-add_line(model_name, [Pulse1_Port.Position; 275 220]);
-add_line(model_name, [275 220; 275 180]);
-add_line(model_name, [275 180; Subsystem1_Port(2).Position]);
+% Pulse1_Port      = get_param([model_name '/Pulse1']      , 'PortConnectivity');
+% 
+% add_line(model_name, [Pulse1_Port.Position; 275 220]);
+% add_line(model_name, [275 220; 275 180]);
+% add_line(model_name, [275 180; Subsystem1_Port(2).Position]);
 
 % method 2
 % SubsysPortHandles = get_param([model_name '/Subsystem1'] ,'PortHandles');
@@ -146,6 +149,9 @@ add_line(model_name, [275 180; Subsystem1_Port(2).Position]);
 % add_line(model_name, SubsysPortHandles.Outport(1), ScopePortHandles.Inport(1));
 
 % method 3
+add_line(model_name, 'Constant1/1', 'Subsystem1/1');
+add_line(model_name, 'Pulse1/1', 'Subsystem1/2');
+
 add_line([model_name '/Subsystem1'],'In1/1','Add1/1');
 add_line([model_name '/Subsystem1'],'In2/1','Add1/2');
 add_line([model_name '/Subsystem1'],'Add1/1','Out1/1');
@@ -163,7 +169,8 @@ add_line(model_name, 'Constant3/1',        'Add1/2');
 add_line(model_name, 'In5_VectorSingle/1', 'Concatenate1/2');
 add_line(model_name, 'Concatenate1/1',     'Out8_MatrixSingle/1');
 add_line(model_name, 'Constant2/1',        'Out9_MatrixDouble/1');
-add_line(model_name, 'In2_ScalarSingle/1', 'Out2_ScalarSingle/1');
+add_line(model_name, 'In2_ScalarSingle/1', 'Gain1/1');
+add_line(model_name, 'Gain1/1',            'Out2_ScalarSingle/1');
 
 add_line([model_name '/Subsystem1'], 'In3/1', 'Add1/3');
 
@@ -268,7 +275,7 @@ close_system(model_name);
 
 % clean build directory
 rmdir('slprj', 's');
-%rmdir([model_name '_ert_shrlib_rtw'], 's');
+rmdir([model_name '_ert_shrlib_rtw'], 's');
 delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
