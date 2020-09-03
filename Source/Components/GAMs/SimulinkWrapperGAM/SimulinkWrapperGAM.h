@@ -218,13 +218,13 @@ private:
     /**
      * @brief Symbols retrieved from the library.
      */
-    void* (*instFunction) (void);
-    void  (*initFunction) (void*);
-    void  (*stepFunction) (void*);
-    void  (*termFunction) (void*);  // currently unused
+    void* (*instFunction)         (void);
+    void  (*initFunction)         (void*);
+    void  (*stepFunction)         (void*);
+    void  (*termFunction)         (void*);  // currently unused
     void* (*getstaticmapFunction) (void);
-    void* (*getmmiFunction) (void*);
-    void  (*getalgoinfoFunction) (void*);
+    void* (*getmmiFunction)       (void*);
+    void  (*getalgoinfoFunction)  (void*);
     
     /**
      * @brief Buffer hosting tunable parameters and internal states.
@@ -364,7 +364,7 @@ private:
     StaticList<SimulinkPort*> modelPorts;
     
     /**
-     * @brief Holds port and parameter addressed while scanning.
+     * @brief Holds port and parameter addresses while scanning.
      */
     StaticList<void*> lastAddressVector;
     

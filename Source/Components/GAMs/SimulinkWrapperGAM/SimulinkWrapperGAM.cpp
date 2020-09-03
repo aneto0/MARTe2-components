@@ -1375,7 +1375,7 @@ void SimulinkWrapperGAM::ScanParameter(uint_T paridx, StreamString spacer, enum 
 void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_rootsigmode mode)
 {
     //uint8_T       versionNumber;
-    uint_T        nsignals;
+    uint32        nsignals;
     const char_T* sigName;
     uint16_T      dataTypeIdx;
     uint8_T       slDataID;
@@ -1428,8 +1428,8 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_
 
 
 
-    for(uint_T sigIdx = 0; sigIdx<nsignals; sigIdx++)
-    {
+    for (uint32 sigIdx = 0u; sigIdx < nsignals; sigIdx++) {
+        
         dataTypeIdx  = rtwCAPI_GetSignalDataTypeIdx(sigGroup, sigIdx); // Index into the data type in rtwCAPI_DataTypeMap
         sigName      = rtwCAPI_GetSignalName(sigGroup, sigIdx);        // Name of the parameter
         slDataID     = rtwCAPI_GetDataTypeSLId(dataTypeMap, dataTypeIdx);           // Simulink type from data type map
