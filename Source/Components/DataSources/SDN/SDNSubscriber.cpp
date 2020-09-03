@@ -566,7 +566,8 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
                 if (sdnHeaderAsSignal) {
                     sdn::Header_t *header = static_cast<sdn::Header_t *>(payloadAddresses[0u]);
                     Endianity::FromBigEndian(header->header_size);
-                    Endianity::FromBigEndian(reinterpret_cast<uint64 &>(header->recv_time));
+                    // Receive time is written by SDN library in local machine, therefore it already has the right order
+                    //Endianity::FromBigEndian(reinterpret_cast<uint64 &>(header->recv_time));
                     Endianity::FromBigEndian(reinterpret_cast<uint64 &>(header->send_time));
                     Endianity::FromBigEndian(reinterpret_cast<uint64 &>(header->topic_counter));
                     Endianity::FromBigEndian(header->topic_size);
