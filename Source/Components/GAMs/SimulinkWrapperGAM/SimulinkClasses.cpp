@@ -337,8 +337,8 @@ void SimulinkPort::PrintPort(uint32 maxNameLength) {
     StreamString additionalText = "";
     additionalText.Seek(0u);
     additionalText.Printf(
-        "type-based size: %-6u │ offset-based size %-6u │ %-16s │",
-        typeBasedSize, offsetBasedSize, typeStr.Buffer()
+        "offset-based size %-6u │ %-16s │",
+        offsetBasedSize, typeStr.Buffer()
     );
     
     SimulinkDataI::PrintData(maxNameLength, additionalText);

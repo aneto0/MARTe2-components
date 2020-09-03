@@ -225,7 +225,7 @@ static bool BuildTestModel(MARTe::StreamString& modelName, MARTe::StreamString& 
     }
     
 printf("--- code ---\n\n%s\n", codeBuffer);
-    if (false) { // TODO DEBUG substitute with ok
+    if (ok) { // TODO DEBUG substitute with ok
         
         // Start MATLAB engine synchronously
         std::unique_ptr<MATLABEngine> matlabPtr = startMATLAB();
@@ -234,6 +234,10 @@ printf("--- code ---\n\n%s\n", codeBuffer);
         //matlabPtr->eval(convertUTF8StringToUTF16String(codeBuffer));
         matlabPtr->eval(convertUTF8StringToUTF16String(addpathCommand.Buffer()));
         matlabPtr->eval(u"global model_name model_compiled");
+        
+        matlabPtr->eval(u"matrixConstant = [1 1 1; 2 2 2; 3 3 3];");
+        matlabPtr->eval(u"vectorConstant = ones(10,1);");
+        
         matlabPtr->feval<bool>(u"createTestModel", true, true); // flags: hasAllocFcn, hasGetmmiFcn
         
         // Get the name of the model
@@ -292,7 +296,7 @@ static bool DeleteTestModel(MARTe::StreamString modelName, MARTe::StreamString m
     toDelete.SetByName(currentPath.Buffer());
 printf("TODELETE: %s, is there? %u\n", currentPath.Buffer(), toDelete.Exists());
     if (toDelete.Exists()) {
-        //ok = toDelete.Delete();  // TODO DEBUG uncomment this
+        ok = toDelete.Delete();  // TODO DEBUG uncomment this
     }
 printf("DELETED? %u\n", ok);
 
@@ -601,12 +605,40 @@ bool SimulinkWrapperGAMTest::TestSetup() {
             "       +Constants = {"
             "           Class = ConstantGAM"
             "            OutputSignals = {"
-            "                RootIn1  = {"
+            "                In1_ScalarDouble  = {"
             "                    DataSource = DDB1"
             "                    Type = float64"
             "                    NumberOfElements = 1"
             "                    NumberOfDimensions=1"
             "                    Default = {1}"
+            "                }"
+            "                In2_ScalarSingle  = {"
+            "                    DataSource = DDB1"
+            "                    Type = float32"
+            "                    NumberOfElements = 1"
+            "                    NumberOfDimensions=1"
+            "                    Default = {1}"
+            "                }"
+            "                In3_ScalarInt8  = {"
+            "                    DataSource = DDB1"
+            "                    Type = int8"
+            "                    NumberOfElements = 1"
+            "                    NumberOfDimensions=1"
+            "                    Default = {1}"
+            "                }"
+            "                In4_VectorDouble  = {"
+            "                    DataSource = DDB1"
+            "                    Type = float64"
+            "                    NumberOfElements = 9"
+            "                    NumberOfDimensions=1"
+            "                    Default = {1, 1, 1, 1, 1, 1, 1, 1, 1}"
+            "                }"
+            "                In5_VectorSingle  = {"
+            "                    DataSource = DDB1"
+            "                    Type = float32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions=1"
+            "                    Default = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}"
             "                }"
             "            }"
             "        }"
@@ -622,19 +654,51 @@ bool SimulinkWrapperGAMTest::TestSetup() {
             "            TunableParamExternalSource = MDSParameters"
             "            SkipUnlinkedTunableParams = 1"
             "            InputSignals = {"
-            "               RootIn1 = {"
+            "                In1_ScalarDouble  = {"
+            "                    DataSource = DDB1"
+            "                    Type = float64"
+            "                }"
+            "                In2_ScalarSingle  = {"
+            "                    DataSource = DDB1"
+            "                    Type = float32"
+            "                }"
+            "                In3_ScalarInt8  = {"
+            "                    DataSource = DDB1"
+            "                    Type = int8"
+            "                }"
+            "                In4_VectorDouble  = {"
+            "                    DataSource = DDB1"
+            "                    Type = float64"
+            "                }"
+            "                In5_VectorSingle  = {"
+            "                    DataSource = DDB1"
+            "                    Type = float32"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "               Out1_ScalarDouble = {"
             "                   DataSource = DDB1"
             "                   Type = float64"
             "               }"
-            "            }"
-            "            OutputSignals = {"
-            "               RootOut1 = {"
+            "               Out2_ScalarSingle  = {"
+            "                    DataSource = DDB1"
+            "                    Type = float32"
+            "                }"
+            "               Out4_VectorDouble = {"
+            "                   DataSource = DDB1"
+            "                   Type = float64"
+            "               }"
+            "               Out8_MatrixSingle = {"
+            "                   DataSource = DDB1"
+            "                   Type = float64"
+            "               }"
+            "               Out9_MatrixDouble = {"
             "                   DataSource = DDB1"
             "                   Type = float64"
             "               }"
             "            }"
             "            Parameters = {"
-            "               gain = 10"
+            "               scalarGain = 10"
             "            }"
             "        }"
             "    }"

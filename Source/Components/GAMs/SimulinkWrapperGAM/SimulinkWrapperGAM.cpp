@@ -131,6 +131,7 @@ struct TypeMap {
 static const TypeMap typeLookUpTable[] = {
     
     {"unsigned char" , "uint8"  },
+    {"signed char"   , "int8"  },
     {"char"          , "int8"   },
     {"unsigned short", "uint16" },
     {"short"         , "int16"  },
@@ -163,6 +164,7 @@ struct SizeMap {
 static const SizeMap sizeLookUpTable[] = {
     
     {"unsigned char" , 1u   },
+    {"signed char"   , 1u   },
     {"char"          , 1u   },
     {"unsigned short", 2u   },
     {"short"         , 2u   },
