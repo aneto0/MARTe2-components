@@ -80,6 +80,7 @@
  * }
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
+ * 
  * @warning This GAM is compiled and available for usage only if the
  *          environmental variable `MATLAB_DIR` has been defined before
  *          the compilation of MARTe2-components.

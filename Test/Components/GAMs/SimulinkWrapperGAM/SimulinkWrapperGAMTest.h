@@ -109,6 +109,20 @@ public:
     bool TestInitialise_Failed_LoadLibrary();
     bool TestInitialise_Failed_LoadSymbols();
     
+    /**
+     * @brief Tests if the GAM stops when a library has no
+     *        custom Getmmi function (see GAM documentation for details
+     *        about custom Getmmi function).
+     */
+    bool TestInitialise_Failed_LibraryMissingGetMmiFunction();
+    
+    /**
+     * @brief Tests if the GAM stops when the library has been compiled
+     *        without the option to generate an additional function
+     *        for memory allocation.
+     */
+    bool TestInitialise_Failed_LibraryMissingAllocFunction();
+    
     bool TestInitialise_MissingParametersLeaf();
 
 };

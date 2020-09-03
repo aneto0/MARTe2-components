@@ -197,8 +197,17 @@ static bool BuildTestModel(MARTe::StreamString& modelName, MARTe::StreamString& 
     
     bool ok = false;
     
-    StreamString modelScriptPath = getenv("MARTe2_Components_DIR");
-    modelScriptPath += "/Test/Components/GAMs/SimulinkWrapperGAM/test_model_script.m";
+    StreamString modelScriptFolder = getenv("MARTe2_Components_DIR");
+    modelScriptFolder += "/Test/Components/GAMs/SimulinkWrapperGAM/";
+    
+    modelFolder = modelScriptFolder;
+    
+    StreamString addpathCommand = "addpath(\"";
+    addpathCommand += modelScriptFolder.Buffer();
+    addpathCommand += "\")";
+    
+    StreamString modelScriptPath = modelScriptFolder;
+    modelScriptPath += "testModelScript.m";
     
     // Open and read the model source code
     File codeFile;
@@ -222,7 +231,10 @@ printf("--- code ---\n\n%s\n", codeBuffer);
         std::unique_ptr<MATLABEngine> matlabPtr = startMATLAB();
         
         // Execute the code read from the file
-        matlabPtr->eval(convertUTF8StringToUTF16String(codeBuffer));
+        //matlabPtr->eval(convertUTF8StringToUTF16String(codeBuffer));
+        matlabPtr->eval(convertUTF8StringToUTF16String(addpathCommand.Buffer()));
+        matlabPtr->eval(u"global model_name model_compiled");
+        matlabPtr->feval<bool>(u"createTestModel", true, true); // flags: hasAllocFcn, hasGetmmiFcn
         
         // Get the name of the model
         matlab::data::CharArray modelNameCharArray = matlabPtr->getVariable(u"model_name");
@@ -245,6 +257,9 @@ printf("--- code ---\n\n%s\n", codeBuffer);
         else {
             REPORT_ERROR_STATIC(ErrorManagement::Information, "Model compilation failed.");
         }
+        
+        matlabPtr->feval<bool>(u"createTestModel", true,  false);
+        matlabPtr->feval<bool>(u"createTestModel", false, true );
         
     }
     
@@ -276,16 +291,9 @@ static bool DeleteTestModel(MARTe::StreamString modelName, MARTe::StreamString m
     
     toDelete.SetByName(currentPath.Buffer());
 printf("TODELETE: %s, is there? %u\n", currentPath.Buffer(), toDelete.Exists());
-    //ok = toDelete.Delete();  // TODO DEBUG uncomment this
-printf("DELETED? %u\n", ok);
-
-    currentPath  = modelFolder;
-    currentPath += modelName;
-    currentPath += ".slx.bak";
-    
-    toDelete.SetByName(currentPath.Buffer());
-printf("TODELETE: %s, is there? %u\n", currentPath.Buffer(), toDelete.Exists());
-    ok = toDelete.Delete();
+    if (toDelete.Exists()) {
+        //ok = toDelete.Delete();  // TODO DEBUG uncomment this
+    }
 printf("DELETED? %u\n", ok);
 
     return ok;
@@ -301,12 +309,13 @@ public:
         
         BuildTestModel(modelName, modelFolder);
 
-        modelName   = "test_model";
-        modelFolder = getenv("MARTe2_Components_DIR");
+        //modelName   = "test_model";
+        //modelFolder = getenv("MARTe2_Components_DIR");
     }
 
     ~SimulinkGAMGTestEnvironment() {
         DeleteTestModel(modelName, modelFolder);
+printf("DELETE ENDED SUCCESFULLY\n");
     }
 
     MARTe::StreamString modelName;
@@ -510,6 +519,51 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LoadSymbols() {
     
 }
 
+bool SimulinkWrapperGAMTest::TestInitialise_Failed_LibraryMissingGetMmiFunction() {
+    
+    MARTe::StreamString modelName, modelFolder, modelFullPath;
+    
+    modelName   = "test_model10";
+    modelFolder = testEnvironment.modelFolder;
+    
+    modelFullPath  = modelFolder;
+    modelFullPath += "/";
+    modelFullPath += modelName;
+    modelFullPath += ".so";
+    
+    
+    MARTe::ConfigurationDatabase config;
+    
+    config.Write("Library",      modelFullPath);
+    config.Write("SymbolPrefix", modelName);
+    config.Write("TunableParamExternalSource", "ExtSource");
+    
+    return !TestInitialiseWithConfiguration(config);
+    
+}
+
+bool SimulinkWrapperGAMTest::TestInitialise_Failed_LibraryMissingAllocFunction() {
+    
+    MARTe::StreamString modelName, modelFolder, modelFullPath;
+    
+    modelName   = "test_model01";
+    modelFolder = testEnvironment.modelFolder;
+    
+    modelFullPath  = modelFolder;
+    modelFullPath += "/";
+    modelFullPath += modelName;
+    modelFullPath += ".so";
+    
+    
+    MARTe::ConfigurationDatabase config;
+    
+    config.Write("Library",      modelFullPath);
+    config.Write("SymbolPrefix", modelName);
+    config.Write("TunableParamExternalSource", "ExtSource");
+    
+    return !TestInitialiseWithConfiguration(config);
+    
+}
 
 bool SimulinkWrapperGAMTest::TestInitialise_MissingParametersLeaf() {
     
@@ -578,6 +632,9 @@ bool SimulinkWrapperGAMTest::TestSetup() {
             "                   DataSource = DDB1"
             "                   Type = float64"
             "               }"
+            "            }"
+            "            Parameters = {"
+            "               gain = 10"
             "            }"
             "        }"
             "    }"

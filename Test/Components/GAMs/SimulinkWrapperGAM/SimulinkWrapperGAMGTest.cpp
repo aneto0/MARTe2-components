@@ -80,12 +80,22 @@ TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_LoadSymbols) {
     ASSERT_TRUE(test.TestInitialise_Failed_LoadSymbols());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_LibraryMissingGetMmiFunction) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_Failed_LibraryMissingGetMmiFunction());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_LibraryMissingAllocFunction) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_Failed_LibraryMissingAllocFunction());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestInitialise_MissingParametersLeaf) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestInitialise_MissingParametersLeaf());
 }
 
-TEST(SimulinkWrapperGAMGTest, DISABLED_TestSetup) {
+TEST(SimulinkWrapperGAMGTest, TestSetup) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup());
 }

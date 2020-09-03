@@ -1,6 +1,8 @@
-close all; clear variables; clc;
+function model_compiled = createTestModel(hasAllocFcn, hasGetmmiFcn)
 
-model_name = 'test_model';
+global model_name  model_compiled
+
+model_name = ['test_model' int2str(hasAllocFcn) int2str(hasGetmmiFcn)];
 
 model_compiled = false;
 
@@ -134,13 +136,15 @@ set_param(model_name, 'GenerateReport', 0);
 set_param(model_name, 'GenerateComments', 0);
 
 % Custom code
-set_param(model_name, 'CustomSourceCode', ...
-    [ 'void* ' model_name '_GetCAPImmi(void* voidPtrToRealTimeStructure)' newline, ...
-    '{' newline, ...
-    '    rtwCAPI_ModelMappingInfo* mmiPtr = &(rtmGetDataMapInfo((RT_MODEL_' model_name '_T*)(voidPtrToRealTimeStructure)).mmi);' newline, ...
-    '   return (void*) mmiPtr;' newline, ...
-    '}' ] ...
-);
+if hasGetmmiFcn == true
+    set_param(model_name, 'CustomSourceCode', ...
+        [ 'void* ' model_name '_GetCAPImmi(void* voidPtrToRealTimeStructure)' newline, ...
+        '{' newline, ...
+        '    rtwCAPI_ModelMappingInfo* mmiPtr = &(rtmGetDataMapInfo((RT_MODEL_' model_name '_T*)(voidPtrToRealTimeStructure)).mmi);' newline, ...
+        '   return (void*) mmiPtr;' newline, ...
+        '}' ] ...
+    );
+end
 
 % Interface
 set_param(model_name, 'SupportComplex', 0);
@@ -154,7 +158,9 @@ set_param(model_name, 'RootIOFormat', 'Part of model data structure');
 set_param(model_name, 'RTWCAPIParams', 1);
 set_param(model_name, 'RTWCAPIRootIO', 1);
 
-set_param(model_name, 'GenerateAllocFcn', 1);
+if hasAllocFcn == true
+    set_param(model_name, 'GenerateAllocFcn', 1);
+end
 
 set_param(model_name, 'IncludeMdlTerminateFcn', 0);
 set_param(model_name, 'CombineSignalStateStructs', 1);
@@ -176,20 +182,7 @@ rmdir('slprj', 's');
 rmdir([model_name '_ert_shrlib_rtw'], 's');
 delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
+delete(sprintf('%s.slx.bak',model_name));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+end   % function
 

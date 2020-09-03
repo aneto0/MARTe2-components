@@ -272,10 +272,11 @@ SimulinkWrapperGAM::~SimulinkWrapperGAM() {
         libraryHandle = static_cast<LoadableLibrary*>(NULL);
     }
 
-    instFunction = static_cast<void*(*)(void)>(NULL);
-    getmmiFunction = static_cast<void*(*)(void*)>(NULL);
-    getalgoinfoFunction = static_cast<void(*)(void*)>(NULL);
+    getmmiFunction       = static_cast<void*(*)(void*)>(NULL);
+    getalgoinfoFunction  = static_cast<void(*)(void*)>(NULL);
     getstaticmapFunction = static_cast<void*(*)(void)>(NULL);
+
+    instFunction = static_cast<void*(*)(void)>(NULL);
     initFunction = static_cast<void(*)(void*)>(NULL);
     stepFunction = static_cast<void(*)(void*)>(NULL);
     
@@ -435,7 +436,8 @@ PrintIntrospection("Intr");
     /// 3. Retrieval of model code symbols.
     
     char symbol [64u];
-
+    
+    // instFunction
     if (status) { // Compose symbol
         status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
     }
@@ -444,11 +446,11 @@ PrintIntrospection("Intr");
         instFunction = reinterpret_cast<void*(*)(void)>(libraryHandle->Function(symbol));
         status = (static_cast<void*(*)(void)>(NULL) != instFunction);
         if (!status) {
-            REPORT_ERROR(ErrorManagement::Information, "instFunction == NULL");
+            REPORT_ERROR(ErrorManagement::Information, "Couldn't find %s symbol in model library (instFunction == NULL).", symbol);
         }
     }
 
-
+    // getmmiFunction
     if (status) { // Compose symbol
         status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
         if (status) {
@@ -460,11 +462,11 @@ PrintIntrospection("Intr");
         getmmiFunction = reinterpret_cast<void*(*)(void*)>(libraryHandle->Function(symbol));
         status = (static_cast<void*(*)(void*)>(NULL) != getmmiFunction);
         if (!status) {
-            REPORT_ERROR(ErrorManagement::Warning, "%s_GetCAPImmi == NULL", symbol);
+            REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
         }
     }
 
-
+    // initFunction
     if (status) { // Compose symbol
         status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
         if (status) {
@@ -476,11 +478,11 @@ PrintIntrospection("Intr");
         initFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
         status = (static_cast<void(*)(void*)>(NULL) != initFunction);
         if (!status) {
-            REPORT_ERROR(ErrorManagement::Information, "%s_initialize == NULL", symbol);
+            REPORT_ERROR(ErrorManagement::Information, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
         }
     }
     
-    
+    // stepFunction
     if (status) { // Compose symbol
         status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
         if (status) {
@@ -492,11 +494,11 @@ PrintIntrospection("Intr");
         stepFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
         status = (static_cast<void(*)(void*)>(NULL) != stepFunction);
         if (!status) {
-            REPORT_ERROR(ErrorManagement::Warning, "%s_step == NULL", symbol);
+            REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
         }
     }
 
-
+    // getalgoinfoFunction
     if (status) { // Compose symbol
         status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
         if (status) {
@@ -513,7 +515,6 @@ PrintIntrospection("Intr");
         }
     }
 
-    
     /// 4. Building of a reference container containing parameter values
     ///    retrieved in the configuration file (under the `Parameters` node).
     
@@ -557,7 +558,7 @@ PrintIntrospection("Intr");
         }
         
         if (!status) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to create parameter database from Parameters leaf.");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to create parameter database from Parameters node in configuration file.");
         }
         
         data.MoveToAncestor(1u);
@@ -576,49 +577,35 @@ bool SimulinkWrapperGAM::Setup() {
     // (see f4e example)
 
     if (ok) {
-        REPORT_ERROR(ErrorManagement::Information,"Setup done, now initing the Simulink model");
+        REPORT_ERROR(ErrorManagement::Information, "Setup done, now initing the Simulink model");
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "SetupSimulink() failed.");
     }
     
-    if(ok) (*initFunction)(states);
+    if (ok) {
+        (*initFunction)(states);
+    }
     
     // Send simulink ready message
-    if(ok)
-    {
-        ReferenceT<Message> simulinkreadyMessage=Get(0);
-        if(simulinkreadyMessage.IsValid()){
-            REPORT_ERROR(ErrorManagement::Information, "Sending simulink ready message 1");
-            SendMessage(simulinkreadyMessage, this);
+    if (ok) {
+        ReferenceT<Message> simulinkReadyMessage = Get(0);
+        if (simulinkReadyMessage.IsValid()) {
+            REPORT_ERROR(ErrorManagement::Information, "Sending simulink ready message 1.");
+            SendMessage(simulinkReadyMessage, this);
         }
     }
     
     return ok;
 }
 
-bool SimulinkWrapperGAM::SetupSimulink()
-{
-    bool status = false;
+bool SimulinkWrapperGAM::SetupSimulink() {
 
-    // instFunction and initFunction pointers must be defined at this stage
-    status = (static_cast<void*(*)(void)>(NULL) != instFunction);
-    if (!status) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "instFunction is a NULL data pointer");
-        return false;
-    }
-    
-    status = (static_cast<void(*)(void*)>(NULL) != initFunction);
-    if (!status) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "initFunction is a NULL data pointer");
-        return false;
-    }
-    
-    // Simulink initFunction call, init of the Simulink model
-    REPORT_ERROR(ErrorManagement::Information,"Allocating Simulink model dynamic memory");
+    REPORT_ERROR(ErrorManagement::Information, "Allocating Simulink model dynamic memory...");
 
     // Simulink instFunction call, dynamic allocation of model data structures
-    if (status) {
-        states = (*instFunction)();
-        status = (NULL != states);
-    }
+    states = (*instFunction)();
+    bool status = (NULL != states);
 
     // Simulink initFunction call, init of the Simulink model
     if (!status) {
@@ -650,9 +637,9 @@ bool SimulinkWrapperGAM::SetupSimulink()
     REPORT_ERROR(ErrorManagement::Information, "%s, number of main tunable parameters: %d", libraryName.Buffer(), modelNumOfParameters);
     ScanTunableParameters(mmi);
 
-    if(paramsHaveStructArrays) {
+    if (paramsHaveStructArrays) {
         REPORT_ERROR(ErrorManagement::InitialisationError,
-            "Arrays of structures detected in the parameters (not yet supported), cannot continue.");
+            "Arrays of structures detected in the parameters. Feature is not yet supported, execution stopped.");
         return false;
     }
     
@@ -767,69 +754,72 @@ bool SimulinkWrapperGAM::SetupSimulink()
     ///    and Actualise()
     ///-------------------------------------------------------------------------
     
-    ReferenceT<ReferenceContainer> mdsPar = ObjectRegistryDatabase::Instance()->Find(tunableParamExternalSource.Buffer());
-    if(!mdsPar.IsValid())
-    {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Tunable parameter loader %s is not valid", tunableParamExternalSource.Buffer());
-    }
-    else {
-        if (status) {
-            
-            // mdsPar must be of type MDSObjLoader
-            status = (StringHelper::Compare("MDSObjLoader", (mdsPar->GetClassProperties())->GetName()) == 0u);
-            
-            if (!status) {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "Tunable parameter loader %s must be an instance of MDSObjLoader class.",
-                    tunableParamExternalSource.Buffer());
-            }
-        }
+    if (status) {
         
-        // Loop over all connections in the MDSObjLoader container
-        for (uint32 connectionIdx = 0u; (connectionIdx < mdsPar->Size()) && (status); connectionIdx++) {
-            
-            ReferenceT<ReferenceContainer> connection = mdsPar->Get(connectionIdx);
-            status = connection.IsValid();
-            
+        ReferenceT<ReferenceContainer> mdsPar = ObjectRegistryDatabase::Instance()->Find(tunableParamExternalSource.Buffer());
+        
+        if (!mdsPar.IsValid()) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Tunable parameter loader %s is not valid", tunableParamExternalSource.Buffer());
+        }
+        else {
             if (status) {
-                status = (StringHelper::Compare("MDSObjConnection", (connection->GetClassProperties())->GetName()) == 0u);
+                
+                // mdsPar must be of type MDSObjLoader
+                status = (StringHelper::Compare("MDSObjLoader", (mdsPar->GetClassProperties())->GetName()) == 0u);
+                
                 if (!status) {
                     REPORT_ERROR(ErrorManagement::ParametersError,
-                    "Children of parameter loader %s must be instances of MDSObjConnection class.",
-                    tunableParamExternalSource.Buffer());
+                        "Tunable parameter loader %s must be an instance of MDSObjLoader class.",
+                        tunableParamExternalSource.Buffer());
                 }
             }
             
-            // Loop over all parameters in the MDSObjConnection container
-            for (uint32 paramIdx = 0u; (paramIdx < connection->Size()) && (status); paramIdx++) {
+            // Loop over all connections in the MDSObjLoader container
+            for (uint32 connectionIdx = 0u; (connectionIdx < mdsPar->Size()) && (status); connectionIdx++) {
                 
-                ReferenceT<ReferenceContainer> parameter = connection->Get(paramIdx);
-                status = parameter.IsValid();
+                ReferenceT<ReferenceContainer> connection = mdsPar->Get(connectionIdx);
+                status = connection.IsValid();
                 
                 if (status) {
-                    
-                    // Compose absolute path:
-                    StreamString parameterAbsolutePath = "";
-                    parameterAbsolutePath += mdsPar->GetName();
-                    parameterAbsolutePath += ".";
-                    parameterAbsolutePath += connection->GetName();
-                    parameterAbsolutePath += ".";
-                    parameterAbsolutePath += parameter->GetName();
-                    
-                    // the string is used to make a name-path cdb that can be passed to params instead of mdsParcdb
-                    externalParameterDatabase.Write(parameter->GetName(), parameterAbsolutePath.Buffer());
-                    
+                    status = (StringHelper::Compare("MDSObjConnection", (connection->GetClassProperties())->GetName()) == 0u);
+                    if (!status) {
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                        "Children of parameter loader %s must be instances of MDSObjConnection class.",
+                        tunableParamExternalSource.Buffer());
+                    }
                 }
-                else {
+                
+                // Loop over all parameters in the MDSObjConnection container
+                for (uint32 paramIdx = 0u; (paramIdx < connection->Size()) && (status); paramIdx++) {
                     
-                    REPORT_ERROR(ErrorManagement::Exception, "Reference to parameter %s is invalid.", parameter->GetName());
+                    ReferenceT<ReferenceContainer> parameter = connection->Get(paramIdx);
+                    status = parameter.IsValid();
+                    
+                    if (status) {
+                        
+                        // Compose absolute path:
+                        StreamString parameterAbsolutePath = "";
+                        parameterAbsolutePath += mdsPar->GetName();
+                        parameterAbsolutePath += ".";
+                        parameterAbsolutePath += connection->GetName();
+                        parameterAbsolutePath += ".";
+                        parameterAbsolutePath += parameter->GetName();
+                        
+                        // the string is used to make a name-path cdb that can be passed to params instead of mdsParcdb
+                        externalParameterDatabase.Write(parameter->GetName(), parameterAbsolutePath.Buffer());
+                        
+                    }
+                    else {
+                        
+                        REPORT_ERROR(ErrorManagement::Exception, "Reference to parameter %s is invalid.", parameter->GetName());
+                    }
+                    
                 }
                 
             }
-            
         }
     }
-    
+
     // Loop over all parameters retrieved from the model and update their
     // value with what is stored in the AnyType that is passed to Actualise()
     
@@ -1951,7 +1941,7 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
             if (GAMNumberOfDimensions != 1u)
             {
                 REPORT_ERROR(ErrorManagement::ParametersError,
-                    "GAM %s signal %s has multiple dimensions, only vector input ports supported",
+                    "%s signal %s dimension mismatch (only vector signals supported)",
                     directionName.Buffer(), GAMSignalName.Buffer());
                 return false;
             }
