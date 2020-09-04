@@ -1282,6 +1282,15 @@ void SimulinkWrapperGAM::ScanParameter(uint_T paridx, StreamString spacer, enum 
         ELEactualDimensions[idx] = dimArray[ELEdimArrayIdx + idx];
         ELEelements*=ELEactualDimensions[idx];
     }
+    
+    // Calculate number of dimensions in MARTe2 sense
+    ELEMARTeNumDims = 0;
+    for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
+        if (ELEactualDimensions[dimIdx] > 1) {
+            ELEMARTeNumDims++;
+        }
+    }
+    
     ELEsize=ELEelements*ELEdataTypeSize;
 
     fullpathname=basename.Buffer();
@@ -1292,7 +1301,7 @@ void SimulinkWrapperGAM::ScanParameter(uint_T paridx, StreamString spacer, enum 
     StreamString orientationName = "";
     paramInfoString.Printf(
         "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, offset %d, type %-6s (%d bytes), ndims %d, dims [",
-        spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEnumDims);
+        spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
     
     paramInfoString.Printf("%d", ELEactualDimensions[0]);
     
@@ -1313,40 +1322,6 @@ void SimulinkWrapperGAM::ScanParameter(uint_T paridx, StreamString spacer, enum 
     
     paramInfoString += orientationName;
     RTWCAPIV2LOG(ErrorManagement::Information, paramInfoString.Buffer());
-    
-    switch (ELEorientation) { // ELEnumDims is not the number of dims, rather the slots occupied in the dimension array
-        
-        case (rtwCAPI_SCALAR): {
-            
-            ELEMARTeNumDims = 0u;
-            break;
-        }
-        
-        case (rtwCAPI_VECTOR): {
-            
-            ELEMARTeNumDims = 1u;
-            break;
-        }
-        
-        case (rtwCAPI_MATRIX_COL_MAJOR):
-        case (rtwCAPI_MATRIX_ROW_MAJOR): {
-            
-            ELEMARTeNumDims = 2u;
-            break;
-        }
-        
-        case (rtwCAPI_MATRIX_COL_MAJOR_ND): {
-            
-            ELEMARTeNumDims = 3u;
-            break;
-        }
-        
-        default:
-            REPORT_ERROR(ErrorManagement::ParametersError,
-                "Unsupported data orientation.");
-            break;
-        
-    }
     
     ELEtypename=ELEctypename;
     
@@ -1667,6 +1642,14 @@ void SimulinkWrapperGAM::ScanSignal(uint_T sigidx, StreamString spacer, enum rtw
         ELEsize*=ELEactualDimensions[idx];
     }
 
+    // Calculate number of dimensions in MARTe2 sense
+    ELEMARTeNumDims = 0;
+    for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
+        if (ELEactualDimensions[dimIdx] > 1) {
+            ELEMARTeNumDims++;
+        }
+    }
+
     if(mode == SIG_FROM_SIGS)
     {
         currentPort->CAPISize = ELEsize*ELEdataTypeSize;
@@ -1681,7 +1664,7 @@ void SimulinkWrapperGAM::ScanSignal(uint_T sigidx, StreamString spacer, enum rtw
     StreamString orientationName = "";
     paramInfoString.Printf(
         "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, offset %d, type %s (%d bytes), ndims %d, dims [",
-        spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEnumDims);
+        spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
     
     paramInfoString.Printf("%d", ELEactualDimensions[0]);
     
@@ -1711,23 +1694,6 @@ void SimulinkWrapperGAM::ScanSignal(uint_T sigidx, StreamString spacer, enum rtw
 
     StreamString sstemp;
     sstemp = ELEctypename;
-    
-    switch (ELEorientation) {
-        case rtwCAPI_SCALAR:
-            ELEMARTeNumDims = 0u;
-            break;
-        case rtwCAPI_VECTOR:
-            ELEMARTeNumDims = 1u;
-            break;
-        case rtwCAPI_MATRIX_ROW_MAJOR:
-        case rtwCAPI_MATRIX_COL_MAJOR:
-            ELEMARTeNumDims = 2u;
-            break;
-        case rtwCAPI_MATRIX_ROW_MAJOR_ND:
-        case rtwCAPI_MATRIX_COL_MAJOR_ND:
-            ELEMARTeNumDims = 3u;
-            break;
-    }
     
     if (!currentPort->isTyped) {
         // this is first signal encountered in this port, set type
