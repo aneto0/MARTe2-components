@@ -185,17 +185,46 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config,
 }
 
 /**
+ * @brief Class that initialises a test environment for SimulinkWrapperGAM.
+ */
+class SimulinkGAMGTestEnvironment {
+public:
+
+    SimulinkGAMGTestEnvironment() {
+        matlabPtr = matlab::engine::startMATLAB();
+        BuildTestModel(matlabPtr);
+
+        //modelName   = "test_model";
+        //modelFolder = getenv("MARTe2_Components_DIR");
+    }
+
+    ~SimulinkGAMGTestEnvironment() {
+        DeleteTestModel();
+printf("DELETE ENDED SUCCESFULLY\n");
+    }
+    
+    bool BuildTestModel(std::unique_ptr<matlab::engine::MATLABEngine>& matlabPtr);
+    bool DeleteTestModel();
+    
+    MARTe::StreamString simpleModelName;
+    MARTe::StreamString IOModelName;
+    MARTe::StreamString modelName;
+    MARTe::StreamString modelFolder;
+    std::unique_ptr<matlab::engine::MATLABEngine> matlabPtr;
+};
+
+/**
  * @brief      Builds a model that can be used to test the SimulinkWrapperGAM from a script.
  * @param[out] modelName   name of the generated model.
  * @param[out] modelFolder folder in which the model was created.
  * @return     `true` if the model was succesfully built.
  */
-static bool BuildTestModel(MARTe::StreamString& modelName, MARTe::StreamString& modelFolder, std::unique_ptr<matlab::engine::MATLABEngine>& matlabPtr) {
+bool SimulinkGAMGTestEnvironment::BuildTestModel(std::unique_ptr<matlab::engine::MATLABEngine>& matlabPtr) {
     
     using namespace MARTe;
     using namespace matlab::engine;
     
-    bool ok = false;
+    bool ok = true;
     
     StreamString modelScriptFolder = getenv("MARTe2_Components_DIR");
     modelScriptFolder += "/Test/Components/GAMs/SimulinkWrapperGAM/";
@@ -206,26 +235,13 @@ static bool BuildTestModel(MARTe::StreamString& modelName, MARTe::StreamString& 
     addpathCommand += modelScriptFolder.Buffer();
     addpathCommand += "\")";
     
-    StreamString modelScriptPath = modelScriptFolder;
-    modelScriptPath += "testModelScript.m";
+    // TODO retrieve dynamically from the scripts
+    modelFolder     = getenv("MARTe2_Components_DIR");
+    modelName       = "test_model11";
+    simpleModelName = "simple_test_model";
+    IOModelName     = "io_test_model";
     
-    // Open and read the model source code
-    File codeFile;
-    ok = codeFile.Open(modelScriptPath.Buffer(), BasicFile::ACCESS_MODE_R);
-    
-    uint32 fileSize = (uint32) codeFile.Size();
-    char8 codeBuffer[fileSize];
-    
-    printf("code size: %u\n", fileSize);
-    
-    codeFile.Seek(0u);
-    ok = codeFile.Read(&codeBuffer[0], fileSize);
-    if (!ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed to read input code.");
-    }
-    
-printf("--- code ---\n\n%s\n", codeBuffer);
-    if (ok) { // TODO DEBUG substitute with ok
+    if (false) { // TODO substitute with ok
         
         // Start MATLAB engine synchronously
         //std::unique_ptr<MATLABEngine> matlabPtr = startMATLAB();
@@ -262,15 +278,13 @@ printf("--- code ---\n\n%s\n", codeBuffer);
             REPORT_ERROR_STATIC(ErrorManagement::Information, "Model compilation failed.");
         }
         
-        matlabPtr->feval<bool>(u"createTestModel", true,  false);
-        matlabPtr->feval<bool>(u"createTestModel", false, true );
+        matlabPtr->feval<bool>(u"createSimpleTestModel", true , true , false); // ok
+        matlabPtr->feval<bool>(u"createSimpleTestModel", true , false, false); // no GetMmi
+        matlabPtr->feval<bool>(u"createSimpleTestModel", false, true , false); // no AllocFcn
+        matlabPtr->feval<bool>(u"createSimpleTestModel", true , true , true);  // with struct array params
         
     }
-    
-    if (ok) {
-        ok = codeFile.Close();
-    }
-    
+
     return ok;
     
 }
@@ -278,7 +292,7 @@ printf("--- code ---\n\n%s\n", codeBuffer);
 /**
  * @brief Removes all files created by BuildTestModel. 
  */
-static bool DeleteTestModel(MARTe::StreamString modelName, MARTe::StreamString modelFolder) {
+bool SimulinkGAMGTestEnvironment::DeleteTestModel() {
     
     using namespace MARTe;
     
@@ -303,30 +317,6 @@ printf("DELETED? %u\n", ok);
     return ok;
 }
 
-/**
- * @brief Class that initialises a test environment for SimulinkWrapperGAM.
- */
-class SimulinkGAMGTestEnvironment {
-public:
-
-    SimulinkGAMGTestEnvironment() {
-        matlabPtr = matlab::engine::startMATLAB();
-        BuildTestModel(modelName, modelFolder, matlabPtr);
-
-        //modelName   = "test_model";
-        //modelFolder = getenv("MARTe2_Components_DIR");
-    }
-
-    ~SimulinkGAMGTestEnvironment() {
-        DeleteTestModel(modelName, modelFolder);
-printf("DELETE ENDED SUCCESFULLY\n");
-    }
-
-    MARTe::StreamString modelName;
-    MARTe::StreamString modelFolder;
-    std::unique_ptr<matlab::engine::MATLABEngine> matlabPtr;
-};
-
 // Instantiate a test environment for this GAM.
 static const SimulinkGAMGTestEnvironment testEnvironment;
 
@@ -348,8 +338,9 @@ bool SimulinkWrapperGAMTest::TestInitialise() {
     
     StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "110";
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -415,8 +406,9 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_MissingSymbolPrefix() {
     
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
-    modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "110";
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -431,12 +423,14 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_MissingSymbolPrefix() {
     
 }
 
-bool SimulinkWrapperGAMTest::TestInitialise_Failed_MissingTunableParamExternalSource() {
+
+bool SimulinkWrapperGAMTest::TestInitialise_MissingTunableParamExternalSource() {
     
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "110";
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -448,7 +442,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_MissingTunableParamExternalSo
     config.Write("Library",      modelFullPath);
     config.Write("SymbolPrefix", modelName);
     
-    return !TestInitialiseWithConfiguration(config);
+    return TestInitialiseWithConfiguration(config);
     
 }
 
@@ -456,8 +450,9 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingOptionalConfigurationSettings
     
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "110";
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -478,8 +473,9 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LoadLibrary() {
     
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "110";
     
     // add an error to model name
     modelName += "_err";
@@ -503,8 +499,9 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LoadSymbols() {
     
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "110";
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -528,8 +525,9 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LibraryMissingGetMmiFunction(
     
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = "test_model10";
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "100";
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -551,8 +549,9 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LibraryMissingAllocFunction()
     
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = "test_model01";
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "010";
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -574,8 +573,9 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingParametersLeaf() {
     
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "110";
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -592,6 +592,11 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingParametersLeaf() {
     
     return TestInitialiseWithConfiguration(config);
     
+}
+
+bool SimulinkWrapperGAMTest::TestSetup() {
+    
+    return SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams();
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
@@ -940,7 +945,6 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_DontSkipUnlinkedTunableParams() {
     return !ok;
 }
 
-
 bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfInputs() {
 
     StreamString configPart1 = ""
@@ -984,30 +988,12 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfInputs() {
             "                    NumberOfElements = 1"
             "                    NumberOfDimensions = 1"
             "               }"
-            "               Out2_ScalarSingle  = {"
+            "               Out2_ScalarUint32  = {"
             "                    DataSource = DDB1"
-            "                    Type = float32"
+            "                    Type = uint32"
             "                    NumberOfElements = 1"
             "                    NumberOfDimensions = 1"
             "                }"
-            "               Out4_VectorDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "               Out8_MatrixSingle = {"
-            "                   DataSource = DDB1"
-            "                   Type = float32"
-            "                    NumberOfElements = 20"
-            "                    NumberOfDimensions = 2"
-            "               }"
-            "               Out9_MatrixDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 9"
-            "                    NumberOfDimensions = 2"
-            "               }"
             "            }"
             "        }"
             "    }"
@@ -1044,8 +1030,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfInputs() {
     
     StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "110"; // flags
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -1067,7 +1054,6 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfInputs() {
     return !ok;
 }
 
-
 bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
 
     StreamString configPart1 = ""
@@ -1085,33 +1071,12 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
             "                    NumberOfDimensions = 1"
             "                    Default = {1}"
             "                }"
-            "                In2_ScalarSingle  = {"
+            "                In2_ScalarUint32  = {"
             "                    DataSource = DDB1"
-            "                    Type = float32"
+            "                    Type = uint32"
             "                    NumberOfElements = 1"
             "                    NumberOfDimensions = 1"
             "                    Default = {1}"
-            "                }"
-            "                In3_ScalarInt8  = {"
-            "                    DataSource = DDB1"
-            "                    Type = int8"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "                In4_VectorDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                    NumberOfElements = 9"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1, 1, 1, 1, 1, 1, 1, 1, 1}"
-            "                }"
-            "                In5_VectorSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}"
             "                }"
             "            }"
             "        }"
@@ -1131,21 +1096,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
             "                    DataSource = DDB1"
             "                    Type = float64"
             "                }"
-            "                In2_ScalarSingle  = {"
+            "                In2_ScalarUint32  = {"
             "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                }"
-            "                In3_ScalarInt8  = {"
-            "                    DataSource = DDB1"
-            "                    Type = int8"
-            "                }"
-            "                In4_VectorDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                }"
-            "                In5_VectorSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
+            "                    Type = uint32"
             "                }"
             "            }"
             "            OutputSignals = {"
@@ -1191,8 +1144,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
     
     StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "110";
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -1213,6 +1167,129 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
     
     return !ok;
 }
+
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_StructArraysAsParams() {
+
+    StreamString configPart1 = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "       +Constants = {"
+            "           Class = ConstantGAM"
+            "            OutputSignals = {"
+            "                In1_ScalarDouble  = {"
+            "                    DataSource = DDB1"
+            "                    Type = float64"
+            "                    NumberOfElements = 1"
+            "                    NumberOfDimensions = 1"
+            "                    Default = {1}"
+            "                }"
+            "                In2_ScalarUint32  = {"
+            "                    DataSource = DDB1"
+            "                    Type = uint32"
+            "                    NumberOfElements = 1"
+            "                    NumberOfDimensions = 1"
+            "                    Default = {1}"
+            "                }"
+            "            }"
+            "        }"
+            "        +GAM1 = {"
+            "            Class = SimulinkWrapperGAM"
+            "            Library = \"";      // model full path will go here
+            
+    StreamString configPart2 = "\""
+            "            SymbolPrefix = \""; // model name will go here
+            
+    StreamString configPart3 = "\""
+            "            Verbosity = 2"
+            "            TunableParamExternalSource = MDSParameters"
+            "            SkipUnlinkedTunableParams = 1"
+            "            InputSignals = {"
+            "                In1_ScalarDouble  = {"
+            "                    DataSource = DDB1"
+            "                    Type = float64"
+            "                }"
+            "                In2_ScalarUint32  = {"
+            "                    DataSource = DDB1"
+            "                    Type = uint32"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "               Out1_ScalarDouble = {"
+            "                   DataSource = DDB1"
+            "                   Type = float64"
+            "                    NumberOfElements = 1"
+            "                    NumberOfDimensions = 1"
+            "               }"
+            "               Out2_ScalarUint32  = {"
+            "                    DataSource = DDB1"
+            "                    Type = uint32"
+            "                    NumberOfElements = 1"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Constants GAM1}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = false;
+    
+    StreamString modelName, modelFolder, modelFullPath;
+    
+    modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.simpleModelName;
+    modelName  += "111"; // flags
+    
+    modelFullPath  = modelFolder;
+    modelFullPath += "/";
+    modelFullPath += modelName;
+    modelFullPath += ".so";
+    
+    // Insert model name and build folder in the configuration buffer
+    StreamString config;
+    
+    config  = configPart1;
+    config += modelFullPath;
+    config += configPart2;
+    config += modelName;
+    config += configPart3;
+    
+    // Test setup
+    ok = TestIntegratedInApplication(config.Buffer());
+    
+    return !ok;
+}
+
+
 
 // bool MathExpressionGAMTest::TestSetup_Failed_InputSignalMissingVariable() {
 //     

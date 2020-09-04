@@ -630,6 +630,24 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         "Simulink C API version number: %d",
         mmi->versionNum);
     
+    uint32 numberOfGAMInputSignals  = GetNumberOfInputSignals();
+    uint32 numberOfGAMOutputSignals = GetNumberOfOutputSignals();
+
+    // Check number of declared main ports
+    if (numberOfGAMInputSignals != modelNumOfInputs) {
+        REPORT_ERROR(ErrorManagement::ParametersError,
+            "Number of input signals mismatch (GAM: %u, model %u)",
+            numberOfGAMInputSignals,  modelNumOfInputs);
+        return false;
+    }
+
+    if (numberOfGAMOutputSignals != modelNumOfOutputs) {
+        REPORT_ERROR(ErrorManagement::ParametersError,
+            "Number of output signals mismatch (GAM: %u, model %u)",
+            numberOfGAMOutputSignals,  modelNumOfOutputs);
+        return false;
+    }
+    
     ///-------------------------------------------------------------------------
     /// 1. Populate modelParameters and print informations
     ///-------------------------------------------------------------------------
@@ -712,25 +730,6 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             return false;
         }
         
-    }
-    
-    // Now match the Simulink input and ouput ports to the GAM ones
-    uint32 numberOfGAMInputSignals  = GetNumberOfInputSignals();
-    uint32 numberOfGAMOutputSignals = GetNumberOfOutputSignals();
-
-    // Check number of declared main ports
-    if (numberOfGAMInputSignals != modelNumOfInputs) {
-        REPORT_ERROR(ErrorManagement::ParametersError,
-            "Number of input signals mismatch (GAM: %u, model %u)",
-            numberOfGAMInputSignals,  modelNumOfInputs);
-        return false;
-    }
-
-    if (numberOfGAMOutputSignals != modelNumOfOutputs) {
-        REPORT_ERROR(ErrorManagement::ParametersError,
-            "Number of output signals mismatch (GAM: %u, model %u)",
-            numberOfGAMOutputSignals,  modelNumOfOutputs);
-        return false;
     }
 
     ///-------------------------------------------------------------------------
@@ -1077,7 +1076,7 @@ void SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
             ScanParametersStruct(dataTypeIdx ,1, (uint8*)paramAddress, paramNameAndSeparator, absDeltaAddress, "");
             if(structarray)
             {
-                RTWCAPIV2LOG(ErrorManagement::Warning, "Array of structure detected, not yet supported! Please flatten the previous params structure!");
+                RTWCAPIV2LOG(ErrorManagement::Warning, "Array of structure detected (%s), not yet supported! Please flatten the previous params structure.", paramName);
                 paramsHaveStructArrays=true;
             }
         }

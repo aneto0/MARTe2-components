@@ -55,6 +55,21 @@ TEST(SimulinkWrapperGAMGTest, TestInitialise_MissingOptionalConfigurationSetting
     ASSERT_TRUE(test.TestInitialise_MissingOptionalConfigurationSettings());
 }
 
+TEST(SimulinkWrapperGAMGTest, DISABLED_TestInitialise_MissingTunableParamExternalSource) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_MissingTunableParamExternalSource());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestInitialise_MissingParametersLeaf) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_MissingParametersLeaf());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_LoadLibrary) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_Failed_LoadLibrary());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_MissingLibrary) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestInitialise_Failed_MissingLibrary());
@@ -63,16 +78,6 @@ TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_MissingLibrary) {
 TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_MissingSymbolPrefix) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestInitialise_Failed_MissingSymbolPrefix());
-}
-
-TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_MissingTunableParamExternalSource) {
-    SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestInitialise_Failed_MissingTunableParamExternalSource());
-}
-
-TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_LoadLibrary) {
-    SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestInitialise_Failed_LoadLibrary());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_LoadSymbols) {
@@ -90,9 +95,9 @@ TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_LibraryMissingAllocFunction)
     ASSERT_TRUE(test.TestInitialise_Failed_LibraryMissingAllocFunction());
 }
 
-TEST(SimulinkWrapperGAMGTest, TestInitialise_MissingParametersLeaf) {
+TEST(SimulinkWrapperGAMGTest, TestSetup) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestInitialise_MissingParametersLeaf());
+    ASSERT_TRUE(test.TestSetup());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_SkipUnlinkedTunableParams) {
@@ -113,6 +118,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfInputs) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfOutputs) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfOutputs());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_StructArraysAsParams) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_StructArraysAsParams());
 }
 
 /*---------------------------------------------------------------------------*/

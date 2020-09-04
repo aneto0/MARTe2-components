@@ -88,7 +88,7 @@ public:
      * @details Verify the post-conditions
      * @return  `true` if Setup() succeeds.
      */
-    //bool TestSetup();
+    bool TestSetup();
 
     /**
      * @brief  Tests the Execute() method
@@ -102,10 +102,11 @@ public:
     bool TestInitialiseWithConfiguration(MARTe::ConfigurationDatabase configIn);
     
     bool TestInitialise_MissingOptionalConfigurationSettings();
+    bool TestInitialise_MissingTunableParamExternalSource();
+    bool TestInitialise_MissingParametersLeaf();
     
     bool TestInitialise_Failed_MissingLibrary();
     bool TestInitialise_Failed_MissingSymbolPrefix();
-    bool TestInitialise_Failed_MissingTunableParamExternalSource();
     bool TestInitialise_Failed_LoadLibrary();
     bool TestInitialise_Failed_LoadSymbols();
     
@@ -123,13 +124,13 @@ public:
      */
     bool TestInitialise_Failed_LibraryMissingAllocFunction();
     
-    bool TestInitialise_MissingParametersLeaf();
     
     bool TestSetup_SkipUnlinkedTunableParams();
     
     bool TestSetup_Failed_DontSkipUnlinkedTunableParams();
     bool TestSetup_Failed_WrongNumberOfInputs();
     bool TestSetup_Failed_WrongNumberOfOutputs();
+    bool TestSetup_Failed_StructArraysAsParams();
 
 };
 
