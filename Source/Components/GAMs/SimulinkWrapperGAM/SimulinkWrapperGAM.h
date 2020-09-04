@@ -88,6 +88,12 @@
  *          installation directory.
  * 
  * @warning The GAM requires MATLAB(r) version 2018b or higher.
+ * 
+ * @todo    1. Fix nonvirtual bus padding bug: when a bus is populated
+ *             with data of different types, if the last element is
+ *             small in size a padding is introduced. The size
+ *             inconsistency is detected by the GAM that stops esecution.
+ *             
  */
 
 enum rtwCAPI_printparmode

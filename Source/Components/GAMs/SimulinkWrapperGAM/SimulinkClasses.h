@@ -144,9 +144,18 @@ public:
      *          and the model parameter are carried out. Type, dimensionality
      *          and data size must agree, otherwise the actualization fails.
      * @return  `true` if parameter is correctly actualized, `false` otherwise.
-     * @param[in] sourceParameter a ReferenceT pointer to the AnyType holding the
+     * @param[in] sourceParameter a reference to the AnyType holding the
      *                            parameter value to be used to update the
      *                            model parameter.
+     * @warning The data pointed by the input AnyType are assumed to be
+     *          in row-major format, and this is *not* checked by the
+     *          Actualise() method. If the source parameter comes from
+     *          MARTe2 configuration then correct orientation is
+     *          guaranteed by MARTe2, but if the parameter comes from
+     *          an external source by using SimulinkWrapperGAM
+     *          `TunableParamExternalSource` option then care must be
+     *          put in guaranteeing that the external source imports
+     *          data in the correct orientation.
      */
     bool Actualise(AnyType& sourceParameter);
 };
