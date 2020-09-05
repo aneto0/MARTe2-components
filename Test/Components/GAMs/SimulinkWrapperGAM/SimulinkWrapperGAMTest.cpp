@@ -191,16 +191,17 @@ class SimulinkGAMGTestEnvironment {
 public:
 
     SimulinkGAMGTestEnvironment() {
+        
+        // Start MATLAB engine synchronously
         matlabPtr = matlab::engine::startMATLAB();
+        
         BuildTestModel(matlabPtr);
 
-        //modelName   = "test_model";
-        //modelFolder = getenv("MARTe2_Components_DIR");
     }
 
     ~SimulinkGAMGTestEnvironment() {
         DeleteTestModel();
-printf("DELETE ENDED SUCCESFULLY\n");
+printf("DELETE ENDED SUCCESSFULLY\n");
     }
     
     bool BuildTestModel(std::unique_ptr<matlab::engine::MATLABEngine>& matlabPtr);
@@ -243,7 +244,7 @@ bool SimulinkGAMGTestEnvironment::BuildTestModel(std::unique_ptr<matlab::engine:
     
     if (false) { // TODO substitute with ok
         
-        // Start MATLAB engine synchronously
+        
         //std::unique_ptr<MATLABEngine> matlabPtr = startMATLAB();
         
         // Execute the code read from the file
@@ -251,8 +252,8 @@ bool SimulinkGAMGTestEnvironment::BuildTestModel(std::unique_ptr<matlab::engine:
         matlabPtr->eval(convertUTF8StringToUTF16String(addpathCommand.Buffer()));
         matlabPtr->eval(u"global model_name model_compiled");
         
-        matlabPtr->eval(u"matrixConstant = [1 1 1; 2 2 2; 3 3 3];");
-        matlabPtr->eval(u"vectorConstant = ones(10,1);");
+        //matlabPtr->eval(u"matrixConstant = [1 1 1; 2 2 2; 3 3 3];");
+        //matlabPtr->eval(u"vectorConstant = ones(10,1);");
         
         matlabPtr->feval<bool>(u"createTestModel", true, true); // flags: hasAllocFcn, hasGetmmiFcn
         
@@ -282,6 +283,7 @@ bool SimulinkGAMGTestEnvironment::BuildTestModel(std::unique_ptr<matlab::engine:
         matlabPtr->feval<bool>(u"createSimpleTestModel", true , false, false); // no GetMmi
         matlabPtr->feval<bool>(u"createSimpleTestModel", false, true , false); // no AllocFcn
         matlabPtr->feval<bool>(u"createSimpleTestModel", true , true , true);  // with struct array params
+        matlabPtr->eval(u"createSimpleTestModel(false, false, false);");
         
     }
 
@@ -599,692 +601,314 @@ bool SimulinkWrapperGAMTest::TestSetup() {
     return SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams();
 }
 
-bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
-
-    StreamString configPart1 = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "       +Constants = {"
-            "           Class = ConstantGAM"
-            "            OutputSignals = {"
-            "                In1_ScalarDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "                In2_ScalarSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "                In3_ScalarInt8  = {"
-            "                    DataSource = DDB1"
-            "                    Type = int8"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "                In4_VectorDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                    NumberOfElements = 9"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1, 1, 1, 1, 1, 1, 1, 1, 1}"
-            "                }"
-            "                In5_VectorSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}"
-            "                }"
-            "            }"
-            "        }"
-            "        +GAM1 = {"
-            "            Class = SimulinkWrapperGAM"
-            "            Library = \"";      // model full path will go here
-            
-    StreamString configPart2 = "\""
-            "            SymbolPrefix = \""; // model name will go here
-            
-    StreamString configPart3 = "\""
-            "            Verbosity = 2"
-            "            TunableParamExternalSource = MDSParameters"
-            "            SkipUnlinkedTunableParams = 1"
-            "            InputSignals = {"
-            "                In1_ScalarDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                }"
-            "                In2_ScalarSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                }"
-            "                In3_ScalarInt8  = {"
-            "                    DataSource = DDB1"
-            "                    Type = int8"
-            "                }"
-            "                In4_VectorDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                }"
-            "                In5_VectorSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                }"
-            "            }"
-            "            OutputSignals = {"
-            "               Out1_ScalarDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "               Out2_ScalarSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                }"
-            "               Out4_VectorDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "               Out8_MatrixSingle = {"
-            "                   DataSource = DDB1"
-            "                   Type = float32"
-            "                    NumberOfElements = 20"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "               Out9_MatrixDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 9"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "            }"
-            "            Parameters = {"
-            "               vectorConstant = (float32) {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB1"
-            "        +DDB1 = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Constants GAM1}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
-
-    bool ok = false;
+bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString modelName,
+                                                   StreamString modelFlags,
+                                                   StreamString skipUnlinkedParams,
+                                                   StreamString inputSignals,
+                                                   StreamString outputSignals,
+                                                   StreamString parameters) {
     
-    StreamString modelName, modelFolder, modelFullPath;
+    StreamString modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
     modelFolder = testEnvironment.modelFolder;
+    
+    modelName += modelFlags;
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
     modelFullPath += modelName;
     modelFullPath += ".so";
     
-    // Insert model name and build folder in the configuration buffer
+    // Insert model name and build folder in the configuration buffer template
     StreamString config;
-    
-    config  = configPart1;
-    config += modelFullPath;
-    config += configPart2;
-    config += modelName;
-    config += configPart3;
+    config.Printf(configTemplate.Buffer(),
+                  modelFullPath.Buffer(),
+                  modelName.Buffer(),
+                  skipUnlinkedParams.Buffer(),
+                  inputSignals.Buffer(),
+                  outputSignals.Buffer(),
+                  parameters.Buffer()
+                 );
     
     // Test setup
-    ok = TestIntegratedInApplication(config.Buffer());
+    bool ok = TestIntegratedInApplication(config.Buffer());
+    
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
+
+    StreamString modelName = testEnvironment.modelName;
+    
+    StreamString modelFlags = "";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarSingle  = {"
+        "    DataSource = Drv1"
+        "    Type = float32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In3_ScalarInt8  = {"
+        "    DataSource = Drv1"
+        "    Type = int8"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In4_VectorDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 9"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In5_VectorSingle  = {"
+        "    DataSource = Drv1"
+        "    Type = float32"
+        "    NumberOfElements = 10"
+        "    NumberOfDimensions = 1"
+        "}";
+
+
+    StreamString outputSignals = ""
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarSingle  = {"
+        "    DataSource = DDB1"
+        "    Type = float32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 10"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out8_MatrixSingle = {"
+        "    DataSource = DDB1"
+        "    Type = float32"
+        "    NumberOfElements = 20"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out9_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 9"
+        "    NumberOfDimensions = 1"
+        "}";
+
+    StreamString parameters = ""
+        "vectorConstant = (float32) {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_DontSkipUnlinkedTunableParams() {
-
-    StreamString configPart1 = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "       +Constants = {"
-            "           Class = ConstantGAM"
-            "            OutputSignals = {"
-            "                In1_ScalarDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "                In2_ScalarSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "                In3_ScalarInt8  = {"
-            "                    DataSource = DDB1"
-            "                    Type = int8"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "                In4_VectorDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                    NumberOfElements = 9"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1, 1, 1, 1, 1, 1, 1, 1, 1}"
-            "                }"
-            "                In5_VectorSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}"
-            "                }"
-            "            }"
-            "        }"
-            "        +GAM1 = {"
-            "            Class = SimulinkWrapperGAM"
-            "            Library = \"";      // model full path will go here
-            
-    StreamString configPart2 = "\""
-            "            SymbolPrefix = \""; // model name will go here
-            
-    StreamString configPart3 = "\""
-            "            Verbosity = 2"
-            "            TunableParamExternalSource = MDSParameters"
-            "            SkipUnlinkedTunableParams = 0"
-            "            InputSignals = {"
-            "                In1_ScalarDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                }"
-            "                In2_ScalarSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                }"
-            "                In3_ScalarInt8  = {"
-            "                    DataSource = DDB1"
-            "                    Type = int8"
-            "                }"
-            "                In4_VectorDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                }"
-            "                In5_VectorSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                }"
-            "            }"
-            "            OutputSignals = {"
-            "               Out1_ScalarDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "               Out2_ScalarSingle  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float32"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                }"
-            "               Out4_VectorDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 10"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "               Out8_MatrixSingle = {"
-            "                   DataSource = DDB1"
-            "                   Type = float32"
-            "                    NumberOfElements = 20"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "               Out9_MatrixDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 9"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "            }"
-            "            Parameters = {"
-            "               vectorConstant = (float32) {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB1"
-            "        +DDB1 = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Constants GAM1}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
-
-    bool ok = false;
     
-    StreamString modelName, modelFolder, modelFullPath;
+    StreamString modelName = testEnvironment.modelName;
     
-    modelName   = testEnvironment.modelName;
-    modelFolder = testEnvironment.modelFolder;
+    StreamString modelFlags = "";
     
-    modelFullPath  = modelFolder;
-    modelFullPath += "/";
-    modelFullPath += modelName;
-    modelFullPath += ".so";
+    StreamString skipUnlinkedParams = "0";
     
-    // Insert model name and build folder in the configuration buffer
-    StreamString config;
+    StreamString inputSignals = ""
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarSingle  = {"
+        "    DataSource = Drv1"
+        "    Type = float32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In3_ScalarInt8  = {"
+        "    DataSource = Drv1"
+        "    Type = int8"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In4_VectorDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 9"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In5_VectorSingle  = {"
+        "    DataSource = Drv1"
+        "    Type = float32"
+        "    NumberOfElements = 10"
+        "    NumberOfDimensions = 1"
+        "}";
     
-    config  = configPart1;
-    config += modelFullPath;
-    config += configPart2;
-    config += modelName;
-    config += configPart3;
+    StreamString outputSignals = ""
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarSingle  = {"
+        "    DataSource = DDB1"
+        "    Type = float32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 10"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out8_MatrixSingle = {"
+        "    DataSource = DDB1"
+        "    Type = float32"
+        "    NumberOfElements = 20"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out9_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 9"
+        "    NumberOfDimensions = 1"
+        "}";
+        
+    StreamString parameters = "";
     
     // Test setup
-    ok = TestIntegratedInApplication(config.Buffer());
+    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return !ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfInputs() {
-
-    StreamString configPart1 = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "       +Constants = {"
-            "           Class = ConstantGAM"
-            "            OutputSignals = {"
-            "                In1_ScalarDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "            }"
-            "        }"
-            "        +GAM1 = {"
-            "            Class = SimulinkWrapperGAM"
-            "            Library = \"";      // model full path will go here
-            
-    StreamString configPart2 = "\""
-            "            SymbolPrefix = \""; // model name will go here
-            
-    StreamString configPart3 = "\""
-            "            Verbosity = 2"
-            "            TunableParamExternalSource = MDSParameters"
-            "            SkipUnlinkedTunableParams = 1"
-            "            InputSignals = {"
-            "                In1_ScalarDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                }"
-            "            }"
-            "            OutputSignals = {"
-            "               Out1_ScalarDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "               Out2_ScalarUint32  = {"
-            "                    DataSource = DDB1"
-            "                    Type = uint32"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB1"
-            "        +DDB1 = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Constants GAM1}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
-
-    bool ok = false;
     
-    StreamString modelName, modelFolder, modelFullPath;
+    StreamString modelName          = testEnvironment.simpleModelName;
+    StreamString modelFlags         = "110";
+    StreamString skipUnlinkedParams = "1";
     
-    modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "110"; // flags
+    StreamString inputSignals = ""
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}";
     
-    modelFullPath  = modelFolder;
-    modelFullPath += "/";
-    modelFullPath += modelName;
-    modelFullPath += ".so";
+    StreamString outputSignals = ""
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}";
     
-    // Insert model name and build folder in the configuration buffer
-    StreamString config;
-    
-    config  = configPart1;
-    config += modelFullPath;
-    config += configPart2;
-    config += modelName;
-    config += configPart3;
+    StreamString parameters = "";
     
     // Test setup
-    ok = TestIntegratedInApplication(config.Buffer());
+    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return !ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
-
-    StreamString configPart1 = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "       +Constants = {"
-            "           Class = ConstantGAM"
-            "            OutputSignals = {"
-            "                In1_ScalarDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "                In2_ScalarUint32  = {"
-            "                    DataSource = DDB1"
-            "                    Type = uint32"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "            }"
-            "        }"
-            "        +GAM1 = {"
-            "            Class = SimulinkWrapperGAM"
-            "            Library = \"";      // model full path will go here
-            
-    StreamString configPart2 = "\""
-            "            SymbolPrefix = \""; // model name will go here
-            
-    StreamString configPart3 = "\""
-            "            Verbosity = 2"
-            "            TunableParamExternalSource = MDSParameters"
-            "            SkipUnlinkedTunableParams = 1"
-            "            InputSignals = {"
-            "                In1_ScalarDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                }"
-            "                In2_ScalarUint32  = {"
-            "                    DataSource = DDB1"
-            "                    Type = uint32"
-            "                }"
-            "            }"
-            "            OutputSignals = {"
-            "               Out1_ScalarDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB1"
-            "        +DDB1 = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Constants GAM1}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
-
-    bool ok = false;
     
-    StreamString modelName, modelFolder, modelFullPath;
+    StreamString modelName          = testEnvironment.simpleModelName;
+    StreamString modelFlags         = "110";
+    StreamString skipUnlinkedParams = "1";
     
-    modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "110";
+    StreamString inputSignals = ""
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}";
     
-    modelFullPath  = modelFolder;
-    modelFullPath += "/";
-    modelFullPath += modelName;
-    modelFullPath += ".so";
+    StreamString outputSignals = ""
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}";
     
-    // Insert model name and build folder in the configuration buffer
-    StreamString config;
-    
-    config  = configPart1;
-    config += modelFullPath;
-    config += configPart2;
-    config += modelName;
-    config += configPart3;
+    StreamString parameters = "";
     
     // Test setup
-    ok = TestIntegratedInApplication(config.Buffer());
+    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return !ok;
 }
 
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_StructArraysAsParams() {
-
-    StreamString configPart1 = ""
-            "$Test = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "       +Constants = {"
-            "           Class = ConstantGAM"
-            "            OutputSignals = {"
-            "                In1_ScalarDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "                In2_ScalarUint32  = {"
-            "                    DataSource = DDB1"
-            "                    Type = uint32"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                    Default = {1}"
-            "                }"
-            "            }"
-            "        }"
-            "        +GAM1 = {"
-            "            Class = SimulinkWrapperGAM"
-            "            Library = \"";      // model full path will go here
             
-    StreamString configPart2 = "\""
-            "            SymbolPrefix = \""; // model name will go here
-            
-    StreamString configPart3 = "\""
-            "            Verbosity = 2"
-            "            TunableParamExternalSource = MDSParameters"
-            "            SkipUnlinkedTunableParams = 1"
-            "            InputSignals = {"
-            "                In1_ScalarDouble  = {"
-            "                    DataSource = DDB1"
-            "                    Type = float64"
-            "                }"
-            "                In2_ScalarUint32  = {"
-            "                    DataSource = DDB1"
-            "                    Type = uint32"
-            "                }"
-            "            }"
-            "            OutputSignals = {"
-            "               Out1_ScalarDouble = {"
-            "                   DataSource = DDB1"
-            "                   Type = float64"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "               }"
-            "               Out2_ScalarUint32  = {"
-            "                    DataSource = DDB1"
-            "                    Type = uint32"
-            "                    NumberOfElements = 1"
-            "                    NumberOfDimensions = 1"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        DefaultDataSource = DDB1"
-            "        +DDB1 = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {Constants GAM1}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
+    StreamString modelName          = testEnvironment.simpleModelName;
+    StreamString modelFlags         = "111";
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+            "In1_ScalarDouble  = {"
+            "    DataSource = Drv1"
+            "    Type = float64"
+            "    NumberOfElements = 1"
+            "    NumberOfDimensions = 1"
+            "}"
+            "In2_ScalarUint32  = {"
+            "    DataSource = Drv1"
+            "    Type = uint32"
+            "    NumberOfElements = 1"
+            "    NumberOfDimensions = 1"
             "}";
-
-    bool ok = false;
+            
+    StreamString outputSignals = ""
+            "Out1_ScalarDouble = {"
+            "    DataSource = DDB1"
+            "    Type = float64"
+            "    NumberOfElements = 1"
+            "    NumberOfDimensions = 1"
+            "}"
+            "Out2_ScalarUint32  = {"
+            "    DataSource = DDB1"
+            "    Type = uint32"
+            "    NumberOfElements = 1"
+            "    NumberOfDimensions = 1"
+            "}";
     
-    StreamString modelName, modelFolder, modelFullPath;
-    
-    modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "111"; // flags
-    
-    modelFullPath  = modelFolder;
-    modelFullPath += "/";
-    modelFullPath += modelName;
-    modelFullPath += ".so";
-    
-    // Insert model name and build folder in the configuration buffer
-    StreamString config;
-    
-    config  = configPart1;
-    config += modelFullPath;
-    config += configPart2;
-    config += modelName;
-    config += configPart3;
+    StreamString parameters = "";
     
     // Test setup
-    ok = TestIntegratedInApplication(config.Buffer());
+    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return !ok;
 }

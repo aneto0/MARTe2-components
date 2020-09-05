@@ -124,6 +124,12 @@ public:
      */
     bool TestInitialise_Failed_LibraryMissingAllocFunction();
     
+    bool TestSetupWithTemplate(MARTe::StreamString modelName,
+                               MARTe::StreamString modelFlags,
+                               MARTe::StreamString skipUnlinkedParams,
+                               MARTe::StreamString inputSignals,
+                               MARTe::StreamString outputSignals,
+                               MARTe::StreamString parameters);
     
     bool TestSetup_SkipUnlinkedTunableParams();
     
@@ -131,6 +137,68 @@ public:
     bool TestSetup_Failed_WrongNumberOfInputs();
     bool TestSetup_Failed_WrongNumberOfOutputs();
     bool TestSetup_Failed_StructArraysAsParams();
+    
+    /**
+     * @brief A general template for the GAM configuration.
+     *        The template has printf-style spcifiers (`%s`) where
+     *        specialization for each test is required (i.e. model name,
+     *        model path, input signals, output signals).
+     */
+    MARTe::StreamString configTemplate = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = SimulinkWrapperGAM"
+        "            Library = \"%s\""
+        "            SymbolPrefix = \"%s\""
+        "            Verbosity = 2"
+        "            TunableParamExternalSource = ExtSource"
+        "            SkipUnlinkedTunableParams = %s"
+        "            InputSignals = {"
+        "               %s"
+        "            }"
+        "            OutputSignals = {"
+        "               %s"
+        "            }"
+        "            Parameters = {"
+        "                one = (uint8) 1"
+        "                %s"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +DDB1 = {"
+        "            Class = GAMDataSource"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = SimulinkWrapperGAMDataSourceHelper"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
 
 };
 
