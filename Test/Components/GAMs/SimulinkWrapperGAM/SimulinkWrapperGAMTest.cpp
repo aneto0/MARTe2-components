@@ -610,10 +610,13 @@ bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString modelName,
     
     StreamString modelFolder, modelFullPath;
     
+    // Retrieve working directory from the test environment
     modelFolder = testEnvironment.modelFolder;
     
+    // Add flags to the model name
     modelName += modelFlags;
     
+    // Compose model library full path
     modelFullPath  = modelFolder;
     modelFullPath += "/";
     modelFullPath += modelName;
@@ -638,10 +641,8 @@ bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString modelName,
 
 bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
 
-    StreamString modelName = testEnvironment.modelName;
-    
-    StreamString modelFlags = "";
-    
+    StreamString modelName          = testEnvironment.modelName;
+    StreamString modelFlags         = "";
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
@@ -720,10 +721,8 @@ bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_DontSkipUnlinkedTunableParams() {
     
-    StreamString modelName = testEnvironment.modelName;
-    
-    StreamString modelFlags = "";
-    
+    StreamString modelName          = testEnvironment.modelName;
+    StreamString modelFlags         = "";
     StreamString skipUnlinkedParams = "0";
     
     StreamString inputSignals = ""

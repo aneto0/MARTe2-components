@@ -124,6 +124,10 @@ public:
      */
     bool TestInitialise_Failed_LibraryMissingAllocFunction();
     
+    /**
+     * @brief General method to test GAM setup. The method allows to
+     *        specify various details of the configuration file.
+     */
     bool TestSetupWithTemplate(MARTe::StreamString modelName,
                                MARTe::StreamString modelFlags,
                                MARTe::StreamString skipUnlinkedParams,
