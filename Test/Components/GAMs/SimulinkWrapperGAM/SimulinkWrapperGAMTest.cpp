@@ -242,7 +242,7 @@ bool SimulinkGAMGTestEnvironment::BuildTestModel(std::unique_ptr<matlab::engine:
     simpleModelName = "simple_test_model";
     IOModelName     = "io_test_model";
     
-    if (false) { // TODO substitute with ok
+    if (ok) { // TODO substitute with ok
         
         
         //std::unique_ptr<MATLABEngine> matlabPtr = startMATLAB();

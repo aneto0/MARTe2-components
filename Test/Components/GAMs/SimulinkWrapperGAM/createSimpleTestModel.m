@@ -49,7 +49,11 @@ add_block('simulink/Sinks/Out1',  [model_name '/Out2_ScalarUint32']);
 %% set block properties
 
 % math blocks
-set_param([model_name '/Gain1'],     'Gain',          'structArray(1).one');
+if hasStructArrayParams == false
+    set_param([model_name '/Gain1'],     'Gain',          '1');
+else
+	set_param([model_name '/Gain1'],     'Gain',          'structArray(1).one');
+end
 set_param([model_name '/Gain1'], 'OutDataTypeStr', 'double');
 
 set_param([model_name '/Gain2'],     'Gain',          '1');

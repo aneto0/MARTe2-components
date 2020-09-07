@@ -8,8 +8,8 @@ model_compiled = false;
 
 %% define constants
 
-matrixConstant = [1 1 1; 2 2 2; 3 3 3];
-vectorConstant = ones(10,1);
+evalin('base', 'matrixConstant = [1 1 1; 2 2 2; 3 3 3];');
+evalin('base', 'vectorConstant = ones(10,1);');
 
 %% creating a new model
 
