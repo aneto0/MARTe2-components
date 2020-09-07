@@ -280,13 +280,13 @@ bool SimulinkGAMGTestEnvironment::BuildTestModel(std::unique_ptr<matlab::engine:
         }
         
         // ok model
-        matlabPtr->eval(u"createSimpleTestModel2();");
+        matlabPtr->eval(u"createSimpleTestModel();");
         
         // not ok models
-        matlabPtr->eval(u"createSimpleTestModel2('hasAllocFcn',          false);");
-        matlabPtr->eval(u"createSimpleTestModel2('hasGetmmiFcn',         false);");
-        matlabPtr->eval(u"createSimpleTestModel2('hasStructArrayParams', true);" );
-        matlabPtr->eval(u"createSimpleTestModel2('hasTunableParams',     false);" );
+        matlabPtr->eval(u"createSimpleTestModel('hasAllocFcn',          false);");
+        matlabPtr->eval(u"createSimpleTestModel('hasGetmmiFcn',         false);");
+        matlabPtr->eval(u"createSimpleTestModel('hasStructArrayParams', true);" );
+        matlabPtr->eval(u"createSimpleTestModel('hasTunableParams',     false);" );
         
     }
 

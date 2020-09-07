@@ -1,8 +1,39 @@
-function model_compiled = createSimpleTestModel(hasAllocFcn, hasGetmmiFcn, hasStructArrayParams)
+function model_compiled = createSimpleTestModel(varargin)
 
 global model_name  model_compiled
 
-model_name = ['simple_test_model' int2str(hasAllocFcn) int2str(hasGetmmiFcn) int2str(hasStructArrayParams)];
+%% settings
+
+% default values
+hasAllocFcn          = true;
+hasGetmmiFcn         = true;
+hasTunableParams     = true;
+hasStructArrayParams = false;
+
+while ~isempty(varargin)
+    
+    switch varargin{1}
+        
+        case 'hasAllocFcn'
+            hasAllocFcn = varargin{2};
+        
+        case 'hasGetmmiFcn'
+            hasGetmmiFcn = varargin{2};
+            
+        case 'hasStructArrayParams'
+            hasStructArrayParams = varargin{2};
+            
+        case 'hasTunableParams'
+            hasTunableParams = varargin{2};
+            
+        otherwise
+            error(['Unexpected option: ' varargin{1}])
+    end
+    
+    varargin(1:2) = [];
+end
+
+model_name = ['simpleTestModel' int2str(hasAllocFcn) int2str(hasGetmmiFcn) int2str(hasTunableParams) int2str(hasStructArrayParams)];
 
 model_compiled = false;
 
@@ -55,10 +86,10 @@ else
 end
 
 % math blocks
-set_param([model_name '/Gain1'],     'Gain',       gain1Param);
+set_param([model_name '/Gain1'], 'Gain',           gain1Param);
 set_param([model_name '/Gain1'], 'OutDataTypeStr', 'double');
 
-set_param([model_name '/Gain2'],     'Gain',          '1');
+set_param([model_name '/Gain2'], 'Gain',           '1');
 set_param([model_name '/Gain2'], 'OutDataTypeStr', 'uint32');
 
 % in/out ports
@@ -105,10 +136,14 @@ set_param(model_name, 'SolverType', 'Fixed-step');
 
 % Code Generation
 set_param(model_name, 'SystemTargetFile', 'ert_shrlib.tlc');
+set_param(model_name, 'RTWVerbose', 0);
 
 % Optimization
-set_param(model_name, 'DefaultParameterBehavior', 'Tunable');
-
+if hasTunableParams == true
+    set_param(model_name, 'DefaultParameterBehavior', 'Tunable');
+else
+    set_param(model_name, 'DefaultParameterBehavior', 'Inlined');
+end
 set_param(model_name, 'OptimizationCustomize', 1);
 set_param(model_name, 'GlobalVariableUsage', 'None');
 
@@ -154,7 +189,10 @@ try
 catch
     model_compiled = false;
 end
-    
+
+% Templates
+set_param(model_name, 'GenerateSampleERTMain', 0);
+
     
 %% save and close
 save_system(model_name);
@@ -162,8 +200,8 @@ close_system(model_name);
 
 % clean build directory
 rmdir('slprj', 's');
-rmdir([model_name '_ert_shrlib_rtw'], 's');
-delete(sprintf('%s.slx',model_name));
+%rmdir([model_name '_ert_shrlib_rtw'], 's');
+%delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
 
