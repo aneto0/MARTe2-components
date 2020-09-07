@@ -33,7 +33,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 CPPFLAGS += -O1
 
-# These flags are required in order to retrieve type definitions from tmwtypes.h
+# Flags required in order to retrieve type definitions from tmwtypes.h
 # instead of rtwtypes.h (which is generated for each model and not available in MATLAB root directory)
 CPPFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
 CFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
