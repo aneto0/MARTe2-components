@@ -826,8 +826,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     
     AnyType sourceParameter;        // the source of data from which to actualise
     
-    bool isLoaded;                  // whether the parameter was correctly loaded by the loader mechanism
-    bool isActualised;              // whether the parameter has been correctly actualized
+    bool isLoaded;         // whether the parameter was correctly loaded by the loader mechanism
+    bool isActualised;     // whether the parameter has been correctly actualized
+    bool isUnlinked;       // special condition for a parameter from the loader class whose path is empty. It shall be skipped even if skipUnlinkedTunableParams == 0
     
     StreamString parameterSourceName;
     
@@ -835,6 +836,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         
         isLoaded     = false;
         isActualised = false;
+        isUnlinked   = false;
         
         // Retrieve the ReferenceT<AnyType> of the source parameter from which to actualise
         StreamString parameterPathInObjDatabase;
@@ -879,9 +881,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             
             if (isLoaded) {
                 // Check reference->IsStaticDeclared(): if false, the paramater was skipped by the loader class
-                isLoaded = sourceParameterPtr->IsStaticDeclared();
+                isUnlinked = !sourceParameterPtr->IsStaticDeclared();
                 
-                if (isLoaded) {
+                if (!isUnlinked) {
                     sourceParameter = *(sourceParameterPtr.operator ->());
                 }
                 
@@ -903,13 +905,14 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s correctly actualized from %s.",
                 currentParamName, parameterSourceName.Buffer());
         }
-        else if (!isLoaded && !isActualised && skipUnlinkedTunableParams) {
+        else if ( (!isLoaded && !isActualised && skipUnlinkedTunableParams) || (!isLoaded && !isActualised && isUnlinked)) {
             REPORT_ERROR(ErrorManagement::Information,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s unlinked, using compile time value",
                 currentParamName);
         }
         else if (isLoaded && !isActualised && skipUnlinkedTunableParams) {
-            REPORT_ERROR(ErrorManagement::Warning,"Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s cannot be actualized, using compile time value",
+            REPORT_ERROR(ErrorManagement::Warning,
+                "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s cannot be actualized, using compile time value",
                 currentParamName);
         }
         else {
