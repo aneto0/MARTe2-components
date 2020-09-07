@@ -100,6 +100,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup) {
     ASSERT_TRUE(test.TestSetup());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_NoTunableParameters) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_NoTunableParameters());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_SkipUnlinkedTunableParams) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_SkipUnlinkedTunableParams());

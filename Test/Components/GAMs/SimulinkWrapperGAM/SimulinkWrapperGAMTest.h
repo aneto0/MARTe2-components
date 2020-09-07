@@ -135,6 +135,8 @@ public:
                                MARTe::StreamString outputSignals,
                                MARTe::StreamString parameters);
     
+    bool TestSetup_NoTunableParameters();
+    
     bool TestSetup_SkipUnlinkedTunableParams();
     
     bool TestSetup_Failed_DontSkipUnlinkedTunableParams();
