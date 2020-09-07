@@ -242,7 +242,7 @@ bool SimulinkGAMGTestEnvironment::BuildTestModel(std::unique_ptr<matlab::engine:
     simpleModelName = "simple_test_model";
     IOModelName     = "io_test_model";
     
-    if (ok) { // TODO substitute with ok
+    if (false) { // TODO substitute with ok
         
         
         //std::unique_ptr<MATLABEngine> matlabPtr = startMATLAB();
@@ -596,11 +596,6 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingParametersLeaf() {
     
 }
 
-bool SimulinkWrapperGAMTest::TestSetup() {
-    
-    return SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams();
-}
-
 bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString modelName,
                                                    StreamString modelFlags,
                                                    StreamString skipUnlinkedParams,
@@ -635,6 +630,87 @@ bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString modelName,
     
     // Test setup
     bool ok = TestIntegratedInApplication(config.Buffer());
+    
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup() {
+    
+    StreamString modelName          = testEnvironment.modelName;
+    StreamString modelFlags         = "";
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarSingle  = {"
+        "    DataSource = Drv1"
+        "    Type = float32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In3_ScalarInt8  = {"
+        "    DataSource = Drv1"
+        "    Type = int8"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In4_VectorDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 9"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In5_VectorSingle  = {"
+        "    DataSource = Drv1"
+        "    Type = float32"
+        "    NumberOfElements = 10"
+        "    NumberOfDimensions = 1"
+        "}";
+
+
+    StreamString outputSignals = ""
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarSingle  = {"
+        "    DataSource = DDB1"
+        "    Type = float32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 10"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out8_MatrixSingle = {"
+        "    DataSource = DDB1"
+        "    Type = float32"
+        "    NumberOfElements = 20"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out9_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 9"
+        "    NumberOfDimensions = 1"
+        "}";
+
+    StreamString parameters = ""
+        "vectorConstant = (float32) {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}"
+        "matrixConstant = (float64) {{1, 1, 1}, {2, 2, 2}, {3, 3, 3}}";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return ok;
 }
@@ -711,7 +787,7 @@ bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
         "}";
 
     StreamString parameters = ""
-        "vectorConstant = (float32) {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}";
+        "vectorConstant = (float64) {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}";
     
     // Test setup
     bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);

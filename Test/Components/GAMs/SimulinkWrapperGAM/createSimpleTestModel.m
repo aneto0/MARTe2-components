@@ -48,12 +48,14 @@ add_block('simulink/Sinks/Out1',  [model_name '/Out2_ScalarUint32']);
 
 %% set block properties
 
-% math blocks
 if hasStructArrayParams == false
-    set_param([model_name '/Gain1'],     'Gain',          '1');
+    gain1Param = '1';
 else
-	set_param([model_name '/Gain1'],     'Gain',          'structArray(1).one');
+	gain1Param = 'structArray(1).one';
 end
+
+% math blocks
+set_param([model_name '/Gain1'],     'Gain',       gain1Param);
 set_param([model_name '/Gain1'], 'OutDataTypeStr', 'double');
 
 set_param([model_name '/Gain2'],     'Gain',          '1');
@@ -161,7 +163,7 @@ close_system(model_name);
 % clean build directory
 rmdir('slprj', 's');
 rmdir([model_name '_ert_shrlib_rtw'], 's');
-%delete(sprintf('%s.slx',model_name));
+delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
 
