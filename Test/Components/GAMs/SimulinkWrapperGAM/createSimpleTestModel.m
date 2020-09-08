@@ -50,7 +50,6 @@ model_name = ['testModel_' int2str(modelComplexity)  int2str(hasAllocFcn)     in
 model_compiled = false;
 
 if isfile([model_name '.so'])
-    model_compiled = true;
     return
 end
 

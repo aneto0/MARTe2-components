@@ -197,22 +197,29 @@ public:
         matlabPtr = matlab::engine::connectMATLAB(u"Engine_1");
         
         BuildTestModel(matlabPtr);
-
     }
 
     ~SimulinkGAMGTestEnvironment() {
         DeleteTestModel();
-printf("DELETE ENDED SUCCESSFULLY\n");
     }
     
     bool BuildTestModel(std::unique_ptr<matlab::engine::MATLABEngine>& matlabPtr);
-    bool DeleteTestModel();
     
-    MARTe::StreamString simpleModelName;
-    MARTe::StreamString IOModelName;
-    MARTe::StreamString modelName;
+    MARTe::StreamString CreateTestModel(MARTe::StreamString scriptCall);
+    
+    bool DeleteTestModel();
+
     MARTe::StreamString modelFolder;
+    
     std::unique_ptr<matlab::engine::MATLABEngine> matlabPtr;
+
+    /**
+     * @brief A list of the names of all models that have been compiled
+     *        to perform the tests. It is used to delete the test models
+     *        at the end of the tests.
+     */
+    MARTe::StaticList<MARTe::StreamString*> compiledModels;
+    
 };
 
 /**
@@ -226,68 +233,31 @@ bool SimulinkGAMGTestEnvironment::BuildTestModel(std::unique_ptr<matlab::engine:
     using namespace MARTe;
     using namespace matlab::engine;
     
-    bool ok = true;
-    
     StreamString modelScriptFolder = getenv("MARTe2_Components_DIR");
     modelScriptFolder += "/Test/Components/GAMs/SimulinkWrapperGAM/";
-    
-    modelFolder = modelScriptFolder;
     
     StreamString addpathCommand = "addpath(\"";
     addpathCommand += modelScriptFolder.Buffer();
     addpathCommand += "\")";
+        
+    // Execute the code read from the file
+    matlabPtr->eval(u"clear variables;");
+    matlabPtr->eval(convertUTF8StringToUTF16String(addpathCommand.Buffer()));
+    matlabPtr->eval(u"global model_name model_compiled");
     
-    // TODO retrieve dynamically from the scripts
-    modelFolder     = getenv("MARTe2_Components_DIR");
-    modelName       = "test_model11";
-    simpleModelName = "testModel_";
+    // Get the name of the folder containing the model file
+    matlabPtr->eval(u"current_folder = pwd;");
+    matlab::data::CharArray currentFolder = matlabPtr->getVariable(u"current_folder");
+    printf("Current working folder: %s\n", (currentFolder.toAscii()).c_str());
     
-    if (ok) { // TODO substitute with ok
+    modelFolder = (currentFolder.toAscii()).c_str();
         
-        
-        // Execute the code read from the file
-        matlabPtr->eval(u"clear variables;");
-        matlabPtr->eval(convertUTF8StringToUTF16String(addpathCommand.Buffer()));
-        matlabPtr->eval(u"global model_name model_compiled");
-        
-        //matlabPtr->eval(u"matrixConstant = [1 1 1; 2 2 2; 3 3 3];");
-        //matlabPtr->eval(u"vectorConstant = ones(10,1);");
-        
-        matlabPtr->feval<bool>(u"createTestModel", true, true); // flags: hasAllocFcn, hasGetmmiFcn
-        
-        // Get the name of the model
-        matlab::data::CharArray modelNameCharArray = matlabPtr->getVariable(u"model_name");
-        modelName = (modelNameCharArray.toAscii()).c_str();
-        
-        // Get the name of the folder containing the model file
-        matlabPtr->eval(u"current_folder = pwd;");
-        matlab::data::CharArray currentFolder = matlabPtr->getVariable(u"current_folder");
-        printf("Model written to this folder: %s\n", (currentFolder.toAscii()).c_str());
-        
-        modelFolder = (currentFolder.toAscii()).c_str();
-        
-        // Verify that model has been correctly compiled
-        //matlab::data::TypedArray<bool> modelCompiled = matlabPtr->getVariable(u"model_compiled");
-        
-        //ok = modelCompiled[0];
-        //if (ok) {
-            //REPORT_ERROR_STATIC(ErrorManagement::Information, "Model succesfully compiled.");
-        //}
-        //else {
-            //REPORT_ERROR_STATIC(ErrorManagement::Information, "Model compilation failed.");
-        //}
-        
-        // ok model
-        //matlabPtr->eval(u"createSimpleTestModel();"); // 111100
-        
-    }
-
-    return ok;
+    return true;
     
 }
 
 /**
- * @brief Removes all files created by BuildTestModel. 
+ * @brief Removes all files created during testing. 
  */
 bool SimulinkGAMGTestEnvironment::DeleteTestModel() {
     
@@ -295,27 +265,66 @@ bool SimulinkGAMGTestEnvironment::DeleteTestModel() {
     
     bool ok = false;
     
-    StreamString currentPath;
-    modelFolder += "/";
-    
-    Directory toDelete;
-
-    currentPath  = modelFolder;
-    currentPath += modelName;
-    currentPath += ".so";
-    
-    toDelete.SetByName(currentPath.Buffer());
-printf("TODELETE: %s, is there? %u\n", currentPath.Buffer(), toDelete.Exists());
-    if (toDelete.Exists()) {
-        //ok = toDelete.Delete();  // TODO DEBUG uncomment this
+    for (uint32 modelIdx = 0u; modelIdx < compiledModels.GetSize(); modelIdx++) {
+        
+        StreamString* currentModelName;
+        ok = compiledModels.Peek(modelIdx, currentModelName);
+        
+        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Model %u: %s", modelIdx, currentModelName->Buffer());
+        
+        // Remove model .so
+        StreamString modelPath;
+        Directory toDelete;
+        
+        modelPath  = modelFolder;
+        modelPath += "/";
+        modelPath += *currentModelName;
+        modelPath += ".so";
+        
+        toDelete.SetByName(modelPath.Buffer());
+        if (toDelete.Exists()) {
+            ok = toDelete.Delete();
+        }
+        
+        delete currentModelName;
     }
-printf("DELETED? %u\n", ok);
-
+    
     return ok;
 }
 
+/**
+ * @brief This method created a new model for testing purpose. The model
+ *        is registered in `createdModel` so that it can be removed
+ *        at the end of testing by DeleteTestModel().
+ */
+MARTe::StreamString SimulinkGAMGTestEnvironment::CreateTestModel(MARTe::StreamString scriptCall) {
+    
+    using namespace MARTe;
+    
+    StreamString modelName = "";
+    
+    matlabPtr->eval(matlab::engine::convertUTF8StringToUTF16String(scriptCall.Buffer()));
+    matlab::data::CharArray modelNameCharArray = matlabPtr->getVariable(u"model_name");
+    modelName = (modelNameCharArray.toAscii()).c_str();
+    
+    // Verify that model has been correctly compiled
+    matlab::data::TypedArray<bool> modelCompiled = matlabPtr->getVariable(u"model_compiled");
+    
+    bool ok = modelCompiled[0];
+    if (ok) {
+        StreamString* currentModelName = new StreamString(modelName);
+        bool copied = compiledModels.Add(currentModelName);
+        printf("voilà, string: %s pointer: %s | ok? %u\n", modelName.Buffer(), currentModelName->Buffer(), copied );
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Model %s not compiled (compilation failed or already existent.", modelName.Buffer());
+    }
+    
+    return modelName;
+}
+
 // Instantiate a test environment for this GAM.
-static const SimulinkGAMGTestEnvironment testEnvironment;
+static SimulinkGAMGTestEnvironment testEnvironment;
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -337,17 +346,6 @@ bool SimulinkWrapperGAMTest::TestInitialiseWithConfiguration(ConfigurationDataba
     return ok;
 }
 
-StreamString SimulinkWrapperGAMTest::CreateTestModel(StreamString scriptCall) {
-    
-    StreamString modelName;
-    
-    testEnvironment.matlabPtr->eval(matlab::engine::convertUTF8StringToUTF16String(scriptCall.Buffer()));
-    matlab::data::CharArray modelNameCharArray = testEnvironment.matlabPtr->getVariable(u"model_name");
-    modelName = (modelNameCharArray.toAscii()).c_str();
-    
-    return modelName;
-}
-
 bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString scriptCall,
                                                    StreamString skipUnlinkedParams,
                                                    StreamString inputSignals,
@@ -357,7 +355,7 @@ bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString scriptCall,
     StreamString modelName, modelFolder, modelFullPath;
     
     // Create the test model
-    modelName = CreateTestModel(scriptCall);
+    modelName = testEnvironment.CreateTestModel(scriptCall);
     
     // Retrieve working directory from the test environment
     modelFolder = testEnvironment.modelFolder;
@@ -392,7 +390,7 @@ bool SimulinkWrapperGAMTest::TestInitialise() {
     StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = CreateTestModel("createSimpleTestModel();");
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -433,8 +431,8 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_MissingLibrary() {
     
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
-    modelName   = testEnvironment.modelName;
     modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -452,7 +450,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_MissingSymbolPrefix() {
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelName   = testEnvironment.modelFolder;
-    modelName   = CreateTestModel("createSimpleTestModel();");
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -473,7 +471,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingTunableParamExternalSource() 
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = CreateTestModel("createSimpleTestModel();");
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -494,7 +492,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingOptionalConfigurationSettings
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = CreateTestModel("createSimpleTestModel();");
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -516,7 +514,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LoadLibrary() {
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = CreateTestModel("createSimpleTestModel();");
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel();");
     
     // add an error to model name
     modelName += "_err";
@@ -541,7 +539,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LoadSymbols() {
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = CreateTestModel("createSimpleTestModel();");
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -566,7 +564,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LibraryMissingGetMmiFunction(
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = CreateTestModel("createSimpleTestModel('hasGetmmiFcn', false);");
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel('hasGetmmiFcn', false);");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -589,7 +587,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LibraryMissingAllocFunction()
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = CreateTestModel("createSimpleTestModel('hasAllocFcn', false);");
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel('hasAllocFcn', false);");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -612,7 +610,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingParametersLeaf() {
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = CreateTestModel("createSimpleTestModel();");
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";

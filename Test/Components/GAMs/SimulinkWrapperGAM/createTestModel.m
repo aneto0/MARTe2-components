@@ -9,7 +9,6 @@ model_name = ['test_model' int2str(hasAllocFcn) int2str(hasGetmmiFcn)];
 model_compiled = false;
 
 if isfile([model_name '.so'])
-    model_compiled = true;
     return
 end
 

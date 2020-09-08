@@ -37,6 +37,7 @@
 #include "MemoryOperationsHelper.h"
 #include "MemoryMapInputBroker.h"
 #include "MemoryMapOutputBroker.h"
+#include "StaticList.h"
 #include "StreamString.h"
 
 #include "AdvancedErrorManagement.h"
@@ -128,8 +129,7 @@ public:
      * @brief General method to test GAM setup. The method allows to
      *        specify various details of the configuration file.
      */
-    bool TestSetupWithTemplate(MARTe::StreamString modelName,
-                               MARTe::StreamString modelFlags,
+    bool TestSetupWithTemplate(MARTe::StreamString scriptCall,
                                MARTe::StreamString skipUnlinkedParams,
                                MARTe::StreamString inputSignals,
                                MARTe::StreamString outputSignals,
