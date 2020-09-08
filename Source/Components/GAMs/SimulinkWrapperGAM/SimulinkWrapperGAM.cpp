@@ -1443,7 +1443,7 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_
         }
         else
         {
-            // Structured parameters, descend the tree
+            // Structured signal, descend the tree
             addrIdx      = rtwCAPI_GetSignalAddrIdx(sigGroup,sigIdx);
             sigAddress = (void *) rtwCAPI_GetDataAddress(dataAddrMap,addrIdx);
 
