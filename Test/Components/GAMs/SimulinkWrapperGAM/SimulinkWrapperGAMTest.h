@@ -143,6 +143,8 @@ public:
     bool TestSetup_Failed_DontSkipUnlinkedTunableParams();
     bool TestSetup_Failed_WrongNumberOfInputs();
     bool TestSetup_Failed_WrongNumberOfOutputs();
+    bool TestSetup_Failed_NoInputs();
+    bool TestSetup_Failed_NoOutputs();
     bool TestSetup_Failed_StructArraysAsParams();
     bool TestSetup_Failed_NestedStructArraysAsParams();
     
@@ -164,12 +166,8 @@ public:
         "            Verbosity = 2"
         "            TunableParamExternalSource = ExtSource"
         "            SkipUnlinkedTunableParams = %s"
-        "            InputSignals = {"
-        "               %s"
-        "            }"
-        "            OutputSignals = {"
-        "               %s"
-        "            }"
+        "               %s" // InputSignals
+        "               %s" // OutputSignals
         "            Parameters = {"
         "                one = (uint8) 1"
         "                %s"
@@ -181,6 +179,7 @@ public:
         "        DefaultDataSource = DDB1"
         "        +DDB1 = {"
         "            Class = GAMDataSource"
+        "            AllowNoProducers = 1"
         "        }"
         "        +Timings = {"
         "            Class = TimingDataSource"

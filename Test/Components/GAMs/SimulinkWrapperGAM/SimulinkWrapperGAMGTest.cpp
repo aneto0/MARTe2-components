@@ -140,6 +140,16 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_NestedStructArraysAsParams) {
     ASSERT_TRUE(test.TestSetup_Failed_NestedStructArraysAsParams());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_NoInputs) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_NoInputs());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_NoOutputs) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_NoOutputs());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

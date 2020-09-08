@@ -196,21 +196,41 @@ public:
         //matlabPtr = matlab::engine::startMATLAB();
         matlabPtr = matlab::engine::connectMATLAB(u"Engine_1");
         
-        BuildTestModel(matlabPtr);
+        SetupTestEnvironment(matlabPtr);
     }
 
     ~SimulinkGAMGTestEnvironment() {
         DeleteTestModel();
     }
     
-    bool BuildTestModel(std::unique_ptr<matlab::engine::MATLABEngine>& matlabPtr);
+    /**
+     * @brief      Builds a model that can be used to test the SimulinkWrapperGAM from a script.
+     * @param[out] modelName   name of the generated model.
+     * @param[out] modelFolder folder in which the model was created.
+     * @return     `true` if the model was succesfully built.
+     */
+    void SetupTestEnvironment(std::unique_ptr<matlab::engine::MATLABEngine>& matlabPtr);
     
+    /**
+     * @brief This method created a new model for testing purpose. The model
+     *        is registered in `createdModel` so that it can be removed
+     *        at the end of testing by DeleteTestModel().
+     */
     MARTe::StreamString CreateTestModel(MARTe::StreamString scriptCall);
     
-    bool DeleteTestModel();
+    /**
+     * @brief Removes all files created during testing with CreateTestModel(). 
+     */
+    void DeleteTestModel();
 
+    /**
+     * @brief Working directory where the engine creates models.
+     */
     MARTe::StreamString modelFolder;
     
+    /**
+     * @brief Pointer to the engine used to create and compile test models.
+     */
     std::unique_ptr<matlab::engine::MATLABEngine> matlabPtr;
 
     /**
@@ -222,81 +242,33 @@ public:
     
 };
 
-/**
- * @brief      Builds a model that can be used to test the SimulinkWrapperGAM from a script.
- * @param[out] modelName   name of the generated model.
- * @param[out] modelFolder folder in which the model was created.
- * @return     `true` if the model was succesfully built.
- */
-bool SimulinkGAMGTestEnvironment::BuildTestModel(std::unique_ptr<matlab::engine::MATLABEngine>& matlabPtr) {
+void SimulinkGAMGTestEnvironment::SetupTestEnvironment(std::unique_ptr<matlab::engine::MATLABEngine>& matlabPtr) {
     
     using namespace MARTe;
     using namespace matlab::engine;
     
-    StreamString modelScriptFolder = getenv("MARTe2_Components_DIR");
+    StreamString modelScriptFolder, addpathCommand;
+    
+    // Add the directory where the test script is located.
+    modelScriptFolder  = getenv("MARTe2_Components_DIR");
     modelScriptFolder += "/Test/Components/GAMs/SimulinkWrapperGAM/";
     
-    StreamString addpathCommand = "addpath(\"";
+    addpathCommand  = "addpath(\"";
     addpathCommand += modelScriptFolder.Buffer();
     addpathCommand += "\")";
         
-    // Execute the code read from the file
+    // Execute setup lines
     matlabPtr->eval(u"clear variables;");
     matlabPtr->eval(convertUTF8StringToUTF16String(addpathCommand.Buffer()));
     matlabPtr->eval(u"global model_name model_compiled");
     
-    // Get the name of the folder containing the model file
+    // Get the name of the work directory
     matlabPtr->eval(u"current_folder = pwd;");
     matlab::data::CharArray currentFolder = matlabPtr->getVariable(u"current_folder");
-    printf("Current working folder: %s\n", (currentFolder.toAscii()).c_str());
     
     modelFolder = (currentFolder.toAscii()).c_str();
-        
-    return true;
-    
 }
 
-/**
- * @brief Removes all files created during testing. 
- */
-bool SimulinkGAMGTestEnvironment::DeleteTestModel() {
-    
-    using namespace MARTe;
-    
-    bool ok = false;
-    
-    for (uint32 modelIdx = 0u; modelIdx < compiledModels.GetSize(); modelIdx++) {
-        
-        StreamString* currentModelName;
-        ok = compiledModels.Peek(modelIdx, currentModelName);
-        
-        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Model %u: %s", modelIdx, currentModelName->Buffer());
-        
-        // Remove model .so
-        StreamString modelPath;
-        Directory toDelete;
-        
-        modelPath  = modelFolder;
-        modelPath += "/";
-        modelPath += *currentModelName;
-        modelPath += ".so";
-        
-        toDelete.SetByName(modelPath.Buffer());
-        if (toDelete.Exists()) {
-            ok = toDelete.Delete();
-        }
-        
-        delete currentModelName;
-    }
-    
-    return ok;
-}
-
-/**
- * @brief This method created a new model for testing purpose. The model
- *        is registered in `createdModel` so that it can be removed
- *        at the end of testing by DeleteTestModel().
- */
 MARTe::StreamString SimulinkGAMGTestEnvironment::CreateTestModel(MARTe::StreamString scriptCall) {
     
     using namespace MARTe;
@@ -321,6 +293,37 @@ MARTe::StreamString SimulinkGAMGTestEnvironment::CreateTestModel(MARTe::StreamSt
     }
     
     return modelName;
+}
+
+void SimulinkGAMGTestEnvironment::DeleteTestModel() {
+    
+    using namespace MARTe;
+    
+    bool ok;
+    
+    for (uint32 modelIdx = 0u; modelIdx < compiledModels.GetSize(); modelIdx++) {
+        
+        StreamString* currentModelName;
+        ok = compiledModels.Peek(modelIdx, currentModelName);
+        
+        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Model %u: %s, ok? %u", modelIdx, currentModelName->Buffer(), ok);
+        
+        // Remove model .so
+        StreamString modelPath;
+        Directory toDelete;
+        
+        modelPath  = modelFolder;
+        modelPath += "/";
+        modelPath += *currentModelName;
+        modelPath += ".so";
+        
+        toDelete.SetByName(modelPath.Buffer());
+        if (toDelete.Exists()) {
+            //ok = toDelete.Delete(); // TODO DEBUG uncomment this
+        }
+        
+        delete currentModelName;
+    }
 }
 
 // Instantiate a test environment for this GAM.
@@ -636,6 +639,7 @@ bool SimulinkWrapperGAMTest::TestSetup() {
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
+        "InputSignals = { "
         "In1_ScalarDouble  = {"
         "    DataSource = Drv1"
         "    Type = float64"
@@ -665,10 +669,12 @@ bool SimulinkWrapperGAMTest::TestSetup() {
         "    Type = float32"
         "    NumberOfElements = 10"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
 
 
     StreamString outputSignals = ""
+        "OutputSignals = { "
         "Out1_ScalarDouble = {"
         "    DataSource = DDB1"
         "    Type = float64"
@@ -698,6 +704,7 @@ bool SimulinkWrapperGAMTest::TestSetup() {
         "    Type = float64"
         "    NumberOfElements = 9"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
 
     StreamString parameters = ""
@@ -717,6 +724,7 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters() {
     StreamString skipUnlinkedParams = "0";
     
     StreamString inputSignals = ""
+        "InputSignals = { "
         "In1_ScalarDouble  = {"
         "    DataSource = Drv1"
         "    Type = float64"
@@ -728,10 +736,12 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters() {
         "    Type = uint32"
         "    NumberOfElements = 1"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
 
 
     StreamString outputSignals = ""
+        "OutputSignals = { "
         "Out1_ScalarDouble = {"
         "    DataSource = DDB1"
         "    Type = float64"
@@ -743,6 +753,7 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters() {
         "    Type = uint32"
         "    NumberOfElements = 1"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
 
     StreamString parameters = ""
@@ -765,6 +776,7 @@ bool SimulinkWrapperGAMTest::TestSetup_NoTunableParameters() {
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
+        "InputSignals = { "
         "In1_ScalarDouble  = {"
         "    DataSource = Drv1"
         "    Type = float64"
@@ -776,10 +788,12 @@ bool SimulinkWrapperGAMTest::TestSetup_NoTunableParameters() {
         "    Type = uint32"
         "    NumberOfElements = 1"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
 
 
     StreamString outputSignals = ""
+        "OutputSignals = { "
         "Out1_ScalarDouble = {"
         "    DataSource = DDB1"
         "    Type = float64"
@@ -791,6 +805,7 @@ bool SimulinkWrapperGAMTest::TestSetup_NoTunableParameters() {
         "    Type = uint32"
         "    NumberOfElements = 1"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
 
     StreamString parameters = "";
@@ -808,6 +823,7 @@ bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
+        "InputSignals = { "
         "In1_ScalarDouble  = {"
         "    DataSource = Drv1"
         "    Type = float64"
@@ -837,10 +853,12 @@ bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
         "    Type = float32"
         "    NumberOfElements = 10"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
 
 
     StreamString outputSignals = ""
+        "OutputSignals = { "
         "Out1_ScalarDouble = {"
         "    DataSource = DDB1"
         "    Type = float64"
@@ -870,6 +888,7 @@ bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
         "    Type = float64"
         "    NumberOfElements = 9"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
 
     StreamString parameters = ""
@@ -888,6 +907,7 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_DontSkipUnlinkedTunableParams() {
     StreamString skipUnlinkedParams = "0";
     
     StreamString inputSignals = ""
+        "InputSignals = { "
         "In1_ScalarDouble  = {"
         "    DataSource = Drv1"
         "    Type = float64"
@@ -917,9 +937,11 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_DontSkipUnlinkedTunableParams() {
         "    Type = float32"
         "    NumberOfElements = 10"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
     
     StreamString outputSignals = ""
+        "OutputSignals = { "
         "Out1_ScalarDouble = {"
         "    DataSource = DDB1"
         "    Type = float64"
@@ -949,6 +971,7 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_DontSkipUnlinkedTunableParams() {
         "    Type = float64"
         "    NumberOfElements = 9"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
         
     StreamString parameters = "";
@@ -966,14 +989,17 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfInputs() {
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
+        "InputSignals = { "
         "In1_ScalarDouble  = {"
         "    DataSource = Drv1"
         "    Type = float64"
         "    NumberOfElements = 1"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
     
     StreamString outputSignals = ""
+        "OutputSignals = { "
         "Out1_ScalarDouble = {"
         "    DataSource = DDB1"
         "    Type = float64"
@@ -985,6 +1011,7 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfInputs() {
         "    Type = uint32"
         "    NumberOfElements = 1"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
     
     StreamString parameters = "";
@@ -1002,6 +1029,7 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
+        "InputSignals = { "
         "In1_ScalarDouble  = {"
         "    DataSource = Drv1"
         "    Type = float64"
@@ -1013,14 +1041,17 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
         "    Type = uint32"
         "    NumberOfElements = 1"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
     
     StreamString outputSignals = ""
+        "OutputSignals = { "
         "Out1_ScalarDouble = {"
         "    DataSource = DDB1"
         "    Type = float64"
         "    NumberOfElements = 1"
         "    NumberOfDimensions = 1"
+        "}"
         "}";
     
     StreamString parameters = "";
@@ -1031,6 +1062,71 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
     return !ok;
 }
 
+bool SimulinkWrapperGAMTest::TestSetup_Failed_NoInputs() {
+    
+    StreamString scriptCall = "createSimpleTestModel('hasInputs', false);";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = "";
+    
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString parameters = "";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return ok;
+}
+
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_NoOutputs() {
+    
+    StreamString scriptCall = "createSimpleTestModel('hasOutputs', false);";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString outputSignals = ""
+        "";
+    
+    StreamString parameters = "";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return ok;
+}
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_StructArraysAsParams() {
     
@@ -1039,32 +1135,36 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_StructArraysAsParams() {
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
-            "In1_ScalarDouble  = {"
-            "    DataSource = Drv1"
-            "    Type = float64"
-            "    NumberOfElements = 1"
-            "    NumberOfDimensions = 1"
-            "}"
-            "In2_ScalarUint32  = {"
-            "    DataSource = Drv1"
-            "    Type = uint32"
-            "    NumberOfElements = 1"
-            "    NumberOfDimensions = 1"
-            "}";
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
             
     StreamString outputSignals = ""
-            "Out1_ScalarDouble = {"
-            "    DataSource = DDB1"
-            "    Type = float64"
-            "    NumberOfElements = 1"
-            "    NumberOfDimensions = 1"
-            "}"
-            "Out2_ScalarUint32  = {"
-            "    DataSource = DDB1"
-            "    Type = uint32"
-            "    NumberOfElements = 1"
-            "    NumberOfDimensions = 1"
-            "}";
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
     
     StreamString parameters = "";
     
@@ -1081,32 +1181,36 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_NestedStructArraysAsParams() {
     StreamString skipUnlinkedParams = "0";
     
     StreamString inputSignals = ""
-            "In1_ScalarDouble  = {"
-            "    DataSource = Drv1"
-            "    Type = float64"
-            "    NumberOfElements = 1"
-            "    NumberOfDimensions = 1"
-            "}"
-            "In2_ScalarUint32  = {"
-            "    DataSource = Drv1"
-            "    Type = uint32"
-            "    NumberOfElements = 1"
-            "    NumberOfDimensions = 1"
-            "}";
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
             
     StreamString outputSignals = ""
-            "Out1_ScalarDouble = {"
-            "    DataSource = DDB1"
-            "    Type = float64"
-            "    NumberOfElements = 1"
-            "    NumberOfDimensions = 1"
-            "}"
-            "Out2_ScalarUint32  = {"
-            "    DataSource = DDB1"
-            "    Type = uint32"
-            "    NumberOfElements = 1"
-            "    NumberOfDimensions = 1"
-            "}";
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
     
     StreamString parameters = ""
         "structScalar-one = (float64) 1 "
@@ -1120,385 +1224,3 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_NestedStructArraysAsParams() {
     
     return !ok;
 }
-
-// bool MathExpressionGAMTest::TestSetup_Failed_InputSignalMissingVariable() {
-//     
-//     const char8 * const config1 = ""
-//             "$Test = {"
-//             "    Class = RealTimeApplication"
-//             "    +Functions = {"
-//             "        Class = ReferenceContainer"
-//             "        +GAM1 = {"
-//             "            Class = MathExpressionGAM"
-//             "            Expression = \"GAM1_TotalTime = GAM1_WriteTime + GAM1_ExecTime;\""
-//             "            InputSignals = {"
-//             "               GAM1_ReadTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "               GAM1_WriteTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "               GAM1_ExecTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "            }"
-//             "            OutputSignals = {"
-//             "               GAM1_TotalTime = {"
-//             "                   DataSource = DDB1"
-//             "                   Type = uint32"
-//             "               }"
-//             "            }"
-//             "        }"
-//             "    }"
-//             "    +Data = {"
-//             "        Class = ReferenceContainer"
-//             "        DefaultDataSource = DDB1"
-//             "        +DDB1 = {"
-//             "            Class = GAMDataSource"
-//             "        }"
-//             "        +Timings = {"
-//             "            Class = TimingDataSource"
-//             "        }"
-//             "    }"
-//             "    +States = {"
-//             "        Class = ReferenceContainer"
-//             "        +State1 = {"
-//             "            Class = RealTimeState"
-//             "            +Threads = {"
-//             "                Class = ReferenceContainer"
-//             "                +Thread1 = {"
-//             "                    Class = RealTimeThread"
-//             "                    Functions = {GAM1}"
-//             "                }"
-//             "            }"
-//             "        }"
-//             "    }"
-//             "    +Scheduler = {"
-//             "        Class = GAMScheduler"
-//             "        TimingDataSource = Timings"
-//             "    }"
-//             "}";
-//     bool ok = TestIntegratedInApplication(config1);
-//     return !ok;
-// }
-// 
-// 
-// bool MathExpressionGAMTest::TestMemory() {
-//     
-//     const MARTe::char8 * const config1 = ""
-//             "$Test = {"
-//             "    Class = RealTimeApplication"
-//             "    +Functions = {"
-//             "        Class = ReferenceContainer"
-//             "        +GAM1 = {"
-//             "            Class = MathExpressionGAMHelper"
-//             "            Expression = \"GAM1_TotalTime = GAM1_ReadTime + GAM1_WriteTime + GAM1_ExecTime;\""
-//             "            InputSignals = {"
-//             "               GAM1_ReadTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "               GAM1_WriteTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "               GAM1_ExecTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "            }"
-//             "            OutputSignals = {"
-//             "               GAM1_TotalTime = {"
-//             "                   DataSource = DDB1"
-//             "                   Type = uint32"
-//             "               }"
-//             "            }"
-//             "        }"
-//             "    }"
-//             "    +Data = {"
-//             "        Class = ReferenceContainer"
-//             "        DefaultDataSource = DDB1"
-//             "        +DDB1 = {"
-//             "            Class = GAMDataSource"
-//             "        }"
-//             "        +Timings = {"
-//             "            Class = TimingDataSource"
-//             "        }"
-//             "    }"
-//             "    +States = {"
-//             "        Class = ReferenceContainer"
-//             "        +State1 = {"
-//             "            Class = RealTimeState"
-//             "            +Threads = {"
-//             "                Class = ReferenceContainer"
-//             "                +Thread1 = {"
-//             "                    Class = RealTimeThread"
-//             "                    Functions = {GAM1}"
-//             "                }"
-//             "            }"
-//             "        }"
-//             "    }"
-//             "    +Scheduler = {"
-//             "        Class = GAMScheduler"
-//             "        TimingDataSource = Timings"
-//             "    }"
-//             "}";
-//             
-//     bool ok = TestIntegratedInApplication(config1, false);
-//     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-//     ReferenceT<MathExpressionGAMHelper> gam = god->Find("Test.Functions.GAM1");
-//     if (ok) {
-//         ok = gam.IsValid();
-//     }
-//     RuntimeEvaluator* evalPtr;
-//     if (ok) {
-//         evalPtr = gam->GetEvaluator();
-//     }
-//     
-//     StreamString signalName;
-//     for (uint32 index = 0u; (index < gam->GetNumberOfInputSignals()) && ok; index++) {
-//         ok = gam->GetSignalName(InputSignals, index, signalName);
-//         if (ok) {
-//             ok = (gam->GetInputSignalMemory(index) == evalPtr->GetInputVariableMemory(signalName));
-//         }
-//         signalName = "";
-//     }
-//     for (uint32 index = 0u; (index < gam->GetNumberOfOutputSignals()) && ok; index++) {
-//         ok = gam->GetSignalName(OutputSignals, index, signalName);
-//         if (ok) {
-//             ok = (gam->GetOutputSignalMemory(index) == evalPtr->GetOutputVariableMemory(signalName));
-//         }
-//         signalName = "";
-//     }
-//     god->Purge();
-//     return ok;
-// }
-// 
-// bool MathExpressionGAMTest::TestTypes() {
-//     
-//     const MARTe::char8 * const config1 = ""
-//             "$Test = {"
-//             "    Class = RealTimeApplication"
-//             "    +Functions = {"
-//             "        Class = ReferenceContainer"
-//             "        +GAM1 = {"
-//             "            Class = MathExpressionGAMHelper"
-//             "            Expression = \""
-//             "                           GAM1_ReadWriteTime = GAM1_ReadTime + GAM1_WriteTime;"
-//             "                           GAM1_TotalTime = GAM1_ReadWriteTime + GAM1_ExecTime;"
-//             "                           GAM1_A_out = GAM1_A;"
-//             "                           GAM1_B_out = GAM1_B;"
-//             "                           GAM1_C_out = GAM1_C;"
-//             "                         \""
-//             "            InputSignals = {"
-//             "               GAM1_ReadTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "               GAM1_WriteTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "               GAM1_ExecTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "               GAM1_A = {"
-//             "                   DataSource = Drv1"
-//             "                   Type = float64"
-//             "                   NumberOfDimensions = 0"
-//             "                   NumberOfElements = 1"
-//             "               }"
-//             "               GAM1_B = {"
-//             "                   DataSource = Drv1"
-//             "                   Type = int16"
-//             "                   NumberOfDimensions = 0"
-//             "                   NumberOfElements = 1"
-//             "               }"
-//             "               GAM1_C = {"
-//             "                   DataSource = Drv1"
-//             "                   Type = float32"
-//             "                   NumberOfDimensions = 0"
-//             "                   NumberOfElements = 1"
-//             "               }"
-//             "            }"
-//             "            OutputSignals = {"
-//             "               GAM1_TotalTime = {"
-//             "                   DataSource = DDB1"
-//             "                   Type = uint32"
-//             "               }"
-//             "               GAM1_A_out = {"
-//             "                   DataSource = Drv1"
-//             "                   Type = float64"
-//             "                   NumberOfDimensions = 0"
-//             "                   NumberOfElements = 1"
-//             "               }"
-//             "               GAM1_B_out = {"
-//             "                   DataSource = Drv1"
-//             "                   Type = int16"
-//             "                   NumberOfDimensions = 0"
-//             "                   NumberOfElements = 1"
-//             "               }"
-//             "               GAM1_C_out = {"
-//             "                   DataSource = Drv1"
-//             "                   Type = float32"
-//             "                   NumberOfDimensions = 0"
-//             "                   NumberOfElements = 1"
-//             "               }"
-//             "            }"
-//             "        }"
-//             "    }"
-//             "    +Data = {"
-//             "        Class = ReferenceContainer"
-//             "        DefaultDataSource = DDB1"
-//             "        +DDB1 = {"
-//             "            Class = GAMDataSource"
-//             "        }"
-//             "        +Timings = {"
-//             "            Class = TimingDataSource"
-//             "        }"
-//             "        +Drv1 = {"
-//             "            Class = MathExpressionGAMDataSourceHelper"
-//             "        }"
-//             "    }"
-//             "    +States = {"
-//             "        Class = ReferenceContainer"
-//             "        +State1 = {"
-//             "            Class = RealTimeState"
-//             "            +Threads = {"
-//             "                Class = ReferenceContainer"
-//             "                +Thread1 = {"
-//             "                    Class = RealTimeThread"
-//             "                    Functions = {GAM1}"
-//             "                }"
-//             "            }"
-//             "        }"
-//             "    }"
-//             "    +Scheduler = {"
-//             "        Class = GAMScheduler"
-//             "        TimingDataSource = Timings"
-//             "    }"
-//             "}";
-//             
-//     bool ok = TestIntegratedInApplication(config1, false);
-//     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-//     ReferenceT<MathExpressionGAMHelper> gam = god->Find("Test.Functions.GAM1");
-//     if (ok) {
-//         ok = gam.IsValid();
-//     }
-//     RuntimeEvaluator* evalPtr;
-//     if (ok) {
-//         evalPtr = gam->GetEvaluator();
-//     }
-//     
-//     StreamString signalName;
-//     VariableInformation* var;
-// 
-//     uint32 varIdx = 0u;
-//     while (evalPtr->BrowseInputVariable(varIdx, var) && ok) {
-//         for (uint32 index = 0u; (index < gam->GetNumberOfInputSignals()) && ok; index++) {
-//             ok = gam->GetSignalName(InputSignals, index, signalName);
-//             if ((signalName == var->name) && ok) {
-//                 ok = (gam->GetSignalType(InputSignals, index) == var->type);
-//             }
-//             signalName = "";
-//         }
-//         varIdx++;
-//     }
-//     
-//     varIdx = 0u;
-//     while (evalPtr->BrowseOutputVariable(varIdx, var) && ok) {
-//         for (uint32 index = 0u; (index < gam->GetNumberOfOutputSignals()) && ok; index++) {
-//             ok = gam->GetSignalName(OutputSignals, index, signalName);
-//             if ((signalName == var->name) && ok) {
-//                 ok = (gam->GetSignalType(OutputSignals, index) == var->type);
-//             }
-//             signalName = "";
-//         }
-//         varIdx++;
-//     }
-//     
-//     god->Purge();
-//     
-//     return ok;
-// }
-// 
-// bool MathExpressionGAMTest::TestExecute_MultipleExpressions() {
-//     
-//     const char8 * const config1 = ""
-//             "$Test = {"
-//             "    Class = RealTimeApplication"
-//             "    +Functions = {"
-//             "        Class = ReferenceContainer"
-//             "        +GAM1 = {"
-//             "            Class = MathExpressionGAM"
-//             "            Expression = \""
-//             "                           GAM1_ReadWriteTime = GAM1_ReadTime + GAM1_WriteTime;"
-//             "                           GAM1_TotalTime = GAM1_ReadWriteTime + GAM1_ExecTime;"
-//             "                         \""
-//             "            InputSignals = {"
-//             "               GAM1_ReadTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "               GAM1_WriteTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "               GAM1_ExecTime = {"
-//             "                   DataSource = Timings"
-//             "                   Type = uint32"
-//             "               }"
-//             "            }"
-//             "            OutputSignals = {"
-//             "               GAM1_TotalTime = {"
-//             "                   DataSource = DDB1"
-//             "                   Type = uint32"
-//             "               }"
-//             "            }"
-//             "        }"
-//             "    }"
-//             "    +Data = {"
-//             "        Class = ReferenceContainer"
-//             "        DefaultDataSource = DDB1"
-//             "        +DDB1 = {"
-//             "            Class = GAMDataSource"
-//             "        }"
-//             "        +Timings = {"
-//             "            Class = TimingDataSource"
-//             "        }"
-//             "    }"
-//             "    +States = {"
-//             "        Class = ReferenceContainer"
-//             "        +State1 = {"
-//             "            Class = RealTimeState"
-//             "            +Threads = {"
-//             "                Class = ReferenceContainer"
-//             "                +Thread1 = {"
-//             "                    Class = RealTimeThread"
-//             "                    Functions = {GAM1}"
-//             "                }"
-//             "            }"
-//             "        }"
-//             "    }"
-//             "    +Scheduler = {"
-//             "        Class = GAMScheduler"
-//             "        TimingDataSource = Timings"
-//             "    }"
-//             "}";
-//             
-//     bool ok = TestIntegratedInApplication(config1, false);
-//     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-//     ReferenceT<MathExpressionGAM> gam = god->Find("Test.Functions.GAM1");
-//     if (ok) {
-//         ok = gam.IsValid();
-//     }
-//     if (ok) {
-//         ok = gam->Execute();
-//     }
-//     god->Purge();
-//     return ok;
-// }

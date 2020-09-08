@@ -13,6 +13,8 @@ hasGetmmiFcn         = true;
 hasTunableParams     = true;
 hasStructParams      = false;
 hasStructArrayParams = false;
+hasInputs            = true;
+hasOutputs           = true;
 
 while ~isempty(varargin)
     
@@ -35,7 +37,13 @@ while ~isempty(varargin)
         
         case 'hasStructArrayParams'
             hasStructArrayParams = varargin{2};
+        
+        case 'hasInputs'
+            hasInputs = varargin{2};
             
+        case 'hasOutputs'
+            hasOutputs = varargin{2};
+        
         otherwise
             error(['Unexpected option: ' varargin{1}])
     end
@@ -45,6 +53,7 @@ end
 
 model_name = ['testModel_' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
                            int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
+                           int2str(hasInputs) int2str(hasOutputs) ...
              ];
 
 model_compiled = false;
@@ -103,12 +112,40 @@ save_system(model_name);
 add_block('simulink/Math Operations/Gain',    [model_name '/Gain1']);
 add_block('simulink/Math Operations/Gain',    [model_name '/Gain2']);
 
-% in/out ports
-add_block('simulink/Sources/In1', [model_name '/In1_ScalarDouble']);
-add_block('simulink/Sources/In1', [model_name '/In2_ScalarUint32' ]);
+% input ports
+if hasInputs == true
+    add_block('simulink/Sources/In1', [model_name '/In1_ScalarDouble']);
+    set_param([model_name '/In1_ScalarDouble'], 'IconDisplay',    'Signal name');
+    set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
+    
+    add_block('simulink/Sources/In1', [model_name '/In2_ScalarUint32' ]);
+    set_param([model_name '/In2_ScalarUint32'],  'IconDisplay',    'Signal name');
+    set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
+else
+    add_block('simulink/Sources/Constant', [model_name '/In1_ScalarDouble']);
+    set_param([model_name '/In1_ScalarDouble'], 'Value',          '1');
+    set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
+    
+    add_block('simulink/Sources/Constant', [model_name '/In2_ScalarUint32']);
+    set_param([model_name '/In2_ScalarUint32'], 'Value',          '1');
+    set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
+end
 
-add_block('simulink/Sinks/Out1',  [model_name '/Out1_ScalarDouble']);
-add_block('simulink/Sinks/Out1',  [model_name '/Out2_ScalarUint32']);
+% output ports
+if hasOutputs == true
+    add_block('simulink/Sinks/Out1',  [model_name '/Out1_ScalarDouble']);
+    set_param([model_name '/Out1_ScalarDouble'], 'IconDisplay',    'Signal name');
+    set_param([model_name '/Out1_ScalarDouble'], 'OutDataTypeStr', 'double');
+    
+    add_block('simulink/Sinks/Out1',  [model_name '/Out2_ScalarUint32']);
+    set_param([model_name '/Out2_ScalarUint32'], 'IconDisplay',    'Signal name');
+    set_param([model_name '/Out2_ScalarUint32'], 'OutDataTypeStr', 'uint32');
+
+else
+    add_block('simulink/Sinks/Terminator', [model_name '/Out1_ScalarDouble']);
+    
+    add_block('simulink/Sinks/Terminator', [model_name '/Out2_ScalarUint32']);
+end
 
 %% set block properties
 
@@ -132,19 +169,6 @@ set_param([model_name '/Gain1'], 'OutDataTypeStr', 'double');
 
 set_param([model_name '/Gain2'], 'Gain',           gain2Param);
 set_param([model_name '/Gain2'], 'OutDataTypeStr', 'uint32');
-
-% in/out ports
-set_param([model_name '/In1_ScalarDouble'], 'IconDisplay',    'Signal name');
-set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
-
-set_param([model_name '/In2_ScalarUint32'],  'IconDisplay',    'Signal name');
-set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
-
-set_param([model_name '/Out1_ScalarDouble'], 'IconDisplay',    'Signal name');
-set_param([model_name '/Out1_ScalarDouble'], 'OutDataTypeStr', 'double');
-
-set_param([model_name '/Out2_ScalarUint32'], 'IconDisplay',    'Signal name');
-set_param([model_name '/Out2_ScalarUint32'], 'OutDataTypeStr', 'uint32');
 
 %% manage connections
 
