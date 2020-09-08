@@ -1,10 +1,17 @@
 function model_compiled = createTestModel(hasAllocFcn, hasGetmmiFcn)
 
+warning('off', 'all');
+
 global model_name  model_compiled
 
 model_name = ['test_model' int2str(hasAllocFcn) int2str(hasGetmmiFcn)];
 
 model_compiled = false;
+
+if isfile([model_name '.so'])
+    model_compiled = true;
+    return
+end
 
 %% define constants
 
@@ -279,6 +286,8 @@ rmdir([model_name '_ert_shrlib_rtw'], 's');
 delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
+
+warning('on', 'all');
 
 end   % function
 

@@ -2,17 +2,24 @@ function model_compiled = createSimpleTestModel(varargin)
 
 global model_name  model_compiled
 
+warning('off', 'all');
+
 %% settings
 
 % default values
+modelComplexity      = 1;
 hasAllocFcn          = true;
 hasGetmmiFcn         = true;
 hasTunableParams     = true;
+hasStructParams      = false;
 hasStructArrayParams = false;
 
 while ~isempty(varargin)
     
     switch varargin{1}
+        
+        case 'modelComplexity'
+            modelComplexity = varargin{2};
         
         case 'hasAllocFcn'
             hasAllocFcn = varargin{2};
@@ -20,11 +27,14 @@ while ~isempty(varargin)
         case 'hasGetmmiFcn'
             hasGetmmiFcn = varargin{2};
             
-        case 'hasStructArrayParams'
-            hasStructArrayParams = varargin{2};
-            
         case 'hasTunableParams'
             hasTunableParams = varargin{2};
+        
+        case 'hasStructParams'
+            hasStructParams = varargin{2};
+        
+        case 'hasStructArrayParams'
+            hasStructArrayParams = varargin{2};
             
         otherwise
             error(['Unexpected option: ' varargin{1}])
@@ -33,21 +43,46 @@ while ~isempty(varargin)
     varargin(1:2) = [];
 end
 
-model_name = ['simpleTestModel' int2str(hasAllocFcn) int2str(hasGetmmiFcn) int2str(hasTunableParams) int2str(hasStructArrayParams)];
+model_name = ['testModel_' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
+                           int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
+             ];
 
 model_compiled = false;
+
+if isfile([model_name '.so'])
+    model_compiled = true;
+    return
+end
 
 %% define constants
 
 evalin('base', 'matrixConstant = [1 1 1; 2 2 2; 3 3 3];');
 evalin('base', 'vectorConstant = ones(10,1);');
 
+if hasStructParams == true
+    
+    evalin('base', 'structScalar.one = 1;');
+    evalin('base', 'structScalar.nested1.one = 1;');
+    evalin('base', 'structScalar.nested1.two = 2;');
+    evalin('base', 'structScalar.nested2.one = 1;');
+    evalin('base', 'structScalar.nested2.two = 2;');
+    
+    %evalin('base', 'structMixed.one = 1;');
+    %evalin('base', 'structMixed.vec = ones(10, 1);');
+    
+end
+
 if hasStructArrayParams == true
     
-    evalin('base', 'structArray(1).one = 1;');
-    evalin('base', 'structArray(1).two = 2;');
-    evalin('base', 'structArray(2).one = 10;');
-    evalin('base', 'structArray(2).two = 20;');
+    evalin('base', 'structParamArray(1).one = 1;');
+    evalin('base', 'structParamArray(1).two = 2;');
+    evalin('base', 'structParamArray(2).one = 10;');
+    evalin('base', 'structParamArray(2).two = 20;');
+    
+    evalin('base',  'structMixed.structParamArray(1).one = 1;');
+    evalin('base',  'structMixed.structParamArray(1).two = 1;');
+    evalin('base',  'structMixed.structParamArray(2).one = 1;');
+    evalin('base',  'structMixed.structParamArray(2).two = 1;');
     
 end
 
@@ -56,7 +91,6 @@ end
 % delete model if it already exists
 warning('off','MATLAB:DELETE:FileNotFound');
 delete(sprintf('%s.slx',model_name));
-warning('on','MATLAB:DELETE:FileNotFound');
 
 % create the new model
 new_system(model_name);
@@ -79,17 +113,25 @@ add_block('simulink/Sinks/Out1',  [model_name '/Out2_ScalarUint32']);
 
 %% set block properties
 
-if hasStructArrayParams == false
+if hasStructParams == false && hasStructArrayParams == false
     gain1Param = '1';
-else
-	gain1Param = 'structArray(1).one';
+    gain2Param = '1';
+elseif hasStructParams == true && hasStructArrayParams == false
+	gain1Param = 'structScalar.nested1.one';
+    gain2Param = 'structScalar.nested2.two';
+elseif hasStructParams == false && hasStructArrayParams == true
+	gain1Param = 'structParamArray(1).one';
+    gain2Param = '1';
+elseif hasStructParams == true && hasStructArrayParams == true
+    gain1Param = 'structScalar.one';
+    gain2Param = 'structMixed.structParamArray(1).one';
 end
 
 % math blocks
 set_param([model_name '/Gain1'], 'Gain',           gain1Param);
 set_param([model_name '/Gain1'], 'OutDataTypeStr', 'double');
 
-set_param([model_name '/Gain2'], 'Gain',           '1');
+set_param([model_name '/Gain2'], 'Gain',           gain2Param);
 set_param([model_name '/Gain2'], 'OutDataTypeStr', 'uint32');
 
 % in/out ports
@@ -200,10 +242,14 @@ close_system(model_name);
 
 % clean build directory
 rmdir('slprj', 's');
-%rmdir([model_name '_ert_shrlib_rtw'], 's');
-%delete(sprintf('%s.slx',model_name));
+rmdir([model_name '_ert_shrlib_rtw'], 's');
+delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
+
+% 
+warning('on','MATLAB:DELETE:FileNotFound');
+warning('on', 'all');
 
 end   % function
 

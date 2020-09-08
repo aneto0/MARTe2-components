@@ -100,6 +100,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup) {
     ASSERT_TRUE(test.TestSetup());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParameters) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_StructTunableParameters());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_NoTunableParameters) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_NoTunableParameters());
@@ -128,6 +133,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfOutputs) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_StructArraysAsParams) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_StructArraysAsParams());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_NestedStructArraysAsParams) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_NestedStructArraysAsParams());
 }
 
 /*---------------------------------------------------------------------------*/

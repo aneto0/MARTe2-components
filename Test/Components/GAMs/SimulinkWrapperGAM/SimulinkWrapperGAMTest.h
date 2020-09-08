@@ -135,6 +135,7 @@ public:
                                MARTe::StreamString outputSignals,
                                MARTe::StreamString parameters);
     
+    bool TestSetup_StructTunableParameters();
     bool TestSetup_NoTunableParameters();
     
     bool TestSetup_SkipUnlinkedTunableParams();
@@ -143,6 +144,7 @@ public:
     bool TestSetup_Failed_WrongNumberOfInputs();
     bool TestSetup_Failed_WrongNumberOfOutputs();
     bool TestSetup_Failed_StructArraysAsParams();
+    bool TestSetup_Failed_NestedStructArraysAsParams();
     
     /**
      * @brief A general template for the GAM configuration.
