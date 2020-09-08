@@ -267,26 +267,18 @@ bool SimulinkGAMGTestEnvironment::BuildTestModel(std::unique_ptr<matlab::engine:
         modelFolder = (currentFolder.toAscii()).c_str();
         
         // Verify that model has been correctly compiled
-        matlab::data::TypedArray<bool> modelCompiled = matlabPtr->getVariable(u"model_compiled");
+        //matlab::data::TypedArray<bool> modelCompiled = matlabPtr->getVariable(u"model_compiled");
         
-        ok = modelCompiled[0];
-        if (ok) {
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Model succesfully compiled.");
-        }
-        else {
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Model compilation failed.");
-        }
+        //ok = modelCompiled[0];
+        //if (ok) {
+            //REPORT_ERROR_STATIC(ErrorManagement::Information, "Model succesfully compiled.");
+        //}
+        //else {
+            //REPORT_ERROR_STATIC(ErrorManagement::Information, "Model compilation failed.");
+        //}
         
         // ok model
-        matlabPtr->eval(u"createSimpleTestModel();");
-        
-        // not ok models
-        matlabPtr->eval(u"createSimpleTestModel('hasAllocFcn',          false);");
-        matlabPtr->eval(u"createSimpleTestModel('hasGetmmiFcn',         false);");
-        matlabPtr->eval(u"createSimpleTestModel('hasStructArrayParams', true);" );
-        matlabPtr->eval(u"createSimpleTestModel('hasTunableParams',     false);" );
-        matlabPtr->eval(u"createSimpleTestModel('hasStructParams',      true);" );
-        matlabPtr->eval(u"createSimpleTestModel('hasStructParams',      true, 'hasStructArrayParams', true);" );
+        //matlabPtr->eval(u"createSimpleTestModel();"); // 111100
         
     }
 
@@ -337,6 +329,62 @@ bool SimulinkWrapperGAMTest::TestConstructor() {
     return (gam.GetNumberOfInputSignals() == 0u) && (gam.GetNumberOfOutputSignals() == 0u);
 }
 
+bool SimulinkWrapperGAMTest::TestInitialiseWithConfiguration(ConfigurationDatabase configIn) {
+    
+    SimulinkWrapperGAM gam;
+    bool ok = gam.Initialise(configIn);
+    
+    return ok;
+}
+
+StreamString SimulinkWrapperGAMTest::CreateTestModel(StreamString scriptCall) {
+    
+    StreamString modelName;
+    
+    testEnvironment.matlabPtr->eval(matlab::engine::convertUTF8StringToUTF16String(scriptCall.Buffer()));
+    matlab::data::CharArray modelNameCharArray = testEnvironment.matlabPtr->getVariable(u"model_name");
+    modelName = (modelNameCharArray.toAscii()).c_str();
+    
+    return modelName;
+}
+
+bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString scriptCall,
+                                                   StreamString skipUnlinkedParams,
+                                                   StreamString inputSignals,
+                                                   StreamString outputSignals,
+                                                   StreamString parameters) {
+    
+    StreamString modelName, modelFolder, modelFullPath;
+    
+    // Create the test model
+    modelName = CreateTestModel(scriptCall);
+    
+    // Retrieve working directory from the test environment
+    modelFolder = testEnvironment.modelFolder;
+    
+    // Compose model library full path
+    modelFullPath  = modelFolder;
+    modelFullPath += "/";
+    modelFullPath += modelName;
+    modelFullPath += ".so";
+    
+    // Insert model name and build folder in the configuration buffer template
+    StreamString config;
+    config.Printf(configTemplate.Buffer(),
+                  modelFullPath.Buffer(),
+                  modelName.Buffer(),
+                  skipUnlinkedParams.Buffer(),
+                  inputSignals.Buffer(),
+                  outputSignals.Buffer(),
+                  parameters.Buffer()
+                 );
+    
+    // Test setup
+    bool ok = TestIntegratedInApplication(config.Buffer());
+    
+    return ok;
+}
+
 bool SimulinkWrapperGAMTest::TestInitialise() {
     
     bool ok = true;
@@ -344,8 +392,7 @@ bool SimulinkWrapperGAMTest::TestInitialise() {
     StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "111100";
+    modelName   = CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -381,13 +428,6 @@ bool SimulinkWrapperGAMTest::TestInitialise() {
     return ok;
 }
 
-bool SimulinkWrapperGAMTest::TestInitialiseWithConfiguration(ConfigurationDatabase configIn) {
-    
-    SimulinkWrapperGAM gam;
-    bool ok = gam.Initialise(configIn);
-    
-    return ok;
-}
 
 bool SimulinkWrapperGAMTest::TestInitialise_Failed_MissingLibrary() {
     
@@ -412,8 +452,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_MissingSymbolPrefix() {
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelName   = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "111100";
+    modelName   = CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -434,8 +473,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingTunableParamExternalSource() 
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "111100";
+    modelName   = CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -456,8 +494,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingOptionalConfigurationSettings
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "111100";
+    modelName   = CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -479,8 +516,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LoadLibrary() {
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "111100";
+    modelName   = CreateTestModel("createSimpleTestModel();");
     
     // add an error to model name
     modelName += "_err";
@@ -505,8 +541,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LoadSymbols() {
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "111100";
+    modelName   = CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -531,8 +566,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LibraryMissingGetMmiFunction(
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "110100";
+    modelName   = CreateTestModel("createSimpleTestModel('hasGetmmiFcn', false);");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -555,8 +589,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_LibraryMissingAllocFunction()
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "101100";
+    modelName   = CreateTestModel("createSimpleTestModel('hasAllocFcn', false);");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -579,8 +612,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingParametersLeaf() {
     MARTe::StreamString modelName, modelFolder, modelFullPath;
     
     modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.simpleModelName;
-    modelName  += "111100";
+    modelName   = CreateTestModel("createSimpleTestModel();");
     
     modelFullPath  = modelFolder;
     modelFullPath += "/";
@@ -599,48 +631,10 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingParametersLeaf() {
     
 }
 
-bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString modelName,
-                                                   StreamString modelFlags,
-                                                   StreamString skipUnlinkedParams,
-                                                   StreamString inputSignals,
-                                                   StreamString outputSignals,
-                                                   StreamString parameters) {
-    
-    StreamString modelFolder, modelFullPath;
-    
-    // Retrieve working directory from the test environment
-    modelFolder = testEnvironment.modelFolder;
-    
-    // Add flags to the model name
-    modelName += modelFlags;
-    
-    // Compose model library full path
-    modelFullPath  = modelFolder;
-    modelFullPath += "/";
-    modelFullPath += modelName;
-    modelFullPath += ".so";
-    
-    // Insert model name and build folder in the configuration buffer template
-    StreamString config;
-    config.Printf(configTemplate.Buffer(),
-                  modelFullPath.Buffer(),
-                  modelName.Buffer(),
-                  skipUnlinkedParams.Buffer(),
-                  inputSignals.Buffer(),
-                  outputSignals.Buffer(),
-                  parameters.Buffer()
-                 );
-    
-    // Test setup
-    bool ok = TestIntegratedInApplication(config.Buffer());
-    
-    return ok;
-}
-
 bool SimulinkWrapperGAMTest::TestSetup() {
     
-    StreamString modelName          = testEnvironment.modelName;
-    StreamString modelFlags         = "";
+    StreamString scriptCall = "createTestModel(true, true);";
+    
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
@@ -713,15 +707,15 @@ bool SimulinkWrapperGAMTest::TestSetup() {
         "matrixConstant = (float64) {{1, 1, 1}, {2, 2, 2}, {3, 3, 3}}";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters() {
     
-    StreamString modelName          = testEnvironment.simpleModelName;
-    StreamString modelFlags         = "111110";
+    StreamString scriptCall = "createSimpleTestModel('hasStructParams', true);";
+    
     StreamString skipUnlinkedParams = "0";
     
     StreamString inputSignals = ""
@@ -761,16 +755,16 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters() {
         "structScalar-nested2-two = (float64) 1 ";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_NoTunableParameters() {
     
-    StreamString modelName          = testEnvironment.simpleModelName;
-    StreamString modelFlags         = "111000";
-    StreamString skipUnlinkedParams = "0";
+    StreamString scriptCall = "createSimpleTestModel('hasTunableParams',     false);";
+    
+    StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
         "In1_ScalarDouble  = {"
@@ -804,15 +798,15 @@ bool SimulinkWrapperGAMTest::TestSetup_NoTunableParameters() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
 
-    StreamString modelName          = testEnvironment.modelName;
-    StreamString modelFlags         = "";
+    StreamString scriptCall = "createTestModel(true, true);";
+    
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
@@ -884,15 +878,15 @@ bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
         "vectorConstant = (float64) {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_DontSkipUnlinkedTunableParams() {
     
-    StreamString modelName          = testEnvironment.modelName;
-    StreamString modelFlags         = "";
+    StreamString scriptCall = "createTestModel(true, true);";
+    
     StreamString skipUnlinkedParams = "0";
     
     StreamString inputSignals = ""
@@ -962,15 +956,15 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_DontSkipUnlinkedTunableParams() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return !ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfInputs() {
     
-    StreamString modelName          = testEnvironment.simpleModelName;
-    StreamString modelFlags         = "111100";
+    StreamString scriptCall = "createSimpleTestModel();";
+    
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
@@ -998,15 +992,15 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfInputs() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return !ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
     
-    StreamString modelName          = testEnvironment.simpleModelName;
-    StreamString modelFlags         = "111100";
+    StreamString scriptCall = "createSimpleTestModel();";
+    
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
@@ -1034,7 +1028,7 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return !ok;
 }
@@ -1042,8 +1036,8 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_StructArraysAsParams() {
     
-    StreamString modelName          = testEnvironment.simpleModelName;
-    StreamString modelFlags         = "111101";
+    StreamString scriptCall = "createSimpleTestModel('hasStructArrayParams', true);";
+    
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
@@ -1077,15 +1071,15 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_StructArraysAsParams() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return !ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_Failed_NestedStructArraysAsParams() {
     
-    StreamString modelName          = testEnvironment.simpleModelName;
-    StreamString modelFlags         = "111111";
+    StreamString scriptCall = "createSimpleTestModel('hasStructParams', true, 'hasStructArrayParams', true);";
+    
     StreamString skipUnlinkedParams = "0";
     
     StreamString inputSignals = ""
@@ -1124,7 +1118,7 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_NestedStructArraysAsParams() {
         "structScalar-nested2-two = (float64) 1 ";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(modelName, modelFlags, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return !ok;
 }
