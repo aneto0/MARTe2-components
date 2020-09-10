@@ -165,6 +165,16 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongDatatype) {
     ASSERT_TRUE(test.TestSetup_Failed_WrongDatatype());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_ParamWrongDimensions) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_ParamWrongDimensions());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_ParamWrongDatatype) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_ParamWrongDatatype());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_StructArraysAsParams) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_StructArraysAsParams());

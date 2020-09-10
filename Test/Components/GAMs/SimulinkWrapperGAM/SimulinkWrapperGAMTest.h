@@ -150,6 +150,8 @@ public:
     bool TestSetup_Failed_WrongNumberOfElements();
     bool TestSetup_Failed_WrongNumberOfDimensions();
     bool TestSetup_Failed_WrongDatatype();
+    bool TestSetup_Failed_ParamWrongDimensions();
+    bool TestSetup_Failed_ParamWrongDatatype();
     bool TestSetup_Failed_NoInputs();
     bool TestSetup_Failed_NoOutputs();
     bool TestSetup_Failed_StructArraysAsParams();

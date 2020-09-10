@@ -10,7 +10,7 @@ warning('off', 'all');
 modelComplexity      = 1;
 hasAllocFcn          = true;
 hasGetmmiFcn         = true;
-hasTunableParams     = true;
+hasTunableParams     = false;
 hasStructParams      = false;
 hasStructArrayParams = false;
 hasInputs            = true;
@@ -68,8 +68,10 @@ end
 
 %% define constants
 
-evalin('base', 'matrixConstant = [1 1 1; 2 2 2; 3 3 3];');
-evalin('base', 'vectorConstant = ones(10,1);');
+if hasTunableParams == true
+    evalin('base', 'matrixConstant = [1 1 1; 2 2 2; 3 3 3];');
+    evalin('base', 'vectorConstant = ones(10,1);');
+end
 
 if hasStructParams == true
     
@@ -187,16 +189,22 @@ end
 
 %% set block properties
 
-if hasStructParams == false && hasStructArrayParams == false
+gain1Param = '1';
+gain2Param = '2';
+
+if hasStructParams == false && hasStructArrayParams == false && hasTunableParams == false
     gain1Param = '1';
     gain2Param = '1';
-elseif hasStructParams == true && hasStructArrayParams == false
+elseif hasStructParams == false && hasStructArrayParams == false && hasTunableParams == true
+    gain1Param = '1';
+    gain2Param = 'vectorConstant';
+elseif hasStructParams == true && hasStructArrayParams == false && hasTunableParams == true
 	gain1Param = 'structScalar.nested1.one';
     gain2Param = 'structScalar.nested2.two';
-elseif hasStructParams == false && hasStructArrayParams == true
+elseif hasStructParams == false && hasStructArrayParams == true && hasTunableParams == true
 	gain1Param = 'structParamArray(1).one';
     gain2Param = '1';
-elseif hasStructParams == true && hasStructArrayParams == true
+elseif hasStructParams == true && hasStructArrayParams == true && hasTunableParams == true
     gain1Param = 'structScalar.one';
     gain2Param = 'structMixed.structParamArray(1).one';
 end
