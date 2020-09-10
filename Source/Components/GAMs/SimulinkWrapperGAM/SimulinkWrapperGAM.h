@@ -80,6 +80,17 @@
  * }
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
+ * Model parameters
+ * ================
+ * 
+ * The GAM can Actualise() (i.e. update) the tunable parameters contained in the model.
+ * New values for the parameters can be provided in two ways:
+ * 1. By declaring a `Paramters` leaf in the GAM configuration.
+ * 2. By linking the GAM to an external source of parameters.
+ * The external source of parameters is expected to be a ReferenceContainer
+ * populated by references to AnyObject whose name is the same of the
+ * parameters to be updated. Such an object can be created from any other
+ * object of the framework, thus guaranteeing interoperability.
  * 
  * @warning This GAM is compiled and available for usage only if the
  *          environmental variable `MATLAB_DIR` has been defined before

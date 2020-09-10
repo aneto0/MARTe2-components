@@ -136,7 +136,9 @@ public:
                                MARTe::StreamString parameters);
     
     bool TestSetup_StructTunableParameters();
+    bool TestSetup_StructTunableParametersFromExternalSource();
     bool TestSetup_NoTunableParameters();
+    bool TestSetup_WithStructSignals();
     
     bool TestSetup_SkipUnlinkedTunableParams();
     
