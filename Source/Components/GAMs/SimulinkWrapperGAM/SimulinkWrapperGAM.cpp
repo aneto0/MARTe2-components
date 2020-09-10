@@ -793,6 +793,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 
                 // Loop over all parameters in the MDSObjConnection container
                 if (status) {
+                    
                     for (uint32 paramIdx = 0u; (paramIdx < connection->Size()) && (status); paramIdx++) {
                         
                         ReferenceT<ReferenceContainer> parameter = connection->Get(paramIdx);
