@@ -755,70 +755,39 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     ///    with the GAM
     ///-------------------------------------------------------------------------
     
+    // The external parameter source must be a ReferenceContainer
+    // populated by references to AnyObject.
+    
     if (status) {
         
         ReferenceT<ReferenceContainer> mdsPar = ObjectRegistryDatabase::Instance()->Find(tunableParamExternalSource.Buffer());
         
         if (!mdsPar.IsValid()) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Tunable parameter loader %s is not valid", tunableParamExternalSource.Buffer());
+            REPORT_ERROR(ErrorManagement::ParametersError, "Tunable parameter loader %s is not valid (maybe not a ReferenceContainer?).", tunableParamExternalSource.Buffer());
         }
         else {
+            
             if (status) {
                 
-                // mdsPar must be of type MDSObjLoader
-                status = (StringHelper::Compare("MDSObjLoader", (mdsPar->GetClassProperties())->GetName()) == 0u);
-                
-                if (!status) {
-                    REPORT_ERROR(ErrorManagement::ParametersError,
-                        "Tunable parameter loader %s must be an instance of MDSObjLoader class.",
-                        tunableParamExternalSource.Buffer());
-                }
-            }
-            
-            // Loop over all connections in the MDSObjLoader container
-            for (uint32 connectionIdx = 0u; (connectionIdx < mdsPar->Size()) && (status); connectionIdx++) {
-                
-                ReferenceT<ReferenceContainer> connection = mdsPar->Get(connectionIdx);
-                status = connection.IsValid();
-                
-                if (status) {
-                    status = (StringHelper::Compare("MDSObjConnection", (connection->GetClassProperties())->GetName()) == 0u);
-                }
-                
-                if (!status) {
-                    REPORT_ERROR(ErrorManagement::ParametersError,
-                        "One of the children of loader class %s is not valid (must be an instances of MDSObjConnection class).",
-                        tunableParamExternalSource.Buffer());
-                }
-                
-                // Loop over all parameters in the MDSObjConnection container
-                if (status) {
+                // Loop over all references in the MDSObjLoader container
+                for (uint32 objectIdx = 0u; (objectIdx < mdsPar->Size()); objectIdx++) {
                     
-                    for (uint32 paramIdx = 0u; (paramIdx < connection->Size()) && (status); paramIdx++) {
+                    ReferenceT<AnyObject> paramObject = mdsPar->Get(objectIdx);
+                    bool isAnyObject = paramObject.IsValid();
+                    
+                    // Ignore references that do not point to AnyObject
+                    if (isAnyObject) {
                         
-                        ReferenceT<ReferenceContainer> parameter = connection->Get(paramIdx);
-                        status = parameter.IsValid();
+                        // Compose absolute path:
+                        StreamString parameterAbsolutePath = "";
+                        parameterAbsolutePath += mdsPar->GetName();
+                        parameterAbsolutePath += ".";
+                        parameterAbsolutePath += paramObject->GetName();
                         
-                        if (status) {
-                            
-                            // Compose absolute path:
-                            StreamString parameterAbsolutePath = "";
-                            parameterAbsolutePath += mdsPar->GetName();
-                            parameterAbsolutePath += ".";
-                            parameterAbsolutePath += connection->GetName();
-                            parameterAbsolutePath += ".";
-                            parameterAbsolutePath += parameter->GetName();
-                            
-                            // the string is used to make a name-path cdb
-                            externalParameterDatabase.Write(parameter->GetName(), parameterAbsolutePath.Buffer());
-                            
-                        }
-                        else {
-                            
-                            REPORT_ERROR(ErrorManagement::Exception, "Reference to parameter %s is invalid.", parameter->GetName());
-                        }
-                        
+                        // the string is used to make a name-path cdb
+                        externalParameterDatabase.Write(paramObject->GetName(), parameterAbsolutePath.Buffer());
                     }
+                    
                 }
             }
         }
@@ -834,9 +803,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     
     AnyType sourceParameter;    // the source of data from which to actualise
     
-    bool isLoaded;              // whether the parameter was correctly loaded by the loader mechanism
+    bool isLoaded;              // whether the parameter is available (i.e. was correctly loaded by the loader mechanism)
     bool isActualised;          // whether the parameter has been correctly actualized
-    bool isUnlinked;            // special condition for a parameter from the loader class whose path is empty. It shall be skipped even if skipUnlinkedTunableParams == 0
+    bool isUnlinked;            // special condition for a parameter from MDSplus whose path is empty. It shall be skipped even if skipUnlinkedTunableParams == 0
     
     StreamString parameterSourceName;
     
@@ -854,14 +823,32 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         if (cfgParameterDatabase.Read(currentParamName, parameterPathInObjDatabase)) {
             
             parameterSourceName = "configuration file";
+            isLoaded = true;
+        }
+        
+        // 2. Parameters from loader class (2nd-highest priority)
+        else if (externalParameterDatabase.Read(currentParamName, parameterPathInObjDatabase)) {
+            
+            parameterSourceName = "loader class";
+            isLoaded = true;
+        }
+        
+        // 3. Parameter not found (if skipUnlinkedTunableParams, then use compile-time value)
+        else {
+            isLoaded = false;
+        }
+        
+        // Data is copied from the source parameter to the model
+        if (isLoaded) {
             
             ReferenceT<AnyObject> sourceParameterPtr;
             sourceParameterPtr = ObjectRegistryDatabase::Instance()->Find(parameterPathInObjDatabase.Buffer());
             
             isLoaded = sourceParameterPtr.IsValid();
-            if (!status) {
+            if (!isLoaded) {
                 REPORT_ERROR(ErrorManagement::CommunicationError,
-                    "Parameter %s: invalid reference from configuration file.",
+                    "Parameter %s: invalid reference from %s.",
+                    parameterSourceName,
                     currentParamName
                 );
             }
@@ -870,41 +857,6 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 sourceParameter = sourceParameterPtr->GetType();
             }
             
-        }
-        // 2. Parameters from loader class (2nd-highest priority)
-        else if (externalParameterDatabase.Read(currentParamName, parameterPathInObjDatabase)) {
-            
-            parameterSourceName = "loader class";
-            
-            ReferenceT<AnyType> sourceParameterPtr;
-            sourceParameterPtr = ObjectRegistryDatabase::Instance()->Find(parameterPathInObjDatabase.Buffer());
-            
-            isLoaded = sourceParameterPtr.IsValid();
-            if (!status) {
-                REPORT_ERROR(ErrorManagement::CommunicationError,
-                    "Parameter %s: invalid reference from loader class.",
-                    currentParamName
-                );
-            }
-            
-            if (isLoaded) {
-                // Check reference->IsStaticDeclared(): if false, the paramater was skipped by the loader class
-                isUnlinked = !sourceParameterPtr->IsStaticDeclared();
-                
-                if (!isUnlinked) {
-                    sourceParameter = *(sourceParameterPtr.operator ->());
-                }
-                
-            }
-            
-        }
-        // 3. Parameter not found (if skipUnlinkedTunableParams, then use compile-time value)
-        else {
-            isLoaded = false;
-        }
-            
-        // Data is copied from the source parameter to the model
-        if (isLoaded) {
             isActualised = modelParameters[paramIdx]->Actualise(sourceParameter);
         }
         
