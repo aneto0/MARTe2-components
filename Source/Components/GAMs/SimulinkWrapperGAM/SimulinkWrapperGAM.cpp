@@ -517,7 +517,7 @@ PrintIntrospection("Intr");
         }
     }
 
-    /// 4. Building of a reference container containing parameter values
+    /// 4. Build a reference container containing parameter values
     ///    retrieved in the configuration file (under the `Parameters` node).
     
     bool hasParameterLeaf = false;
@@ -686,7 +686,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     ///-------------------------------------------------------------------------
     
     // Scan root input/output ports, print them if verbosity level is enough and
-    // build the vectos of ports objects
+    // build the vectors of port objects
     REPORT_ERROR(ErrorManagement::Information, "%s, number of root inputs: %d", libraryName.Buffer(), modelNumOfInputs);
     ScanRootIO(mmi, ROOTSIG_INPUTS);
 
@@ -751,8 +751,8 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     }
     
     ///-------------------------------------------------------------------------
-    /// 6. Check parameter coherence between GAM and model
-    ///    and Actualise()
+    /// 6. Verify that the external parameter source is compatible
+    ///    with the GAM
     ///-------------------------------------------------------------------------
     
     if (status) {
@@ -783,52 +783,59 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 
                 if (status) {
                     status = (StringHelper::Compare("MDSObjConnection", (connection->GetClassProperties())->GetName()) == 0u);
-                    if (!status) {
-                        REPORT_ERROR(ErrorManagement::ParametersError,
-                        "Children of parameter loader %s must be instances of MDSObjConnection class.",
+                }
+                
+                if (!status) {
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                        "One of the children of loader class %s is not valid (must be an instances of MDSObjConnection class).",
                         tunableParamExternalSource.Buffer());
-                    }
                 }
                 
                 // Loop over all parameters in the MDSObjConnection container
-                for (uint32 paramIdx = 0u; (paramIdx < connection->Size()) && (status); paramIdx++) {
-                    
-                    ReferenceT<ReferenceContainer> parameter = connection->Get(paramIdx);
-                    status = parameter.IsValid();
-                    
-                    if (status) {
+                if (status) {
+                    for (uint32 paramIdx = 0u; (paramIdx < connection->Size()) && (status); paramIdx++) {
                         
-                        // Compose absolute path:
-                        StreamString parameterAbsolutePath = "";
-                        parameterAbsolutePath += mdsPar->GetName();
-                        parameterAbsolutePath += ".";
-                        parameterAbsolutePath += connection->GetName();
-                        parameterAbsolutePath += ".";
-                        parameterAbsolutePath += parameter->GetName();
+                        ReferenceT<ReferenceContainer> parameter = connection->Get(paramIdx);
+                        status = parameter.IsValid();
                         
-                        // the string is used to make a name-path cdb that can be passed to params instead of mdsParcdb
-                        externalParameterDatabase.Write(parameter->GetName(), parameterAbsolutePath.Buffer());
+                        if (status) {
+                            
+                            // Compose absolute path:
+                            StreamString parameterAbsolutePath = "";
+                            parameterAbsolutePath += mdsPar->GetName();
+                            parameterAbsolutePath += ".";
+                            parameterAbsolutePath += connection->GetName();
+                            parameterAbsolutePath += ".";
+                            parameterAbsolutePath += parameter->GetName();
+                            
+                            // the string is used to make a name-path cdb
+                            externalParameterDatabase.Write(parameter->GetName(), parameterAbsolutePath.Buffer());
+                            
+                        }
+                        else {
+                            
+                            REPORT_ERROR(ErrorManagement::Exception, "Reference to parameter %s is invalid.", parameter->GetName());
+                        }
                         
                     }
-                    else {
-                        
-                        REPORT_ERROR(ErrorManagement::Exception, "Reference to parameter %s is invalid.", parameter->GetName());
-                    }
-                    
                 }
-                
             }
         }
     }
-
-    // Loop over all parameters retrieved from the model and update their
+    
+    ///-------------------------------------------------------------------------
+    /// 6. Check parameter coherence between GAM and model
+    ///    and Actualise()
+    ///-------------------------------------------------------------------------
+    
+    // Loop over all tunable parameters found in the model and update their
     // value with what is stored in the AnyType that is passed to Actualise()
     
-    AnyType sourceParameter;        // the source of data from which to actualise
+    AnyType sourceParameter;    // the source of data from which to actualise
     
-    bool isLoaded;         // whether the parameter was correctly loaded by the loader mechanism
-    bool isActualised;     // whether the parameter has been correctly actualized
-    bool isUnlinked;       // special condition for a parameter from the loader class whose path is empty. It shall be skipped even if skipUnlinkedTunableParams == 0
+    bool isLoaded;              // whether the parameter was correctly loaded by the loader mechanism
+    bool isActualised;          // whether the parameter has been correctly actualized
+    bool isUnlinked;            // special condition for a parameter from the loader class whose path is empty. It shall be skipped even if skipUnlinkedTunableParams == 0
     
     StreamString parameterSourceName;
     
