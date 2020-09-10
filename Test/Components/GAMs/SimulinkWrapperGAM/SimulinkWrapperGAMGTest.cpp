@@ -140,6 +140,31 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfOutputs) {
     ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfOutputs());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongInputName) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongInputName());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongOutputName) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongOutputName());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfElements) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfElements());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfDimensions) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfDimensions());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongDatatype) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongDatatype());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_StructArraysAsParams) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_StructArraysAsParams());
@@ -158,6 +183,16 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_NoInputs) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_NoOutputs) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_NoOutputs());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongDatatypeWithStructSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongDatatypeWithStructSignals());
 }
 
 /*---------------------------------------------------------------------------*/

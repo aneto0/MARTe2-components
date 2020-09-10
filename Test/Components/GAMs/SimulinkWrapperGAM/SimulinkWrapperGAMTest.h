@@ -145,10 +145,17 @@ public:
     bool TestSetup_Failed_DontSkipUnlinkedTunableParams();
     bool TestSetup_Failed_WrongNumberOfInputs();
     bool TestSetup_Failed_WrongNumberOfOutputs();
+    bool TestSetup_Failed_WrongInputName();
+    bool TestSetup_Failed_WrongOutputName();
+    bool TestSetup_Failed_WrongNumberOfElements();
+    bool TestSetup_Failed_WrongNumberOfDimensions();
+    bool TestSetup_Failed_WrongDatatype();
     bool TestSetup_Failed_NoInputs();
     bool TestSetup_Failed_NoOutputs();
     bool TestSetup_Failed_StructArraysAsParams();
     bool TestSetup_Failed_NestedStructArraysAsParams();
+    bool TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals();
+    bool TestSetup_Failed_WrongDatatypeWithStructSignals();
     
     /**
      * @brief A general template for the GAM configuration.

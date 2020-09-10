@@ -156,6 +156,7 @@ if hasStructSignals == true
     set_param([model_name '/Out20_NonVirtualBus'], 'IconDisplay',    'Signal name');
     set_param([model_name '/Out20_NonVirtualBus'], 'OutDataTypeStr', 'Inherit: auto');
     
+    % custom type for the nonvirtual bus
     evalin('base', 'clear bus1Elems;');
     evalin('base', 'bus1Elems(1) = Simulink.BusElement;');
     evalin('base', 'bus1Elems(1).Name = ''Signal1'';');

@@ -1246,6 +1246,236 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
     return !ok;
 }
 
+bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongInputName() {
+    
+    StreamString scriptCall = "createSimpleTestModel();";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUINT32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString parameters = "";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return !ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongOutputName() {
+    
+    StreamString scriptCall = "createSimpleTestModel();";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUINT32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString parameters = "";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return !ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongDatatype() {
+    
+    StreamString scriptCall = "createSimpleTestModel();";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString parameters = "";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return !ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfElements() {
+    
+    StreamString scriptCall = "createSimpleTestModel();";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 10"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString parameters = "";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return !ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfDimensions() {
+    
+    StreamString scriptCall = "createSimpleTestModel();";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+    
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString parameters = "";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return !ok;
+}
+
 bool SimulinkWrapperGAMTest::TestSetup_Failed_NoInputs() {
     
     StreamString scriptCall = "createSimpleTestModel('hasInputs', false);";
@@ -1402,6 +1632,112 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_NestedStructArraysAsParams() {
         "structScalar-nested1-two = (float64) 1 "
         "structScalar-nested2-one = (float64) 1 "
         "structScalar-nested2-two = (float64) 1 ";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return !ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals() {
+    
+    StreamString scriptCall = "createSimpleTestModel('hasStructSignals',     true);";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out20_NonVirtualBus  = {"
+        "    DataSource = DDB1"
+        "    Type = uint8"
+        "    NumberOfElements = 16"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+
+    StreamString parameters = "";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return !ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongDatatypeWithStructSignals() {
+    
+    StreamString scriptCall = "createSimpleTestModel('hasStructSignals',     true);";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out20_NonVirtualBus  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 16"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+
+    StreamString parameters = "";
     
     // Test setup
     bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
