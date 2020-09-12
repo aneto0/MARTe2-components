@@ -751,8 +751,8 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     }
     
     ///-------------------------------------------------------------------------
-    /// 6. Verify that the external parameter source is compatible
-    ///    with the GAM
+    /// 6. Verify that the external parameter source (if any)
+    ///    is compatible with the GAM
     ///-------------------------------------------------------------------------
     
     // The external parameter source must be a ReferenceContainer
@@ -794,7 +794,8 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     }
     
     ///-------------------------------------------------------------------------
-    /// 6. Check parameter coherence between GAM and model
+    /// 7. Retrieve a value for parameter actualisation,
+    ///    check parameter coherence between GAM and model
     ///    and Actualise()
     ///-------------------------------------------------------------------------
     
@@ -885,7 +886,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     }
     
     ///-------------------------------------------------------------------------
-    /// 7. Print port/signal details
+    /// 8. Print port/signal details
     ///-------------------------------------------------------------------------
     
     // Print ports signals details
@@ -1231,7 +1232,7 @@ void SimulinkWrapperGAM::ScanParameter(uint_T paridx, StreamString spacer, enum 
     }
 
     ELEctypename         = rtwCAPI_GetDataTypeCName(dataTypeMap, ELEdataTypeIndex);
-    ELEnumDims           = rtwCAPI_GetNumDims      (dimMap,      ELEdimIndex);      // not number of dimensions, but number of slots occupied in the dimension array
+    ELEnumDims           = rtwCAPI_GetNumDims      (dimMap,      ELEdimIndex);      // not number of dimensions in MARTe2 sense, but number of slots occupied in the dimension array
     ELEdimArrayIdx       = rtwCAPI_GetDimArrayIndex(dimMap,      ELEdimIndex);
     ELEorientation       = rtwCAPI_GetOrientation  (dimMap,      ELEdimIndex);
 
@@ -1653,7 +1654,8 @@ void SimulinkWrapperGAM::ScanSignal(uint_T sigidx, StreamString spacer, enum rtw
     
     currentPort->typeBasedSize += ELEsize*ELEdataTypeSize;
     currentPort->totalNumberOfElements += ELEsize;
-
+    currentPort->numberOfDimensions = ELEMARTeNumDims;
+    
     StreamString sstemp;
     sstemp = ELEctypename;
     
@@ -1815,6 +1817,15 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                 return false;
             }
             
+            GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
+            if (GAMNumberOfDimensions != (modelPorts[portIdx]->numberOfDimensions))
+            {
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                    "%s signal %s number of dimensions mismatch (GAM: %d, model: %u)",
+                    directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfDimensions, modelPorts[portIdx]->numberOfDimensions);
+                return false;
+            }
+            
             GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
             if (GAMNumberOfElements != (modelPorts[portIdx]->totalNumberOfElements))
             {
@@ -1842,12 +1853,10 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                 return false;
             }
             
-            GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-            
-            if (GAMNumberOfDimensions != 1u)
+            if (GAMNumberOfDimensions > 1u)
             {
                 REPORT_ERROR(ErrorManagement::ParametersError,
-                    "%s signal %s dimension mismatch (only vector signals supported)",
+                    "%s signal %s dimension mismatch (only scalar or vector signals supported)",
                     directionName.Buffer(), GAMSignalName.Buffer());
                 return false;
             }

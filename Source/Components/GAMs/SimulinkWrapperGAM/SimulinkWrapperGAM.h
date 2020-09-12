@@ -92,6 +92,22 @@
  * parameters to be updated. Such an object can be created from any other
  * object of the framework, thus guaranteeing interoperability.
  * 
+ * Actualisation mechanism:
+ * 1. ScanParameters() method retrieves informations about model
+ *    parameters from the model shared library
+ *    using the C APIs, and saves them in the modelParameters array 
+ * 2. The GAM loops over all the retrieved tunable parameters in the
+ *    modelParameters array and looks for a souce of data of the same
+ *    name in the `Parameters` configuration node and in the declared
+ *    external parameter source (if any).
+ * 3. If a source of data is found, the GAM retrieves the corresponding
+ *    AnyType and passes it to the SimulinkParameter::Actualise() method.
+ * 4. The SimulinkParameter::Actualise() method checks that the parameter
+ *    from the model shared library and the input AnyType are coherent
+ *    (same type, same dimension...). If all checks are OK, then the
+ *    parameter value in the model shared library is updated with
+ *    the value pointed by the input AnyType.
+ * 
  * @warning This GAM is compiled and available for usage only if the
  *          environmental variable `MATLAB_DIR` has been defined before
  *          the compilation of MARTe2-components.
