@@ -102,156 +102,132 @@ void SimulinkDataI::PrintData(uint32 maxNameLength /* = 0u */, StreamString addi
 
 bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
     
-//     bool ok = sourceParameter.IsValid();
-//     if (!ok) {
-//         REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
-//             "Parameter actualization failed: invalid reference.");
-//     }
-    
     bool ok = true;
     
+    // Type coherence check
     if (ok) {
         
-        // with this reference the name of the class can be retrieved if needed
-        //ReferenceT<ReferenceContainer> sourceParamAsContainer = sourceParameter;
-        //const char8* paramName = sourceParamAsContainer->GetClassProperties()->GetName();
+        TypeDescriptor slkType  = TypeDescriptor::GetTypeDescriptorFromTypeName(MARTeTypeName.Buffer());
+        TypeDescriptor mdsType = sourceParameter.GetTypeDescriptor();
         
-//         ok = sourceParameter.IsValid();
-//         
-//         if (!ok) {
-//             REPORT_ERROR_STATIC(ErrorManagement::Warning,
-//                 "Parameter %s: invalid reference. Is the parameter loader class ok?",
-//                 fullName.Buffer());
-//         }
+        ok = (mdsType == slkType);
         
-        // Before importing value, coherence checks between model parameter
-        // and imported value are performed.
-                
-        // Type coherence check
-        if (ok) {
-            
-            TypeDescriptor slkType  = TypeDescriptor::GetTypeDescriptorFromTypeName(MARTeTypeName.Buffer());
-            TypeDescriptor mdsType = sourceParameter.GetTypeDescriptor();
-            
-            ok = (mdsType == slkType);
-            
-            if (!ok) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning,
-                    "Parameter %s data type not matching (parameter source: %s, model: %s)",
-                    fullName.Buffer(),
-                    TypeDescriptor::GetTypeNameFromTypeDescriptor(mdsType),
-                    MARTeTypeName.Buffer());
-            }
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::Warning,
+                "Parameter %s data type not matching (parameter source: %s, model: %s)",
+                fullName.Buffer(),
+                TypeDescriptor::GetTypeNameFromTypeDescriptor(mdsType),
+                MARTeTypeName.Buffer());
         }
+    }
+    
+    // Type size coherence check
+    if (ok) {
         
-        // Orientation check is not necessary: an AnyType is passed by, so
-        // whatever generated this AnyType is in charge for granting that
-        // the AnyType data buffer is in standard row-major format.
+        uint32 slkTypeSize = dataTypeSize;
+        uint32 mdsTypeSize = sourceParameter.GetByteSize();
         
-        // Type size coherence check
-        if (ok) {
-            
-            uint32 slkTypeSize = dataTypeSize;
-            uint32 mdsTypeSize = sourceParameter.GetByteSize();
-            
-            ok = (mdsTypeSize == slkTypeSize);
-            
-            if (!ok) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning,
-                    "Parameter %s data type size not matching (parameter source: %d, model: %d)",
-                    fullName.Buffer(), mdsTypeSize, slkTypeSize);
-            }
+        ok = (mdsTypeSize == slkTypeSize);
+        
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::Warning,
+                "Parameter %s data type size not matching (parameter source: %d, model: %d)",
+                fullName.Buffer(), mdsTypeSize, slkTypeSize);
         }
+    }
+    
+    // Number of dimensions check (scalar, vector or matrix)
+    if(ok) {
         
-        // Number of dimensions check (scalar, vector or matrix)
-        if(ok) {
-            
-            ok = (sourceParameter.GetNumberOfDimensions() == numberOfDimensions);
-            
-            if (!ok) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning,
-                    "Parameter %s number of dimensions not matching (parameter source: %d, model: %d)",
-                    fullName.Buffer(), sourceParameter.GetNumberOfDimensions(), numberOfDimensions);
-            }
+        ok = (sourceParameter.GetNumberOfDimensions() == numberOfDimensions);
+        
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::Warning,
+                "Parameter %s number of dimensions not matching (parameter source: %d, model: %d)",
+                fullName.Buffer(), sourceParameter.GetNumberOfDimensions(), numberOfDimensions);
         }
+    }
+    
+    // Dimensionality check
+    if(ok)
+    {
+        uint32 mdsDim1 = sourceParameter.GetNumberOfElements(0u);
+        uint32 mdsDim2 = sourceParameter.GetNumberOfElements(1u);
+        uint32 mdsDim3 = sourceParameter.GetNumberOfElements(2u);
         
-        // Dimensionality check
-        if(ok)
-        {
-            uint32 mdsDim1 = sourceParameter.GetNumberOfElements(0u);
-            uint32 mdsDim2 = sourceParameter.GetNumberOfElements(1u);
-            uint32 mdsDim3 = sourceParameter.GetNumberOfElements(2u);
+        uint32 slkDim1 = numberOfElements[0u];
+        uint32 slkDim2 = numberOfElements[1u];
+        uint32 slkDim3 = numberOfElements[2u];
+        
+        // On the model side, scalar are [1,1], vectors are [1,N] or [N,1],
+        // matrices are [N,M]. AnyType instead can be respectively [1], [N], [N,M].
+        switch (sourceParameter.GetNumberOfDimensions()) {
             
-            uint32 slkDim1 = numberOfElements[0u];
-            uint32 slkDim2 = numberOfElements[1u];
-            uint32 slkDim3 = numberOfElements[2u];
-            
-            // On the model side, scalar are [1,1], vectors are [1,N] or [N,1],
-            // matrices are [N,M]. AnyType instead can be respectively [1], [N], [N,M].
-            switch (sourceParameter.GetNumberOfDimensions()) {
+            case 0u: { // Scalar
                 
-                case 0u: { // Scalar
-                    
-                    ok = (mdsDim1 == 1u);
-                    break;
-                }
-                
-                case 1u: { // Vector
-                    
-                    // Model vectors can be [1,N] or [N,1], both are ok
-                    bool orientOk1 = ( (mdsDim1 == slkDim1) && (mdsDim2 == 1u)      );
-                    bool orientOk2 = ( (mdsDim1 == 1u)      && (mdsDim2 == slkDim1) );
-                    bool orientOk3 = ( (mdsDim1 == slkDim2) && (mdsDim2 == 1u)      );
-                    
-                    ok = ( orientOk1 || orientOk2 || orientOk3 );
-                    break;
-                }
-                
-                case 2u: { // Matrix
-                    
-                    ok = ( mdsDim1 = slkDim1 && mdsDim2 == slkDim2 && mdsDim3 == 1u );
-                    break;
-                }
-                
-                case 3u: { // 3D matrix
-                    
-                    ok = ( mdsDim1 = slkDim1 && mdsDim2 == slkDim2 && mdsDim3 == slkDim3 );
-                    break;
-                }
-                
-                default:
-                    
-                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
-                        "Parameter %s: number of dimensions > 3.",
-                        fullName.Buffer());
-                    break;
-                
+                ok = (mdsDim1 == 1u);
+                break;
             }
-            if (!ok) {
+            
+            case 1u: { // Vector
+                
+                // Model vectors can be [1,N] or [N,1], both are ok
+                bool orientOk1 = ( (mdsDim1 == slkDim1) && (mdsDim2 == 1u)      );
+                bool orientOk2 = ( (mdsDim1 == 1u)      && (mdsDim2 == slkDim1) );
+                bool orientOk3 = ( (mdsDim1 == slkDim2) && (mdsDim2 == 1u)      );
+                
+                ok = ( orientOk1 || orientOk2 || orientOk3 );
+                break;
+            }
+            
+            case 2u: { // Matrix
+                
+                ok = ( mdsDim1 = slkDim1 && mdsDim2 == slkDim2 && mdsDim3 == 1u );
+                break;
+            }
+            
+            case 3u: { // 3D matrix
+                
+                ok = ( mdsDim1 = slkDim1 && mdsDim2 == slkDim2 && mdsDim3 == slkDim3 );
+                break;
+            }
+            
+            default:
+                
                 REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
-                    "Parameter %s: dimensions not matching (parameter source: [%u, %u, %u], model: [%u, %u, %u]).",
-                    fullName.Buffer(),
-                    mdsDim1, mdsDim2, mdsDim3,
-                    slkDim1, slkDim2, slkDim3);
-            }
-        }
-
-        // Total data size check
-        if (ok)
-        {
-            ok = (sourceParameter.GetDataSize() == byteSize);
+                    "Parameter %s: number of dimensions > 3.",
+                    fullName.Buffer());
+                break;
             
-            if(!ok) {
-                REPORT_ERROR_STATIC(ErrorManagement::Warning,
-                    "Parameter %s: total data size not matching (parameter source: %d, model: %d)",
-                    fullName.Buffer(), sourceParameter.GetDataSize(), byteSize);
-            }
         }
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
+                "Parameter %s: dimensions not matching (parameter source: [%u, %u, %u], model: [%u, %u, %u]).",
+                fullName.Buffer(),
+                mdsDim1, mdsDim2, mdsDim3,
+                slkDim1, slkDim2, slkDim3);
+        }
+    }
+
+    // Total data size check
+    if (ok)
+    {
+        ok = (sourceParameter.GetDataSize() == byteSize);
         
-        // Checks passed, data buffer can be copied from the input AnyType to the model memory
-        if (ok) {
-            MemoryOperationsHelper::Copy(address, sourceParameter.GetDataPointer(), sourceParameter.GetDataSize());
+        if(!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::Warning,
+                "Parameter %s: total data size not matching (parameter source: %d, model: %d)",
+                fullName.Buffer(), sourceParameter.GetDataSize(), byteSize);
         }
+    }
+    
+    // Orientation check is not necessary: an AnyType is passed by, so
+    // whatever generated this AnyType is in charge for granting that
+    // the AnyType data buffer is in standard row-major format.
+    
+    // Checks passed, data buffer can be copied from the input AnyType to the model memory
+    if (ok) {
+        MemoryOperationsHelper::Copy(address, sourceParameter.GetDataPointer(), sourceParameter.GetDataSize());
     }
     
     return ok;

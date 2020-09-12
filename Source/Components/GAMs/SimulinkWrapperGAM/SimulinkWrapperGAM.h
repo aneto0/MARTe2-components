@@ -108,6 +108,9 @@
  *    parameter value in the model shared library is updated with
  *    the value pointed by the input AnyType.
  * 
+ * @note *Nonvirtual bus* and *structured signal* are used interchangeably
+ *       in this documentation.
+ * 
  * @warning This GAM is compiled and available for usage only if the
  *          environmental variable `MATLAB_DIR` has been defined before
  *          the compilation of MARTe2-components.
@@ -120,6 +123,14 @@
  *             with data of different types, if the last element is
  *             small in size a padding is introduced. The size
  *             inconsistency is detected by the GAM that stops esecution.
+ *          2. Check orientation of parameters in the Simulink model
+ *             and update the SimulinkParameter::Actualise() method accordingly:
+ *             we assume that source values come in row-major format, so
+ *             a. if in the model they are row-major just copy
+ *             b. if in the model thay are column-major, invert
+ *          3. Add support for column-major matrix signals: this means
+ *             updating the SimulinkPorts::CopyData() method so that
+ *             it can invert the signal if necessary.
  *             
  */
 

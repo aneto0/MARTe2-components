@@ -849,38 +849,57 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             if (!isLoaded) {
                 REPORT_ERROR(ErrorManagement::CommunicationError,
                     "Parameter %s: invalid reference from %s.",
-                    parameterSourceName,
-                    currentParamName
+                    currentParamName,
+                    parameterSourceName
                 );
             }
             
             if (isLoaded) {
                 sourceParameter = sourceParameterPtr->GetType();
+                
+                if (sourceParameter.IsStaticDeclared()) {
+                    isActualised = modelParameters[paramIdx]->Actualise(sourceParameter);
+                }
+                else {
+                    isUnlinked = true;
+                }
             }
             
-            isActualised = modelParameters[paramIdx]->Actualise(sourceParameter);
         }
-        
+
+        // Cases in which execution can continue
         if (isLoaded && isActualised) {
             REPORT_ERROR(ErrorManagement::Information,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s correctly actualized from %s.",
                 currentParamName, parameterSourceName.Buffer());
         }
-        else if ( (!isLoaded && !isActualised && skipUnlinkedTunableParams) || (!isLoaded && !isActualised && isUnlinked)) {
+        else if (isLoaded && !isActualised && isUnlinked) {
             REPORT_ERROR(ErrorManagement::Information,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s unlinked, using compile time value",
                 currentParamName);
         }
-        else if (isLoaded && !isActualised && skipUnlinkedTunableParams) {
+        else if (isLoaded && !isActualised && !isUnlinked && skipUnlinkedTunableParams) {
             REPORT_ERROR(ErrorManagement::Warning,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s cannot be actualized, using compile time value",
                 currentParamName);
+        }
+        else if (!isLoaded && !isActualised && skipUnlinkedTunableParams) {
+            REPORT_ERROR(ErrorManagement::Information,
+                "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s not found, using compile time value",
+                currentParamName);
+        }
+        // Cases in which execution should be stopped
+        else if (!isLoaded && !isActualised && !skipUnlinkedTunableParams) {
+            REPORT_ERROR(ErrorManagement::Information,
+                "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s not found, failing",
+                currentParamName);
+            status = false;
         }
         else {
             REPORT_ERROR(ErrorManagement::ParametersError,
                 "skipUnlinkedTunableParams is false and parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s cannot be actualized, failing",
                 currentParamName);
-            status = false;   // this is the only case execution should be stopped
+            status = false;
         }
 
     }
