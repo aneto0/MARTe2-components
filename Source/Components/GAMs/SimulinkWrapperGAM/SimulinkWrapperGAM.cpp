@@ -866,7 +866,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             }
             
         }
-
+        
+        // Based upon the actualisation outcome, execution is continued or stopped.
+        
         // Cases in which execution can continue
         if (isLoaded && isActualised) {
             REPORT_ERROR(ErrorManagement::Information,
@@ -1886,7 +1888,7 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
         }
         else
         {
-            // Non-homogeneus port checks (a structured signal). In this case we check only the size and the GAM datatype must be uint8
+            // Non-homogeneus port checks (structured signal). In this case we check only the size and the GAM datatype must be uint8
             // (i.e. we treat the port as a continuous array of bytes)
             
             GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
@@ -1902,7 +1904,7 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
             if (GAMNumberOfDimensions != 1u)
             {
                 REPORT_ERROR(ErrorManagement::ParametersError,
-                    "%s signal %s dimension mismatch (only vector signals supported)",
+                    "%s signal %s dimension mismatch: structured signal must have NumberOfDimensions = 1",
                     directionName.Buffer(), GAMSignalName.Buffer());
                 return false;
             }

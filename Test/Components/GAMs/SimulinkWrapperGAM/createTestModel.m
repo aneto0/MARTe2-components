@@ -267,6 +267,8 @@ end
 set_param(model_name, 'IncludeMdlTerminateFcn', 0);
 set_param(model_name, 'CombineSignalStateStructs', 1);
 
+set_param(model_name, 'ArrayLayout', 'Row-major');
+
 try
     rtwbuild(model_name)
     model_compiled = true;

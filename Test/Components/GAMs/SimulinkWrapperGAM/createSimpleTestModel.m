@@ -16,6 +16,7 @@ hasStructArrayParams = false;
 hasInputs            = true;
 hasOutputs           = true;
 hasStructSignals     = false;
+dataOrientation      = 'Column-major';   isRowMajor = 0;
 
 while ~isempty(varargin)
     
@@ -48,6 +49,10 @@ while ~isempty(varargin)
         case 'hasStructSignals'
             hasStructSignals = varargin{2};
         
+        case 'defaultCorientation'
+            defaultOrientation = varargin{2};
+            isRowMajor = 1;
+            
         otherwise
             error(['Unexpected option: ' varargin{1}])
     end
@@ -58,6 +63,7 @@ end
 model_name = ['testModel_' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
                            int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
                            int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
+                           int2str(isRowMajor) ...
              ];
 
 model_compiled = false;
@@ -303,6 +309,10 @@ end
 
 set_param(model_name, 'IncludeMdlTerminateFcn', 0);
 set_param(model_name, 'CombineSignalStateStructs', 1);
+
+if isRowMajor == 1
+    set_param(model_name, 'ArrayLayout', dataOrientation);
+end
 
 try
     rtwbuild(model_name)

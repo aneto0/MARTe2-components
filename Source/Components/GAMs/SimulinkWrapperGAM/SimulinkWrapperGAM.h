@@ -108,6 +108,19 @@
  *    parameter value in the model shared library is updated with
  *    the value pointed by the input AnyType.
  * 
+ * Structured signals (Nonvirtual buses)
+ * =====================================
+ * 
+ * By convention a structred signal must be declared as a `uint8` vector:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * BuSignal = {
+ *     Type               = uint8
+ *     NumberOfDimensions = 1
+ *     NumberOfElements   = 10     // As many as the signal total bytesize
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
  * @note *Nonvirtual bus* and *structured signal* are used interchangeably
  *       in this documentation.
  * 
