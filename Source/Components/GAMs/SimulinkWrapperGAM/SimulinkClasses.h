@@ -137,15 +137,16 @@ class SimulinkParameter : public SimulinkDataI {
     
 public:
     /**
-     * @brief   Updates a data inside the model based on an AnyType.
+     * @brief   Updates the value of a parameter inside the model
+     *          shared library based on an AnyType.
      * @details This methods updates the parameter with name #fullName of the
      *          Simulink(R) model with the value of the input AnyType.
      *          Before updating, coherence checks between the input AnyType
      *          and the model parameter are carried out. Type, dimensionality
      *          and data size must agree, otherwise the actualization fails.
      * @return  `true` if parameter is correctly actualized, `false` otherwise.
-     * @param[in] sourceParameter a reference to the AnyType holding the
-     *                            parameter value to be used to update the
+     * @param[in] sourceParameter a reference to the AnyType pointing to the
+     *                            parameter value that will be used to update the
      *                            model parameter.
      * @warning The data pointed by the input AnyType are assumed to be
      *          in row-major format, and this is *not* checked by the
@@ -165,18 +166,23 @@ public:
 /*---------------------------------------------------------------------------*/
 
 /**
- * @brief   Class that manages informations about a Simulink(R) signal retirieved
- *          from the model shared library.
- * @details This class inherits from SimulinkDataI.
+ * @brief   Class that manages informations about a Simulink(R) signal
+ *          retirieved from the model shared library.
+ * @details This class inherits from SimulinkDataI and only adds two
+ *          members: #MARTeAddress and #offset (see their description
+ *          for details).
  */
 class SimulinkSignal : public SimulinkDataI {
 
 public:
     
+    /**
+     * @brief Default constructor.
+     */
     SimulinkSignal();
     
-    void*  MARTeAddress;
-    uint32 offset;
+    void*  MARTeAddress;        //!< Addess of the MARTe signal that maps this model signal.
+    uint32 offset;              //!< Signal offset (used if the signal is part of a signal array).
     
     void PrintSignal(uint32 maxNameLength = 0u);
 };
@@ -248,6 +254,9 @@ public:
     
     void PrintPort(uint32 maxNameLength);
     
+    /**
+     * @brief Copy data from the associated MARTe2 signal to the associated model port.
+     */
     virtual void CopyData() = 0;
 };
 
