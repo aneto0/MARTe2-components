@@ -1807,7 +1807,7 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
         
         if(modelPorts[portIdx]->hasHomogeneousType)
         {
-            // Homogeneus signal checks, in this case we check datatype and number of elements
+            // Homogeneus port checks (an array). In this case we check datatype, number of dimensions and number of elements.
             
             if(!modelPorts[portIdx]->isContiguous)
             {
@@ -1853,19 +1853,22 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                 return false;
             }
             
+            // Matrix signals are supported if and only if they are row major
             if (GAMNumberOfDimensions > 1u)
             {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "%s signal %s dimension mismatch (only scalar or vector signals supported)",
-                    directionName.Buffer(), GAMSignalName.Buffer());
-                return false;
+                if (modelPorts[portIdx]->orientation != rtwCAPI_MATRIX_ROW_MAJOR) {
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                        "%s signal %s orientation error: is column-major. Matrix signals (NumberOfDimensions = 2) must be in row-major orientation.",
+                        directionName.Buffer(), GAMSignalName.Buffer());
+                    return false;
+                }
             }
             
         }
         else
         {
-            // Not homogeneus port checks, in this case we check only the size and the GAM datatype must be uint8
-            // i.e. we treat the port as a continuous array of bytes
+            // Non-homogeneus port checks (a structured signal). In this case we check only the size and the GAM datatype must be uint8
+            // (i.e. we treat the port as a continuous array of bytes)
             
             GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
             if (GAMNumberOfElements != (modelPorts[portIdx]->CAPISize))
