@@ -54,6 +54,36 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+enum rtwCAPI_printparmode
+{
+    PAR_FROM_PARAMS,
+    PAR_FROM_ELEMENTMAP
+};
+
+enum rtwCAPI_printsigmode
+{
+    SIG_FROM_SIGS,
+    SIG_FROM_ELEMENTMAP
+};
+
+
+/**
+ * @brief Helper function to print a parameter orientation
+ * @param[in] ELEorientation orientation of the element according CAPI enumerated type
+ */
+void rtwCAPI_PrintOrientation(rtwCAPI_Orientation  &ELEorientation);
+
+
+namespace MARTe {
+
+struct _Simulinkalgoinfo {
+  char githash[9];
+  char gitlog[81];
+  unsigned int expcode;
+};
+
+typedef struct _Simulinkalgoinfo Simulinkalgoinfo;
+
 /**
  * @brief GAM which loads and calls Simulink(r) generated models.
  * @details The GAM encapsulates code generated using Simulink(r) embedded coder
@@ -146,37 +176,6 @@
  *             it can invert the signal if necessary.
  *             
  */
-
-enum rtwCAPI_printparmode
-{
-    PAR_FROM_PARAMS,
-    PAR_FROM_ELEMENTMAP
-};
-
-enum rtwCAPI_printsigmode
-{
-    SIG_FROM_SIGS,
-    SIG_FROM_ELEMENTMAP
-};
-
-
-/**
- * @brief Helper function to print a parameter orientation
- * @param[in] ELEorientation orientation of the element according CAPI enumerated type
- */
-void rtwCAPI_PrintOrientation(rtwCAPI_Orientation  &ELEorientation);
-
-
-namespace MARTe {
-
-struct _Simulinkalgoinfo {
-  char githash[9];
-  char gitlog[81];
-  unsigned int expcode;
-};
-
-typedef struct _Simulinkalgoinfo Simulinkalgoinfo;
-
 class SimulinkWrapperGAM: public GAM, public MessageI {
 
 public:

@@ -285,7 +285,7 @@ MARTe::StreamString SimulinkGAMGTestEnvironment::CreateTestModel(MARTe::StreamSt
     bool ok = modelCompiled[0];
     if (ok) {
         StreamString* currentModelName = new StreamString(modelName);
-        bool copied = compiledModels.Add(currentModelName);
+        compiledModels.Add(currentModelName);
     }
     else {
         REPORT_ERROR_STATIC(ErrorManagement::Debug, "Model %s not compiled (compilation failed or already existent.", modelName.Buffer());

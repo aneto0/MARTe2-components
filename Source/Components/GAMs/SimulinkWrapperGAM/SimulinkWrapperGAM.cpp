@@ -890,6 +890,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s not found, using compile time value",
                 currentParamName);
         }
+        
         // Cases in which execution should be stopped
         else if (!isLoaded && !isActualised && !skipUnlinkedTunableParams) {
             REPORT_ERROR(ErrorManagement::Information,
