@@ -26,6 +26,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -144,10 +145,9 @@ public:
      *          Before updating, coherence checks between the input AnyType
      *          and the model parameter are carried out. Type, dimensionality
      *          and data size must agree, otherwise the actualization fails.
-     * @return  `true` if parameter is correctly actualized, `false` otherwise.
-     * @param[in] sourceParameter a reference to the AnyType pointing to the
-     *                            parameter value that will be used to update the
-     *                            model parameter.
+     *          If the parameter to be actualised is stored by the model
+     *          as a 2D matrix in column-major orientation, then this
+     *          method takes care of transposing it.
      * @warning The data pointed by the input AnyType are assumed to be
      *          in row-major format, and this is *not* checked by the
      *          Actualise() method. If the source parameter comes from
@@ -156,9 +156,30 @@ public:
      *          an external source by using SimulinkWrapperGAM
      *          `TunableParamExternalSource` option then care must be
      *          put in guaranteeing that the external source imports
-     *          data in the correct orientation.
+     *          data in the correct row-major orientation.
+     * @warning 3D matrices are supported, but their data orientation
+     *          is *not* changed in any way. Make sure that they are stored
+     *          in the source with the same orientation with which they
+     *          are stored in the model. 
+     * @return  `true` if parameter is correctly actualized, `false` otherwise.
+     * @param[in] sourceParameter a reference to the AnyType pointing to the
+     *                            parameter value that will be used to update the
+     *                            model parameter.
+     * 
      */
     bool Actualise(AnyType& sourceParameter);
+    
+protected:
+
+    /**
+     * @brief Copy a matrix from the source parameter to the model memory
+     *        but transpose it in the process.
+     */
+    bool TransposeAndCopy(AnyType& sourceParameter); 
+    
+    template<typename T>
+    bool TransposeAndCopyT(void *const destination, const void *const source);
+
 };
 
 /*---------------------------------------------------------------------------*/

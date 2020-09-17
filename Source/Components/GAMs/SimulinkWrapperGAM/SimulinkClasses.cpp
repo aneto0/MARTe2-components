@@ -210,8 +210,8 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
     }
 
     // Total data size check
-    if (ok)
-    {
+    if (ok) {
+        
         ok = (sourceParameter.GetDataSize() == byteSize);
         
         if(!ok) {
@@ -223,14 +223,114 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
     
     // Orientation check is not necessary: an AnyType is passed by, so
     // whatever generated this AnyType is in charge for granting that
-    // the AnyType data buffer is in standard row-major format.
+    // the AnyType data buffer is in standard C++ row-major orientation.
     
     // Checks passed, data buffer can be copied from the input AnyType to the model memory
     if (ok) {
-        MemoryOperationsHelper::Copy(address, sourceParameter.GetDataPointer(), sourceParameter.GetDataSize());
+        
+        if (numberOfDimensions <= 1u) {
+            
+            // Scalars and vectors have no orientation and can be copied as they are.
+            ok = MemoryOperationsHelper::Copy(address, sourceParameter.GetDataPointer(), sourceParameter.GetDataSize());
+            printf("no transpose!\n");
+            
+        }
+        else if (numberOfDimensions == 2u) {
+            
+            // For 2D matrices we handle the case in which model has column-major parameters.
+            if (orientation == rtwCAPI_MATRIX_ROW_MAJOR) {
+                ok = MemoryOperationsHelper::Copy(address, sourceParameter.GetDataPointer(), sourceParameter.GetDataSize());
+            }
+            else {
+                ok = TransposeAndCopy(sourceParameter);
+                printf("transpose!");
+            }
+        }
+        else {
+            
+            // Also 3D matrices are memcopied, since handling all possible combinations of cases is not feasible
+            ok = MemoryOperationsHelper::Copy(address, sourceParameter.GetDataPointer(), sourceParameter.GetDataSize());
+            REPORT_ERROR_STATIC(ErrorManagement::Warning, "3D matrix used. The GAM does not check data orientation of 3D matrices, carefully check results.");
+        }
+        
     }
     
     return ok;
+}
+
+bool SimulinkParameter::TransposeAndCopy(AnyType& sourceParameter) {
+    
+    bool ok = false;
+    
+    void* destination = address;
+    void* source      = sourceParameter.GetDataPointer();
+    
+    if (type==UnsignedInteger8Bit) {
+        
+        ok = TransposeAndCopyT<uint8>(destination, source);
+        
+    } else if (type==UnsignedInteger16Bit) {
+        
+        ok = TransposeAndCopyT<uint16>(destination, source);
+        
+    } else if (type==UnsignedInteger32Bit) {
+        
+        ok = TransposeAndCopyT<uint32>(destination, source);
+        
+    } else if (type==UnsignedInteger64Bit) {
+        
+        ok = TransposeAndCopyT<uint64>(destination, source);
+        
+    } else if (type==SignedInteger8Bit) {
+        
+        ok = TransposeAndCopyT<int8>(destination, source);
+        
+    } else if (type==SignedInteger16Bit) {
+        
+        ok = TransposeAndCopyT<int16>(destination, source);
+        
+    } else if (type==SignedInteger32Bit) {
+        
+        ok = TransposeAndCopyT<int32>(destination, source);
+        
+    } else if (type==SignedInteger64Bit) {
+        
+        ok = TransposeAndCopyT<int64>(destination, source);
+        
+    } else if (type==Float32Bit) {
+        
+        ok = TransposeAndCopyT<float32>(destination, source);
+        
+    } else if (type==Float64Bit) {
+        
+        ok = TransposeAndCopyT<float64>(destination, source);
+        
+    } else {
+        
+        REPORT_ERROR_STATIC(ErrorManagement::Exception,
+                     "Unsupported type.");
+        
+    }
+    
+    return ok;
+}
+
+template<typename T>
+bool SimulinkParameter::TransposeAndCopyT(void *const destination, const void *const source) {
+    
+    uint32 numberOfRows    = numberOfElements[0u];
+    uint32 numberOfColumns = numberOfElements[1u];
+    
+    for (uint32 rowIdx = 0u; rowIdx < numberOfRows; rowIdx++) {
+        
+        for (uint32 colIdx = 0u; colIdx < numberOfColumns; colIdx++) {
+            
+            *( (T*) destination + colIdx + numberOfColumns*rowIdx ) = *( (T*) source + rowIdx + numberOfRows*colIdx );
+            
+        }
+    }
+    
+    return true;
 }
 
 /*---------------------------------------------------------------------------*/

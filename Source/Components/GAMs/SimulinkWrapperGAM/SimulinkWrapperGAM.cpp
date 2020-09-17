@@ -1882,7 +1882,7 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                     REPORT_ERROR(ErrorManagement::ParametersError,
                         "%s signal %s orientation error: is column-major. Matrix signals (NumberOfDimensions = 2) must be in row-major orientation.",
                         directionName.Buffer(), GAMSignalName.Buffer());
-                    return false;
+                    //return false;
                 }
             }
             
