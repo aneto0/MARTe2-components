@@ -384,13 +384,13 @@ PrintIntrospection("Intr");
 
     // Tunable parameters source name
     if (status) {
-        status = data.Read("TunableParamExternalSource", tunableParamExternalSource);
-        if (status) {
+        bool isExternalSpecified = data.Read("TunableParamExternalSource", tunableParamExternalSource);
+        if (isExternalSpecified) {
             REPORT_ERROR(ErrorManagement::Information, "Retrieved '%s' as TunableParamExternalSource parameter.", tunableParamExternalSource.Buffer());
         }
         else
         {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error getting TunableParamExternalSource parameter.");
+            REPORT_ERROR(ErrorManagement::Warning, "Error getting TunableParamExternalSource parameter.");
         }
     }
     
