@@ -232,7 +232,6 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             
             // Scalars and vectors have no orientation and can be copied as they are.
             ok = MemoryOperationsHelper::Copy(address, sourceParameter.GetDataPointer(), sourceParameter.GetDataSize());
-            printf("no transpose!\n");
             
         }
         else if (numberOfDimensions == 2u) {
@@ -242,8 +241,7 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
                 ok = MemoryOperationsHelper::Copy(address, sourceParameter.GetDataPointer(), sourceParameter.GetDataSize());
             }
             else {
-                ok = TransposeAndCopy(sourceParameter);
-                printf("transpose!");
+                ok = TransposeAndCopy(address, sourceParameter.GetDataPointer());
             }
         }
         else {
@@ -258,12 +256,9 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
     return ok;
 }
 
-bool SimulinkParameter::TransposeAndCopy(AnyType& sourceParameter) {
+bool SimulinkDataI::TransposeAndCopy(void *const destination, const void *const source) {
     
     bool ok = false;
-    
-    void* destination = address;
-    void* source      = sourceParameter.GetDataPointer();
     
     if (type==UnsignedInteger8Bit) {
         
@@ -308,7 +303,7 @@ bool SimulinkParameter::TransposeAndCopy(AnyType& sourceParameter) {
     } else {
         
         REPORT_ERROR_STATIC(ErrorManagement::Exception,
-                     "Unsupported type.");
+                     "Unsupported type %s", TypeDescriptor::GetTypeNameFromTypeDescriptor(type));
         
     }
     
@@ -316,7 +311,7 @@ bool SimulinkParameter::TransposeAndCopy(AnyType& sourceParameter) {
 }
 
 template<typename T>
-bool SimulinkParameter::TransposeAndCopyT(void *const destination, const void *const source) {
+bool SimulinkDataI::TransposeAndCopyT(void *const destination, const void *const source) {
     
     uint32 numberOfRows    = numberOfElements[0u];
     uint32 numberOfColumns = numberOfElements[1u];
@@ -343,6 +338,7 @@ SimulinkSignal::SimulinkSignal() {
     
     MARTeAddress = NULL_PTR(void*);
     offset       = 0u;
+    requiresTransposition = false;
 }
 
 void SimulinkSignal::PrintSignal(uint32 maxNameLength /* = 0u */ ) {
@@ -369,6 +365,8 @@ SimulinkPort::SimulinkPort() {
     lastSignalAddress = NULL_PTR(void*);
     
     mode = ROOTSIG_INPUTS;
+    
+    requiresTransposition = false;
     
     dataClass = "Port";
 }
@@ -440,11 +438,25 @@ SimulinkOutputPort::~SimulinkOutputPort() {
 }
 
 void SimulinkInputPort::CopyData() {
-    MemoryOperationsHelper::Copy(address, MARTeAddress, CAPISize);
+    if (!requiresTransposition) {
+        MemoryOperationsHelper::Copy(address, MARTeAddress, CAPISize);
+    }
+    else {
+        TransposeAndCopy(address, MARTeAddress);
+        //MemoryOperationsHelper::Copy(address, MARTeAddress, CAPISize);
+        //printf("in : %u %u\n", numberOfElements[0u], numberOfElements[1u]);
+    }
 }
 
 void SimulinkOutputPort::CopyData() {
-    MemoryOperationsHelper::Copy(MARTeAddress, address, CAPISize);
+    if (!requiresTransposition) {
+        MemoryOperationsHelper::Copy(MARTeAddress, address, CAPISize);
+    }
+    else {
+        TransposeAndCopy(MARTeAddress, address);
+        //MemoryOperationsHelper::Copy(MARTeAddress, address, CAPISize);
+        //printf("out: %u %u\n", numberOfElements[0u], numberOfElements[1u]);
+    }
 }
 
 

@@ -121,6 +121,17 @@ public:
      *                          parameter name in the printed line.
      */
     void PrintData(uint32 maxNameLength = 0u, StreamString additionalText = "");
+    
+protected:
+
+    /**
+     * @brief Copy a matrix from the source parameter to the model memory
+     *        but transpose it in the process.
+     */
+    bool TransposeAndCopy(void *const destination, const void *const source); 
+    
+    template<typename T>
+    bool TransposeAndCopyT(void *const destination, const void *const source);
 };
 
 /*---------------------------------------------------------------------------*/
@@ -168,17 +179,6 @@ public:
      * 
      */
     bool Actualise(AnyType& sourceParameter);
-    
-protected:
-
-    /**
-     * @brief Copy a matrix from the source parameter to the model memory
-     *        but transpose it in the process.
-     */
-    bool TransposeAndCopy(AnyType& sourceParameter); 
-    
-    template<typename T>
-    bool TransposeAndCopyT(void *const destination, const void *const source);
 
 };
 
@@ -202,8 +202,10 @@ public:
      */
     SimulinkSignal();
     
-    void*  MARTeAddress;        //!< Addess of the MARTe signal that maps this model signal.
-    uint32 offset;              //!< Signal offset (used if the signal is part of a signal array).
+    void*  MARTeAddress;            //!< Addess of the MARTe signal that maps this model signal.
+    uint32 offset;                  //!< Signal offset (used if the signal is part of a signal array).
+    
+    bool requiresTransposition;     //!< `true` if this is signal is a ColumMajor matrix signal (MARTe2 uses row-major data orientation). 
     
     void PrintSignal(uint32 maxNameLength = 0u);
 };

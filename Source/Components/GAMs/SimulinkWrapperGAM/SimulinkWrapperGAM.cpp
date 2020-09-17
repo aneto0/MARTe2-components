@@ -1685,8 +1685,13 @@ void SimulinkWrapperGAM::ScanSignal(uint_T sigidx, StreamString spacer, enum rtw
         // this is first signal encountered in this port, set type
         currentPort->cTypeName     = sstemp;
         currentPort->MARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEctypename);
+        currentPort->type          = TypeDescriptor::GetTypeDescriptorFromTypeName(GetMARTeTypeNameFromCTypeName(ELEctypename));
         currentPort->dataTypeSize  = ELEdataTypeSize;
         currentPort->orientation   = ELEorientation;
+        for(uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
+            currentPort->numberOfElements[dimIdx] = ELEactualDimensions[dimIdx];
+        }
+        
         
         currentPort->isTyped = true;
     }
@@ -1695,12 +1700,17 @@ void SimulinkWrapperGAM::ScanSignal(uint_T sigidx, StreamString spacer, enum rtw
         if (sstemp != currentPort->cTypeName) {
             currentPort->cTypeName     = "unsigned char";
             currentPort->MARTeTypeName = "uint8";
+            currentPort->type          = TypeDescriptor::GetTypeDescriptorFromTypeName("uint8");
             
             currentPort->hasHomogeneousType = false;
         }
         
         if (ELEorientation != currentPort->orientation) {
             currentPort->hasHomogeneousOrientation = false;
+        }
+        
+        for(uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
+            currentPort->numberOfElements[dimIdx] = 1u;
         }
     }
     
@@ -1875,14 +1885,14 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                 return false;
             }
             
-            // Matrix signals are supported if and only if they are row major
+            // Matrix signals in column major orientation requires additional workload.
             if (GAMNumberOfDimensions > 1u)
             {
                 if (modelPorts[portIdx]->orientation != rtwCAPI_MATRIX_ROW_MAJOR) {
-                    REPORT_ERROR(ErrorManagement::ParametersError,
-                        "%s signal %s orientation error: is column-major. Matrix signals (NumberOfDimensions = 2) must be in row-major orientation.",
+                    REPORT_ERROR(ErrorManagement::Warning,
+                        "%s signal %s orientation is column-major. Supported, but requires real-time transposition and may result in performance loss.",
                         directionName.Buffer(), GAMSignalName.Buffer());
-                    //return false;
+                        modelPorts[portIdx]->requiresTransposition = true;
                 }
             }
             
