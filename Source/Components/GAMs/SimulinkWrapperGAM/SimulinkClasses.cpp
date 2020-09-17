@@ -443,8 +443,6 @@ void SimulinkInputPort::CopyData() {
     }
     else {
         TransposeAndCopy(address, MARTeAddress);
-        //MemoryOperationsHelper::Copy(address, MARTeAddress, CAPISize);
-        //printf("in : %u %u\n", numberOfElements[0u], numberOfElements[1u]);
     }
 }
 
@@ -454,8 +452,6 @@ void SimulinkOutputPort::CopyData() {
     }
     else {
         TransposeAndCopy(MARTeAddress, address);
-        //MemoryOperationsHelper::Copy(MARTeAddress, address, CAPISize);
-        //printf("out: %u %u\n", numberOfElements[0u], numberOfElements[1u]);
     }
 }
 
