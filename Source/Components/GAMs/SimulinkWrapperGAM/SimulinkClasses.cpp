@@ -182,13 +182,13 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             
             case 2u: { // Matrix
                 
-                ok = ( mdsDim1 = slkDim1 && mdsDim2 == slkDim2 && mdsDim3 == 1u );
+                ok = ( mdsDim1 == slkDim1 && mdsDim2 == slkDim2 && mdsDim3 == 1u );
                 break;
             }
             
             case 3u: { // 3D matrix
                 
-                ok = ( mdsDim1 = slkDim1 && mdsDim2 == slkDim2 && mdsDim3 == slkDim3 );
+                ok = ( mdsDim1 == slkDim1 && mdsDim2 == slkDim2 && mdsDim3 == slkDim3 );
                 break;
             }
             
