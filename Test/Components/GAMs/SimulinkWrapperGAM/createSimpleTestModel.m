@@ -49,9 +49,11 @@ while ~isempty(varargin)
         case 'hasStructSignals'
             hasStructSignals = varargin{2};
         
-        case 'defaultCorientation'
-            defaultOrientation = varargin{2};
-            isRowMajor = 1;
+        case 'dataOrientation'
+            dataOrientation = varargin{2};
+            if strcmp(dataOrientation, 'Row-major')
+                isRowMajor = 1;
+            end
             
         otherwise
             error(['Unexpected option: ' varargin{1}])
@@ -77,6 +79,13 @@ end
 if hasTunableParams == true
     evalin('base', 'matrixConstant = [1 1 1; 2 2 2; 3 3 3];');
     evalin('base', 'vectorConstant = ones(10,1);');
+    
+    if modelComplexity >= 2
+        evalin('base', 'vectorConstant2 = ones(8,1);');
+        if modelComplexity >= 3
+            evalin('base', 'matrixConstant2 = ones(6,6);');
+        end
+    end
 end
 
 if hasStructParams == true
@@ -87,8 +96,13 @@ if hasStructParams == true
     evalin('base', 'structScalar.nested2.one = 1;');
     evalin('base', 'structScalar.nested2.two = 2;');
     
-    %evalin('base', 'structMixed.one = 1;');
-    %evalin('base', 'structMixed.vec = ones(10, 1);');
+    if modelComplexity >= 2
+        evalin('base', 'structMixed.one = 1;');
+        evalin('base', 'structMixed.vec = ones(8, 1)*2;');
+        if modelComplexity >= 3
+            evalin('base', 'structMixed.mat = uint32(ones(6, 6)*2);');
+        end
+    end
     
 end
 
@@ -141,6 +155,42 @@ else
     add_block('simulink/Sources/Constant', [model_name '/In2_ScalarUint32']);
     set_param([model_name '/In2_ScalarUint32'], 'Value',          '1');
     set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
+    
+    if (modelComplexity >= 2)
+        add_block('simulink/Sources/Constant', [model_name '/In3_VectorDouble']);
+        set_param([model_name '/In3_VectorDouble'], 'OutDataTypeStr', 'double');
+        if hasTunableParams == true
+            set_param([model_name '/In3_VectorDouble'],  'Value',          'vectorConstant2');
+        else
+            set_param([model_name '/In3_VectorDouble'],  'Value',          'rand(8,1)');
+        end
+        
+        add_block('simulink/Sources/Constant', [model_name '/In4_VectorUint32']);
+        set_param([model_name '/In4_VectorUint32'],  'OutDataTypeStr', 'uint32');
+        if hasStructParams == true
+            set_param([model_name '/In4_VectorUint32'], 'Value',          'structMixed.vec');
+        else
+            set_param([model_name '/In4_VectorUint32'], 'Value',          'ones(8,1)');
+        end
+    end
+    
+    if (modelComplexity >= 3)
+        add_block('simulink/Sources/Constant', [model_name '/In5_MatrixDouble']);
+        set_param([model_name '/In5_MatrixDouble'], 'OutDataTypeStr', 'double');
+        if hasTunableParams == true
+            set_param([model_name '/In5_MatrixDouble'],  'Value',          'matrixConstant2');
+        else
+            set_param([model_name '/In5_MatrixDouble'], 'Value',          'rand(6,6)');
+        end
+        
+        add_block('simulink/Sources/Constant', [model_name '/In6_MatrixUint32']);
+        set_param([model_name '/In6_MatrixUint32'],  'OutDataTypeStr', 'uint32');
+        if hasStructParams == true
+            set_param([model_name '/In6_MatrixUint32'], 'Value',          'structMixed.mat');
+        else
+            set_param([model_name '/In6_MatrixUint32'],  'Value',          'ones(6,6)');
+        end
+    end
 end
 
 % output ports
@@ -152,11 +202,38 @@ if hasOutputs == true
     add_block('simulink/Sinks/Out1',  [model_name '/Out2_ScalarUint32']);
     set_param([model_name '/Out2_ScalarUint32'], 'IconDisplay',    'Signal name');
     set_param([model_name '/Out2_ScalarUint32'], 'OutDataTypeStr', 'uint32');
+    
+    if modelComplexity >= 2
+        add_block('simulink/Sinks/Out1',  [model_name '/Out3_VectorDouble']);
+        set_param([model_name '/Out3_VectorDouble'], 'IconDisplay',    'Signal name');
+        set_param([model_name '/Out3_VectorDouble'], 'OutDataTypeStr', 'double');
+        
+        add_block('simulink/Sinks/Out1',  [model_name '/Out4_VectorUint32']);
+        set_param([model_name '/Out4_VectorUint32'], 'IconDisplay',    'Signal name');
+        set_param([model_name '/Out4_VectorUint32'], 'OutDataTypeStr', 'uint32');
+    end
+    
+    if modelComplexity >= 3
+        add_block('simulink/Sinks/Out1',  [model_name '/Out5_MatrixDouble']);
+        set_param([model_name '/Out5_MatrixDouble'], 'IconDisplay',    'Signal name');
+        set_param([model_name '/Out5_MatrixDouble'], 'OutDataTypeStr', 'double');
+        
+        add_block('simulink/Sinks/Out1',  [model_name '/Out6_MatrixUint32']);
+        set_param([model_name '/Out6_MatrixUint32'], 'IconDisplay',    'Signal name');
+        set_param([model_name '/Out6_MatrixUint32'], 'OutDataTypeStr', 'uint32');
+    end
 
 else
     add_block('simulink/Sinks/Terminator', [model_name '/Out1_ScalarDouble']);
-    
     add_block('simulink/Sinks/Terminator', [model_name '/Out2_ScalarUint32']);
+    if modelComplexity >= 2
+        add_block('simulink/Sinks/Terminator',  [model_name '/Out3_VectorDouble']);
+        add_block('simulink/Sinks/Terminator',  [model_name '/Out4_VectorUint32']);
+        if modelComplexity >= 3
+           add_block('simulink/Sinks/Terminator',  [model_name '/Out5_MatrixDouble']);
+           add_block('simulink/Sinks/Terminator',  [model_name '/Out6_MatrixUint32']);
+        end
+    end
 end
 
 if hasStructSignals == true
@@ -235,7 +312,23 @@ if hasStructSignals == true
     add_line(model_name, 'BusCreator1/1',      'Out20_NonVirtualBus/1');
 end
 
-%% signal managing
+if modelComplexity >= 2
+    
+    if hasInputs == false
+        add_line(model_name, 'In3_VectorDouble/1', 'Out3_VectorDouble/1');
+        add_line(model_name, 'In4_VectorUint32/1', 'Out4_VectorUint32/1');
+    end
+end
+
+if modelComplexity >= 3
+    
+    if hasInputs == false
+        add_line(model_name, 'In5_MatrixDouble/1', 'Out5_MatrixDouble/1');
+        add_line(model_name, 'In6_MatrixUint32/1', 'Out6_MatrixUint32/1');
+    end
+end
+
+%% signal naming
 
 % name the signals
 name_input_signal([model_name '/Out1_ScalarDouble'], 1, 'Out1_ScalarDouble');
@@ -248,6 +341,21 @@ if hasStructSignals == true
     name_input_signal([model_name '/Out20_NonVirtualBus'], 1, 'Out20_NonVirtualBus');
 end
 
+if modelComplexity >= 2
+    name_output_signal([model_name '/In3_VectorDouble'], 1, 'In3_VectorDouble');
+    name_output_signal([model_name '/In4_VectorUint32'], 1, 'In4_VectorUint32');
+    
+    name_input_signal([model_name '/Out3_VectorDouble'], 1, 'Out3_VectorDouble');
+    name_input_signal([model_name '/Out4_VectorUint32'], 1, 'Out4_VectorUint32');
+end
+
+if modelComplexity >= 3
+    name_output_signal([model_name '/In5_MatrixDouble'], 1, 'In5_MatrixDouble');
+    name_output_signal([model_name '/In6_MatrixUint32'], 1, 'In6_MatrixUint32');
+    
+    name_input_signal([model_name '/Out5_MatrixDouble'], 1, 'Out5_MatrixDouble');
+    name_input_signal([model_name '/Out6_MatrixUint32'], 1, 'Out6_MatrixUint32');
+end
 
 %% arranging block layout
 % alternatively to setting the position of each block, the system can be
@@ -310,9 +418,7 @@ end
 set_param(model_name, 'IncludeMdlTerminateFcn', 0);
 set_param(model_name, 'CombineSignalStateStructs', 1);
 
-if isRowMajor == 1
-    set_param(model_name, 'ArrayLayout', dataOrientation);
-end
+set_param(model_name, 'ArrayLayout', dataOrientation);
 
 try
     rtwbuild(model_name)
@@ -331,7 +437,7 @@ close_system(model_name);
 
 % clean build directory
 rmdir('slprj', 's');
-rmdir([model_name '_ert_shrlib_rtw'], 's');
+%rmdir([model_name '_ert_shrlib_rtw'], 's');
 %delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));

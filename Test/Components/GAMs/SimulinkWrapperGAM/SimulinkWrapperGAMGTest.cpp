@@ -1,8 +1,8 @@
 /**
  * @file SimulinkWrapperGAMGTest.cpp
  * @brief Source file for class SimulinkWrapperGAMGTest
- * @date 22/03/2018
- * @author Bertrand Bauvir
+ * @date 10/08/2020
+ * @author RFX
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -203,6 +203,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfDimensionsWithStruct
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongDatatypeWithStructSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_WrongDatatypeWithStructSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestParameterActualisation) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestParameterActualisation());
 }
 
 /*---------------------------------------------------------------------------*/

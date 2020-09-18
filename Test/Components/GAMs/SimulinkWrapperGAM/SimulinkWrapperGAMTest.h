@@ -1,8 +1,8 @@
 /**
  * @file SimulinkWrapperGAMTest.h
  * @brief Header file for class SimulinkWrapperGAMTest
- * @date 22/03/2018
- * @author Bertrand Bauvir
+ * @date 10/08/2020
+ * @author RFX
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -27,6 +27,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -102,6 +103,24 @@ public:
      */
     bool TestInitialiseWithConfiguration(MARTe::ConfigurationDatabase configIn);
     
+    /**
+     * @brief General method to test GAM setup. The method allows to
+     *        specify various details of the configuration file.
+     *        Optional parameters:
+     *        - objRegDatabase: if specified, a pointer to the registry
+     *          of the current MARTe2 is returned (but then it is
+     *          up to the user to call objRegDatabase->Purge()).
+     */
+    bool TestSetupWithTemplate(MARTe::StreamString scriptCall,
+                                                   MARTe::StreamString skipUnlinkedParams,
+                                                   MARTe::StreamString inputSignals,
+                                                   MARTe::StreamString outputSignals,
+                                                   MARTe::StreamString parameters,
+                                                   MARTe::ObjectRegistryDatabase* objRegDatabase /* = NULL_PTR(ObjectRegistryDatabase*)*/
+                                                   );
+    
+    
+    
     bool TestInitialise_MissingOptionalConfigurationSettings();
     bool TestInitialise_MissingTunableParamExternalSource();
     bool TestInitialise_MissingParametersLeaf();
@@ -124,16 +143,6 @@ public:
      *        for memory allocation.
      */
     bool TestInitialise_Failed_LibraryMissingAllocFunction();
-    
-    /**
-     * @brief General method to test GAM setup. The method allows to
-     *        specify various details of the configuration file.
-     */
-    bool TestSetupWithTemplate(MARTe::StreamString scriptCall,
-                               MARTe::StreamString skipUnlinkedParams,
-                               MARTe::StreamString inputSignals,
-                               MARTe::StreamString outputSignals,
-                               MARTe::StreamString parameters);
     
     bool TestSetup_StructTunableParameters();
     bool TestSetup_StructTunableParametersFromExternalSource();
@@ -159,6 +168,9 @@ public:
     bool TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals();
     bool TestSetup_Failed_WrongDatatypeWithStructSignals();
     
+    
+    bool TestParameterActualisation();
+    
     /**
      * @brief A general template for the GAM configuration.
      *        The template has printf-style spcifiers (`%s`) where
@@ -171,12 +183,12 @@ public:
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAM1 = {"
-        "            Class = SimulinkWrapperGAM"
+        "            Class = SimulinkWrapperGAMHelper"
         "            Library = \"%s\""
         "            SymbolPrefix = \"%s\""
         "            Verbosity = 2"
         "            TunableParamExternalSource = ExtSource"
-        "            SkipUnlinkedTunableParams = %s"
+        "            SkipInvalidTunableParams = %s"
         "               %s" // InputSignals
         "               %s" // OutputSignals
         "            Parameters = {"

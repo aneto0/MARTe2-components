@@ -1,8 +1,8 @@
 /**
- * @file ConstantGAMTest.cpp
- * @brief Source file for class ConstantGAMTest
- * @date 22/03/2018
- * @author Bertrand Bauvir
+ * @file SimulinkWrapperGAMTest.cpp
+ * @brief Source file for class SimulinkWrapperGAMTest
+ * @date 10/08/2020
+ * @author RFX
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -46,34 +46,33 @@
 
 
 /**
- * Gives access to the MathExpressionGAM memory for the TestMemory test
+ * @brief Gives access to the SimulinkWrapperGAM memory for testing
  */
-// class MathExpressionGAMHelper: public MARTe::MathExpressionGAM {
-// public:
-//     CLASS_REGISTER_DECLARATION()
-//     
-//     MathExpressionGAMHelper() : MARTe::MathExpressionGAM() {
-//     
-//     }
-// 
-//     ~MathExpressionGAMHelper() {
-// 
-//     }
-//     
-//     void* GetInputSignalMemory(uint32 index) {
-//         return MathExpressionGAM::GetInputSignalMemory(index);
-//     }
-//     
-//     void* GetOutputSignalMemory(uint32 index) {
-//         return MathExpressionGAM::GetOutputSignalMemory(index);
-//     }
-//     
-//     MARTe::RuntimeEvaluator* GetEvaluator() {
-//         return evaluator;
-//     } 
-//     
-// };
-// CLASS_REGISTER(MathExpressionGAMHelper, "1.0");
+class SimulinkWrapperGAMHelper: public MARTe::SimulinkWrapperGAM {
+public:
+    CLASS_REGISTER_DECLARATION()
+
+    SimulinkWrapperGAMHelper() : MARTe::SimulinkWrapperGAM() {
+    }
+
+    ~SimulinkWrapperGAMHelper() {
+    }
+    
+    MARTe::uint16 GetNumOfPars() {
+        return modelParameters.GetSize();
+    }
+    
+    MARTe::SimulinkParameter* GetParameter(MARTe::uint32 index) {
+        return modelParameters[index];
+    }
+
+    MARTe::SimulinkPort* GetPort(MARTe::uint32 index) {
+        return modelPorts[index];
+    }
+     
+ };
+
+CLASS_REGISTER(SimulinkWrapperGAMHelper, "1.0");
 
 /**
  * A dummy DataSource which can be used to test different configuration interfaces
@@ -150,10 +149,13 @@ SimulinkWrapperGAMDataSourceHelper    () : MARTe::DataSourceI() {
 CLASS_REGISTER(SimulinkWrapperGAMDataSourceHelper, "1.0");
 
 /**
- * Starts a MARTe application that uses this GAM instance.
+ * Polymorphic version of TestIntegratedInApplication that also returns
+ * the pointer to the ObjectRegistryDatabase for further testing
  */
 static bool TestIntegratedInApplication(const MARTe::char8 * const config,
+                                        MARTe::ObjectRegistryDatabase* objRegDatabase,
                                         bool destroy = true) {
+    
     using namespace MARTe;
 
     ConfigurationDatabase cdb;
@@ -163,25 +165,38 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config,
 
     bool ok = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    objRegDatabase = ObjectRegistryDatabase::Instance();
 
     if (ok) {
-        god->Purge();
-        ok = god->Initialise(cdb);
+        objRegDatabase->Purge();
+        ok = objRegDatabase->Initialise(cdb);
     }
     ReferenceT<RealTimeApplication> application;
     if (ok) {
-        application = god->Find("Test");
+        application = objRegDatabase->Find("Test");
         ok = application.IsValid();
     }
     if (ok) {
         ok = application->ConfigureApplication();
     }
-
+    
     if (destroy) {
-        god->Purge();
+        objRegDatabase->Purge();
     }
     return ok;
+    
+}
+
+/**
+ * Starts a MARTe application that uses this GAM instance.
+ */
+static bool TestIntegratedInApplication(const MARTe::char8 * const config,
+                                        bool destroy = true) {
+    using namespace MARTe;
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    return TestIntegratedInApplication(config, god, destroy);
 }
 
 /**
@@ -352,7 +367,9 @@ bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString scriptCall,
                                                    StreamString skipUnlinkedParams,
                                                    StreamString inputSignals,
                                                    StreamString outputSignals,
-                                                   StreamString parameters) {
+                                                   StreamString parameters,
+                                                   ObjectRegistryDatabase* objRegDatabase = NULL_PTR(ObjectRegistryDatabase*)
+                                                   ) {
     
     StreamString modelName, modelFolder, modelFullPath;
     
@@ -380,7 +397,14 @@ bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString scriptCall,
                  );
     
     // Test setup
-    bool ok = TestIntegratedInApplication(config.Buffer());
+    bool ok = false;
+    
+    if (objRegDatabase == NULL) {
+        ok = TestIntegratedInApplication(config.Buffer());
+    }
+    else {
+        ok = TestIntegratedInApplication(config.Buffer(), objRegDatabase, false);
+    }
     
     return ok;
 }
@@ -1836,4 +1860,127 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongDatatypeWithStructSignals() {
     bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
     
     return !ok;
+}
+
+bool SimulinkWrapperGAMTest::TestParameterActualisation() {
+    
+    // Notice that model has to be row-major, otherwise raw memory
+    // comparison between matrices is not feasible (row-major in MARTe2
+    // but column-major in the model).
+    StreamString scriptCall = "createSimpleTestModel('modelComplexity', 3, 'hasTunableParams', true, 'hasStructParams', true', 'hasInputs', false, 'dataOrientation', 'Row-major');";
+    
+    StreamString skipUnlinkedParams = "0";
+    
+    StreamString inputSignals = "";
+
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out3_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out5_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "Out6_MatrixUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+
+    StreamString parameters = ""
+        "matrixConstant = (float64) { {10, 10, 10}, {11, 11, 11}, {12, 12, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "structScalar-one         = (float64) 3.141592653 "
+        "structScalar-nested1-one = (float64) 2.718281828 "
+        "structScalar-nested1-two = (float64) 2.718281828 "
+        "structScalar-nested2-one = (float64) 1.414213562 "
+        "structScalar-nested2-two = (float64) 1.414213562 "
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (float64) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        "structMixed-one = (float64) 10 "
+        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "structMixed-mat = (uint32) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}";
+    
+    // Test setup
+    ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
+    
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, ord);
+    
+    // Now check if parameter values have been correctly loaded.
+    
+    // First, build a database with what has been loaded in the model
+    ConfigurationDatabase cdb;
+    if (ok) {
+        parameters.Seek(0u);
+        StandardParser parser(parameters, cdb);
+        ok = parser.Parse();
+    }
+    
+    // Then, import the parameters back from the model and compare
+    if (ok) {
+        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
+        
+        ok = gam.IsValid();
+        if (ok) {
+            
+            for (uint32 paramIdx = 0u; (paramIdx < gam->GetNumOfPars()) && ok ; paramIdx++) {
+                
+                SimulinkParameter* par = gam->GetParameter(paramIdx);
+                
+                StreamString paramName = par->fullName;
+                uint32       paramDims = par->numberOfDimensions;
+                uint32       paramSize = par->byteSize;
+                void*        paramAddr = par->address;
+                
+                AnyType arrayDescription = cdb.GetType(paramName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+                if (ok) {
+                    ok = (MemoryOperationsHelper::Compare(paramAddr, arrayDescription.GetDataPointer(), paramSize) == 0u);
+                }
+            }
+        }
+    }
+    
+    if (ok) {
+        ord->Purge();
+    }
+    
+    return ok;
 }
