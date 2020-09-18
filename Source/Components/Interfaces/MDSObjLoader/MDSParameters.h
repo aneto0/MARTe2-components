@@ -103,7 +103,9 @@ protected:
     
     StreamString MDSPath;               //!< Path of the parameter in the MDSplus tree from which it is retrieved.
     StreamString MDSOrientation;        //!< Name of the orientation of the data retrieved from MDSplus (not known by MDSplus, must be specified by the user).
-    uint32       dimSelection;          //!< Take the first `dimSelection` elements of an array.
+    uint32       targetDim;             //!< Take the first `targetDim` elements of an array if != 0.
+    uint32       startIdx;                 
+    uint32       stopIdx;
     
 private:
 

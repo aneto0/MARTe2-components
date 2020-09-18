@@ -48,7 +48,7 @@ namespace MARTe {
 MDSParameter::MDSParameter() :
         ObjParameter() {
     sourceParamOrientation = None;
-    dimSelection           = 0u;
+    targetDim           = 0u;
 }
 
 bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connection *conn, MDSplus::Tree *treeName, StreamString &baseClassName) {
@@ -68,6 +68,35 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
     int*  MDSDimArray;
     void* MDSDataPtr;
     
+    // Modify path based upon options like Dim or StartIdx
+    if ( targetDim != 0u && startIdx == 0u && stopIdx == 0u ) {
+        StreamString indices;
+        indices.Printf("[0:%u]", targetDim);
+        MDSPath += indices;
+        printf("startstop: %s\n", MDSPath.Buffer());
+    }
+    else if ( targetDim == 0u && startIdx != 0u && stopIdx != 0u ) {
+        StreamString originalPath = MDSPath;
+        MDSPath = "[";
+        for (uint32 currIdx = startIdx; currIdx <= stopIdx; currIdx++) {
+            //MDSPath.Printf(originalPath.Buffer(), currIdx);  // The MARTe::Printf function does not work as printf, thus the following is required:
+            char stemp[CSTRINGMAXLEN];
+            snprintf(stemp, sizeof(stemp), originalPath.Buffer(), currIdx);
+            MDSPath += stemp;
+            if (currIdx != stopIdx) {
+                MDSPath += ", ";
+            }
+        }
+        MDSPath += "]";
+        printf("startstop: %s\n", MDSPath.Buffer());
+    }
+    else if ( targetDim != 0u && startIdx != 0u && stopIdx != 0u ) {
+        // error
+    }
+    else {
+        // do nothing, path is ok as it is
+    }
+    
     // If the path is empty, this parameter shall be skipped (unlinked parameter).
     if (this->IsStaticDeclared()) {
     
@@ -85,6 +114,7 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
             nodeData->getInfo(&MDSDataClass, &MDSDataType, &MDSDataByteSize, &MDSNumOfDims, &MDSDimArray, &MDSDataPtr);
             
             ok = true;
+            
         }
         catch (MDSplus::MdsException &ex) {
             
@@ -278,9 +308,21 @@ bool MDSParameter::Initialise(StructuredDataI &data) {
     
     /// 3. Read `Dim` if declared
     if (ret) {
-        bool dimSelectionDeclared = data.Read("Dim", dimSelection);
-        if (dimSelectionDeclared) {
-            printf("DIM: %u\n", dimSelection);
+        bool targetDimDeclared = data.Read("Dim", targetDim);
+        if (targetDimDeclared) {
+            printf("DIM: %u\n", targetDim);
+        }
+        
+    }
+    
+    /// 4. Read `StartIdx` and `StopIdx` if declared
+    if (ret) {
+        bool startIdxDeclared = data.Read("StartIdx", startIdx);
+        if (startIdxDeclared) {
+            if (data.Read("StopIdx", stopIdx)) {
+                printf("STARTIDX: %u, STOPIDX: %u\n", startIdx, stopIdx);
+            }
+            REPORT_ERROR(ErrorManagement::Warning, "MDSParameter %s: declared StartIdx but not StopIdx, option ignored.", this->GetName());
         }
         
     }
@@ -1204,7 +1246,7 @@ bool MDSParFixDimVectorIdx::Actualize(ConfigurationDatabase &targetcdb, MDSplus:
                 sctemp.replace(strfound,2,backslash);
                 strfound = sctemp.find("\\\\", 0);
             }
-
+printf("path with idxes: %s\n", csMDSPath);
 #ifdef MDSDISTCLIENT
             MDSplus::TreeNode *node = treeName->getNode(csMDSPath);
             MDSplus::Data *nodeData = node->getData();
