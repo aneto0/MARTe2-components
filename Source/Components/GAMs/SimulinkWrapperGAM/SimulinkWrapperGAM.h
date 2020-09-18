@@ -255,6 +255,39 @@ public:
      */
     virtual bool Execute();
 
+protected:
+    
+    // those members are protected for testing purpose
+    
+        /**
+     * @brief General informations about the model hosted by the library.
+     */
+    uint16 modelNumOfInputs;
+    uint16 modelNumOfOutputs;
+    uint16 modelNumOfParameters;
+    
+    /**
+     * @brief   List of SimulinkParameter objects.
+     * @details This array is used to store informations about each parameter
+     *          used in the dynamically linked model.
+     */
+    StaticList<SimulinkParameter*> modelParameters;
+    
+    /**
+     * @brief   List of SimulinkPort objects.
+     * @details This array is used to store informations about each port
+     *          used in the dynamically linked model.
+     */
+    StaticList<SimulinkPort*> modelPorts;
+    
+    /**
+     * @brief   Pointer to the current port being analyzed by ScanSignal().
+     * @details This pointer is a shared (within the class) pointer to a SimulinkPort
+     *          object used by the ScanSignal function set to build a port object
+     *          out of Simulink(R) CAPI introspection code.
+     */
+    SimulinkPort* currentPort;
+
 private:
 
     /**
@@ -263,7 +296,7 @@ private:
     StreamString libraryName;
     StreamString symbolPrefix;
     StreamString tunableParamExternalSource;
-    bool         skipUnlinkedTunableParams;
+    bool         skipInvalidTunableParams;
     uint8        verbosityLevel;
   
     /**
@@ -286,13 +319,6 @@ private:
      * @brief Buffer hosting tunable parameters and internal states.
      */
     void* states;
-    
-    /**
-     * @brief General informations about the model hosted by the library.
-     */
-    uint16 modelNumOfInputs;
-    uint16 modelNumOfOutputs;
-    uint16 modelNumOfParameters;
     
     /**
      * @brief   Simulink C API data structures local pointers
@@ -396,28 +422,6 @@ private:
      * @brief separator for building structured signals (aka buses) fullpaths
      */
     StreamString signalSeparator;
-   
-    /**
-     * @brief   Pointer to the current port being analyzed by ScanSignal().
-     * @details This pointer is a shared (within the class) pointer to a SimulinkPort
-     *          object used by the ScanSignal function set to build a port object
-     *          out of Simulink(R) CAPI introspection code.
-     */
-    SimulinkPort* currentPort;
-    
-    /**
-     * @brief   List of SimulinkParameter objects.
-     * @details This array is used to store informations about each parameter
-     *          used in the dynamically linked model.
-     */
-    StaticList<SimulinkParameter*> modelParameters;
-    
-    /**
-     * @brief   List of SimulinkPort objects.
-     * @details This array is used to store informations about each port
-     *          used in the dynamically linked model.
-     */
-    StaticList<SimulinkPort*> modelPorts;
     
     /**
      * @brief Holds port and parameter addresses while scanning.

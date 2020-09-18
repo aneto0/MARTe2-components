@@ -255,7 +255,7 @@ SimulinkWrapperGAM::SimulinkWrapperGAM() :
     modelNumOfOutputs    = 0u;
     modelNumOfParameters = 0u;
     
-    skipUnlinkedTunableParams = true;
+    skipInvalidTunableParams = true;
     paramsHaveStructArrays    = false;
 
     return;
@@ -388,9 +388,8 @@ PrintIntrospection("Intr");
         if (isExternalSpecified) {
             REPORT_ERROR(ErrorManagement::Information, "Retrieved '%s' as TunableParamExternalSource parameter.", tunableParamExternalSource.Buffer());
         }
-        else
-        {
-            REPORT_ERROR(ErrorManagement::Warning, "Error getting TunableParamExternalSource parameter.");
+        else {
+            REPORT_ERROR(ErrorManagement::Warning, "No TunableParamExternalSource declared.");
         }
     }
     
@@ -405,12 +404,12 @@ PrintIntrospection("Intr");
         }
         
         uint16 itemp;
-        if(data.Read("SkipUnlinkedTunableParams", itemp)) {
-            skipUnlinkedTunableParams = (itemp != 0u);
-            REPORT_ERROR(ErrorManagement::Information, "SkipUnlinkedTunableParams set to %d.", itemp);
+        if(data.Read("SkipInvalidTunableParams", itemp)) {
+            skipInvalidTunableParams = (itemp != 0u);
+            REPORT_ERROR(ErrorManagement::Information, "SkipInvalidTunableParams set to %d.", itemp);
         }
         else {
-            REPORT_ERROR(ErrorManagement::Warning, "SkipUnlinkedTunableParams not set, by default it is set to true.");
+            REPORT_ERROR(ErrorManagement::Warning, "SkipInvalidTunableParams not set, by default it is set to true.");
         }
     }
     
@@ -806,7 +805,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     
     bool isLoaded;              // whether the parameter is available (i.e. was correctly loaded by the loader mechanism)
     bool isActualised;          // whether the parameter has been correctly actualized
-    bool isUnlinked;            // special condition for a parameter from MDSplus whose path is empty. It shall be skipped even if skipUnlinkedTunableParams == 0
+    bool isUnlinked;            // special condition for a parameter from MDSplus whose path is empty. It shall be skipped even if skipInvalidTunableParams == 0
     
     StreamString parameterSourceName;
     
@@ -834,7 +833,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             isLoaded = true;
         }
         
-        // 3. Parameter not found (if skipUnlinkedTunableParams, then use compile-time value)
+        // 3. Parameter not found (if skipInvalidTunableParams, then use compile-time value)
         else {
             isLoaded = false;
         }
@@ -880,19 +879,19 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s unlinked, using compile time value",
                 currentParamName);
         }
-        else if (isLoaded && !isActualised && !isUnlinked && skipUnlinkedTunableParams) {
+        else if (isLoaded && !isActualised && !isUnlinked && skipInvalidTunableParams) {
             REPORT_ERROR(ErrorManagement::Warning,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s cannot be actualized, using compile time value",
                 currentParamName);
         }
-        else if (!isLoaded && !isActualised && skipUnlinkedTunableParams) {
+        else if (!isLoaded && !isActualised && skipInvalidTunableParams) {
             REPORT_ERROR(ErrorManagement::Information,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s not found, using compile time value",
                 currentParamName);
         }
         
         // Cases in which execution should be stopped
-        else if (!isLoaded && !isActualised && !skipUnlinkedTunableParams) {
+        else if (!isLoaded && !isActualised && !skipInvalidTunableParams) {
             REPORT_ERROR(ErrorManagement::Information,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s not found, failing",
                 currentParamName);
@@ -900,7 +899,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         }
         else {
             REPORT_ERROR(ErrorManagement::ParametersError,
-                "skipUnlinkedTunableParams is false and parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s cannot be actualized, failing",
+                "SkipInvalidTunableParams is false and parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s cannot be actualized, failing",
                 currentParamName);
             status = false;
         }
