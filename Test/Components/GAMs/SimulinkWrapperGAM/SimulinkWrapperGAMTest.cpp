@@ -1965,7 +1965,6 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation() {
                 SimulinkParameter* par = gam->GetParameter(paramIdx);
                 
                 StreamString paramName = par->fullName;
-                uint32       paramDims = par->numberOfDimensions;
                 uint32       paramSize = par->byteSize;
                 void*        paramAddr = par->address;
                 

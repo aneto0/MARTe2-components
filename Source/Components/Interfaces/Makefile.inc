@@ -22,7 +22,8 @@
 #
 #############################################################
 
-SPB=MemoryGate.x \
+SPB=MDSObjLoader.x\
+	MemoryGate.x \
 	SysLogger.x 
 
 ifdef CODAC_ROOT

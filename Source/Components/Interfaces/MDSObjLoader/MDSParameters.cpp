@@ -48,6 +48,7 @@ namespace MARTe {
 MDSParameter::MDSParameter() :
         ObjParameter() {
     sourceParamOrientation = None;
+    dimSelection           = 0u;
 }
 
 bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connection *conn, MDSplus::Tree *treeName, StreamString &baseClassName) {
@@ -237,6 +238,7 @@ bool MDSParameter::Initialise(StructuredDataI &data) {
         }
     }
     
+    /// 1. Read the path
     // An empty source path means an unlinked parameter, so the dataBuffer pointer
     // won't point to a valid memory location. If requested, the parameter actualization will be
     // ignored without errors and the compile-time parameter value will be used.
@@ -255,7 +257,7 @@ bool MDSParameter::Initialise(StructuredDataI &data) {
         }
     }
     
-    // Read the orientation specification
+    /// 2. Read the orientation specification
     // (user must know the orientation of the data coming from MDSplus)
     if (ret) {
         bool orientationDeclared = data.Read("DataOrientation", MDSOrientation);
@@ -270,6 +272,15 @@ bool MDSParameter::Initialise(StructuredDataI &data) {
                 REPORT_ERROR(ErrorManagement::Warning, "MDSParameter %s: %s is not a valid orientation.", this->GetName(), MDSOrientation.Buffer());
                 sourceParamOrientation = None;
             }
+        }
+        
+    }
+    
+    /// 3. Read `Dim` if declared
+    if (ret) {
+        bool dimSelectionDeclared = data.Read("Dim", dimSelection);
+        if (dimSelectionDeclared) {
+            printf("DIM: %u\n", dimSelection);
         }
         
     }
