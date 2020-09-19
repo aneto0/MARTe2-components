@@ -23,15 +23,15 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "../MDSObjLoader/MDSObjLoader.h"
-
 #include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
+#include "MDSObjLoader.h"
 #include <mdsobjects.h>
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -190,7 +190,6 @@ bool MDSObjLoader::Initialise(StructuredDataI &data) {
     return ret;
 }
 
-//CLASS_REGISTER(ParObjLoader, "1.0")
 CLASS_REGISTER(MDSObjLoader, "1.0")
 
 }

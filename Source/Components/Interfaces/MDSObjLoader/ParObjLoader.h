@@ -59,26 +59,6 @@ protected:
 private:
 };
 
-
-/*
-class MDSObjLoader: public ParObjLoader {
-public:
-    CLASS_REGISTER_DECLARATION()
-
-    MDSObjLoader();
-
-    virtual ~MDSObjLoader();
-
-    virtual bool Initialise(StructuredDataI &data);
-
-protected:
-
-private:
-
-    uint32 shot;
-};
-*/
-
 }
 
 /*---------------------------------------------------------------------------*/

@@ -35,12 +35,12 @@
 #include "ReferenceT.h"
 #include "StreamString.h"
 
-#include "../MDSObjLoader/MDSParameters.h"
+#include "MDSParameters.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-namespace MARTe{
+namespace MARTe {
 
 /**
  * @brief
@@ -80,7 +80,7 @@ private:
 
 };
 
-}
+} /* namespace MARTe */
 
 
 /*---------------------------------------------------------------------------*/
