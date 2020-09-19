@@ -75,6 +75,9 @@ namespace MARTe {
  * DataOrientation = RowMajor
  * ~~~~
  * 
+ * When using `StartIdx` and `StopIdx` the returned type is the highest
+ * datatype found while forming the array.
+ * 
  */
 class MDSParameter: public ObjParameter {
 public:

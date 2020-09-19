@@ -70,12 +70,29 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
     
     // Modify path based upon options like Dim or StartIdx
     if ( targetDim != 0u && startIdx == 0u && stopIdx == 0u ) {
+        
+        // Addes indices to the path in the form "[startIdx:stopIdx]"
+        StreamString nodeWithIndices;
         StreamString indices;
+        
         indices.Printf("[0:%u]", targetDim);
-        MDSPath += indices;
-        printf("startstop: %s\n", MDSPath.Buffer());
+        nodeWithIndices  = MDSPath;
+        nodeWithIndices += indices;
+        
+        // Now use TDI syntax to append zeroes if indices exceed array dimension
+        StreamString tdiExpr = ""
+            "_swgTargetDim = %u;"
+            "_swgVec       = %s;"
+            "_swgVecSize   = shape(_swgVec, 0);"
+            "if(_swgTargetDim > _swgVecSize) for(_i = 0; _i < _swgTargetDim - _swgVecSize; _i++) _swgVec = [_swgVec, 0];"
+            "_swgVec";
+        
+        MDSPath = "";
+        MDSPath.Printf(tdiExpr.Buffer(), targetDim, nodeWithIndices.Buffer());
     }
-    else if ( targetDim == 0u && startIdx != 0u && stopIdx != 0u ) {
+    else if ( targetDim == 0u && (startIdx != 0u || stopIdx != 0u) ) {
+        
+        // Concatenate scalar values in an array in the form "[\DATA001, \DATA002, \DATA003, ...]"
         StreamString originalPath = MDSPath;
         MDSPath = "[";
         for (uint32 currIdx = startIdx; currIdx <= stopIdx; currIdx++) {
@@ -89,9 +106,12 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
         }
         MDSPath += "]";
         printf("startstop: %s\n", MDSPath.Buffer());
+        
     }
     else if ( targetDim != 0u && startIdx != 0u && stopIdx != 0u ) {
         // error
+        REPORT_ERROR(ErrorManagement::ParametersError, "MDSParameter %s: both Dim and StartIdx/StopIdx used, unsupported.", this->GetName());
+        ok = false;
     }
     else {
         // do nothing, path is ok as it is
