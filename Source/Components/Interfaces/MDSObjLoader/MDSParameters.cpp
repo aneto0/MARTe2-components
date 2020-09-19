@@ -72,6 +72,8 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
     int*  MDSDimArray;
     void* MDSDataPtr;
     
+    StreamString expandedMDSPath;
+    
     // Modify path based upon options like Dim or StartIdx
     if ( targetDim != 0u && startIdx == 0u && stopIdx == 0u ) {
         
@@ -91,25 +93,24 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
             "if(_swgTargetDim > _swgVecSize) for(_i = 0; _i < _swgTargetDim - _swgVecSize; _i++) _swgVec = [_swgVec, 0];"
             "_swgVec";
         
-        MDSPath = "";
-        MDSPath.Printf(tdiExpr.Buffer(), targetDim, nodeWithIndices.Buffer());
+        expandedMDSPath.Printf(tdiExpr.Buffer(), targetDim, nodeWithIndices.Buffer());
+        printf("dim: %s\n", expandedMDSPath.Buffer());
     }
     else if ( targetDim == 0u && (startIdx != 0u || stopIdx != 0u) ) {
         
         // Concatenate scalar values in an array in the form "[\DATA001, \DATA002, \DATA003, ...]"
-        StreamString originalPath = MDSPath;
-        MDSPath = "[";
+        expandedMDSPath = "[";
         for (uint32 currIdx = startIdx; currIdx <= stopIdx; currIdx++) {
-            //MDSPath.Printf(originalPath.Buffer(), currIdx);  // The MARTe::Printf function does not work as printf, thus the following is required:
+            //expandedMDSPath.Printf(originalPath.Buffer(), currIdx);  // The MARTe::Printf function does not work as printf, thus the following is required:
             char stemp[CSTRINGMAXLEN];
-            snprintf(stemp, sizeof(stemp), originalPath.Buffer(), currIdx);
-            MDSPath += stemp;
+            snprintf(stemp, sizeof(stemp), MDSPath.Buffer(), currIdx);
+            expandedMDSPath += stemp;
             if (currIdx != stopIdx) {
-                MDSPath += ", ";
+                expandedMDSPath += ", ";
             }
         }
-        MDSPath += "]";
-        printf("startstop: %s\n", MDSPath.Buffer());
+        expandedMDSPath += "]";
+        printf("startstop: %s\n", expandedMDSPath.Buffer());
         
     }
     else if ( targetDim != 0u && startIdx != 0u && stopIdx != 0u ) {
@@ -118,7 +119,8 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
         ok = false;
     }
     else {
-        // do nothing, path is ok as it is
+        // path is ok as it is
+        expandedMDSPath = MDSPath;
     }
     
     // If the path is empty, this parameter shall be skipped (unlinked parameter).
@@ -127,11 +129,11 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
         try {
             
             #ifdef MDSDISTCLIENT
-                MDSplus::TreeNode *node = treeName->getNode(MDSPath.Buffer());
+                MDSplus::TreeNode *node = treeName->getNode(expandedMDSPath.Buffer());
                 MDSplus::Data *nodeData = node->getData();
             #endif
             #ifdef MDSTHINCLIENT
-                MDSplus::Data *nodeData = conn->get(MDSPath.Buffer());
+                MDSplus::Data *nodeData = conn->get(expandedMDSPath.Buffer());
             #endif
             
             // MDSplus C++ API are used to retrieve informations about the parameter
