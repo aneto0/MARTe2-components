@@ -100,9 +100,19 @@ TEST(SimulinkWrapperGAMGTest, TestSetup) {
     ASSERT_TRUE(test.TestSetup());
 }
 
-TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParameters) {
+TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParameters_1) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_StructTunableParameters());
+    ASSERT_TRUE(test.TestSetup_StructTunableParameters_1());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParameters_2) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_StructTunableParameters_2());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParameters_3) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_StructTunableParameters_3());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParametersFromExternalSource) {
@@ -123,6 +133,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_SkipUnlinkedTunableParams) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithStructSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_WithStructSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithNestedStructSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithNestedStructSignals());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_DontSkipUnlinkedTunableParams) {
@@ -165,9 +180,19 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongDatatype) {
     ASSERT_TRUE(test.TestSetup_Failed_WrongDatatype());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_ParamWrongNumberOfDimensions) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_ParamWrongNumberOfDimensions());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_ParamWrongDimensions) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_ParamWrongDimensions());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_ParamWrongDimensions_Matrix) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_ParamWrongDimensions_Matrix());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_ParamWrongDatatype) {

@@ -144,10 +144,13 @@ public:
      */
     bool TestInitialise_Failed_LibraryMissingAllocFunction();
     
-    bool TestSetup_StructTunableParameters();
+    bool TestSetup_StructTunableParameters_1();
+    bool TestSetup_StructTunableParameters_2();
+    bool TestSetup_StructTunableParameters_3();
     bool TestSetup_StructTunableParametersFromExternalSource();
     bool TestSetup_NoTunableParameters();
     bool TestSetup_WithStructSignals();
+    bool TestSetup_WithNestedStructSignals();
     
     bool TestSetup_SkipUnlinkedTunableParams();
     
@@ -159,7 +162,9 @@ public:
     bool TestSetup_Failed_WrongNumberOfElements();
     bool TestSetup_Failed_WrongNumberOfDimensions();
     bool TestSetup_Failed_WrongDatatype();
+    bool TestSetup_Failed_ParamWrongNumberOfDimensions();
     bool TestSetup_Failed_ParamWrongDimensions();
+    bool TestSetup_Failed_ParamWrongDimensions_Matrix();
     bool TestSetup_Failed_ParamWrongDatatype();
     bool TestSetup_Failed_NoInputs();
     bool TestSetup_Failed_NoOutputs();

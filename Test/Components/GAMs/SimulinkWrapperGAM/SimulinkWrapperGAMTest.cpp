@@ -740,7 +740,7 @@ bool SimulinkWrapperGAMTest::TestSetup() {
     return ok;
 }
 
-bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters() {
+bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_1() {
     
     StreamString scriptCall = "createSimpleTestModel('hasStructParams', true);";
     
@@ -788,6 +788,276 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters() {
     
     // Test setup
     bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_2() {
+
+    StreamString scriptCall = "createSimpleTestModel('modelComplexity', 3, 'hasTunableParams', true, 'hasStructParams', true', 'hasInputs', false);";
+    
+    StreamString skipUnlinkedParams = "0";
+    
+    StreamString inputSignals = "";
+
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out3_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out5_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "Out6_MatrixUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+
+    StreamString parameters = ""
+        "matrixConstant = (float64) { {10, 10, 10}, {11, 11, 11}, {12, 12, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "structScalar-one         = (float64) 3.141592653 "
+        "structScalar-nested1-one = (float64) 2.718281828 "
+        "structScalar-nested1-two = (float64) 2.718281828 "
+        "structScalar-nested2-one = (float64) 1.414213562 "
+        "structScalar-nested2-two = (float64) 1.414213562 "
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (float64) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        "structMixed-one = (float64) 10 "
+        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "structMixed-mat = (uint32) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_3() {
+
+    StreamString scriptCall = "createSimpleTestModel('modelComplexity', 4, 'hasTunableParams', true, 'hasStructParams', true', 'hasInputs', false);";
+    
+    StreamString skipUnlinkedParams = "0";
+    
+    StreamString inputSignals = "";
+
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out3_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out5_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "Out6_MatrixUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "Out7_3DMatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 16"
+        "    NumberOfDimensions = 2"
+        "}"
+        "Out8_3DMatrixUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 16"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+
+    StreamString parameters = ""
+        "matrixConstant = (float64) { {10, 10, 10}, {11, 11, 11}, {12, 12, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "structScalar-one         = (float64) 3.141592653 "
+        "structScalar-nested1-one = (float64) 2.718281828 "
+        "structScalar-nested1-two = (float64) 2.718281828 "
+        "structScalar-nested2-one = (float64) 1.414213562 "
+        "structScalar-nested2-two = (float64) 1.414213562 "
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (float64) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        "structMixed-one = (float64) 10 "
+        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "structMixed-mat = (uint32) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}";
+    
+    StreamString modelName, modelFolder, modelFullPath;
+    
+    // Create the test model
+    modelName = testEnvironment.CreateTestModel(scriptCall);
+    
+    // Retrieve working directory from the test environment
+    modelFolder = testEnvironment.modelFolder;
+    
+    // Compose model library full path
+    modelFullPath  = modelFolder;
+    modelFullPath += "/";
+    modelFullPath += modelName;
+    modelFullPath += ".so";
+    
+    // Insert model name and build folder in the configuration buffer template
+    StreamString config;
+    config.Printf(configTemplate.Buffer(),
+                  modelFullPath.Buffer(),
+                  modelName.Buffer(),
+                  skipUnlinkedParams.Buffer(),
+                  inputSignals.Buffer(),
+                  outputSignals.Buffer(),
+                  parameters.Buffer()
+                 );
+    
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    
+    // The GAM external source of parameters is expected to be a
+    // ReferenceContainer populated by AnyObject
+    if (ok) {
+        
+        // Create the ReferenceContainer
+        ReferenceT<ReferenceContainer> cfgParameterContainer("ReferenceContainer", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        cfgParameterContainer->SetName("ExtSource");
+        
+        ok = cfgParameterContainer.IsValid();
+        
+        if (ok) {
+            ok = ObjectRegistryDatabase::Instance()->Insert(cfgParameterContainer);
+        }
+        
+        // Populate with AnyObjects
+        uint32 param1[4u][4u][4u] = { { {1,1,1,1}, {1,1,1,1}, {1,1,1,1}, {1,1,1,1} },
+                                 { {1,1,1,1}, {1,1,1,1}, {1,1,1,1}, {1,1,1,1} },
+                                 { {1,1,1,1}, {1,1,1,1}, {1,1,1,1}, {1,1,1,1} }
+                               };
+                               
+        TypeDescriptor type1 = TypeDescriptor::GetTypeDescriptorFromTypeName("uint32");
+        AnyType anyParam1(type1, 0u, param1);
+        anyParam1.SetNumberOfDimensions(3u);
+        anyParam1.SetNumberOfElements(0u, 4u);
+        anyParam1.SetNumberOfElements(1u, 4u);
+        anyParam1.SetNumberOfElements(2u, 4u);
+        
+        ReferenceT<AnyObject> objParam1("AnyObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        objParam1->Serialise(anyParam1);
+        objParam1->SetName("structMixed-mat3d");
+        cfgParameterContainer->Insert(objParam1);
+        
+        float64 param2[4u][4u][4u] = { { {1,1,1,1}, {1,1,1,1}, {1,1,1,1}, {1,1,1,1} },
+                                 { {1,1,1,1}, {1,1,1,1}, {1,1,1,1}, {1,1,1,1} },
+                                 { {1,1,1,1}, {1,1,1,1}, {1,1,1,1}, {1,1,1,1} }
+                               };
+                               
+        TypeDescriptor type2 = TypeDescriptor::GetTypeDescriptorFromTypeName("float64");
+        AnyType anyParam2(type2, 0u, param2);
+        anyParam2.SetNumberOfDimensions(3u);
+        anyParam2.SetNumberOfElements(0u, 4u);
+        anyParam2.SetNumberOfElements(1u, 4u);
+        anyParam2.SetNumberOfElements(2u, 4u);
+        
+        ReferenceT<AnyObject> objParam2("AnyObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        objParam2->Serialise(anyParam2);
+        objParam2->SetName("matrixConstant3d");
+        cfgParameterContainer->Insert(objParam2);
+        
+    }
+    
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+
+    god->Purge();
+    
+    return ok;
     
     return ok;
 }
@@ -1011,6 +1281,62 @@ bool SimulinkWrapperGAMTest::TestSetup_WithStructSignals() {
         "    DataSource = DDB1"
         "    Type = uint8"
         "    NumberOfElements = 16"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+
+    StreamString parameters = "";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_WithNestedStructSignals() {
+    
+    StreamString scriptCall = "createSimpleTestModel('hasStructSignals', true, 'modelComplexity', 2, 'hasInputs', false);";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = "";
+    
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out3_VectorDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out20_NonVirtualBus  = {"
+        "    DataSource = DDB1"
+        "    Type = uint8"
+        "    NumberOfElements = 16"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out21_NonVirtualBus  = {"
+        "    DataSource = DDB1"
+        "    Type = uint8"
+        "    NumberOfElements = 24"
         "    NumberOfDimensions = 1"
         "}"
         "}";
@@ -1499,6 +1825,53 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfDimensions() {
     return !ok;
 }
 
+bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongNumberOfDimensions() {
+    
+    StreamString scriptCall = "createSimpleTestModel('hasTunableParams', true);";
+    
+    StreamString skipUnlinkedParams = "0";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "}";
+    
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 10"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+    
+    StreamString parameters = ""
+        "vectorConstant = (uint32) { {1, 1}, {1, 1} }";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return !ok;
+}
+
 bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongDimensions() {
     
     StreamString scriptCall = "createSimpleTestModel('hasTunableParams', true);";
@@ -1532,13 +1905,79 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongDimensions() {
         "Out2_ScalarUint32  = {"
         "    DataSource = DDB1"
         "    Type = uint32"
-        "    NumberOfElements = 1"
-        "    NumberOfDimensions = 0"
+        "    NumberOfElements = 10"
+        "    NumberOfDimensions = 1"
         "}"
         "}";
     
     StreamString parameters = ""
         "vectorConstant = (uint32) {1, 1}";
+    
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+    
+    return !ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongDimensions_Matrix() {
+    
+    StreamString scriptCall = "createSimpleTestModel('modelComplexity', 3, 'hasTunableParams', true, 'hasInputs', false);";
+    
+    StreamString skipUnlinkedParams = "0";
+    
+    StreamString inputSignals = "";
+
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 10"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out3_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out5_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "Out6_MatrixUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+
+    StreamString parameters = ""
+        "matrixConstant = (float64) { {10, 10, 10}, {11, 11, 11}, {12, 12, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (float64) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        ;
     
     // Test setup
     bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
@@ -1580,7 +2019,7 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongDatatype() {
         "    DataSource = DDB1"
         "    Type = uint32"
         "    NumberOfElements = 10"
-        "    NumberOfDimensions = 0"
+        "    NumberOfDimensions = 1"
         "}"
         "}";
     
