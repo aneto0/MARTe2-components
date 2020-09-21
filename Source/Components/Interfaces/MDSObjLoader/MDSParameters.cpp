@@ -103,15 +103,15 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
         // Concatenate scalar values in an array in the form "[\DATA001, \DATA002, \DATA003, ...]"
         expandedMDSPath = "[";
         for (uint32 currIdx = startIdx; currIdx <= stopIdx; currIdx++) {
-            //expandedMDSPath.Printf(originalPath.Buffer(), currIdx);  // The MARTe::Printf function does not work as printf, thus the following is required:
-            char stemp[CSTRINGMAXLEN];
-            snprintf(stemp, sizeof(stemp), MDSPath.Buffer(), currIdx);
-            expandedMDSPath += stemp;
+            StreamString currNode;
+            currNode.Printf(MDSPath.Buffer(), currIdx);
+            expandedMDSPath += currNode;
             if (currIdx != stopIdx) {
                 expandedMDSPath += ", ";
             }
         }
         expandedMDSPath += "]";
+        printf("dim: %s\n", expandedMDSPath.Buffer());
     }
     // Error
     else if ( targetDim != 0u && startIdx != 0u && stopIdx != 0u ) {
