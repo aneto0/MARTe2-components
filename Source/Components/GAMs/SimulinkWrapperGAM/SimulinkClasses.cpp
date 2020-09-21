@@ -107,16 +107,16 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
     // Type coherence check
     if (ok) {
         
-        TypeDescriptor slkType  = TypeDescriptor::GetTypeDescriptorFromTypeName(MARTeTypeName.Buffer());
-        TypeDescriptor mdsType = sourceParameter.GetTypeDescriptor();
+        TypeDescriptor slkType = TypeDescriptor::GetTypeDescriptorFromTypeName(MARTeTypeName.Buffer());
+        TypeDescriptor extType = sourceParameter.GetTypeDescriptor();
         
-        ok = (mdsType == slkType);
+        ok = (extType == slkType);
         
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::Warning,
                 "Parameter %s data type not matching (parameter source: %s, model: %s)",
                 fullName.Buffer(),
-                TypeDescriptor::GetTypeNameFromTypeDescriptor(mdsType),
+                TypeDescriptor::GetTypeNameFromTypeDescriptor(extType),
                 MARTeTypeName.Buffer());
         }
     }
@@ -125,14 +125,14 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
     if (ok) {
         
         uint32 slkTypeSize = dataTypeSize;
-        uint32 mdsTypeSize = sourceParameter.GetByteSize();
+        uint32 extTypeSize = sourceParameter.GetByteSize();
         
-        ok = (mdsTypeSize == slkTypeSize);
+        ok = (extTypeSize == slkTypeSize);
         
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::Warning,
                 "Parameter %s data type size not matching (parameter source: %d, model: %d)",
-                fullName.Buffer(), mdsTypeSize, slkTypeSize);
+                fullName.Buffer(), extTypeSize, slkTypeSize);
         }
     }
     
@@ -151,9 +151,9 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
     // Dimensionality check
     if(ok)
     {
-        uint32 mdsDim1 = sourceParameter.GetNumberOfElements(0u);
-        uint32 mdsDim2 = sourceParameter.GetNumberOfElements(1u);
-        uint32 mdsDim3 = sourceParameter.GetNumberOfElements(2u);
+        uint32 extDim1 = sourceParameter.GetNumberOfElements(0u);
+        uint32 extDim2 = sourceParameter.GetNumberOfElements(1u);
+        uint32 extDim3 = sourceParameter.GetNumberOfElements(2u);
         
         uint32 slkDim1 = numberOfElements[0u];
         uint32 slkDim2 = numberOfElements[1u];
@@ -165,16 +165,16 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             
             case 0u: { // Scalar
                 
-                ok = (mdsDim1 == 1u);
+                ok = (extDim1 == 1u);
                 break;
             }
             
             case 1u: { // Vector
                 
                 // Model vectors can be [1,N] or [N,1], both are ok
-                bool orientOk1 = ( (mdsDim1 == slkDim1) && (mdsDim2 == 1u)      );
-                bool orientOk2 = ( (mdsDim1 == 1u)      && (mdsDim2 == slkDim1) );
-                bool orientOk3 = ( (mdsDim1 == slkDim2) && (mdsDim2 == 1u)      );
+                bool orientOk1 = ( (extDim1 == slkDim1) && (extDim2 == 1u)      );
+                bool orientOk2 = ( (extDim1 == 1u)      && (extDim2 == slkDim1) );
+                bool orientOk3 = ( (extDim1 == slkDim2) && (extDim2 == 1u)      );
                 
                 ok = ( orientOk1 || orientOk2 || orientOk3 );
                 break;
@@ -182,13 +182,13 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             
             case 2u: { // Matrix
                 
-                ok = ( mdsDim1 == slkDim1 && mdsDim2 == slkDim2 && mdsDim3 == 1u );
+                ok = ( extDim1 == slkDim1 && extDim2 == slkDim2 && extDim3 == 1u );
                 break;
             }
             
             case 3u: { // 3D matrix
                 
-                ok = ( mdsDim1 == slkDim1 && mdsDim2 == slkDim2 && mdsDim3 == slkDim3 );
+                ok = ( extDim1 == slkDim1 && extDim2 == slkDim2 && extDim3 == slkDim3 );
                 break;
             }
             
@@ -204,7 +204,7 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
                 "Parameter %s: dimensions not matching (parameter source: [%u, %u, %u], model: [%u, %u, %u]).",
                 fullName.Buffer(),
-                mdsDim1, mdsDim2, mdsDim3,
+                extDim1, extDim2, extDim3,
                 slkDim1, slkDim2, slkDim3);
         }
     }

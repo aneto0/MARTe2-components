@@ -74,7 +74,7 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
     
     StreamString expandedMDSPath;
     
-    // Modify path based upon options like Dim or StartIdx
+    // Modify path if Dim option is specified
     if ( targetDim != 0u && startIdx == 0u && stopIdx == 0u ) {
         
         // Addes indices to the path in the form "[startIdx:stopIdx]"
@@ -87,15 +87,17 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
         
         // Now use TDI syntax to append zeroes if indices exceed array dimension
         StreamString tdiExpr = ""
-            "_swgTargetDim = %u;"
-            "_swgVec       = %s;"
-            "_swgVecSize   = shape(_swgVec, 0);"
-            "if(_swgTargetDim > _swgVecSize) for(_i = 0; _i < _swgTargetDim - _swgVecSize; _i++) _swgVec = [_swgVec, 0];"
-            "_swgVec";
+            "_swgTargetDim = %u;"                                       // store targetDim in MDSplus
+            "_swgVec       = %s;"                                       // store the current vector with indices
+            "_swgVecSize   = shape(_swgVec, 0);"                        // calculate actual vector dimensions
+            "if(_swgTargetDim > _swgVecSize)"                           // if vector size is less than required...
+            "    for(_i = 0; _i < _swgTargetDim - _swgVecSize; _i++)"
+            "        _swgVec = [_swgVec, 0];"                           // ... fill up with zeroes
+            "_swgVec";                                                  // return the updated vector as result of this expression
         
         expandedMDSPath.Printf(tdiExpr.Buffer(), targetDim, nodeWithIndices.Buffer());
-        printf("dim: %s\n", expandedMDSPath.Buffer());
     }
+    // Modify path if StartIdx and StopIdx options are specified
     else if ( targetDim == 0u && (startIdx != 0u || stopIdx != 0u) ) {
         
         // Concatenate scalar values in an array in the form "[\DATA001, \DATA002, \DATA003, ...]"
@@ -110,16 +112,14 @@ bool MDSParameter::Actualize(ConfigurationDatabase &targetcdb, MDSplus::Connecti
             }
         }
         expandedMDSPath += "]";
-        printf("startstop: %s\n", expandedMDSPath.Buffer());
-        
     }
+    // Error
     else if ( targetDim != 0u && startIdx != 0u && stopIdx != 0u ) {
-        // error
         REPORT_ERROR(ErrorManagement::ParametersError, "MDSParameter %s: both Dim and StartIdx/StopIdx used, unsupported.", this->GetName());
         ok = false;
     }
+    // Path is ok as it is
     else {
-        // path is ok as it is
         expandedMDSPath = MDSPath;
     }
     
