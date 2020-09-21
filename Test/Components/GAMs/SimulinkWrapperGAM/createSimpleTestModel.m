@@ -84,6 +84,9 @@ if hasTunableParams == true
         evalin('base', 'vectorConstant2 = ones(8,1);');
         if modelComplexity >= 3
             evalin('base', 'matrixConstant2 = ones(6,6);');
+            if modelComplexity >= 4
+                evalin('base', 'matrixConstant3d = ones(4,4,4);');
+            end
         end
     end
 end
@@ -101,6 +104,9 @@ if hasStructParams == true
         evalin('base', 'structMixed.vec = ones(8, 1)*2;');
         if modelComplexity >= 3
             evalin('base', 'structMixed.mat = uint32(ones(6, 6)*2);');
+            if modelComplexity >= 4
+                evalin('base', 'structMixed.mat3d = uint32(ones(4, 4, 4)*2);');
+            end
         end
     end
     
@@ -191,6 +197,24 @@ else
             set_param([model_name '/In6_MatrixUint32'],  'Value',          'ones(6,6)');
         end
     end
+    
+    if (modelComplexity >= 4)
+        add_block('simulink/Sources/Constant', [model_name '/In7_3DMatrixDouble']);
+        set_param([model_name '/In7_3DMatrixDouble'], 'OutDataTypeStr', 'double');
+        if hasTunableParams == true
+            set_param([model_name '/In7_3DMatrixDouble'],  'Value',          'matrixConstant3d');
+        else
+            set_param([model_name '/In7_3DMatrixDouble'], 'Value',          'rand(4,4,4)');
+        end
+        
+        add_block('simulink/Sources/Constant', [model_name '/In8_3DMatrixUint32']);
+        set_param([model_name '/In8_3DMatrixUint32'],  'OutDataTypeStr', 'uint32');
+        if hasStructParams == true
+            set_param([model_name '/In8_3DMatrixUint32'], 'Value',          'structMixed.mat3d');
+        else
+            set_param([model_name '/In8_3DMatrixUint32'],  'Value',          'ones(4,4,4)');
+        end
+    end
 end
 
 % output ports
@@ -222,6 +246,26 @@ if hasOutputs == true
         set_param([model_name '/Out6_MatrixUint32'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out6_MatrixUint32'], 'OutDataTypeStr', 'uint32');
     end
+    
+    if modelComplexity >= 4
+        % MARTe does not support 3D signals, so the ports output only a page of the 3D signal
+        add_block('simulink/Sinks/Out1',  [model_name '/Out7_3DMatrixDouble']);
+        set_param([model_name '/Out5_MatrixDouble'], 'IconDisplay',    'Signal name');
+        set_param([model_name '/Out5_MatrixDouble'], 'OutDataTypeStr', 'double');
+        
+        % selector to select the output page
+        add_block('simulink/Signal Routing/Selector', [model_name '/SelectorDouble'],...
+            'NumberOfDimensions', '3', 'IndexOptions', 'Index vector (dialog),Index vector (dialog),Index vector (dialog)',...
+            'Indices',           '[1:4],[1:4],2');
+        
+        add_block('simulink/Sinks/Out1',  [model_name '/Out8_3DMatrixUint32']);
+        set_param([model_name '/Out6_MatrixUint32'], 'IconDisplay',    'Signal name');
+        set_param([model_name '/Out6_MatrixUint32'], 'OutDataTypeStr', 'uint32');
+        
+        add_block('simulink/Signal Routing/Selector', [model_name '/Selector3DUint32'],...
+            'NumberOfDimensions', '3', 'IndexOptions', 'Index vector (dialog),Index vector (dialog),Index vector (dialog)',...
+            'Indices',           '[1:4],[1:4],2');
+    end
 
 else
     add_block('simulink/Sinks/Terminator', [model_name '/Out1_ScalarDouble']);
@@ -232,6 +276,10 @@ else
         if modelComplexity >= 3
            add_block('simulink/Sinks/Terminator',  [model_name '/Out5_MatrixDouble']);
            add_block('simulink/Sinks/Terminator',  [model_name '/Out6_MatrixUint32']);
+        end
+        if modelComplexity >= 4
+           add_block('simulink/Sinks/Terminator',  [model_name '/Out7_3DMatrixDouble']);
+           add_block('simulink/Sinks/Terminator',  [model_name '/Out8_3DMatrixUint32']);
         end
     end
 end
@@ -328,6 +376,17 @@ if modelComplexity >= 3
     end
 end
 
+if modelComplexity >= 4
+    
+    if hasInputs == false
+        add_line(model_name, 'In7_3DMatrixDouble/1', 'SelectorDouble/1');
+        add_line(model_name, 'In8_3DMatrixUint32/1', 'Selector3DUint32/1');
+        
+        add_line(model_name, 'SelectorDouble/1', 'Out7_3DMatrixDouble/1');
+        add_line(model_name, 'Selector3DUint32/1', 'Out8_3DMatrixUint32/1');
+    end
+end
+
 %% signal naming
 
 % name the signals
@@ -357,6 +416,13 @@ if modelComplexity >= 3
     name_input_signal([model_name '/Out6_MatrixUint32'], 1, 'Out6_MatrixUint32');
 end
 
+if modelComplexity >= 4
+    name_output_signal([model_name '/In7_3DMatrixDouble'], 1, 'In7_3DMatrixDouble');
+    name_output_signal([model_name '/In8_3DMatrixUint32'], 1, 'In8_3DMatrixUint32');
+    
+    name_input_signal([model_name '/Out7_3DMatrixDouble'], 1, 'Out7_3DMatrixDouble');
+    name_input_signal([model_name '/Out8_3DMatrixUint32'], 1, 'Out8_3DMatrixUint32');
+end
 %% arranging block layout
 % alternatively to setting the position of each block, the system can be
 % arranged automatically
@@ -438,7 +504,7 @@ close_system(model_name);
 % clean build directory
 rmdir('slprj', 's');
 rmdir([model_name '_ert_shrlib_rtw'], 's');
-delete(sprintf('%s.slx',model_name));
+%delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
 
