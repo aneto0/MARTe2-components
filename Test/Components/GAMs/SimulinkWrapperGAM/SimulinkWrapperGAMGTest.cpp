@@ -230,9 +230,14 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongDatatypeWithStructSignals) {
     ASSERT_TRUE(test.TestSetup_Failed_WrongDatatypeWithStructSignals());
 }
 
-TEST(SimulinkWrapperGAMGTest, TestParameterActualisation) {
+TEST(SimulinkWrapperGAMGTest, TestParameterActualisation_RowMajorModel) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestParameterActualisation());
+    ASSERT_TRUE(test.TestParameterActualisation_RowMajorModel());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestParameterActualisation_ColumnMajorModel) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestParameterActualisation_ColumnMajorModel());
 }
 
 /*---------------------------------------------------------------------------*/

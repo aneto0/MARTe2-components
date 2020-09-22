@@ -174,7 +174,8 @@ public:
     bool TestSetup_Failed_WrongDatatypeWithStructSignals();
     
     
-    bool TestParameterActualisation();
+    bool TestParameterActualisation_RowMajorModel();
+    bool TestParameterActualisation_ColumnMajorModel();
     
     /**
      * @brief A general template for the GAM configuration.
