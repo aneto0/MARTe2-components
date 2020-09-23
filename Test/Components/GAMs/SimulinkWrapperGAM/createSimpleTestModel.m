@@ -141,8 +141,26 @@ save_system(model_name);
 % -- root system
 
 % math blocks
-add_block('simulink/Math Operations/Gain',    [model_name '/Gain1']);
-add_block('simulink/Math Operations/Gain',    [model_name '/Gain2']);
+add_block('simulink/Math Operations/Gain', [model_name '/Gain1']);
+add_block('simulink/Math Operations/Gain', [model_name '/Gain2']);
+
+if modelComplexity >= 2
+    add_block('simulink/Math Operations/Gain', [model_name '/Gain3'], ...
+        'Gain',           '1', ...
+        'OutDataTypeStr', 'Inherit: Same as input');
+    add_block('simulink/Math Operations/Gain', [model_name '/Gain4'], ...
+        'Gain',           '1', ...
+        'OutDataTypeStr', 'Inherit: Same as input');
+end
+
+if modelComplexity >= 3
+    add_block('simulink/Math Operations/Gain', [model_name '/Gain5'], ...
+        'Gain',           '1', ...
+        'OutDataTypeStr', 'Inherit: Same as input');
+    add_block('simulink/Math Operations/Gain', [model_name '/Gain6'], ...
+        'Gain',           '1', ...
+        'OutDataTypeStr', 'Inherit: Same as input');
+end
 
 % input ports
 if hasInputs == true
@@ -153,6 +171,51 @@ if hasInputs == true
     add_block('simulink/Sources/In1', [model_name '/In2_ScalarUint32' ]);
     set_param([model_name '/In2_ScalarUint32'],  'IconDisplay',    'Signal name');
     set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
+    
+    if modelComplexity >= 2
+        add_block('simulink/Sources/In1', [model_name '/In3_VectorDouble' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'double',      ...
+            'PortDimensions', '[8 1]');
+
+        add_block('simulink/Sources/In1', [model_name '/In4_VectorUint32' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'uint32',      ...
+            'PortDimensions', '[8 1]' );
+    end
+    
+    if modelComplexity >= 3
+        add_block('simulink/Sources/In1', [model_name '/In5_MatrixDouble' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'double',      ...
+            'PortDimensions', '[6 6]' );
+
+        add_block('simulink/Sources/In1', [model_name '/In6_MatrixUint32' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'uint32',      ...
+            'PortDimensions', '[6 6]' );
+    end
+    
+    if modelComplexity >= 4
+        add_block('simulink/Sources/In1', [model_name '/In7_3DMatrixDouble' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'double', ...
+            'PortDimensions',  '[4 4]');
+
+        add_block('simulink/Sources/In1', [model_name '/In8_3DMatrixUint32' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'uint32', ...
+            'PortDimensions',  '[4 4]');
+        
+        add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate7'], ...
+            'NumInputs',            '2', ...
+            'ConcatenateDimension', '3')
+        
+        add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate8'], ...
+            'NumInputs',            '2', ...
+            'ConcatenateDimension', '3')
+    end
+    
 else
     add_block('simulink/Sources/Constant', [model_name '/In1_ScalarDouble']);
     set_param([model_name '/In1_ScalarDouble'], 'Value',          '1');
@@ -398,30 +461,35 @@ if hasStructSignals == true
 end
 
 if modelComplexity >= 2
-    
-    if hasInputs == false
-        add_line(model_name, 'In3_VectorDouble/1', 'Out3_VectorDouble/1');
-        add_line(model_name, 'In4_VectorUint32/1', 'Out4_VectorUint32/1');
-    end
+    add_line(model_name, 'In3_VectorDouble/1', 'Gain3/1')
+    add_line(model_name, 'Gain3/1',            'Out3_VectorDouble/1');
+    add_line(model_name, 'In4_VectorUint32/1', 'Gain4/1')
+    add_line(model_name, 'Gain4/1',            'Out4_VectorUint32/1');
 end
 
 if modelComplexity >= 3
-    
-    if hasInputs == false
-        add_line(model_name, 'In5_MatrixDouble/1', 'Out5_MatrixDouble/1');
-        add_line(model_name, 'In6_MatrixUint32/1', 'Out6_MatrixUint32/1');
-    end
+    add_line(model_name, 'In5_MatrixDouble/1', 'Gain5/1')
+    add_line(model_name, 'Gain5/1',            'Out5_MatrixDouble/1');
+    add_line(model_name, 'In6_MatrixUint32/1', 'Gain6/1')
+    add_line(model_name, 'Gain6/1',            'Out6_MatrixUint32/1');
 end
 
 if modelComplexity >= 4
-    
-    if hasInputs == false
+    if hasInputs == true
+        add_line(model_name, 'In7_3DMatrixDouble/1', 'Concatenate7/1');
+        add_line(model_name, 'In7_3DMatrixDouble/1', 'Concatenate7/2');
+        add_line(model_name, 'In8_3DMatrixUint32/1', 'Concatenate8/1');
+        add_line(model_name, 'In8_3DMatrixUint32/1', 'Concatenate8/2');
+        
+        add_line(model_name, 'Concatenate7/1', 'SelectorDouble/1');
+        add_line(model_name, 'Concatenate8/1', 'Selector3DUint32/1');
+    else
         add_line(model_name, 'In7_3DMatrixDouble/1', 'SelectorDouble/1');
         add_line(model_name, 'In8_3DMatrixUint32/1', 'Selector3DUint32/1');
-        
-        add_line(model_name, 'SelectorDouble/1', 'Out7_3DMatrixDouble/1');
-        add_line(model_name, 'Selector3DUint32/1', 'Out8_3DMatrixUint32/1');
     end
+
+    add_line(model_name, 'SelectorDouble/1', 'Out7_3DMatrixDouble/1');
+    add_line(model_name, 'Selector3DUint32/1', 'Out8_3DMatrixUint32/1');
 end
 
 %% signal naming

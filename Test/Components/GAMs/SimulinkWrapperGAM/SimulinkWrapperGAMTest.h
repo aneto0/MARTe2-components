@@ -173,9 +173,10 @@ public:
     bool TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals();
     bool TestSetup_Failed_WrongDatatypeWithStructSignals();
     
-    
     bool TestParameterActualisation_RowMajorModel();
     bool TestParameterActualisation_ColumnMajorModel();
+
+    bool TestExecute_ColumnMajorModel();
     
     /**
      * @brief A general template for the GAM configuration.

@@ -240,6 +240,11 @@ TEST(SimulinkWrapperGAMGTest, TestParameterActualisation_ColumnMajorModel) {
     ASSERT_TRUE(test.TestParameterActualisation_ColumnMajorModel());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestExecute) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
