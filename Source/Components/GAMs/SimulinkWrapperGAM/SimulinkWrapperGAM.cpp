@@ -970,7 +970,7 @@ bool SimulinkWrapperGAM::Execute() {
 void SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
 {
     uint32        nparams;
-    const char_T* paramName;
+    const char8* paramName;
     uint16      dataTypeIdx;
     uint8       slDataID;
     uint16      numElements;
@@ -1070,21 +1070,20 @@ void SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
 
 void SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer)
 {
-    uint32        idx;
-    const char_T  *elementName;
-    uint16      numElements;
-    uint16      elemMapIdx;
-    uint16      SUBdataTypeIndex;
-    uint8       SUBslDataID;
-    uint16      SUBnumElements;
-    uint32      SUBdataTypeOffset;
-    void*         byteptr = startaddr;
-    void*         runningbyteptr = startaddr;
-    StreamString  tempstr;
-    uint16      SUBdimIdx;
-    uint8       SUBnumDims;
-    uint32        SUBdimArrayIdx;
-    uint16      SUBdataTypeSize;
+    const char8* elementName;
+    uint16       numElements;
+    uint16       elemMapIdx;
+    uint16       SUBdataTypeIndex;
+    uint8        SUBslDataID;
+    uint16       SUBnumElements;
+    uint32       SUBdataTypeOffset;
+    void*        byteptr = startaddr;
+    void*        runningbyteptr = startaddr;
+    StreamString tempstr;
+    uint16       SUBdimIdx;
+    uint8        SUBnumDims;
+    uint32       SUBdimArrayIdx;
+    uint16       SUBdataTypeSize;
 
     elemMapIdx  = rtwCAPI_GetDataTypeElemMapIndex(dataTypeMap,dataTypeIdx);
     numElements = rtwCAPI_GetDataTypeNumElements(dataTypeMap,dataTypeIdx);
@@ -1092,21 +1091,21 @@ void SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
     StreamString specificSpacer; // spacer of the current parameter
     StreamString passoverSpacer; // spacer that will be passed to a recursive call
 
-    for(idx=0; idx<numElements; idx++)
-    {
-        elementName         = rtwCAPI_GetElementName(elementMap, idx+elemMapIdx);
-        SUBdimIdx           = rtwCAPI_GetElementDimensionIdx(elementMap, idx+elemMapIdx);
-        SUBnumDims          = rtwCAPI_GetNumDims(dimMap, SUBdimIdx);
-        SUBdimArrayIdx      = rtwCAPI_GetDimArrayIndex(dimMap, SUBdimIdx);
-        SUBdataTypeIndex    = rtwCAPI_GetElementDataTypeIdx(elementMap, idx+elemMapIdx);
-        SUBdataTypeOffset   = rtwCAPI_GetElementOffset(elementMap, idx+elemMapIdx);
-        SUBslDataID         = rtwCAPI_GetDataTypeSLId(dataTypeMap, SUBdataTypeIndex);
-        SUBnumElements      = rtwCAPI_GetDataTypeNumElements(dataTypeMap,SUBdataTypeIndex);
-        SUBdataTypeSize     = rtwCAPI_GetDataTypeSize(dataTypeMap,SUBdataTypeIndex);
+    for(uint32 elemIdx = 0u; elemIdx < numElements; elemIdx++) {
+        
+        elementName         = rtwCAPI_GetElementName        (elementMap, elemIdx + elemMapIdx);
+        SUBdimIdx           = rtwCAPI_GetElementDimensionIdx(elementMap, elemIdx + elemMapIdx);
+        SUBnumDims          = rtwCAPI_GetNumDims            (dimMap,     SUBdimIdx);
+        SUBdimArrayIdx      = rtwCAPI_GetDimArrayIndex      (dimMap,     SUBdimIdx);
+        SUBdataTypeIndex    = rtwCAPI_GetElementDataTypeIdx (elementMap, elemIdx + elemMapIdx);
+        SUBdataTypeOffset   = rtwCAPI_GetElementOffset      (elementMap, elemIdx + elemMapIdx);
+        SUBslDataID         = rtwCAPI_GetDataTypeSLId       (dataTypeMap, SUBdataTypeIndex);
+        SUBnumElements      = rtwCAPI_GetDataTypeNumElements(dataTypeMap, SUBdataTypeIndex);
+        SUBdataTypeSize     = rtwCAPI_GetDataTypeSize       (dataTypeMap, SUBdataTypeIndex);
         
         specificSpacer = spacer; // reset the spacer
         passoverSpacer = spacer;
-        if (idx == numElements - 1u) {
+        if (elemIdx == numElements - 1u) {
             specificSpacer += "└ ";
         } 
         else {
@@ -1115,20 +1114,21 @@ void SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
         
         StreamString diminfo = "[";
         bool structarray = false;
-        for(unsigned int idx2=0; idx2<SUBnumDims; idx2++)
+        for (uint32 elemIdx2 = 0u; elemIdx2 < SUBnumDims; elemIdx2++)
         {
-            if(dimArray[SUBdimArrayIdx + idx2]>1) structarray=true;
-            
-            diminfo.Printf("%d", dimArray[SUBdimArrayIdx + idx2]);
-            if (idx2 != SUBnumDims - 1u) {
-                diminfo+=",";
+            if (dimArray[SUBdimArrayIdx + elemIdx2] > 1u) {
+                structarray = true;
+            }
+            diminfo.Printf("%d", dimArray[SUBdimArrayIdx + elemIdx2]);
+            if (elemIdx2 != SUBnumDims - 1u) {
+                diminfo += ",";
             }
         }
         diminfo += "]";
 
-        if(SUBslDataID!=SS_STRUCT)
+        if (SUBslDataID != SS_STRUCT)
         {
-            ScanParameter(elemMapIdx+idx, specificSpacer, ParamFromElementMap, byteptr, basename, baseoffset, depth);
+            ScanParameter(elemMapIdx+elemIdx, specificSpacer, ParamFromElementMap, byteptr, basename, baseoffset, depth);
         }
         else
         {
@@ -1151,7 +1151,7 @@ void SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
             }
             else
             {
-                if(idx==0)
+                if(elemIdx==0)
                 {
                     lastAddressVector.Set(depth - 1u, runningbyteptr);
                     deltaaddr=0;
@@ -1168,7 +1168,7 @@ void SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
 
             RTWCAPIV2LOG(ErrorManagement::Information,
                     "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, nested struct (idx %d) with %d elems, size(u16!): %d, offset: %d, base addr: %p, same lvl delta: %d, abs delta: %d, dims: %s",
-                    specificSpacer.Buffer(), elementName, idx, SUBnumElements, SUBdataTypeSize, SUBdataTypeOffset, runningbyteptr, deltaaddr, absDeltaAddress, diminfo.Buffer());
+                    specificSpacer.Buffer(), elementName, elemIdx, SUBnumElements, SUBdataTypeSize, SUBdataTypeOffset, runningbyteptr, deltaaddr, absDeltaAddress, diminfo.Buffer());
             tempstr=elementName;
             if(structarray)
             {
@@ -1180,7 +1180,7 @@ void SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
             nameAndSeparators += tempstr;
             nameAndSeparators += paramSeparator;
             
-            if (idx == numElements - 1u) { 
+            if (elemIdx == numElements - 1u) { 
                 passoverSpacer += "  "; 
             } else {
                 passoverSpacer += "┆ ";
@@ -1194,24 +1194,23 @@ void SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
 void SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, ParameterMode mode, void* startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
 {
 
-    uint32               idx;
-    const char_T         *ELEelementName;
-    uint32             ELEelementOffset;
-    uint16             ELEdataTypeIndex;
-    uint16             ELEdimIndex;
-    uint8              ELEnumDims;
-    uint32               ELEdimArrayIdx;
-    rtwCAPI_Orientation  ELEorientation;
+    const char8*        ELEelementName;
+    uint32              ELEelementOffset;
+    uint16              ELEdataTypeIndex;
+    uint16              ELEdimIndex;
+    uint8               ELEnumDims;
+    uint32              ELEdimArrayIdx;
+    rtwCAPI_Orientation ELEorientation;
 
-    const char_T         *ELEctypename;
-    uint32               ELEaddrIdx;
-    uint8*               ELEparamAddress;
-    uint16             ELEdataTypeSize;
-    uint32             ELEsize;
-    uint32             ELEelements;
-    StreamString         fullpathname;
-    StreamString         ELEtypename;
-    uint32               ELEMARTeNumDims = 0u;   // number of dimensions according to MARTe standard
+    const char8*        ELEctypename;
+    uint32              ELEaddrIdx;
+    uint8*              ELEparamAddress;
+    uint16              ELEdataTypeSize;
+    uint32              ELEsize;
+    uint32              ELEelements;
+    StreamString        fullpathname;
+    StreamString        ELEtypename;
+    uint32              ELEMARTeNumDims = 0u;   // number of dimensions according to MARTe standard
     
     switch(mode) {
         
@@ -1259,10 +1258,10 @@ void SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
     
     ELEsize=1;
     ELEelements=1;
-    for(idx=0; idx<ELEnumDims; idx++)
+    for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++)
     {
-        ELEactualDimensions[idx] = dimArray[ELEdimArrayIdx + idx];
-        ELEelements*=ELEactualDimensions[idx];
+        ELEactualDimensions[dimIdx] = dimArray[ELEdimArrayIdx + dimIdx];
+        ELEelements*=ELEactualDimensions[dimIdx];
     }
     
     // Calculate number of dimensions in MARTe2 sense
@@ -1287,9 +1286,8 @@ void SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
     
     paramInfoString.Printf("%d", ELEactualDimensions[0]);
     
-    for(idx=1; idx<ELEnumDims; idx++)
-    {
-        paramInfoString.Printf(",%d", ELEactualDimensions[idx]);
+    for (uint32 dimIdx = 1u; dimIdx < ELEnumDims; dimIdx++) {
+        paramInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
     }
     uint32 deltaAddress;
     if(paramlastaddress!=NULL)
@@ -1448,18 +1446,16 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
 
 void SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer){
     
-    
-    uint32        idx;
-    const char_T  *elementName;
-    uint16      numElements;
-    uint16      elemMapIdx;
-    uint16      SUBdataTypeIndex;
-    uint8       SUBslDataID;
-    uint16      SUBnumElements;
-    uint32      SUBdataTypeOffset;
-    void*         byteptr = startaddr;
-    void*         runningbyteptr = startaddr;
-    StreamString  tempstr;
+    const char8* elementName;
+    uint8        SUBslDataID;
+    uint16       numElements;
+    uint16       elemMapIdx;
+    uint16       SUBdataTypeIndex;
+    uint16       SUBnumElements;
+    uint32       SUBdataTypeOffset;
+    void*        byteptr = startaddr;
+    void*        runningbyteptr = startaddr;
+    StreamString tempstr;
 
     elemMapIdx  = rtwCAPI_GetDataTypeElemMapIndex(dataTypeMap,dataTypeIdx);
     numElements = rtwCAPI_GetDataTypeNumElements(dataTypeMap,dataTypeIdx);
@@ -1467,18 +1463,18 @@ void SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
     StreamString specificSpacer; // spacer of the current signal
     StreamString passoverSpacer; // spacer that will be passed to a recursive call
     
-    for(idx=0; idx<numElements; idx++)
+    for(uint32 elemIdx = 0u; elemIdx < numElements; elemIdx++)
     {
-        elementName         = rtwCAPI_GetElementName(elementMap, idx+elemMapIdx);
-        SUBdataTypeIndex    = rtwCAPI_GetElementDataTypeIdx(elementMap, idx+elemMapIdx);
-        SUBdataTypeOffset   = rtwCAPI_GetElementOffset(elementMap, idx+elemMapIdx);
+        elementName         = rtwCAPI_GetElementName(elementMap, elemIdx+elemMapIdx);
+        SUBdataTypeIndex    = rtwCAPI_GetElementDataTypeIdx(elementMap, elemIdx+elemMapIdx);
+        SUBdataTypeOffset   = rtwCAPI_GetElementOffset(elementMap, elemIdx+elemMapIdx);
         SUBslDataID         = rtwCAPI_GetDataTypeSLId(dataTypeMap, SUBdataTypeIndex);
         SUBnumElements      = rtwCAPI_GetDataTypeNumElements(dataTypeMap,SUBdataTypeIndex);
         
         
         specificSpacer = spacer; // reset the spacer
         passoverSpacer = spacer;
-        if (idx == numElements - 1u) {
+        if (elemIdx == numElements - 1u) {
             specificSpacer += "└ ";
         } 
         else {
@@ -1488,21 +1484,19 @@ void SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
         // Scan the parameter or structure
         if(SUBslDataID!=SS_STRUCT)
         {
-            ScanSignal(elemMapIdx+idx, specificSpacer, SignalFromElementMap, byteptr, basename, baseoffset, depth);
+            ScanSignal(elemMapIdx+elemIdx, specificSpacer, SignalFromElementMap, byteptr, basename, baseoffset, depth);
         }
         else
         {
 
-            //byteptr=reinterpret_cast<void *>(static_cast<uint8*>(byteptr)+SUBdataTypeOffset);
-            //runningbyteptr=reinterpret_cast<void *>(static_cast<uint8*>(runningbyteptr)+SUBdataTypeOffset);
             runningbyteptr=reinterpret_cast<void *>(static_cast<uint8*>(startaddr)+SUBdataTypeOffset);
 
-            // Calculating sam elevel delta address
+            // Calculating same level delta address
             uint64 deltaaddr;
             if (lastAddressVector.GetSize() < depth)
             {
                 lastAddressVector.Add(runningbyteptr);
-                deltaaddr=0;
+                deltaaddr = 0;
             }
             else if (lastAddressVector.GetSize() > depth)
             {
@@ -1514,7 +1508,7 @@ void SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
             }
             else
             {
-                if(idx==0)
+                if (elemIdx == 0u)
                 {
                     lastAddressVector.Set(depth - 1u, runningbyteptr);
                     deltaaddr = 0;
@@ -1530,14 +1524,14 @@ void SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
             absDeltaAddress = reinterpret_cast<uint64>(runningbyteptr) - reinterpret_cast<uint64>(currentPort->baseAddress);
             
             RTWCAPIV2LOG(ErrorManagement::Information, "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, nested struct (idx %d) with %d elems, offset: %d, base addr: %p, same level delta: %d, abs delta: %d",
-                    specificSpacer.Buffer(), elementName, idx, SUBnumElements, SUBdataTypeOffset, runningbyteptr, deltaaddr, absDeltaAddress);
+                    specificSpacer.Buffer(), elementName, elemIdx, SUBnumElements, SUBdataTypeOffset, runningbyteptr, deltaaddr, absDeltaAddress);
             tempstr=elementName;
             
             StreamString nameAndSeparators = basename;
             nameAndSeparators += tempstr;
             nameAndSeparators += signalSeparator;
             
-            if (idx == numElements - 1u) { 
+            if (elemIdx == numElements - 1u) { 
                 passoverSpacer += "  "; 
             } else {
                 passoverSpacer += "┆ ";
@@ -1551,22 +1545,21 @@ void SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
 
 void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
 {
-    uint32               idx;
-    const char_T         *ELEelementName;
-    uint32             ELEelementOffset;
-    uint16             ELEdataTypeIndex;
-    uint16             ELEdimIndex;
-    uint8              ELEnumDims;
-    uint32               ELEdimArrayIdx;
-    rtwCAPI_Orientation  ELEorientation;
+    const char8*        ELEelementName;
+    uint32              ELEelementOffset;
+    uint16              ELEdataTypeIndex;
+    uint16              ELEdimIndex;
+    uint8               ELEnumDims;
+    uint32              ELEdimArrayIdx;
+    rtwCAPI_Orientation ELEorientation;
     
-    const char_T         *ELEctypename;
-    uint32               ELEaddrIdx;
-    uint8*               ELEparamAddress;
-    uint16             ELEdataTypeSize;
-    uint32             ELEsize;
-    StreamString         fullpathname;
-    uint32               ELEMARTeNumDims = 0u;   // number of dimensions according to MARTe standard
+    const char8*        ELEctypename;
+    uint32              ELEaddrIdx;
+    uint8*              ELEparamAddress;
+    uint16              ELEdataTypeSize;
+    uint32              ELEsize;
+    StreamString        fullpathname;
+    uint32              ELEMARTeNumDims = 0u;   // number of dimensions according to MARTe standard
     
     SimulinkSignal*     currentSignal;
 
@@ -1583,7 +1576,6 @@ void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
             ELEdimIndex          = rtwCAPI_GetElementDimensionIdx(elementMap, sigidx);
             
             ELEparamAddress      = static_cast<uint8*>(startaddr)+ELEelementOffset;
-            //ELEparamAddress      = startaddr;
             
             break;
             
@@ -1617,10 +1609,10 @@ void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
     Vector<uint32> ELEactualDimensions(ELEnumDims); 
 
     ELEsize=1;
-    for(idx=0; idx<ELEnumDims; idx++) {
+    for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
         
-        ELEactualDimensions[idx] = dimArray[ELEdimArrayIdx + idx];
-        ELEsize*=ELEactualDimensions[idx];
+        ELEactualDimensions[dimIdx] = dimArray[ELEdimArrayIdx + dimIdx];
+        ELEsize *= ELEactualDimensions[dimIdx];
     }
 
     // Calculate number of dimensions in MARTe2 sense
@@ -1649,9 +1641,9 @@ void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
     
     paramInfoString.Printf("%d", ELEactualDimensions[0]);
     
-    for(idx=1; idx<ELEnumDims; idx++)
-    {
-        paramInfoString.Printf(",%d", ELEactualDimensions[idx]);
+    for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
+    
+        paramInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
     }
     uint32 deltaAddress;
     if (currentPort->lastSignalAddress != NULL) {
