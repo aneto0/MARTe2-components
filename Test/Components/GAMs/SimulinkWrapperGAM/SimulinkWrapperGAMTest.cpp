@@ -77,6 +77,10 @@ public:
     void* GetInputSignalMemoryTest(MARTe::uint32 signalIdx) {
         return GetInputSignalMemory(signalIdx);
     }
+    
+    void PrintAlgoInfoTest() {
+        PrintAlgoInfo();
+    }
      
  };
 
@@ -3290,4 +3294,53 @@ bool SimulinkWrapperGAMTest::TestExecute() {
     }
     
     return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestPrintAlgoInfo() {
+    
+    bool ok = true;
+    
+    StreamString modelName, modelFolder, modelFullPath;
+    
+    modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.CreateTestModel("createSimpleTestModel();");
+    
+    modelFullPath  = modelFolder;
+    modelFullPath += "/";
+    modelFullPath += modelName;
+    modelFullPath += ".so";
+
+    SimulinkWrapperGAMHelper gam;
+    ConfigurationDatabase    config;
+    
+    ok &= config.Write("Library",                    modelFullPath);
+    ok &= config.Write("SymbolPrefix",               modelName);
+    ok &= config.Write("TunableParamExternalSource", "ExtSource");
+    ok &= config.Write("Verbosity",                  2);
+    ok &= config.Write("SkipUnlinkedTunableParams",  1);
+    
+    ok &= config.CreateAbsolute("Parameters");
+    ok &= config.MoveAbsolute("Parameters");
+    
+    float32 scalarParam       = 3.141592653589793;
+    int64   vectorParam[2]    = {10, -20};
+    uint32  matrixParam[2][2] = { {1, 2}, {3, 4} };
+    
+    ok &= config.Write("ScalarParam", scalarParam);
+    ok &= config.Write("VectorParam", vectorParam);
+    ok &= config.Write("MatrixParam", matrixParam);
+    ok &= config.Write("StringParam", "hello");
+    
+    ok &= config.MoveToAncestor(1u);
+    
+    if (ok) {
+        ok = gam.Initialise(config);
+    }
+    
+    if (ok) {
+        gam.PrintAlgoInfoTest();
+    }
+    
+    return ok;
+    
 }

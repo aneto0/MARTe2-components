@@ -231,7 +231,13 @@ protected:
     
     // those members are protected for testing purpose
     
-        /**
+    /**
+     * @brief Experimental function. Print model version info
+     *        if previously retrieved from the model.
+     */
+    void PrintAlgoInfo();
+    
+    /**
      * @brief General informations about the model hosted by the library.
      */
     uint16 modelNumOfInputs;
@@ -398,14 +404,7 @@ private:
      */
     bool SetupSimulink();
     
-    bool CheckrtwCAPITypeAgainstMARTe(StreamString rtwCAPItype, StreamString &MARTeType);
     bool CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16 checksize);
-    
-    /**
-     * @brief Experimental function. Print model version info
-     *        if previously retrieved from the model.
-     */
-    void PrintAlgoInfo();
     
     /**
      * @brief separator for building structured parameters fullpaths

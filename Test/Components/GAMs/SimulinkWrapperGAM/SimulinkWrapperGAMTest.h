@@ -179,6 +179,8 @@ public:
     bool TestParameterActualisation_Int();
     bool TestParameterActualisation_Float();
     
+    bool TestPrintAlgoInfo();
+    
     /**
      * @brief A general template for the GAM configuration.
      *        The template has printf-style spcifiers (`%s`) where

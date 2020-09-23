@@ -260,6 +260,11 @@ TEST(SimulinkWrapperGAMGTest, TestExecute) {
     ASSERT_TRUE(test.TestExecute());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestPrintAlgoInfo) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestPrintAlgoInfo());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

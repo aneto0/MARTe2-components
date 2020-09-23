@@ -1724,17 +1724,6 @@ void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
     
 }
 
-
-bool SimulinkWrapperGAM::CheckrtwCAPITypeAgainstMARTe(StreamString rtwCAPItype, StreamString &MARTeType)
-{
-    const char8* csCAPItype         = GetMARTeTypeNameFromCTypeName(rtwCAPItype.Buffer());
-    const char8* MARTeTypeStdString = MARTeType.Buffer();
-    
-    bool ret = (StringHelper::Compare(csCAPItype, MARTeTypeStdString) == 0u);
-    
-    return ret;
-}
-
 bool SimulinkWrapperGAM::CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16 checksize)
 {
     return GetTypeSizeFromCTypeName(rtwCAPItype.Buffer()) == checksize;
@@ -1744,17 +1733,19 @@ void SimulinkWrapperGAM::PrintAlgoInfo() {
     
     SimulinkAlgoInfo info;
 
-    if ( (static_cast<void(*)(void*)>(NULL) != getAlgoInfoFunction) ) {
-        
-        (*getAlgoInfoFunction)((void*) &info);
-
-        REPORT_ERROR(ErrorManagement::Information,"Algorithm expcode : %d", info.expCode);
-        
-        REPORT_ERROR(ErrorManagement::Information,"Algorithm git hash: %s", info.gitHash);
-
-        REPORT_ERROR(ErrorManagement::Information,"Algorithm git log : %s", info.gitLog);
-
+    if ( (static_cast<void(*)(void*)>(NULL) == getAlgoInfoFunction) ) {
+        info.expCode = 0u;
+        StringHelper::Copy(info.gitHash, "00000000\0");
+        StringHelper::Copy(info.gitLog,  "\0");
     }
+    else {
+        (*getAlgoInfoFunction)((void*) &info);
+    }
+    
+    REPORT_ERROR(ErrorManagement::Information,"Algorithm expcode : %d", info.expCode);
+    REPORT_ERROR(ErrorManagement::Information,"Algorithm git hash: %s", info.gitHash);
+    REPORT_ERROR(ErrorManagement::Information,"Algorithm git log : %s", info.gitLog);
+
 
 }
 
