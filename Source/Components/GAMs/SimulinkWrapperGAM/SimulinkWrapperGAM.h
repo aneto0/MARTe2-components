@@ -54,18 +54,6 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-enum rtwCAPI_printparmode
-{
-    PAR_FROM_PARAMS,
-    PAR_FROM_ELEMENTMAP
-};
-
-enum rtwCAPI_printsigmode
-{
-    SIG_FROM_SIGS,
-    SIG_FROM_ELEMENTMAP
-};
-
 namespace MARTe {
 
 /**
@@ -318,6 +306,24 @@ private:
     const rtwCAPI_DimensionMap*    dimMap;
     const uint32*                  dimArray;
     void**                         dataAddrMap;
+    
+    /**
+     * @brief Enum that specifies where to retrieve data for a parameter
+     */
+    enum ParameterMode {
+        
+        ParamFromParameters,
+        ParamFromElementMap
+    };
+    
+    /**
+     * @brief Enum that specifies where to retrieve data for a signal
+     */
+    enum SignalMode {
+        
+        SignalFromSignals,
+        SignalFromElementMap
+    };
 
     /**
      * @brief Scans the tunable parameters tree of the loaded Simulink .so code
@@ -347,7 +353,7 @@ private:
      *                      `PAR_FROM_ELEMENTMAP`, if param to print stays in the elementMap data struct
      * @param[in] startaddr start address to compute parameter access virtual address
      */
-    void ScanParameter(uint32 paridx, StreamString spacer, enum rtwCAPI_printparmode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
+    void ScanParameter(uint32 paridx, StreamString spacer, ParameterMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
 
     /**
      * @brief Scans the root level input or output tree of the loaded Simulink .so code
@@ -380,7 +386,7 @@ private:
      * @param[in] baseoffset base offset of the structure in the port (for recursive callings)
      * @param[in] depth      tree depth level at call (for recursive callings)
      */
-    void ScanSignal(uint32 sigidx, StreamString spacer, enum rtwCAPI_printsigmode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
+    void ScanSignal(uint32 sigidx, StreamString spacer, SignalMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
     
     /**
      * @brief Check coherence between model ports and GAM signals and map them.

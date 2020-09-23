@@ -1021,7 +1021,7 @@ void SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
         
         if(slDataID!=SS_STRUCT) {
             // Not structured parameter, directly print it from main params structure
-            ScanParameter(paramIdx, "", PAR_FROM_PARAMS, NULL, "", 0, 1);
+            ScanParameter(paramIdx, "", ParamFromParameters, NULL, "", 0, 1);
         }
         else
         {
@@ -1128,7 +1128,7 @@ void SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
 
         if(SUBslDataID!=SS_STRUCT)
         {
-            ScanParameter(elemMapIdx+idx, specificSpacer, PAR_FROM_ELEMENTMAP, byteptr, basename, baseoffset, depth);
+            ScanParameter(elemMapIdx+idx, specificSpacer, ParamFromElementMap, byteptr, basename, baseoffset, depth);
         }
         else
         {
@@ -1191,7 +1191,7 @@ void SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
     }
 }
 
-void SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, enum rtwCAPI_printparmode mode, void* startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
+void SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, ParameterMode mode, void* startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
 {
 
     uint32               idx;
@@ -1209,15 +1209,13 @@ void SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, enum 
     uint16             ELEdataTypeSize;
     uint32             ELEsize;
     uint32             ELEelements;
-    //StreamString         elementname;
     StreamString         fullpathname;
     StreamString         ELEtypename;
-    //void *               returnAddress;
     uint32               ELEMARTeNumDims = 0u;   // number of dimensions according to MARTe standard
     
     switch(mode) {
         
-        case PAR_FROM_ELEMENTMAP: {
+        case ParamFromElementMap: {
             
             // Parameters data is retrieved from the elements data structure
             // (this case applies to all other cases w.r.t. the case below)
@@ -1231,14 +1229,14 @@ void SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, enum 
             break;
         }
         
-        case PAR_FROM_PARAMS: {
+        case ParamFromParameters: {
             
             // Parameter data is retrieved from main CAPI parameters data structure
             // (this case applies to not structured parameters at root level of the tree)
             ELEdataTypeIndex     = rtwCAPI_GetModelParameterDataTypeIdx(modelParams, paridx);
             ELEdataTypeSize      = rtwCAPI_GetDataTypeSize(dataTypeMap, ELEdataTypeIndex);
             ELEelementName       = rtwCAPI_GetModelParameterName(modelParams, paridx);
-            ELEelementOffset     = 0; // root level parameters have their address directly specified in the dataAddrMap structure
+            ELEelementOffset     = 0u; // root level parameters have their address directly specified in the dataAddrMap structure
             ELEdimIndex          = rtwCAPI_GetModelParameterDimensionIdx(modelParams, paridx);
             
             ELEaddrIdx           = rtwCAPI_GetModelParameterAddrIdx(modelParams,paridx);
@@ -1415,12 +1413,12 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
         currentPort->fullName = stemp;
         currentPort->verbosity = verbosityLevel;
 
-        if(slDataID!=SS_STRUCT) {
+        if (slDataID != SS_STRUCT) {
+            
             // Not structured parameter, directly print it from main params structure
             // TODO: check if baseoffset 0 is correct
             
-            ScanSignal(sigIdx, "", SIG_FROM_SIGS, NULL, "", 0, 1);
-            //runningportptr->addRunningOffsetToOffsetBasedSize();
+            ScanSignal(sigIdx, "", SignalFromSignals, NULL, "", 0, 1);
         }
         else
         {
@@ -1490,7 +1488,7 @@ void SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
         // Scan the parameter or structure
         if(SUBslDataID!=SS_STRUCT)
         {
-            ScanSignal(elemMapIdx+idx, specificSpacer, SIG_FROM_ELEMENTMAP, byteptr, basename, baseoffset, depth);
+            ScanSignal(elemMapIdx+idx, specificSpacer, SignalFromElementMap, byteptr, basename, baseoffset, depth);
         }
         else
         {
@@ -1551,7 +1549,7 @@ void SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
     }
 }
 
-void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, enum rtwCAPI_printsigmode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
+void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
 {
     uint32               idx;
     const char_T         *ELEelementName;
@@ -1574,8 +1572,8 @@ void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, enum rtw
 
     switch (mode) {
         
-        case SIG_FROM_ELEMENTMAP:
-            // Signalss data is retrieved from the signals data structure
+        case SignalFromElementMap:
+            // Signal data is retrieved from the signal data structure
             // (this case applies to all other cases w.r.t. the one below)
             
             ELEdataTypeIndex     = rtwCAPI_GetElementDataTypeIdx(elementMap, sigidx);
@@ -1589,8 +1587,8 @@ void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, enum rtw
             
             break;
             
-        case SIG_FROM_SIGS:
-            // Signal data is retrieved from main CAPI signals data structure
+        case SignalFromSignals:
+            // Signal data is retrieved from main CAPI signal data structure
             // (this case applies to not structured parameters at root level of the tree)
             
             ELEdataTypeIndex     = rtwCAPI_GetSignalDataTypeIdx(sigGroup, sigidx);
@@ -1633,7 +1631,7 @@ void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, enum rtw
         }
     }
 
-    if(mode == SIG_FROM_SIGS)
+    if(mode == SignalFromSignals)
     {
         currentPort->CAPISize = ELEsize*ELEdataTypeSize;
         currentPort->byteSize = ELEsize*ELEdataTypeSize; 
