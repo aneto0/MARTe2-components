@@ -2577,12 +2577,445 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation_ColumnMajorModel() {
     return ok;
 }
 
-bool SimulinkWrapperGAMTest::TestExecute() {
+bool SimulinkWrapperGAMTest::TestParameterActualisation_Uint() {
     
-    return TestExecute_ColumnMajorModel();
+    StreamString scriptCall = "createSimpleTestModel('modelComplexity', 3, 'useType', 1, 'hasInputs', false, 'hasTunableParams', true, 'hasStructParams', true, 'hasStructArrayParams', false);";
+    
+    StreamString skipUnlinkedParams = "0";
+    
+    StreamString inputSignals = "";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out3_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out5_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = uint8"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "Out6_MatrixUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint16"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+
+    StreamString parameters = ""
+        "matrixConstant = (float64) { {10, 10, 10}, {11, 11, 11}, {12, 12, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "structScalar-one         = (float64) 3.141592653 "
+        "structScalar-nested1-one = (float64) 2.718281828 "
+        "structScalar-nested1-two = (float64) 2.718281828 "
+        "structScalar-nested2-one = (float64) 1.414213562 "
+        "structScalar-nested2-two = (float64) 1.414213562 "
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (uint8) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        "structMixed-one = (float64) 10 "
+        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "structMixed-mat = (uint16)  { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        ;
+    
+    // Since the model is column-major, parameters are transposed
+    // when loaded, so raw memory comparison must be carried out
+    // with transposed parameters.
+    StreamString transposedParameters = ""
+        "matrixConstant = (float64) { {10, 11, 12}, {10, 11, 12}, {10, 11, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "structScalar-one         = (float64) 3.141592653 "
+        "structScalar-nested1-one = (float64) 2.718281828 "
+        "structScalar-nested1-two = (float64) 2.718281828 "
+        "structScalar-nested2-one = (float64) 1.414213562 "
+        "structScalar-nested2-two = (float64) 1.414213562 "
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (uint8) { {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12}}"
+        "structMixed-one = (float64) 10 "
+        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "structMixed-mat = (uint16) { {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12}}";
+    
+    // Test setup
+    ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
+    
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, ord);
+    
+    // Now check if parameter values have been correctly loaded.
+    
+    // First, build a database with what has been loaded in the model
+    ConfigurationDatabase cdb;
+    if (ok) {
+        transposedParameters.Seek(0u);
+        StandardParser parser(transposedParameters, cdb);
+        ok = parser.Parse();
+    }
+    
+    // Then, import the parameters back from the model and compare
+    if (ok) {
+        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
+        
+        ok = gam.IsValid();
+        if (ok) {
+            
+            for (uint32 paramIdx = 0u; (paramIdx < gam->GetNumOfPars()) && ok ; paramIdx++) {
+                
+                SimulinkParameter* par = gam->GetParameter(paramIdx);
+                
+                StreamString paramName = par->fullName;
+                uint32       paramSize = par->byteSize;
+                void*        paramAddr = par->address;
+                
+                AnyType arrayDescription = cdb.GetType(paramName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+                if (ok) {
+                    ok = (MemoryOperationsHelper::Compare(paramAddr, arrayDescription.GetDataPointer(), paramSize) == 0u);
+                }
+            }
+        }
+    }
+    
+    if (ok) {
+        ord->Purge();
+    }
+    
+    return ok;
 }
 
-bool SimulinkWrapperGAMTest::TestExecute_ColumnMajorModel() {
+bool SimulinkWrapperGAMTest::TestParameterActualisation_Int() {
+    
+    StreamString scriptCall = "createSimpleTestModel('modelComplexity', 3, 'useType', 2, 'hasInputs', false, 'hasTunableParams', true, 'hasStructParams', true, 'hasStructArrayParams', false);";
+    
+    StreamString skipUnlinkedParams = "0";
+    
+    StreamString inputSignals = "";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out3_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out5_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = int8"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "Out6_MatrixUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = int16"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+
+    StreamString parameters = ""
+        "matrixConstant = (float64) { {10, 10, 10}, {11, 11, 11}, {12, 12, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "structScalar-one         = (float64) 3.141592653 "
+        "structScalar-nested1-one = (float64) 2.718281828 "
+        "structScalar-nested1-two = (float64) 2.718281828 "
+        "structScalar-nested2-one = (float64) 1.414213562 "
+        "structScalar-nested2-two = (float64) 1.414213562 "
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (int8) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        "structMixed-one = (float64) 10 "
+        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "structMixed-mat = (int16)  { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        ;
+    
+    // Since the model is column-major, parameters are transposed
+    // when loaded, so raw memory comparison must be carried out
+    // with transposed parameters.
+    StreamString transposedParameters = ""
+        "matrixConstant = (float64) { {10, 11, 12}, {10, 11, 12}, {10, 11, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "structScalar-one         = (float64) 3.141592653 "
+        "structScalar-nested1-one = (float64) 2.718281828 "
+        "structScalar-nested1-two = (float64) 2.718281828 "
+        "structScalar-nested2-one = (float64) 1.414213562 "
+        "structScalar-nested2-two = (float64) 1.414213562 "
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (int8) { {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12}}"
+        "structMixed-one = (float64) 10 "
+        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "structMixed-mat = (int16) { {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12}}";
+    
+    // Test setup
+    ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
+    
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, ord);
+    
+    // Now check if parameter values have been correctly loaded.
+    
+    // First, build a database with what has been loaded in the model
+    ConfigurationDatabase cdb;
+    if (ok) {
+        transposedParameters.Seek(0u);
+        StandardParser parser(transposedParameters, cdb);
+        ok = parser.Parse();
+    }
+    
+    // Then, import the parameters back from the model and compare
+    if (ok) {
+        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
+        
+        ok = gam.IsValid();
+        if (ok) {
+            
+            for (uint32 paramIdx = 0u; (paramIdx < gam->GetNumOfPars()) && ok ; paramIdx++) {
+                
+                SimulinkParameter* par = gam->GetParameter(paramIdx);
+                
+                StreamString paramName = par->fullName;
+                uint32       paramSize = par->byteSize;
+                void*        paramAddr = par->address;
+                
+                AnyType arrayDescription = cdb.GetType(paramName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+                if (ok) {
+                    ok = (MemoryOperationsHelper::Compare(paramAddr, arrayDescription.GetDataPointer(), paramSize) == 0u);
+                }
+            }
+        }
+    }
+    
+    if (ok) {
+        ord->Purge();
+    }
+    
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestParameterActualisation_Float() {
+    
+    StreamString scriptCall = "createSimpleTestModel('modelComplexity', 3, 'useType', 4, 'hasInputs', false, 'hasTunableParams', true, 'hasStructParams', true);";
+    
+    StreamString skipUnlinkedParams = "0";
+    
+    StreamString inputSignals = "";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out3_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out5_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = int32"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "Out6_MatrixUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = float32"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+
+    StreamString parameters = ""
+        "matrixConstant = (float64) { {10, 10, 10}, {11, 11, 11}, {12, 12, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "structScalar-one         = (float64) 3.141592653 "
+        "structScalar-nested1-one = (float64) 2.718281828 "
+        "structScalar-nested1-two = (float64) 2.718281828 "
+        "structScalar-nested2-one = (float64) 1.414213562 "
+        "structScalar-nested2-two = (float64) 1.414213562 "
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (int32) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        "structMixed-one = (float64) 10 "
+        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "structMixed-mat = (float32)  { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        ;
+    
+    // Since the model is column-major, parameters are transposed
+    // when loaded, so raw memory comparison must be carried out
+    // with transposed parameters.
+    StreamString transposedParameters = ""
+        "matrixConstant = (float64) { {10, 11, 12}, {10, 11, 12}, {10, 11, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "structScalar-one         = (float64) 3.141592653 "
+        "structScalar-nested1-one = (float64) 2.718281828 "
+        "structScalar-nested1-two = (float64) 2.718281828 "
+        "structScalar-nested2-one = (float64) 1.414213562 "
+        "structScalar-nested2-two = (float64) 1.414213562 "
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (int32) { {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12},"
+        "                              {10, 11, 11, 11, 11, 12}}"
+        "structMixed-one = (float64) 10 "
+        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "structMixed-mat = (float32) { {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12},"
+        "                             {10, 11, 11, 11, 11, 12}}";
+    
+    // Test setup
+    ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
+    
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, ord);
+    
+    // Now check if parameter values have been correctly loaded.
+    
+    // First, build a database with what has been loaded in the model
+    ConfigurationDatabase cdb;
+    if (ok) {
+        transposedParameters.Seek(0u);
+        StandardParser parser(transposedParameters, cdb);
+        ok = parser.Parse();
+    }
+    
+    // Then, import the parameters back from the model and compare
+    if (ok) {
+        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
+        
+        ok = gam.IsValid();
+        if (ok) {
+            
+            for (uint32 paramIdx = 0u; (paramIdx < gam->GetNumOfPars()) && ok ; paramIdx++) {
+                
+                SimulinkParameter* par = gam->GetParameter(paramIdx);
+                
+                StreamString paramName = par->fullName;
+                uint32       paramSize = par->byteSize;
+                void*        paramAddr = par->address;
+                
+                AnyType arrayDescription = cdb.GetType(paramName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+                if (ok) {
+                    ok = (MemoryOperationsHelper::Compare(paramAddr, arrayDescription.GetDataPointer(), paramSize) == 0u);
+                }
+            }
+        }
+    }
+    
+    if (ok) {
+        ord->Purge();
+    }
+    
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestExecute() {
     
     StreamString scriptCall = " createSimpleTestModel('modelComplexity', 4);";
     
@@ -2743,6 +3176,7 @@ bool SimulinkWrapperGAMTest::TestExecute_ColumnMajorModel() {
         "                                 { 20, 21, 22, 23 } }"
         ;
     
+    // Model is column-major, so matrices are expected to be transposed when copied
     StreamString expectedValues = ""
         "In1_ScalarDouble = (float64) 3.141592653 "
         "In2_ScalarUint32 = (uint32)  2 "

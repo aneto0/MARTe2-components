@@ -240,6 +240,21 @@ TEST(SimulinkWrapperGAMGTest, TestParameterActualisation_ColumnMajorModel) {
     ASSERT_TRUE(test.TestParameterActualisation_ColumnMajorModel());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestParameterActualisation_Uint) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestParameterActualisation_Uint());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestParameterActualisation_Int) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestParameterActualisation_Int());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestParameterActualisation_Float) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestParameterActualisation_Float());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestExecute) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestExecute());

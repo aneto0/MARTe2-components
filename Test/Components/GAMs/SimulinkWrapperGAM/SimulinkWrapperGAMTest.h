@@ -175,8 +175,9 @@ public:
     
     bool TestParameterActualisation_RowMajorModel();
     bool TestParameterActualisation_ColumnMajorModel();
-
-    bool TestExecute_ColumnMajorModel();
+    bool TestParameterActualisation_Uint();
+    bool TestParameterActualisation_Int();
+    bool TestParameterActualisation_Float();
     
     /**
      * @brief A general template for the GAM configuration.
