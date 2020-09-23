@@ -63,13 +63,6 @@ enum rtwCAPI_rootsigmode
     ROOTSIG_OUTPUTS
 };
 
-
-enum simulinkPortDirection
-{
-    SLROOT_INPUT,
-    SLROOT_OUTPUT
-};
-
 /*---------------------------------------------------------------------------*/
 /*                               SimulinkDataI                               */
 /*---------------------------------------------------------------------------*/

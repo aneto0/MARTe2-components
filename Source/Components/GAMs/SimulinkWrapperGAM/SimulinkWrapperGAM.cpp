@@ -244,8 +244,8 @@ SimulinkWrapperGAM::SimulinkWrapperGAM() :
     initFunction  = static_cast<void(*)(void*)>(NULL);
     stepFunction  = static_cast<void(*)(void*)>(NULL);
     
-    getstaticmapFunction = static_cast<void*(*)(void)>(NULL);
-    getmmiFunction = static_cast<void*(*)(void*)>(NULL);
+    getStaticMapFunction = static_cast<void*(*)(void)>(NULL);
+    getMmiFunction = static_cast<void*(*)(void*)>(NULL);
 
     states               = NULL;
     paramSeparator      = "-";
@@ -274,9 +274,9 @@ SimulinkWrapperGAM::~SimulinkWrapperGAM() {
         libraryHandle = static_cast<LoadableLibrary*>(NULL);
     }
 
-    getmmiFunction       = static_cast<void*(*)(void*)>(NULL);
-    getalgoinfoFunction  = static_cast<void(*)(void*)>(NULL);
-    getstaticmapFunction = static_cast<void*(*)(void)>(NULL);
+    getMmiFunction       = static_cast<void*(*)(void*)>(NULL);
+    getAlgoInfoFunction  = static_cast<void(*)(void*)>(NULL);
+    getStaticMapFunction = static_cast<void*(*)(void)>(NULL);
 
     instFunction = static_cast<void*(*)(void)>(NULL);
     initFunction = static_cast<void(*)(void*)>(NULL);
@@ -451,7 +451,7 @@ PrintIntrospection("Intr");
         }
     }
 
-    // getmmiFunction
+    // getMmiFunction
     if (status) { // Compose symbol
         status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
         if (status) {
@@ -460,8 +460,8 @@ PrintIntrospection("Intr");
     }
 
     if (status) { // Find symbol
-        getmmiFunction = reinterpret_cast<void*(*)(void*)>(libraryHandle->Function(symbol));
-        status = (static_cast<void*(*)(void*)>(NULL) != getmmiFunction);
+        getMmiFunction = reinterpret_cast<void*(*)(void*)>(libraryHandle->Function(symbol));
+        status = (static_cast<void*(*)(void*)>(NULL) != getMmiFunction);
         if (!status) {
             REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
         }
@@ -499,7 +499,7 @@ PrintIntrospection("Intr");
         }
     }
 
-    // getalgoinfoFunction
+    // getAlgoInfoFunction
     if (status) { // Compose symbol
         status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
         if (status) {
@@ -508,8 +508,8 @@ PrintIntrospection("Intr");
     }
     
     if (status) { // Find symbol
-        getalgoinfoFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
-        status = (static_cast<void(*)(void*)>(NULL) != getalgoinfoFunction);
+        getAlgoInfoFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
+        status = (static_cast<void(*)(void*)>(NULL) != getAlgoInfoFunction);
         if (!status) {
             REPORT_ERROR(ErrorManagement::Information, "Algorithm information not found in the Simulink .so");
             status = true;
@@ -616,7 +616,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
 
     
     // Get the Model Mapping Information (mmi) data structure from the Simulink shared object
-    void *mmiTemp = ((*getmmiFunction)(states));
+    void *mmiTemp = ((*getMmiFunction)(states));
     rtwCAPI_ModelMappingInfo* mmi = reinterpret_cast<rtwCAPI_ModelMappingInfo*>(mmiTemp);
     
     dataTypeMap = rtwCAPI_GetDataTypeMap(mmi);
@@ -969,17 +969,17 @@ bool SimulinkWrapperGAM::Execute() {
 
 void SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
 {
-    uint_T        nparams;
+    uint32        nparams;
     const char_T* paramName;
-    uint16_T      dataTypeIdx;
-    uint8_T       slDataID;
-    uint16_T      numElements;
-    uint16_T      dataTypeSize;
-    uint_T        addrIdx;
+    uint16      dataTypeIdx;
+    uint8       slDataID;
+    uint16      numElements;
+    uint16      dataTypeSize;
+    uint32        addrIdx;
     void*         paramAddress;
-    uint16_T      SUBdimIdx;
-    uint8_T       SUBnumDims;
-    uint_T        SUBdimArrayIdx;
+    uint16      SUBdimIdx;
+    uint8       SUBnumDims;
+    uint32        SUBdimArrayIdx;
 
     nparams = rtwCAPI_GetNumModelParameters(mmi);
     if(nparams==0)
@@ -1004,7 +1004,7 @@ void SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
     if(dataAddrMap == NULL) return;
 
 
-    for(uint_T paramIdx = 0; paramIdx<nparams; paramIdx++)
+    for(uint32 paramIdx = 0; paramIdx<nparams; paramIdx++)
     {
         dataTypeIdx  = rtwCAPI_GetModelParameterDataTypeIdx(modelParams, paramIdx); // Index into the data type in rtwCAPI_DataTypeMap
         paramName    = rtwCAPI_GetModelParameterName(modelParams, paramIdx);        // Name of the parameter
@@ -1068,23 +1068,23 @@ void SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
     }
 }
 
-void SimulinkWrapperGAM::ScanParametersStruct(uint_T dataTypeIdx, uint_T depth, void *startaddr, StreamString basename, uint32_T baseoffset, StreamString spacer)
+void SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer)
 {
-    uint_T        idx;
+    uint32        idx;
     const char_T  *elementName;
-    uint16_T      numElements;
-    uint16_T      elemMapIdx;
-    uint16_T      SUBdataTypeIndex;
-    uint8_T       SUBslDataID;
-    uint16_T      SUBnumElements;
-    uint32_T      SUBdataTypeOffset;
+    uint16      numElements;
+    uint16      elemMapIdx;
+    uint16      SUBdataTypeIndex;
+    uint8       SUBslDataID;
+    uint16      SUBnumElements;
+    uint32      SUBdataTypeOffset;
     void*         byteptr = startaddr;
     void*         runningbyteptr = startaddr;
     StreamString  tempstr;
-    uint16_T      SUBdimIdx;
-    uint8_T       SUBnumDims;
-    uint_T        SUBdimArrayIdx;
-    uint16_T      SUBdataTypeSize;
+    uint16      SUBdimIdx;
+    uint8       SUBnumDims;
+    uint32        SUBdimArrayIdx;
+    uint16      SUBdataTypeSize;
 
     elemMapIdx  = rtwCAPI_GetDataTypeElemMapIndex(dataTypeMap,dataTypeIdx);
     numElements = rtwCAPI_GetDataTypeNumElements(dataTypeMap,dataTypeIdx);
@@ -1191,24 +1191,24 @@ void SimulinkWrapperGAM::ScanParametersStruct(uint_T dataTypeIdx, uint_T depth, 
     }
 }
 
-void SimulinkWrapperGAM::ScanParameter(uint_T paridx, StreamString spacer, enum rtwCAPI_printparmode mode, void* startaddr, StreamString basename, uint32_T baseoffset, uint_T depth)
+void SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, enum rtwCAPI_printparmode mode, void* startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
 {
 
-    uint_T               idx;
+    uint32               idx;
     const char_T         *ELEelementName;
-    uint32_T             ELEelementOffset;
-    uint16_T             ELEdataTypeIndex;
-    uint16_T             ELEdimIndex;
-    uint8_T              ELEnumDims;
-    uint_T               ELEdimArrayIdx;
+    uint32             ELEelementOffset;
+    uint16             ELEdataTypeIndex;
+    uint16             ELEdimIndex;
+    uint8              ELEnumDims;
+    uint32               ELEdimArrayIdx;
     rtwCAPI_Orientation  ELEorientation;
 
     const char_T         *ELEctypename;
-    uint_T               ELEaddrIdx;
+    uint32               ELEaddrIdx;
     uint8*               ELEparamAddress;
-    uint16_T             ELEdataTypeSize;
-    uint32_T             ELEsize;
-    uint32_T             ELEelements;
+    uint16             ELEdataTypeSize;
+    uint32             ELEsize;
+    uint32             ELEelements;
     //StreamString         elementname;
     StreamString         fullpathname;
     StreamString         ELEtypename;
@@ -1335,15 +1335,14 @@ void SimulinkWrapperGAM::ScanParameter(uint_T paridx, StreamString spacer, enum 
 
 void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_rootsigmode mode)
 {
-    //uint8_T       versionNumber;
-    uint32        nsignals;
-    const char_T* sigName;
-    uint16_T      dataTypeIdx;
-    uint8_T       slDataID;
-    uint16_T      numElements;
-    uint16_T      dataTypeSize;
-    uint_T        addrIdx;
-    void*         sigAddress;
+    uint32       nsignals;
+    const char8* sigName;
+    uint16       dataTypeIdx;
+    uint8        slDataID;
+    uint16       numElements;
+    uint16       dataTypeSize;
+    uint32       addrIdx;
+    void*        sigAddress;
     StreamString stemp;
 
     // Populating C API data structure pointers of the class from mmi
@@ -1449,17 +1448,17 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_
 
 }
 
-void SimulinkWrapperGAM::ScanSignalsStruct(uint_T dataTypeIdx, uint_T depth,  void *startaddr, StreamString basename, uint32_T baseoffset, StreamString spacer){
+void SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer){
     
     
-    uint_T        idx;
+    uint32        idx;
     const char_T  *elementName;
-    uint16_T      numElements;
-    uint16_T      elemMapIdx;
-    uint16_T      SUBdataTypeIndex;
-    uint8_T       SUBslDataID;
-    uint16_T      SUBnumElements;
-    uint32_T      SUBdataTypeOffset;
+    uint16      numElements;
+    uint16      elemMapIdx;
+    uint16      SUBdataTypeIndex;
+    uint8       SUBslDataID;
+    uint16      SUBnumElements;
+    uint32      SUBdataTypeOffset;
     void*         byteptr = startaddr;
     void*         runningbyteptr = startaddr;
     StreamString  tempstr;
@@ -1552,22 +1551,22 @@ void SimulinkWrapperGAM::ScanSignalsStruct(uint_T dataTypeIdx, uint_T depth,  vo
     }
 }
 
-void SimulinkWrapperGAM::ScanSignal(uint_T sigidx, StreamString spacer, enum rtwCAPI_printsigmode mode, void *startaddr, StreamString basename, uint32_T baseoffset, uint_T depth)
+void SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, enum rtwCAPI_printsigmode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
 {
-    uint_T               idx;
+    uint32               idx;
     const char_T         *ELEelementName;
-    uint32_T             ELEelementOffset;
-    uint16_T             ELEdataTypeIndex;
-    uint16_T             ELEdimIndex;
-    uint8_T              ELEnumDims;
-    uint_T               ELEdimArrayIdx;
+    uint32             ELEelementOffset;
+    uint16             ELEdataTypeIndex;
+    uint16             ELEdimIndex;
+    uint8              ELEnumDims;
+    uint32               ELEdimArrayIdx;
     rtwCAPI_Orientation  ELEorientation;
     
     const char_T         *ELEctypename;
-    uint_T               ELEaddrIdx;
+    uint32               ELEaddrIdx;
     uint8*               ELEparamAddress;
-    uint16_T             ELEdataTypeSize;
-    uint32_T             ELEsize;
+    uint16             ELEdataTypeSize;
+    uint32             ELEsize;
     StreamString         fullpathname;
     uint32               ELEMARTeNumDims = 0u;   // number of dimensions according to MARTe standard
     
@@ -1746,32 +1745,24 @@ bool SimulinkWrapperGAM::CheckrtwCAPITypeAgainstMARTe(StreamString rtwCAPItype, 
     return ret;
 }
 
-bool SimulinkWrapperGAM::CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16_T checksize)
+bool SimulinkWrapperGAM::CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16 checksize)
 {
     return GetTypeSizeFromCTypeName(rtwCAPItype.Buffer()) == checksize;
 }
 
-void SimulinkWrapperGAM::PrintAlgoInfo()
-{
-    Simulinkalgoinfo info;
-    //char buffer[80];
+void SimulinkWrapperGAM::PrintAlgoInfo() {
+    
+    SimulinkAlgoInfo info;
 
-    if( (static_cast<void(*)(void *)>(NULL) != getalgoinfoFunction) )
-    {
-        (*getalgoinfoFunction)((void *)&info);
+    if ( (static_cast<void(*)(void*)>(NULL) != getAlgoInfoFunction) ) {
+        
+        (*getAlgoInfoFunction)((void*) &info);
 
-        REPORT_ERROR(ErrorManagement::Information,"Algorithm expcode : %d", info.expcode);
+        REPORT_ERROR(ErrorManagement::Information,"Algorithm expcode : %d", info.expCode);
+        
+        REPORT_ERROR(ErrorManagement::Information,"Algorithm git hash: %s", info.gitHash);
 
-        //strncpy(buffer, info.githash, 9);
-        //buffer[8]='\0';
-
-        //REPORT_ERROR(ErrorManagement::Information,"Algorithm git hash: %s", buffer);
-        REPORT_ERROR(ErrorManagement::Information,"Algorithm git hash: %s", info.githash);
-
-        //strncpy(buffer, info.gitlog, 81);
-       // buffer[80]='\0';
-        //REPORT_ERROR(ErrorManagement::Information,"Algorithm git log : %s", buffer);
-        REPORT_ERROR(ErrorManagement::Information,"Algorithm git log : %s", info.gitlog);
+        REPORT_ERROR(ErrorManagement::Information,"Algorithm git log : %s", info.gitLog);
 
     }
 

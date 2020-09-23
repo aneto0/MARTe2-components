@@ -66,23 +66,7 @@ enum rtwCAPI_printsigmode
     SIG_FROM_ELEMENTMAP
 };
 
-
-/**
- * @brief Helper function to print a parameter orientation
- * @param[in] ELEorientation orientation of the element according CAPI enumerated type
- */
-void rtwCAPI_PrintOrientation(rtwCAPI_Orientation  &ELEorientation);
-
-
 namespace MARTe {
-
-struct _Simulinkalgoinfo {
-  char githash[9];
-  char gitlog[81];
-  unsigned int expcode;
-};
-
-typedef struct _Simulinkalgoinfo Simulinkalgoinfo;
 
 /**
  * @brief GAM which loads and calls Simulink(r) generated models.
@@ -311,9 +295,9 @@ private:
     void  (*initFunction)         (void*);
     void  (*stepFunction)         (void*);
     void  (*termFunction)         (void*);  // currently unused
-    void* (*getstaticmapFunction) (void);
-    void* (*getmmiFunction)       (void*);
-    void  (*getalgoinfoFunction)  (void*);
+    void* (*getStaticMapFunction) (void);
+    void* (*getMmiFunction)       (void*);
+    void  (*getAlgoInfoFunction)  (void*);
     
     /**
      * @brief Buffer hosting tunable parameters and internal states.
@@ -332,7 +316,7 @@ private:
     const rtwCAPI_DataTypeMap*     dataTypeMap;
     const rtwCAPI_ElementMap*      elementMap;
     const rtwCAPI_DimensionMap*    dimMap;
-    const uint_T*                  dimArray;
+    const uint32*                  dimArray;
     void**                         dataAddrMap;
 
     /**
@@ -348,30 +332,30 @@ private:
     /**
      * @brief Helper function to navigate the parameters tree
      * @param[in] dataTypeIdx index of the datatype in the dataTypeMap struct to analyze
-     * @param[in] depth tree depth level at call (for recursive callings)
-     * @param[in] startaddr current start allocated address at the callng (for recursive callings)
+     * @param[in] depth       tree depth level at call (for recursive callings)
+     * @param[in] startaddr   current start allocated address at the callng (for recursive callings)
      */
-    void ScanParametersStruct(uint_T dataTypeIdx, uint_T depth, void *startaddr, StreamString basename, uint32_T baseoffset, StreamString spacer);
+    void ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer);
 
 
     /**
      * @brief Helper function to scan a parameter
-     * @param[in] paridx index of the element in the modelParams or elementMap to print
-     * @param[in] spacer the spacer to prerpint before the function outputs the parameter
-     *                   descriptive string
-     * @param[in] mode   PAR_FROM_PARAMS if param to print stays in the modelParams data structure
-     *                   PAR_FROM_ELEMENTMAP, if param to print stays in the elementMap data struct
+     * @param[in] paridx    index of the element in the modelParams or elementMap to print
+     * @param[in] spacer    the spacer to prerpint before the function outputs the parameter
+     *                      descriptive string
+     * @param[in] mode      `PAR_FROM_PARAMS` if param to print stays in the modelParams data structure
+     *                      `PAR_FROM_ELEMENTMAP`, if param to print stays in the elementMap data struct
      * @param[in] startaddr start address to compute parameter access virtual address
      */
-    void ScanParameter(uint_T paridx, StreamString spacer, enum rtwCAPI_printparmode mode, void *startaddr, StreamString basename, uint32_T baseoffset, uint_T depth);
+    void ScanParameter(uint32 paridx, StreamString spacer, enum rtwCAPI_printparmode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
 
     /**
      * @brief Scans the root level input or output tree of the loaded Simulink .so code
-     * @param[in] mmi pointer to the CAPI mmi (Model Mapping Information) data structure
-     *                this pointer has to be retrieved from the loaded .so
-     *                calling the <modelnale>_GetCAPImmi function exposed
-     *                by the .so (special EPFL-SPC TLC patch needed here during
-     *                simulink code generation.
+     * @param[in] mmi  pointer to the CAPI mmi (Model Mapping Information) data structure
+     *                 this pointer has to be retrieved from the loaded .so
+     *                 calling the <modelnale>_GetCAPImmi function exposed
+     *                 by the .so (special EPFL-SPC TLC patch needed here during
+     *                 simulink code generation).
      * @param[in] mode sets whether to analyze the inputs ports or the outputs ports
      */
     void ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_rootsigmode mode);
@@ -379,24 +363,24 @@ private:
     /**
      * @brief Helper function to navigate the signals tree
      * @param[in] dataTypeIdx index of the datatype in the dataTypeMap struct to analyze
-     * @param[in] depth tree depth level at call (for recursive callings)
-     * @param[in] startaddr current start allocated address at the callng (for recursive callings)
-     * @param[in] baseoffset base offset of the structure in the port (for recursive callings)
+     * @param[in] depth       tree depth level at call (for recursive callings)
+     * @param[in] startaddr   current start allocated address at the callng (for recursive callings)
+     * @param[in] baseoffset  base offset of the structure in the port (for recursive callings)
      */
-    void ScanSignalsStruct(uint_T dataTypeIdx, uint_T depth,  void *startaddr, StreamString basename, uint32_T baseoffset, StreamString spacer);
+    void ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer);
 
     /**
-     * @brief Helper function to scan a signal
-     * @param[in] paridx index of the element in the sigGroup or elementMap to print
-     * @param[in] spacer the spacer to prerpint before the function outputs the parameter
-     *                   descriptive string
-     * @param[in] mode   SIG_FROM_SIGS if param to print stays in the sigGroup data structure
-     *                   SIG_FROM_ELEMENTMAP, if param to print stays in the elementMap data struct
-     * @param[in] startaddr start address to compute parameter access virtual address
+     * @brief     Helper function to scan a signal
+     * @param[in] paridx     index of the element in the sigGroup or elementMap to print
+     * @param[in] spacer     the spacer to prerpint before the function outputs the parameter
+     *                       descriptive string
+     * @param[in] mode       `SIG_FROM_SIGS` if param to print stays in the sigGroup data structure
+     *                       `SIG_FROM_ELEMENTMAP`, if param to print stays in the elementMap data struct
+     * @param[in] startaddr  start address to compute parameter access virtual address
      * @param[in] baseoffset base offset of the structure in the port (for recursive callings)
-     * @param[in] depth  tree depth level at call (for recursive callings)
+     * @param[in] depth      tree depth level at call (for recursive callings)
      */
-    void ScanSignal(uint_T sigidx, StreamString spacer, enum rtwCAPI_printsigmode mode, void *startaddr, StreamString basename, uint32_T baseoffset, uint_T depth);
+    void ScanSignal(uint32 sigidx, StreamString spacer, enum rtwCAPI_printsigmode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
     
     /**
      * @brief Check coherence between model ports and GAM signals and map them.
@@ -409,8 +393,12 @@ private:
     bool SetupSimulink();
     
     bool CheckrtwCAPITypeAgainstMARTe(StreamString rtwCAPItype, StreamString &MARTeType);
-    bool CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16_T checksize);
-
+    bool CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16 checksize);
+    
+    /**
+     * @brief Experimental function. Print model version info
+     *        if previously retrieved from the model.
+     */
     void PrintAlgoInfo();
     
     /**
@@ -438,7 +426,6 @@ private:
      */
     ReferenceT<ReferenceContainer> cfgParameterContainer;
     
-    
     /**
      * @brief A database storing absolute paths of parameters found in configuration file.
      */
@@ -448,6 +435,15 @@ private:
      * @brief A database storing absolute paths of parameters found in an external loader class.
      */
     ConfigurationDatabase externalParameterDatabase;
+    
+    /**
+     * @brief Structure that holds data about the current version of the model.
+     */
+    struct SimulinkAlgoInfo {
+        char8  gitHash[9];
+        char8  gitLog[81];
+        uint32 expCode;
+    };
     
 };
 
