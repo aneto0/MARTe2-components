@@ -358,7 +358,7 @@ private:
      *                 simulink code generation).
      * @param[in] mode sets whether to analyze the inputs ports or the outputs ports
      */
-    void ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_rootsigmode mode);
+    void ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode);
 
     /**
      * @brief Helper function to navigate the signals tree

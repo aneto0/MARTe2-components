@@ -57,12 +57,6 @@
 namespace MARTe
 {
 
-enum rtwCAPI_rootsigmode
-{
-    ROOTSIG_INPUTS,
-    ROOTSIG_OUTPUTS
-};
-
 /*---------------------------------------------------------------------------*/
 /*                               SimulinkDataI                               */
 /*---------------------------------------------------------------------------*/
@@ -247,7 +241,7 @@ public:
     void*  baseAddress;
     void*  lastSignalAddress;
     
-    rtwCAPI_rootsigmode mode;
+    SignalDirection mode;
     
     /**
      * @brief A list of all signals passing through this port.

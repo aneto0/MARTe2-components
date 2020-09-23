@@ -364,7 +364,7 @@ SimulinkPort::SimulinkPort() {
     baseAddress       = NULL_PTR(void*);
     lastSignalAddress = NULL_PTR(void*);
     
-    mode = ROOTSIG_INPUTS;
+    mode = InputSignals;
     
     requiresTransposition = false;
     

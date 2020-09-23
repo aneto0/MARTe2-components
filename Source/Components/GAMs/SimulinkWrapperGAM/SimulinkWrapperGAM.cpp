@@ -687,10 +687,10 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     // Scan root input/output ports, print them if verbosity level is enough and
     // build the vectors of port objects
     REPORT_ERROR(ErrorManagement::Information, "%s, number of root inputs: %d", libraryName.Buffer(), modelNumOfInputs);
-    ScanRootIO(mmi, ROOTSIG_INPUTS);
+    ScanRootIO(mmi, InputSignals);
 
     REPORT_ERROR(ErrorManagement::Information, "%s, number of root outputs: %d", libraryName.Buffer(), modelNumOfOutputs);
-    ScanRootIO(mmi, ROOTSIG_OUTPUTS);
+    ScanRootIO(mmi, OutputSignals);
 
     maxNameLength = 0u;
     for (uint32 portIdx = 0u; portIdx < modelPorts.GetSize(); portIdx++) {
@@ -1333,7 +1333,7 @@ void SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, enum 
     modelParameters.Add(currentParameter);
 }
 
-void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_rootsigmode mode)
+void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode)
 {
     uint32       nsignals;
     const char8* sigName;
@@ -1364,7 +1364,7 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_
 
     switch(mode)
     {
-    case ROOTSIG_INPUTS:
+    case InputSignals:
         nsignals = rtwCAPI_GetNumRootInputs(mmi);
         if(nsignals==0)
         {
@@ -1373,7 +1373,7 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_
         }
         sigGroup=rootInputs;
         break;
-    case ROOTSIG_OUTPUTS:
+    case OutputSignals:
         nsignals = rtwCAPI_GetNumRootOutputs(mmi);
         if(nsignals==0)
         {
@@ -1385,8 +1385,6 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_
     default:
         return;
     }
-
-
 
     for (uint32 sigIdx = 0u; sigIdx < nsignals; sigIdx++) {
         
@@ -1403,12 +1401,14 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, enum rtwCAPI_
         
         switch(mode)
         {
-        case ROOTSIG_INPUTS:
-            currentPort = static_cast<SimulinkPort*>(new SimulinkInputPort());
-            break;
-        case ROOTSIG_OUTPUTS:
-            currentPort = static_cast<SimulinkPort*>(new SimulinkOutputPort());
-            break;
+            case InputSignals:
+                currentPort = static_cast<SimulinkPort*>(new SimulinkInputPort());
+                break;
+            case OutputSignals:
+                currentPort = static_cast<SimulinkPort*>(new SimulinkOutputPort());
+                break;
+            default:
+                return;
         }
         
         stemp=sigName;
