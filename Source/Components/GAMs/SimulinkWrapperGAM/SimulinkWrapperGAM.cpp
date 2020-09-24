@@ -244,7 +244,6 @@ SimulinkWrapperGAM::SimulinkWrapperGAM() :
     initFunction  = static_cast<void(*)(void*)>(NULL);
     stepFunction  = static_cast<void(*)(void*)>(NULL);
     
-    getStaticMapFunction = static_cast<void*(*)(void)>(NULL);
     getMmiFunction = static_cast<void*(*)(void*)>(NULL);
 
     states               = NULL;
@@ -276,7 +275,6 @@ SimulinkWrapperGAM::~SimulinkWrapperGAM() {
 
     getMmiFunction       = static_cast<void*(*)(void*)>(NULL);
     getAlgoInfoFunction  = static_cast<void(*)(void*)>(NULL);
-    getStaticMapFunction = static_cast<void*(*)(void)>(NULL);
 
     instFunction = static_cast<void*(*)(void)>(NULL);
     initFunction = static_cast<void(*)(void*)>(NULL);

@@ -26,10 +26,6 @@
 
 #define GETINFOFCN
 
-//#define SLVARNAMEDEFLENGTH 20
-//#define UPRINTFVARDEFLENGTH(N) #N
-//#define PRINTFVARDEFLENGTH(N) UPRINTFVARDEFLENGTH(N)
-
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -154,7 +150,8 @@ namespace MARTe {
  *    - *SkipInvalidTunableParams*: can be 0 or 1. When set to 0, the 
  *      GAM execution will stop if the actualisation of one parameter
  *      fails (see [Model parameters](#model-parameters) section
- *      for details). Default value: 1 (`true`) 
+ *      for details). Otherwise, the compile time value of the
+ *      parameter is used. Default value: 1 (`true`) 
  *    - *TunableParamExternalSource*: name of the external source of
  *      parameters (see [Model parameters](#model-parameters) section
  *      for details). It must refer to a MARTe::ReferenceContainer
@@ -202,6 +199,10 @@ namespace MARTe {
  * Thus, when a tunable parameter of the model needs to be updated, the new
  * value must have the same name, datatype, dimensions and elements of
  * the model parameter.
+ * 
+ * When actualisation fails, the parameter compile time value (that is,
+ * the value stored in the library) can be used is `SkipInvalidTunableParams`
+ * is set to 1.
  * 
  * If the `Verbosity` level is high enough, the GAM
  * prints out information about tunable parameters retrieved in the
@@ -459,13 +460,6 @@ protected:
     // those members are protected for testing purpose
     
     /**
-     * @brief General informations about the model hosted by the library.
-     */
-    uint16 modelNumOfInputs;
-    uint16 modelNumOfOutputs;
-    uint16 modelNumOfParameters;
-    
-    /**
      * @brief   List of SimulinkParameter objects.
      * @details This array is used to store informations about each parameter
      *          used in the dynamically linked model.
@@ -480,14 +474,6 @@ protected:
     StaticList<SimulinkPort*> modelPorts;
     
     /**
-     * @brief   Pointer to the current port being analyzed by ScanSignal().
-     * @details This pointer is a shared (within the class) pointer to a SimulinkPort
-     *          object used by the ScanSignal function set to build a port object
-     *          out of Simulink(R) CAPI introspection code.
-     */
-    SimulinkPort* currentPort;
-    
-    /**
      * @brief Experimental function. Print model version info
      *        if previously retrieved from the model.
      */
@@ -496,29 +482,43 @@ protected:
 private:
 
     /**
-     * @brief GAM settings from configuration file.
+     * @name Number of interfaces
      */
-    StreamString libraryName;
-    StreamString symbolPrefix;
-    StreamString tunableParamExternalSource;
-    bool         skipInvalidTunableParams;
-    uint8        verbosityLevel;
-  
+    //@{
+    uint16 modelNumOfInputs;            //!< Number of inputs of the model.
+    uint16 modelNumOfOutputs;           //!< Number of outputs of the model.
+    uint16 modelNumOfParameters;        //!< Number of tunable parameters of the model.
+    //@}
+
     /**
-     * @brief The library hosting the Simulink(R) generated code.
+     * @name    GAM settings
+     * @brief   Setting retrieved from the configuration files.
+     * @details See the full documentation for further details.
+     */
+    //@{
+    StreamString libraryName;                       //!< Name of the shared library file or full path to it.
+    StreamString symbolPrefix;                      //!< Name of the model (may or may not differ from the name of the library).
+    StreamString tunableParamExternalSource;        //!< Name of the ReferenceContainer containing References to AnyObjects that hold value for parameter actualisation.
+    bool         skipInvalidTunableParams;          //!< If `true`, when a parameter actualisation fails the compile time value is used.
+    uint8        verbosityLevel;                    //!< How verbose should the output be. Min: 0, max: 2, default: 0.
+    //@}
+    
+    /**
+     * @brief Handle to the library hosting the Simulink(r) generated code.
      */
     LoadableLibrary* libraryHandle;
 
     /**
      * @brief Symbols retrieved from the library.
      */
-    void* (*instFunction)         (void);
-    void  (*initFunction)         (void*);
-    void  (*stepFunction)         (void*);
-    void  (*termFunction)         (void*);  // currently unused
-    void* (*getStaticMapFunction) (void);
-    void* (*getMmiFunction)       (void*);
-    void  (*getAlgoInfoFunction)  (void*);
+    //@{
+    void* (*instFunction)         (void);           //!< Pointer to the model function responsible for allocating model data.
+    void  (*initFunction)         (void*);          //!< Pointer to the model function responsible for initialising the model.
+    void  (*stepFunction)         (void*);          //!< Pointer to the model function responsible for running one step of the model.
+    void  (*termFunction)         (void*);          //!< Pointer to the model function responsible for terminating the model execution (currently unused).
+    void* (*getMmiFunction)       (void*);          //!< Pointer to the custom function returning the model mapping info (MMI) structure, which holds model data.
+    void  (*getAlgoInfoFunction)  (void*);          //!< Pointer to the custom function returning information about model versioning.
+    //@}
     
     /**
      * @brief Buffer hosting tunable parameters and internal states.
@@ -526,19 +526,23 @@ private:
     void* states;
     
     /**
-     * @brief   Simulink C API data structures local pointers
+     * @name    Simulink C API data structures
+     * @brief   Pointers to Simulink C API data structures.
      * @details These struct pointers are used by Simulink C APIs
-     *          to navigate into the loaded Simulink C code introspection data.
+     *          to navigate into the loaded Simulink C code for
+     *          data introspection.
      */
-    const rtwCAPI_ModelParameters* modelParams;
-    const rtwCAPI_Signals*         rootInputs;
-    const rtwCAPI_Signals*         rootOutputs;
-    const rtwCAPI_Signals*         sigGroup;
-    const rtwCAPI_DataTypeMap*     dataTypeMap;
-    const rtwCAPI_ElementMap*      elementMap;
-    const rtwCAPI_DimensionMap*    dimMap;
-    const uint32*                  dimArray;
-    void**                         dataAddrMap;
+    //@{
+    const rtwCAPI_ModelParameters* modelParams;     //!< Pointer to the structure storing parameter data.
+    const rtwCAPI_Signals*         rootInputs;      //!< Pointer to the structure storing root input data.
+    const rtwCAPI_Signals*         rootOutputs;     //!< Pointer to the structure storing root output data.
+    const rtwCAPI_Signals*         sigGroup;        //!< Pointer to rootInputs or rootOutputs depending on what structure the GAM is parsing.
+    const rtwCAPI_DataTypeMap*     dataTypeMap;     //!< Pointer to the structure storing data types of parameters, inputs and outputs.
+    const rtwCAPI_ElementMap*      elementMap;      //!< Pointer to the structure storing data for elements of a structured parameter or signal.
+    const rtwCAPI_DimensionMap*    dimMap;          //!< Pointer to the structure storing the dimensions of parameters, inputs and outputs.
+    const uint32*                  dimArray;        //!< Pointer to the array storing the number of elements for each dimension of parameters, inputs and outputs.
+    void**                         dataAddrMap;     //!< Pointer to the structure storing the memory location of parameters, inputs and outputs.
+    //@}
     
     /**
      * @brief Enum that specifies where to retrieve data for a parameter
@@ -559,12 +563,20 @@ private:
     };
 
     /**
+     * @brief   Pointer to the current port being analyzed by ScanSignal().
+     * @details This pointer is a shared (within the class) pointer to a SimulinkPort
+     *          object used by the ScanSignal function set to build a port object
+     *          out of Simulink(R) CAPI introspection code.
+     */
+    SimulinkPort* currentPort;
+
+    /**
      * @brief Scans the tunable parameters tree of the loaded Simulink .so code
-     * @param[in] mmi pointer to the CAPI mmi (Model Mapping Information) data structure
-     *                this pointer has to be retrieved from the loaded .so
-     *                calling the <modelname>_GetCAPImmi function exposed
+     * @param[in] mmi pointer to the CAPI mmi (Model Mapping Information) data structure.
+     *                This pointer has to be retrieved from the loaded .so
+     *                calling the `<modelname>_GetCAPImmi()` function exposed
      *                by the .so (special EPFL-SPC TLC patch needed here during
-     *                simulink code generation.
+     *                simulink code generation).
      */
     void ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi);
 
@@ -573,6 +585,9 @@ private:
      * @param[in] dataTypeIdx index of the datatype in the dataTypeMap struct to analyze
      * @param[in] depth       tree depth level at call (for recursive callings)
      * @param[in] startaddr   current start allocated address at the callng (for recursive callings)
+     * @param[in] basename    name of the parent parameter structure
+     * @param[in] baseoffset  offset of the parent parameter structure
+     * @param[in] spacer      spacer for Printf(), it is different if this is the last parameter of a structure
      */
     void ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer);
 
@@ -582,19 +597,22 @@ private:
      * @param[in] paridx    index of the element in the modelParams or elementMap to print
      * @param[in] spacer    the spacer to prerpint before the function outputs the parameter
      *                      descriptive string
-     * @param[in] mode      `PAR_FROM_PARAMS` if param to print stays in the modelParams data structure
-     *                      `PAR_FROM_ELEMENTMAP`, if param to print stays in the elementMap data struct
+     * @param[in] mode      `ParamFromParameters` if param to print stays in the modelParams data structure
+     *                      `ParamFromElementMap` if param to print stays in the elementMap data struct
      * @param[in] startaddr start address to compute parameter access virtual address
+     * @param[in] basename    name of the parent parameter structure
+     * @param[in] baseoffset  offset of the parent parameter structure
+     * @param[in] depth       tree depth level at call (for recursive callings)
      */
     void ScanParameter(uint32 paridx, StreamString spacer, ParameterMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
 
     /**
      * @brief Scans the root level input or output tree of the loaded Simulink .so code
-     * @param[in] mmi  pointer to the CAPI mmi (Model Mapping Information) data structure
-     *                 this pointer has to be retrieved from the loaded .so
-     *                 calling the <modelnale>_GetCAPImmi function exposed
-     *                 by the .so (special EPFL-SPC TLC patch needed here during
-     *                 simulink code generation).
+     * @param[in] mmi  pointer to the CAPI mmi (Model Mapping Information) data structure.
+     *                This pointer has to be retrieved from the loaded .so
+     *                calling the `<modelname>_GetCAPImmi()` function exposed
+     *                by the .so (special EPFL-SPC TLC patch needed here during
+     *                simulink code generation).
      * @param[in] mode sets whether to analyze the inputs ports or the outputs ports
      */
     void ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode);
@@ -604,18 +622,21 @@ private:
      * @param[in] dataTypeIdx index of the datatype in the dataTypeMap struct to analyze
      * @param[in] depth       tree depth level at call (for recursive callings)
      * @param[in] startaddr   current start allocated address at the callng (for recursive callings)
+     * @param[in] basename    name of the parent signal structure (for recursive callings)
      * @param[in] baseoffset  base offset of the structure in the port (for recursive callings)
+     * @param[in] spacer      spacer for Printf(), it is different if this is the last parameter of a structure
      */
     void ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer);
 
     /**
      * @brief     Helper function to scan a signal
-     * @param[in] paridx     index of the element in the sigGroup or elementMap to print
+     * @param[in] sigidx     index of the element in the sigGroup or elementMap to print
      * @param[in] spacer     the spacer to prerpint before the function outputs the parameter
      *                       descriptive string
-     * @param[in] mode       `SIG_FROM_SIGS` if param to print stays in the sigGroup data structure
-     *                       `SIG_FROM_ELEMENTMAP`, if param to print stays in the elementMap data struct
+     * @param[in] mode       `SignalFromSignals` if param to print stays in the sigGroup data structure
+     *                       `SignalFromElementMap` if param to print stays in the elementMap data struct
      * @param[in] startaddr  start address to compute parameter access virtual address
+     * @param[in] basename    name of the parent signal structure (for recursive callings)
      * @param[in] baseoffset base offset of the structure in the port (for recursive callings)
      * @param[in] depth      tree depth level at call (for recursive callings)
      */
@@ -631,6 +652,9 @@ private:
      */
     bool SetupSimulink();
     
+    /**
+     * @brief Returns true if a C API type has the same size of checksize.
+     */
     bool CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16 checksize);
     
     /**
@@ -648,9 +672,19 @@ private:
      */
     StaticList<void*> lastAddressVector;
     
+    /**
+     * @brief Base address of the parameter currently under parsing.
+     */
     void* currentParamBaseAddress;
+    
+    /**
+     * @brief Last address of the parameter currently under parsing.
+     */
     void* paramlastaddress;
-
+    
+    /**
+     * @brief Set to `true` if one of the parameters is an array of structures (currently unsupported).
+     */
     bool paramsHaveStructArrays;
     
     /**
