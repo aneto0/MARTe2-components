@@ -256,7 +256,7 @@ SimulinkWrapperGAM::SimulinkWrapperGAM() :
     modelNumOfParameters = 0u;
     
     skipInvalidTunableParams = true;
-    paramsHaveStructArrays    = false;
+    paramsHaveStructArrays   = false;
 
     return;
 }
