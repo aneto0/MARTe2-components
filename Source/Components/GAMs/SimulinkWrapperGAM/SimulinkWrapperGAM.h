@@ -79,6 +79,14 @@ namespace MARTe {
  * The inputs, outputs and parameters in the GAM configuration
  * must match those in the generated library.
  * 
+ * @warning This GAM is compiled and available for usage only if the
+ *          environmental variable `MATLAB_DIR` has been defined before
+ *          the compilation of MARTe2-components.
+ *          The `MATLAB_DIR` variable must be the path to a valid MATLAB(r)
+ *          installation directory.
+ * 
+ * @warning The GAM requires MATLAB(r) version 2018b or higher.
+ * 
  * GAM configuration                              {#gam-configuration}
  * =================
  * 
@@ -94,12 +102,24 @@ namespace MARTe {
  *     SkipInvalidTunableParams   = 0
  *     TunableParamExternalSource = ExternalSource
  * 
- *     InputSignals  = { // As appropriate based on the Simulink(r) generated structure
- *         
+ *     InputSignals  = {
+ *         // As appropriate based on the Simulink(r) generated structure
+ *         InSignal1 = {
+ *             DataSource         = DDB1
+ *             Type               = float32
+ *             NumberOfDimensions = 0
+ *             NumberOfElements   = 1
+ *         }
  *     }
  * 
- *     OutputSignals = { // As appropriate based on the Simulink(r) generated structure
- *         
+ *     OutputSignals = {
+ *         // As appropriate based on the Simulink(r) generated structure
+ *         OutSignal1 = {
+ *             DataSource         = DDB1
+ *             Type               = uint32
+ *             NumberOfDimensions = 1
+ *             NumberOfElements   = 10
+ *         }
  *     }
  *     
  *     Parameters    =  {
@@ -146,16 +166,103 @@ namespace MARTe {
  * Model parameters                                {#model-parameters}
  * ================
  * 
- * The GAM can Actualise() (i.e. update) the tunable parameters contained in the model.
+ * The model block behavior can be specified by setting the block parameters.
+ * Each block parameter can be:
+ *   - a numeric value (*inlined parameter*), whose is inlined in the
+ *     code and cannot be modified at runtime
+ *   - a variable (*tunable parameter*), whose value is modifiable
+ *     at runtime using the library C APIs. 
+ * 
+ * The GAM offers an interface to change the value of tunable parameters
+ * so that the model can be compiled once and then reused in different
+ * situations by specifying different values of the parameters.
+ * 
+ * Parameter actualisation
+ * -----------------------
+ * 
+ * The GAM can Actualise() (i.e. update the value of) tunable parameters
+ * contained in the model.
  * New values for the parameters can be provided in two ways:
- * 1. By declaring a `Paramters` leaf in the GAM configuration.
+ * 1. By declaring a `Parameters` leaf in the GAM configuration.
  * 2. By linking the GAM to an external source of parameters.
  * The external source of parameters is expected to be a ReferenceContainer
  * populated by references to AnyObject whose name is the same of the
  * parameters to be updated. Such an object can be created from any other
  * object of the framework, thus guaranteeing interoperability.
  * 
- * Actualisation mechanism:
+ * During Setup(), the GAM will loop over all tunable parameters found
+ * in the model and will then look for a parameter of the same name
+ * in the `Parameters` node and in the external parameter source. In
+ * case such a parameter is found, the GAM will compare the model parameter
+ * and the new parameter and, if the new parameter is appropriate, update
+ * the old value with the new value.
+ * Actualisation fails if old parameter and new parameter differ in one
+ * of the following: name, datatype, dimensions (scalar, vector, matrix
+ * or 3D matrix), number of elements for each dimension, total data size.
+ * Thus, when a tunable parameter of the model needs to be updated, the new
+ * value must have the same name, datatype, dimensions and elements of
+ * the model parameter.
+ * 
+ * If the `Verbosity` level is high enough, the GAM
+ * prints out information about tunable parameters retrieved in the
+ * library. Such a piece of information include, for each parameter:
+ * name, datatype, dimensions (scalar, vector, matrix or 3D matrix) and
+ * number of elements for each dimension.
+ * 
+ * The `Parameters` node has precedence over the parameter external
+ * source, so if an appropriate new value for a parameter is present
+ * in both of them, the one in the `Parameters` node will be used. 
+ * 
+ * ### Actualise a parameter using the GAM configuration ###
+ * 
+ * Suppose the model has a tunable parameter `tunVector` which is
+ * a `float32` vector of 4 elements whose value is `[1.0 1.0 1.0 1.0]`,
+ * and it is required to change its value to `[2.0 2.0 2.0 2.0]`.
+ * The `Parameters` configuration node will then look as follows:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Parameters = {
+ *     tunVector = (float32) { 2.0 2.0 2.0 2.0 }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * ### Actualise a parameter using an external source ###
+ * 
+ * Alternatively, one can specify a tunable parameter source by using
+ * the `ExternalTunableParamSource` node. The GAM expects as external
+ * tunable parameter source a MARTe::ReferenceContainer which contains
+ * References to AnyObject. Such an external source can be generated
+ * by another class of the framework and initialised in the Standard 
+ * Heap. The GAM will then look in the root level of the
+ * MARTe::ObjectRegistryDatabase for an Object with the name specified
+ * in the `ExternalTunableParamSource` node.
+ * 
+ * Structured parameters
+ * ---------------------
+ * 
+ * The model can contain structured parameters, that is, structure fields
+ * can be used as block parameters. For example, a `Gain`
+ * block can have its gain value set to `structParameters.gain1`, or
+ * even more nested: `structParameters.gains.gain1`.
+ * 
+ * If this is the case, then the parameter name in the `Parameters` node
+ * or in the external parameter source must be specified in a structured
+ * fashion:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Parameters = {
+ *     structParameters-gains-gain1 = (float32) { 2.0 2.0 2.0 2.0 }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * Note that the minus sign (`-`) is here used instead of the dot (`.`).
+ * This is required since in the standard MARTe2 configuration language
+ * the dot is a reserved character. 
+ * 
+ * Actualisation mechanism
+ * -----------------------
+ * 
+ * The actualisation mechanism works as follows:
  * 1. ScanParameters() method retrieves informations about model
  *    parameters from the model shared library
  *    using the C APIs, and saves them in the modelParameters array 
@@ -171,9 +278,86 @@ namespace MARTe {
  *    parameter value in the model shared library is updated with
  *    the value pointed by the input AnyType.
  * 
+ * Input and output signals                {#input-and-output-signals}
+ * ========================
+ * 
+ * The model input and output ports are mapped to the GAM input and
+ * output signals. This means that, if everything is set up correctly,
+ * the GAM input signals are received from the model, and the model
+ * output signals are then received by the GAM. Thus, the model can
+ * act as a custom MARTe component.
+ * 
+ * The GAM supports both standard array signals (scalar, vector, matrix)
+ * and structured signals, i.e. signals whose content is a structure.
+ * 
+ * Signal declaration
+ * ------------------
+ * 
+ * For the GAM to work correctly, input and output signals as declared
+ * in the GAM configuration must match input and output signals of the
+ * model. In particular, data type, number of dimensions and number of
+ * elements must match.
+ * 
+ * Data types use a slightly different naming convention in the model,
+ * so the `Type` node of each signal can be set by using the following table:
+ * 
+ * | Model           | MARTe     |
+ * | :-------------- | :-------- |
+ * | `unsigned char` | `uint8`   |
+ * | `signed char`   | `int8`    |
+ * | `char`          | `int8`    |
+ * | `unsigned short`| `uint16`  |
+ * | `short`         | `int16`   |
+ * | `unsigned int`  | `uint32`  |
+ * | `int`           | `int32`   |
+ * | `float`         | `float32` |
+ * | `double`        | `float64` |
+ * 
+ * For example, if the model has only one input signal named `vec1`,
+ * which is a vector of 10 `float32` elements, then the `InputSignals`
+ * node of the configuration should look like this:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * InputSignals = {
+ *     vec1 = {
+ *         DataSource         = DDB1
+ *         Type               = float32
+ *         NumberOfDimensions = 1
+ *         NumberOfElements   = 10
+ *     }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+ * 
+ * The same applies for output signals. For example, if the model has
+ * two output signals and the first is a scalar `uint16` signal named
+ * `scalar1`, and the second is a 3×2 matrix of `int32` named `mat1`,
+ * then the `OutputSignals` node of the configuration should look like this:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Outputsignals = {
+ *     scalar1 = {
+ *         DataSource         = DDB1
+ *         Type               = uint16
+ *         NumberOfDimensions = 0
+ *         NumberOfElements   = 1
+ *     }
+ *     mat1 = {
+ *         DataSource         = DDB1
+ *         Type               = int32
+ *         NumberOfDimensions = 2
+ *         NumberOfElements   = 6  // since it's a 3×2 matrix
+ *     }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
  * Structured signals (Nonvirtual buses)         {#structured-signals}
- * =====================================
+ * -------------------------------------
+ * 
+ * A structured signal is a signal whose content is not an array
+ * of data but a structure of arrays or even a structure of structures.
+ * 
+ * @note *Nonvirtual bus* and *structured signal* are used interchangeably
+ *       in this documentation.
  * 
  * By convention a structred signal must be declared as a `uint8` vector:
  * 
@@ -185,31 +369,10 @@ namespace MARTe {
  * }
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
- * @note *Nonvirtual bus* and *structured signal* are used interchangeably
- *       in this documentation.
- * 
- * @warning This GAM is compiled and available for usage only if the
- *          environmental variable `MATLAB_DIR` has been defined before
- *          the compilation of MARTe2-components.
- *          The `MATLAB_DIR` variable must be the path to a valid MATLAB(r)
- *          installation directory.
- * 
- * @warning The GAM requires MATLAB(r) version 2018b or higher.
- * 
- * @todo    1. Fix nonvirtual bus padding bug: when a bus is populated
- *             with data of different types, if the last element is
- *             small in size a padding is introduced. The size
- *             inconsistency is detected by the GAM that stops esecution.
- *          2. Check orientation of parameters in the Simulink model
- *             and update the SimulinkParameter::Actualise() method accordingly:
- *             we assume that source values come in row-major format, so
- *             a. if in the model they are row-major just copy
- *             b. if in the model thay are column-major, invert
- *          3. Add support for column-major matrix signals: this means
- *             updating the SimulinkPorts::CopyData() method so that
- *             it can invert the signal if necessary.
- * 
- * 
+ * @todo Fix nonvirtual bus padding bug: when a bus is populated
+ *       with data of different types, if the last element is
+ *       small in size a padding is introduced. The size
+ *       inconsistency is detected by the GAM that stops execution.
  *             
  */
 class SimulinkWrapperGAM: public GAM, public MessageI {
