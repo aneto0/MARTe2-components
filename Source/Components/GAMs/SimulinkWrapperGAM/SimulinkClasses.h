@@ -103,7 +103,7 @@ public:
     ~SimulinkDataI();
     
     /**
-     * @brief Prints informations about parameter.
+     * @brief Prints informations about the element, being it parameter, port or signal.
      * @param[in] maxNameLength max number of characters reserved for the
      *                          parameter name in the printed line.
      */
@@ -112,11 +112,21 @@ public:
 protected:
 
     /**
-     * @brief Copy a matrix from the source parameter to the model memory
-     *        but transpose it in the process.
+     * @brief   Copy data from the source parameter to the model memory
+     *          but transpose it in the process.
+     * @details This method is used by parameters during actualisation
+     *          (see SimulinkParameter::Actualise()) and by signals
+     *          (see SimulinkSignal::CopyData()) when they require
+     *          transposition. The model almost always uses column-major
+     *          orientation to store data, while MARTe2 uses row-major
+     *          orientation. Thus, when actualising matrix parameters
+     *          or copying matrix signals often transposition is required.
      */
     bool TransposeAndCopy(void *const destination, const void *const source); 
     
+    /**
+     * @brief Templated version of TransposeAndCopy().
+     */
     template<typename T>
     bool TransposeAndCopyT(void *const destination, const void *const source);
 };
@@ -194,6 +204,9 @@ public:
     
     bool requiresTransposition;     //!< `true` if this is signal is a ColumMajor matrix signal (MARTe2 uses row-major data orientation). 
     
+    /**
+     * @brief Print information about the signal.
+     */
     void PrintSignal(uint32 maxNameLength = 0u);
 };
 
@@ -226,13 +239,13 @@ public:
      */
     virtual ~SimulinkPort();
     
-    StreamString invalidationError;
+    StreamString invalidationError;     //!< Invalidation error.
     
-    bool isValid;
+    bool isValid;                       //!< `true` if the port is valid.
     bool hasHomogeneousType;            //!< `true` if all signals carried by this port are of the same type.
     bool hasHomogeneousOrientation;     //!< `true` if all signals carried by this port are oriented in the same way.
     bool isTyped;                       //!< `true` if #type and #orientation for this port has already been set.
-    bool isContiguous;
+    bool isContiguous;                  //!< `true` if the port data is contiguous.
     
     uint32 runningOffset;
     uint32 typeBasedSize;
@@ -241,6 +254,10 @@ public:
     void*  baseAddress;
     void*  lastSignalAddress;
     
+    /**
+     * @brief   Direction of the signal.
+     * @details Can be input (`mode = InputSignals`) or output (`mode = OutputSignals`).
+     */
     SignalDirection mode;
     
     /**
@@ -262,6 +279,9 @@ public:
      */
     inline bool IsContiguous() { return (CAPISize == offsetBasedSize); }
     
+    /**
+     * @brief Print information about this port.
+     */
     void PrintPort(uint32 maxNameLength);
     
     /**
@@ -292,7 +312,12 @@ public:
     ~SimulinkInputPort();
     
     /**
-     * @brief Copy data from the associated MARTe2 signal to the associated model port.
+     * @brief   Copy data from the associated MARTe2 signal to the associated model port.
+     * @details The method checks if the signal needs transposition
+     *          before copying, and transpose the signal if needed.
+     *          Only column-major matrix signals require transposition.
+     *          MARTe2 works in row-major orientation, so if the model
+     *          has column-major matrix signals they get transposed.
      */
     void CopyData();
 };
@@ -320,6 +345,11 @@ public:
     
     /**
      * @brief Copy data from the associated model port to the associated MARTe2 signal.
+     * @details The method checks if the signal needs transposition
+     *          before copying, and transpose the signal if needed.
+     *          Only column-major matrix signals require transposition.
+     *          MARTe2 works in row-major orientation, so if the model
+     *          has column-major matrix signals they get transposed.
      */
     void CopyData();
 };
