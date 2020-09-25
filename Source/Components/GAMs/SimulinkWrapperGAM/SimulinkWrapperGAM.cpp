@@ -302,54 +302,6 @@ SimulinkWrapperGAM::~SimulinkWrapperGAM() {
 
 bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
  
-// This section shows how to create a structure that can then be used as a signal type by the GAM:
-/*
-ConfigurationDatabase cfgdb;
-cfgdb.CreateRelative("Field1");
-cfgdb.MoveRelative("Field1");
-cfgdb.Write("Type", "uint32");
-cfgdb.Write("NumberOfElements", 2);
-cfgdb.MoveToAncestor(1u);
-cfgdb.CreateRelative("Field2");
-cfgdb.MoveRelative("Field2");
-cfgdb.Write("Type", "float64");
-cfgdb.Write("NumberOfElements", 4);
-cfgdb.MoveToAncestor(1u);
-    
-IntrospectionStructure intr;
-intr.SetName("Intr");
-intr.Initialise(cfgdb);
-
-for (uint32 nodeIdx = 0u; nodeIdx < cfgdb.GetNumberOfChildren(); nodeIdx++) {
-    
-    printf("struct: %s\n", intr.GetName());
-    
-    cfgdb.MoveToChild(nodeIdx);
-    printf("- member: %s\n", cfgdb.GetName());
-        
-    StreamString typeLeaf  = "";
-    uint32       nEltsLeaf = 0u;;
-    cfgdb.Read("Type", typeLeaf);
-    cfgdb.Read("NumberOfElements", nEltsLeaf);
-    
-    printf("-- type: %s\n", typeLeaf.Buffer());
-    printf("-- elts: %u\n", nEltsLeaf);
-    
-    printf("member alt: %s\n", cfgdb.GetName());
-    
-    AnyType type  = cfgdb.GetType("Type");
-    AnyType nelts = cfgdb.GetType("NumberOfElements");
-    
-    REPORT_ERROR(ErrorManagement::Debug, "-- type : %!", type);
-    REPORT_ERROR(ErrorManagement::Debug, "-- nelts: %!", nelts);
-    
-    cfgdb.MoveToAncestor(1u);
-
-}
-PrintIntrospection("Intr");
-*/
-
-
     bool status = GAM::Initialise(data);
     
     /// The method performs the following actions:
@@ -1329,7 +1281,9 @@ void SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
 
 void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode)
 {
-    uint32       nsignals;
+    bool ok = false;
+    
+    uint32       nOfSignals;
     const char8* sigName;
     uint16       dataTypeIdx;
     uint8        slDataID;
@@ -1340,50 +1294,62 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
     StreamString stemp;
 
     // Populating C API data structure pointers of the class from mmi
-    rootInputs=rtwCAPI_GetRootInputs(mmi);
-    if(rootInputs == NULL) return;
-    rootOutputs=rtwCAPI_GetRootOutputs(mmi);
-    if(rootInputs == NULL) return;
+    rootInputs = rtwCAPI_GetRootInputs(mmi);
+    ok = (rootInputs != NULL);
+    
+    rootOutputs = rtwCAPI_GetRootOutputs(mmi);
+    ok = ( (rootOutputs != NULL) && ok );
+    
     dataTypeMap = rtwCAPI_GetDataTypeMap(mmi);
-    if (dataTypeMap == NULL) return;
+    ok = ( (dataTypeMap != NULL) && ok );
+    
     elementMap = rtwCAPI_GetElementMap(mmi);
-    if (elementMap == NULL) return;
-    dimMap   = rtwCAPI_GetDimensionMap(mmi);
-    if(dimMap ==NULL) return;
+    ok = ( (elementMap != NULL) && ok );
+    
+    dimMap = rtwCAPI_GetDimensionMap(mmi);
+    ok = ( (dimMap != NULL) && ok );
+    
     dimArray = rtwCAPI_GetDimensionArray(mmi);
-    if(dimArray == NULL) return;
+    ok = ( (dimArray != NULL) && ok );
+    
     dataAddrMap = rtwCAPI_GetDataAddressMap(mmi);
-    if(dataAddrMap == NULL) return;
-
-
-    switch(mode)
-    {
-    case InputSignals:
-        nsignals = rtwCAPI_GetNumRootInputs(mmi);
-        if(nsignals==0)
-        {
-            RTWCAPIV1LOG(ErrorManagement::Information, "No root inputs found");
-            return;
-        }
-        sigGroup=rootInputs;
-        break;
-    case OutputSignals:
-        nsignals = rtwCAPI_GetNumRootOutputs(mmi);
-        if(nsignals==0)
-        {
-            RTWCAPIV1LOG(ErrorManagement::Information, "No root outputs found");
-            return;
-        }
-        sigGroup=rootOutputs;
-        break;
-    default:
-        return;
+    ok = ( (dataAddrMap != NULL) && ok );
+    
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Pointer to one of the map is NULL.");
     }
 
-    for (uint32 sigIdx = 0u; sigIdx < nsignals; sigIdx++) {
+    if (ok) {
+        switch(mode) {
+            
+        case InputSignals:
+            nOfSignals = rtwCAPI_GetNumRootInputs(mmi);
+            if (nOfSignals == 0u) {
+                RTWCAPIV1LOG(ErrorManagement::Information, "No root inputs found");
+                return;
+            }
+            sigGroup = rootInputs;
+            break;
+            
+        case OutputSignals:
+            nOfSignals = rtwCAPI_GetNumRootOutputs(mmi);
+            if (nOfSignals == 0u) {
+                RTWCAPIV1LOG(ErrorManagement::Information, "No root outputs found");
+                return;
+            }
+            sigGroup = rootOutputs;
+            break;
+            
+        default:
+            REPORT_ERROR(ErrorManagement::FatalError, "Wrong mode in SimulinkWrapperGAM::ScanRootIO()");
+            ok = false;
+        }
+    }
+    
+    for (uint32 sigIdx = 0u; ok && (sigIdx < nOfSignals) ; sigIdx++) {
         
-        dataTypeIdx  = rtwCAPI_GetSignalDataTypeIdx(sigGroup, sigIdx); // Index into the data type in rtwCAPI_DataTypeMap
-        sigName      = rtwCAPI_GetSignalName(sigGroup, sigIdx);        // Name of the parameter
+        dataTypeIdx  = rtwCAPI_GetSignalDataTypeIdx(sigGroup, sigIdx);              // Index into the data type in rtwCAPI_DataTypeMap
+        sigName      = rtwCAPI_GetSignalName(sigGroup, sigIdx);                     // Name of the parameter
         slDataID     = rtwCAPI_GetDataTypeSLId(dataTypeMap, dataTypeIdx);           // Simulink type from data type map
         numElements  = rtwCAPI_GetDataTypeNumElements(dataTypeMap,dataTypeIdx);     // Number of elements of the strucutre data type
         dataTypeSize = rtwCAPI_GetDataTypeSize(dataTypeMap,dataTypeIdx);            // Size of the datatype in bytes, WARNING: 16 bits maximum !!
@@ -1398,28 +1364,29 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
             case InputSignals:
                 currentPort = static_cast<SimulinkPort*>(new SimulinkInputPort());
                 break;
+                
             case OutputSignals:
                 currentPort = static_cast<SimulinkPort*>(new SimulinkOutputPort());
                 break;
+                
             default:
-                return;
+                REPORT_ERROR(ErrorManagement::FatalError, "Wrong mode in SimulinkWrapperGAM::ScanRootIO()");
+                ok = false;
         }
         
-        stemp=sigName;
+        stemp = sigName;
         currentPort->fullName = stemp;
         currentPort->verbosity = verbosityLevel;
 
         if (slDataID != SS_STRUCT) {
-            
             // Not structured parameter, directly print it from main params structure
-            // TODO: check if baseoffset 0 is correct
             
-            ScanSignal(sigIdx, "", SignalFromSignals, NULL, "", 0, 1);
+            ScanSignal(sigIdx, "", SignalFromSignals, NULL, "", 0, 1); // TODO: check if baseoffset 0 is correct
         }
-        else
-        {
+        else {
             // Structured signal, descend the tree
-            addrIdx      = rtwCAPI_GetSignalAddrIdx(sigGroup,sigIdx);
+            
+            addrIdx    = rtwCAPI_GetSignalAddrIdx(sigGroup,sigIdx);
             sigAddress = (void *) rtwCAPI_GetDataAddress(dataAddrMap,addrIdx);
 
             uint64 absDeltaAddress;
@@ -1428,12 +1395,14 @@ void SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
 
             RTWCAPIV2LOG(ErrorManagement::Information, "%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, struct with %d elems, size: %d bytes, base addr: %p, abs delta: %d",
                    sigName, numElements, dataTypeSize, sigAddress, absDeltaAddress);
+            
             currentPort->CAPISize = dataTypeSize;
             currentPort->byteSize = dataTypeSize;
             currentPort->address  = sigAddress;
             // TODO: verify if base offset 0 is correct for a root port structure
             StreamString nameAndSeparators = sigName;
             nameAndSeparators += signalSeparator;
+            
             ScanSignalsStruct(dataTypeIdx ,1, sigAddress, nameAndSeparators, absDeltaAddress, "");
         }
         
