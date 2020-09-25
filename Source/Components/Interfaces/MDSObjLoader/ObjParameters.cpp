@@ -24,7 +24,6 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #include "ObjParameters.h"
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -51,7 +50,6 @@ ObjParameter::ObjParameter() :
     datatypesize=0;
     dims=NULL;
     databuffer=NULL;
-    orientation=rtwCAPI_SCALAR;
     //printf("ObjParameter constructor called\n");
 }
 

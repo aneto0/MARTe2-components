@@ -33,9 +33,6 @@
 #include "ReferenceContainer.h"
 #include "ConfigurationDatabase.h"
 #include "StreamString.h"
-//#include "../../GAMs/SimulinkWrapperGAM/include/rtw_capi.h"
-#include "rtw_capi.h"
-//#include "../../GAMs/SimulinkWrapperGAM/SimulinkClasses.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -97,7 +94,6 @@ public:
         inline bool isValid() { return valid; }
         inline bool isUnlinked() { return unlinked; }
         inline StreamString &getType() { return type; }
-        inline rtwCAPI_Orientation &getOri() { return orientation; }
         inline uint8 getDatatypesize() { return datatypesize; }
         inline uint8 getNumdims() { return  numdims; }
         inline uint32 getDimAt(uint8 idx) { return dims[idx]; }
@@ -117,7 +113,6 @@ protected:
         bool valid;                         //!< validity flag, the parameter must be used only if this flag is true
         bool unlinked;                      //!< if true the parameter hasn't yet a source and can be safely skipped
         StreamString type;                  //!< C string containing the datatype name
-        rtwCAPI_Orientation orientation;    //!< data orientation (Simulink compatible enum)
         uint8 datatypesize;                 //!< size in bytes of the data type
         uint8 numdims;                      //!< number of dimensions
         uint32 *dims;                       //!< dimensions sizes

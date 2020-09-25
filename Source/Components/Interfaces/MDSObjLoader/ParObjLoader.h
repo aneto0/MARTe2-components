@@ -34,9 +34,6 @@
 #include "ConfigurationDatabase.h"
 #include "ReferenceT.h"
 
-//#include "MDSObjConnection.h"
-//#include "MDSParameters.h"
-
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/

@@ -34,9 +34,9 @@
 #include "ConfigurationDatabase.h"
 #include "ReferenceT.h"
 
-#include "../MDSObjLoader/MDSObjConnection.h"
-#include "../MDSObjLoader/MDSParameters.h"
-#include "../MDSObjLoader/ParObjLoader.h"
+#include "MDSObjConnection.h"
+#include "MDSParameters.h"
+#include "ParObjLoader.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

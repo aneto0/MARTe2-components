@@ -49,7 +49,7 @@
 #include "StreamString.h"
 #include "mdsobjects.h"
 
-#include "../MDSObjLoader/ObjParameters.h"
+#include "ObjParameters.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
