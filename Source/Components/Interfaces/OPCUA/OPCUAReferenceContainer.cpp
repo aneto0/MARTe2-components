@@ -36,6 +36,11 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+/*                           Method definitions                              */
+/*---------------------------------------------------------------------------*/
+
 /*-e909 and -e9133 redefines bool. -e578 symbol ovveride in CLASS_REGISTER*/
 /*lint -save -e909 -e9133 -e578*/
 namespace MARTe {
@@ -73,8 +78,6 @@ bool OPCUAReferenceContainer::GetOPCObject(OPCUA::OPCUAObjectSettings &settings,
 bool OPCUAReferenceContainer::GetOPCVariable(OPCUA::OPCUANodeSettings &settings,
                                              const TypeDescriptor nType,
                                              const uint32 nNumber) {
-    settings->nodeId = UA_NODEID_NUMERIC(1u, nNumber);
-    nodeType = nType;
     return false;
 }
 
@@ -95,7 +98,6 @@ const uint32 OPCUAReferenceContainer::GetNodeId() const {
 }
 
 void OPCUAReferenceContainer::SetFirst(const bool value) {
-    isFirstObject = value;
 }
 
 const bool OPCUAReferenceContainer::IsFirstObject() {
@@ -112,7 +114,7 @@ TypeDescriptor OPCUAReferenceContainer::GetNodeType() const {
 
 void OPCUAReferenceContainer::SetNumberOfElements(const uint32 dimension,
                                                   const uint32 nElements) {
-    if (numberOfElements != NULL_PTR(uint32 *)) {
+    if ((numberOfElements != NULL_PTR(uint32 *)) && (dimension < numberOfDimensions)) {
         numberOfElements[dimension] = nElements;
     }
 }
@@ -136,7 +138,3 @@ CLASS_REGISTER(OPCUAReferenceContainer, "");
 
 }
 /*lint -restore*/
-/*---------------------------------------------------------------------------*/
-/*                           Method definitions                              */
-/*---------------------------------------------------------------------------*/
-

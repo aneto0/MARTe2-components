@@ -1,6 +1,6 @@
 /**
  * @file PIDGAM.h
- * @brief Header file for class PID
+ * @brief Header file for class PIDGAM
  * @date 22/08/2017
  * @author Llorenc Capella
  *

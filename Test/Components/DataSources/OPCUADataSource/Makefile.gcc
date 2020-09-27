@@ -24,6 +24,9 @@
 
 OBJSX = OPCUADSOutputGTest.x \
 	OPCUADSInputGTest.x \
-	OPCUAClientWrapperGTest.x
+    OPCUAClientIGTest.x \
+    OPCUAClientReadGTest.x \
+    OPCUAClientWriteGTest.x \
+    OPCUAClientMethodGTest.x
 
 include Makefile.inc

@@ -57,7 +57,7 @@ public:
     /**
      * @brief Default Constructor
      */
-OPCUANode    ();
+    OPCUANode    ();
 
     /**
      * Default Destructor
@@ -66,7 +66,7 @@ OPCUANode    ();
 
     /**
      * @see OPCUAReferenceContainer::GetOPCVariable
-     * @param[in] setting the OPCUANodeSettings.
+     * @param[out] settings the OPCUANodeSettings.
      * @param[in] nType the node type.
      * @param[in] nNumber the node number.
      * @return true if all the parameters and attributes are set correctly
@@ -75,7 +75,7 @@ OPCUANode    ();
 
     /**
      * @see OPCUAReferenceContainer::IsNode
-     * @return true
+     * @return true if node is a Variable
      */
     virtual bool IsNode();
 
@@ -83,6 +83,10 @@ private:
 
     /**
      * @brief Sets all the array related attributes and build the UA_Variant
+     * @param[in] settings the OPCUANodeSettings to be filled with the array information.
+     * @param[in] type the OPC UA data type related to the array
+     * @param[in] nElem number of elements of the array
+     * @return true if the OPC UA operation return a STATUSCODE GOOD
      */
     bool InitArray(OPCUA::OPCUANodeSettings const &settings, const UA_DataType * const type, const uint64 nElem);
 

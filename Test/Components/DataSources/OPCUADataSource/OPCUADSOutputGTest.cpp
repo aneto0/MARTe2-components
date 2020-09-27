@@ -93,6 +93,11 @@ TEST(OPCUADSOutputGTest,TestInitialise_Introspection) {
     ASSERT_TRUE(test.TestInitialise_Introspection());
 }
 
+TEST(OPCUADSOutputGTest,TestInitialise_ExtensionObject) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_ExtensionObject());
+}
+
 TEST(OPCUADSOutputGTest,TestInitialise_NoAddress) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.TestInitialise_NoAddress());
@@ -118,9 +123,14 @@ TEST(OPCUADSOutputGTest,Test_NumberOfDimensionsGreater1) {
     ASSERT_TRUE(test.Test_NumberOfDimensionsGreater1());
 }
 
-TEST(OPCUADSOutputGTest,Test_FailSetTargetNodes) {
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_FailSetServiceRequest) {
     OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_FailSetTargetNodes());
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_FailSetServiceRequest());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject());
 }
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

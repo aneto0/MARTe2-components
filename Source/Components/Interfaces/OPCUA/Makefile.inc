@@ -48,6 +48,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(OPEN62541_INCLUDE)/
+INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/OPCUADataSource
 
 LIBRARIES += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
 

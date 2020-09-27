@@ -3,9 +3,13 @@
 -i./Source/Components/DataSources/OPCUADataSource/
 -i./Source/Components/Interfaces/OPCUA/
 
-OPCUAClientWrapper.cpp
+OPCUAClientI.cpp
+OPCUAClientMethod.cpp
+OPCUAClientRead.cpp
+OPCUAClientWrite.cpp
 OPCUADSInput.cpp
 OPCUADSOutput.cpp
+OPCUAMessageClient.cpp
 OPCUANode.cpp
 OPCUAObject.cpp
 OPCUAReferenceContainer.cpp
