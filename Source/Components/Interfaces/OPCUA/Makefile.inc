@@ -25,7 +25,8 @@
 OBJSX=OPCUANode.x \
     OPCUAObject.x \
     OPCUAReferenceContainer.x \
-    OPCUAServer.x
+    OPCUAServer.x \
+    OPCUAMessageClient.x
     
 PACKAGE=Components/Interfaces
 

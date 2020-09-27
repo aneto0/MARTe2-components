@@ -67,34 +67,19 @@ public:
     bool Test_GetOPCObject();
 
     /**
-     * @brief Tests the SetParent method.
+     * @brief Tests the SetParent and GetParent methods.
      */
-    bool Test_SetParent();
+    bool Test_SetGetParent();
 
     /**
-     * @brief Tests the GetParent method.
+     * @brief Tests the SetNodeId and GetNodeId methods.
      */
-    bool Test_GetParent();
+    bool Test_SetGetNodeId();
 
     /**
-     * @brief Tests the SetNodeId method.
+     * @brief Tests the SetNodeType and GetNodeType methods.
      */
-    bool Test_SetNodeId();
-
-    /**
-     * @brief Tests the GetNodeId method.
-     */
-    bool Test_GetNodeId();
-
-    /**
-     * @brief Tests the SetNodeType method.
-     */
-    bool Test_SetNodeType();
-
-    /**
-     * @brief Tests the GetNodeType method.
-     */
-    bool Test_GetNodeType();
+    bool Test_SetGetNodeType();
 
     /**
      * @brief Tests the IsFirst method.
@@ -107,25 +92,9 @@ public:
     bool Test_SetFirst();
 
     /**
-     * @brief Tests the SetNumberOfElements method.
+     * @brief Tests the SetNumberOfDimensions, SetNumberOfElements and GetNumberOfDimensions, GetNumberOfElements.
      */
-    bool Test_SetNumberOfElements();
-
-    /**
-     * @brief Tests the GetNumberOfElements method.
-     */
-    bool Test_GetNumberOfElements();
-
-    /**
-     * @brief Tests the SetNumberOfDimensions method.
-     */
-    bool Test_SetNumberOfDimensions();
-
-    /**
-     * @brief Tests the GetNumberOfDimensions method.
-     */
-    bool Test_GetNumberOfDimensions();
-
+    bool Test_NumberOfElementsDimensions();
 };
 
 

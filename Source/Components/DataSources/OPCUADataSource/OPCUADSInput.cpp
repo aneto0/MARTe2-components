@@ -45,8 +45,10 @@
 namespace MARTe {
 
 OPCUADSInput::OPCUADSInput() :
-        DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
-    masterClient = NULL_PTR(OPCUAClientWrapper *);
+        DataSourceI(),
+        EmbeddedServiceMethodBinderI(),
+        executor(*this) {
+    masterClient = NULL_PTR(OPCUAClientRead*);
     nOfSignals = 0u;
     numberOfNodes = 0u;
     paths = NULL_PTR(StreamString*);
@@ -68,7 +70,6 @@ OPCUADSInput::OPCUADSInput() :
     entryTypes = NULL_PTR(TypeDescriptor*);
     cpuMask = 0xffu;
     stackSize = THREADS_DEFAULT_STACKSIZE;
-    threadError = ErrorManagement::NoError;
 }
 
 /*lint -e{1551} must stop the SingleThreadService in the destructor.*/
@@ -295,37 +296,33 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
     if (extensionObject != NULL_PTR(StreamString*)) {
         if (extensionObject[0u] == "no") {
             if (ok) {
-                ok = sigName.GetToken(sigToken, ".", ignore);
-            }
-            if (ok) {
-                for (uint32 j = 0u; j < nOfSignals; j++) {
-                    StreamString lastToken;
-                    sigToken = "";
-                    if (tempPaths != NULL_PTR(StreamString *)) {
-                        ok = tempPaths[j].Seek(0LLU);
-                        if (ok) {
-                            do {
-                                ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                paths = new StreamString[numberOfNodes];
+                namespaceIndexes = new uint16[numberOfNodes];
+                StreamString sigName;
+                StreamString pathToken;
+                StreamString sigToken;
+                char8 ignore;
+                for (uint32 i = 0u; i < numberOfNodes; i++) {
+                    sigName = "";
+                    /* Getting the first name from the signal path */
+                    ok = GetSignalName(i, sigName);
+                    if (ok) {
+                        ok = sigName.Seek(0LLU);
+                    }
+                    if (ok) {
+                        ok = sigName.GetToken(sigToken, ".", ignore);
+                    }
+                    if (ok) {
+                        for (uint32 j = 0u; j < nOfSignals; j++) {
+                            StreamString lastToken;
+                            sigToken = "";
+                            if (tempPaths != NULL_PTR(StreamString*)) {
+                                ok = tempPaths[j].Seek(0LLU);
                                 if (ok) {
-                                    sigToken = lastToken;
-                                }
-                                lastToken = "";
-                            }
-                            while (ok);
-                        }
-                        /* This cycle will save the last token found */
-                        ok = tempPaths[j].Seek(0LLU);
-                        if (ok) {
-                            do {
-                                pathToken = "";
-
-                                ok = tempPaths[j].GetToken(pathToken, ".", ignore);
-                                if ((paths != NULL_PTR(StreamString *)) && ok) {
-                                    if ((namespaceIndexes != NULL_PTR(uint16 *)) && (tempNamespaceIndexes != NULL_PTR(uint16 *))) {
-                                        if (pathToken == sigToken) {
-                                            paths[i] = tempPaths[j];
-                                            namespaceIndexes[i] = tempNamespaceIndexes[j];
-                                            ok = false; /* Exit from the cycle */
+                                    do {
+                                        ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                                        if (ok) {
+                                            sigToken = lastToken;
                                         }
                                         lastToken = "";
                                     }
@@ -448,7 +445,9 @@ bool OPCUADSInput::AllocateMemory() {
     return true;
 }
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) {
+bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                         const uint32 bufferIdx,
+                                         void *&signalAddress) {
     StreamString opcDisplayName;
     bool ok = GetSignalName(signalIdx, opcDisplayName);
     if (ok) {
@@ -470,8 +469,9 @@ bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bu
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
-const char8 * OPCUADSInput::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
-    const char8* brokerName = "";
+const char8* OPCUADSInput::GetBrokerName(StructuredDataI &data,
+                                         const SignalDirection direction) {
+    const char8 *brokerName = "";
     if (sync == "no") {
         if (direction == InputSignals) {
             brokerName = "MemoryMapInputBroker";
@@ -489,7 +489,8 @@ const char8 * OPCUADSInput::GetBrokerName(StructuredDataI &data, const SignalDir
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool OPCUADSInput::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
+bool OPCUADSInput::PrepareNextState(const char8 *const currentStateName,
+                                    const char8 *const nextStateName) {
     return true;
 }
 
@@ -502,20 +503,13 @@ ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo &info) {
                 ok = masterClient->Read(types, nElements);
                 if (!ok) {
                     err = ErrorManagement::CommunicationError;
-                    threadError = err;
                 }
             }
             else if (readMode == "Monitor") {
-                ok = masterClient->Monitor();
-                if (!ok) {
-                    err = ErrorManagement::UnsupportedFeature;
-                    threadError = err;
-                }
+                err = ErrorManagement::UnsupportedFeature;
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "ReadMode defines an unsupported service.");
-                err = ErrorManagement::UnsupportedFeature;
-                threadError = err;
             }
         }
     }
@@ -544,8 +538,103 @@ const char8* OPCUADSInput::GetServerAddress() {
     return serverAddress.Buffer();
 }
 
-ErrorManagement::ErrorType OPCUADSInput::GetThreadError() const {
-    return threadError;
+bool OPCUADSInput::GetBodyLength(const Introspection *const intro,
+                                 uint32 &bodyLength) {
+    bool ok = true;
+    uint32 numberOfMembers = intro->GetNumberOfMembers();
+    uint32 j;
+    for (j = 0u; j < numberOfMembers; j++) {
+        const IntrospectionEntry entry = intro->operator[](j);
+        const char8 *const memberTypeName = entry.GetMemberTypeName();
+        uint32 nElem;
+        nElem = entry.GetNumberOfElements(0u);
+        if (nElem > 1u) {
+            bodyLength += 4u;
+        }
+        bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
+        if (isStructured) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
+            ok = (cri != NULL_PTR(const ClassRegistryItem*));
+            for (uint32 h = 0u; h < nElem; h++) {
+                if (ok) {
+                    ok = GetBodyLength(cri->GetIntrospection(), bodyLength);
+                }
+            }
+        }
+        else {
+            uint32 nOfBytes = entry.GetMemberTypeDescriptor().numberOfBits;
+            nOfBytes /= 8u;
+            nOfBytes *= nElem;
+            bodyLength = bodyLength + nOfBytes;
+        }
+    }
+    return ok;
+}
+
+void OPCUADSInput::GetStructureDimensions(const Introspection *const intro,
+                                          uint32 &arraySize) {
+    bool ok = true;
+    uint32 numberOfMembers = intro->GetNumberOfMembers();
+
+    for (uint32 j = 0u; j < numberOfMembers; j++) {
+        arraySize++;
+        const IntrospectionEntry entry = intro->operator[](j);
+        const char8 *const memberTypeName = entry.GetMemberTypeName();
+        bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
+        if (isStructured) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
+            ok = (cri != NULL_PTR(const ClassRegistryItem*));
+            if (ok) {
+                GetStructureDimensions(cri->GetIntrospection(), arraySize);
+            }
+        }
+    }
+}
+
+bool OPCUADSInput::GetStructure(const Introspection * const intro,
+                                uint32 *&entryArrayElements,
+                                TypeDescriptor *&entryTypes,
+                                uint32 *&entryNumberOfMembers,
+                                uint32 &index) {
+    bool ok = true;
+    uint32 numberOfMembers = intro->GetNumberOfMembers();
+
+    uint32 j;
+    for (j = 0u; j < numberOfMembers; j++) {
+        const IntrospectionEntry entry = intro->operator[](j);
+
+        /* Updating entryArrayElements */
+        entryArrayElements[index] = entry.GetNumberOfElements(0u);
+
+        /* Updating entryTypes */
+        entryTypes[index] = entry.GetMemberTypeDescriptor();
+
+        const char8 *const memberTypeName = entry.GetMemberTypeName();
+        uint32 nMembers = 1u;
+        bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
+        if (isStructured) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
+            ok = (cri != NULL_PTR(const ClassRegistryItem*));
+            nMembers = cri->GetIntrospection()->GetNumberOfMembers();
+            /* Updating entryNumberOfMembers */
+            entryNumberOfMembers[index] = nMembers;
+            index = index + 1u;
+
+            if (ok) {
+                ok = GetStructure(cri->GetIntrospection(), entryArrayElements, entryTypes, entryNumberOfMembers, index);
+            }
+        }
+        else {
+            /* Updating entryNumberOfMembers */
+            entryNumberOfMembers[index] = nMembers;
+            index = index + 1u;
+        }
+    }
+    return ok;
+}
+
+OPCUAClientRead* OPCUADSInput::GetOPCUAClient() {
+    return masterClient;
 }
 
 CLASS_REGISTER(OPCUADSInput, "1.0");

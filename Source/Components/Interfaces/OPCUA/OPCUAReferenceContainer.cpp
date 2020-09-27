@@ -47,7 +47,7 @@ namespace MARTe {
 
 OPCUAReferenceContainer::OPCUAReferenceContainer() :
         ReferenceContainer() {
-    nodeType = InvalidType;
+    nodeType = TypeDescriptor();
     nodeId = 0u;
     parentNodeId = 0u;
     numberOfElements = NULL_PTR(uint32 *);

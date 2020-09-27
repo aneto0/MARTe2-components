@@ -196,13 +196,6 @@ public:
     OPCUAClientRead * GetOPCUAClient();
 
 
-    /**
-     * @brief Return the threadError parameter value.
-     * @details This function will return an error different from NoError if the EmbeddedThread has failed once.
-     * @return The value of threadError
-     */
-    ErrorManagement::ErrorType GetThreadError() const;
-
 private:
 
     /**
@@ -353,11 +346,6 @@ private:
      */
     uint32 stackSize;
 
-    /**
-     * The thread error
-     */
-    ErrorManagement::ErrorType threadError;
-/*lint -e{1023} ErrorManagement::ErrorType is not ambiguous*/
 };
 
 }

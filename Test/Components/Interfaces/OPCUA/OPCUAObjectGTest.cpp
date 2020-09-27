@@ -37,26 +37,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-TEST(OPCUAObjectGTest,TestConstructor) {
-    OPCUAObjectTest test;
-    ASSERT_TRUE(test.TestConstructor());
-}
-
-TEST(OPCUAObjectGTest,Test_IsObject) {
-    OPCUAObjectTest test;
-    ASSERT_TRUE(test.Test_IsObject());
-}
-
-TEST(OPCUAObjectGTest,Test_SetFirst) {
-    OPCUAObjectTest test;
-    ASSERT_TRUE(test.Test_SetFirst());
-}
-
-TEST(OPCUAObjectGTest,Test_IsFirst) {
-    OPCUAObjectTest test;
-    ASSERT_TRUE(test.Test_IsFirst());
-}
-
 TEST(OPCUAObjectGTest,TestGetOPCObject_First) {
     OPCUAObjectTest test;
     ASSERT_TRUE(test.TestGetOPCObject_First());

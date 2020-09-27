@@ -245,38 +245,71 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
     if (extensionObject != NULL_PTR(StreamString*)) {
         if (extensionObject[0u] == "no") {
             if (ok) {
-                ok = sigName.GetToken(sigToken, ".", ignore);
-            }
-            if (ok) {
-                if (tempPaths != NULL_PTR(StreamString *)) {
-                    for (uint32 j = 0u; j < nOfSignals; j++) {
-                        StreamString lastToken;
-                        sigToken = "";
-                        ok = tempPaths[j].Seek(0LLU);
-                        if (ok) {
-                            do {
-                                ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                paths = new StreamString[numberOfNodes];
+                namespaceIndexes = new uint16[numberOfNodes];
+                StreamString sigName;
+                StreamString pathToken;
+                StreamString sigToken;
+                char8 ignore;
+                for (uint32 i = 0u; i < numberOfNodes; i++) {
+                    sigName = "";
+                    /* Getting the first name from the signal path */
+                    ok = GetSignalName(i, sigName);
+                    if (ok) {
+                        ok = sigName.Seek(0LLU);
+                    }
+                    if (ok) {
+                        ok = sigName.GetToken(sigToken, ".", ignore);
+                    }
+                    if (ok) {
+                        for (uint32 j = 0u; j < nOfSignals; j++) {
+                            StreamString lastToken;
+                            sigToken = "";
+                            if (tempPaths != NULL_PTR(StreamString*)) {
+                                ok = tempPaths[j].Seek(0LLU);
                                 if (ok) {
-                                    sigToken = lastToken;
+                                    do {
+                                        ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                                        if (ok) {
+                                            sigToken = lastToken;
+                                        }
+                                        lastToken = "";
+                                    }
+                                    while (ok);
                                 }
-                                lastToken = "";
-                            }
-                            while (ok);
-                        }
 
-                        /* This cycle will save the last token found */
-                        ok = tempPaths[j].Seek(0LLU);
-                        if (ok) {
-                            do {
-                                pathToken = "";
-
-                                ok = tempPaths[j].GetToken(pathToken, ".", ignore);
-                                if ((paths != NULL_PTR(StreamString *)) && ok) {
-                                    if ((namespaceIndexes != NULL_PTR(uint16 *)) && (tempNamespaceIndexes != NULL_PTR(uint16 *))) {
-                                        if (pathToken == sigToken) {
-                                            paths[i] = tempPaths[j];
-                                            namespaceIndexes[i] = tempNamespaceIndexes[j];
-                                            ok = false; /* Exit from the cycle */
+                                /* This cycle will save the last token found */
+                                ok = tempPaths[j].Seek(0LLU);
+                                if (ok) {
+                                    do {
+                                        ok = tempPaths[j].GetToken(lastToken, ".", ignore);
+                                        if (ok) {
+                                            sigToken = lastToken;
+                                        }
+                                        lastToken = "";
+                                    }
+                                    while (ok);
+                                }
+                                /* This cycle will save the last token found */
+                                ok = tempPaths[j].Seek(0LLU);
+                                if (ok) {
+                                    do {
+                                        pathToken = "";
+                                        ok = tempPaths[j].GetToken(pathToken, ".", ignore);
+                                        if ((paths != NULL_PTR(StreamString*)) && ok) {
+                                            if ((namespaceIndexes != NULL_PTR(uint16*)) && (tempNamespaceIndexes != NULL_PTR(uint16*))) {
+                                                if (pathToken == sigToken) {
+                                                    if (numberOfNodes == nOfSignals) {
+                                                        paths[j] = tempPaths[j];
+                                                        namespaceIndexes[j] = tempNamespaceIndexes[j];
+                                                    }
+                                                    else {
+                                                        paths[i] = tempPaths[j];
+                                                        namespaceIndexes[i] = tempNamespaceIndexes[j];
+                                                    }
+                                                    ok = false; /* Exit from the cycle */
+                                                }
+                                            }
                                         }
                                     }
                                     while (ok);
@@ -364,7 +397,9 @@ bool OPCUADSOutput::AllocateMemory() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) {
+bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                          const uint32 bufferIdx,
+                                          void *&signalAddress) {
     StreamString opcDisplayName;
     bool ok = GetSignalName(signalIdx, opcDisplayName);
     if (ok) {
@@ -396,8 +431,9 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 b
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
-const char8 * OPCUADSOutput::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
-    const char8* brokerName = "";
+const char8* OPCUADSOutput::GetBrokerName(StructuredDataI &data,
+                                          const SignalDirection direction) {
+    const char8 *brokerName = "";
     if (direction == OutputSignals) {
         brokerName = "MemoryMapSynchronisedOutputBroker";
     }
@@ -405,7 +441,8 @@ const char8 * OPCUADSOutput::GetBrokerName(StructuredDataI &data, const SignalDi
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool OPCUADSOutput::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
+bool OPCUADSOutput::PrepareNextState(const char8 *const currentStateName,
+                                     const char8 *const nextStateName) {
     return true;
 }
 
