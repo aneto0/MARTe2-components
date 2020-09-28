@@ -408,13 +408,20 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::Information, "Library %s succesfully loaded.", libraryName.Buffer());
         }
         else {
-            REPORT_ERROR(ErrorManagement::Information, "Could'nt open library: %s", libraryName.Buffer());
+            REPORT_ERROR(ErrorManagement::Information, "Couldn't open library: %s", libraryName.Buffer());
         }
     }
     
     /// 3. Retrieval of model code symbols.
     
     char symbol [64u];
+    
+    if (status) {
+        status = (libraryHandle != NULL);
+        if (!status) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Library handle is NULL.");
+        }
+    }
     
     // instFunction
     if (status) { // Compose symbol
