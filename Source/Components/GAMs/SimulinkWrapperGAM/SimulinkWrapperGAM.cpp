@@ -941,16 +941,16 @@ bool SimulinkWrapperGAM::Execute() {
     bool status = ((NULL != states) && (static_cast<void(*)(void*)>(NULL) != stepFunction));
 
     // Inputs update
-    for (portIdx = 0u; portIdx < modelNumOfInputs; portIdx++) {
-        modelPorts[portIdx]->CopyData();
+    for (portIdx = 0u; (portIdx < modelNumOfInputs) && status; portIdx++) {
+        status = modelPorts[portIdx]->CopyData();
     }
     
     // Model step
     (*stepFunction)(states);
 
     // Ouputs update
-    for (portIdx = modelNumOfInputs; portIdx < modelNumOfInputs + modelNumOfOutputs; portIdx++) {
-        modelPorts[portIdx]->CopyData();
+    for (portIdx = modelNumOfInputs; (portIdx < modelNumOfInputs + modelNumOfOutputs) && status; portIdx++) {
+        status = modelPorts[portIdx]->CopyData();
     }
     
     return status;

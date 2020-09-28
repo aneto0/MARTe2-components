@@ -417,12 +417,14 @@ void SimulinkPort::PrintPort(const uint32 maxNameLength) {
         typeStr = "mixed types     ";
     }
     
-    StreamString additionalText = "";
-    additionalText.Seek(0u);
-    additionalText.Printf(
+    StreamString additionalText;
+    bool ok = additionalText.Printf(
         "size by type: %-6u │ size by offset %-6u │ %-16s │",
         typeBasedSize, offsetBasedSize, typeStr.Buffer()
-    );
+        );
+    if (!ok) {
+        additionalText = "";
+    }
     
     SimulinkDataI::PrintData(maxNameLength, additionalText);
     
@@ -446,22 +448,32 @@ SimulinkOutputPort::~SimulinkOutputPort() {
 
 }
 
-void SimulinkInputPort::CopyData() {
+bool SimulinkInputPort::CopyData() {
+    
+    bool ok;
+    
     if (!requiresTransposition) {
-        MemoryOperationsHelper::Copy(address, MARTeAddress, CAPISize);
+        ok = MemoryOperationsHelper::Copy(address, MARTeAddress, CAPISize);
     }
     else {
-        TransposeAndCopy(address, MARTeAddress);
+        ok = TransposeAndCopy(address, MARTeAddress);
     }
+    
+    return ok;
 }
 
-void SimulinkOutputPort::CopyData() {
+bool SimulinkOutputPort::CopyData() {
+    
+    bool ok;
+    
     if (!requiresTransposition) {
-        MemoryOperationsHelper::Copy(MARTeAddress, address, CAPISize);
+        ok = MemoryOperationsHelper::Copy(MARTeAddress, address, CAPISize);
     }
     else {
-        TransposeAndCopy(MARTeAddress, address);
+        ok = TransposeAndCopy(MARTeAddress, address);
     }
+    
+    return ok;
 }
 
 

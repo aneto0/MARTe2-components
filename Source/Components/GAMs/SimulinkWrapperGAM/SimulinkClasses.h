@@ -287,7 +287,7 @@ public:
     /**
      * @brief Copy data from the associated MARTe2 signal to the associated model port.
      */
-    virtual void CopyData() = 0;
+    virtual bool CopyData() = 0;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -318,8 +318,9 @@ public:
      *          Only column-major matrix signals require transposition.
      *          MARTe2 works in row-major orientation, so if the model
      *          has column-major matrix signals they get transposed.
+     * @returns `true` if data is successfully copied, `false` otherwise.
      */
-    void CopyData();
+    bool CopyData();
 };
 
 /*---------------------------------------------------------------------------*/
@@ -350,8 +351,9 @@ public:
      *          Only column-major matrix signals require transposition.
      *          MARTe2 works in row-major orientation, so if the model
      *          has column-major matrix signals they get transposed.
+     * @returns `true` if data is successfully copied, `false` otherwise.
      */
-    void CopyData();
+    bool CopyData();
 };
 
 
