@@ -260,7 +260,10 @@ SimulinkWrapperGAM::SimulinkWrapperGAM() :
     
     states = NULL_PTR(void*);
     
-    paramlastaddress = NULL_PTR(void*);
+    paramlastaddress        = NULL_PTR(void*);
+    currentParamBaseAddress = NULL_PTR(void*);
+    
+    currentPort = NULL_PTR(SimulinkPort*);
     
     paramSeparator      = "-";
     signalSeparator     = ".";
@@ -273,12 +276,8 @@ SimulinkWrapperGAM::SimulinkWrapperGAM() :
     paramsHaveStructArrays   = false;
 }
 
+/*lint -e{1551} functions called in the destructor are expected not to throw exceptions */
 SimulinkWrapperGAM::~SimulinkWrapperGAM() {
-
-    if (states != NULL) {
-        free(states); 
-        states = NULL;
-    }
 
     if (libraryHandle != NULL) {
         libraryHandle->Close();
@@ -306,7 +305,10 @@ SimulinkWrapperGAM::~SimulinkWrapperGAM() {
     
     states = NULL_PTR(void*);
     
-    paramlastaddress = NULL_PTR(void*);
+    paramlastaddress        = NULL_PTR(void*);
+    currentParamBaseAddress = NULL_PTR(void*);
+    
+    currentPort = NULL_PTR(SimulinkPort*);
     
     // Deallocate all SimulinkClasses objects
     uint32 parameterSize = modelParameters.GetSize();
