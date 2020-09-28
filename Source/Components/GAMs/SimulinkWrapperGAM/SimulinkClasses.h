@@ -100,7 +100,7 @@ public:
     /**
      * @brief Destructor.
      */
-    virtual ~SimulinkDataI();
+    ~SimulinkDataI();
     
     /**
      * @brief Prints informations about the element, being it parameter, port or signal.
