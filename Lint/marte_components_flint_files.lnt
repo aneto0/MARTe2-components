@@ -33,6 +33,7 @@
 -i./Source/Components/GAMs/MuxGAM/
 -i./Source/Components/GAMs/SSMGAM/
 -i./Source/Components/GAMs/WaveformGAM/
+-i./Source/Components/GAMs/SimulinkWrapperGAM/
 -i./Source/Components/GAMs/StatisticsGAM/
 -i./Source/Components/GAMs/TimeCorrectionGAM/
 -i./Source/Components/GAMs/TriggerOnChangeGAM/
@@ -120,6 +121,8 @@ RealTimeThreadSynchronisation.cpp
 Sigblock.cpp
 SigblockDoubleBuffer.cpp
 Signal.h
+SimulinkClasses.cpp
+SimulinkWrapperGAM.cpp
 SDNPublisher.cpp
 SDNSubscriber.cpp
 SharedDataArea.cpp

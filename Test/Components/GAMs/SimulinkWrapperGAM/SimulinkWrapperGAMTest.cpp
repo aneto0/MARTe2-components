@@ -332,8 +332,6 @@ void SimulinkGAMGTestEnvironment::DeleteTestModel() {
         StreamString* currentModelName;
         ok = compiledModels.Peek(modelIdx, currentModelName);
         
-        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Model %u: %s, ok? %u", modelIdx, currentModelName->Buffer(), ok);
-        
         // Remove model .so
         StreamString modelPath;
         Directory toDelete;
