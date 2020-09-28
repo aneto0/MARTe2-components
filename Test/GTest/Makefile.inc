@@ -43,6 +43,10 @@ ifdef CODAC_ROOT
 LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
 ## DAN HDF5 reader dependencies (test code)
 LIBRARIES += -ldan_base -ldan_archive -ldan_wrapper_srv -ldan_uda_reader_base -ldan_stream_reader_cpp
+CCS_LT_63 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -le 62 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCS_LT_63)" "0"
+LIBRARIES += -ldan_data_srv
+endif
 endif
 
 ifdef SDN_CORE_LIBRARY_DIR
