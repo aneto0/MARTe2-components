@@ -74,52 +74,57 @@ SimulinkDataI::~SimulinkDataI() {
     address = NULL_PTR(void*);
 }
 
-void SimulinkDataI::PrintData(uint32 maxNameLength /* = 0u */, StreamString additionalText /* = "" */) {
+void SimulinkDataI::PrintData(const uint32 maxNameLength /* = 0u */, StreamString additionalText /* = "" */) {
+    
+    bool ok = false;
     
     // Adds spaces at the end of the name until it reaches maxNameLength
     StreamString nameWithSpacesAtTheEnd = fullName;
     while (nameWithSpacesAtTheEnd.Size() < maxNameLength) {
-        nameWithSpacesAtTheEnd.Printf("%s", " ");
+        ok = nameWithSpacesAtTheEnd.Printf("%s", " ");
     }
     
-    REPORT_ERROR_STATIC(ErrorManagement::Information,
-        "%s %s │ dims (%-3u %-3u %-3u) │ elems %-5u │ type %-7s │ bytesize %-6u │ %s @%p",
-        dataClass.Buffer(),
-        nameWithSpacesAtTheEnd.Buffer(),
-        numberOfElements[0u],
-        numberOfElements[1u],
-        numberOfElements[2u],
-        totalNumberOfElements,
-        MARTeTypeName.Buffer(),
-        byteSize,
-        additionalText.Buffer(),
-        address
-        );
+    if (ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::Information,
+            "%s %s │ dims (%-3u %-3u %-3u) │ elems %-5u │ type %-7s │ bytesize %-6u │ %s @%p",
+            dataClass.Buffer(),
+            nameWithSpacesAtTheEnd.Buffer(),
+            numberOfElements[0u],
+            numberOfElements[1u],
+            numberOfElements[2u],
+            totalNumberOfElements,
+            MARTeTypeName.Buffer(),
+            byteSize,
+            additionalText.Buffer(),
+            address
+            );
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError,
+            "Failed Printf().");
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 /*                            SimulinkParameter                              */
 /*---------------------------------------------------------------------------*/
 
-bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
+bool SimulinkParameter::Actualise(const AnyType& sourceParameter) {
     
     bool ok = true;
     
     // Type coherence check
-    if (ok) {
-        
-        TypeDescriptor slkType = TypeDescriptor::GetTypeDescriptorFromTypeName(MARTeTypeName.Buffer());
-        TypeDescriptor extType = sourceParameter.GetTypeDescriptor();
-        
-        ok = (extType == slkType);
-        
-        if (!ok) {
-            REPORT_ERROR_STATIC(ErrorManagement::Warning,
-                "Parameter %s data type not matching (parameter source: %s, model: %s)",
-                fullName.Buffer(),
-                TypeDescriptor::GetTypeNameFromTypeDescriptor(extType),
-                MARTeTypeName.Buffer());
-        }
+    TypeDescriptor slkType = TypeDescriptor::GetTypeDescriptorFromTypeName(MARTeTypeName.Buffer());
+    TypeDescriptor extType = sourceParameter.GetTypeDescriptor();
+    
+    ok = (extType == slkType);
+    
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::Warning,
+            "Parameter %s data type not matching (parameter source: %s, model: %s)",
+            fullName.Buffer(),
+            TypeDescriptor::GetTypeNameFromTypeDescriptor(extType),
+            MARTeTypeName.Buffer());
     }
     
     // Type size coherence check
@@ -183,13 +188,13 @@ bool SimulinkParameter::Actualise(AnyType& sourceParameter) {
             
             case 2u: { // Matrix
                 
-                ok = ( extDim1 == slkDim1 && extDim2 == slkDim2 && extDim3 == 1u );
+                ok = ( (extDim1 == slkDim1) && (extDim2 == slkDim2) && (extDim3 == 1u) );
                 break;
             }
             
             case 3u: { // 3D matrix
                 
-                ok = ( extDim1 == slkDim1 && extDim2 == slkDim2 && extDim3 == slkDim3 );
+                ok = ( (extDim1 == slkDim1) && (extDim2 == slkDim2) && (extDim3 == slkDim3) );
                 break;
             }
             

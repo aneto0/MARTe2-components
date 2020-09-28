@@ -853,7 +853,6 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                     isUnlinked = true;
                 }
             }
-            
         }
         
         // Based upon the actualisation outcome, execution is continued or stopped.

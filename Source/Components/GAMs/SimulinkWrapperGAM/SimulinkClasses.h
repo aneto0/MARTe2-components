@@ -42,7 +42,7 @@
 
 #include "rtw_modelmap.h" // Matlab coder C-API interface
 
-#define MAXDIMS 3
+#define MAXDIMS 3u
 
 #define RTWCAPIV1LOGST if(verbosityLevel>0) REPORT_ERROR_STATIC
 #define RTWCAPIV2LOGST if(verbosityLevel>1) REPORT_ERROR_STATIC
@@ -107,7 +107,7 @@ public:
      * @param[in] maxNameLength max number of characters reserved for the
      *                          parameter name in the printed line.
      */
-    void PrintData(uint32 maxNameLength = 0u, StreamString additionalText = "");
+    void PrintData(const uint32 maxNameLength = 0u, StreamString additionalText = "");
     
 protected:
 
@@ -175,7 +175,7 @@ public:
      *                            model parameter.
      * 
      */
-    bool Actualise(AnyType& sourceParameter);
+    bool Actualise(const AnyType& sourceParameter);
 
 };
 
