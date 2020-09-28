@@ -309,7 +309,7 @@ public:
     /**
      * @brief Destructor.
      */
-    ~SimulinkInputPort();
+    virtual ~SimulinkInputPort();
     
     /**
      * @brief   Copy data from the associated MARTe2 signal to the associated model port.

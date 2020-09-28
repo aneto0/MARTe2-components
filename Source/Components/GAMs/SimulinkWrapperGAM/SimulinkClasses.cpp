@@ -71,6 +71,7 @@ SimulinkDataI::SimulinkDataI() {
 }
 
 SimulinkDataI::~SimulinkDataI() {
+    address = NULL_PTR(void*);
 }
 
 void SimulinkDataI::PrintData(uint32 maxNameLength /* = 0u */, StreamString additionalText /* = "" */) {
