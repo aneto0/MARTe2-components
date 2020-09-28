@@ -26,7 +26,6 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -36,11 +35,11 @@
 #include "GAM.h"
 #include "ObjectRegistryDatabase.h"
 
+#include "rtw_modelmap.h" // Matlab coder C-API interface
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
-#include "rtw_modelmap.h" // Matlab coder C-API interface
 
 #define RTWCAPIV1LOGST if(verbosityLevel>0) REPORT_ERROR_STATIC
 #define RTWCAPIV2LOGST if(verbosityLevel>1) REPORT_ERROR_STATIC
@@ -320,7 +319,7 @@ public:
      *          has column-major matrix signals they get transposed.
      * @returns `true` if data is successfully copied, `false` otherwise.
      */
-    bool CopyData();
+    virtual bool CopyData();
 };
 
 /*---------------------------------------------------------------------------*/
@@ -353,7 +352,7 @@ public:
      *          has column-major matrix signals they get transposed.
      * @returns `true` if data is successfully copied, `false` otherwise.
      */
-    bool CopyData();
+    virtual bool CopyData();
 };
 
 

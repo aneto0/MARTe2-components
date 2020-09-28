@@ -30,8 +30,6 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include <stdio.h> // TODO debug only
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -485,9 +483,9 @@ private:
      * @name Number of interfaces
      */
     //@{
-    uint16 modelNumOfInputs;            //!< Number of inputs of the model.
-    uint16 modelNumOfOutputs;           //!< Number of outputs of the model.
-    uint16 modelNumOfParameters;        //!< Number of tunable parameters of the model.
+    uint32 modelNumOfInputs;            //!< Number of inputs of the model.
+    uint32 modelNumOfOutputs;           //!< Number of outputs of the model.
+    uint32 modelNumOfParameters;        //!< Number of tunable parameters of the model.
     //@}
 
     /**
