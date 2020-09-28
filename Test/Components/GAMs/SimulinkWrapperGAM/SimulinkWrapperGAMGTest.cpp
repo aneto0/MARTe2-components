@@ -55,7 +55,7 @@ TEST(SimulinkWrapperGAMGTest, TestInitialise_MissingOptionalConfigurationSetting
     ASSERT_TRUE(test.TestInitialise_MissingOptionalConfigurationSettings());
 }
 
-TEST(SimulinkWrapperGAMGTest, DISABLED_TestInitialise_MissingTunableParamExternalSource) {
+TEST(SimulinkWrapperGAMGTest, TestInitialise_MissingTunableParamExternalSource) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestInitialise_MissingTunableParamExternalSource());
 }

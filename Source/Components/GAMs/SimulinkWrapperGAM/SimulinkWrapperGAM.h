@@ -577,8 +577,9 @@ private:
      *                calling the `<modelname>_GetCAPImmi()` function exposed
      *                by the .so (special EPFL-SPC TLC patch needed here during
      *                simulink code generation).
+     * @returns `true` is all parameters are correctly scanned, `false` otherwise.
      */
-    void ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi);
+    bool ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi);
 
     /**
      * @brief Helper function to navigate the parameters tree
@@ -588,8 +589,9 @@ private:
      * @param[in] basename    name of the parent parameter structure
      * @param[in] baseoffset  offset of the parent parameter structure
      * @param[in] spacer      spacer for Printf(), it is different if this is the last parameter of a structure
+     * @returns `true` if the parameter structure has been correctly scanned, `false` otherwise.
      */
-    void ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer);
+    bool ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer);
 
 
     /**
@@ -603,8 +605,9 @@ private:
      * @param[in] basename    name of the parent parameter structure
      * @param[in] baseoffset  offset of the parent parameter structure
      * @param[in] depth       tree depth level at call (for recursive callings)
+     * @returns `true` if the parameter has been correctly scanned, `false` otherwise.
      */
-    void ScanParameter(uint32 paridx, StreamString spacer, ParameterMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
+    bool ScanParameter(uint32 paridx, StreamString spacer, ParameterMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
 
     /**
      * @brief Scans the root level input or output tree of the loaded Simulink .so code
@@ -614,8 +617,9 @@ private:
      *                by the .so (special EPFL-SPC TLC patch needed here during
      *                simulink code generation).
      * @param[in] mode sets whether to analyze the inputs ports or the outputs ports
+     * @returns `true` if all signals have been correctly scanned, `false` otherwise.
      */
-    void ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode);
+    bool ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode);
 
     /**
      * @brief Helper function to navigate the signals tree
@@ -625,8 +629,9 @@ private:
      * @param[in] basename    name of the parent signal structure (for recursive callings)
      * @param[in] baseoffset  base offset of the structure in the port (for recursive callings)
      * @param[in] spacer      spacer for Printf(), it is different if this is the last parameter of a structure
+     * @returns `true` if the signal structure has been correctly scanned, `false` otherwise.
      */
-    void ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer);
+    bool ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer);
 
     /**
      * @brief     Helper function to scan a signal
@@ -639,8 +644,9 @@ private:
      * @param[in] basename    name of the parent signal structure (for recursive callings)
      * @param[in] baseoffset base offset of the structure in the port (for recursive callings)
      * @param[in] depth      tree depth level at call (for recursive callings)
+     * @returns `true` if the signal has been correctly scanned, `false` otherwise.
      */
-    void ScanSignal(uint32 sigidx, StreamString spacer, SignalMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
+    bool ScanSignal(uint32 sigidx, StreamString spacer, SignalMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
     
     /**
      * @brief Check coherence between model ports and GAM signals and map them.
