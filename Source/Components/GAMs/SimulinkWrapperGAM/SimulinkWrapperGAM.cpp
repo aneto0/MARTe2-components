@@ -256,8 +256,6 @@ SimulinkWrapperGAM::SimulinkWrapperGAM() :
     
     skipInvalidTunableParams = true;
     paramsHaveStructArrays   = false;
-
-    return;
 }
 
 SimulinkWrapperGAM::~SimulinkWrapperGAM() {
@@ -296,8 +294,6 @@ SimulinkWrapperGAM::~SimulinkWrapperGAM() {
             delete toDelete;
         }
     }
-    
-    return;
 }
 
 bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
@@ -534,6 +530,7 @@ bool SimulinkWrapperGAM::Setup() {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "SetupSimulink() failed.");
     }
     
+    // Simulink initFunction call, init of the Simulink model
     if (ok) {
         (*initFunction)(states);
     }
@@ -551,50 +548,61 @@ bool SimulinkWrapperGAM::Setup() {
 }
 
 bool SimulinkWrapperGAM::SetupSimulink() {
-
+    
+    bool status = false;
+    
     REPORT_ERROR(ErrorManagement::Information, "Allocating Simulink model dynamic memory...");
 
     // Simulink instFunction call, dynamic allocation of model data structures
     states = (*instFunction)();
-    bool status = (NULL != states);
-
-    // Simulink initFunction call, init of the Simulink model
+    
+    status = (states != NULL);
     if (!status) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Simulink model allocation function returned a NULL data pointer");
-        return false;
     }
 
-    
     // Get the Model Mapping Information (mmi) data structure from the Simulink shared object
     void *mmiTemp = ((*getMmiFunction)(states));
     rtwCAPI_ModelMappingInfo* mmi = reinterpret_cast<rtwCAPI_ModelMappingInfo*>(mmiTemp);
     
-    dataTypeMap = rtwCAPI_GetDataTypeMap(mmi);
-
-    modelNumOfInputs     = rtwCAPI_GetNumRootInputs(mmi);
-    modelNumOfOutputs    = rtwCAPI_GetNumRootOutputs(mmi);
-    modelNumOfParameters = rtwCAPI_GetNumModelParameters(mmi);
-    
-    RTWCAPIV2LOG(ErrorManagement::Information,
-        "Simulink C API version number: %d",
-        mmi->versionNum);
-    
-    uint32 numberOfGAMInputSignals  = GetNumberOfInputSignals();
-    uint32 numberOfGAMOutputSignals = GetNumberOfOutputSignals();
-
-    // Check number of declared main ports
-    if (numberOfGAMInputSignals != modelNumOfInputs) {
-        REPORT_ERROR(ErrorManagement::ParametersError,
-            "Number of input signals mismatch (GAM: %u, model %u)",
-            numberOfGAMInputSignals,  modelNumOfInputs);
-        return false;
+    status = (mmi != NULL);
+    if (!status) {
+        REPORT_ERROR(ErrorManagement::ParametersError, "GetMmiPtr function returned a NULL data pointer");
     }
+    
+    if (status) {
+        
+        dataTypeMap = rtwCAPI_GetDataTypeMap(mmi);
 
-    if (numberOfGAMOutputSignals != modelNumOfOutputs) {
-        REPORT_ERROR(ErrorManagement::ParametersError,
-            "Number of output signals mismatch (GAM: %u, model %u)",
-            numberOfGAMOutputSignals,  modelNumOfOutputs);
-        return false;
+        modelNumOfInputs     = rtwCAPI_GetNumRootInputs(mmi);
+        modelNumOfOutputs    = rtwCAPI_GetNumRootOutputs(mmi);
+        modelNumOfParameters = rtwCAPI_GetNumModelParameters(mmi);
+        
+        RTWCAPIV2LOG(ErrorManagement::Information,
+            "Simulink C API version number: %d",
+            mmi->versionNum);
+        
+        uint32 numberOfGAMInputSignals  = GetNumberOfInputSignals();
+        uint32 numberOfGAMOutputSignals = GetNumberOfOutputSignals();
+
+        // Check number of declared main ports
+        if (status) {
+            status = (numberOfGAMInputSignals == modelNumOfInputs);
+            if (!status) {
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                    "Number of input signals mismatch (GAM: %u, model %u)",
+                    numberOfGAMInputSignals,  modelNumOfInputs);
+            }
+        }
+        
+        if (status) {
+            status = (numberOfGAMOutputSignals == modelNumOfOutputs);
+            if (!status) {
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                    "Number of output signals mismatch (GAM: %u, model %u)",
+                    numberOfGAMOutputSignals,  modelNumOfOutputs);
+            }
+        }
     }
     
     ///-------------------------------------------------------------------------
@@ -603,31 +611,43 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     
     // Scan tunable parameters, print them if vervosity level is enough and
     // build the vector of tunable parameters objects
-    REPORT_ERROR(ErrorManagement::Information, "%s, number of main tunable parameters: %d", libraryName.Buffer(), modelNumOfParameters);
-    ScanTunableParameters(mmi);
-
-    if (paramsHaveStructArrays) {
-        REPORT_ERROR(ErrorManagement::InitialisationError,
-            "Arrays of structures detected in the parameters. Feature is not yet supported, execution stopped.");
-        return false;
+    if (status) {
+        REPORT_ERROR(ErrorManagement::Information, "%s, number of main tunable parameters: %d", libraryName.Buffer(), modelNumOfParameters);
+        
+        status = ScanTunableParameters(mmi);
+        if (!status) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed ScanTunableParameters().");
+        }
+    }
+    
+    if (status) {
+        status = !paramsHaveStructArrays;
+        if (!status) {
+            REPORT_ERROR(ErrorManagement::InitialisationError,
+                "Arrays of structures detected in the parameters. Feature is not yet supported, execution stopped.");
+        }
     }
     
     // Max length of parameter names for this model is computed.
-    uint64 maxNameLength = 0u;
+    uint64       maxNameLength;
     StreamString currentName;
     uint32       currentNameSize;
-    for(uint32 paramIdx = 0u; paramIdx < modelParameters.GetSize(); paramIdx++) {
-        
-        currentName     = modelParameters[paramIdx]->fullName;
-        currentNameSize = currentName.Size();
-        
-        if (maxNameLength < currentNameSize) {
-            maxNameLength = currentNameSize;
+    
+    if (status) {
+        maxNameLength = 0u;
+        for(uint32 paramIdx = 0u; paramIdx < modelParameters.GetSize(); paramIdx++) {
+            
+            currentName     = modelParameters[paramIdx]->fullName;
+            currentNameSize = currentName.Size();
+            
+            if (maxNameLength < currentNameSize) {
+                maxNameLength = currentNameSize;
+            }
         }
-    }
-    RTWCAPIV1LOG(ErrorManagement::Information, "%s, configured tunable parameters:", libraryName.Buffer());
-    for(uint32 paramIdx = 0u; paramIdx < modelParameters.GetSize(); paramIdx++) {
-        modelParameters[paramIdx]->PrintData(maxNameLength);
+        RTWCAPIV1LOG(ErrorManagement::Information, "%s, configured tunable parameters:", libraryName.Buffer());
+        for(uint32 paramIdx = 0u; paramIdx < modelParameters.GetSize(); paramIdx++) {
+            modelParameters[paramIdx]->PrintData(maxNameLength);
+        }
     }
     
     ///-------------------------------------------------------------------------
@@ -636,25 +656,39 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     
     // Scan root input/output ports, print them if verbosity level is enough and
     // build the vectors of port objects
-    REPORT_ERROR(ErrorManagement::Information, "%s, number of root inputs: %d", libraryName.Buffer(), modelNumOfInputs);
-    ScanRootIO(mmi, InputSignals);
-
-    REPORT_ERROR(ErrorManagement::Information, "%s, number of root outputs: %d", libraryName.Buffer(), modelNumOfOutputs);
-    ScanRootIO(mmi, OutputSignals);
-
-    maxNameLength = 0u;
-    for (uint32 portIdx = 0u; portIdx < modelPorts.GetSize(); portIdx++) {
+    if (status) {
+        REPORT_ERROR(ErrorManagement::Information, "%s, number of root inputs: %d", libraryName.Buffer(), modelNumOfInputs);
         
-        currentName     = modelPorts[portIdx]->fullName;
-        currentNameSize = currentName.Size();
-        
-        if (maxNameLength < currentNameSize) {
-            maxNameLength = currentNameSize;
+        status = ScanRootIO(mmi, InputSignals);
+        if (!status) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed ScanRootIO() for input signals.");
         }
     }
-    RTWCAPIV1LOG(ErrorManagement::Information, "%s, configured input/output ports:", libraryName.Buffer());
-    for (uint32 portIdx = 0u; portIdx < modelPorts.GetSize(); portIdx++) {
-        modelPorts[portIdx]->PrintPort(maxNameLength);
+    
+    if (status) {
+        REPORT_ERROR(ErrorManagement::Information, "%s, number of root outputs: %d", libraryName.Buffer(), modelNumOfOutputs);
+        
+        status = ScanRootIO(mmi, OutputSignals);
+        if (!status) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed ScanRootIO() for output signals.");
+        }
+    }
+    
+    if (status) {
+        maxNameLength = 0u;
+        for (uint32 portIdx = 0u; portIdx < modelPorts.GetSize(); portIdx++) {
+            
+            currentName     = modelPorts[portIdx]->fullName;
+            currentNameSize = currentName.Size();
+            
+            if (maxNameLength < currentNameSize) {
+                maxNameLength = currentNameSize;
+            }
+        }
+        RTWCAPIV1LOG(ErrorManagement::Information, "%s, configured input/output ports:", libraryName.Buffer());
+        for (uint32 portIdx = 0u; portIdx < modelPorts.GetSize(); portIdx++) {
+            modelPorts[portIdx]->PrintPort(maxNameLength);
+        }
     }
     
     ///-------------------------------------------------------------------------
@@ -662,7 +696,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     ///-------------------------------------------------------------------------
     
     // Now check for mismatch in post sizes
-    for (uint32 portIdx = 0u; portIdx < modelPorts.GetSize(); portIdx++) {
+    for (uint32 portIdx = 0u; (portIdx < modelPorts.GetSize()) && status; portIdx++) {
         
         if (!modelPorts[portIdx]->isContiguous) {
             
@@ -676,7 +710,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             REPORT_ERROR(ErrorManagement::InitialisationError,
                 "Port '%s', size from offset based scan vs. CAPI size mismatch, port cannot be mapped",
                 (modelPorts[portIdx]->fullName).Buffer());
-            return false;
+            status = false;
         }
         
     }
@@ -688,6 +722,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     
     if (status) {
         status = MapPorts(InputSignals);
+        if (!status) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed MapPorts() for input signals.");
+        }
     }
     
     ///-------------------------------------------------------------------------
@@ -697,6 +734,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     
     if (status) {
         status = MapPorts(OutputSignals);
+        if (!status) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Failed MapPorts() for output signals.");
+        }
     }
     
     ///-------------------------------------------------------------------------
