@@ -276,7 +276,7 @@ SimulinkWrapperGAM::SimulinkWrapperGAM() :
     paramsHaveStructArrays   = false;
 }
 
-/*lint -e{1551} functions called in the destructor are expected not to throw exceptions */
+/*lint -e{1551} memory must be freed and functions called in the destructor are expected not to throw exceptions */
 SimulinkWrapperGAM::~SimulinkWrapperGAM() {
 
     if (libraryHandle != NULL) {
@@ -415,6 +415,8 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
     /// 3. Retrieval of model code symbols.
     
     char symbol [64u];
+    
+    status = (libraryHandle != NULL);
     
     // instFunction
     if (status) { // Compose symbol

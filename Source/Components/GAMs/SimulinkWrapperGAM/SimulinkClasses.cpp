@@ -378,6 +378,7 @@ SimulinkPort::SimulinkPort() : SimulinkSignal() {
     dataClass = "Port";
 }
 
+/*lint -e{1551} memory must be freed and functions called in the destructor are expected not to throw exceptions */
 SimulinkPort::~SimulinkPort() {
     
     baseAddress       = NULL_PTR(void*);
