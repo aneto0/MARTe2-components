@@ -238,7 +238,7 @@ static inline uint16 GetTypeSizeFromCTypeName(const char8* cTypeNameIn) {
 SimulinkWrapperGAM::SimulinkWrapperGAM() :
         GAM() {
 
-    libraryHandle = static_cast<LoadableLibrary*>(NULL);
+    libraryHandle = NULL_PTR(LoadableLibrary*);
     
     instFunction  = static_cast<void*(*)(void)>(NULL);
     initFunction  = static_cast<void(*)(void*)>(NULL);
@@ -398,8 +398,8 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
     }
 
     if (status) { // Load libray
-        libraryHandle = new LoadableLibrary ();
-        status = (static_cast<LoadableLibrary*>(NULL) != libraryHandle);
+        libraryHandle = new LoadableLibrary();
+        status = (libraryHandle != NULL);
     }
 
     if (status) { // Load libray
@@ -415,13 +415,6 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
     /// 3. Retrieval of model code symbols.
     
     char symbol [64u];
-    
-    if (status) {
-        status = (libraryHandle != NULL);
-        if (!status) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Library handle is NULL.");
-        }
-    }
     
     // instFunction
     if (status) { // Compose symbol
