@@ -414,13 +414,11 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
     
     /// 3. Retrieval of model code symbols.
     
-    char symbol [64u];
+    char8 symbol[64u];
     
     if ((libraryHandle != NULL) && status) {
         // instFunction
-        if (status) { // Compose symbol
-            status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
-        }
+        status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u); // Compose symbol
 
         if (status) { // Find symbol
             instFunction = reinterpret_cast<void*(*)(void)>(libraryHandle->Function(symbol));
@@ -432,7 +430,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
 
         // getMmiFunction
         if (status) { // Compose symbol
-            status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
+            status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u);
             if (status) {
                 status = StringHelper::ConcatenateN(symbol, "_GetCAPImmi", 64u);
             }
@@ -448,7 +446,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
 
         // initFunction
         if (status) { // Compose symbol
-            status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
+            status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u);
             if (status) {
                 status = StringHelper::ConcatenateN(symbol, "_initialize", 64u);
             }
@@ -464,7 +462,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         
         // stepFunction
         if (status) { // Compose symbol
-            status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
+            status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u);
             if (status) {
                 status = StringHelper::ConcatenateN(symbol, "_step", 64u);
             }
@@ -480,7 +478,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
 
         // getAlgoInfoFunction
         if (status) { // Compose symbol
-            status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
+            status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u);
             if (status) {
                 status = StringHelper::ConcatenateN(symbol, "_GetAlgoInfo", 64u);
             }
