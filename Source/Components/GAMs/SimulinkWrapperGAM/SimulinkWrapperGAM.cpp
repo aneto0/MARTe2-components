@@ -1855,126 +1855,141 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
         GetSignalName(direction, signalIdx, GAMSignalName);
         found = false;
         
-        for( portIdx = startIdx; portIdx < endIdx; portIdx++ ) {
+        for(portIdx = startIdx; portIdx < endIdx; portIdx++ ) {
             
-            if (GAMSignalName == (modelPorts[portIdx]->fullName))
-            {
+            if (GAMSignalName == (modelPorts[portIdx]->fullName)) {
                 found = true;
                 break;
             }
         }
-        if(!found)
-        {
+        if (!found) {
             REPORT_ERROR(ErrorManagement::ParametersError,
                 "GAM %s signal %s not found in Simulink model",
                 directionName.Buffer(), GAMSignalName.Buffer());
-            return false;
+            ok = false;
         }
         
-        if(modelPorts[portIdx]->hasHomogeneousType)
-        {
+        if (ok) {
+            
             // Homogeneus port checks (an array). In this case we check datatype, number of dimensions and number of elements.
-            
-            if(!modelPorts[portIdx]->isContiguous)
-            {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "Simulink port '%s' is homogeneous but not contiguous, mapping not supported.",
-                    (modelPorts[portIdx]->fullName).Buffer());
-                return false;
-            }
-            
-            GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-            if (GAMNumberOfDimensions != (modelPorts[portIdx]->numberOfDimensions))
-            {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "%s signal %s number of dimensions mismatch (GAM: %d, model: %u)",
-                    directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfDimensions, modelPorts[portIdx]->numberOfDimensions);
-                return false;
-            }
-            
-            GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
-            if (GAMNumberOfElements != (modelPorts[portIdx]->totalNumberOfElements))
-            {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "%s signal %s number of elements mismatch (GAM: %d, model: %u)",
-                    directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfElements, modelPorts[portIdx]->totalNumberOfElements);
-                return false;
-            }
-            
-            GAMSignalType = GetSignalType(direction, signalIdx);
-            StreamString inputSignalTypeStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(GAMSignalType);
-            if ( modelPorts[portIdx]->MARTeTypeName != inputSignalTypeStr )
-            {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "%s signal %s type mismatch (GAM: %s, model: %s)",
-                    directionName.Buffer(), GAMSignalName.Buffer(), inputSignalTypeStr.Buffer(), (modelPorts[portIdx]->MARTeTypeName).Buffer());
-                return false;
-            }
-            
-            if(!CheckrtwCAPITypeAgainstSize(modelPorts[portIdx]->cTypeName, modelPorts[portIdx]->dataTypeSize))
-            {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "Simulink %s port %s has data type size not maching with the one configured in the GAM",
-                    directionName.Buffer(), (modelPorts[portIdx]->fullName).Buffer());
-                return false;
-            }
-            
-            // Matrix signals in column major orientation requires additional workload.
-            if (GAMNumberOfDimensions > 1u)
-            {
-                if (modelPorts[portIdx]->orientation != rtwCAPI_MATRIX_ROW_MAJOR) {
-                    REPORT_ERROR(ErrorManagement::Warning,
-                        "%s signal %s orientation is column-major. Supported, but requires real-time transposition and may result in performance loss.",
-                        directionName.Buffer(), GAMSignalName.Buffer());
-                        modelPorts[portIdx]->requiresTransposition = true;
+            if(modelPorts[portIdx]->hasHomogeneousType) {
+                
+                if(!modelPorts[portIdx]->isContiguous)
+                {
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                        "Simulink port '%s' is homogeneous but not contiguous, mapping not supported.",
+                        (modelPorts[portIdx]->fullName).Buffer());
+                    ok = false;
                 }
+                
+                if (ok) {
+                    GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
+                    if (GAMNumberOfDimensions != (modelPorts[portIdx]->numberOfDimensions)) {
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                            "%s signal %s number of dimensions mismatch (GAM: %d, model: %u)",
+                            directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfDimensions, modelPorts[portIdx]->numberOfDimensions);
+                        ok = false;
+                    }
+                }
+                
+                if (ok) {
+                    GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
+                    if (GAMNumberOfElements != (modelPorts[portIdx]->totalNumberOfElements))
+                    {
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                            "%s signal %s number of elements mismatch (GAM: %d, model: %u)",
+                            directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfElements, modelPorts[portIdx]->totalNumberOfElements);
+                        ok = false;
+                    }
+                }
+                
+                if (ok) {
+                    GAMSignalType = GetSignalType(direction, signalIdx);
+                    StreamString inputSignalTypeStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(GAMSignalType);
+                    if ( modelPorts[portIdx]->MARTeTypeName != inputSignalTypeStr )
+                    {
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                            "%s signal %s type mismatch (GAM: %s, model: %s)",
+                            directionName.Buffer(), GAMSignalName.Buffer(), inputSignalTypeStr.Buffer(), (modelPorts[portIdx]->MARTeTypeName).Buffer());
+                        ok = false;
+                    }
+                }
+                
+                if (ok) {
+                    if(!CheckrtwCAPITypeAgainstSize(modelPorts[portIdx]->cTypeName, modelPorts[portIdx]->dataTypeSize))
+                    {
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                            "Simulink %s port %s has data type size not maching with the one configured in the GAM",
+                            directionName.Buffer(), (modelPorts[portIdx]->fullName).Buffer());
+                        ok = false;
+                    }
+                }
+                
+                if (ok) {
+                    // Matrix signals in column major orientation requires additional workload.
+                    if (GAMNumberOfDimensions > 1u)
+                    {
+                        if (modelPorts[portIdx]->orientation != rtwCAPI_MATRIX_ROW_MAJOR) {
+                            REPORT_ERROR(ErrorManagement::Warning,
+                                "%s signal %s orientation is column-major. Supported, but requires real-time transposition and may result in performance loss.",
+                                directionName.Buffer(), GAMSignalName.Buffer());
+                                modelPorts[portIdx]->requiresTransposition = true;
+                        }
+                    }
+                }
+                
             }
             
-        }
-        else
-        {
             // Non-homogeneus port checks (structured signal). In this case we check only the size and the GAM datatype must be uint8
             // (i.e. we treat the port as a continuous array of bytes)
-            
-            GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
-            if (GAMNumberOfElements != (modelPorts[portIdx]->CAPISize))
-            {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "GAM %s signal %s doesn't have the same size (%d) of the corresponding (mixed signals) Simulink port (%d)",
-                    directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfElements, modelPorts[portIdx]->CAPISize);
-                return false;
+            else {
+                
+                GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
+                if (GAMNumberOfElements != (modelPorts[portIdx]->CAPISize))
+                {
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                        "GAM %s signal %s doesn't have the same size (%d) of the corresponding (mixed signals) Simulink port (%d)",
+                        directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfElements, modelPorts[portIdx]->CAPISize);
+                    ok = false;
+                }
+                
+                if (ok) {
+                    GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
+                    if (GAMNumberOfDimensions != 1u)
+                    {
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                            "%s signal %s dimension mismatch: structured signal must have NumberOfDimensions = 1",
+                            directionName.Buffer(), GAMSignalName.Buffer());
+                        ok = false;
+                    }
+                }
+                
+                if (ok) {
+                    GAMSignalType = GetSignalType(direction, signalIdx);
+                    StreamString inputSignalTypeStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(GAMSignalType);
+                    if ( GAMSignalType != UnsignedInteger8Bit )
+                    {
+                        REPORT_ERROR(ErrorManagement::ParametersError,
+                            "GAM %s signal %s has data type (%s), mixed signals ports must be declared as uint8",
+                            directionName.Buffer(), GAMSignalName.Buffer(), inputSignalTypeStr.Buffer());
+                        ok = false;
+                    }
+                }
+                
             }
-            
-            GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-            if (GAMNumberOfDimensions != 1u)
-            {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "%s signal %s dimension mismatch: structured signal must have NumberOfDimensions = 1",
-                    directionName.Buffer(), GAMSignalName.Buffer());
-                return false;
-            }
-            
-            GAMSignalType = GetSignalType(direction, signalIdx);
-            StreamString inputSignalTypeStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(GAMSignalType);
-            if ( GAMSignalType != UnsignedInteger8Bit )
-            {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "GAM %s signal %s has data type (%s), mixed signals ports must be declared as uint8",
-                    directionName.Buffer(), GAMSignalName.Buffer(), inputSignalTypeStr.Buffer());
-                return false;
-            }
-            
         }
         
         // Ok, here we can map memory inputs
-        if (direction == InputSignals) {
-            modelPorts[portIdx]->MARTeAddress = GetInputSignalMemory(signalIdx);
-        }
-        else if (direction == OutputSignals) {
-            modelPorts[portIdx]->MARTeAddress = GetOutputSignalMemory(signalIdx);
-        }
-        else {
-            REPORT_ERROR(ErrorManagement::Information, "Unsupported signal direction in MapPorts()");
+        if (ok) {
+            if (direction == InputSignals) {
+                modelPorts[portIdx]->MARTeAddress = GetInputSignalMemory(signalIdx);
+            }
+            else if (direction == OutputSignals) {
+                modelPorts[portIdx]->MARTeAddress = GetOutputSignalMemory(signalIdx);
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::Information, "Unsupported signal direction in MapPorts()");
+            }
         }
     }
     
