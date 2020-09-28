@@ -357,6 +357,7 @@ SimulinkPort::SimulinkPort() {
     isTyped      = false;
     isContiguous = true;
     hasHomogeneousType = true;
+    hasHomogeneousOrientation = true;
     
     runningOffset = 0u;
     typeBasedSize = 0u;
