@@ -243,10 +243,25 @@ SimulinkWrapperGAM::SimulinkWrapperGAM() :
     instFunction  = static_cast<void*(*)(void)>(NULL);
     initFunction  = static_cast<void(*)(void*)>(NULL);
     stepFunction  = static_cast<void(*)(void*)>(NULL);
+    termFunction  = static_cast<void(*)(void*)>(NULL);
     
     getMmiFunction = static_cast<void*(*)(void*)>(NULL);
-
-    states               = NULL;
+    getAlgoInfoFunction  = static_cast<void(*)(void*)>(NULL);
+    
+    modelParams = NULL_PTR(rtwCAPI_ModelParameters*);
+    rootInputs  = NULL_PTR(rtwCAPI_Signals*);
+    rootOutputs = NULL_PTR(rtwCAPI_Signals*);
+    sigGroup    = NULL_PTR(rtwCAPI_Signals*);
+    dataTypeMap = NULL_PTR(rtwCAPI_DataTypeMap*);
+    elementMap  = NULL_PTR(rtwCAPI_ElementMap*);
+    dimMap      = NULL_PTR(rtwCAPI_DimensionMap*);
+    dimArray    = NULL_PTR(uint32*);
+    dataAddrMap = NULL_PTR(void**);
+    
+    states = NULL_PTR(void*);
+    
+    paramlastaddress = NULL_PTR(void*);
+    
     paramSeparator      = "-";
     signalSeparator     = ".";
     verbosityLevel       = 0u;
@@ -271,12 +286,27 @@ SimulinkWrapperGAM::~SimulinkWrapperGAM() {
         libraryHandle = static_cast<LoadableLibrary*>(NULL);
     }
 
-    getMmiFunction       = static_cast<void*(*)(void*)>(NULL);
-    getAlgoInfoFunction  = static_cast<void(*)(void*)>(NULL);
-
     instFunction = static_cast<void*(*)(void)>(NULL);
     initFunction = static_cast<void(*)(void*)>(NULL);
     stepFunction = static_cast<void(*)(void*)>(NULL);
+    termFunction  = static_cast<void(*)(void*)>(NULL);
+    
+    getMmiFunction       = static_cast<void*(*)(void*)>(NULL);
+    getAlgoInfoFunction  = static_cast<void(*)(void*)>(NULL);
+    
+    modelParams = NULL_PTR(rtwCAPI_ModelParameters*);
+    rootInputs  = NULL_PTR(rtwCAPI_Signals*);
+    rootOutputs = NULL_PTR(rtwCAPI_Signals*);
+    sigGroup    = NULL_PTR(rtwCAPI_Signals*);
+    dataTypeMap = NULL_PTR(rtwCAPI_DataTypeMap*);
+    elementMap  = NULL_PTR(rtwCAPI_ElementMap*);
+    dimMap      = NULL_PTR(rtwCAPI_DimensionMap*);
+    dimArray    = NULL_PTR(uint32*);
+    dataAddrMap = NULL_PTR(void**);
+    
+    states = NULL_PTR(void*);
+    
+    paramlastaddress = NULL_PTR(void*);
     
     // Deallocate all SimulinkClasses objects
     uint32 parameterSize = modelParameters.GetSize();
