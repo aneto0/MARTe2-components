@@ -3,6 +3,7 @@
 -i%EPICS_BASE%/include
 -i%MDSPLUS_DIR%/include
 -i%SDN_CORE_INCLUDE_DIR%
+-i%MATLAB_DIR%/extern/include/
 
 -i./Source/Components/DataSources/DAN/
 -i./Source/Components/DataSources/EPICSCA/
