@@ -432,7 +432,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         if (status) { // Compose symbol
             status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u);
             if (status) {
-                status = StringHelper::ConcatenateN(symbol, "_GetCAPImmi", 64u);
+                status = StringHelper::ConcatenateN(&symbol[0u], "_GetCAPImmi", 64u);
             }
         }
 
@@ -448,7 +448,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         if (status) { // Compose symbol
             status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u);
             if (status) {
-                status = StringHelper::ConcatenateN(symbol, "_initialize", 64u);
+                status = StringHelper::ConcatenateN(&symbol[0u], "_initialize", 64u);
             }
         }
 
@@ -464,7 +464,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         if (status) { // Compose symbol
             status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u);
             if (status) {
-                status = StringHelper::ConcatenateN(symbol, "_step", 64u);
+                status = StringHelper::ConcatenateN(&symbol[0u], "_step", 64u);
             }
         }
 
@@ -480,7 +480,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         if (status) { // Compose symbol
             status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u);
             if (status) {
-                status = StringHelper::ConcatenateN(symbol, "_GetAlgoInfo", 64u);
+                status = StringHelper::ConcatenateN(&symbol[0u], "_GetAlgoInfo", 64u);
             }
         }
         
