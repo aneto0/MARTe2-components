@@ -1424,7 +1424,7 @@ bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "Pointer to one of the model maps is NULL.");
     }
-
+    
     if (ok) {
         switch(mode) {
             
@@ -1478,7 +1478,7 @@ bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
                 ok = false;
         }
         
-        if (ok) {
+        if ((currentPort != NULL) && ok) {
             stemp = sigName;
             currentPort->fullName = stemp;
             currentPort->verbosity = verbosityLevel;
