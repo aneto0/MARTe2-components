@@ -42,8 +42,6 @@
 
 #include "rtw_modelmap.h" // Matlab coder C-API interface
 
-#define MAXDIMS 3u
-
 #define RTWCAPIV1LOGST if(verbosityLevel>0) REPORT_ERROR_STATIC
 #define RTWCAPIV2LOGST if(verbosityLevel>1) REPORT_ERROR_STATIC
 #define RTWCAPIV1LOG   if(verbosityLevel>0) REPORT_ERROR
@@ -56,6 +54,8 @@
 
 namespace MARTe
 {
+
+static const uint32 maxNumOfDims = 3u;
 
 /*---------------------------------------------------------------------------*/
 /*                               SimulinkDataI                               */
@@ -71,26 +71,26 @@ namespace MARTe
 class SimulinkDataI {
     
 public:
-    StreamString dataClass;             //!< Name of the class (parameter, signal or port).
+    StreamString dataClass;                 //!< Name of the class (parameter, signal or port).
     
-    StreamString fullName;              //!< Fully expanded Simulink data name.
+    StreamString fullName;                  //!< Fully expanded Simulink data name.
     
-    uint16 numberOfDimensions;          //!< Data number of dimensions
-    uint32 numberOfElements[MAXDIMS];   //!< Data number of elements in each dimension
-    uint32 totalNumberOfElements;       //!< Total number of elements.
+    uint16 numberOfDimensions;              //!< Data number of dimensions
+    uint32 numberOfElements[maxNumOfDims];  //!< Data number of elements in each dimension
+    uint32 totalNumberOfElements;           //!< Total number of elements.
     
-    rtwCAPI_Orientation orientation;    //!< data orientation retrieved from model .so
+    rtwCAPI_Orientation orientation;        //!< data orientation retrieved from model .so
     
-    uint32 byteSize;                    //!< Size in bytes occupied by this data.
-    uint16 dataTypeSize;                //!< Size of the type of this data.
+    uint32 byteSize;                        //!< Size in bytes occupied by this data.
+    uint16 dataTypeSize;                    //!< Size of the type of this data.
     
-    StreamString   cTypeName;           //!< data type name (in C terminology)
-    StreamString   MARTeTypeName;       //!< data type name (in MARTe terminology)
-    TypeDescriptor type;                //!< data type
+    StreamString   cTypeName;               //!< data type name (in C terminology)
+    StreamString   MARTeTypeName;           //!< data type name (in MARTe terminology)
+    TypeDescriptor type;                    //!< data type
     
-    void *address;                      //!< allocated starting address
+    void *address;                          //!< allocated starting address
     
-    uint32 verbosity;                   //!< The amount of informations that will be printed (derived from the GAM verbosity).
+    uint32 verbosity;                       //!< The amount of informations that will be printed (derived from the GAM verbosity).
     
     /**
      * @brief Default constructor.
@@ -100,7 +100,7 @@ public:
     /**
      * @brief Destructor.
      */
-    ~SimulinkDataI();
+    virtual ~SimulinkDataI();
     
     /**
      * @brief Prints informations about the element, being it parameter, port or signal.

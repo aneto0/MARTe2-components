@@ -603,6 +603,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                     numberOfGAMOutputSignals,  modelNumOfOutputs);
             }
         }
+        
     }
     
     ///-------------------------------------------------------------------------

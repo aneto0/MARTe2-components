@@ -52,7 +52,7 @@ SimulinkDataI::SimulinkDataI() {
     dataClass = "Data";
     
     numberOfDimensions = 0u;
-    for (uint16 dimIdx = 0u; dimIdx < MAXDIMS; dimIdx++) {
+    for (uint16 dimIdx = 0u; dimIdx < maxNumOfDims; dimIdx++) {
         numberOfElements[dimIdx] = 1u;
     }
     totalNumberOfElements = 0u;
@@ -111,7 +111,7 @@ void SimulinkDataI::PrintData(const uint32 maxNameLength /* = 0u */, StreamStrin
 
 bool SimulinkParameter::Actualise(const AnyType& sourceParameter) {
     
-    bool ok = true;
+    bool ok;
     
     // Type coherence check
     TypeDescriptor slkType = TypeDescriptor::GetTypeDescriptorFromTypeName(MARTeTypeName.Buffer());
@@ -396,7 +396,7 @@ bool SimulinkPort::AddSignal(SimulinkSignal* signalIn) {
     
     if (ok) {
         uint32 totalNumOfElems = 1u;
-        for (uint32 elemIdx = 0u; elemIdx < MAXDIMS; elemIdx++) {
+        for (uint32 elemIdx = 0u; elemIdx < maxNumOfDims; elemIdx++) {
             totalNumOfElems *= signalIn->numberOfElements[elemIdx];
         }
         offsetBasedSize = signalIn->offset + signalIn->dataTypeSize*totalNumOfElems;
