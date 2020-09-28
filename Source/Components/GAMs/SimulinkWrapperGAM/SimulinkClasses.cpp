@@ -338,7 +338,7 @@ bool SimulinkDataI::TransposeAndCopyT(void *const destination, const void *const
 /*                              SimulinkSignal                               */
 /*---------------------------------------------------------------------------*/
 
-SimulinkSignal::SimulinkSignal() {
+SimulinkSignal::SimulinkSignal() : SimulinkDataI() {
     
     dataClass = "Signal";
     
@@ -347,7 +347,7 @@ SimulinkSignal::SimulinkSignal() {
     requiresTransposition = false;
 }
 
-void SimulinkSignal::PrintSignal(uint32 maxNameLength /* = 0u */ ) {
+void SimulinkSignal::PrintSignal(const uint32 maxNameLength /* = 0u */ ) {
     
     SimulinkDataI::PrintData(maxNameLength);
 }
@@ -356,7 +356,7 @@ void SimulinkSignal::PrintSignal(uint32 maxNameLength /* = 0u */ ) {
 /*                               SimulinkPort                                */
 /*---------------------------------------------------------------------------*/
 
-SimulinkPort::SimulinkPort() {
+SimulinkPort::SimulinkPort() : SimulinkSignal() {
     
     isValid      = true;
     isTyped      = false;
@@ -380,6 +380,9 @@ SimulinkPort::SimulinkPort() {
 
 SimulinkPort::~SimulinkPort() {
     
+    baseAddress       = NULL_PTR(void*);
+    lastSignalAddress = NULL_PTR(void*);
+    
     uint32 numberOfSignalsInThisPort = carriedSignals.GetSize();
     for (uint32 signalIdx = 0U; signalIdx < numberOfSignalsInThisPort; signalIdx++) {
         SimulinkSignal* toDelete;
@@ -391,8 +394,7 @@ SimulinkPort::~SimulinkPort() {
 
 bool SimulinkPort::AddSignal(SimulinkSignal* signalIn) {
     
-    bool ok = false;
-    ok = carriedSignals.Add(signalIn);
+    bool ok = carriedSignals.Add(signalIn);
     
     if (ok) {
         uint32 totalNumOfElems = 1u;
@@ -405,7 +407,7 @@ bool SimulinkPort::AddSignal(SimulinkSignal* signalIn) {
     return ok;
 }
 
-void SimulinkPort::PrintPort(uint32 maxNameLength) {
+void SimulinkPort::PrintPort(const uint32 maxNameLength) {
     
     StreamString typeStr = "";
     if (hasHomogeneousType) {
@@ -426,12 +428,12 @@ void SimulinkPort::PrintPort(uint32 maxNameLength) {
     
 }
 
-SimulinkInputPort::SimulinkInputPort() {
+SimulinkInputPort::SimulinkInputPort() : SimulinkPort() {
     
     dataClass = "IN  port";
 }
 
-SimulinkOutputPort::SimulinkOutputPort() {
+SimulinkOutputPort::SimulinkOutputPort() : SimulinkPort() {
     
     dataClass = "OUT port";
 }

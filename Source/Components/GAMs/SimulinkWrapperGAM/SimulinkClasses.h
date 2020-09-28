@@ -207,7 +207,7 @@ public:
     /**
      * @brief Print information about the signal.
      */
-    void PrintSignal(uint32 maxNameLength = 0u);
+    void PrintSignal(const uint32 maxNameLength = 0u);
 };
 
 /*---------------------------------------------------------------------------*/
@@ -282,7 +282,7 @@ public:
     /**
      * @brief Print information about this port.
      */
-    void PrintPort(uint32 maxNameLength);
+    void PrintPort(const uint32 maxNameLength);
     
     /**
      * @brief Copy data from the associated MARTe2 signal to the associated model port.
