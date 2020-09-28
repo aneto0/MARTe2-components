@@ -416,86 +416,86 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
     
     char symbol [64u];
     
-    status = (libraryHandle != NULL);
+    if ((libraryHandle != NULL) && status) {
+        // instFunction
+        if (status) { // Compose symbol
+            status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
+        }
+
+        if (status) { // Find symbol
+            instFunction = reinterpret_cast<void*(*)(void)>(libraryHandle->Function(symbol));
+            status = (static_cast<void*(*)(void)>(NULL) != instFunction);
+            if (!status) {
+                REPORT_ERROR(ErrorManagement::Information, "Couldn't find %s symbol in model library (instFunction == NULL).", symbol);
+            }
+        }
+
+        // getMmiFunction
+        if (status) { // Compose symbol
+            status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
+            if (status) {
+                status = StringHelper::ConcatenateN(symbol, "_GetCAPImmi", 64u);
+            }
+        }
+
+        if (status) { // Find symbol
+            getMmiFunction = reinterpret_cast<void*(*)(void*)>(libraryHandle->Function(symbol));
+            status = (static_cast<void*(*)(void*)>(NULL) != getMmiFunction);
+            if (!status) {
+                REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
+            }
+        }
+
+        // initFunction
+        if (status) { // Compose symbol
+            status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
+            if (status) {
+                status = StringHelper::ConcatenateN(symbol, "_initialize", 64u);
+            }
+        }
+
+        if (status) { // Find symbol
+            initFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
+            status = (static_cast<void(*)(void*)>(NULL) != initFunction);
+            if (!status) {
+                REPORT_ERROR(ErrorManagement::Information, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
+            }
+        }
+        
+        // stepFunction
+        if (status) { // Compose symbol
+            status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
+            if (status) {
+                status = StringHelper::ConcatenateN(symbol, "_step", 64u);
+            }
+        }
+
+        if (status) { // Find symbol
+            stepFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
+            status = (static_cast<void(*)(void*)>(NULL) != stepFunction);
+            if (!status) {
+                REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
+            }
+        }
+
+        // getAlgoInfoFunction
+        if (status) { // Compose symbol
+            status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
+            if (status) {
+                status = StringHelper::ConcatenateN(symbol, "_GetAlgoInfo", 64u);
+            }
+        }
+        
+        if (status) { // Find symbol
+            getAlgoInfoFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
+            status = (static_cast<void(*)(void*)>(NULL) != getAlgoInfoFunction);
+            if (!status) {
+                REPORT_ERROR(ErrorManagement::Information, "Algorithm information not found in the Simulink .so");
+                status = true;
+            }
+        }
+    }
     
-    // instFunction
-    if (status) { // Compose symbol
-        status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
-    }
-
-    if (status) { // Find symbol
-        instFunction = reinterpret_cast<void*(*)(void)>(libraryHandle->Function(symbol));
-        status = (static_cast<void*(*)(void)>(NULL) != instFunction);
-        if (!status) {
-            REPORT_ERROR(ErrorManagement::Information, "Couldn't find %s symbol in model library (instFunction == NULL).", symbol);
-        }
-    }
-
-    // getMmiFunction
-    if (status) { // Compose symbol
-        status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
-        if (status) {
-            status = StringHelper::ConcatenateN(symbol, "_GetCAPImmi", 64u);
-        }
-    }
-
-    if (status) { // Find symbol
-        getMmiFunction = reinterpret_cast<void*(*)(void*)>(libraryHandle->Function(symbol));
-        status = (static_cast<void*(*)(void*)>(NULL) != getMmiFunction);
-        if (!status) {
-            REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
-        }
-    }
-
-    // initFunction
-    if (status) { // Compose symbol
-        status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
-        if (status) {
-            status = StringHelper::ConcatenateN(symbol, "_initialize", 64u);
-        }
-    }
-
-    if (status) { // Find symbol
-        initFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
-        status = (static_cast<void(*)(void*)>(NULL) != initFunction);
-        if (!status) {
-            REPORT_ERROR(ErrorManagement::Information, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
-        }
-    }
-    
-    // stepFunction
-    if (status) { // Compose symbol
-        status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
-        if (status) {
-            status = StringHelper::ConcatenateN(symbol, "_step", 64u);
-        }
-    }
-
-    if (status) { // Find symbol
-        stepFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
-        status = (static_cast<void(*)(void*)>(NULL) != stepFunction);
-        if (!status) {
-            REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
-        }
-    }
-
-    // getAlgoInfoFunction
-    if (status) { // Compose symbol
-        status = StringHelper::CopyN(symbol, symbolPrefix.Buffer(), 64u);
-        if (status) {
-            status = StringHelper::ConcatenateN(symbol, "_GetAlgoInfo", 64u);
-        }
-    }
-    
-    if (status) { // Find symbol
-        getAlgoInfoFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
-        status = (static_cast<void(*)(void*)>(NULL) != getAlgoInfoFunction);
-        if (!status) {
-            REPORT_ERROR(ErrorManagement::Information, "Algorithm information not found in the Simulink .so");
-            status = true;
-        }
-    }
-
     /// 4. Build a reference container containing parameter values
     ///    retrieved in the configuration file (under the `Parameters` node).
     
