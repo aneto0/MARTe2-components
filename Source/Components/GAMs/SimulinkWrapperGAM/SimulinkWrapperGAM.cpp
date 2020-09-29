@@ -1340,7 +1340,6 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
         }
         
         // Calculate number of dimensions in MARTe2 sense
-        ELEMARTeNumDims = 0u;
         for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
             if (ELEactualDimensions[dimIdx] > 1u) {
                 ELEMARTeNumDims++;
