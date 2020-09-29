@@ -1560,19 +1560,20 @@ bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
 
 }
 
-bool SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer){
+/*lint -e{613} NULL pointers are checked in the caller method.*/
+bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint32 baseOffset, StreamString spacer){
     
     bool ok = true;
     
     const char8* elementName;
     uint8        SUBslDataID;
-    uint16       numElements;
+    uint32       numElements;
     uint16       elemMapIdx;
     uint16       SUBdataTypeIndex;
     uint16       SUBnumElements;
     uint32       SUBdataTypeOffset;
-    void*        byteptr = startaddr;
-    void*        runningbyteptr = startaddr;
+    void*        byteptr = startAddress;
+    void*        runningbyteptr = startAddress;
     StreamString tempstr;
 
     elemMapIdx  = rtwCAPI_GetDataTypeElemMapIndex(dataTypeMap,dataTypeIdx);
@@ -1602,14 +1603,14 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
         // Scan the parameter or structure
         if(SUBslDataID != SS_STRUCT) {
             
-            ok = ScanSignal(elemMapIdx + elemIdx, specificSpacer, SignalFromElementMap, byteptr, basename, baseoffset, depth);
+            ok = ScanSignal(elemMapIdx + elemIdx, specificSpacer, SignalFromElementMap, byteptr, baseName, baseOffset, depth);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanSignal for signal %s.", elementName);
             }
         }
         else {
 
-            runningbyteptr=reinterpret_cast<void *>(static_cast<uint8*>(startaddr)+SUBdataTypeOffset);
+            runningbyteptr = reinterpret_cast<void *>(static_cast<uint8*>(startAddress) + SUBdataTypeOffset);
 
             // Calculating same level delta address
             uint64 deltaaddr;
@@ -1647,7 +1648,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
                     specificSpacer.Buffer(), elementName, elemIdx, SUBnumElements, SUBdataTypeOffset, runningbyteptr, deltaaddr, absDeltaAddress);
             tempstr=elementName;
             
-            StreamString nameAndSeparators = basename;
+            StreamString nameAndSeparators = baseName;
             nameAndSeparators += tempstr;
             nameAndSeparators += signalSeparator;
             
