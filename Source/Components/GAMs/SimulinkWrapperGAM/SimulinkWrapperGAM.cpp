@@ -584,9 +584,10 @@ bool SimulinkWrapperGAM::Setup() {
     return ok;
 }
 
+/*lint -esym{ 613, mmi } mmi is checked not to be NULL */
 bool SimulinkWrapperGAM::SetupSimulink() {
     
-    bool status = false;
+    bool status;
     
     REPORT_ERROR(ErrorManagement::Information, "Allocating Simulink model dynamic memory...");
 
@@ -602,7 +603,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
 
     // Get the Model Mapping Information (mmi) data structure from the Simulink shared object
     rtwCAPI_ModelMappingInfo* mmi = NULL_PTR(rtwCAPI_ModelMappingInfo*);
-    if (getMmiFunction != NULL) {
+    if ( (getMmiFunction != NULL) && status) {
         void *mmiTemp = ((*getMmiFunction)(states));
         mmi = reinterpret_cast<rtwCAPI_ModelMappingInfo*>(mmiTemp);
     }
@@ -620,9 +621,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         modelNumOfOutputs    = rtwCAPI_GetNumRootOutputs(mmi);
         modelNumOfParameters = rtwCAPI_GetNumModelParameters(mmi);
         
-        RTWCAPIV2LOG(ErrorManagement::Information,
-            "Simulink C API version number: %d",
-            mmi->versionNum);
+        RTWCAPIV2LOG(ErrorManagement::Information, "Simulink C API version number: %d", mmi->versionNum);
         
         uint32 numberOfGAMInputSignals  = GetNumberOfInputSignals();
         uint32 numberOfGAMOutputSignals = GetNumberOfOutputSignals();
