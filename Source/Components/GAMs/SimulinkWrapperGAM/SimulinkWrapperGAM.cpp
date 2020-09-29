@@ -83,7 +83,7 @@ static void PrintIntrospection(const MARTe::char8 * const structOrClassToSearch)
     }
 }
 */
-static MARTe::StreamString GetOrientationName(rtwCAPI_Orientation  &ELEorientation)
+static MARTe::StreamString GetOrientationName(const rtwCAPI_Orientation  &ELEorientation)
 {
     MARTe::StreamString name;
     
@@ -1363,7 +1363,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
             deltaAddress = reinterpret_cast<uint64>(ELEparamAddress) - reinterpret_cast<uint64>(paramlastaddress);
         }
         else {
-            deltaAddress = 0;
+            deltaAddress = 0u;
         }
         paramlastaddress = ELEparamAddress;
         
@@ -1668,21 +1668,23 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
 {
     bool ok = true;
     
-    const char8*        ELEelementName;
+    const char8*        ELEelementName   = NULL_PTR(char8*);
+    uint16              ELEdataTypeIndex = 0u;
+    uint16              ELEdimIndex      = 0u;
     uint32              ELEelementOffset;
-    uint16              ELEdataTypeIndex;
-    uint16              ELEdimIndex;
+    uint32              ELEaddrIdx;
+    uint16              ELEdataTypeSize  = 0u;
+    uint8*              ELEparamAddress  = NULL_PTR(uint8*);
+    
+    const char8*        ELEctypename;
     uint8               ELEnumDims;
     uint32              ELEdimArrayIdx;
     rtwCAPI_Orientation ELEorientation;
     
-    const char8*        ELEctypename;
-    uint32              ELEaddrIdx;
-    uint8*              ELEparamAddress;
-    uint16              ELEdataTypeSize;
-    uint32              ELEsize;
-    StreamString        fullpathname;
+    uint32              ELEsize         = 1u;
     uint32              ELEMARTeNumDims = 0u;   // number of dimensions according to MARTe standard
+    
+    StreamString        fullPathName;
     
     SimulinkSignal*     currentSignal;
 
@@ -1733,7 +1735,6 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
         
         Vector<uint32> ELEactualDimensions(ELEnumDims); 
 
-        ELEsize=1;
         for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
             
             ELEactualDimensions[dimIdx] = dimArray[ELEdimArrayIdx + dimIdx];
@@ -1741,9 +1742,8 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
         }
 
         // Calculate number of dimensions in MARTe2 sense
-        ELEMARTeNumDims = 0;
         for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
-            if (ELEactualDimensions[dimIdx] > 1) {
+            if (ELEactualDimensions[dimIdx] > 1u) {
                 ELEMARTeNumDims++;
             }
         }
@@ -1753,8 +1753,8 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
             currentPort->byteSize = ELEsize*ELEdataTypeSize; 
         }
 
-        fullpathname =  basename.Buffer();
-        fullpathname += ELEelementName;
+        fullPathName =  basename.Buffer();
+        fullPathName += ELEelementName;
         
         uint32 deltaAddress;
         if (currentPort->lastSignalAddress != NULL) {
@@ -1828,7 +1828,7 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
         
         currentSignal = new SimulinkSignal();
         
-        currentSignal->fullName              = fullpathname;
+        currentSignal->fullName              = fullPathName;
         
         currentSignal->numberOfDimensions    = ELEMARTeNumDims;
         currentSignal->totalNumberOfElements = ELEsize;
