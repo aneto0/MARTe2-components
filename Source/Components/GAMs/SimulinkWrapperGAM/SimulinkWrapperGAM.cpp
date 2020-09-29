@@ -1023,8 +1023,10 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
     }
 
     // Populating C API data structure pointers of the class from mmi
+    ok = (mmi != NULL);
+    
     modelParams = rtwCAPI_GetModelParameters(mmi);
-    ok = (modelParams != NULL);
+    ok = ( (modelParams != NULL) && ok);
     
     dataTypeMap = rtwCAPI_GetDataTypeMap(mmi);
     ok = ( (dataTypeMap != NULL) && ok);
@@ -1397,6 +1399,7 @@ bool SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
     return ok;
 }
 
+/*lint -e{613} NULL pointers are checked beforehand.*/
 bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode)
 {
     bool ok = false;
@@ -1412,8 +1415,10 @@ bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
     StreamString stemp;
 
     // Populating C API data structure pointers of the class from mmi
+    ok = (mmi != NULL);
+    
     rootInputs = rtwCAPI_GetRootInputs(mmi);
-    ok = (rootInputs != NULL);
+    ok = ( (rootInputs != NULL) && ok );
     
     rootOutputs = rtwCAPI_GetRootOutputs(mmi);
     ok = ( (rootOutputs != NULL) && ok );
