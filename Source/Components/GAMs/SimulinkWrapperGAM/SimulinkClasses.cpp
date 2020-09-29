@@ -76,33 +76,25 @@ SimulinkDataI::~SimulinkDataI() {
 
 void SimulinkDataI::PrintData(const uint32 maxNameLength /* = 0u */, StreamString additionalText /* = "" */) {
     
-    bool ok = false;
-    
     // Adds spaces at the end of the name until it reaches maxNameLength
     StreamString nameWithSpacesAtTheEnd = fullName;
     while (nameWithSpacesAtTheEnd.Size() < maxNameLength) {
-        ok = nameWithSpacesAtTheEnd.Printf("%s", " ");
+        nameWithSpacesAtTheEnd += " ";
     }
     
-    if (ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::Information,
-            "%s %s │ dims (%-3u %-3u %-3u) │ elems %-5u │ type %-7s │ bytesize %-6u │ %s @%p",
-            dataClass.Buffer(),
-            nameWithSpacesAtTheEnd.Buffer(),
-            numberOfElements[0u],
-            numberOfElements[1u],
-            numberOfElements[2u],
-            totalNumberOfElements,
-            MARTeTypeName.Buffer(),
-            byteSize,
-            additionalText.Buffer(),
-            address
-            );
-    }
-    else {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError,
-            "Failed Printf().");
-    }
+    REPORT_ERROR_STATIC(ErrorManagement::Information,
+        "%s %s │ dims (%-3u %-3u %-3u) │ elems %-5u │ type %-7s │ bytesize %-6u │ %s @%p",
+        dataClass.Buffer(),
+        nameWithSpacesAtTheEnd.Buffer(),
+        numberOfElements[0u],
+        numberOfElements[1u],
+        numberOfElements[2u],
+        totalNumberOfElements,
+        MARTeTypeName.Buffer(),
+        byteSize,
+        additionalText.Buffer(),
+        address
+        );
 }
 
 /*---------------------------------------------------------------------------*/

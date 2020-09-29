@@ -402,7 +402,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         status = (libraryHandle != NULL);
     }
 
-    if (status) { // Load libray
+    if ((libraryHandle != NULL) && status) { // Load libray
         status = libraryHandle->Open(libraryName.Buffer());
         if (status) {
             REPORT_ERROR(ErrorManagement::Information, "Library %s succesfully loaded.", libraryName.Buffer());
@@ -532,15 +532,19 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
                 absolutePath += cfgParameterReference->GetName();
                 
                 // Now write the name-path pair in a database.
-                cfgParameterDatabase.Write(cfgParameterReference->GetName(), absolutePath);
+                if (status) {
+                    status = cfgParameterDatabase.Write(cfgParameterReference->GetName(), absolutePath);
+                }
             }
         }
         
+        if (status) {
+            status = data.MoveToAncestor(1u);
+        }
+            
         if (!status) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Failed to create parameter database from Parameters node in configuration file.");
         }
-        
-        data.MoveToAncestor(1u);
     }
     
     return status;
@@ -572,7 +576,9 @@ bool SimulinkWrapperGAM::Setup() {
         ReferenceT<Message> simulinkReadyMessage = Get(0);
         if (simulinkReadyMessage.IsValid()) {
             REPORT_ERROR(ErrorManagement::Information, "Sending simulink ready message 1.");
-            SendMessage(simulinkReadyMessage, this);
+            if(!SendMessage(simulinkReadyMessage, this)) {
+                REPORT_ERROR(ErrorManagement::Warning, "Failed to send ready message 1.");
+            }
         }
     }
     
@@ -792,7 +798,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             if (status) {
                 
                 // Loop over all references in the MDSObjLoader container
-                for (uint32 objectIdx = 0u; (objectIdx < mdsPar->Size()); objectIdx++) {
+                for (uint32 objectIdx = 0u; (objectIdx < mdsPar->Size()) && status; objectIdx++) {
                     
                     ReferenceT<AnyObject> paramObject = mdsPar->Get(objectIdx);
                     bool isAnyObject = paramObject.IsValid();
@@ -807,7 +813,11 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                         parameterAbsolutePath += paramObject->GetName();
                         
                         // the string is used to make a name-path cdb
-                        externalParameterDatabase.Write(paramObject->GetName(), parameterAbsolutePath.Buffer());
+                        status = externalParameterDatabase.Write(paramObject->GetName(), parameterAbsolutePath.Buffer());
+                        if (!status) {
+                            REPORT_ERROR(ErrorManagement::InitialisationError,
+                                "Failed Write() on database.");
+                        }
                     }
                     
                 }
