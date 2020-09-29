@@ -286,7 +286,7 @@ public:
      * @brief  Check the contiguity of the port data.
      * @return `true` if the port has contiguous data.
      */
-    inline const bool IsContiguous() { return (CAPISize == offsetBasedSize); }
+    inline bool IsContiguous() const { return (CAPISize == offsetBasedSize); }
     
     /**
      * @brief Print information about this port.

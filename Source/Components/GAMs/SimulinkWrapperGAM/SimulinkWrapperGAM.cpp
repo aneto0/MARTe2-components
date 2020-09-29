@@ -83,32 +83,36 @@ static void PrintIntrospection(const MARTe::char8 * const structOrClassToSearch)
     }
 }
 */
-static void rtwCAPI_GetOrientationName(rtwCAPI_Orientation  &ELEorientation, MARTe::StreamString* name)
+static MARTe::StreamString GetOrientationName(rtwCAPI_Orientation  &ELEorientation)
 {
+    MARTe::StreamString name;
+    
     switch(ELEorientation)
     {
     case rtwCAPI_SCALAR:
-        *name = "scalar";
+        name = "scalar";
         break;
     case rtwCAPI_VECTOR:
-        *name = "vector";
+        name = "vector";
         break;
     case rtwCAPI_MATRIX_ROW_MAJOR:
-        *name = "matrix row major";
+        name = "matrix row major";
         break;
     case rtwCAPI_MATRIX_COL_MAJOR:
-        *name = "matrix col major";
+        name = "matrix col major";
         break;
     case rtwCAPI_MATRIX_ROW_MAJOR_ND:
-        *name = "matrix col major nd";
+        name = "matrix col major nd";
         break;
     case rtwCAPI_MATRIX_COL_MAJOR_ND:
-        *name = "matrix col major nd";
+        name = "matrix col major nd";
         break;
     default:
-        *name = "N/A";
+        name = "N/A";
         break;
     }
+    
+    return name;
 }
 
 namespace MARTe {
@@ -1349,23 +1353,11 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
             }
         }
         
-        ELEsize=ELEelements*ELEdataTypeSize;
+        ELEsize = ELEelements*ELEdataTypeSize;
 
         fullPathName  = baseName.Buffer();
         fullPathName += ELEelementName;
         
-        // Tree view
-        StreamString paramInfoString = "";
-        StreamString orientationName = "";
-        paramInfoString.Printf(
-            "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, offset %d, type %-6s (%d bytes), ndims %d, dims [",
-            spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
-        
-        paramInfoString.Printf("%d", ELEactualDimensions[0u]);
-        
-        for (uint32 dimIdx = 1u; dimIdx < ELEnumDims; dimIdx++) {
-            paramInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
-        }
         uint32 deltaAddress;
         if (paramlastaddress != NULL) {
             deltaAddress = reinterpret_cast<uint64>(ELEparamAddress) - reinterpret_cast<uint64>(paramlastaddress);
@@ -1375,12 +1367,25 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
         }
         paramlastaddress = ELEparamAddress;
         
-        // TODO printf version used to erase the leading zeros in front of the pointer
-        paramInfoString.Printf("], addr: %p, pr par delta: %d, orient: ",ELEparamAddress, deltaAddress);
-        rtwCAPI_GetOrientationName(ELEorientation, &orientationName);
+        // Tree view
+        StreamString paramInfoString = "";
+        ok = paramInfoString.Printf(
+            "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, offset %d, type %-6s (%d bytes), ndims %d, dims [",
+            spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
         
-        paramInfoString += orientationName;
-        RTWCAPIV2LOG(ErrorManagement::Information, paramInfoString.Buffer());
+        if (ok) {
+            ok = paramInfoString.Printf("%d", ELEactualDimensions[0u]);
+        
+            for (uint32 dimIdx = 1u; (dimIdx < ELEnumDims) && ok; dimIdx++) {
+                ok = paramInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
+            }
+            // TODO printf version used to erase the leading zeros in front of the pointer
+            ok = paramInfoString.Printf("], addr: %p, pr par delta: %d, orient: ",ELEparamAddress, deltaAddress);
+            paramInfoString += GetOrientationName(ELEorientation);
+        }
+        if (ok) {
+            RTWCAPIV2LOG(ErrorManagement::Information, paramInfoString.Buffer());
+        }
         
         // Parameter that is currently being updated.
         SimulinkParameter* currentParameter = new SimulinkParameter();
@@ -1743,27 +1748,14 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
             }
         }
 
-        if(mode == SignalFromSignals) {
+        if (mode == SignalFromSignals) {
             currentPort->CAPISize = ELEsize*ELEdataTypeSize;
             currentPort->byteSize = ELEsize*ELEdataTypeSize; 
         }
 
-
         fullpathname =  basename.Buffer();
         fullpathname += ELEelementName;
-
-        StreamString paramInfoString = "";
-        StreamString orientationName = "";
-        paramInfoString.Printf(
-            "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, offset %d, type %s (%d bytes), ndims %d, dims [",
-            spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
         
-        paramInfoString.Printf("%d", ELEactualDimensions[0]);
-        
-        for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
-        
-            paramInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
-        }
         uint32 deltaAddress;
         if (currentPort->lastSignalAddress != NULL) {
             deltaAddress = reinterpret_cast<uint64>(ELEparamAddress) - reinterpret_cast<uint64>(currentPort->lastSignalAddress);
@@ -1772,14 +1764,27 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
             deltaAddress = 0u;
         }
         currentPort->lastSignalAddress = ELEparamAddress;
+
+        // Tree view
+        StreamString paramInfoString = "";
+        ok = paramInfoString.Printf(
+            "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, offset %d, type %s (%d bytes), ndims %d, dims [",
+            spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
         
-        // TODO printf version used to erase the leading zeros in front of the pointer
-        paramInfoString.Printf("], addr: %p, pr sig delta: %d, orient: ",ELEparamAddress, deltaAddress);
-        rtwCAPI_GetOrientationName(ELEorientation, &orientationName);
+        if (ok) {
+            paramInfoString.Printf("%d", ELEactualDimensions[0]);
         
-        paramInfoString += orientationName;
-        RTWCAPIV2LOG(ErrorManagement::Information, paramInfoString.Buffer());
-        
+            for (uint32 dimIdx = 0u; (dimIdx < ELEnumDims) && ok; dimIdx++) {
+            
+                ok = paramInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
+            }
+            // TODO printf version used to erase the leading zeros in front of the pointer
+            ok = paramInfoString.Printf("], addr: %p, pr sig delta: %d, orient: ",ELEparamAddress, deltaAddress);
+            paramInfoString += GetOrientationName(ELEorientation);
+        }
+        if (ok) {
+            RTWCAPIV2LOG(ErrorManagement::Information, paramInfoString.Buffer());
+        }
         
         currentPort->typeBasedSize += ELEsize*ELEdataTypeSize;
         currentPort->totalNumberOfElements += ELEsize;
