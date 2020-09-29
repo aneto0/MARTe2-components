@@ -584,7 +584,7 @@ bool SimulinkWrapperGAM::Setup() {
     return ok;
 }
 
-/*lint -esym( 613, mmi ) mmi is checked not to be NULL */
+/*lint -e{613} NULL pointers are checked beforehand.*/
 bool SimulinkWrapperGAM::SetupSimulink() {
     
     bool status;
@@ -1000,7 +1000,7 @@ bool SimulinkWrapperGAM::Execute() {
 
 }
 
-/*lint -e{613} NULL pointer is checked beforehand.*/
+/*lint -e{613} NULL pointers are checked beforehand.*/
 bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
 {
     bool ok = false;
