@@ -83,7 +83,7 @@ static void PrintIntrospection(const MARTe::char8 * const structOrClassToSearch)
     }
 }
 */
-void rtwCAPI_GetOrientationName(rtwCAPI_Orientation  &ELEorientation, MARTe::StreamString * name)
+static void rtwCAPI_GetOrientationName(rtwCAPI_Orientation  &ELEorientation, MARTe::StreamString* name)
 {
     switch(ELEorientation)
     {
@@ -98,6 +98,9 @@ void rtwCAPI_GetOrientationName(rtwCAPI_Orientation  &ELEorientation, MARTe::Str
         break;
     case rtwCAPI_MATRIX_COL_MAJOR:
         *name = "matrix col major";
+        break;
+    case rtwCAPI_MATRIX_ROW_MAJOR_ND:
+        *name = "matrix col major nd";
         break;
     case rtwCAPI_MATRIX_COL_MAJOR_ND:
         *name = "matrix col major nd";

@@ -46,7 +46,6 @@
 #define RTWCAPIV1LOG   if(verbosityLevel > 0u) REPORT_ERROR
 #define RTWCAPIV2LOG   if(verbosityLevel > 1u) REPORT_ERROR
 
-#define SLVARNAMEDEFLENGTH     40
 #define UPRINTFVARDEFLENGTH(N) #N
 #define PRINTFVARDEFLENGTH(N)  UPRINTFVARDEFLENGTH(N)
 
@@ -54,7 +53,15 @@
 namespace MARTe
 {
 
+/**
+ * @brief Maximum number of dimensions for model signals and parameters.
+ */
 static const uint32 maxNumOfDims = 3u;
+
+/**
+ * @brief Maximum name length for model signals and parameters. 
+ */
+static const uint32 SLVARNAMEDEFLENGTH = 40u;
 
 /*---------------------------------------------------------------------------*/
 /*                               SimulinkDataI                               */
@@ -106,7 +113,7 @@ public:
      * @param[in] maxNameLength max number of characters reserved for the
      *                          parameter name in the printed line.
      */
-    void PrintData(const uint32 maxNameLength = 0u, StreamString additionalText = "");
+    virtual void PrintData(const uint32 maxNameLength = 0u, StreamString additionalText = "");
     
 protected:
 
@@ -273,13 +280,13 @@ public:
      *          based on the offset of the new signal.
      * @return  `true` if the signal was correctly added to the list.
      */
-    bool AddSignal(SimulinkSignal* signalIn);
+    bool AddSignal(SimulinkSignal* const signalIn);
     
     /**
      * @brief  Check the contiguity of the port data.
      * @return `true` if the port has contiguous data.
      */
-    inline bool IsContiguous() { return (CAPISize == offsetBasedSize); }
+    inline const bool IsContiguous() { return (CAPISize == offsetBasedSize); }
     
     /**
      * @brief Print information about this port.

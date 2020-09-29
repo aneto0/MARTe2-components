@@ -385,7 +385,7 @@ SimulinkPort::~SimulinkPort() {
     }
 }
 
-bool SimulinkPort::AddSignal(SimulinkSignal* signalIn) {
+bool SimulinkPort::AddSignal(SimulinkSignal* const signalIn) {
     
     bool ok = carriedSignals.Add(signalIn);
     
@@ -394,7 +394,7 @@ bool SimulinkPort::AddSignal(SimulinkSignal* signalIn) {
         for (uint32 elemIdx = 0u; elemIdx < maxNumOfDims; elemIdx++) {
             totalNumOfElems *= signalIn->numberOfElements[elemIdx];
         }
-        offsetBasedSize = signalIn->offset + signalIn->dataTypeSize*totalNumOfElems;
+        offsetBasedSize = (signalIn->offset) + ( (signalIn->dataTypeSize) * totalNumOfElems );
     }
     
     return ok;
