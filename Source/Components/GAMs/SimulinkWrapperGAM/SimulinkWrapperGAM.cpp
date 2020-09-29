@@ -1174,13 +1174,13 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
         
         StreamString diminfo = "[";
         bool structarray = false;
-        for (uint32 elemIdx2 = 0u; (elemIdx2 < SUBnumDims) && ok; elemIdx2++)
+        for (uint32 subIdx = 0u; (subIdx < SUBnumDims) && ok; subIdx++)
         {
-            if (dimArray[SUBdimArrayIdx + elemIdx2] > 1u) {
+            if (dimArray[SUBdimArrayIdx + subIdx] > 1u) {
                 structarray = true;
             }
-            ok = diminfo.Printf("%d", dimArray[SUBdimArrayIdx + elemIdx2]);
-            if (elemIdx2 != (SUBnumDims - 1u) ) {
+            ok = diminfo.Printf("%d", dimArray[SUBdimArrayIdx + subIdx]);
+            if (subIdx != (SUBnumDims - 1u) ) {
                 diminfo += ",";
             }
         }
@@ -1188,7 +1188,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
 
         if (SUBslDataID != SS_STRUCT) {
             
-            ok = ScanParameter(elemMapIdx+elemIdx, specificSpacer, ParamFromElementMap, byteptr, basename, baseoffset, depth);
+            ok = ScanParameter(elemMapIdx + elemIdx, specificSpacer, ParamFromElementMap, byteptr, basename, baseoffset, depth);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanParameter for parameter %s.", elementName);
             }
