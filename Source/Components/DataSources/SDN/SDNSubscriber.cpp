@@ -613,8 +613,10 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
         err.ClearError(ErrorManagement::Timeout);
     }
 
-    // Perform housekeeping activities .. irrespective of status
-    (void)subscriber->DoBackgroundActivity();
+    if (subscriber != NULL_PTR(sdn::Subscriber *)) {
+       // Perform housekeeping activities .. irrespective of status
+       (void)subscriber->DoBackgroundActivity();
+    }
 
     return err;
 }

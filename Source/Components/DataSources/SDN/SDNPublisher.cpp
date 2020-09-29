@@ -595,7 +595,10 @@ bool SDNPublisher::Synchronise() {
     }
 
     // Perform housekeeping activities .. irrespective of status
-    (void)publisher->DoBackgroundActivity();
+    if (NULL_PTR(sdn::Publisher *) != publisher) {
+        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
+	(void)publisher->DoBackgroundActivity();
+    }
 
     return ok;
 }
