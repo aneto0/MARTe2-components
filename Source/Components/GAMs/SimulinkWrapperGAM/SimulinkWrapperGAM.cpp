@@ -1474,7 +1474,8 @@ bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
             }
             sigGroup = rootOutputs;
             break;
-            
+        
+        case None:
         default:
             sigGroup = NULL_PTR(rtwCAPI_Signals*);
             REPORT_ERROR(ErrorManagement::FatalError, "Wrong signal direction in SimulinkWrapperGAM::ScanRootIO()");
@@ -1591,7 +1592,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
         
         specificSpacer = spacer; // reset the spacer
         passoverSpacer = spacer;
-        if (elemIdx == numElements - 1u) {
+        if ( elemIdx == (numElements - 1u) ) {
             specificSpacer += "└ ";
         } 
         else {
@@ -1601,7 +1602,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
         // Scan the parameter or structure
         if(SUBslDataID != SS_STRUCT) {
             
-            ok = ScanSignal(elemMapIdx+elemIdx, specificSpacer, SignalFromElementMap, byteptr, basename, baseoffset, depth);
+            ok = ScanSignal(elemMapIdx + elemIdx, specificSpacer, SignalFromElementMap, byteptr, basename, baseoffset, depth);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanSignal for signal %s.", elementName);
             }
@@ -1650,7 +1651,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
             nameAndSeparators += tempstr;
             nameAndSeparators += signalSeparator;
             
-            if (elemIdx == numElements - 1u) { 
+            if ( elemIdx == (numElements - 1u) ) { 
                 passoverSpacer += "  "; 
             } else {
                 passoverSpacer += "┆ ";
@@ -1668,7 +1669,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
+bool SimulinkWrapperGAM::ScanSignal(const uint32 sigidx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString baseName, const uint32 baseOffset, const uint32 depth)
 {
     bool ok = true;
     
@@ -1704,7 +1705,7 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
             ELEelementOffset     = rtwCAPI_GetElementOffset      (elementMap,  sigidx);
             ELEdataTypeSize      = rtwCAPI_GetDataTypeSize       (dataTypeMap, ELEdataTypeIndex);
             
-            ELEparamAddress      = static_cast<uint8*>(startaddr) + ELEelementOffset;
+            ELEparamAddress      = static_cast<uint8*>(startAddress) + ELEelementOffset;
             
             break;
             
@@ -1758,7 +1759,7 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
             currentPort->byteSize = ELEsize*ELEdataTypeSize; 
         }
 
-        fullPathName =  basename.Buffer();
+        fullPathName =  baseName.Buffer();
         fullPathName += ELEelementName;
         
         uint32 deltaAddress;
@@ -1847,7 +1848,7 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
 
         currentSignal->dataTypeSize  = ELEdataTypeSize;
         
-        currentSignal->offset        = baseoffset + ELEelementOffset;
+        currentSignal->offset        = baseOffset + ELEelementOffset;
         
         ok = currentPort->AddSignal(currentSignal);
     }
