@@ -584,7 +584,7 @@ bool SimulinkWrapperGAM::Setup() {
     return ok;
 }
 
-/*lint -esym( {613}, mmi ) mmi is checked not to be NULL */
+/*lint -esym( 613, mmi ) mmi is checked not to be NULL */
 bool SimulinkWrapperGAM::SetupSimulink() {
     
     bool status;
