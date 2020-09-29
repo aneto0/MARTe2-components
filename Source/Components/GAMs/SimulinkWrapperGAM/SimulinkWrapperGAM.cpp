@@ -1418,7 +1418,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
 /*lint -e{613} NULL pointers are checked beforehand.*/
 bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode) {
     
-    uint32       nOfSignals;
+    uint32       nOfSignals = 0u;
     const char8* sigName;
     uint16       dataTypeIdx;
     uint8        slDataID;
@@ -1476,9 +1476,12 @@ bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
             break;
             
         default:
+            sigGroup = NULL_PTR(rtwCAPI_Signals*);
             REPORT_ERROR(ErrorManagement::FatalError, "Wrong signal direction in SimulinkWrapperGAM::ScanRootIO()");
-            ok = false;
+            break;
         }
+        
+        ok = (sigGroup != NULL);
     }
     
     for (uint32 sigIdx = 0u; (sigIdx < nOfSignals) && ok ; sigIdx++) {
@@ -1664,6 +1667,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  vo
     return ok;
 }
 
+/*lint -e{613} NULL pointers are checked in the caller method.*/
 bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
 {
     bool ok = true;
@@ -1694,11 +1698,11 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
             // Signal data is retrieved from the signal data structure
             // (this case applies to all other cases w.r.t. the one below)
             
-            ELEdataTypeIndex     = rtwCAPI_GetElementDataTypeIdx(elementMap, sigidx);
-            ELEdataTypeSize      = rtwCAPI_GetDataTypeSize(dataTypeMap, ELEdataTypeIndex);
-            ELEelementName       = rtwCAPI_GetElementName(elementMap, sigidx);
-            ELEdimIndex          = rtwCAPI_GetElementDimensionIdx(elementMap, sigidx);
-            ELEelementOffset     = rtwCAPI_GetElementOffset(elementMap, sigidx);
+            ELEdataTypeIndex     = rtwCAPI_GetElementDataTypeIdx (elementMap,  sigidx);
+            ELEelementName       = rtwCAPI_GetElementName        (elementMap,  sigidx);
+            ELEdimIndex          = rtwCAPI_GetElementDimensionIdx(elementMap,  sigidx);
+            ELEelementOffset     = rtwCAPI_GetElementOffset      (elementMap,  sigidx);
+            ELEdataTypeSize      = rtwCAPI_GetDataTypeSize       (dataTypeMap, ELEdataTypeIndex);
             
             ELEparamAddress      = static_cast<uint8*>(startaddr) + ELEelementOffset;
             
@@ -1709,13 +1713,14 @@ bool SimulinkWrapperGAM::ScanSignal(uint32 sigidx, StreamString spacer, SignalMo
             // (this case applies to not structured parameters at root level of the tree)
             
             ELEdataTypeIndex     = rtwCAPI_GetSignalDataTypeIdx (sigGroup,    sigidx);
-            ELEdataTypeSize      = rtwCAPI_GetDataTypeSize      (dataTypeMap, ELEdataTypeIndex);
             ELEelementName       = rtwCAPI_GetSignalName        (sigGroup,    sigidx);
             ELEdimIndex          = rtwCAPI_GetSignalDimensionIdx(sigGroup,    sigidx);
+            ELEaddrIdx           = rtwCAPI_GetSignalAddrIdx     (sigGroup,    sigidx);
+            ELEdataTypeSize      = rtwCAPI_GetDataTypeSize      (dataTypeMap, ELEdataTypeIndex);
+            
             ELEelementOffset     = 0u;           // root level parameters have their address directly specified in the dataAddrMap structure
             
-            ELEaddrIdx           = rtwCAPI_GetSignalAddrIdx(sigGroup, sigidx);
-            ELEparamAddress      = (uint8 *) rtwCAPI_GetDataAddress(dataAddrMap, ELEaddrIdx);
+            ELEparamAddress      = static_cast<uint8*>( rtwCAPI_GetDataAddress(dataAddrMap, ELEaddrIdx) );
             
             currentPort->address     = ELEparamAddress;
             currentPort->baseAddress = ELEparamAddress;
