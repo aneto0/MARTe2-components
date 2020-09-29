@@ -1060,7 +1060,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
         while ( (lastAddressVector.GetSize() != 0u) && ok) {
             ok = lastAddressVector.Remove(0u);
         }
-        paramlastaddress = NULL;
+        paramlastaddress = NULL_PTR(void*);
         
         
         if(slDataID != SS_STRUCT) {
@@ -1083,14 +1083,14 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
             StreamString diminfo = "[";
             bool structarray = false;
             
-            for(uint16 idx2 = 0u; (idx2 < SUBnumDims) && ok; idx2++) {
+            for(uint32 idx2 = 0u; (idx2 < SUBnumDims) && ok; idx2++) {
                 
                 if(dimArray[SUBdimArrayIdx + idx2] > 1u) {
                     structarray = true;
                 }
                 
                 ok = diminfo.Printf("%u", dimArray[SUBdimArrayIdx + idx2]);
-                if (idx2 != SUBnumDims - 1u) {
+                if ( idx2 != (SUBnumDims - 1u) ) {
                     diminfo += ",";
                 }
             }
@@ -1123,8 +1123,9 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
     return ok;
 }
 
-bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer)
-{
+/*lint -e{613} NULL pointers are checked in the caller method.*/
+bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer) {
+    
     bool ok = true;
     
     const char8* elementName;
@@ -1177,7 +1178,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
                 structarray = true;
             }
             ok = diminfo.Printf("%d", dimArray[SUBdimArrayIdx + elemIdx2]);
-            if (elemIdx2 != SUBnumDims - 1u) {
+            if (elemIdx2 != (SUBnumDims - 1u) ) {
                 diminfo += ",";
             }
         }
