@@ -1005,16 +1005,18 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
 {
     
     uint32        nOfParams = 0u;
+    
     const char8* paramName;
-    uint16      dataTypeIdx;
-    uint8       slDataID;
-    uint16      numElements;
-    uint16      dataTypeSize;
-    uint32        addrIdx;
-    void*         paramAddress;
-    uint16      SUBdimIdx;
-    uint8       SUBnumDims;
-    uint32        SUBdimArrayIdx;
+    uint32       addrIdx;
+    uint16       dataTypeIdx;
+    uint16       numElements;
+    uint16       dataTypeSize;
+    uint8        slDataID;
+    void*        paramAddress;
+    
+    uint32       SUBdimArrayIdx;
+    uint16       SUBdimIdx;
+    uint8        SUBnumDims;
     
     bool ok (mmi != NULL);
 
@@ -1197,27 +1199,29 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
 
             // Calculating same level delta address
             uint64 deltaaddr;
-            if (lastAddressVector.GetSize() < depth)
-            {
-                lastAddressVector.Add(runningbyteptr);
-                deltaaddr = 0u;
+            if (lastAddressVector.GetSize() < depth) {
+                
+                if(lastAddressVector.Add(runningbyteptr)) {
+                    deltaaddr = 0u;
+                }
             }
-            else if (lastAddressVector.GetSize() > depth)
-            {
-                while (lastAddressVector.GetSize() == depth) {
-                    lastAddressVector.Remove(lastAddressVector.GetSize() - 1u);
+            else if (lastAddressVector.GetSize() > depth) {
+                
+                while ( (lastAddressVector.GetSize() == depth) && ok) {
+                    ok = lastAddressVector.Remove(lastAddressVector.GetSize() - 1u);
                 }
                 deltaaddr = reinterpret_cast<uint64>(runningbyteptr) - reinterpret_cast<uint64>(lastAddressVector[depth - 1u]);
             }
-            else
-            {
-                if(elemIdx == 0u)
-                {
-                    lastAddressVector.Set(depth - 1u, runningbyteptr);
-                    deltaaddr = 0u;
+            else {
+                
+                if(elemIdx == 0u) {
+                    
+                    if (lastAddressVector.Set(depth - 1u, runningbyteptr)) {
+                        deltaaddr = 0u;
+                    }
                 }
-                else
-                {
+                else {
+                    
                     deltaaddr = reinterpret_cast<uint64>(runningbyteptr) - reinterpret_cast<uint64>(lastAddressVector[depth - 1u]);
                 }
             }
@@ -1256,6 +1260,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
     return ok;
 }
 
+/*lint -e{613} NULL pointers are checked in the caller method.*/
 bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint32 baseOffset, const uint32 depth)
 {
     bool ok = true;
