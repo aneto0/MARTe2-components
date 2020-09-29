@@ -1617,7 +1617,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
             if (lastAddressVector.GetSize() < depth) {
                 
                 if (lastAddressVector.Add(runningbyteptr)) {
-                    deltaaddr = 0;
+                    deltaaddr = 0u;
                 }
             }
             else if (lastAddressVector.GetSize() > depth) {
@@ -1633,7 +1633,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
                 if (elemIdx == 0u) {
                     
                     if (lastAddressVector.Set(depth - 1u, runningbyteptr)) {
-                        deltaaddr = 0;
+                        deltaaddr = 0u;
                     }
                 }
                 else {
@@ -1781,7 +1781,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigidx, StreamString spacer, co
             spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
         
         if (ok) {
-            paramInfoString.Printf("%d", ELEactualDimensions[0]);
+            ok = paramInfoString.Printf("%d", ELEactualDimensions[0]);
         
             for (uint32 dimIdx = 0u; (dimIdx < ELEnumDims) && ok; dimIdx++) {
             
@@ -1867,19 +1867,25 @@ bool SimulinkWrapperGAM::CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, u
 void SimulinkWrapperGAM::PrintAlgoInfo() {
     
     SimulinkAlgoInfo info;
-
+    bool ok;
+    
     if ( (static_cast<void(*)(void*)>(NULL) == getAlgoInfoFunction) ) {
         info.expCode = 0u;
-        StringHelper::Copy(info.gitHash, "00000000");
-        StringHelper::Copy(info.gitLog,  "");
+        ok = StringHelper::Copy(&info.gitHash[0u], "00000000");
+        if (ok) {
+            ok = StringHelper::Copy(&info.gitLog[0u],  "");
+        }
     }
     else {
         (*getAlgoInfoFunction)((void*) &info);
+        ok = true;
     }
     
-    REPORT_ERROR(ErrorManagement::Information,"Algorithm expcode : %d", info.expCode);
-    REPORT_ERROR(ErrorManagement::Information,"Algorithm git hash: %s", info.gitHash);
-    REPORT_ERROR(ErrorManagement::Information,"Algorithm git log : %s", info.gitLog);
+    if (ok) {
+        REPORT_ERROR(ErrorManagement::Information,"Algorithm expcode : %d", info.expCode);
+        REPORT_ERROR(ErrorManagement::Information,"Algorithm git hash: %s", info.gitHash);
+        REPORT_ERROR(ErrorManagement::Information,"Algorithm git log : %s", info.gitLog);
+    }
 
 
 }
@@ -1923,11 +1929,12 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
     // Check and map input ports
     for(uint32 signalIdx = 0u; (signalIdx < numberOfSignals) && ok ; signalIdx++) {
         
-        GAMSignalName = "";
-        GetSignalName(direction, signalIdx, GAMSignalName);
         found = false;
         
-        for(portIdx = startIdx; portIdx < endIdx; portIdx++ ) {
+        GAMSignalName = "";
+        ok = GetSignalName(direction, signalIdx, GAMSignalName);
+        
+        for(portIdx = startIdx; (portIdx < endIdx) && ok; portIdx++ ) {
             
             if (GAMSignalName == (modelPorts[portIdx]->fullName)) {
                 found = true;
@@ -1955,8 +1962,8 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                 }
                 
                 if (ok) {
-                    GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-                    if (GAMNumberOfDimensions != (modelPorts[portIdx]->numberOfDimensions)) {
+                    ok = GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
+                    if ( ok && (GAMNumberOfDimensions != (modelPorts[portIdx]->numberOfDimensions)) ) {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "%s signal %s number of dimensions mismatch (GAM: %d, model: %u)",
                             directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfDimensions, modelPorts[portIdx]->numberOfDimensions);
@@ -1965,8 +1972,8 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                 }
                 
                 if (ok) {
-                    GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
-                    if (GAMNumberOfElements != (modelPorts[portIdx]->totalNumberOfElements))
+                    ok = GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
+                    if ( ok && (GAMNumberOfElements != (modelPorts[portIdx]->totalNumberOfElements)) )
                     {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "%s signal %s number of elements mismatch (GAM: %d, model: %u)",
@@ -2016,8 +2023,8 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
             // (i.e. we treat the port as a continuous array of bytes)
             else {
                 
-                GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
-                if (GAMNumberOfElements != (modelPorts[portIdx]->CAPISize))
+                ok = GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
+                if (ok && (GAMNumberOfElements != (modelPorts[portIdx]->CAPISize)) )
                 {
                     REPORT_ERROR(ErrorManagement::ParametersError,
                         "GAM %s signal %s doesn't have the same size (%d) of the corresponding (mixed signals) Simulink port (%d)",
@@ -2026,8 +2033,8 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                 }
                 
                 if (ok) {
-                    GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-                    if (GAMNumberOfDimensions != 1u)
+                    ok = GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
+                    if (ok && (GAMNumberOfDimensions != 1u) )
                     {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "%s signal %s dimension mismatch: structured signal must have NumberOfDimensions = 1",
