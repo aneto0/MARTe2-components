@@ -399,7 +399,6 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
 
     if (status) { // Load libray
         libraryHandle = new LoadableLibrary();
-        status = (libraryHandle != NULL);
     }
 
     if ((libraryHandle != NULL) && status) { // Load libray
@@ -573,7 +572,7 @@ bool SimulinkWrapperGAM::Setup() {
     
     // Send simulink ready message
     if (ok) {
-        ReferenceT<Message> simulinkReadyMessage = Get(0);
+        ReferenceT<Message> simulinkReadyMessage = Get(0u);
         if (simulinkReadyMessage.IsValid()) {
             REPORT_ERROR(ErrorManagement::Information, "Sending simulink ready message 1.");
             if(!SendMessage(simulinkReadyMessage, this)) {
@@ -794,33 +793,30 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             REPORT_ERROR(ErrorManagement::ParametersError, "Tunable parameter loader %s is not valid (maybe not a ReferenceContainer?).", tunableParamExternalSource.Buffer());
         }
         else {
-            
-            if (status) {
                 
-                // Loop over all references in the MDSObjLoader container
-                for (uint32 objectIdx = 0u; (objectIdx < mdsPar->Size()) && status; objectIdx++) {
+            // Loop over all references in the MDSObjLoader container
+            for (uint32 objectIdx = 0u; (objectIdx < mdsPar->Size()) && status; objectIdx++) {
+                
+                ReferenceT<AnyObject> paramObject = mdsPar->Get(objectIdx);
+                bool isAnyObject = paramObject.IsValid();
+                
+                // Ignore references that do not point to AnyObject
+                if (isAnyObject) {
                     
-                    ReferenceT<AnyObject> paramObject = mdsPar->Get(objectIdx);
-                    bool isAnyObject = paramObject.IsValid();
+                    // Compose absolute path:
+                    StreamString parameterAbsolutePath = "";
+                    parameterAbsolutePath += mdsPar->GetName();
+                    parameterAbsolutePath += ".";
+                    parameterAbsolutePath += paramObject->GetName();
                     
-                    // Ignore references that do not point to AnyObject
-                    if (isAnyObject) {
-                        
-                        // Compose absolute path:
-                        StreamString parameterAbsolutePath = "";
-                        parameterAbsolutePath += mdsPar->GetName();
-                        parameterAbsolutePath += ".";
-                        parameterAbsolutePath += paramObject->GetName();
-                        
-                        // the string is used to make a name-path cdb
-                        status = externalParameterDatabase.Write(paramObject->GetName(), parameterAbsolutePath.Buffer());
-                        if (!status) {
-                            REPORT_ERROR(ErrorManagement::InitialisationError,
-                                "Failed Write() on database.");
-                        }
+                    // the string is used to make a name-path cdb
+                    status = externalParameterDatabase.Write(paramObject->GetName(), parameterAbsolutePath.Buffer());
+                    if (!status) {
+                        REPORT_ERROR(ErrorManagement::InitialisationError,
+                            "Failed Write() on database.");
                     }
-                    
                 }
+                
             }
         }
     }
