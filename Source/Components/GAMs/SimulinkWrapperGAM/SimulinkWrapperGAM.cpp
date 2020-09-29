@@ -1004,7 +1004,7 @@ bool SimulinkWrapperGAM::Execute() {
 bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
 {
     
-    uint32        nOfParams;
+    uint32        nOfParams = 0u;
     const char8* paramName;
     uint16      dataTypeIdx;
     uint8       slDataID;
@@ -1057,8 +1057,8 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
         dataTypeSize = rtwCAPI_GetDataTypeSize(dataTypeMap,dataTypeIdx);            // Size of the datatype in bytes, WARNING: 16 bits maximum !!
         
         // clear lastAddressVector
-        while (lastAddressVector.GetSize() != 0u) {
-            lastAddressVector.Remove(0u);
+        while ( (lastAddressVector.GetSize() != 0u) && ok) {
+            ok = lastAddressVector.Remove(0u);
         }
         paramlastaddress = NULL;
         
@@ -1083,14 +1083,13 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
             StreamString diminfo = "[";
             bool structarray = false;
             
-            for(uint32 idx2 = 0u; idx2 < SUBnumDims; idx2++)
-            {
+            for(uint16 idx2 = 0u; (idx2 < SUBnumDims) && ok; idx2++) {
                 
                 if(dimArray[SUBdimArrayIdx + idx2] > 1u) {
                     structarray = true;
                 }
                 
-                diminfo.Printf("%u", dimArray[SUBdimArrayIdx + idx2]);
+                ok = diminfo.Printf("%u", dimArray[SUBdimArrayIdx + idx2]);
                 if (idx2 != SUBnumDims - 1u) {
                     diminfo += ",";
                 }
@@ -1172,12 +1171,12 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
         
         StreamString diminfo = "[";
         bool structarray = false;
-        for (uint32 elemIdx2 = 0u; elemIdx2 < SUBnumDims; elemIdx2++)
+        for (uint32 elemIdx2 = 0u; (elemIdx2 < SUBnumDims) && ok; elemIdx2++)
         {
             if (dimArray[SUBdimArrayIdx + elemIdx2] > 1u) {
                 structarray = true;
             }
-            diminfo.Printf("%d", dimArray[SUBdimArrayIdx + elemIdx2]);
+            ok = diminfo.Printf("%d", dimArray[SUBdimArrayIdx + elemIdx2]);
             if (elemIdx2 != SUBnumDims - 1u) {
                 diminfo += ",";
             }
