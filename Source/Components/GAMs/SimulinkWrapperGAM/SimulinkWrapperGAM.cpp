@@ -1877,7 +1877,7 @@ void SimulinkWrapperGAM::PrintAlgoInfo() {
         }
     }
     else {
-        (*getAlgoInfoFunction)((void*) &info);
+        (*getAlgoInfoFunction)(static_cast<void*>(&info));
         ok = true;
     }
     
@@ -1903,8 +1903,8 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
     StreamString directionName = "";
     
     StreamString   GAMSignalName;
-    uint32         GAMNumberOfElements;
-    uint32         GAMNumberOfDimensions;
+    uint32         GAMNumberOfElements   = 0u;
+    uint32         GAMNumberOfDimensions = 0u;
     TypeDescriptor GAMSignalType;
     
     if (direction == InputSignals) {
@@ -1963,7 +1963,7 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                 
                 if (ok) {
                     ok = GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-                    if ( ok && (GAMNumberOfDimensions != (modelPorts[portIdx]->numberOfDimensions)) ) {
+                    if ( (GAMNumberOfDimensions != (modelPorts[portIdx]->numberOfDimensions)) && ok ) {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "%s signal %s number of dimensions mismatch (GAM: %d, model: %u)",
                             directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfDimensions, modelPorts[portIdx]->numberOfDimensions);
@@ -1973,7 +1973,7 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                 
                 if (ok) {
                     ok = GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
-                    if ( ok && (GAMNumberOfElements != (modelPorts[portIdx]->totalNumberOfElements)) )
+                    if ( (GAMNumberOfElements != (modelPorts[portIdx]->totalNumberOfElements)) && ok )
                     {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "%s signal %s number of elements mismatch (GAM: %d, model: %u)",
@@ -2024,7 +2024,7 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
             else {
                 
                 ok = GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
-                if (ok && (GAMNumberOfElements != (modelPorts[portIdx]->CAPISize)) )
+                if ( (GAMNumberOfElements != (modelPorts[portIdx]->CAPISize)) && ok )
                 {
                     REPORT_ERROR(ErrorManagement::ParametersError,
                         "GAM %s signal %s doesn't have the same size (%d) of the corresponding (mixed signals) Simulink port (%d)",
@@ -2034,7 +2034,7 @@ bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
                 
                 if (ok) {
                     ok = GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-                    if (ok && (GAMNumberOfDimensions != 1u) )
+                    if ( (GAMNumberOfDimensions != 1u) && ok )
                     {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "%s signal %s dimension mismatch: structured signal must have NumberOfDimensions = 1",
