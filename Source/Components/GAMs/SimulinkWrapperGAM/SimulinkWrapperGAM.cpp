@@ -1003,7 +1003,6 @@ bool SimulinkWrapperGAM::Execute() {
 /*lint -e{613} NULL pointers are checked beforehand.*/
 bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
 {
-    bool ok = false;
     
     uint32        nOfParams;
     const char8* paramName;
@@ -1016,15 +1015,10 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
     uint16      SUBdimIdx;
     uint8       SUBnumDims;
     uint32        SUBdimArrayIdx;
-
-    nOfParams = rtwCAPI_GetNumModelParameters(mmi);
-    if (nOfParams == 0u) {
-        RTWCAPIV1LOG(ErrorManagement::Information, "No tunable parameters found.");
-    }
+    
+    bool ok (mmi != NULL);
 
     // Populating C API data structure pointers of the class from mmi
-    ok = (mmi != NULL);
-    
     modelParams = rtwCAPI_GetModelParameters(mmi);
     ok = ( (modelParams != NULL) && ok);
     
@@ -1046,7 +1040,14 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
     if (!ok) {
         REPORT_ERROR(ErrorManagement::FatalError, "Pointer to one of the model maps is NULL.");
     }
-
+    
+    if (ok) {
+        nOfParams = rtwCAPI_GetNumModelParameters(mmi);
+        if (nOfParams == 0u) {
+            RTWCAPIV1LOG(ErrorManagement::Information, "No tunable parameters found.");
+        }
+    }
+    
     for(uint32 paramIdx = 0u; (paramIdx < nOfParams) && ok; paramIdx++) {
         
         dataTypeIdx  = rtwCAPI_GetModelParameterDataTypeIdx(modelParams, paramIdx); // Index into the data type in rtwCAPI_DataTypeMap
@@ -1255,7 +1256,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
     return ok;
 }
 
-bool SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, ParameterMode mode, void* startaddr, StreamString basename, uint32 baseoffset, uint32 depth)
+bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint32 baseOffset, const uint32 depth)
 {
     bool ok = true;
     
@@ -1283,12 +1284,13 @@ bool SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
             
             // Parameters data is retrieved from the elements data structure
             // (this case applies to all other cases w.r.t. the case below)
-            ELEdataTypeIndex     = rtwCAPI_GetElementDataTypeIdx(elementMap, paridx);
-            ELEdataTypeSize      = rtwCAPI_GetDataTypeSize(dataTypeMap, ELEdataTypeIndex);
-            ELEelementName       = rtwCAPI_GetElementName(elementMap, paridx);
-            ELEelementOffset     = rtwCAPI_GetElementOffset(elementMap, paridx);
-            ELEdimIndex          = rtwCAPI_GetElementDimensionIdx(elementMap, paridx);
-            ELEparamAddress      = static_cast<uint8*>(startaddr)+ELEelementOffset;
+            ELEdataTypeIndex     = rtwCAPI_GetElementDataTypeIdx (elementMap,  parIdx);
+            ELEelementName       = rtwCAPI_GetElementName        (elementMap,  parIdx);
+            ELEelementOffset     = rtwCAPI_GetElementOffset      (elementMap,  parIdx);
+            ELEdimIndex          = rtwCAPI_GetElementDimensionIdx(elementMap,  parIdx);
+            ELEdataTypeSize      = rtwCAPI_GetDataTypeSize       (dataTypeMap, ELEdataTypeIndex);
+            
+            ELEparamAddress      = static_cast<uint8*>(startAddress) + ELEelementOffset;
             
             break;
         }
@@ -1297,14 +1299,15 @@ bool SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
             
             // Parameter data is retrieved from main CAPI parameters data structure
             // (this case applies to not structured parameters at root level of the tree)
-            ELEdataTypeIndex     = rtwCAPI_GetModelParameterDataTypeIdx(modelParams, paridx);
-            ELEdataTypeSize      = rtwCAPI_GetDataTypeSize(dataTypeMap, ELEdataTypeIndex);
-            ELEelementName       = rtwCAPI_GetModelParameterName(modelParams, paridx);
-            ELEelementOffset     = 0u; // root level parameters have their address directly specified in the dataAddrMap structure
-            ELEdimIndex          = rtwCAPI_GetModelParameterDimensionIdx(modelParams, paridx);
+            ELEdataTypeIndex     = rtwCAPI_GetModelParameterDataTypeIdx (modelParams, parIdx);
+            ELEelementName       = rtwCAPI_GetModelParameterName        (modelParams, parIdx);
+            ELEdimIndex          = rtwCAPI_GetModelParameterDimensionIdx(modelParams, parIdx);
+            ELEaddrIdx           = rtwCAPI_GetModelParameterAddrIdx     (modelParams, parIdx);
+            ELEdataTypeSize      = rtwCAPI_GetDataTypeSize              (dataTypeMap, ELEdataTypeIndex);
             
-            ELEaddrIdx           = rtwCAPI_GetModelParameterAddrIdx(modelParams,paridx);
             ELEparamAddress      = (uint8 *) rtwCAPI_GetDataAddress(dataAddrMap,ELEaddrIdx);
+            
+            ELEelementOffset     = 0u; // root level parameters have their address directly specified in the dataAddrMap structure
             
             break;
         }
@@ -1314,7 +1317,8 @@ bool SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
             ok = false;
             
     }
-
+    
+    /*lint -e{429} memory allocated for currentParameter is freed by class destructor */
     if (ok) {
         ELEctypename         = rtwCAPI_GetDataTypeCName(dataTypeMap, ELEdataTypeIndex);
         ELEnumDims           = rtwCAPI_GetNumDims      (dimMap,      ELEdimIndex);      // not number of dimensions in MARTe2 sense, but number of slots occupied in the dimension array
@@ -1341,7 +1345,7 @@ bool SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
         
         ELEsize=ELEelements*ELEdataTypeSize;
 
-        fullpathname  = basename.Buffer();
+        fullpathname  = baseName.Buffer();
         fullpathname += ELEelementName;
         
         // Tree view
@@ -1357,10 +1361,12 @@ bool SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
             paramInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
         }
         uint32 deltaAddress;
-        if(paramlastaddress != NULL)
+        if (paramlastaddress != NULL) {
             deltaAddress = reinterpret_cast<uint64>(ELEparamAddress) - reinterpret_cast<uint64>(paramlastaddress);
-        else
+        }
+        else {
             deltaAddress = 0;
+        }
         paramlastaddress = ELEparamAddress;
         
         // TODO printf version used to erase the leading zeros in front of the pointer
@@ -1386,6 +1392,7 @@ bool SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
         
         currentParameter->byteSize      = ELEsize;
         currentParameter->dataTypeSize  = ELEdataTypeSize;
+        currentParameter->offset        = baseOffset;
         
         currentParameter->cTypeName     = ELEctypename;
         currentParameter->MARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEtypename.Buffer());
@@ -1400,9 +1407,7 @@ bool SimulinkWrapperGAM::ScanParameter(uint32 paridx, StreamString spacer, Param
 }
 
 /*lint -e{613} NULL pointers are checked beforehand.*/
-bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode)
-{
-    bool ok = false;
+bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode) {
     
     uint32       nOfSignals;
     const char8* sigName;
@@ -1413,10 +1418,10 @@ bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
     uint32       addrIdx;
     void*        sigAddress;
     StreamString stemp;
-
-    // Populating C API data structure pointers of the class from mmi
-    ok = (mmi != NULL);
     
+    bool ok = (mmi != NULL);
+    
+    // Populating C API data structure pointers of the class from mmi
     rootInputs = rtwCAPI_GetRootInputs(mmi);
     ok = ( (rootInputs != NULL) && ok );
     

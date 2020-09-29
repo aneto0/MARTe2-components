@@ -605,7 +605,7 @@ private:
      * @param[in] depth       tree depth level at call (for recursive callings)
      * @returns `true` if the parameter has been correctly scanned, `false` otherwise.
      */
-    bool ScanParameter(uint32 paridx, StreamString spacer, ParameterMode mode, void *startaddr, StreamString basename, uint32 baseoffset, uint32 depth);
+    bool ScanParameter(const uint32 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint32 baseOffset, const uint32 depth);
 
     /**
      * @brief Scans the root level input or output tree of the loaded Simulink .so code

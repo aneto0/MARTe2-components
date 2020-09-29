@@ -144,6 +144,9 @@ protected:
 class SimulinkParameter : public SimulinkDataI {
     
 public:
+
+    uint32 offset;      //!< Parameter offset (used if the parameter is part of a structure).
+
     /**
      * @brief   Updates the value of a parameter inside the model
      *          shared library based on an AnyType.
