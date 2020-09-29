@@ -1265,23 +1265,24 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
 {
     bool ok = true;
     
-    const char8*        ELEelementName;
+    const char8*        ELEelementName   = NULL_PTR(char8*);
+    uint16              ELEdataTypeIndex = 0u;
+    uint16              ELEdimIndex      = 0u;
     uint32              ELEelementOffset;
-    uint16              ELEdataTypeIndex;
-    uint16              ELEdimIndex;
+    uint32              ELEaddrIdx;
+    uint16              ELEdataTypeSize  = 0u;
+    uint8*              ELEparamAddress  = NULL_PTR(uint8*);
+    
+    const char8*        ELEctypename;
     uint8               ELEnumDims;
     uint32              ELEdimArrayIdx;
     rtwCAPI_Orientation ELEorientation;
 
-    const char8*        ELEctypename;
-    uint32              ELEaddrIdx;
-    uint8*              ELEparamAddress;
-    uint16              ELEdataTypeSize;
-    uint32              ELEsize;
-    uint32              ELEelements;
-    StreamString        fullpathname;
-    StreamString        ELEtypename;
+    uint32              ELEsize         = 1u;
+    uint32              ELEelements     = 1u;
     uint32              ELEMARTeNumDims = 0u;   // number of dimensions according to MARTe standard
+    
+    StreamString        fullPathName;
     
     switch(mode) {
         
@@ -1289,10 +1290,10 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
             
             // Parameters data is retrieved from the elements data structure
             // (this case applies to all other cases w.r.t. the case below)
-            ELEdataTypeIndex     = rtwCAPI_GetElementDataTypeIdx (elementMap,  parIdx);
             ELEelementName       = rtwCAPI_GetElementName        (elementMap,  parIdx);
-            ELEelementOffset     = rtwCAPI_GetElementOffset      (elementMap,  parIdx);
+            ELEdataTypeIndex     = rtwCAPI_GetElementDataTypeIdx (elementMap,  parIdx);
             ELEdimIndex          = rtwCAPI_GetElementDimensionIdx(elementMap,  parIdx);
+            ELEelementOffset     = rtwCAPI_GetElementOffset      (elementMap,  parIdx);
             ELEdataTypeSize      = rtwCAPI_GetDataTypeSize       (dataTypeMap, ELEdataTypeIndex);
             
             ELEparamAddress      = static_cast<uint8*>(startAddress) + ELEelementOffset;
@@ -1304,13 +1305,13 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
             
             // Parameter data is retrieved from main CAPI parameters data structure
             // (this case applies to not structured parameters at root level of the tree)
-            ELEdataTypeIndex     = rtwCAPI_GetModelParameterDataTypeIdx (modelParams, parIdx);
             ELEelementName       = rtwCAPI_GetModelParameterName        (modelParams, parIdx);
+            ELEdataTypeIndex     = rtwCAPI_GetModelParameterDataTypeIdx (modelParams, parIdx);
             ELEdimIndex          = rtwCAPI_GetModelParameterDimensionIdx(modelParams, parIdx);
             ELEaddrIdx           = rtwCAPI_GetModelParameterAddrIdx     (modelParams, parIdx);
             ELEdataTypeSize      = rtwCAPI_GetDataTypeSize              (dataTypeMap, ELEdataTypeIndex);
             
-            ELEparamAddress      = (uint8 *) rtwCAPI_GetDataAddress(dataAddrMap,ELEaddrIdx);
+            ELEparamAddress      = static_cast<uint8*>(rtwCAPI_GetDataAddress(dataAddrMap, ELEaddrIdx));
             
             ELEelementOffset     = 0u; // root level parameters have their address directly specified in the dataAddrMap structure
             
@@ -1332,8 +1333,6 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
 
         Vector<uint32> ELEactualDimensions(ELEnumDims);
         
-        ELEsize     = 1u;
-        ELEelements = 1u;
         for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++)
         {
             ELEactualDimensions[dimIdx] = dimArray[ELEdimArrayIdx + dimIdx];
@@ -1350,8 +1349,8 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
         
         ELEsize=ELEelements*ELEdataTypeSize;
 
-        fullpathname  = baseName.Buffer();
-        fullpathname += ELEelementName;
+        fullPathName  = baseName.Buffer();
+        fullPathName += ELEelementName;
         
         // Tree view
         StreamString paramInfoString = "";
@@ -1381,12 +1380,10 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
         paramInfoString += orientationName;
         RTWCAPIV2LOG(ErrorManagement::Information, paramInfoString.Buffer());
         
-        ELEtypename = ELEctypename;
-        
         // Parameter that is currently being updated.
         SimulinkParameter* currentParameter = new SimulinkParameter();
         
-        currentParameter->fullName      = fullpathname;
+        currentParameter->fullName      = fullPathName;
         
         currentParameter->numberOfDimensions = ELEMARTeNumDims;
         currentParameter->totalNumberOfElements = ELEelements;
@@ -1400,7 +1397,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
         currentParameter->offset        = baseOffset;
         
         currentParameter->cTypeName     = ELEctypename;
-        currentParameter->MARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEtypename.Buffer());
+        currentParameter->MARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEctypename);
         currentParameter->type          = TypeDescriptor::GetTypeDescriptorFromTypeName((currentParameter->MARTeTypeName).Buffer());
         
         currentParameter->address       = ELEparamAddress;
