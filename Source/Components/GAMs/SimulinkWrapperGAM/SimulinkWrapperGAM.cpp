@@ -591,7 +591,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     REPORT_ERROR(ErrorManagement::Information, "Allocating Simulink model dynamic memory...");
 
     // Simulink instFunction call, dynamic allocation of model data structures
-    states = (*instFunction)();
+    if (instFunction != NULL) {
+        states = (*instFunction)();
+    }
     
     status = (states != NULL);
     if (!status) {
@@ -599,8 +601,11 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     }
 
     // Get the Model Mapping Information (mmi) data structure from the Simulink shared object
-    void *mmiTemp = ((*getMmiFunction)(states));
-    rtwCAPI_ModelMappingInfo* mmi = reinterpret_cast<rtwCAPI_ModelMappingInfo*>(mmiTemp);
+    rtwCAPI_ModelMappingInfo* mmi = NULL_PTR(rtwCAPI_ModelMappingInfo*);
+    if (getMmiFunction != NULL) {
+        void *mmiTemp = ((*getMmiFunction)(states));
+        mmi = reinterpret_cast<rtwCAPI_ModelMappingInfo*>(mmiTemp);
+    }
     
     status = (mmi != NULL);
     if (!status) {
@@ -975,8 +980,7 @@ bool SimulinkWrapperGAM::Execute() {
     
     uint32 portIdx;
 
-    // stepFunction must be defined at this point
-    bool status = ((NULL != states) && (static_cast<void(*)(void*)>(NULL) != stepFunction));
+    bool status = (states != NULL);
 
     // Inputs update
     for (portIdx = 0u; (portIdx < modelNumOfInputs) && status; portIdx++) {
@@ -984,7 +988,9 @@ bool SimulinkWrapperGAM::Execute() {
     }
     
     // Model step
-    (*stepFunction)(states);
+    if ( (stepFunction != NULL) && status) {
+        (*stepFunction)(states);
+    }
 
     // Ouputs update
     for (portIdx = modelNumOfInputs; (portIdx < modelNumOfInputs + modelNumOfOutputs) && status; portIdx++) {
@@ -995,6 +1001,7 @@ bool SimulinkWrapperGAM::Execute() {
 
 }
 
+/*lint -e{613} NULL pointer is checked beforehand.*/
 bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
 {
     bool ok = false;
