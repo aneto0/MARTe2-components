@@ -594,11 +594,13 @@ bool SDNPublisher::Synchronise() {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "Failed to publish");
     }
 
+#ifdef FEATURE_10840
     // Perform housekeeping activities .. irrespective of status
     if (NULL_PTR(sdn::Publisher *) != publisher) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
 	(void)publisher->DoBackgroundActivity();
     }
+#endif
 
     return ok;
 }
