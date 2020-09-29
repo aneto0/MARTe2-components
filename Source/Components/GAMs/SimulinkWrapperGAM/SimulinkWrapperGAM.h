@@ -629,7 +629,7 @@ private:
      * @param[in] spacer      spacer for Printf(), it is different if this is the last parameter of a structure
      * @returns `true` if the signal structure has been correctly scanned, `false` otherwise.
      */
-    bool ScanSignalsStruct(uint32 dataTypeIdx, uint32 depth,  void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer);
+    bool ScanSignalsStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint32 baseOffset, StreamString spacer);
 
     /**
      * @brief     Helper function to scan a signal

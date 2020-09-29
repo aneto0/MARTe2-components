@@ -1494,8 +1494,8 @@ bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
         dataTypeSize = rtwCAPI_GetDataTypeSize(dataTypeMap,dataTypeIdx);            // Size of the datatype in bytes, WARNING: 16 bits maximum !!
 
         // clear lastAddressVector
-        while (lastAddressVector.GetSize() != 0u) {
-            lastAddressVector.Remove(0u);
+        while ( (lastAddressVector.GetSize() != 0u) && ok) {
+            ok = lastAddressVector.Remove(0u);
         }
         
         switch(mode)
@@ -1601,7 +1601,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
         }
         
         // Scan the parameter or structure
-        if(SUBslDataID != SS_STRUCT) {
+        if (SUBslDataID != SS_STRUCT) {
             
             ok = ScanSignal(elemMapIdx + elemIdx, specificSpacer, SignalFromElementMap, byteptr, baseName, baseOffset, depth);
             if (!ok) {
@@ -1614,28 +1614,30 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
 
             // Calculating same level delta address
             uint64 deltaaddr;
-            if (lastAddressVector.GetSize() < depth)
-            {
-                lastAddressVector.Add(runningbyteptr);
-                deltaaddr = 0;
+            if (lastAddressVector.GetSize() < depth) {
+                
+                if (lastAddressVector.Add(runningbyteptr)) {
+                    deltaaddr = 0;
+                }
             }
-            else if (lastAddressVector.GetSize() > depth)
-            {
+            else if (lastAddressVector.GetSize() > depth) {
+                
                 // resize lastAddressVector
-                while (lastAddressVector.GetSize() == depth) {
-                    lastAddressVector.Remove(lastAddressVector.GetSize() - 1u);
+                while ( (lastAddressVector.GetSize() == depth) && ok) {
+                    ok = lastAddressVector.Remove(lastAddressVector.GetSize() - 1u);
                 }
                 deltaaddr = reinterpret_cast<uint64>(runningbyteptr) - reinterpret_cast<uint64>(lastAddressVector[depth - 1u]);
             }
-            else
-            {
-                if (elemIdx == 0u)
-                {
-                    lastAddressVector.Set(depth - 1u, runningbyteptr);
-                    deltaaddr = 0;
+            else {
+                
+                if (elemIdx == 0u) {
+                    
+                    if (lastAddressVector.Set(depth - 1u, runningbyteptr)) {
+                        deltaaddr = 0;
+                    }
                 }
-                else
-                {
+                else {
+                    
                     deltaaddr = reinterpret_cast<uint64>(runningbyteptr) - reinterpret_cast<uint64>(lastAddressVector[depth - 1u]);
                 }
             }
@@ -1868,8 +1870,8 @@ void SimulinkWrapperGAM::PrintAlgoInfo() {
 
     if ( (static_cast<void(*)(void*)>(NULL) == getAlgoInfoFunction) ) {
         info.expCode = 0u;
-        StringHelper::Copy(info.gitHash, "00000000\0");
-        StringHelper::Copy(info.gitLog,  "\0");
+        StringHelper::Copy(info.gitHash, "00000000");
+        StringHelper::Copy(info.gitLog,  "");
     }
     else {
         (*getAlgoInfoFunction)((void*) &info);
