@@ -942,7 +942,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 currentParamName);
             status = false;
         }
-
+        
     }
     
     ///-------------------------------------------------------------------------
@@ -1109,7 +1109,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
             uint64 absDeltaAddress;
             currentParamBaseAddress = paramAddress;
             absDeltaAddress = reinterpret_cast<uint64>(paramAddress) - reinterpret_cast<uint64>(currentParamBaseAddress);
-
+            
             RTWCAPIV2LOG(ErrorManagement::Information,
                     "%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, struct with %d elems, size(u16!): %d bytes, base addr: %p, dims: %s",
                    paramName, numElements, dataTypeSize, paramAddress, diminfo.Buffer());

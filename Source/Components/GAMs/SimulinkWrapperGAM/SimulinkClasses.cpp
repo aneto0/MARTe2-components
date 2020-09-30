@@ -302,7 +302,6 @@ bool SimulinkDataI::TransposeAndCopy(void *const destination, const void *const 
         
         REPORT_ERROR_STATIC(ErrorManagement::Exception,
                      "Unsupported type %s", TypeDescriptor::GetTypeNameFromTypeDescriptor(type));
-        
     }
     
     return ok;

@@ -41,14 +41,14 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-#define RTWCAPIV1LOGST if(verbosityLevel > 0u) REPORT_ERROR_STATIC
-#define RTWCAPIV2LOGST if(verbosityLevel > 1u) REPORT_ERROR_STATIC
-#define RTWCAPIV1LOG   if(verbosityLevel > 0u) REPORT_ERROR
-#define RTWCAPIV2LOG   if(verbosityLevel > 1u) REPORT_ERROR
+#define RTWCAPIV1LOGST if(verbosityLevel>0) REPORT_ERROR_STATIC
+#define RTWCAPIV2LOGST if(verbosityLevel>1) REPORT_ERROR_STATIC
+#define RTWCAPIV1LOG   if(verbosityLevel>0) REPORT_ERROR
+#define RTWCAPIV2LOG   if(verbosityLevel>1) REPORT_ERROR
 
+#define SLVARNAMEDEFLENGTH 40
 #define UPRINTFVARDEFLENGTH(N) #N
 #define PRINTFVARDEFLENGTH(N)  UPRINTFVARDEFLENGTH(N)
-
 
 namespace MARTe
 {
@@ -61,7 +61,7 @@ static const uint32 maxNumOfDims = 3u;
 /**
  * @brief Maximum name length for model signals and parameters. 
  */
-static const uint32 SLVARNAMEDEFLENGTH = 40u;
+//static const uint32 SLVARNAMEDEFLENGTH = 40u;
 
 /*---------------------------------------------------------------------------*/
 /*                               SimulinkDataI                               */
