@@ -958,7 +958,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             (modelPorts[portIdx]->fullName).Buffer(), signalsInThisPort);
         
         for(uint32 signalIdx = 0u; signalIdx < signalsInThisPort; signalIdx++) {
-            (modelPorts[portIdx]->carriedSignals[signalIdx])->PrintSignal(40u);
+            (modelPorts[portIdx]->carriedSignals[signalIdx])->PrintSignal(40ul);
         }
     
     }
@@ -972,7 +972,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             (modelPorts[portIdx]->fullName).Buffer(), signalsInThisPort);
         
         for(uint32 signalIdx = 0u; signalIdx < signalsInThisPort; signalIdx++) {
-            (modelPorts[portIdx]->carriedSignals[signalIdx])->PrintSignal(40u);
+            (modelPorts[portIdx]->carriedSignals[signalIdx])->PrintSignal(40ul);
         }
     }
 
@@ -1007,7 +1007,7 @@ bool SimulinkWrapperGAM::Execute() {
 }
 
 /*lint -e{613} NULL pointers are checked beforehand.*/
-bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
+bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* const mmi)
 {
     
     uint32        nOfParams = 0u;
@@ -1074,7 +1074,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
         if (slDataID != SS_STRUCT) {
             
             // Not structured parameter, directly print it from main params structure
-            ok = ScanParameter(paramIdx, "", ParamFromParameters, NULL, "", 0u, 1u);
+            ok = ScanParameter(paramIdx, "", ParamFromParameters, NULL_PTR(void*), "", 0u, 1u);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanParameter for parameter %s.", paramName);
             }
@@ -1132,7 +1132,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint64 baseoffset, StreamString spacer) {
+bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer) {
     
     bool ok = true;
     
@@ -1143,8 +1143,8 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
     uint8        SUBslDataID;
     uint16       SUBnumElements;
     uint32       SUBdataTypeOffset;
-    void*        byteptr = startaddr;
-    void*        runningbyteptr = startaddr;
+    void*        byteptr = startAddress;
+    void*        runningbyteptr = startAddress;
     StreamString tempstr;
     uint16       SUBdimIdx;
     uint8        SUBnumDims;
@@ -1194,14 +1194,14 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
 
         if (SUBslDataID != SS_STRUCT) {
             
-            ok = ScanParameter(elemMapIdx + elemIdx, specificSpacer, ParamFromElementMap, byteptr, basename, baseoffset, depth);
+            ok = ScanParameter(elemMapIdx + elemIdx, specificSpacer, ParamFromElementMap, byteptr, baseName, baseOffset, depth);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanParameter for parameter %s.", elementName);
             }
         }
         else {
 
-            runningbyteptr = reinterpret_cast<void *>(static_cast<uint8*>(startaddr) + SUBdataTypeOffset);
+            runningbyteptr = reinterpret_cast<void *>(static_cast<uint8*>(startAddress) + SUBdataTypeOffset);
 
             // Calculating same level delta address
             uint64 deltaaddr;
@@ -1246,7 +1246,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
                 paramsHaveStructArrays = true;
             }
             
-            StreamString nameAndSeparators = basename;
+            StreamString nameAndSeparators = baseName;
             nameAndSeparators += tempstr;
             nameAndSeparators += paramSeparator;
             
@@ -1415,7 +1415,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
 }
 
 /*lint -e{613} NULL pointers are checked beforehand.*/
-bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode) {
+bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, SignalDirection mode) {
     
     uint32       nOfSignals = 0u;
     const char8* sigName;

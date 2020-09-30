@@ -577,7 +577,7 @@ private:
      *                simulink code generation).
      * @returns `true` is all parameters are correctly scanned, `false` otherwise.
      */
-    bool ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi);
+    bool ScanTunableParameters(const rtwCAPI_ModelMappingInfo* const mmi);
 
     /**
      * @brief Helper function to navigate the parameters tree
@@ -589,7 +589,7 @@ private:
      * @param[in] spacer      spacer for Printf(), it is different if this is the last parameter of a structure
      * @returns `true` if the parameter structure has been correctly scanned, `false` otherwise.
      */
-    bool ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint64 baseoffset, StreamString spacer);
+    bool ScanParametersStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer);
 
 
     /**
@@ -617,7 +617,7 @@ private:
      * @param[in] mode sets whether to analyze the inputs ports or the outputs ports
      * @returns `true` if all signals have been correctly scanned, `false` otherwise.
      */
-    bool ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirection mode);
+    bool ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, SignalDirection mode);
 
     /**
      * @brief Helper function to navigate the signals tree
