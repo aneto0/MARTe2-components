@@ -1326,7 +1326,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
         }
         
         default:
-            REPORT_ERROR(ErrorManagement::FatalError, "Wrong parameter mode in SimulinkWrapperGAM::ScanParameter()");
+            REPORT_ERROR(ErrorManagement::FatalError, "Wrong parameter mode in SimulinkWrapperGAM::ScanParameter(), depth %u", depth);
             ok = false;
             
     }
@@ -1663,7 +1663,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
                 passoverSpacer += "┆ ";
             }
             
-            ok = ScanSignalsStruct(SUBdataTypeIndex, depth+1, runningbyteptr, nameAndSeparators, absDeltaAddress, passoverSpacer);
+            ok = ScanSignalsStruct(SUBdataTypeIndex, depth + 1u, runningbyteptr, nameAndSeparators, absDeltaAddress, passoverSpacer);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanSignalStruct for signal %s.", elementName);
             }
@@ -1735,7 +1735,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
             break;
             
         default:
-            REPORT_ERROR(ErrorManagement::FatalError, "Wrong signal mode in SimulinkWrapperGAM::ScanSignal()");
+            REPORT_ERROR(ErrorManagement::FatalError, "Wrong signal mode in SimulinkWrapperGAM::ScanSignal(), depth %u", depth);
             ok = false;
     }
     
@@ -1784,7 +1784,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
             spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
         
         if (ok) {
-            ok = paramInfoString.Printf("%d", ELEactualDimensions[0]);
+            ok = paramInfoString.Printf("%d", ELEactualDimensions[0u]);
         
             for (uint32 dimIdx = 0u; (dimIdx < ELEnumDims) && ok; dimIdx++) {
             
@@ -1862,12 +1862,12 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
     return ok;
 }
 
-bool SimulinkWrapperGAM::CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16 checksize)
+bool SimulinkWrapperGAM::CheckrtwCAPITypeAgainstSize(StreamString cTypeName, const uint16 checkSize) const
 {
-    return GetTypeSizeFromCTypeName(rtwCAPItype.Buffer()) == checksize;
+    return GetTypeSizeFromCTypeName(cTypeName.Buffer()) == checkSize;
 }
 
-void SimulinkWrapperGAM::PrintAlgoInfo() {
+void SimulinkWrapperGAM::PrintAlgoInfo() const {
     
     SimulinkAlgoInfo info;
     bool ok;
@@ -1893,7 +1893,7 @@ void SimulinkWrapperGAM::PrintAlgoInfo() {
 
 }
 
-bool SimulinkWrapperGAM::MapPorts(SignalDirection direction) {
+bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
     
     bool ok    = false;
     bool found = false;

@@ -475,7 +475,7 @@ protected:
      * @brief Experimental function. Print model version info
      *        if previously retrieved from the model.
      */
-    void PrintAlgoInfo();
+    void PrintAlgoInfo() const;
 
 private:
 
@@ -649,7 +649,7 @@ private:
     /**
      * @brief Check coherence between model ports and GAM signals and map them.
      */
-    bool MapPorts(SignalDirection direction);
+    bool MapPorts(const SignalDirection direction);
     
     /**
      * @brief Prepare model for execution.
@@ -659,7 +659,7 @@ private:
     /**
      * @brief Returns true if a C API type has the same size of checksize.
      */
-    bool CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16 checksize);
+    bool CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16 checksize) const;
     
     /**
      * @brief separator for building structured parameters fullpaths

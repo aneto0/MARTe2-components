@@ -89,6 +89,7 @@ public:
     
     uint32 byteSize;                        //!< Size in bytes occupied by this data.
     uint16 dataTypeSize;                    //!< Size of the type of this data.
+    uint64 offset;                          //!< Data offset (used if the parameter or signal is part of a structure).
     
     StreamString   cTypeName;               //!< data type name (in C terminology)
     StreamString   MARTeTypeName;           //!< data type name (in MARTe terminology)
@@ -152,8 +153,6 @@ class SimulinkParameter : public SimulinkDataI {
     
 public:
 
-    uint64 offset;      //!< Parameter offset (used if the parameter is part of a structure).
-
     /**
      * @brief   Updates the value of a parameter inside the model
      *          shared library based on an AnyType.
@@ -209,7 +208,6 @@ public:
     SimulinkSignal();
     
     void*  MARTeAddress;            //!< Addess of the MARTe signal that maps this model signal.
-    uint32 offset;                  //!< Signal offset (used if the signal is part of a signal array).
     
     bool requiresTransposition;     //!< `true` if this is signal is a ColumMajor matrix signal (MARTe2 uses row-major data orientation). 
     
