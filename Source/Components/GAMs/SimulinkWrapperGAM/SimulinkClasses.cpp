@@ -74,7 +74,7 @@ SimulinkDataI::~SimulinkDataI() {
     address = NULL_PTR(void*);
 }
 
-void SimulinkDataI::PrintData(const uint32 maxNameLength /* = 0u */, StreamString additionalText /* = "" */) {
+void SimulinkDataI::PrintData(const uint64 maxNameLength /* = 0u */, StreamString additionalText /* = "" */) {
     
     // Adds spaces at the end of the name until it reaches maxNameLength
     StreamString nameWithSpacesAtTheEnd = fullName;

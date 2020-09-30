@@ -679,7 +679,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     // Max length of parameter names for this model is computed.
     uint64       maxNameLength;
     StreamString currentName;
-    uint32       currentNameSize;
+    uint64       currentNameSize;
     
     if (status) {
         maxNameLength = 0u;
@@ -907,29 +907,29 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         // Based upon the actualisation outcome, execution is continued or stopped.
         
         // Cases in which execution can continue
-        if (isLoaded && isActualised) {
+        if ( isLoaded && isActualised ) {
             REPORT_ERROR(ErrorManagement::Information,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s correctly actualized from %s.",
                 currentParamName, parameterSourceName.Buffer());
         }
-        else if (isLoaded && !isActualised && isUnlinked) {
+        else if ( isLoaded && (!isActualised) && isUnlinked ) {
             REPORT_ERROR(ErrorManagement::Information,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s unlinked, using compile time value",
                 currentParamName);
         }
-        else if (isLoaded && !isActualised && !isUnlinked && skipInvalidTunableParams) {
+        else if ( isLoaded && (!isActualised) && (!isUnlinked) && skipInvalidTunableParams ) {
             REPORT_ERROR(ErrorManagement::Warning,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s cannot be actualized, using compile time value",
                 currentParamName);
         }
-        else if (!isLoaded && !isActualised && skipInvalidTunableParams) {
+        else if ( (!isLoaded) && (!isActualised) && skipInvalidTunableParams ) {
             REPORT_ERROR(ErrorManagement::Information,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s not found, using compile time value",
                 currentParamName);
         }
         
         // Cases in which execution should be stopped
-        else if (!isLoaded && !isActualised && !skipInvalidTunableParams) {
+        else if ( (!isLoaded) && (!isActualised) && (!skipInvalidTunableParams) ) {
             REPORT_ERROR(ErrorManagement::Information,
                 "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s not found, failing",
                 currentParamName);

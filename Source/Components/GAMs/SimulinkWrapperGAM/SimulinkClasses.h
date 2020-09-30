@@ -113,7 +113,7 @@ public:
      * @param[in] maxNameLength max number of characters reserved for the
      *                          parameter name in the printed line.
      */
-    virtual void PrintData(const uint32 maxNameLength = 0u, StreamString additionalText = "");
+    virtual void PrintData(const uint64 maxNameLength = 0u, StreamString additionalText = "");
     
 protected:
 
