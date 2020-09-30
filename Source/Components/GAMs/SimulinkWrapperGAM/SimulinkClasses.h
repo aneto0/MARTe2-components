@@ -255,9 +255,10 @@ public:
     bool isContiguous;                  //!< `true` if the port data is contiguous.
     
     uint32 runningOffset;
-    uint32 typeBasedSize;
-    uint32 offsetBasedSize;
-    uint32 CAPISize;
+    uint64 typeBasedSize;
+    uint64 offsetBasedSize;
+    uint64 CAPISize;
+    
     void*  baseAddress;
     void*  lastSignalAddress;
     

@@ -60,6 +60,7 @@ SimulinkDataI::SimulinkDataI() {
     
     byteSize     = 0u;
     dataTypeSize = 0u;
+    offset       = 0u;
     
     cTypeName     = "void";
     MARTeTypeName = "void";
