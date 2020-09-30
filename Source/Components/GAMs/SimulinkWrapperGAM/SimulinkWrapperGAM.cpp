@@ -425,7 +425,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u); // Compose symbol
 
         if (status) { // Find symbol
-            instFunction = reinterpret_cast<void*(*)(void)>(libraryHandle->Function(symbol));
+            instFunction = reinterpret_cast<void*(*)(void)>(libraryHandle->Function(&symbol[0u]));
             status = (static_cast<void*(*)(void)>(NULL) != instFunction);
             if (!status) {
                 REPORT_ERROR(ErrorManagement::Information, "Couldn't find %s symbol in model library (instFunction == NULL).", symbol);
@@ -441,7 +441,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         }
 
         if (status) { // Find symbol
-            getMmiFunction = reinterpret_cast<void*(*)(void*)>(libraryHandle->Function(symbol));
+            getMmiFunction = reinterpret_cast<void*(*)(void*)>(libraryHandle->Function(&symbol[0u]));
             status = (static_cast<void*(*)(void*)>(NULL) != getMmiFunction);
             if (!status) {
                 REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
@@ -457,7 +457,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         }
 
         if (status) { // Find symbol
-            initFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
+            initFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(&symbol[0u]));
             status = (static_cast<void(*)(void*)>(NULL) != initFunction);
             if (!status) {
                 REPORT_ERROR(ErrorManagement::Information, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
@@ -473,7 +473,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         }
 
         if (status) { // Find symbol
-            stepFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
+            stepFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(&symbol[0u]));
             status = (static_cast<void(*)(void*)>(NULL) != stepFunction);
             if (!status) {
                 REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
@@ -489,7 +489,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         }
         
         if (status) { // Find symbol
-            getAlgoInfoFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(symbol));
+            getAlgoInfoFunction = reinterpret_cast<void(*)(void*)>(libraryHandle->Function(&symbol[0u]));
             status = (static_cast<void(*)(void*)>(NULL) != getAlgoInfoFunction);
             if (!status) {
                 REPORT_ERROR(ErrorManagement::Information, "Algorithm information not found in the Simulink .so");
@@ -501,8 +501,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
     /// 4. Build a reference container containing parameter values
     ///    retrieved in the configuration file (under the `Parameters` node).
     
-    bool hasParameterLeaf = false;
-    hasParameterLeaf = data.MoveRelative("Parameters");
+    bool hasParameterLeaf = data.MoveRelative("Parameters");
     
     if (hasParameterLeaf && status) {
         
