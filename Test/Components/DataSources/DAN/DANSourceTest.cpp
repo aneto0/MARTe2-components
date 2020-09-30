@@ -287,42 +287,79 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     return ok;
 }
 
+static bool WaitForDataToBeStored() {
+    using namespace MARTe;
+    //Wait for the files to be created...
+    bool found = false;
+    uint32 timeoutCounter = 0u;
+    const uint32 maxTimeoutCounter = 20u;
+    uint64 dirSize = 0;
+    DirectoryScanner hd5FilesToTest;
+    StreamString filterName = "*DANStreamTest_*";
+    while ((!found) && (timeoutCounter < maxTimeoutCounter)) {
+        hd5FilesToTest.Scan("/tmp/data/", filterName.Buffer());
+        uint64 currentDirSize = 0;
+        uint32 i;
+        for (i=0; i<hd5FilesToTest.ListSize(); i++) {
+            Directory *f = (static_cast<Directory *>(hd5FilesToTest.ListPeek(i)));
+            if (f != NULL) {
+                currentDirSize += f->GetSize();
+            }
+        }
+        found = (currentDirSize > 0);
+        if (found) {
+            found = (currentDirSize == dirSize);
+        }
+        if (!found) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Waiting for files to be written by DAN. Current size: %d", currentDirSize);
+            dirSize = currentDirSize;
+            Sleep::Sec(2.0);
+        }
+        timeoutCounter++;
+    }
+    return found;
+}
+
 template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnTimeStamp, const MARTe::uint64 periodNanos, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerifyRelative, MARTe::uint32 toVerifyNumberOfElements) {
     using namespace MARTe;
     //To discover the type
     typeToCheck tDiscover;
     AnyType typeDiscover(tDiscover);
 
-    //Wait for the file to be created...
-    bool found = false;
-    uint32 timeoutCounter = 0u;
-    const uint32 maxTimeoutCounter = 30u;
     DirectoryScanner hd5FilesToTest;
-    while ((!found) && (timeoutCounter < maxTimeoutCounter)) {
-        StreamString filterName;
-        filterName.Printf("*DANStreamTest_%s*", TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDiscover.GetTypeDescriptor()));
-        hd5FilesToTest.Scan("/tmp/data/", filterName.Buffer());
-        found = (static_cast<Directory *>(hd5FilesToTest.ListPeek(0u)) != NULL);
-        if (!found) {
-            Sleep::Sec(0.1);
-        }
-        timeoutCounter++;
-    }
+    //Wait for the file to be created...
+    StreamString filterName;
+    filterName.Printf("*DANStreamTest_%s*", TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDiscover.GetTypeDescriptor()));
+    hd5FilesToTest.Scan("/tmp/data/", filterName.Buffer());
+    bool found = (static_cast<Directory *>(hd5FilesToTest.ListPeek(0u)) != NULL);
     bool ok = found;
     DanStreamReaderCpp danStreamReader;
+    const char8 *channelNames[] = { "Signal1", "Signal2", "Signal3" };
+    const uint32 numberOfChannels = 3;
+    uint32 c;
+ 
     if (ok) {
         found = false;
-        timeoutCounter = 0;
-        while ((ok) && (!found) && (timeoutCounter < maxTimeoutCounter)) {
-            StreamString hd5FileName = static_cast<Directory *>(hd5FilesToTest.ListPeek(0u))->GetName();
-            ok = (danStreamReader.openFile(hd5FileName.Buffer()) == 0);
-            found = (danStreamReader.getCurSamples() == toVerifyNumberOfElements);
-            if (!found) {
-                danStreamReader.closeFile();
-                Sleep::Sec(0.5);
-            }
-            timeoutCounter++;
+        StreamString hd5FileName = static_cast<Directory *>(hd5FilesToTest.ListPeek(0u))->GetName();
+        ok = (danStreamReader.openFile(hd5FileName.Buffer()) >= 0);
+        if (!ok) {
+	    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to open file: [%s]. Error: %s", hd5FileName.Buffer(), danStreamReader.getError().c_str());
         }
+#ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
+        if (ok) {
+            found = true;
+	    for (c = 0; (c < numberOfChannels) && (ok) && (found); c++) {
+	        found = (danStreamReader.openDataPath(channelNames[c]) == 0);
+                if (found) {
+                    danStreamReader.closeStream();
+                }
+            }
+       }
+#else
+        if (ok) {
+            found = (danStreamReader.getCurSamples() == toVerifyNumberOfElements);
+        }
+#endif
         if (ok) {
             ok = found;
         }
@@ -331,27 +368,29 @@ template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnT
     //Remove the following line when DAN bug 9699 is solved.
     toVerifyNumberOfElements--;
 
-    const char8 *channelNames[] = { "Signal1", "Signal2", "Signal3" };
-    const uint32 numberOfChannels = 3;
-    uint32 c;
     for (c = 0; (c < numberOfChannels) && (ok); c++) {
         DanDataHolder *pDataChannel = NULL;
         DanDataHolder *pDataTime = NULL;
         const uint64 *absTimeStored = NULL;
         if (ok) {
-            DataInterval interval = danStreamReader.getIntervalWhole();
 #ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
-	    danStreamReader.openDataPath(channelNames[c]);
+	    ok = (danStreamReader.openDataPath(channelNames[c]) == 0);
 #else
             danStreamReader.setChannel(channelNames[c]);
 #endif
+        }
+        if (ok) {
+            DataInterval interval = danStreamReader.getIntervalWhole();
             pDataChannel = danStreamReader.getRawValuesNative(&interval, -1);
             pDataTime = danStreamReader.getTimeAbs(&interval, -1);
-            absTimeStored = reinterpret_cast<const uint64 *>(pDataTime->asUInt64());
 
             ok = (pDataChannel != NULL);
             if (ok) {
+                ok = (pDataTime != NULL);
+            }
+            if (ok) {
                 ok = (interval.getTimeFrom() == (long) hpnTimeStamp);
+                absTimeStored = reinterpret_cast<const uint64 *>(pDataTime->asUInt64());
             }
         }
         if (ok) {
@@ -396,9 +435,12 @@ template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnT
                     }
                 }
             }
-
             delete pDataChannel;
             delete pDataTime;
+
+#ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
+            danStreamReader.closeStream();
+#endif
         }
     }
     if (ok) {
@@ -519,7 +561,8 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
         ok = danSource->CloseStream();
     }
     godb->Purge();
-
+    
+    ok = WaitForDataToBeStored();
     if (ok) {
         uint64 absTime = 0;
         if (useAbsTime) {
