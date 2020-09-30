@@ -910,41 +910,47 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             }
         }
         
+        // Add spaces to align the output
+        StreamString alignedParamName = currentParamName;
+        while ( alignedParamName.Size() < maxVariableNameLentgh ) {
+            alignedParamName += " ";
+        }
+        
         // Based upon the actualisation outcome, execution is continued or stopped.
         
         // Cases in which execution can continue
         if ( isLoaded && isActualised ) {
             REPORT_ERROR(ErrorManagement::Information,
-                "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s correctly actualized from %s.",
-                currentParamName, parameterSourceName.Buffer());
+                "Parameter %s correctly actualized from %s.",
+                alignedParamName.Buffer(), parameterSourceName.Buffer());
         }
         else if ( isLoaded && (!isActualised) && isUnlinked ) {
             REPORT_ERROR(ErrorManagement::Information,
-                "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s unlinked, using compile time value",
-                currentParamName);
+                "Parameter %s unlinked, using compile time value",
+                alignedParamName.Buffer());
         }
         else if ( isLoaded && (!isActualised) && (!isUnlinked) && skipInvalidTunableParams ) {
             REPORT_ERROR(ErrorManagement::Warning,
-                "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s cannot be actualized, using compile time value",
-                currentParamName);
+                "Parameter %s cannot be actualized, using compile time value",
+                alignedParamName.Buffer());
         }
         else if ( (!isLoaded) && (!isActualised) && skipInvalidTunableParams ) {
             REPORT_ERROR(ErrorManagement::Information,
-                "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s not found, using compile time value",
-                currentParamName);
+                "Parameter %s not found, using compile time value",
+                alignedParamName.Buffer());
         }
         
         // Cases in which execution should be stopped
         else if ( (!isLoaded) && (!isActualised) && (!skipInvalidTunableParams) ) {
             REPORT_ERROR(ErrorManagement::Information,
-                "Parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s not found, failing",
-                currentParamName);
+                "Parameter %s not found, failing",
+                alignedParamName.Buffer());
             status = false;
         }
         else {
             REPORT_ERROR(ErrorManagement::ParametersError,
-                "SkipInvalidTunableParams is false and parameter %-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s cannot be actualized, failing",
-                currentParamName);
+                "SkipInvalidTunableParams is false and parameter %s cannot be actualized, failing",
+                alignedParamName.Buffer());
             status = false;
         }
         
