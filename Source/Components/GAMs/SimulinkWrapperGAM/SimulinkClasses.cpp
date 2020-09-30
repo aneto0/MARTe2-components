@@ -400,6 +400,7 @@ bool SimulinkPort::AddSignal(SimulinkSignal* const signalIn) {
     return ok;
 }
 
+
 void SimulinkPort::PrintPort(const uint64 maxNameLength) {
     
     StreamString typeStr = "";

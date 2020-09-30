@@ -1740,6 +1740,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
     }
     
     if (ok) {
+        
         ELEctypename         = rtwCAPI_GetDataTypeCName(dataTypeMap,ELEdataTypeIndex);
         ELEnumDims           = rtwCAPI_GetNumDims(dimMap, ELEdimIndex);
         ELEdimArrayIdx       = rtwCAPI_GetDimArrayIndex(dimMap, ELEdimIndex);

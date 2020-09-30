@@ -87,7 +87,7 @@ public:
     
     rtwCAPI_Orientation orientation;        //!< data orientation retrieved from model .so
     
-    uint32 byteSize;                        //!< Size in bytes occupied by this data.
+    uint64 byteSize;                        //!< Size in bytes occupied by this data.
     uint16 dataTypeSize;                    //!< Size of the type of this data.
     uint64 offset;                          //!< Data offset (used if the parameter or signal is part of a structure).
     
