@@ -53,6 +53,9 @@ EPICSPVADatabase::EPICSPVADatabase() :
     ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
+    if (!mux.Create()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to create mux");
+    }
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
     }
@@ -63,6 +66,14 @@ EPICSPVADatabase::~EPICSPVADatabase() {
 }
 
 void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
+    if (serverContext) {
+        if (mux.Lock()) {
+            serverContext->shutdown();
+            serverContext = epics::pvAccess::ServerContext::shared_pointer();
+            mux.UnLock();
+        }
+    }
+    (void) mux.Close();
     if (master) {
         uint32 n;
         uint32 nElements = Size();
@@ -84,10 +95,6 @@ void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
                 }
             }
         }
-    }
-    if (serverContext) {
-        serverContext->shutdown();
-        serverContext = epics::pvAccess::ServerContext::shared_pointer();
     }
     if (!executor.Stop()) {
         if (!executor.Stop()) {
@@ -155,9 +162,14 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
             //This is a blocking call and it will run forever!
             try {
                 //serverContext = epics::pvAccess::startPVAServer(epics::pvAccess::PVACCESS_ALL_PROVIDERS, 0, false, true);
-                serverContext = epics::pvAccess::ServerContext::create();
-                serverContext->printInfo();
-                serverContext->run(0);
+                if (mux.Lock()) {
+                    serverContext = epics::pvAccess::ServerContext::create();
+                    serverContext->printInfo();
+                    mux.UnLock();
+                }
+                if (serverContext) {
+	            serverContext->run(0);
+                }
             }
             catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {
             }
