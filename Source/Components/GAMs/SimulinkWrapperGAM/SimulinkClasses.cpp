@@ -390,7 +390,7 @@ bool SimulinkPort::AddSignal(SimulinkSignal* const signalIn) {
     bool ok = carriedSignals.Add(signalIn);
     
     if (ok) {
-        uint32 totalNumOfElems = 1u;
+        uint64 totalNumOfElems = 1u;
         for (uint32 elemIdx = 0u; elemIdx < maxNumOfDims; elemIdx++) {
             totalNumOfElems *= signalIn->numberOfElements[elemIdx];
         }
