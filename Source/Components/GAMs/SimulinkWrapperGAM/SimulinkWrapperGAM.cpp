@@ -1763,7 +1763,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
 
         if (mode == SignalFromSignals) {
             currentPort->CAPISize = static_cast<uint64>(ELEsize)*ELEdataTypeSize;
-            currentPort->byteSize = ELEsize*ELEdataTypeSize; 
+            currentPort->byteSize = static_cast<uint64>(ELEsize)*ELEdataTypeSize; 
         }
 
         fullPathName =  baseName.Buffer();
@@ -1799,7 +1799,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
             RTWCAPIV2LOG(ErrorManagement::Information, paramInfoString.Buffer());
         }
         
-        currentPort->typeBasedSize += ELEsize*ELEdataTypeSize;
+        currentPort->typeBasedSize += static_cast<uint64>(ELEsize)*ELEdataTypeSize;
         currentPort->totalNumberOfElements += ELEsize;
         currentPort->numberOfDimensions = ELEMARTeNumDims;
         
