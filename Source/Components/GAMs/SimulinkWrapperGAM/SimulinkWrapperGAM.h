@@ -380,7 +380,6 @@ namespace MARTe {
  *             
  */
 class SimulinkWrapperGAM: public GAM, public MessageI {
-/*lint --e{ 923, 9016, 9091 } pointer arithmetic in this class looks safe. However, that part should probably be refactored */
 
 public:
     CLASS_REGISTER_DECLARATION()
