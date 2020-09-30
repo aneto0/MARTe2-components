@@ -1109,9 +1109,23 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
             currentParamBaseAddress = paramAddress;
             absDeltaAddress = reinterpret_cast<uint64>(paramAddress) - reinterpret_cast<uint64>(currentParamBaseAddress);
             
-            RTWCAPIV2LOG(ErrorManagement::Information,
-                    "%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, struct with %d elems, size(u16!): %d bytes, base addr: %p, dims: %s",
-                   paramName, numElements, dataTypeSize, paramAddress, diminfo.Buffer());
+            // Print info about the scanned parameter
+            if (verbosityLevel > 1u) {
+                
+                // add spaces to align names
+                StreamString alignedName = paramName;
+                while (alignedName.Size() < maxVariableNameLentgh) {
+                    alignedName += " ";
+                }
+                
+                REPORT_ERROR(ErrorManagement::Information, "%s, struct with %d elems, size(u16!): %d bytes, base addr: %p, dims: %s",
+                    alignedName.Buffer(), numElements, dataTypeSize, paramAddress, diminfo.Buffer());
+                    
+                if (structarray) {
+                    REPORT_ERROR(ErrorManagement::Warning, "Array of structure detected (%s), not yet supported! Please flatten the previous params structure.", paramName);
+                    paramsHaveStructArrays = true;
+                }
+            }
             
             StreamString paramNameAndSeparator = StreamString(paramName);
             paramNameAndSeparator += paramSeparator;
@@ -1121,10 +1135,6 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanParameterStruct for parameter %s.", paramName);
             }
             
-            if (structarray) {
-                RTWCAPIV2LOG(ErrorManagement::Warning, "Array of structure detected (%s), not yet supported! Please flatten the previous params structure.", paramName);
-                paramsHaveStructArrays = true;
-            }
         }
     }
     
@@ -1145,7 +1155,6 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
     uint32       SUBdataTypeOffset;
     void*        byteptr = startAddress;
     void*        runningbyteptr = startAddress;
-    StreamString tempstr;
     uint16       SUBdimIdx;
     uint8        SUBnumDims;
     uint32       SUBdimArrayIdx;
@@ -1236,23 +1245,32 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
             // Calculating absolute delta address
             uint64 absDeltaAddress;
             absDeltaAddress = reinterpret_cast<uint64>(runningbyteptr) - reinterpret_cast<uint64>(currentParamBaseAddress);
-
-            RTWCAPIV2LOG(ErrorManagement::Information,
-                    "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, nested struct (idx %d) with %d elems, size(u16!): %d, offset: %d, base addr: %p, same lvl delta: %d, abs delta: %d, dims: %s",
-                    specificSpacer.Buffer(), elementName, elemIdx, SUBnumElements, SUBdataTypeSize, SUBdataTypeOffset, runningbyteptr, deltaaddr, absDeltaAddress, diminfo.Buffer());
-            tempstr=elementName;
-            if(structarray)
-            {
-                RTWCAPIV2LOG(ErrorManagement::Warning, "Array of structure detected, not yet supported! Please flatten the previous params structure!");
-                paramsHaveStructArrays = true;
+            
+            // Print info about the scanned parameter
+            if (verbosityLevel > 1u) {
+                
+                // add spaces to align names
+                StreamString alignedName = specificSpacer;
+                alignedName += elementName;
+                while (alignedName.Size() < (maxVariableNameLentgh + (specificSpacer.Size()/2u) )) {
+                    alignedName += " ";
+                }
+                
+                REPORT_ERROR(ErrorManagement::Information, "%s, nested struct (idx %d) with %d elems, size(u16!): %d, offset: %d, base addr: %p, same lvl delta: %d, abs delta: %d, dims: %s",
+                    alignedName.Buffer(), elemIdx, SUBnumElements, SUBdataTypeSize, SUBdataTypeOffset, runningbyteptr, deltaaddr, absDeltaAddress, diminfo.Buffer());
+                    
+                if (structarray) {
+                    REPORT_ERROR(ErrorManagement::Warning, "Array of structure detected, not yet supported! Please flatten the previous params structure!");
+                    paramsHaveStructArrays = true;
+                }
             }
             
             StreamString nameAndSeparators = baseName;
-            nameAndSeparators += tempstr;
+            nameAndSeparators += elementName;
             nameAndSeparators += paramSeparator;
             
             if (elemIdx == (static_cast<uint32>(numElements) - 1u) ) { 
-                passoverSpacer += "  "; 
+                passoverSpacer += "  ";  // first space is a non-breaking space for size symmetry with ┆
             } else {
                 passoverSpacer += "┆ ";
             }
@@ -1367,24 +1385,34 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
         }
         paramlastaddress = ELEparamAddress;
         
-        // Tree view
-        StreamString paramInfoString = "";
-        ok = paramInfoString.Printf(
-            "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, offset %d, type %-6s (%d bytes), ndims %d, dims [",
-            spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
-        
-        if (ok) {
-            ok = paramInfoString.Printf("%d", ELEactualDimensions[0u]);
-        
-            for (uint32 dimIdx = 1u; (dimIdx < ELEnumDims) && ok; dimIdx++) {
-                ok = paramInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
+        // Print info about the scanned parameter
+        if (verbosityLevel > 1u) {
+            
+            // add spaces to align names
+            StreamString alignedName = spacer;
+            alignedName += ELEelementName;
+            while ( alignedName.Size() < (maxVariableNameLentgh + (spacer.Size()/2u) ) ) {
+                alignedName += " ";
             }
-            // TODO printf version used to erase the leading zeros in front of the pointer
-            ok = paramInfoString.Printf("], addr: %p, pr par delta: %d, orient: ",ELEparamAddress, deltaAddress);
-            paramInfoString += GetOrientationName(ELEorientation);
-        }
-        if (ok) {
-            RTWCAPIV2LOG(ErrorManagement::Information, paramInfoString.Buffer());
+            
+            StreamString paramInfoString = "";
+            ok = paramInfoString.Printf("%s, offset %d, type %-6s (%d bytes), ndims %d, dims [",
+                alignedName.Buffer(), ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
+            
+            if (ok) {
+                ok = paramInfoString.Printf("%d", ELEactualDimensions[0u]);
+            
+                for (uint32 dimIdx = 1u; (dimIdx < ELEnumDims) && ok; dimIdx++) {
+                    ok = paramInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
+                }
+                
+                // TODO printf version used to erase the leading zeros in front of the pointer
+                ok = paramInfoString.Printf("], addr: %p, pr par delta: %d, orient: ", ELEparamAddress, deltaAddress);
+                paramInfoString += GetOrientationName(ELEorientation);
+            }
+            
+            REPORT_ERROR(ErrorManagement::Information, paramInfoString.Buffer());
+            
         }
         
         // Parameter that is currently being updated.
@@ -1577,7 +1605,6 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
     uint32       SUBdataTypeOffset;
     void*        byteptr = startAddress;
     void*        runningbyteptr = startAddress;
-    StreamString tempstr;
 
     elemMapIdx  = rtwCAPI_GetDataTypeElemMapIndex(dataTypeMap,dataTypeIdx);
     numElements = rtwCAPI_GetDataTypeNumElements(dataTypeMap,dataTypeIdx);
@@ -1651,10 +1678,9 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
             
             RTWCAPIV2LOG(ErrorManagement::Information, "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, nested struct (idx %d) with %d elems, offset: %d, base addr: %p, same level delta: %d, abs delta: %d",
                     specificSpacer.Buffer(), elementName, elemIdx, SUBnumElements, SUBdataTypeOffset, runningbyteptr, deltaaddr, absDeltaAddress);
-            tempstr=elementName;
             
             StreamString nameAndSeparators = baseName;
-            nameAndSeparators += tempstr;
+            nameAndSeparators += elementName;
             nameAndSeparators += signalSeparator;
             
             if ( elemIdx == (numElements - 1u) ) { 

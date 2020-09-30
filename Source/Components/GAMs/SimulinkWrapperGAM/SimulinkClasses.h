@@ -59,9 +59,9 @@ namespace MARTe
 static const uint32 maxNumOfDims = 3u;
 
 /**
- * @brief Maximum name length for model signals and parameters. 
+ * @brief Maximum name length for model signals and parameters (longer names are truncated).
  */
-//static const uint32 SLVARNAMEDEFLENGTH = 40u;
+static const uint32 maxVariableNameLentgh = 40u;
 
 /*---------------------------------------------------------------------------*/
 /*                               SimulinkDataI                               */
