@@ -1070,11 +1070,11 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
         }
         paramlastaddress = NULL_PTR(void*);
         
-        
+        /*lint -e(1924) SS_STRUCT is defined as (uint8_T)(255U) in the C APIs, so the C-style cast cannot be removed */
         if (slDataID != SS_STRUCT) {
             
             // Not structured parameter, directly print it from main params structure
-            ok = ScanParameter(paramIdx, "", ParamFromParameters, NULL_PTR(void*), "", 0u, 1u);
+            ok = ScanParameter(paramIdx, "", ParamFromParameters, NULL_PTR(void*), "", 0ul, 1u);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanParameter for parameter %s.", paramName);
             }
@@ -1098,7 +1098,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
                 }
                 
                 ok = diminfo.Printf("%u", dimArray[SUBdimArrayIdx + idx2]);
-                if ( idx2 != (SUBnumDims - 1u) ) {
+                if ( idx2 != (- 1u + SUBnumDims) ) {
                     diminfo += ",";
                 }
             }
@@ -1186,7 +1186,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
                 structarray = true;
             }
             ok = diminfo.Printf("%d", dimArray[SUBdimArrayIdx + subIdx]);
-            if (subIdx != (SUBnumDims - 1u) ) {
+            if (subIdx != (- 1u + SUBnumDims) ) {
                 diminfo += ",";
             }
         }
