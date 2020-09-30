@@ -659,7 +659,7 @@ private:
     /**
      * @brief Returns true if a C API type has the same size of checksize.
      */
-    bool CheckrtwCAPITypeAgainstSize(StreamString rtwCAPItype, uint16 checksize) const;
+    bool CheckrtwCAPITypeAgainstSize(StreamString cTypeName, const uint16 checkSize) const;
     
     /**
      * @brief separator for building structured parameters fullpaths
