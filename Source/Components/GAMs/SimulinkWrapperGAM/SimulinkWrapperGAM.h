@@ -368,12 +368,19 @@ namespace MARTe {
  * }
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
+ * @todo This class relies on pointer arithmetic for offset calculation.
+ *       While it looks safe, it should probably be refactored to
+ *       increase realiability. Linter errors reporting this (923,
+ *       9016 and 9091) are currently ignored.
+ * 
  * @todo Fix nonvirtual bus padding bug: when a bus is populated
  *       with data of different types, if the last element is
  *       small in size a padding is introduced. The size
  *       inconsistency is detected by the GAM that stops execution.
  *             
  */
+
+/*lint -e{923, 9016, 9091} pointer arithmetic in this class looks safe. However, that part should probably be refactored */
 class SimulinkWrapperGAM: public GAM, public MessageI {
 
 public:
