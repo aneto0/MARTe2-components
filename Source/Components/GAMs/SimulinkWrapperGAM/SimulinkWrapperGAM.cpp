@@ -137,16 +137,16 @@ struct TypeMap {
  */
 static const TypeMap typeLookUpTable[] = {
     
-    {"unsigned char" , "uint8"  },
-    {"signed char"   , "int8"  },
-    {"char"          , "int8"   },
-    {"unsigned short", "uint16" },
-    {"short"         , "int16"  },
-    {"unsigned int"  , "uint32" },
-    {"int"           , "int32"  },
-    {"float"         , "float32"},
-    {"double"        , "float64"},
-    {NULL            ,NULL      }
+    {"unsigned char"  , "uint8"          },
+    {"signed char"    , "int8"           },
+    {"char"           , "int8"           },
+    {"unsigned short" , "uint16"         },
+    {"short"          , "int16"          },
+    {"unsigned int"   , "uint32"         },
+    {"int"            , "int32"          },
+    {"float"          , "float32"        },
+    {"double"         , "float64"        },
+    {NULL_PTR(char8*) , NULL_PTR(char8*) }
     
 };
 
@@ -170,69 +170,66 @@ struct SizeMap {
  */
 static const SizeMap sizeLookUpTable[] = {
     
-    {"unsigned char" , 1u   },
-    {"signed char"   , 1u   },
-    {"char"          , 1u   },
-    {"unsigned short", 2u   },
-    {"short"         , 2u   },
-    {"unsigned int"  , 4u   },
-    {"int"           , 4u   },
-    {"float"         , 4u   },
-    {"double"        , 8u   },
-    {NULL            , 0u   }
+    {"unsigned char"  , 1u   },
+    {"signed char"    , 1u   },
+    {"char"           , 1u   },
+    {"unsigned short" , 2u   },
+    {"short"          , 2u   },
+    {"unsigned int"   , 4u   },
+    {"int"            , 4u   },
+    {"float"          , 4u   },
+    {"double"         , 8u   },
+    {NULL_PTR(char8*) , 0u   }
     
 };
 
 
-static inline const char8* GetMARTeTypeNameFromCTypeName(const char8* cTypeNameIn) {
+static inline const char8* GetMARTeTypeNameFromCTypeName(const char8* const cTypeNameIn) {
     
     uint32 lookupIdx = 0u;
-    const char8* MARTeTypeNameOut = NULL;
     
     while (typeLookUpTable[lookupIdx].cTypeName != NULL) {
-        if ( StringHelper::Compare(typeLookUpTable[lookupIdx].cTypeName, cTypeNameIn) == 0u ) {
+        if ( StringHelper::Compare(typeLookUpTable[lookupIdx].cTypeName, cTypeNameIn) == 0 ) {
             break;
         }
         lookupIdx++;
     }
     
-    MARTeTypeNameOut = typeLookUpTable[lookupIdx].MARTeTypeName;
+    const char8* MARTeTypeNameOut = typeLookUpTable[lookupIdx].MARTeTypeName;
     
     return MARTeTypeNameOut;
 }
 
 
-static inline const char8* GetCTypeNameFromMARTeTypeName(const char8* MARTeTypeNameIn) {
+static inline const char8* GetCTypeNameFromMARTeTypeName(const char8* const MARTeTypeNameIn) {
     
     uint32 lookupIdx = 0u;
-    const char8* CTypeNameOut = NULL;
     
     while (typeLookUpTable[lookupIdx].MARTeTypeName != NULL) {
-        if ( StringHelper::Compare(typeLookUpTable[lookupIdx].MARTeTypeName, MARTeTypeNameIn) == 0u ) {
+        if ( StringHelper::Compare(typeLookUpTable[lookupIdx].MARTeTypeName, MARTeTypeNameIn) == 0 ) {
             break;
         }
         lookupIdx++;
     }
     
-    CTypeNameOut = typeLookUpTable[lookupIdx].cTypeName;
+    const char8* CTypeNameOut = typeLookUpTable[lookupIdx].cTypeName;
     
     return CTypeNameOut;
 }
 
 
-static inline uint16 GetTypeSizeFromCTypeName(const char8* cTypeNameIn) {
+static inline uint16 GetTypeSizeFromCTypeName(const char8* const cTypeNameIn) {
     
     uint32 lookupIdx   = 0u;
-    uint16 typeSizeOut = 0u;
     
     while (sizeLookUpTable[lookupIdx].cTypeName != NULL) {
-        if ( StringHelper::Compare(sizeLookUpTable[lookupIdx].cTypeName, cTypeNameIn) == 0u ) {
+        if ( StringHelper::Compare(sizeLookUpTable[lookupIdx].cTypeName, cTypeNameIn) == 0 ) {
             break;
         }
         lookupIdx++;
     }
     
-    typeSizeOut = sizeLookUpTable[lookupIdx].size;
+    uint16 typeSizeOut = sizeLookUpTable[lookupIdx].size;
     
     return typeSizeOut;
 }
@@ -242,8 +239,9 @@ static inline uint16 GetTypeSizeFromCTypeName(const char8* cTypeNameIn) {
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-SimulinkWrapperGAM::SimulinkWrapperGAM() :
-        GAM() {
+SimulinkWrapperGAM::SimulinkWrapperGAM()
+        : GAM()
+        , MessageI() {
 
     libraryHandle = NULL_PTR(LoadableLibrary*);
     
