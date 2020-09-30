@@ -420,6 +420,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
     
     char8 symbol[64u];
     
+    /*lint -e{611} the pointer returned by LoadableLibrary::Function() can be safely casted to a pointer to function */
     if ((libraryHandle != NULL) && status) {
         // instFunction
         status = StringHelper::CopyN(&symbol[0u], symbolPrefix.Buffer(), 64u); // Compose symbol
@@ -620,6 +621,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     if (status) {
         
         dataTypeMap = rtwCAPI_GetDataTypeMap(mmi);
+        status = (dataTypeMap != NULL);
 
         modelNumOfInputs     = rtwCAPI_GetNumRootInputs(mmi);
         modelNumOfOutputs    = rtwCAPI_GetNumRootOutputs(mmi);
