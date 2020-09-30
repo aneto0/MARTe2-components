@@ -592,7 +592,8 @@ bool SimulinkWrapperGAM::Setup() {
 /*lint -e{613} NULL pointers are checked beforehand.*/
 bool SimulinkWrapperGAM::SetupSimulink() {
     
-/*lint --e{ 923, 9016, 9091 } pointer arithmetic in this class looks safe. However, that part should probably be refactored */
+/*lint --e{923} pointer arithmetic in this class looks safe. However, that part should probably be refactored */
+
     bool status;
     
     REPORT_ERROR(ErrorManagement::Information, "Allocating Simulink model dynamic memory...");
