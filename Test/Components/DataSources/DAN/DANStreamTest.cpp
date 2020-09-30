@@ -182,8 +182,13 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
             timeoutCounter = 0;
             while ((ok) && (!found) && (timeoutCounter < maxTimeoutCounter)) {
                 StreamString hd5FileName = static_cast<Directory *>(hd5FilesToTest.ListPeek(0u))->GetName();
-                ok = (danStreamReader.openFile(hd5FileName.Buffer()) == 0);
+                ok = (danStreamReader.openFile(hd5FileName.Buffer()) >= 0);
+#ifdef NO_HDF5_SET_CHANNEL
+                Sleep::Sec(2.0);
+                found = true;
+#else
                 found = (danStreamReader.getCurSamples() == expectedNSamples);
+#endif
                 if (!found) {
                     danStreamReader.closeFile();
                     Sleep::Sec(0.1);
@@ -199,12 +204,12 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
         for (c = 0; (c < numberOfChannels) && (ok); c++) {
             DanDataHolder *pDataChannel = NULL;
             if (ok) {
-                DataInterval interval = danStreamReader.getIntervalWhole();
 #ifdef NO_HDF5_SET_CHANNEL
 		danStreamReader.openDataPath(channelNames[c]);
 #else
                 danStreamReader.setChannel(channelNames[c]);
 #endif
+                DataInterval interval = danStreamReader.getIntervalWhole();
                 pDataChannel = danStreamReader.getRawValuesNative(&interval, -1);
                 ok = (pDataChannel != NULL);
                 if (ok) {
@@ -250,6 +255,7 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
                 }
 
                 delete pDataChannel;
+                danStreamReader.closeStream();
             }
         }
         if (ok) {
