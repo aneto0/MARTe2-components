@@ -1171,7 +1171,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
         
         specificSpacer = spacer; // reset the spacer
         passoverSpacer = spacer;
-        if (elemIdx == numElements - 1u) {
+        if (elemIdx == ( static_cast<uint32>(numElements) - 1u ) ) {
             specificSpacer += "└ ";
         } 
         else {
@@ -1191,8 +1191,9 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
             }
         }
         diminfo += "]";
-
-        if (SUBslDataID != SS_STRUCT) {
+        
+        /*lint -e{1924} SS_STRUCT is defined as (uint8_T)(255U) in the C APIs, so the C-style cast cannot be removed */
+        if ( SUBslDataID != SS_STRUCT ) {
             
             ok = ScanParameter(elemMapIdx + elemIdx, specificSpacer, ParamFromElementMap, byteptr, baseName, baseOffset, depth);
             if (!ok) {
@@ -1250,7 +1251,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
             nameAndSeparators += tempstr;
             nameAndSeparators += paramSeparator;
             
-            if (elemIdx == numElements - 1u) { 
+            if (elemIdx == (static_cast<uint32>(numElements) - 1u) ) { 
                 passoverSpacer += "  "; 
             } else {
                 passoverSpacer += "┆ ";
@@ -1357,12 +1358,12 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
         fullPathName  = baseName.Buffer();
         fullPathName += ELEelementName;
         
-        uint32 deltaAddress;
+        uint64 deltaAddress;
         if (paramlastaddress != NULL) {
             deltaAddress = reinterpret_cast<uint64>(ELEparamAddress) - reinterpret_cast<uint64>(paramlastaddress);
         }
         else {
-            deltaAddress = 0u;
+            deltaAddress = 0ul;
         }
         paramlastaddress = ELEparamAddress;
         
@@ -1764,12 +1765,12 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigidx, StreamString spacer, co
         fullPathName =  baseName.Buffer();
         fullPathName += ELEelementName;
         
-        uint32 deltaAddress;
+        uint64 deltaAddress;
         if (currentPort->lastSignalAddress != NULL) {
             deltaAddress = reinterpret_cast<uint64>(ELEparamAddress) - reinterpret_cast<uint64>(currentPort->lastSignalAddress);
         }
         else {
-            deltaAddress = 0u;
+            deltaAddress = 0ul;
         }
         currentPort->lastSignalAddress = ELEparamAddress;
 
