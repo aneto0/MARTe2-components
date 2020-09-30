@@ -1762,7 +1762,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
         }
 
         if (mode == SignalFromSignals) {
-            currentPort->CAPISize = static_cast<uint64>(ELEsize)*ELEdataTypeSize;
+            currentPort->CAPISize = ELEsize*ELEdataTypeSize;
             currentPort->byteSize = static_cast<uint64>(ELEsize)*ELEdataTypeSize; 
         }
 

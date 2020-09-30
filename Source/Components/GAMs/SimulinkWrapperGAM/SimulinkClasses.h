@@ -41,10 +41,10 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-#define RTWCAPIV1LOGST if(verbosityLevel>0) REPORT_ERROR_STATIC
-#define RTWCAPIV2LOGST if(verbosityLevel>1) REPORT_ERROR_STATIC
-#define RTWCAPIV1LOG   if(verbosityLevel>0) REPORT_ERROR
-#define RTWCAPIV2LOG   if(verbosityLevel>1) REPORT_ERROR
+#define RTWCAPIV1LOGST if(verbosityLevel>0u) REPORT_ERROR_STATIC
+#define RTWCAPIV2LOGST if(verbosityLevel>1u) REPORT_ERROR_STATIC
+#define RTWCAPIV1LOG   if(verbosityLevel>0u) REPORT_ERROR
+#define RTWCAPIV2LOG   if(verbosityLevel>1u) REPORT_ERROR
 
 #define SLVARNAMEDEFLENGTH 40
 #define UPRINTFVARDEFLENGTH(N) #N
