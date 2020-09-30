@@ -963,7 +963,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     
     }
     
-    for(uint32 portIdx = modelNumOfInputs; (portIdx < modelNumOfInputs + modelNumOfOutputs) && status; portIdx++) {
+    for(uint32 portIdx = modelNumOfInputs; ( portIdx < (modelNumOfInputs + modelNumOfOutputs) ) && status; portIdx++) {
         
         uint32 signalsInThisPort = (modelPorts[portIdx]->carriedSignals).GetSize();
         
@@ -998,7 +998,7 @@ bool SimulinkWrapperGAM::Execute() {
     }
 
     // Ouputs update
-    for (portIdx = modelNumOfInputs; (portIdx < modelNumOfInputs + modelNumOfOutputs) && status; portIdx++) {
+    for (portIdx = modelNumOfInputs; ( portIdx < (modelNumOfInputs + modelNumOfOutputs) ) && status; portIdx++) {
         status = modelPorts[portIdx]->CopyData();
     }
     
@@ -1071,7 +1071,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
         paramlastaddress = NULL_PTR(void*);
         
         
-        if(slDataID != SS_STRUCT) {
+        if (slDataID != SS_STRUCT) {
             
             // Not structured parameter, directly print it from main params structure
             ok = ScanParameter(paramIdx, "", ParamFromParameters, NULL, "", 0u, 1u);
@@ -1083,7 +1083,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
             
             // Structured parameters, descend the tree
             addrIdx         = rtwCAPI_GetModelParameterAddrIdx(modelParams,paramIdx);
-            paramAddress    = (void *) rtwCAPI_GetDataAddress(dataAddrMap,addrIdx);
+            paramAddress    = static_cast<void*>(rtwCAPI_GetDataAddress(dataAddrMap,addrIdx));
             SUBdimIdx       = rtwCAPI_GetModelParameterDimensionIdx(modelParams, paramIdx);
             SUBnumDims      = rtwCAPI_GetNumDims(dimMap, SUBdimIdx);
             SUBdimArrayIdx  = rtwCAPI_GetDimArrayIndex(dimMap, SUBdimIdx);
@@ -1116,7 +1116,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
             StreamString paramNameAndSeparator = StreamString(paramName);
             paramNameAndSeparator += paramSeparator;
             
-            ok = ScanParametersStruct(dataTypeIdx, 1u, (uint8*) paramAddress, paramNameAndSeparator, absDeltaAddress, "");
+            ok = ScanParametersStruct(dataTypeIdx, 1u, static_cast<uint8*>(paramAddress), paramNameAndSeparator, absDeltaAddress, "");
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanParameterStruct for parameter %s.", paramName);
             }
@@ -1132,7 +1132,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(rtwCAPI_ModelMappingInfo* mmi)
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer) {
+bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint64 baseoffset, StreamString spacer) {
     
     bool ok = true;
     
@@ -1267,7 +1267,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, 
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint32 baseOffset, const uint32 depth)
+bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth)
 {
     bool ok = true;
     
@@ -1560,7 +1560,7 @@ bool SimulinkWrapperGAM::ScanRootIO(rtwCAPI_ModelMappingInfo* mmi, SignalDirecti
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint32 baseOffset, StreamString spacer){
+bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer){
     
     bool ok = true;
     
@@ -1671,7 +1671,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanSignal(const uint32 sigidx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString baseName, const uint32 baseOffset, const uint32 depth)
+bool SimulinkWrapperGAM::ScanSignal(const uint32 sigidx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth)
 {
     bool ok = true;
     

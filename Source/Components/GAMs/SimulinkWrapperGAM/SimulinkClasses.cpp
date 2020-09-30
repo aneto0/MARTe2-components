@@ -338,7 +338,7 @@ SimulinkSignal::SimulinkSignal() : SimulinkDataI() {
     requiresTransposition = false;
 }
 
-void SimulinkSignal::PrintSignal(const uint32 maxNameLength /* = 0u */ ) {
+void SimulinkSignal::PrintSignal(const uint64 maxNameLength /* = 0u */ ) {
     
     SimulinkDataI::PrintData(maxNameLength);
 }
@@ -399,7 +399,7 @@ bool SimulinkPort::AddSignal(SimulinkSignal* const signalIn) {
     return ok;
 }
 
-void SimulinkPort::PrintPort(const uint32 maxNameLength) {
+void SimulinkPort::PrintPort(const uint64 maxNameLength) {
     
     StreamString typeStr = "";
     if (hasHomogeneousType) {

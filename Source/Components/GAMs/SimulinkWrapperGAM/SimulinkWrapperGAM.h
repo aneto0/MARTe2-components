@@ -589,7 +589,7 @@ private:
      * @param[in] spacer      spacer for Printf(), it is different if this is the last parameter of a structure
      * @returns `true` if the parameter structure has been correctly scanned, `false` otherwise.
      */
-    bool ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint32 baseoffset, StreamString spacer);
+    bool ScanParametersStruct(uint32 dataTypeIdx, uint32 depth, void *startaddr, StreamString basename, uint64 baseoffset, StreamString spacer);
 
 
     /**
@@ -605,7 +605,7 @@ private:
      * @param[in] depth       tree depth level at call (for recursive callings)
      * @returns `true` if the parameter has been correctly scanned, `false` otherwise.
      */
-    bool ScanParameter(const uint32 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint32 baseOffset, const uint32 depth);
+    bool ScanParameter(const uint32 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth);
 
     /**
      * @brief Scans the root level input or output tree of the loaded Simulink .so code
@@ -629,7 +629,7 @@ private:
      * @param[in] spacer      spacer for Printf(), it is different if this is the last parameter of a structure
      * @returns `true` if the signal structure has been correctly scanned, `false` otherwise.
      */
-    bool ScanSignalsStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint32 baseOffset, StreamString spacer);
+    bool ScanSignalsStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer);
 
     /**
      * @brief     Helper function to scan a signal
@@ -644,7 +644,7 @@ private:
      * @param[in] depth      tree depth level at call (for recursive callings)
      * @returns `true` if the signal has been correctly scanned, `false` otherwise.
      */
-    bool ScanSignal(const uint32 sigidx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString basename, const uint32 baseOffset, const uint32 depth);
+    bool ScanSignal(const uint32 sigidx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString basename, const uint64 baseOffset, const uint32 depth);
     
     /**
      * @brief Check coherence between model ports and GAM signals and map them.
