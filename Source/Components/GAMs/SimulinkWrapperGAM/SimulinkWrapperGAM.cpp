@@ -592,8 +592,6 @@ bool SimulinkWrapperGAM::Setup() {
 /*lint -e{613} NULL pointers are checked beforehand.*/
 bool SimulinkWrapperGAM::SetupSimulink() {
     
-/*lint --e{923} pointer arithmetic in this class looks safe. However, that part should probably be refactored */
-
     bool status;
     
     REPORT_ERROR(ErrorManagement::Information, "Allocating Simulink model dynamic memory...");
@@ -1027,6 +1025,7 @@ bool SimulinkWrapperGAM::Execute() {
 /*lint -e{613} NULL pointers are checked beforehand.*/
 bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* const mmi)
 {
+    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this class looks safe. However, that part should probably be refactored */
     
     uint32        nOfParams = 0u;
     
@@ -1161,6 +1160,8 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
 bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer) {
+    
+    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this class looks safe. However, that part should probably be refactored */
     
     bool ok = true;
     
@@ -1306,6 +1307,8 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
 /*lint -e{613} NULL pointers are checked in the caller method.*/
 bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth)
 {
+    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this class looks safe. However, that part should probably be refactored */
+    
     bool ok = true;
     
     const char8*        ELEelementName   = NULL_PTR(char8*);
