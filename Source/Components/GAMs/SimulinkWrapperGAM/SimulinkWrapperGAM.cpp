@@ -1025,7 +1025,7 @@ bool SimulinkWrapperGAM::Execute() {
 /*lint -e{613} NULL pointers are checked beforehand.*/
 bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* const mmi)
 {
-    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this class looks safe. However, that part should probably be refactored */
+    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this method looks safe. However, that part should probably be refactored */
     
     uint32        nOfParams = 0u;
     
@@ -1161,7 +1161,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
 /*lint -e{613} NULL pointers are checked in the caller method.*/
 bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer) {
     
-    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this class looks safe. However, that part should probably be refactored */
+    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this method looks safe. However, that part should probably be refactored */
     
     bool ok = true;
     
@@ -1307,7 +1307,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
 /*lint -e{613} NULL pointers are checked in the caller method.*/
 bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth)
 {
-    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this class looks safe. However, that part should probably be refactored */
+    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this method looks safe. However, that part should probably be refactored */
     
     bool ok = true;
     
@@ -1467,6 +1467,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
 
 /*lint -e{613} NULL pointers are checked beforehand.*/
 bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, const SignalDirection mode) {
+    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this method looks safe. However, that part should probably be refactored */
     
     uint32       nOfSignals = 0u;
     const char8* sigName;
@@ -1627,6 +1628,8 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
 /*lint -e{613} NULL pointers are checked in the caller method.*/
 bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer){
     
+    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this method looks safe. However, that part should probably be refactored */
+    
     bool ok = true;
     
     const char8* elementName;
@@ -1746,8 +1749,9 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth)
-{
+bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth) {
+    /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this method looks safe. However, that part should probably be refactored */
+    
     bool ok = true;
     
     const char8*        ELEelementName   = NULL_PTR(char8*);
