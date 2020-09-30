@@ -1692,7 +1692,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
     uint32              ELEdimArrayIdx;
     rtwCAPI_Orientation ELEorientation;
     
-    uint64              ELEsize         = 1u;
+    uint32              ELEsize         = 1u;
     uint32              ELEMARTeNumDims = 0u;   // number of dimensions according to MARTe standard
     
     StreamString        fullPathName;
@@ -1762,7 +1762,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
         }
 
         if (mode == SignalFromSignals) {
-            currentPort->CAPISize = ELEsize*ELEdataTypeSize;
+            currentPort->CAPISize = static_cast<uint64>(ELEsize)*ELEdataTypeSize;
             currentPort->byteSize = ELEsize*ELEdataTypeSize; 
         }
 

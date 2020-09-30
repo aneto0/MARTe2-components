@@ -257,7 +257,7 @@ public:
     uint32 runningOffset;
     uint64 typeBasedSize;
     uint64 offsetBasedSize;
-    uint64 CAPISize;
+    uint32 CAPISize;
     
     void*  baseAddress;
     void*  lastSignalAddress;
