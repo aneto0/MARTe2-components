@@ -627,7 +627,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         modelNumOfOutputs    = rtwCAPI_GetNumRootOutputs(mmi);
         modelNumOfParameters = rtwCAPI_GetNumModelParameters(mmi);
         
-        RTWCAPIV2LOG(ErrorManagement::Information, "Simulink C API version number: %d", mmi->versionNum);
+        if (verbosityLevel > 1u) {
+            REPORT_ERROR(ErrorManagement::Information, "Simulink C API version number: %d", mmi->versionNum);
+        }
         
         uint32 numberOfGAMInputSignals  = GetNumberOfInputSignals();
         uint32 numberOfGAMOutputSignals = GetNumberOfOutputSignals();
@@ -692,7 +694,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 maxNameLength = currentNameSize;
             }
         }
-        RTWCAPIV1LOG(ErrorManagement::Information, "%s, configured tunable parameters:", libraryName.Buffer());
+        if (verbosityLevel > 0u) {
+            REPORT_ERROR(ErrorManagement::Information, "%s, configured tunable parameters:", libraryName.Buffer());
+        }
         for(uint32 paramIdx = 0u; paramIdx < modelParameters.GetSize(); paramIdx++) {
             modelParameters[paramIdx]->PrintData(maxNameLength);
         }
@@ -733,7 +737,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 maxNameLength = currentNameSize;
             }
         }
-        RTWCAPIV1LOG(ErrorManagement::Information, "%s, configured input/output ports:", libraryName.Buffer());
+        if (verbosityLevel > 0u) {
+            REPORT_ERROR(ErrorManagement::Information, "%s, configured input/output ports:", libraryName.Buffer());
+        }
         for (uint32 portIdx = 0u; portIdx < modelPorts.GetSize(); portIdx++) {
             modelPorts[portIdx]->PrintPort(maxNameLength);
         }
@@ -953,9 +959,11 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         
         uint32 signalsInThisPort = (modelPorts[portIdx]->carriedSignals).GetSize();
         
-        RTWCAPIV2LOGST(ErrorManagement::Information,
-            "IN port %s, # signals %d, signal content:",
-            (modelPorts[portIdx]->fullName).Buffer(), signalsInThisPort);
+        if (verbosityLevel > 1u) {
+            REPORT_ERROR(ErrorManagement::Information,
+                "IN port %s, # signals %d, signal content:",
+                (modelPorts[portIdx]->fullName).Buffer(), signalsInThisPort);
+        }
         
         for(uint32 signalIdx = 0u; signalIdx < signalsInThisPort; signalIdx++) {
             (modelPorts[portIdx]->carriedSignals[signalIdx])->PrintSignal(40ul);
@@ -967,9 +975,11 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         
         uint32 signalsInThisPort = (modelPorts[portIdx]->carriedSignals).GetSize();
         
-        RTWCAPIV2LOGST(ErrorManagement::Information,
-            "OUT port %s, # signals %d, signal content:",
-            (modelPorts[portIdx]->fullName).Buffer(), signalsInThisPort);
+        if (verbosityLevel > 1u) {
+            REPORT_ERROR(ErrorManagement::Information,
+                "OUT port %s, # signals %d, signal content:",
+                (modelPorts[portIdx]->fullName).Buffer(), signalsInThisPort);
+        }
         
         for(uint32 signalIdx = 0u; signalIdx < signalsInThisPort; signalIdx++) {
             (modelPorts[portIdx]->carriedSignals[signalIdx])->PrintSignal(40ul);
@@ -1052,7 +1062,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
     if (ok) {
         nOfParams = rtwCAPI_GetNumModelParameters(mmi);
         if (nOfParams == 0u) {
-            RTWCAPIV1LOG(ErrorManagement::Information, "No tunable parameters found.");
+            if (verbosityLevel > 0u) { REPORT_ERROR(ErrorManagement::Information, "No tunable parameters found."); }
         }
     }
     
@@ -1411,8 +1421,9 @@ bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer,
                 paramInfoString += GetOrientationName(ELEorientation);
             }
             
-            REPORT_ERROR(ErrorManagement::Information, paramInfoString.Buffer());
-            
+            if (ok) {
+                REPORT_ERROR(ErrorManagement::Information, paramInfoString.Buffer());
+            }
         }
         
         // Parameter that is currently being updated.
@@ -1490,7 +1501,7 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
         case InputSignals:
             nOfSignals = rtwCAPI_GetNumRootInputs(mmi);
             if (nOfSignals == 0u) {
-                RTWCAPIV1LOG(ErrorManagement::Information, "No root inputs found");
+                if (verbosityLevel > 0u) { REPORT_ERROR(ErrorManagement::Information, "No root inputs found"); }
             }
             sigGroup = rootInputs;
             break;
@@ -1498,7 +1509,7 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
         case OutputSignals:
             nOfSignals = rtwCAPI_GetNumRootOutputs(mmi);
             if (nOfSignals == 0u) {
-                RTWCAPIV1LOG(ErrorManagement::Information, "No root outputs found");
+                if (verbosityLevel > 0u) { REPORT_ERROR(ErrorManagement::Information, "No root outputs found"); }
             }
             sigGroup = rootOutputs;
             break;
@@ -1566,9 +1577,20 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
                 uint64 absDeltaAddress;
                 currentPort->baseAddress = sigAddress;
                 absDeltaAddress = reinterpret_cast<uint64>(sigAddress) - reinterpret_cast<uint64>(currentPort->baseAddress);
-
-                RTWCAPIV2LOG(ErrorManagement::Information, "%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, struct with %d elems, size: %d bytes, base addr: %p, abs delta: %d",
-                       sigName, numElements, dataTypeSize, sigAddress, absDeltaAddress);
+                
+                // Print info about the scanned parameter
+                if (verbosityLevel > 1u) {
+                    
+                    // add spaces to align names
+                    StreamString alignedName = sigName;
+                    while (alignedName.Size() < maxVariableNameLentgh) {
+                        alignedName += " ";
+                    }
+                    
+                    REPORT_ERROR(ErrorManagement::Information, "%s, struct with %d elems, size: %d bytes, base addr: %p, abs delta: %d",
+                       alignedName.Buffer(), numElements, dataTypeSize, sigAddress, absDeltaAddress);
+                        
+                }
                 
                 currentPort->CAPISize = dataTypeSize;
                 currentPort->byteSize = dataTypeSize;
@@ -1676,15 +1698,27 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
             uint64 absDeltaAddress;
             absDeltaAddress = reinterpret_cast<uint64>(runningbyteptr) - reinterpret_cast<uint64>(currentPort->baseAddress);
             
-            RTWCAPIV2LOG(ErrorManagement::Information, "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, nested struct (idx %d) with %d elems, offset: %d, base addr: %p, same level delta: %d, abs delta: %d",
-                    specificSpacer.Buffer(), elementName, elemIdx, SUBnumElements, SUBdataTypeOffset, runningbyteptr, deltaaddr, absDeltaAddress);
+            // Print info about the scanned parameter
+            if (verbosityLevel > 1u) {
+                
+                // add spaces to align names
+                StreamString alignedName = specificSpacer;
+                alignedName += elementName;
+                while (alignedName.Size() < (maxVariableNameLentgh + (specificSpacer.Size()/2u) )) {
+                    alignedName += " ";
+                }
+                
+                REPORT_ERROR(ErrorManagement::Information, "%s, nested struct (idx %d) with %d elems, offset: %d, base addr: %p, same level delta: %d, abs delta: %d",
+                    alignedName.Buffer(), elemIdx, SUBnumElements, SUBdataTypeOffset, runningbyteptr, deltaaddr, absDeltaAddress);
+                    
+            }
             
             StreamString nameAndSeparators = baseName;
             nameAndSeparators += elementName;
             nameAndSeparators += signalSeparator;
             
             if ( elemIdx == (numElements - 1u) ) { 
-                passoverSpacer += "  "; 
+                passoverSpacer += "  ";  // first space is a non-breaking space for size symmetry with ┆
             } else {
                 passoverSpacer += "┆ ";
             }
@@ -1805,36 +1839,44 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
         currentPort->lastSignalAddress = ELEparamAddress;
 
         // Tree view
-        StreamString paramInfoString = "";
-        ok = paramInfoString.Printf(
-            "%s%-" PRINTFVARDEFLENGTH(SLVARNAMEDEFLENGTH) "s, offset %d, type %s (%d bytes), ndims %d, dims [",
-            spacer.Buffer(), ELEelementName, ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
-        
-        if (ok) {
-            ok = paramInfoString.Printf("%d", ELEactualDimensions[0u]);
-        
-            for (uint32 dimIdx = 0u; (dimIdx < ELEnumDims) && ok; dimIdx++) {
+        // Print info about the scanned parameter
+        if (verbosityLevel > 1u) {
             
-                ok = paramInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
+            // add spaces to align names
+            StreamString alignedName = spacer;
+            alignedName += ELEelementName;
+            while ( alignedName.Size() < (maxVariableNameLentgh + (spacer.Size()/2u) ) ) {
+                alignedName += " ";
             }
-            // TODO printf version used to erase the leading zeros in front of the pointer
-            ok = paramInfoString.Printf("], addr: %p, pr sig delta: %d, orient: ",ELEparamAddress, deltaAddress);
-            paramInfoString += GetOrientationName(ELEorientation);
-        }
-        if (ok) {
-            RTWCAPIV2LOG(ErrorManagement::Information, paramInfoString.Buffer());
+            
+            StreamString signalInfoString = "";
+            ok = signalInfoString.Printf("%s, offset %d, type %-6s (%d bytes), ndims %d, dims [",
+                alignedName.Buffer(), ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
+            
+            if (ok) {
+                ok = signalInfoString.Printf("%d", ELEactualDimensions[0u]);
+            
+                for (uint32 dimIdx = 1u; (dimIdx < ELEnumDims) && ok; dimIdx++) {
+                    ok = signalInfoString.Printf(",%d", ELEactualDimensions[dimIdx]);
+                }
+                
+                // TODO printf version used to erase the leading zeros in front of the pointer
+                ok = signalInfoString.Printf("], addr: %p, pr sig delta: %d, orient: ", ELEparamAddress, deltaAddress);
+                signalInfoString += GetOrientationName(ELEorientation);
+            }
+            
+            if (ok) {
+                REPORT_ERROR(ErrorManagement::Information, signalInfoString.Buffer());
+            }
         }
         
         currentPort->typeBasedSize += static_cast<uint64>(ELEsize)*ELEdataTypeSize;
         currentPort->totalNumberOfElements += ELEsize;
         currentPort->numberOfDimensions = ELEMARTeNumDims;
         
-        StreamString sstemp;
-        sstemp = ELEctypename;
-        
         if (!currentPort->isTyped) {
             // this is first signal encountered in this port, set type
-            currentPort->cTypeName     = sstemp;
+            currentPort->cTypeName     = ELEctypename;
             currentPort->MARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEctypename);
             currentPort->type          = TypeDescriptor::GetTypeDescriptorFromTypeName(GetMARTeTypeNameFromCTypeName(ELEctypename));
             currentPort->dataTypeSize  = ELEdataTypeSize;
@@ -1848,7 +1890,8 @@ bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, co
         }
         else {
             // not the first signal, check coherence with previous ones
-            if (sstemp != currentPort->cTypeName) {
+            if ( StreamString(ELEctypename) != currentPort->cTypeName ) {
+                
                 currentPort->cTypeName     = "unsigned char";
                 currentPort->MARTeTypeName = "uint8";
                 currentPort->type          = TypeDescriptor::GetTypeDescriptorFromTypeName("uint8");
