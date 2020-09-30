@@ -555,7 +555,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
 }
 
 
-/*lint -e{ 923, 9016, 9091 } pointer arithmetic in this class looks safe. However, that part should probably be refactored */
+/*lint -e{923} -e{9016} -e{9091} pointer arithmetic in this class looks safe. However, that part should probably be refactored */
 bool SimulinkWrapperGAM::Setup() {
     
     bool ok = SetupSimulink();
