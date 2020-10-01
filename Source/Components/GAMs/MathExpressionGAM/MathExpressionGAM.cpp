@@ -51,6 +51,7 @@ MathExpressionGAM::MathExpressionGAM() :
     outputSignals = NULL_PTR(SignalStruct*);
 }
 
+/*lint -e{1551} destructor needs to delete the allocated components*/
 MathExpressionGAM::~MathExpressionGAM() {
     
     if (mathParser != NULL) {
@@ -82,7 +83,7 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
     
     // Parser initialization
     if (ok) {
-        expr.Seek(0);
+        (void) expr.Seek(0LLU);
         mathParser = new MathExpressionParser(expr);
         ok = mathParser->Parse();
         if (!ok) {
@@ -93,6 +94,7 @@ bool MathExpressionGAM::Initialise(StructuredDataI &data) {
     
     // Evaluator initialization
     if (ok) {
+        /*lint -e{613} ok = True => mathParser != NULL*/
         evaluator = new RuntimeEvaluator(mathParser->GetStackMachineExpression());
     }
 
@@ -147,6 +149,7 @@ bool MathExpressionGAM::Setup() {
     
     // 2. Evaluator initialization
     if (ok) {
+        /*lint -e{613} ok = True => evaluator != NULL*/
         ok = evaluator->ExtractVariables();
         if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError,
@@ -156,6 +159,7 @@ bool MathExpressionGAM::Setup() {
     
     // look for input variable among input signals
     if (ok){
+        /*lint -e{613} ok = True => evaluator != NULL*/
         for (uint32 signalIdx = 0u; (signalIdx < numberOfInputSignals) && (ok); signalIdx++) {
                 
             ok = evaluator->SetInputVariableType(inputSignals[signalIdx].name, inputSignals[signalIdx].type);
@@ -172,6 +176,7 @@ bool MathExpressionGAM::Setup() {
 
     // look for output variable among output signals
     if (ok){
+        /*lint -e{613} ok = True => evaluator != NULL*/
         for (uint32 signalIdx = 0u; (signalIdx < numberOfOutputSignals) && (ok); signalIdx++) {
                 
             ok = evaluator->SetOutputVariableType(outputSignals[signalIdx].name, outputSignals[signalIdx].type);
@@ -193,6 +198,7 @@ bool MathExpressionGAM::Setup() {
     
     // input variables
     index = 0u;
+    /*lint -e{613} Initialise() = True => evaluator != NULL*/
     while(evaluator->BrowseInputVariable(index, var) && ok) {
         
         if (StringHelper::CompareN((var->name).Buffer(), "Constant@", 9u) != 0) {    // exclude constants
@@ -208,6 +214,7 @@ bool MathExpressionGAM::Setup() {
     
     // output variables (only a warning is issued, internal output variables are allowed)
     index = 0u;
+    /*lint -e{613} Initialise() = True => evaluator != NULL*/
     while(evaluator->BrowseOutputVariable(index, var) && ok) {
         
         if (var->externalLocation == NULL) {
@@ -220,6 +227,7 @@ bool MathExpressionGAM::Setup() {
     
     // 5. Compilation
     if (ok) {
+        /*lint -e{613} ok = True => evaluator != NULL*/
         ok = evaluator->Compile();
         if(!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError,
@@ -232,7 +240,7 @@ bool MathExpressionGAM::Setup() {
 }
 
 bool MathExpressionGAM::Execute() {
-    
+    /*lint -e{613} ok = True => evaluator != NULL*/
     return evaluator->Execute();
     
 }
