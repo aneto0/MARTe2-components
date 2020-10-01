@@ -1648,9 +1648,9 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
     StreamString specificSpacer; // spacer of the current signal
     StreamString passoverSpacer; // spacer that will be passed to a recursive call
     
-    for(uint32 elemIdx = 0u; (elemIdx < numElements) && ok; elemIdx++) {
+    for(uint16 elemIdx = 0u; (elemIdx < numElements) && ok; elemIdx++) {
         
-        elementName         = rtwCAPI_GetElementName        (elementMap,  static_cast<uint16>(elemIdx + elemMapIdx));
+        elementName         = rtwCAPI_GetElementName        (elementMap,  elemIdx + elemMapIdx);
         SUBdataTypeIndex    = rtwCAPI_GetElementDataTypeIdx (elementMap,  elemIdx + elemMapIdx);
         SUBdataTypeOffset   = rtwCAPI_GetElementOffset      (elementMap,  elemIdx + elemMapIdx);
         SUBslDataID         = rtwCAPI_GetDataTypeSLId       (dataTypeMap, SUBdataTypeIndex);
