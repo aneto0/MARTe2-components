@@ -1536,7 +1536,7 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
         ok = (sigGroup != NULL);
     }
     
-    for (uint32 sigIdx = 0u; (sigIdx < nOfSignals) && ok ; sigIdx++) {
+    for (uint16 sigIdx = 0u; (sigIdx < nOfSignals) && ok ; sigIdx++) {
         
         dataTypeIdx  = rtwCAPI_GetSignalDataTypeIdx(sigGroup, sigIdx);              // Index into the data type in rtwCAPI_DataTypeMap
         sigName      = rtwCAPI_GetSignalName(sigGroup, sigIdx);                     // Name of the parameter
