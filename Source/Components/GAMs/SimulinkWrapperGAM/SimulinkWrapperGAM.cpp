@@ -1650,7 +1650,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
     
     for(uint32 elemIdx = 0u; (elemIdx < numElements) && ok; elemIdx++) {
         
-        elementName         = rtwCAPI_GetElementName        (elementMap,  elemIdx + static_cast<uint32>(elemMapIdx));
+        elementName         = rtwCAPI_GetElementName        (elementMap,  static_cast<uint16>(elemIdx + elemMapIdx));
         SUBdataTypeIndex    = rtwCAPI_GetElementDataTypeIdx (elementMap,  elemIdx + elemMapIdx);
         SUBdataTypeOffset   = rtwCAPI_GetElementOffset      (elementMap,  elemIdx + elemMapIdx);
         SUBslDataID         = rtwCAPI_GetDataTypeSLId       (dataTypeMap, SUBdataTypeIndex);
