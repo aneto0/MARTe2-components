@@ -1749,7 +1749,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth) {
+bool SimulinkWrapperGAM::ScanSignal(const uint32 sigIdx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth) {
     /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this method looks safe. However, that part should probably be refactored */
     
     bool ok = true;
