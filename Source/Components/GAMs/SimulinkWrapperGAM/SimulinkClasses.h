@@ -66,7 +66,7 @@ static const uint32 maxVariableNameLentgh = 40u;
  *          (i.e. parameters, ports and signals). Properties that are specific
  *          to each object are managed by subclasses of this class.
  */
- /*lint -esym(1790,MARTe::SimulinkDataI) it's ok for MARTe::SimulinkDataI to have no non-destructor virtual functions */
+/*lint -esym(1790,MARTe::SimulinkDataI) it's ok for MARTe::SimulinkDataI to have no non-destructor virtual functions */
 class SimulinkDataI {
     
 public:
@@ -191,6 +191,7 @@ public:
  *          members: #MARTeAddress and #offset (see their description
  *          for details).
  */
+/*lint -esym(1790,MARTe::SimulinkSignal) it's ok for MARTe::SimulinkDataI to have no non-destructor virtual functions */
 class SimulinkSignal : public SimulinkDataI {
 
 public:

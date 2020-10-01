@@ -1185,7 +1185,8 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
 
     StreamString specificSpacer; // spacer of the current parameter
     StreamString passoverSpacer; // spacer that will be passed to a recursive call
-
+    
+    /*lint -e{850} elemIdx is NOT modified in the body of the loop! */
     for(uint16 elemIdx = 0u; (elemIdx < numElements) && ok; elemIdx++) {
         
         elementName         = rtwCAPI_GetElementName        (elementMap, elemIdx + elemMapIdx);
@@ -1652,6 +1653,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
     StreamString specificSpacer; // spacer of the current signal
     StreamString passoverSpacer; // spacer that will be passed to a recursive call
     
+    /*lint -e{850} elemIdx is NOT modified in the body of the loop! */
     for(uint16 elemIdx = 0u; (elemIdx < numElements) && ok; elemIdx++) {
         
         elementName         = rtwCAPI_GetElementName        (elementMap,  elemIdx + elemMapIdx);
