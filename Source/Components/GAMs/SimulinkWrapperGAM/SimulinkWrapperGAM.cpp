@@ -1073,7 +1073,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
         }
     }
     
-    for(uint32 paramIdx = 0u; (paramIdx < nOfParams) && ok; paramIdx++) {
+    for(uint16 paramIdx = 0u; (paramIdx < nOfParams) && ok; paramIdx++) {
         
         dataTypeIdx  = rtwCAPI_GetModelParameterDataTypeIdx(modelParams, paramIdx); // Index into the data type in rtwCAPI_DataTypeMap
         paramName    = rtwCAPI_GetModelParameterName(modelParams, paramIdx);        // Name of the parameter
@@ -1185,7 +1185,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
     StreamString specificSpacer; // spacer of the current parameter
     StreamString passoverSpacer; // spacer that will be passed to a recursive call
 
-    for(uint32 elemIdx = 0u; (elemIdx < numElements) && ok; elemIdx++) {
+    for(uint16 elemIdx = 0u; (elemIdx < numElements) && ok; elemIdx++) {
         
         elementName         = rtwCAPI_GetElementName        (elementMap, elemIdx + elemMapIdx);
         SUBdimIdx           = rtwCAPI_GetElementDimensionIdx(elementMap, elemIdx + elemMapIdx);
@@ -1305,7 +1305,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanParameter(const uint32 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth)
+bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth)
 {
     /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this method looks safe. However, that part should probably be refactored */
     
