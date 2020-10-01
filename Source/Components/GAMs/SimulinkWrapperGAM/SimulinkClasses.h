@@ -66,6 +66,7 @@ static const uint32 maxVariableNameLentgh = 40u;
  *          (i.e. parameters, ports and signals). Properties that are specific
  *          to each object are managed by subclasses of this class.
  */
+ /*lint -e{1790} it's ok for MARTe::SimulinkDataI to have no non-destructor virtual functions */
 class SimulinkDataI {
     
 public:
