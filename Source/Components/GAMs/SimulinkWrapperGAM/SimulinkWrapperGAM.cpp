@@ -1110,10 +1110,12 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
             
             for(uint32 idx2 = 0u; (idx2 < SUBnumDims) && ok; idx2++) {
                 
-                if(dimArray[SUBdimArrayIdx + idx2] > 1u) {                   /*lint --e(679) uint32 used as index of uint32[] is ok */
+                /*lint -e{679} uint32 used as index of uint32[] is ok */
+                if(dimArray[SUBdimArrayIdx + idx2] > 1u) {
                     structarray = true;
                 }
-                ok = diminfo.Printf("%u", dimArray[SUBdimArrayIdx + idx2]);  /*lint --e(679) uint32 used as index of uint32[] is ok */
+                /*lint -e{679} uint32 used as index of uint32[] is ok */
+                ok = diminfo.Printf("%u", dimArray[SUBdimArrayIdx + idx2]);
                 if ( idx2 != ( static_cast<uint32>(SUBnumDims) - 1u ) ) {
                     diminfo += ",";
                 }
