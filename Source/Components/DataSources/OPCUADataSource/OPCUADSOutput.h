@@ -34,8 +34,7 @@
 
 #include "DataSourceI.h"
 #include "MemoryMapAsyncOutputBroker.h"
-#include "OPCUAClientWrapper.h"
-
+#include "OPCUAClientWrite.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -44,14 +43,15 @@
 namespace MARTe {
 
 /**
- * @brief OPCUADSOutput class. It is the OPCUA Output DataSource that manages the write-only OPCUA client life cycle.
+ * @brief Output DataSource class that manages the write-only OPCUA client life cycle.
  * @details This DataSource allows to write data to Node Variables managed by an OPCUA Server.
- * This class uses the OPC UA Write Service.
+ * This class uses the OPC UA RegisteredWrite Service.
  * You must assign the actual name of the Node you want to read as signal name.
  * Since it uses the TranslateBrowsePathToNodeId service, you must indicate the relative browse path of the Address Space
  * starting from the OPCUA Object of interest inside the "Objects" folder.
  *
- * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. Strings are not supported yet.
+ * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. It also support OPCUA ExtensionObject structure.
+ * Strings are not supported yet.
  *
  * The configuration syntax is (names are only given as an example):
  * <pre>
@@ -77,16 +77,35 @@ namespace MARTe {
  *     }
  * }
  * </pre>
+ *
+ * In the case one wants to read a structure as an OPCUA ExtensionObject using the Complex DataType Extension, the syntax is the following:
+ * <pre>
+ * +OPCUA = {
+ *     Class = OPCUADataSource::OPCUADSOutput
+ *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     Signals = {
+ *         NodeStructure1 = {
+ *             Type = MyStructure
+ *             NamespaceIndex = 3
+ *             Path = Object3.Block1.Block2.NodeStructure1
+ *             ExtensionObject = "yes"
+ *         }
+ *     }
+ * }
+ * </pre>
+ * When using Complex DataType Extension, the DataSource only allows to write 1 structure. If you need to add more signals you must add
+ * another OPCUADSOuput DataSource to your real time application.
  */
 class OPCUADSOutput: public DataSourceI {
 
 public:
+
     CLASS_REGISTER_DECLARATION()
 
-/**
- * @brief Default Constructor
- */
-OPCUADSOutput    ();
+    /**
+     * @brief Default Constructor
+     */
+    OPCUADSOutput();
 
     /**
      * @brief Default Destructor
@@ -96,71 +115,105 @@ OPCUADSOutput    ();
     /**
      * @brief Loads and verifies all the configuration parameters detailed in the class description.
      * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
+     * @see DataSourceI::Initialise
      */
-    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief Gets the actual number of nodes and sets the correct browse path for each signal.
      * @details This method constructs the actual browse paths for each node
      * adding all the child nodes if the signal is an Introspection Structure.
      * @return true if all the paths were successfully constructed.
+     * @see DataSourceI::SetConfiguredDatabase
      */
-    virtual bool SetConfiguredDatabase(StructuredDataI & data);
+    virtual bool SetConfiguredDatabase(StructuredDataI &data);
 
     /**
-     * @see DataSourceI::AllocateMemory
      * @brief NOOP.
      * @return true
+     * @see DataSourceI::AllocateMemory
      */
     virtual bool AllocateMemory();
 
     /**
-     * @see DataSourceI::GetNumberOfMemoryBuffers
      * @details The memory buffer is obtained after a Browse request on the OPCUA Server's Address Space through the OPCUAClientWrapper Helper Class.
      * @pre SetConfiguredDatabase
+     * @see DataSourceI::GetSignalMemoryBuffer
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress);
 
     /**
-     * @see DataSourceI::GetBrokerName
      * @details Only OutputSignals are supported.
      * @return MemoryMapSynchronisedOutputBroker
+     * @see DataSourceI::GetBrokerName
      */
-    virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+    virtual const char8* GetBrokerName(StructuredDataI &data,
+                                       const SignalDirection direction);
 
     /**
-     * @see DataSourceI::PrepareNextState
      * @return true
+     * @see DataSourceI::PrepareNextState
      */
-    virtual bool PrepareNextState(const char8 * const currentStateName,
-            const char8 * const nextStateName);
+    virtual bool PrepareNextState(const char8 *const currentStateName,
+                                  const char8 *const nextStateName);
 
     /**
-     * @see DataSourceI::Synchronise
      * @details Provides the context to create the OPC UA Write service request.
      * @return true if all the services are executed correctly.
+     * @see DataSourceI::Synchronise
      */
     virtual bool Synchronise();
 
     /**
      * @brief Gets the server address
      */
-    const char8 * GetServerAddress();
+    const char8* GetServerAddress();
 
     /**
-     * @brief Gets the OPCUA Client pointer
+     * @brief Gets the OPCUA Client Pointer
      */
-    OPCUAClientWrapper * GetClient();
+    OPCUAClientWrite * GetOPCUAClient();
 
 private:
 
     /**
+     * @brief Read the structure recursively and gets informations about the length of the ByteString (for ExtensionObject).
+     * @param[in] intro the first introspection from which starting the research
+     * @param[out] bodyLength the length of the ByteString
+     * @return true if the structure has been introspected correctly
+     */
+    bool GetBodyLength(const Introspection *const intro,
+                       uint32 &bodyLength);
+
+    /**
+     * @brief Read the structure recursively and gets informations about the dimension (for ExtensionObject).
+     * @param[in] intro the first introspection from which starting the research
+     * @param[out] arraySize the dimension of the structure
+     */
+    void GetStructureDimensions(const Introspection *const intro,
+                                uint32 &arraySize);
+
+    /**
+     * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
+     * @param[in] intro the first introspection from which starting the research
+     * @param[out] entryArrayElements the array that holds the number of elements for introspection entry
+     * @param[out] entryTypes the array that holds the type for introspection entry
+     * @param[out] entryNumberOfMembers the array that holds the number of members for introspection entry
+     * @param[out] index which elements shall be taken from the previous arrays
+     * @return true if the structure has been introspected correctly
+     */
+    bool GetStructure(const Introspection *const intro,
+                      uint32 *&entryArrayElements,
+                      TypeDescriptor *&entryTypes,
+                      uint32 *&entryNumberOfMembers,
+                      uint32 &index);
+
+    /**
      * Pointer to the Helper Class for the main Client
      */
-    OPCUAClientWrapper * masterClient;
+    OPCUAClientWrite * masterClient;
 
     /**
      * Holds the value of the configuration parameter Address
@@ -178,10 +231,15 @@ private:
     uint32 numberOfNodes;
 
     /**
+     * Holds the value of the configuration parameter ExtensionObject
+     */
+    StreamString *extensionObject;
+
+    /**
      * The array that stores all the browse paths for each
      * node to write.
      */
-    StreamString * paths;
+    StreamString *paths;
 
     /**
      * Temporary array to store paths read from configuration
@@ -192,27 +250,52 @@ private:
      * The array that stores all the namespaceIndexes for each
      * node to write
      */
-    uint16 * namespaceIndexes;
+    uint16 *namespaceIndexes;
 
     /**
-     * Temporary array to store value read from configuration
+     * Temporary array to store namespaceIndexes read from configuration
      */
     uint16 *tempNamespaceIndexes;
 
     /**
-     * The array that stores the data's number of dimension for each node to write
+     * Temporary array to store numberOfElements read from configuration
      */
-    uint8 * nDimensions;
+    uint32 *tempNElements;
+
+    /**
+     * The array that stores the NumberOfElements for each IntrospectionEntry (for ExtensionObject)
+     */
+    uint32 *entryArrayElements;
+
+    /**
+     * The array that stores the Type for each IntrospectionEntry (for ExtensionObject)
+     */
+    TypeDescriptor *entryTypes;
+
+    /**
+     * The array that stores the NumberOfMembers for each IntrospectionEntry (for ExtensionObject)
+     */
+    uint32 *entryNumberOfMembers;
+
+    /**
+     * The array that stores the array size of the structure properties array (for ExtensionObject)
+     */
+    uint32 entryArraySize;
 
     /**
      * The array that stores the number of elements for each node to write
      */
-    uint32 * nElements;
+    uint32 *nElements;
 
     /**
      * The array that stores all the data types, as TypeDescritor, for each node to write
      */
-    TypeDescriptor * types;
+    TypeDescriptor *types;
+
+    /**
+     * The array that stores the type name for structured data types (for ExtensionObject)
+     */
+    StreamString *structuredTypeNames;
 
 };
 

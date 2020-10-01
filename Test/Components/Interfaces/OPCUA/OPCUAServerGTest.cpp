@@ -39,41 +39,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-TEST(OPCUAServerGTest,TestConstructor) {
-    OPCUAServerTest test;
-    ASSERT_TRUE(test.TestConstructor());
-}
-
-TEST(OPCUAServerGTest,Test_SetRunning) {
-    OPCUAServerTest test;
-    ASSERT_TRUE(test.Test_SetRunning());
-}
-
-TEST(OPCUAServerGTest,Test_GetRunning) {
-    OPCUAServerTest test;
-    ASSERT_TRUE(test.Test_GetRunning());
-}
-
-TEST(OPCUAServerGTest,Test_GetCPUMask) {
-    OPCUAServerTest test;
-    ASSERT_TRUE(test.Test_GetCPUMask());
-}
-
-TEST(OPCUAServerGTest,Test_GetStackSize) {
-    OPCUAServerTest test;
-    ASSERT_TRUE(test.Test_GetStackSize());
-}
-
-TEST(OPCUAServerGTest,Test_GetPort) {
-    OPCUAServerTest test;
-    ASSERT_TRUE(test.Test_GetPort());
-}
-
-TEST(OPCUAServerGTest,Test_InitAddressSpace) {
-    OPCUAServerTest test;
-    ASSERT_TRUE(test.Test_InitAddressSpace());
-}
-
 TEST(OPCUAServerGTest,TestInitialise_Default) {
     OPCUAServerTest test;
     ASSERT_TRUE(test.TestInitialise_Default());
@@ -99,19 +64,14 @@ TEST(OPCUAServerGTest,TestExecute_Introspection) {
     ASSERT_TRUE(test.TestExecute_Introspection());
 }
 
-TEST(OPCUAServerGTest,TestExecute_NoType) {
-    OPCUAServerTest test;
-    ASSERT_TRUE(test.TestExecute_NoType());
-}
-
 TEST(OPCUAServerGTest,TestExecute_IntrospectionArray) {
     OPCUAServerTest test;
     ASSERT_TRUE(test.TestExecute_IntrospectionArray());
 }
 
-TEST(OPCUAServerGTest,TestGetStructure_WrongNDimensions) {
+TEST(OPCUAServerGTest,TestExecute_WrongNDimensions) {
     OPCUAServerTest test;
-    ASSERT_TRUE(test.TestGetStructure_WrongNDimensions());
+    ASSERT_TRUE(test.TestExecute_WrongNDimensions());
 }
 
 /*---------------------------------------------------------------------------*/

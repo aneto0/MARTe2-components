@@ -52,49 +52,14 @@ public:
     bool TestInitialise();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method.
-     */
-    bool Test_SetConfiguredDatabase();
-
-    /**
-     * @brief Tests the AllocateMemory method.
-     */
-    bool Test_AllocateMemory();
-
-    /**
-     * @brief Tests the GetSignalMemoryBuffer method.
-     */
-    bool Test_GetSignalMemoryBuffer();
-
-    /**
-     * @brief Tests the PrepareNextState method.
-     */
-    bool Test_PrepareNextState();
-
-    /**
-     * @brief Tests the Synchronise method.
-     */
-    bool Test_Synchronise();
-
-    /**
-     * @brief Tests the GetBrokerName method.
-     */
-    bool Test_GetBrokerName();
-
-    /**
-     * @brief Tests the GetServerAddress method.
-     */
-    bool Test_GetServerAddress();
-
-    /**
-     * @brief Tests the GetClient method.
-     */
-    bool Test_GetClient();
-
-    /**
      * @brief Tests the Initialise method when the signals are Introspection Structures.
      */
     bool TestInitialise_Introspection();
+
+    /**
+     * @brief Tests the Initialise method with Introspections Structures read as ExtensionObject.
+     */
+    bool TestInitialise_ExtensionObject();
 
     /**
      * @brief Tests the Initialise method without specifying the address parameter.
@@ -124,7 +89,12 @@ public:
     /**
      * @brief Tests the SetTargetNodes method with a wrong path that doesn't match any variable path on the server.
      */
-    bool Test_FailSetTargetNodes();
+    bool Test_SetConfiguredDatabase_FailSetServiceRequest();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method when ExtensionObject is "yes".
+     */
+    bool Test_SetConfiguredDatabase_ExtensionObject();
 
 };
 

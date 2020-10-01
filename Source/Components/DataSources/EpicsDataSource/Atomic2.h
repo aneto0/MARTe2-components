@@ -1,6 +1,6 @@
 /**
  * @file Atomic2.h
- * @brief Header file for module Atomic2
+ * @brief Header file for class Atomic2
  * @date 21/12/2016
  * @author Ivan Herrero Molina
  *

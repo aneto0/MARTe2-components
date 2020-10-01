@@ -38,31 +38,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-bool OPCUAObjectTest::TestConstructor() {
-    using namespace MARTe;
-    OPCUAObject test;
-    return !(test.IsFirstObject());
-}
-
-bool OPCUAObjectTest::Test_IsObject() {
-    using namespace MARTe;
-    OPCUAObject test;
-    return test.IsObject();
-}
-
-bool OPCUAObjectTest::Test_SetFirst() {
-    using namespace MARTe;
-    OPCUAObject test;
-    test.SetFirst(true);
-    return test.IsFirstObject();
-}
-
-bool OPCUAObjectTest::Test_IsFirst() {
-    using namespace MARTe;
-    OPCUAObject test;
-    return !(test.IsFirstObject());
-}
-
 bool OPCUAObjectTest::TestGetOPCObject_First() {
     using namespace MARTe;
     StreamString config = ""

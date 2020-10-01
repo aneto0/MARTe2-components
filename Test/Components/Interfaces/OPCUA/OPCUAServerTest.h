@@ -41,42 +41,6 @@
  */
 class OPCUAServerTest {
 public:
-
-    /**
-     * @brief Tests the constructor
-     */
-    bool TestConstructor();
-
-    /**
-     * @brief Tests the SetRunning method
-     */
-    bool Test_SetRunning();
-
-    /**
-     * @brief Tests the GetRunning method
-     */
-    bool Test_GetRunning();
-
-    /**
-     * @brief Tests the GetCPUMask method
-     */
-    bool Test_GetCPUMask();
-
-    /**
-     * @brief Tests the GetStackSize method
-     */
-    bool Test_GetStackSize();
-
-    /**
-     * @brief Tests the GetPort method
-     */
-    bool Test_GetPort();
-
-    /**
-     * @brief Tests the InitAddressSpace method
-     */
-    bool Test_InitAddressSpace();
-
     /**
      * @brief Tests the Initialise method with default parameters.
      */
@@ -103,19 +67,14 @@ public:
     bool TestExecute_Introspection();
 
     /**
-     * @brief Tests the Execute method.
-     */
-    bool TestExecute_NoType();
-
-    /**
      * @brief Tests the Execute method when the Address Space has to be constructed from an Introspection Structure with array variables.
      */
     bool TestExecute_IntrospectionArray();
 
     /**
-     * @brief Tests the GetStructure method when a variable number of dimensions is greater than 1.
+     * @brief Tests the Execute method when a variable number of dimensions is greater than 1.
      */
-    bool TestGetStructure_WrongNDimensions();
+    bool TestExecute_WrongNDimensions();
 
 };
 

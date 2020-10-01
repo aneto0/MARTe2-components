@@ -43,6 +43,7 @@ namespace MARTe {
 
 OPCUAObject::OPCUAObject() :
         OPCUAReferenceContainer() {
+    //parentNodeId = 0u;
 }
 
 OPCUAObject::~OPCUAObject() {

@@ -52,12 +52,13 @@ namespace MARTe {
  */
 class OPCUAObject: public OPCUAReferenceContainer {
 public:
+
     CLASS_REGISTER_DECLARATION()
 
-/**
- * @brief Default constructor
- */
-OPCUAObject    ();
+    /**
+     * @brief Default constructor
+     */
+    OPCUAObject();
 
     /**
      * @brief Default Destructor
@@ -85,7 +86,7 @@ OPCUAObject    ();
 
     /**
      * @see OPCUAReferenceContainer::IsFirstObject
-     * @return true
+     * @return true if this is the first Object
      */
     virtual const bool IsFirstObject();
 

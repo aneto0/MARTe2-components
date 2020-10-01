@@ -41,22 +41,6 @@
  */
 class OPCUANodeTest {
 public:
-
-    /**
-     * @brief Tests the constructor.
-     */
-    bool TestConstructor();
-
-    /**
-     * @brief Tests the IsNode method.
-     */
-    bool Test_IsNode();
-
-    /**
-     * @brief Tests the InitArray method.
-     */
-    bool Test_InitArray();
-
     /**
      * @brief Tests the GetOPCVariable with a uint8 variable.
      */

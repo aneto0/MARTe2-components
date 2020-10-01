@@ -47,76 +47,6 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the Initialise method.
-     */
-    bool Test_Initialise();
-
-    /**
-     * @brief Tests the SetConfiguredDatabase method.
-     */
-    bool Test_SetConfiguredDatabase();
-
-    /**
-     * @brief Tests the AllocateMemory method.
-     */
-    bool Test_AllocateMemory();
-
-    /**
-     * @brief Tests the GetSignalMemoryBuffer method.
-     */
-    bool Test_GetSignalMemoryBuffer();
-
-    /**
-     * @brief Tests the GetBrokerName method when Synchronise is "yes".
-     */
-    bool Test_GetBrokerName_Sync();
-
-    /**
-     * @brief Tests the GetBrokerName method when Synchronise is "no".
-     */
-    bool Test_GetBrokerName_NoSync();
-
-    /**
-     * @brief Tests the GetBrokerName method when Synchronise is either "no" nor "yes".
-     */
-    bool Test_GetBrokerName_Error();
-
-    /**
-     * @brief Tests the PrepareNextState method.
-     */
-    bool Test_PrepareNextState();
-
-    /**
-     * @brief Tests the Execute method when ReadMode is "Read".
-     */
-    bool Test_Execute_Read();
-
-    /**
-     * @brief Tests the Execute method when ReadMode is "Monitor".
-     */
-    bool Test_Execute_Monitor();
-
-    /**
-     * @brief Tests the Execute method when ReadMode is either "Read" nor "Monitor".
-     */
-    bool Test_Execute_Error();
-
-    /**
-     * @brief Tests the Synchronise method.
-     */
-    bool Test_Synchronise();
-
-    /**
-     * @brief Tests the GetServerAddress method.
-     */
-    bool Test_GetServerAddress();
-
-    /**
-     * @brief Tests the GetThreadError method.
-     */
-    bool Test_GetThreadError();
-
-    /**
      * @brief Tests the Initialise method with default parameters.
      */
     bool TestInitialise_Default();
@@ -127,39 +57,44 @@ public:
     bool TestInitialise_Introspection();
 
     /**
-     * @brief Tests the Initialise method with Sync option enabled.
+     * @brief Tests the Initialise method with Introspections Structures read as ExtensionObject.
      */
-    bool TestInitialise_Sync();
+    bool TestInitialise_ExtensionObject();
 
     /**
-     * @brief Tests the Initialise method with Sync option and MonitoredItem service enabled.
+     * @brief Tests the Synchronise method with Sync option enabled.
      */
-    bool TestInitialise_SyncMonitor();
+    bool TestSynchronise_Default();
 
     /**
-     * @brief Tests the Initialise method with Sync option enabled and specifying a not supported read service.
+     * @brief Tests the Synchronise method with Sync option and MonitoredItem service enabled.
      */
-    bool TestInitialise_SyncWrongMode();
+    bool TestSynchronise_Monitor();
 
     /**
-     * @brief Tests the Initialise method with Thread mode enabled and default parameters.
+     * @brief Tests the Synchronise method with Sync option enabled and specifying a not supported read service.
      */
-    bool TestInitialise_Thread_Default();
+    bool TestSynchronise_WrongMode();
 
     /**
-     * @brief Tests the Initialise method with Thread mode enabled and CpuMask and StackSize defined.
+     * @brief Tests the Execute method with Thread mode enabled and default parameters.
      */
-    bool TestInitialise_Thread_NoDefault();
+    bool TestExecute_Default();
 
     /**
-     * @brief Tests the Initialise method with Thread mode and MonitoredItem enabled.
+     * @brief Tests the Execute method with Thread mode enabled and CpuMask and StackSize defined.
      */
-    bool TestInitialise_ThreadMonitor();
+    bool TestExecute_NoDefault();
 
     /**
-     * @brief Tests the Initialise method with Thread mode enabled and specifying a not supported read service.
+     * @brief Tests the Execute method with Thread mode and MonitoredItem enabled.
      */
-    bool TestInitialise_ThreadWrongMode();
+    bool TestExecute_Monitor();
+
+    /**
+     * @brief Tests the Execute method with Thread mode enabled and specifying a not supported read service.
+     */
+    bool TestExecute_WrongMode();
 
     /**
      * @brief Tests the Initialise method without specifying Address parameter.
@@ -187,9 +122,14 @@ public:
     bool Test_NumberOfDimensionsGreater1();
 
     /**
-     * @brief Tests the SetTargetNodes method with a wrong path that doesn't match any variable path on the server.
+     * @brief Tests the SetConfiguredDatabase method with a wrong path that doesn't match any variable path on the server.
      */
-    bool Test_FailSetTargetNodes();
+    bool Test_SetConfiguredDatabase_FailSetServiceRequest();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method when ExtensionObject is "yes".
+     */
+    bool Test_SetConfiguredDatabase_ExtensionObject();
 
 };
 

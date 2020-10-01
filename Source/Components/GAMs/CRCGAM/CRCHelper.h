@@ -1,7 +1,7 @@
 /**
  * @file CRCHelper.h
  * @brief Header file for class CRCHelper
- * @date Oct 29, 2018
+ * @date 29/10/2018
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and

@@ -1,7 +1,7 @@
 /**
  * @file WaveformSin.h
  * @brief Header file for class WaveformSin
- * @date May 19, 2017
+ * @date 19/05/2017
  * @author Llorenc Capella
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and

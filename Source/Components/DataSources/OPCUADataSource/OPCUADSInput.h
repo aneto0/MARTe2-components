@@ -37,8 +37,7 @@
 #include "EmbeddedServiceMethodBinderI.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "MultiThreadService.h"
-#include "OPCUAClientWrapper.h"
-
+#include "OPCUAClientRead.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -47,15 +46,16 @@
 namespace MARTe {
 
 /**
- * @brief OPCUADSInput class. It is the OPCUA Input DataSource that manages the read-only OPCUA client life cycle.
+ * @brief Input DataSource class that manages the read-only OPCUA client life cycle.
  * @details This DataSource allows to read Node Variables from an OPCUA Server. Data is read
  * from an OPCUA Address Space in the context of a thread or in the context of Synchronise method.
- * This class uses the OPC UA Read Service and the OPC UA Monitored Item Service.
+ * This class uses the OPC UA RegisteredRead Service and the OPC UA Monitored Item Service.
  * You must assign the actual name of the Node you want to read as signal name.
  * Since it uses the TranslateBrowsePathToNodeId service, you must indicate the relative browse path of the Address Space
  * starting from the OPCUA Object of interest inside the "Objects" folder.
  *
- * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. Strings are not supported yet.
+ * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. It also support OPCUA ExtensionObject structure.
+ * Strings are not supported yet.
  *
  * The configuration syntax is (names are only given as an example):
  * <pre>
@@ -86,6 +86,25 @@ namespace MARTe {
  *     }
  * }
  * </pre>
+ *
+ * In the case one wants to read a structure as an OPCUA ExtensionObject using the Complex DataType Extension, the syntax is the following:
+ * <pre>
+ * +OPCUA = {
+ *     Class = OPCUADataSource::OPCUADSInput
+ *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     Synchronise = "yes"
+ *     Signals = {
+ *         NodeStructure1 = {
+ *             Type = MyStructure
+ *             NamespaceIndex = 3
+ *             Path = Object3.Block1.Block2.NodeStructure1
+ *             ExtensionObject = "yes"
+ *         }
+ *     }
+ * }
+ * </pre>
+ * When using Complex DataType Extension, the DataSource only allows to write 1 structure. If you need to add more signals you must add
+ * another OPCUADSInput DataSource to your real time application.
  */
 class OPCUADSInput: public DataSourceI, public EmbeddedServiceMethodBinderI {
 
@@ -96,7 +115,7 @@ public:
     /**
      * @brief Default constructor. NOOP
      */
-OPCUADSInput    ();
+    OPCUADSInput();
 
     /**
      * @brief Default destructor.
@@ -106,16 +125,18 @@ OPCUADSInput    ();
     /**
      * @brief Loads and verifies all the configuration parameters detailed in the class description.
      * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
+     * @see DataSourceI::Initialise
      */
-    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief Gets the actual number of nodes and sets the correct browse path for each signal. Starts the client if Thread Service is enabled.
      * @details This method constructs the actual browse paths for each node
      * adding all the child nodes if the signal is an Introspection Structure.
      * @return true if all the paths were successfully constructed and the thread service is running.
+     * @see DataSourceI::SetConfiguredDatabase
      */
-    virtual bool SetConfiguredDatabase(StructuredDataI & data);
+    virtual bool SetConfiguredDatabase(StructuredDataI &data);
 
     /**
      * @see DataSourceI::AllocateMemory
@@ -125,57 +146,89 @@ OPCUADSInput    ();
     virtual bool AllocateMemory();
 
     /**
-     * @see DataSourceI::GetNumberOfMemoryBuffers
      * @details The memory buffer is obtained after a Browse request on the OPCUA Server's Address Space through the OPCUAClientWrapper Helper Class.
      * @pre SetConfiguredDatabase
+     * @see DataSourceI::GetSignalMemoryBuffer
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress);
 
     /**
      * @see DataSourceI::GetBrokerName
      * @details Only InputSignals are supported.
      * @return MemoryMapInputBroker if Synchronise option is set to "no", otherwise it returns MemoryMapSynchronisedInputBroker.
      */
-    virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+    virtual const char8* GetBrokerName(StructuredDataI &data,
+                                       const SignalDirection direction);
 
     /**
      * @see DataSourceI::PrepareNextState
      * @return true
      */
-    virtual bool PrepareNextState(const char8 * const currentStateName,
-            const char8 * const nextStateName);
+    virtual bool PrepareNextState(const char8 *const currentStateName,
+                                  const char8 *const nextStateName);
 
     /**
      * @brief Provides the context to create the OPCUA Subscription and Monitored Item request or the Read service request.
      * @return ErrorManagement::NoError if the OPCUA Subscription, the OPCUA Monitored Item request,
      * OPCUA Monitored Item create data change service are successfully created and the client is running with no error, or
      * the OPCUA Read Service has been executed correctly.
+     * @see EmbeddedServiceMethodBinderI::Execute
      */
-    virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
+    virtual ErrorManagement::ErrorType Execute(ExecutionInfo &info);
 
     /**
-     * @see DataSourceI::Synchronise
      * @details Provides the context to create the OPCUA Subscription and Monitored Item request or the Read service request.
      * @return true if all the services are executed correctly.
+     * @see DataSourceI::Synchronise
      */
     virtual bool Synchronise();
 
     /**
      * @brief Gets the server address
      */
-    const char8 * GetServerAddress();
+    const char8* GetServerAddress();
 
     /**
-     * @brief Return the threadError parameter value.
-     * @details This function will return an error different from NoError if the EmbeddedThread has failed once.
-     * @return The value of threadError
+     * @brief Gets the OPCUA Client Pointer
      */
-    ErrorManagement::ErrorType GetThreadError() const;
+    OPCUAClientRead * GetOPCUAClient();
+
 
 private:
+
+    /**
+     * @brief Read the structure recursively and gets informations about the length of the ByteString (for ExtensionObject).
+     * @param[in] intro the first introspection from which starting the research
+     * @param[out] bodyLength the length of the ByteString
+     * @return true if the structure has been introspected correctly
+     */
+    bool GetBodyLength(const Introspection *const intro,
+                       uint32 &bodyLength);
+
+    /**
+     * @brief Read the structure recursively and gets informations about the dimension (for ExtensionObject).
+     * @param[in] intro the first introspection from which starting the research
+     * @param[out] arraySize the dimension of the structure
+     */
+    void GetStructureDimensions(const Introspection *const intro,
+                                uint32 &arraySize);
+
+    /**
+     * @brief Read the structure recursively from the configuration file and retrieve all the informations about node types.
+     * @param[in]  intro the first introspection from which starting the research
+     * @param[out] entryArrayElements the array that holds the number of elements for introspection entry
+     * @param[out] entryTypes the array that holds the type for introspection entry
+     * @param[out] entryNumberOfMembers the array that holds the number of members for introspection entry
+     * @param[out] index which elements shall be taken from the previous arrays
+     * @return true if the structure has been introspected correctly
+     */
+    bool GetStructure(const Introspection *const intro,
+                      uint32 *&entryArrayElements,
+                      TypeDescriptor *&entryTypes,
+                      uint32 *&entryNumberOfMembers,
+                      uint32 &index);
 
     /**
      * The Thread service executor
@@ -185,12 +238,17 @@ private:
     /**
      * Pointer to the Helper Class for the main Client
      */
-    OPCUAClientWrapper * masterClient;
+    OPCUAClientRead * masterClient;
 
     /**
      * Holds the value of the configuration parameter ReadMode
      */
     StreamString readMode;
+
+    /**
+     * Holds the value of the configuration parameter ExtensionObject
+     */
+    StreamString *extensionObject;
 
     /**
      * Holds the value of the configuration parameter Synchronise
@@ -221,7 +279,7 @@ private:
      * The array that stores all the browse paths for each
      * node to read
      */
-    StreamString * paths;
+    StreamString *paths;
 
     /**
      * Temporary array to store paths read from configuration
@@ -229,10 +287,9 @@ private:
     StreamString *tempPaths;
 
     /**
-     * The array that stores all the namespaceIndexes for each
-     * node to read
+     * The array that stores all the namespaceIndexes for each node to read
      */
-    uint16 * namespaceIndexes;
+    uint16 *namespaceIndexes;
 
     /**
      * Temporary array to store value read from configuration
@@ -240,14 +297,44 @@ private:
     uint16 *tempNamespaceIndexes;
 
     /**
+     * Temporary array to store numberOfElements read from configuration
+     */
+    uint32 *tempNElements;
+
+    /**
      * The array that stores the NumberOfElements for each node to read
      */
-    uint32 * nElements;
+    uint32 *nElements;
+
+    /**
+     * The array that stores the NumberOfElements for each IntrospectionEntry (for ExtensionObject)
+     */
+    uint32 *entryArrayElements;
+
+    /**
+     * The array that stores the Type for each IntrospectionEntry (for ExtensionObject)
+     */
+    TypeDescriptor *entryTypes;
+
+    /**
+     * The array that stores the NumberOfMembers for each IntrospectionEntry (for ExtensionObject)
+     */
+    uint32 *entryNumberOfMembers;
+
+    /**
+     * The array that stores the array size of the structure properties array (for ExtensionObject)
+     */
+    uint32 entryArraySize;
 
     /**
      * The array that stores all the data types, as TypeDescritor, for each node to read
      */
-    TypeDescriptor * types;
+    TypeDescriptor *types;
+
+    /**
+     * The array that stores the type name for structured data types (for ExtensionObject)
+     */
+    StreamString *structuredTypeNames;
 
     /**
      * CPU affinity number for the executor thread
@@ -259,11 +346,6 @@ private:
      */
     uint32 stackSize;
 
-    /**
-     * The thread error
-     */
-    ErrorManagement::ErrorType threadError;
-/*lint -e{1023} ErrorManagement::ErrorType is not ambiguous*/
 };
 
 }

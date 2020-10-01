@@ -41,6 +41,7 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -165,181 +166,6 @@ bool OPCUADSOutputTest::TestInitialise() {
     return ok;
 }
 
-bool OPCUADSOutputTest::Test_SetConfiguredDatabase() {
-    using namespace MARTe;
-    StreamString config = ""
-            "+ServerTest = {\n"
-            "  Class = OPCUA::OPCUAServer\n"
-            "  CPUMask = 0x2\n"
-            "  AddressSpace = {\n"
-            "    MyNode = {\n"
-            "      Type = uint32\n"
-            "    }\n"
-            "  }\n"
-            "}\n"
-            "$Test = {\n"
-            "    Class = RealTimeApplication\n"
-            "    +Functions = {\n"
-            "        Class = ReferenceContainer\n"
-            "        +GAMTimer = {\n"
-            "            Class = IOGAM\n"
-            "            InputSignals = {\n"
-            "                Counter = {\n"
-            "                    Type = uint32\n"
-            "                    DataSource = Timer\n"
-            "                }\n"
-            "                Time = {\n"
-            "                    Frequency = 1\n"
-            "                    Type = uint32\n"
-            "                    DataSource = Timer\n"
-            "                }\n"
-            "            }\n"
-            "            OutputSignals = {\n"
-            "                Counter = {\n"
-            "                    Type = uint32\n"
-            "                    DataSource = DDB1\n"
-            "                }\n"
-            "                Time = {\n"
-            "                    Type = uint32\n"
-            "                    DataSource = DDB1\n"
-            "                }\n"
-            "            }\n"
-            "        }\n"
-            "        +GAMDisplay = {\n"
-            "            Class = IOGAM\n"
-            "            InputSignals = {\n"
-            "                Counter = {\n"
-            "                    Type = uint32\n"
-            "                    DataSource = DDB1\n"
-            "                }\n"
-            "            }\n"
-            "            OutputSignals = {\n"
-            "                Counter = {\n"
-            "                    Alias = \"MyNode\"\n"
-            "                    Type = uint32\n"
-            "                    DataSource = OPCUA\n"
-            "                }\n"
-            "            }\n"
-            "        }\n"
-            "    }\n"
-            "    +Data = {\n"
-            "        Class = ReferenceContainer\n"
-            "        DefaultDataSource = DDB1\n"
-            "    +DDB1 = {\n"
-            "      Class = GAMDataSource\n"
-            "    }\n"
-            "        +Timings = {\n"
-            "            Class = TimingDataSource\n"
-            "        }\n"
-            "        +OPCUA = {\n"
-            "            Class = OPCUADataSource::OPCUADSOutput\n"
-            "            Address = \"opc.tcp://localhost.localdomain:4840\""
-            "            Signals = {\n"
-            "                MyNode = {\n"
-            "                    NamespaceIndex = 1\n"
-            "                    Path = MyNode\n"
-            "                    Type = uint32\n"
-            "                }\n"
-            "            }\n"
-            "        }\n"
-            "    +Timer = {\n"
-            "      Class = LinuxTimer\n"
-            "      SleepNature = \"Default\"\n"
-            "      Signals = {\n"
-            "        Counter = {\n"
-            "          Type = uint32\n"
-            "        }\n"
-            "        Time = {\n"
-            "          Type = uint32\n"
-            "        }\n"
-            "      }\n"
-            "    }\n"
-            "    }\n"
-            "    +States = {\n"
-            "        Class = ReferenceContainer\n"
-            "        +State1 = {\n"
-            "            Class = RealTimeState\n"
-            "            +Threads = {\n"
-            "                Class = ReferenceContainer\n"
-            "                +Thread1 = {\n"
-            "                    Class = RealTimeThread\n"
-            "                    Functions = {GAMTimer GAMDisplay}\n"
-            "                }\n"
-            "            }\n"
-            "        }\n"
-            "    }\n"
-            "    +Scheduler = {\n"
-            "        Class = GAMScheduler\n"
-            "        TimingDataSource = Timings\n"
-            "    }\n"
-            "}\n";
-    config.Seek(0LLU);
-    ConfigurationDatabase cdb;
-    StandardParser parser(config, cdb, NULL);
-    bool ok = parser.Parse();
-    cdb.MoveToRoot();
-    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
-    if (ok) {
-        ok = ord->Initialise(cdb);
-    }
-    Sleep::MSec(200);
-    ReferenceT<RealTimeApplication> app;
-    if (ok) {
-        app = ord->Find("Test");
-        ok = app.IsValid();
-    }
-    if (ok) {
-        ok = app->ConfigureApplication();
-    }
-    Sleep::MSec(200);
-    ObjectRegistryDatabase::Instance()->Purge();
-    return ok;
-}
-
-bool OPCUADSOutputTest::Test_AllocateMemory() {
-    using namespace MARTe;
-    OPCUADSOutput test;
-    return test.AllocateMemory();
-}
-
-bool OPCUADSOutputTest::Test_GetSignalMemoryBuffer() {
-    return Test_SetConfiguredDatabase();
-}
-
-bool OPCUADSOutputTest::Test_PrepareNextState() {
-    using namespace MARTe;
-    OPCUADSOutput test;
-    return (test.PrepareNextState("", ""));
-}
-
-bool OPCUADSOutputTest::Test_Synchronise() {
-    using namespace MARTe;
-    OPCUADSOutput test;
-    return test.Synchronise();
-}
-
-bool OPCUADSOutputTest::Test_GetBrokerName() {
-    using namespace MARTe;
-    OPCUADSOutput test;
-    ConfigurationDatabase cdb;
-    bool ok = (StringHelper::Compare(test.GetBrokerName(cdb, OutputSignals), "MemoryMapSynchronisedOutputBroker") == 0);
-    return ok;
-}
-
-bool OPCUADSOutputTest::Test_GetServerAddress() {
-    using namespace MARTe;
-    OPCUADSOutput test;
-    bool ok = (StringHelper::Compare(test.GetServerAddress(), "") == 0);
-    return ok;
-}
-
-bool OPCUADSOutputTest::Test_GetClient() {
-    using namespace MARTe;
-    OPCUADSOutput test;
-    bool ok (test.GetClient() == NULL_PTR(OPCUAClientWrapper *));
-    return ok;
-}
-
 bool OPCUADSOutputTest::TestInitialise_Introspection() {
     using namespace MARTe;
     StreamString config = ""
@@ -422,6 +248,150 @@ bool OPCUADSOutputTest::TestInitialise_Introspection() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MasterSet.SensorPackage1.Sensor1\n"
             "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    +Timer = {\n"
+            "      Class = LinuxTimer\n"
+            "      SleepNature = \"Default\"\n"
+            "      Signals = {\n"
+            "        Counter = {\n"
+            "          Type = uint32\n"
+            "        }\n"
+            "        Time = {\n"
+            "          Type = uint32\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAMTimer GAMDisplay}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = GAMScheduler\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool OPCUADSOutputTest::TestInitialise_ExtensionObject() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+OPCUATypes = {\n"
+            "     Class = ReferenceContainer\n"
+            "     +SensorPackage = {\n"
+            "         Class = IntrospectionStructure\n"
+            "         Sensor1 = {\n"
+            "             Type = uint32\n"
+            "             NumberOfElements = 1\n"
+            "         }\n"
+            "     }\n"
+            "     +MasterSet = {\n"
+            "         Class = IntrospectionStructure\n"
+            "         SensorPackage1 = {\n"
+            "             Type = SensorPackage\n"
+            "             NumberOfElements = 1\n"
+            "         }\n"
+            "     }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAMTimer = {\n"
+            "            Class = IOGAM\n"
+            "            InputSignals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = Timer\n"
+            "                }\n"
+            "                Time = {\n"
+            "                    Frequency = 1\n"
+            "                    Type = uint32\n"
+            "                    DataSource = Timer\n"
+            "                }\n"
+            "            }\n"
+            "            OutputSignals = {\n"
+            "                Counter = {\n"
+            "                    Alias = \"Sensor1\"\n"
+            "                    Type = uint32\n"
+            "                    DataSource = DDB1\n"
+            "                }\n"
+            "                Time = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = DDB1\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +GAMDisplay = {\n"
+            "            Class = IOGAM\n"
+            "            InputSignals = {\n"
+            "                MasterSet = {\n"
+            "                    Type = MasterSet\n"
+            "                    DataSource = OPCUAIn\n"
+            "                }\n"
+            "            }\n"
+            "            OutputSignals = {\n"
+            "                MasterSet = {\n"
+            "                    Type = MasterSet\n"
+            "                    DataSource = OPCUAOut\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +OPCUAIn = {\n"
+            "            Class = OPCUADataSource::OPCUADSInput\n"
+            "            Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "            Synchronise = \"yes\"\n"
+            "            Signals = {\n"
+            "                MasterSet = {\n"
+            "                    NamespaceIndex = 1\n"
+            "                    Path = MasterSet\n"
+            "                    Type = MasterSet\n"
+            "                    ExtensionObject = \"yes\"\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +OPCUAOut = {\n"
+            "            Class = OPCUADataSource::OPCUADSOutput\n"
+            "            Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "            Signals = {\n"
+            "                MasterSet = {\n"
+            "                    NamespaceIndex = 1\n"
+            "                    Path = MasterSet\n"
+            "                    Type = MasterSet\n"
+            "                    ExtensionObject = \"yes\"\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1044,7 +1014,7 @@ bool OPCUADSOutputTest::Test_NumberOfDimensionsGreater1() {
     return !ok;
 }
 
-bool OPCUADSOutputTest::Test_FailSetTargetNodes() {
+bool OPCUADSOutputTest::Test_SetConfiguredDatabase_FailSetServiceRequest() {
     using namespace MARTe;
     StreamString config = ""
             "+ServerTest = {\n"
@@ -1179,15 +1149,157 @@ bool OPCUADSOutputTest::Test_FailSetTargetNodes() {
         ok = app->ConfigureApplication();
     }
     Sleep::MSec(200);
-    if (ok) {
-        OPCUAClientWrapper * ocw = odo->GetClient();
-        ok = (ocw != NULL_PTR(OPCUAClientWrapper *));
-        if (ok) {
-            UA_NodeId * nodes = ocw->GetMonitoredNodes();
-            ok = (nodes == NULL_PTR(UA_NodeId*));
-        }
-    }
     ObjectRegistryDatabase::Instance()->Purge();
     return !ok;
 }
+
+bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+OPCUATypes = {\n"
+            "     Class = ReferenceContainer\n"
+            "     +SensorPackage = {\n"
+            "         Class = IntrospectionStructure\n"
+            "         Sensor1 = {\n"
+            "             Type = uint32\n"
+            "             NumberOfElements = 1\n"
+            "         }\n"
+            "     }\n"
+            "     +MasterSet = {\n"
+            "         Class = IntrospectionStructure\n"
+            "         SensorPackage1 = {\n"
+            "             Type = SensorPackage\n"
+            "             NumberOfElements = 1\n"
+            "         }\n"
+            "     }\n"
+            "}\n"
+            "+ServerTest = {\n"
+            "  Class = OPCUA::OPCUAServer\n"
+            "  Port = 4840\n"
+            "  AddressSpace = {\n"
+            "    MasterSet = {\n"
+            "      Type = MasterSet\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAMTimer = {\n"
+            "            Class = IOGAM\n"
+            "            InputSignals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = Timer\n"
+            "                }\n"
+            "                Time = {\n"
+            "                    Frequency = 1\n"
+            "                    Type = uint32\n"
+            "                    DataSource = Timer\n"
+            "                }\n"
+            "            }\n"
+            "            OutputSignals = {\n"
+            "                Counter = {\n"
+            "                    Alias = \"Sensor1\"\n"
+            "                    Type = uint32\n"
+            "                    DataSource = DDB1\n"
+            "                }\n"
+            "                Time = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = DDB1\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +GAMDisplay = {\n"
+            "            Class = IOGAM\n"
+            "            InputSignals = {\n"
+            "                Sensor1 = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = DDB1\n"
+            "                }\n"
+            "            }\n"
+            "            OutputSignals = {\n"
+            "                Sensor1 = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = OPCUAOut\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +OPCUAOut = {\n"
+            "            Class = OPCUADataSource::OPCUADSOutput\n"
+            "            Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "            Signals = {\n"
+            "                Sensor1 = {\n"
+            "                    NamespaceIndex = 1\n"
+            "                    Path = MasterSet.SensorPackage1.Sensor1\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    +Timer = {\n"
+            "      Class = LinuxTimer\n"
+            "      SleepNature = \"Default\"\n"
+            "      Signals = {\n"
+            "        Counter = {\n"
+            "          Type = uint32\n"
+            "        }\n"
+            "        Time = {\n"
+            "          Type = uint32\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAMTimer GAMDisplay}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = GAMScheduler\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("Test");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        ok = app->ConfigureApplication();
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+
 

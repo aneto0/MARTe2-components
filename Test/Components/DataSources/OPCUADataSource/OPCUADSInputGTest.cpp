@@ -37,79 +37,13 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------*/
+/*                           Method definitions                              */
+/*---------------------------------------------------------------------------*/
+
 TEST(OPCUADSInputGTest,TestConstructor) {
     OPCUADSInputTest test;
     ASSERT_TRUE(test.TestConstructor());
-}
-
-TEST(OPCUADSInputGTest,Test_Initialise) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_Initialise());
-}
-
-TEST(OPCUADSInputGTest,Test_SetConfiguredDatabase) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_SetConfiguredDatabase());
-}
-
-TEST(OPCUADSInputGTest,Test_AllocateMemory) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_AllocateMemory());
-}
-
-TEST(OPCUADSInputGTest,Test_GetSignalMemoryBuffer) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_GetSignalMemoryBuffer());
-}
-
-TEST(OPCUADSInputGTest,Test_GetBrokerName_Sync) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_GetBrokerName_Sync());
-}
-
-TEST(OPCUADSInputGTest,Test_GetBrokerName_NoSync) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_GetBrokerName_NoSync());
-}
-
-TEST(OPCUADSInputGTest,Test_GetBrokerName_Error) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_GetBrokerName_Error());
-}
-
-TEST(OPCUADSInputGTest,Test_PrepareNextState) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_PrepareNextState());
-}
-
-TEST(OPCUADSInputGTest,Test_Execute_Read) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_Execute_Read());
-}
-
-TEST(OPCUADSInputGTest,Test_Execute_Monitor) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_Execute_Monitor());
-}
-
-TEST(OPCUADSInputGTest,Test_Execute_Error) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_Execute_Error());
-}
-
-TEST(OPCUADSInputGTest,Test_Synchronise) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_Synchronise());
-}
-
-TEST(OPCUADSInputGTest,Test_GetServerAddress) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_GetServerAddress());
-}
-
-TEST(OPCUADSInputGTest,Test_GetThreadError) {
-    OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_GetThreadError());
 }
 
 TEST(OPCUADSInputGTest,TestInitialise_Default) {
@@ -122,39 +56,44 @@ TEST(OPCUADSInputGTest,TestInitialise_Introspection) {
     ASSERT_TRUE(test.TestInitialise_Introspection());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_Sync) {
+TEST(OPCUADSInputGTest,TestInitialise_ExtensionObject) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_Sync());
+    ASSERT_TRUE(test.TestInitialise_ExtensionObject());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_SyncMonitor) {
+TEST(OPCUADSInputGTest,TestSynchronise_Default) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_SyncMonitor());
+    ASSERT_TRUE(test.TestSynchronise_Default());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_SyncWrongMode) {
+TEST(OPCUADSInputGTest,TestSynchronise_Monitor) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_SyncWrongMode());
+    ASSERT_TRUE(test.TestSynchronise_Monitor());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_Thread_Default) {
+TEST(OPCUADSInputGTest,TestSynchronise_WrongMode) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_Thread_Default());
+    ASSERT_TRUE(test.TestSynchronise_WrongMode());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_Thread_NoDefault) {
+TEST(OPCUADSInputGTest,TestExecute_Default) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_Thread_NoDefault());
+    ASSERT_TRUE(test.TestExecute_Default());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_ThreadMonitor) {
+TEST(OPCUADSInputGTest,TestExecute_NoDefault) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_ThreadMonitor());
+    ASSERT_TRUE(test.TestExecute_NoDefault());
 }
 
-TEST(OPCUADSInputGTest,TestInitialise_ThreadWrongMode) {
+TEST(OPCUADSInputGTest,TestExecute_Monitor) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.TestInitialise_ThreadWrongMode());
+    ASSERT_TRUE(test.TestExecute_Monitor());
+}
+
+TEST(OPCUADSInputGTest,TestExecute_WrongMode) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.TestExecute_WrongMode());
 }
 
 TEST(OPCUADSInputGTest,TestInitialise_NoAddress) {
@@ -182,15 +121,15 @@ TEST(OPCUADSInputGTest,Test_NumberOfDimensionsGreater1) {
     ASSERT_TRUE(test.Test_NumberOfDimensionsGreater1());
 }
 
-TEST(OPCUADSInputGTest,Test_FailSetTargetNodes) {
+TEST(OPCUADSInputGTest,Test_SetConfiguredDatabase_FailSetServiceRequest) {
     OPCUADSInputTest test;
-    ASSERT_TRUE(test.Test_FailSetTargetNodes());
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_FailSetServiceRequest());
 }
 
-/*---------------------------------------------------------------------------*/
-/*                           Method definitions                              */
-/*---------------------------------------------------------------------------*/
-
+TEST(OPCUADSInputGTest,Test_SetConfiguredDatabase_ExtensionObject) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject());
+}
 
 
 	

@@ -53,6 +53,9 @@ public:
             epics::pvDatabase::PVRecord(recordName, pvStructure) {
     }
 
+    virtual ~MARTe2PVARecord() {
+    }
+
     /**
      * @brief Expose the initPvt function.
      */

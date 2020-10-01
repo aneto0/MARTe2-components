@@ -24,3 +24,4 @@
 
 include Makefile.inc
 
+LIBRARIES   += -L$(ROOT_DIR)/Build/x86-linux/Components/DataSources/OPCUADataSource/ -lOPCUADataSource

@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX=OPCUAClientWrapper.x OPCUADSInput.x OPCUADSOutput.x
+OBJSX=OPCUAClientI.x OPCUAClientRead.x OPCUAClientWrite.x OPCUAClientMethod.x OPCUADSInput.x OPCUADSOutput.x
 
 PACKAGE=Components/DataSources
 

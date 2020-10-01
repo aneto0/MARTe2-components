@@ -36,6 +36,7 @@
 /*---------------------------------------------------------------------------*/
 #include "EmbeddedServiceMethodBinderI.h"
 #include "MessageI.h"
+#include "MutexSem.h"
 #include "ReferenceContainer.h"
 #include "SingleThreadService.h"
 #include "StreamString.h"
@@ -179,6 +180,10 @@ private:
      */
     epics::pvDatabase::ChannelProviderLocalPtr channelProvider;
 
+    /**
+     * To avoid racing conditions at shutdown
+     */
+    MutexSem mux;
 };
 }
 /*---------------------------------------------------------------------------*/
