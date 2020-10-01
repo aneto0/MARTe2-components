@@ -1211,9 +1211,11 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
         bool structarray = false;
         for (uint32 subIdx = 0u; (subIdx < SUBnumDims) && ok; subIdx++)
         {
+            /*lint -e{679} uint32 used as index of uint32[] is ok */
             if (dimArray[SUBdimArrayIdx + subIdx] > 1u) {
                 structarray = true;
             }
+            /*lint -e{679} uint32 used as index of uint32[] is ok */
             ok = diminfo.Printf("%d", dimArray[SUBdimArrayIdx + subIdx]);
             if (subIdx != ( static_cast<uint32>(SUBnumDims) - 1u ) ) {
                 diminfo += ",";
@@ -1382,6 +1384,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, StreamString spacer,
         
         for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++)
         {
+            /*lint -e{679} uint32 used as index of uint32[] is ok */
             ELEactualDimensions[dimIdx] = dimArray[ELEdimArrayIdx + dimIdx];
             ELEelements *= ELEactualDimensions[dimIdx];
         }
@@ -1826,7 +1829,8 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, StreamString spacer, co
 
         for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
             
-            ELEactualDimensions[dimIdx] = dimArray[ELEdimArrayIdx + dimIdx]; //lint --e(679) uint32 used as index of uint32[] is ok
+            /*lint -e{679} uint32 used as index of uint32[] is ok */
+            ELEactualDimensions[dimIdx] = dimArray[ELEdimArrayIdx + dimIdx];
             ELEsize *= ELEactualDimensions[dimIdx];
         }
 
