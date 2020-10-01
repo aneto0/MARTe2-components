@@ -74,6 +74,9 @@
 
 /* Notes related to functions that belong to external libraries*/
 -estring(1960,*MARTe::AnyType::*)
+-estring(1960,*MARTe::CRC*)
+-estring(1960,*MARTe::Vector*)
+-estring(1960,*MARTe::StaticStack*)
 -estring(1960,*MARTe::Sleep::*)
 -estring(1960,*MARTe::BufferedStreamIOBuffer::SetTimeout*)
 -estring(1960,*MARTe::IOBuffer::Empty*)
@@ -100,3 +103,4 @@
 -estring(1960, *MARTe::BinaryTree*)
 -estring(1960, *MARTe::BufferedStreamI::*)
 -estring(1960, *MARTe::StaticList*)
+-estring(1960,*MARTe::OPCUAReferenceContainer*)

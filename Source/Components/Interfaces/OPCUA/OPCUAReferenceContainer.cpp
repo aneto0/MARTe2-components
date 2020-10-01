@@ -75,6 +75,7 @@ bool OPCUAReferenceContainer::GetOPCObject(OPCUA::OPCUAObjectSettings &settings,
     return false;
 }
 
+/*lint -e{715} variables not used as it is supposed to be extended by subclasses.*/
 bool OPCUAReferenceContainer::GetOPCVariable(OPCUA::OPCUANodeSettings &settings,
                                              const TypeDescriptor nType,
                                              const uint32 nNumber) {
@@ -97,6 +98,7 @@ const uint32 OPCUAReferenceContainer::GetNodeId() const {
     return nodeId;
 }
 
+/*lint -e{715} variables not used as it is supposed to be extended by subclasses.*/
 void OPCUAReferenceContainer::SetFirst(const bool value) {
 }
 
