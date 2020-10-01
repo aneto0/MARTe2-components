@@ -1113,7 +1113,6 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
                 if(dimArray[SUBdimArrayIdx + idx2] > 1u) {
                     structarray = true;
                 }
-                
                 ok = diminfo.Printf("%u", dimArray[SUBdimArrayIdx + idx2]);
                 if ( idx2 != ( static_cast<uint32>(SUBnumDims) - 1u ) ) {
                     diminfo += ",";
@@ -1825,7 +1824,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, StreamString spacer, co
 
         for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
             
-            ELEactualDimensions[dimIdx] = dimArray[ELEdimArrayIdx + dimIdx];
+            ELEactualDimensions[dimIdx] = dimArray[static_cast<uint16>(ELEdimArrayIdx + dimIdx)];
             ELEsize *= ELEactualDimensions[dimIdx];
         }
 
