@@ -649,7 +649,7 @@ private:
      * @param[in] depth      tree depth level at call (for recursive callings)
      * @returns `true` if the signal has been correctly scanned, `false` otherwise.
      */
-    bool ScanSignal(const uint32 sigIdx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth);
+    bool ScanSignal(const uint16 sigIdx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth);
     
     /**
      * @brief Check coherence between model ports and GAM signals and map them.
