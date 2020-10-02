@@ -24,8 +24,6 @@
 #ifndef SIMULINKWRAPPERGAM_H_
 #define SIMULINKWRAPPERGAM_H_
 
-#define GETINFOFCN
-
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -42,7 +40,11 @@
 #include "SimulinkClasses.h"
 #include "StreamString.h"
 
-#include "rtw_modelmap.h"           // Matlab coder C-API interface
+/*---------------------------------------------------------------------------*/
+/*                            C-API interface                                */
+/*---------------------------------------------------------------------------*/
+
+#include "rtw_modelmap.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

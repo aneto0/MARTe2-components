@@ -32,24 +32,19 @@
 
 #include "AdvancedErrorManagement.h"
 #include "LoadableLibrary.h"
-#include "StructuredDataI.h"           // CRIADD
+#include "StructuredDataI.h"
 #include "SimulinkWrapperGAM.h"
 #include "TypeDescriptor.h"
-
-// testing
-#include "IntrospectionT.h"
-#include "IntrospectionEntry.h"
-#include "IntrospectionStructure.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-#ifndef UNIT_VERSION_HR
-#define UNIT_VERSION_HR "1.0"
-#endif
-
 /*
+#include "IntrospectionT.h"
+#include "IntrospectionEntry.h"
+#include "IntrospectionStructure.h"
+
 static void PrintIntrospection(const MARTe::char8 * const structOrClassToSearch) {
     using namespace MARTe;
 
@@ -2170,7 +2165,7 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
     return ok;
 }
 
-CLASS_REGISTER(SimulinkWrapperGAM, UNIT_VERSION_HR)
+CLASS_REGISTER(SimulinkWrapperGAM, "1.0")
 
 } /* namespace MARTe */
 

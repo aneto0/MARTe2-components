@@ -35,7 +35,11 @@
 #include "GAM.h"
 #include "ObjectRegistryDatabase.h"
 
-#include "rtw_modelmap.h" // Matlab coder C-API interface
+/*---------------------------------------------------------------------------*/
+/*                            C-API interface                                */
+/*---------------------------------------------------------------------------*/
+
+#include "rtw_modelmap.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
