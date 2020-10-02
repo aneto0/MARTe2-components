@@ -177,7 +177,7 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
                         serverContext = epics::pvAccess::ServerContext::create();
                         serverContext->printInfo();
                         mux.UnLock();
-                        ok = (startSynch.Post() == ErrorManagement::NoError);
+                        ok = startSynch.Post();
                         serverContext->run(0);
                     }
                     else {
