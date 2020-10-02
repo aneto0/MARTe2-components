@@ -2044,7 +2044,7 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongDatatype() {
     return !ok;
 }
 
-bool SimulinkWrapperGAMTest::TestSetup_Failed_NoInputs() {
+bool SimulinkWrapperGAMTest::TestSetup_NoInputs() {
     
     StreamString scriptCall = "createSimpleTestModel('hasInputs', false);";
     
@@ -2077,7 +2077,7 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_NoInputs() {
 }
 
 
-bool SimulinkWrapperGAMTest::TestSetup_Failed_NoOutputs() {
+bool SimulinkWrapperGAMTest::TestSetup_NoOutputs() {
     
     StreamString scriptCall = "createSimpleTestModel('hasOutputs', false);";
     

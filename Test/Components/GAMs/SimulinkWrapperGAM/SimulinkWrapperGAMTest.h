@@ -62,52 +62,47 @@
  */
 class SimulinkWrapperGAMTest {
 public:
-    /**
-     * @brief Constructor. NOOP.
-     */
-    //SimulinkWrapperGAMTest();
 
     /**
-     * @brief Destructor. NOOP.
-     */
-    //virtual ~SimulinkWrapperGAMTest();
-
-    /**
-     * @brief  Tests the default constructor
+     * @brief  Tests the default constructor.
      * @return `true` after GAM instantiation.
      */
     bool TestConstructor();
     
     /**
-     * @brief   Tests the Initialise() method
-     * @details Verify the post-conditions
+     * @brief   Tests the Initialise() method.
+     * @details Verify the post-conditions.
      * @return  `true` if Initialise() succeeds.
      */
     bool TestInitialise();
     
     /**
-     * @brief   Tests the Setup() method
-     * @details Verify the post-conditions
+     * @brief   Tests the Setup() method.
+     * @details Verify the post-conditions.
      * @return  `true` if Setup() succeeds.
      */
     bool TestSetup();
 
     /**
-     * @brief  Tests the Execute() method
+     * @brief  Tests the Execute() method.
      * @return `true` if Execute() succeeds.
      */
     bool TestExecute();
     
     /**
      * @brief Helper method to test Initialise by passing a ConfigurationDatabase.
+     * @param[in] configIn the configuration database with the configuration to be tested.
      */
     bool TestInitialiseWithConfiguration(MARTe::ConfigurationDatabase configIn);
     
     /**
      * @brief General method to test GAM setup. The method allows to
      *        specify various details of the configuration file.
-     *        Optional parameters:
-     *        - objRegDatabase: if specified, a pointer to the registry
+     * @param[in] skipUnlinkedParams whether to skip not ok tunable parameters
+     * @param[in] inputSignals a string containing the input signal configuration for current test
+     * @param[in] outputSignals a string containing the output signal configuration for current test
+     * @param[in] parameters a string containing the parameter configuration for current test
+     * @param[in] objRegDatabase (optional) if specified, a pointer to the registry
      *          of the current MARTe2 is returned (but then it is
      *          up to the user to call objRegDatabase->Purge()).
      */
@@ -119,15 +114,40 @@ public:
                                                    MARTe::ObjectRegistryDatabase* objRegDatabase /* = NULL_PTR(ObjectRegistryDatabase*)*/
                                                    );
     
-    
-    
+    /**
+     * @brief Tests the Initialise() method if optional settings are missing.
+     */
     bool TestInitialise_MissingOptionalConfigurationSettings();
+    
+    /**
+     * @brief Tests the Initialise() method if TunableParamsExternalSource setting is missing.
+     */
     bool TestInitialise_MissingTunableParamExternalSource();
+    
+    /**
+     * @brief Tests the Initialise() method if the Parameters node is missing.
+     */
     bool TestInitialise_MissingParametersLeaf();
     
+    /**
+     * @brief Tests the Initialise() method if Library setting is missing.
+     */
     bool TestInitialise_Failed_MissingLibrary();
+    
+    /**
+     * @brief Tests the Initialise() method if SymbolPrefix setting is missing.
+     */
     bool TestInitialise_Failed_MissingSymbolPrefix();
+    
+    /**
+     * @brief Tests the Initialise() method if the external .so cannot be loaded.
+     */
     bool TestInitialise_Failed_LoadLibrary();
+    
+    /**
+     * @brief Tests the Initialise() method if the expected symbols
+     *        exposed by the external .so cannot be loaded.
+     */
     bool TestInitialise_Failed_LoadSymbols();
     
     /**
@@ -144,41 +164,187 @@ public:
      */
     bool TestInitialise_Failed_LibraryMissingAllocFunction();
     
+    /**
+     * @brief Tests the correct actualisation of structured parameters.
+     */
     bool TestSetup_StructTunableParameters_1();
+    
+    /**
+     * @brief Tests the correct actualisation of structured parameters.
+     */
     bool TestSetup_StructTunableParameters_2();
+    
+    /**
+     * @brief Tests the correct actualisation of structured parameters.
+     */
     bool TestSetup_StructTunableParameters_3();
+    
+    /**
+     * @brief Tests the correct actualisation of structured parameters
+     *        from an external ReferenceContainer containing References
+     *        to AnyObjects.
+     */
     bool TestSetup_StructTunableParametersFromExternalSource();
+    
+    /**
+     * @brief Tests the Setup() method when no tunable parameters are found.
+     */
     bool TestSetup_NoTunableParameters();
+    
+    /**
+     * @brief Tests the Setup() method when structured signals (non-virtual
+     *        buses) are found.
+     */
     bool TestSetup_WithStructSignals();
+    
+    /**
+     * @brief Tests the Setup() method with nested structured signals.
+     */
     bool TestSetup_WithNestedStructSignals();
     
+    /**
+     * @brief Tests the Setup() method when told to skip not ok tunable parameters.
+     */
     bool TestSetup_SkipUnlinkedTunableParams();
     
+    /**
+     * @brief Tests the Setup() method when there are no inputs.
+     */
+    bool TestSetup_NoInputs();
+    
+    /**
+     * @brief Tests the Setup() method when there are no outputs.
+     */
+    bool TestSetup_NoOutputs();
+    
+    /**
+     * @brief Tests the Setup() method when told not to skip not ok tunable parameters.
+     */
     bool TestSetup_Failed_DontSkipUnlinkedTunableParams();
+    
+    /**
+     * @brief Tests the Setup() method when the number of model inputs
+     *        do not match the one declared in the configuration.
+     */
     bool TestSetup_Failed_WrongNumberOfInputs();
+    
+    /**
+     * @brief Tests the Setup() method when the number of model outputs
+     *        do not match the one declared in the configuration.
+     */
     bool TestSetup_Failed_WrongNumberOfOutputs();
+    
+    /**
+     * @brief Tests the Setup() method when an input signal name does
+     *        not match.
+     */
     bool TestSetup_Failed_WrongInputName();
+    
+    /**
+     * @brief Tests the Setup() method when an output signal name does
+     *        not match.
+     */
     bool TestSetup_Failed_WrongOutputName();
+    
+    /**
+     * @brief Tests the Setup() method  when a signal number of elements
+     *        does not match.
+     */
     bool TestSetup_Failed_WrongNumberOfElements();
+    
+    /**
+     * @brief Tests the Setup() method  when a signal number of dimensions
+     *        does not match.
+     */
     bool TestSetup_Failed_WrongNumberOfDimensions();
+    
+    /**
+     * @brief Tests the Setup() method  when a signal type
+     *        does not match.
+     */
     bool TestSetup_Failed_WrongDatatype();
+    
+    /**
+     * @brief Tests the Setup() method  when a parameter number of dimensions
+     *        does not match.
+     */
     bool TestSetup_Failed_ParamWrongNumberOfDimensions();
+    
+    /**
+     * @brief Tests the Setup() method  when a parameter number of elements
+     *        does not match.
+     */
     bool TestSetup_Failed_ParamWrongDimensions();
+    
+    /**
+     * @brief Tests the Setup() method  when a parameter number of elements
+     *        does not match (matrix case).
+     */
     bool TestSetup_Failed_ParamWrongDimensions_Matrix();
+    
+    /**
+     * @brief Tests the Setup() method  when a parameter type
+     *        does not match.
+     */
     bool TestSetup_Failed_ParamWrongDatatype();
-    bool TestSetup_Failed_NoInputs();
-    bool TestSetup_Failed_NoOutputs();
+    
+    /**
+     * @brief Tests the Setup() method when the model has struct arrays
+     *        used as parameters.
+     */
     bool TestSetup_Failed_StructArraysAsParams();
+    
+    /**
+     * @brief Tests the Setup() method when the model has nested struct arrays
+     *        used as parameters.
+     */
     bool TestSetup_Failed_NestedStructArraysAsParams();
+    
+    /**
+     * @brief Tests the Setup() method when the configuration has
+     *        NumberOfDimensions != 1 for a struct signal.
+     */
     bool TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals();
+    
+    /**
+     * @brief Tests the Setup() method when the configuration has
+     *        Type != uint8 for a struct signal.
+     */
     bool TestSetup_Failed_WrongDatatypeWithStructSignals();
     
+    /**
+     * @brief Tests the correct actualisation of parameters in a model
+     *        using row-major data orientation.
+     */
     bool TestParameterActualisation_RowMajorModel();
+    
+    /**
+     * @brief Tests the correct actualisation of parameters in a model
+     *        using column-major data orientation.
+     */
     bool TestParameterActualisation_ColumnMajorModel();
+    
+    /**
+     * @brief Tests the correct actualisation of parameters in a model
+     *        using uint datatypes.
+     */
     bool TestParameterActualisation_Uint();
+    
+    /**
+     * @brief Tests the correct actualisation of parameters in a model
+     *        using int datatypes.
+     */
     bool TestParameterActualisation_Int();
+    
+    /**
+     * @brief Tests the correct actualisation of parameters in a model
+     *        using float datatypes.
+     */
     bool TestParameterActualisation_Float();
     
+    /**
+     * @brief Tests the PrintAlgoInfo() method.
+     */
     bool TestPrintAlgoInfo();
     
     /**

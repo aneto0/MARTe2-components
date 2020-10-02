@@ -210,14 +210,14 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_NestedStructArraysAsParams) {
     ASSERT_TRUE(test.TestSetup_Failed_NestedStructArraysAsParams());
 }
 
-TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_NoInputs) {
+TEST(SimulinkWrapperGAMGTest, TestSetup_NoInputs) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_Failed_NoInputs());
+    ASSERT_TRUE(test.TestSetup_NoInputs());
 }
 
-TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_NoOutputs) {
+TEST(SimulinkWrapperGAMGTest, TestSetup_NoOutputs) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_Failed_NoOutputs());
+    ASSERT_TRUE(test.TestSetup_NoOutputs());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals) {
