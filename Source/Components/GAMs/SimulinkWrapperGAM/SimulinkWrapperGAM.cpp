@@ -40,44 +40,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-/*
-#include "IntrospectionT.h"
-#include "IntrospectionEntry.h"
-#include "IntrospectionStructure.h"
-
-static void PrintIntrospection(const MARTe::char8 * const structOrClassToSearch) {
-    using namespace MARTe;
-
-    ClassRegistryDatabase *crdSingleton = ClassRegistryDatabase::Instance();
-    const ClassRegistryItem *classRegistryItem = crdSingleton->Find(structOrClassToSearch);
-    if (classRegistryItem != NULL) {
-        //Get the object builder (which knows how to build classes of this type).
-        const Introspection *introspection = classRegistryItem->GetIntrospection();
-        //Print all the available information.
-        if (introspection != NULL) {
-            uint32 numberOfMembers = introspection->GetNumberOfMembers();
-            uint32 n;
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "[%s] number of members: %d:", structOrClassToSearch, numberOfMembers);
-            for (n = 0u; n < numberOfMembers; n++) {
-                const IntrospectionEntry entry = introspection->operator [](n);
-                const char8 * const memberName = entry.GetMemberName();
-                const char8 * const memberType = entry.GetMemberTypeName();
-                const char8 * const memberModifiers = entry.GetMemberModifiers();
-                const char8 * const memberAttributes = entry.GetMemberAttributes();
-                REPORT_ERROR_STATIC(ErrorManagement::Information, "[%d] [name]: %s [type]: %-7s [mods]: %s [attrs]: %s", n, memberName, memberType, memberModifiers, memberAttributes);
-            }
-        }
-        else {
-            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "No introspection available for struct or class "
-                    "with name: %s", structOrClassToSearch);
-        }
-    }
-    else {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Could not find struct or class "
-                "with name: %s", structOrClassToSearch);
-    }
-}
-*/
 static MARTe::StreamString GetOrientationName(const rtwCAPI_Orientation  &ELEorientation)
 {
     MARTe::StreamString name;

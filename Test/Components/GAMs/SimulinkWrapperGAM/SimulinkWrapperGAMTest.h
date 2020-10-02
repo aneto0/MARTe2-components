@@ -27,32 +27,29 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
-#include "DataSourceI.h"
-#include "GAMScheduler.h"
-#include "MemoryOperationsHelper.h"
-#include "MemoryMapInputBroker.h"
-#include "MemoryMapOutputBroker.h"
-#include "StaticList.h"
-#include "StreamString.h"
-
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
+#include "DataSourceI.h"
 #include "Directory.h"
 #include "ErrorInformation.h"
 #include "ErrorManagement.h"
 #include "FastMath.h"
 #include "GAM.h"
+#include "GAMScheduler.h"
 #include "GlobalObjectsDatabase.h"
+#include "MemoryMapInputBroker.h"
+#include "MemoryMapOutputBroker.h"
+#include "MemoryOperationsHelper.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "SimulinkWrapperGAM.h"
 #include "StandardParser.h"
+#include "StaticList.h"
+#include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
