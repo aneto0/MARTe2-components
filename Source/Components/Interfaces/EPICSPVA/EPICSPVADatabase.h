@@ -35,6 +35,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "EmbeddedServiceMethodBinderI.h"
+#include "EventSem.h"
 #include "MessageI.h"
 #include "MutexSem.h"
 #include "ReferenceContainer.h"
@@ -184,6 +185,12 @@ private:
      * To avoid racing conditions at shutdown
      */
     MutexSem mux;
+    EventSem startSynch;
+
+    /**
+     * True if the server is to be shutdown
+     */
+    bool shutdown;
 };
 }
 /*---------------------------------------------------------------------------*/
