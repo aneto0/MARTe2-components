@@ -685,15 +685,17 @@ set_param(model_name, 'CombineSignalStateStructs', 1);
 
 set_param(model_name, 'ArrayLayout', dataOrientation);
 
+% Templates
+set_param(model_name, 'GenerateSampleERTMain', 0);
+
+%% model build
+
 try
     rtwbuild(model_name)
     model_compiled = true;
 catch
     model_compiled = false;
 end
-
-% Templates
-set_param(model_name, 'GenerateSampleERTMain', 0);
 
     
 %% save and close

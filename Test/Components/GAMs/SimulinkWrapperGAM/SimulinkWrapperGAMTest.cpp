@@ -342,6 +342,10 @@ void SimulinkGAMGTestEnvironment::DeleteTestModel() {
             ok = toDelete.Delete();
         }
         
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed to delete model %s", currentModelName->Buffer());
+        }
+        
         delete currentModelName;
     }
 }

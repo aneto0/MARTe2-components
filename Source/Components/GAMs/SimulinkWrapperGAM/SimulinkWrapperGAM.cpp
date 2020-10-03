@@ -1048,7 +1048,7 @@ bool SimulinkWrapperGAM::ScanTunableParameters(const rtwCAPI_ModelMappingInfo* c
         if (slDataID != SS_STRUCT) {
             
             // Not structured parameter, directly print it from main params structure
-            ok = ScanParameter(paramIdx, "", ParamFromParameters, NULL_PTR(void*), "", 0ul, 1u);
+            ok = ScanParameter(paramIdx, 1u, ParamFromParameters, NULL_PTR(void*), "", 0ul, "");
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanParameter for parameter %s.", paramName);
             }
@@ -1184,7 +1184,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
         /*lint -e{1924} SS_STRUCT is defined as (uint8_T)(255U) in the C APIs, so the C-style cast cannot be removed */
         if ( SUBslDataID != SS_STRUCT ) {
             
-            ok = ScanParameter(elemMapIdx + elemIdx, specificSpacer, ParamFromElementMap, byteptr, baseName, baseOffset, depth);
+            ok = ScanParameter(elemMapIdx + elemIdx, depth, ParamFromElementMap, byteptr, baseName, baseOffset, specificSpacer);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanParameter for parameter %s.", elementName);
             }
@@ -1266,7 +1266,7 @@ bool SimulinkWrapperGAM::ScanParametersStruct(const uint32 dataTypeIdx, const ui
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, StreamString spacer, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth)
+bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer)
 {
     /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this method looks safe. However, that part should probably be refactored */
     
@@ -1537,7 +1537,7 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
             if (slDataID != SS_STRUCT) {
                 // Not structured parameter, directly print it from main params structure
                 
-                ok = ScanSignal(sigIdx, "", SignalFromSignals, NULL_PTR(void*), "", 0ul, 1u); // TODO: check if baseoffset 0 is correct
+                ok = ScanSignal(sigIdx, 1u, SignalFromSignals, NULL_PTR(void*), "", 0ul, ""); // TODO: check if baseoffset 0 is correct
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanSignal for signal %s.", sigName);
                 }
@@ -1632,7 +1632,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
         /*lint -e{1924} SS_STRUCT is defined as (uint8_T)(255U) in the C APIs, so the C-style cast cannot be removed */
         if (SUBslDataID != SS_STRUCT) {
             
-            ok = ScanSignal(elemMapIdx + elemIdx, specificSpacer, SignalFromElementMap, byteptr, baseName, baseOffset, depth);
+            ok = ScanSignal(elemMapIdx + elemIdx, depth, SignalFromElementMap, byteptr, baseName, baseOffset, specificSpacer);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanSignal for signal %s.", elementName);
             }
@@ -1712,7 +1712,7 @@ bool SimulinkWrapperGAM::ScanSignalsStruct(const uint32 dataTypeIdx, const uint3
 }
 
 /*lint -e{613} NULL pointers are checked in the caller method.*/
-bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, StreamString spacer, const SignalMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, const uint32 depth) {
+bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, const SignalMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer) {
     /*lint --e{ 923, 9016, 9091 } pointer arithmetic in this method looks safe. However, that part should probably be refactored */
     
     bool ok = true;
