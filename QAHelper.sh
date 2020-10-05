@@ -16,12 +16,12 @@ shift
 done
 
 GTEST_FILTER="Bare* Scheduler* FileS*"
-TEST_EXCEPTIONS="CompilerTypes.h BufferedStreamGenerator.h IteratorT.h GeneralDefinitions.h StaticListHolder.h GrammarInfo.h ConfigurationParserI.h ParserI.h VariableInformation.h"
 
 USERNAME=`whoami`
 USER_RECORD="$(getent passwd $USERNAME)"
 USER_GECOS_FIELD="$(echo "$USER_RECORD" | cut -d ':' -f 5)"
 USER_FULL_NAME="$(echo "$USER_GECOS_FIELD" | cut -d ',' -f 1)"
+REMOTE_MARTe2_DIR=~/MARTe2-dev
 
 CMD="$MARTe2_DIR/Resources/QA/QAHelper.py"
-$CMD -g Test\/Components -if Lint/marte_components_flint_files.lnt Lint/marte_components_flint_files_2.lnt $EXTRA_ARGS
+$CMD -g Test\/Components -lf *:-EPICS*:*PVA*:*MDS*:*OPCUA* PVA* EPICS* MDS* *OPCUA* -gf *:-EPICS*:*PVA*:*MDS*:*OPCUA* PVA* EPICS* MDS* *OPCUA* -if Lint/marte_components_flint_files.lnt Lint/marte_components_flint_files_2.lnt -xr . $MARTe2_DIR -xt MARTe2-components MARTe2-dev -xd MARTe2-components -xi /opt/FlexeLint/supp/lnt Lint $REMOTE_MARTe2_DIR/MakeDefaults/Lint -xf marte_components_flint_eclipse.lnt $EXTRA_ARGS
