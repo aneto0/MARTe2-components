@@ -37,6 +37,7 @@ LIBRARIES   += ../../Build/$(TARGET)/Components/Interfaces/InterfacesTests$(LIBE
 LIBRARIES   += -L$(MARTe2_DIR)/Build/$(TARGET)/Core/ -lMARTe2
 LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a
 
+
 ifdef CODAC_ROOT
 LIBRARIES += -L$(CODAC_ROOT)/lib/
 LIBRARIES += -lnisync
@@ -57,7 +58,7 @@ LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Ad
 endif
 
 ifdef MDSPLUS_DIR
-LIBRARIES += -L$(MDSPLUS_DIR)/lib -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
+LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
 endif
 
 ifdef EPICS_BASE

@@ -25,6 +25,10 @@
 SPB=MemoryGate.x \
 	SysLogger.x 
 
+ifdef OPEN62541_LIB
+SPB+=OPCUA.x
+endif
+
 ifdef CODAC_ROOT
 SPB+=NI9157Device.x
 endif
@@ -50,7 +54,7 @@ endif
 endif
 
 ifdef EPICSPVA
-SPB   += EPICSPVA.x
+SPB+=EPICSPVA.x
 endif
 
 PACKAGE=Components
@@ -70,13 +74,14 @@ endif
 ifdef EFDA_MARTe_DIR
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2Wrapper$(LIBEXT)
 endif
-
 ifdef EPICS_BASE
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICS$(LIBEXT)
 endif
-
 ifdef EPICSPVA
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVA$(LIBEXT)
+endif
+ifdef OPEN62541_LIB
+LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUA/OPCUA$(LIBEXT)
 endif
 
 ifdef MDSPLUS_DIR

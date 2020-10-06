@@ -32,6 +32,11 @@ SPB    = EpicsDataSource.x \
     RealTimeThreadAsyncBridge.x \
     RealTimeThreadSynchronisation.x
 
+
+ifdef OPEN62541_INCLUDE
+SPB    += OPCUADataSource.x
+endif
+
 ifdef CODAC_ROOT
 SPB    += NI1588.x
 SPB    += NI6259.x
@@ -98,6 +103,10 @@ endif
 
 ifdef EPICSPVA
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVADataSource$(LIBEXT)
+endif
+
+ifdef OPEN62541_INCLUDE
+LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUADataSource/OPCUADataSource$(LIBEXT)
 endif
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.

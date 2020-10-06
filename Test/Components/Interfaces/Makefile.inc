@@ -53,6 +53,11 @@ ifdef EPICSPVA
 SPB   += EPICSPVA.x
 endif
 
+ifdef OPEN62541_LIB
+SPB+=OPCUA.x
+endif
+
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -83,6 +88,11 @@ endif
 ifdef EPICSPVA
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVATest$(LIBEXT)
 endif
+
+ifdef OPEN62541_LIB
+LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUA/OPCUATest$(LIBEXT)
+endif
+
 
 all: $(OBJS) $(SUBPROJ) \
                 $(BUILD_DIR)/InterfacesTests$(LIBEXT)

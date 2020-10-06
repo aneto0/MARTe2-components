@@ -50,12 +50,20 @@ EPICSPVADatabase::EPICSPVADatabase() :
         ReferenceContainer(), MessageI(), executor(*this) {
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
+    shutdown = false;
     ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
+    if (!mux.Create()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to create mux");
+    }
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
     }
+    if (!startSynch.Create()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not create start synch semaphore");
+    }
+    (void) startSynch.Reset();
 }
 
 EPICSPVADatabase::~EPICSPVADatabase() {
@@ -63,6 +71,16 @@ EPICSPVADatabase::~EPICSPVADatabase() {
 }
 
 void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
+    if (mux.Lock()) {
+        if (serverContext) {
+            Sleep::Sec(1.0);
+            serverContext->shutdown();
+            serverContext = epics::pvAccess::ServerContext::shared_pointer();
+        }
+        shutdown = true;
+        mux.UnLock();
+    }
+    (void) mux.Close();
     if (master) {
         uint32 n;
         uint32 nElements = Size();
@@ -84,10 +102,6 @@ void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
                 }
             }
         }
-    }
-    if (serverContext) {
-        serverContext->shutdown();
-        serverContext = epics::pvAccess::ServerContext::shared_pointer();
     }
     if (!executor.Stop()) {
         if (!executor.Stop()) {
@@ -119,6 +133,9 @@ bool EPICSPVADatabase::Initialise(StructuredDataI & data) {
 
 ErrorManagement::ErrorType EPICSPVADatabase::Start() {
     ErrorManagement::ErrorType err = executor.Start();
+    if (err.ErrorsCleared()) {
+        err = startSynch.Wait(10000);
+    }
     return err;
 }
 
@@ -155,9 +172,18 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
             //This is a blocking call and it will run forever!
             try {
                 //serverContext = epics::pvAccess::startPVAServer(epics::pvAccess::PVACCESS_ALL_PROVIDERS, 0, false, true);
-                serverContext = epics::pvAccess::ServerContext::create();
-                serverContext->printInfo();
-                serverContext->run(0);
+                if (mux.Lock()) {
+                    if (!shutdown) {
+                        serverContext = epics::pvAccess::ServerContext::create();
+                        serverContext->printInfo();
+                        mux.UnLock();
+                        ok = startSynch.Post();
+                        serverContext->run(0);
+                    }
+                    else {
+                        mux.UnLock();
+                    }
+                }
             }
             catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {
             }

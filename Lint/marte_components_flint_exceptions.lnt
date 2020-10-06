@@ -74,6 +74,9 @@
 
 /* Notes related to functions that belong to external libraries*/
 -estring(1960,*MARTe::AnyType::*)
+-estring(1960,*MARTe::CRC*)
+-estring(1960,*MARTe::Vector*)
+-estring(1960,*MARTe::StaticStack*)
 -estring(1960,*MARTe::Sleep::*)
 -estring(1960,*MARTe::BufferedStreamIOBuffer::SetTimeout*)
 -estring(1960,*MARTe::IOBuffer::Empty*)
@@ -88,3 +91,16 @@
 -estring(1960,*__throw_*)
 -estring(1960,*epics*::*)
 -estring(451,*NiFpga.h*)
+
+/* Exceptions related to the open62541*/
+-estring(843,*UA_Boolean*)
+-estring(728,*UA_Boolean*)
+-estring(551,*UA_Boolean*)
+-estring(628,*_clear*)
+-estring(526,*_clear*)
+-estring(526, *Config_setDefault*)
+-estring(628, *Config_setDefault*)
+-estring(1960, *MARTe::BinaryTree*)
+-estring(1960, *MARTe::BufferedStreamI::*)
+-estring(1960, *MARTe::StaticList*)
+-estring(1960,*MARTe::OPCUAReferenceContainer*)

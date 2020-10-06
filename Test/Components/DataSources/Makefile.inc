@@ -60,6 +60,10 @@ ifdef EPICSPVA
 SPB   += EPICSPVA.x
 endif
 
+ifdef OPEN62541_INCLUDE
+SPB    += OPCUADataSource.x
+endif
+
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 # Current assumption is prior installation of CODAC Core System on the build node
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
@@ -104,6 +108,10 @@ endif
 
 ifdef EPICSPVA
 LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVADataSourceTest$(LIBEXT)
+endif
+
+ifdef OPEN62541_INCLUDE
+LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUADataSource/OPCUADataSourceTest$(LIBEXT)
 endif
 
 all: $(OBJS) $(SUBPROJ) \

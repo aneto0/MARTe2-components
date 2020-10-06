@@ -55,6 +55,10 @@ LIBRARIES_STATIC+=MDSWriter/cov/MDSWriter$(LIBEXT)
 LIBRARIES_STATIC+=MDSReader/cov/MDSReader$(LIBEXT)
 endif
 
+ifdef OPEN62541_INCLUDE
+LIBRARIES_STATIC+=OPCUADataSource/cov/OPCUADataSource$(LIBEXT)
+endif
+
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
 LIBRARIES_STATIC+=SDN/cov/SDN$(LIBEXT)
