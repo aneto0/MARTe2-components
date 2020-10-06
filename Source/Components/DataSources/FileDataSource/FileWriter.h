@@ -2,7 +2,7 @@
  * @file FileWriter.h
  * @brief Header file for class FileWriter
  * @date 11/08/2017
- * @author Andre Neto
+ * @author Andre' Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -69,13 +69,14 @@ namespace MARTe {
  * +FileWriter_0 = {
  *     Class = FileWriter
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
- *     CPUMask = 15 //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data into the file.
+ *     CPUMask = 0xFEu //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data into the file.
  *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
  *     Filename = "test.bin" //Optional. If not set the filename shall be set using the OpenFile RPC.
  *     Overwrite = "yes" //Compulsory. If "yes" the file will be overwritten, otherwise new data will be added to the end of the existent file.
  *     FileFormat = "binary" //Compulsory. Possible values are: binary and csv.
  *     CSVSeparator = "," //Compulsory if Format=csv. Sets the file separator type.
  *     StoreOnTrigger = 1 //Compulsory. If 0 all the data in the circular buffer is continuously stored. If 1 data is stored when the Trigger signal is 1 (see below).
+ *     RefreshContent = 0 //Optional. If set, new data will always overwrite old data, keeping always the last snapshot. Also enables header pretty-printing, which is referred as "Full Notation".
  *     NumberOfPreTriggers = 2 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store before the trigger.
  *     NumberOfPostTriggers = 1 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store after the trigger.
  *
@@ -381,10 +382,27 @@ private:
      */
     bool fatalFileError;
 
+
+    /**
+     * Keeps the position of the next-to-header byte, in order to allow content refreshing without 
+     * touching the header. 
+     */
+    uint64 headerPositionMarker;
+
     /**
      * The output file.
      */
     File outputFile;
+
+    /**
+     * Refresh the content at each cycle
+     */
+    uint8 refreshContent;
+
+    /**
+     * Write in full notation
+     */
+    uint8 fullNotation;
 
     /**
      * Filter to receive the RPC which allows to the handle the file with messages.
