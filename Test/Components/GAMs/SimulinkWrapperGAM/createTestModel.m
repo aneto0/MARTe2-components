@@ -705,7 +705,7 @@ close_system(model_name);
 % clean build directory
 rmdir('slprj', 's');
 rmdir([model_name '_ert_shrlib_rtw'], 's');
-%delete(sprintf('%s.slx',model_name));
+delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
 

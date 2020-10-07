@@ -73,6 +73,10 @@ ifdef EFDA_MARTe_DIR)
 LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2GAM/BaseLib2GAMTest$(LIBEXT)
 endif
 
+ifdef MATLAB_DIR
+LIBRARIES_STATIC+=$(BUILD_DIR)/SimulinkWrapperGAM/SimulinkWrapperGAMTest$(LIBEXT)
+endif
+
 all: $(OBJS) $(SUBPROJ) \
     $(BUILD_DIR)/GAMsTests$(LIBEXT)
 	echo  $(OBJS)

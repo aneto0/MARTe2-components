@@ -52,7 +52,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
 INCLUDES += -I../../../../Source/Components/GAMs/SimulinkWrapperGAM
-#INCLUDES += -I../../../../Source/Components/GAMs/SimulinkWrapperGAM/include
 
 INCLUDES += -I$(MATLAB_DIR)/extern/include
 INCLUDES += -I$(MATLAB_DIR)/rtw/c/src/
