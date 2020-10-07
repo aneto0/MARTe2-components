@@ -374,7 +374,7 @@ namespace MARTe {
  * By convention a structred signal must be declared as a `uint8` array of bytes:
  * 
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * BuSignal = {
+ * BusSignal = {
  *     Type               = uint8
  *     NumberOfDimensions = 1
  *     NumberOfElements   = 10     // As many as the signal total bytesize
