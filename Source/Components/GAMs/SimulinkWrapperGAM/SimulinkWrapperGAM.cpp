@@ -613,7 +613,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     }
     
     ///-------------------------------------------------------------------------
-    /// 1. Populate modelParameters and print informations
+    /// 1. Populate modelParameters and print information
     ///-------------------------------------------------------------------------
     
     // Scan tunable parameters, print them if vervosity level is enough and
@@ -660,7 +660,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     }
     
     ///-------------------------------------------------------------------------
-    /// 2. Populate modelPorts/modelSignals and print informations
+    /// 2. Populate modelPorts/modelSignals and print information
     ///-------------------------------------------------------------------------
     
     // Scan root input/output ports, print them if verbosity level is enough and
