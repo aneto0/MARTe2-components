@@ -410,6 +410,11 @@ namespace MARTe {
  * 
  * To select the requested mapping set the `StructuredSignalsAsByteArrays` option.
  * 
+ * 
+ * @warning The GAM cannot map nonvirtual buses whose last element is smaller
+ *          that the element before it. Always ensure that buses are populated
+ *          with largest signals at the end.
+ * 
  * ### Mapping nonvirtual buses into MARTe2 structured signals ###
  * 
  * Set `StructuredSignalsAsByteArrays = 0` to use this mode.
