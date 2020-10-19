@@ -442,31 +442,129 @@ SimulinkOutputPort::~SimulinkOutputPort() {
 
 }
 
-bool SimulinkInputPort::CopyData() {
+bool SimulinkInputPort::CopyData(SimulinkWrapperCopyMode copyMode) {
     
-    bool ok;
-    
+    bool ok = false;
+    //TODO Verify
     if (!requiresTransposition) {
-        ok = MemoryOperationsHelper::Copy(address, MARTeAddress, CAPISize);
+        if( (copyMode == CopyModeStructured) && (isStructured) ) {
+            uint32 carriedSignalsCount = carriedSignals.GetSize();
+            uint32 carriedSignalIdx = 0u;
+            ok = true;
+            for(carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignalsCount); carriedSignalIdx++) {
+                if(carriedSignals[carriedSignalIdx]->MARTeAddress == NULL) {
+                    //Skip a signal which is not mapped
+                    ok = true; //Redundant, readability only
+                    //REPORT_ERROR_STATIC(ErrorManagement::Information, "Skipping %d", carriedSignalIdx);
+                }
+                else {
+                    //REPORT_ERROR_STATIC(ErrorManagement::Information, "In Copying single from %p MARTe to %p Simulink", carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->address);
+                    ok = MemoryOperationsHelper::Copy(carriedSignals[carriedSignalIdx]->address, carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->byteSize);            
+                }
+            }
+        }
+        else {
+            if(MARTeAddress == NULL) {
+                //REPORT_ERROR_STATIC(ErrorManagement::Information, "Skipping signal");
+                ok = true;
+            }
+            else {
+                //REPORT_ERROR_STATIC(ErrorManagement::Information, "In Copying from %p MARTe to %p Simulink [%d size]", MARTeAddress, address, CAPISize);
+                ok = MemoryOperationsHelper::Copy(address, MARTeAddress, CAPISize);
+            }
+        }
     }
     else {
-        ok = TransposeAndCopy(address, MARTeAddress);
+        if( (copyMode == CopyModeStructured) && (isStructured) ) {
+            uint32 carriedSignalsCount = carriedSignals.GetSize();
+            uint32 carriedSignalIdx = 0u;
+            ok = true;
+            for(carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignalsCount); carriedSignalIdx++) {
+                if(carriedSignals[carriedSignalIdx]->MARTeAddress == NULL) {
+                    //Skip a signal which is not mapped
+                    ok = true; //Redundant, readability only
+                    //REPORT_ERROR_STATIC(ErrorManagement::Information, "Skipping %d", carriedSignalIdx);
+                }
+                else {
+                    ok = TransposeAndCopy(carriedSignals[carriedSignalIdx]->address, carriedSignals[carriedSignalIdx]->MARTeAddress);
+                }
+            }
+        }
+        else {
+            if(MARTeAddress == NULL) {
+                //REPORT_ERROR_STATIC(ErrorManagement::Information, "Skipping signal");
+                ok = true;
+            }
+            else {
+                ok = TransposeAndCopy(address, MARTeAddress);
+            }
+        }
     }
     
     return ok;
 }
 
-bool SimulinkOutputPort::CopyData() {
+bool SimulinkOutputPort::CopyData(SimulinkWrapperCopyMode copyMode) {
     
-    bool ok;
-    
+    bool ok = false;
+
+    //Copies, telling apart the two mode (struct vs byte array)
     if (!requiresTransposition) {
-        ok = MemoryOperationsHelper::Copy(MARTeAddress, address, CAPISize);
+        if( (copyMode == CopyModeStructured) && (isStructured) ) {
+            uint32 carriedSignalsCount = carriedSignals.GetSize();
+            uint32 carriedSignalIdx = 0u;
+            ok = true;
+            for(carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignalsCount); carriedSignalIdx++) {
+                if(carriedSignals[carriedSignalIdx]->MARTeAddress == NULL) {
+                    //Skip a signal which is not mapped
+                    //REPORT_ERROR_STATIC(ErrorManagement::Information, "Skipping Simulink struct out signal @%p", address);
+                    ok = true;
+                }
+                else {
+                    //REPORT_ERROR_STATIC(ErrorManagement::Information, "Out Copying single from %p Simulink to %p MARTe %d bytes", carriedSignals[carriedSignalIdx]->address, carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->byteSize);
+                    ok = MemoryOperationsHelper::Copy(carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->address, carriedSignals[carriedSignalIdx]->byteSize);            
+                }
+            }
+        }
+        else {
+            if(MARTeAddress == NULL) {
+                //REPORT_ERROR_STATIC(ErrorManagement::Information, "Skipping Simulink plain signal @%p", address);
+                ok = true;
+            }
+            else {
+                //REPORT_ERROR_STATIC(ErrorManagement::Information, "Out Copying from %p Simulink to %p MARTe %d bytes", address, MARTeAddress, CAPISize);
+                ok = MemoryOperationsHelper::Copy(MARTeAddress, address, CAPISize);
+            }
+        }
     }
     else {
-        ok = TransposeAndCopy(MARTeAddress, address);
+        if( (copyMode == CopyModeStructured) && (isStructured) ) {
+            uint32 carriedSignalsCount = carriedSignals.GetSize();
+            uint32 carriedSignalIdx = 0u;
+            ok = true;
+            for(carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignalsCount); carriedSignalIdx++) {
+                if(carriedSignals[carriedSignalIdx]->MARTeAddress == NULL) {
+                    //Skip a signal which is not mapped
+                    ok = true;
+                    //REPORT_ERROR_STATIC(ErrorManagement::Information, "Skipping Simulink struct out Tsignal @%p", address);
+                }
+                else {
+                    ok = TransposeAndCopy(carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->address);
+                }
+            }
+        }
+        else {
+            if(MARTeAddress == NULL) {
+                //Skip a signal which is not mapped
+                //REPORT_ERROR_STATIC(ErrorManagement::Information, "Skipping Simulink plain out Tsignal @%p", address);
+                ok = true;
+            }
+            else {
+                ok = TransposeAndCopy(MARTeAddress, address);
+            }
+        }
     }
-    
+        
     return ok;
 }
 

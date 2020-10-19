@@ -218,6 +218,7 @@ public:
         
         // Start MATLAB engine synchronously
         matlabPtr = matlab::engine::startMATLAB();
+        //matlabPtr = matlab::engine::connectMATLAB(u"MATLAB_1198");
         
         SetupTestEnvironment(matlabPtr);
     }
@@ -339,6 +340,8 @@ void SimulinkGAMGTestEnvironment::DeleteTestModel() {
         
         toDelete.SetByName(modelPath.Buffer());
         if (toDelete.Exists()) {
+
+            //Comment to avoid recompilation
             ok = toDelete.Delete();
         }
         
@@ -378,7 +381,9 @@ bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString scriptCall,
                                                    StreamString inputSignals,
                                                    StreamString outputSignals,
                                                    StreamString parameters,
-                                                   ObjectRegistryDatabase* objRegDatabase = NULL_PTR(ObjectRegistryDatabase*)
+                                                   ObjectRegistryDatabase* objRegDatabase = NULL_PTR(ObjectRegistryDatabase*),
+                                                   bool         structuredSignalsAsByteArrays = true,
+                                                   bool         enforceModelSignalCoverage = false
                                                    ) {
     
     StreamString modelName, modelFolder, modelFullPath;
@@ -400,12 +405,16 @@ bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString scriptCall,
     config.Printf(configTemplate.Buffer(),
                   modelFullPath.Buffer(),
                   modelName.Buffer(),
+                  structuredSignalsAsByteArrays?"1":"0",
+                  enforceModelSignalCoverage?"1":"0",
                   skipUnlinkedParams.Buffer(),
                   inputSignals.Buffer(),
                   outputSignals.Buffer(),
                   parameters.Buffer()
                  );
     
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "%s", config);
+
     // Test setup
     bool ok = false;
     
@@ -1018,6 +1027,8 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_3() {
     config.Printf(configTemplate.Buffer(),
                   modelFullPath.Buffer(),
                   modelName.Buffer(),
+                  "1",
+                  "0",
                   skipUnlinkedParams.Buffer(),
                   inputSignals.Buffer(),
                   outputSignals.Buffer(),
@@ -1168,6 +1179,8 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParametersFromExternalSource
     config.Printf(configTemplate.Buffer(),
                   modelFullPath.Buffer(),
                   modelName.Buffer(),
+                  "1",
+                  "0",
                   skipUnlinkedParams.Buffer(),
                   inputSignals.Buffer(),
                   outputSignals.Buffer(),
@@ -1291,20 +1304,13 @@ bool SimulinkWrapperGAMTest::TestSetup_WithStructSignals() {
     
     StreamString inputSignals = ""
         "InputSignals = { "
-        "In1_ScalarDouble  = {"
+        "In1_Structured = {"
         "    DataSource = Drv1"
-        "    Type = float64"
-        "    NumberOfElements = 1"
-        "    NumberOfDimensions = 0"
-        "}"
-        "In2_ScalarUint32  = {"
-        "    DataSource = Drv1"
-        "    Type = uint32"
-        "    NumberOfElements = 1"
-        "    NumberOfDimensions = 0"
-        "}"
+        "    Type = uint8"
+        "    NumberOfElements = 16"
+        "    NumberOfDimensions = 1"
+        "    }"
         "}";
-
 
     StreamString outputSignals = ""
         "OutputSignals = { "
@@ -3304,4 +3310,122 @@ bool SimulinkWrapperGAMTest::TestPrintAlgoInfo() {
     
     return ok;
     
+}
+
+bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
+
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_Structured = { "
+        "        In1_ScalarDouble  = { "
+        "            DataSource = Drv1"
+        "            Type = float64"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "        In2_ScalarUint32  = { "
+        "            DataSource = Drv1"
+        "            Type = uint32"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "    }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = {"
+        "        DataSource = DDB1"
+        "        Type = float64"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "    Out2_ScalarUint32 = {"
+        "        DataSource = DDB1"
+        "        Type = uint32"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "    Out20_NonVirtualBus = { "
+        "        Signal1 = {"
+        "            DataSource = DDB1"
+        "            Type = uint32"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "        Signal2  = {"
+        "            DataSource = DDB1"
+        "            Type = float64"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "    }"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, NULL, false, false);
+
+
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::Test_StructuredSignals_Failed() {
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_Structured = { "
+        "        In1_ScalarDouble  = { "
+        "            DataSource = Drv1"
+        "            Type = float64"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "        In2_ScalarUint32  = { "
+        "            DataSource = Drv1"
+        "            Type = uint32"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "    }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out2_ScalarUint32 = {"
+        "        DataSource = DDB1"
+        "        Type = uint32"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "    Out20_NonVirtualBus = { "
+        "        Signal1 = {"
+        "            DataSource = DDB1"
+        "            Type = uint32"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "        Signal2  = {"
+        "            DataSource = DDB1"
+        "            Type = float64"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "    }"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = !TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, NULL, false, true);
+
+    return ok;
 }

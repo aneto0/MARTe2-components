@@ -352,21 +352,62 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::Warning, "SkipInvalidTunableParams not set, by default it is set to true.");
         }
     }
+
+    //Structured signals seen as byte arrays (binary blobs)
+    //Defaults to true, to keep backwards compatibility
+    if(status) {
+        uint32 tempStruct = 0u;
+        if(data.Read("StructuredSignalsAsByteArrays", tempStruct)) {
+            if(tempStruct > 0u) {
+                structuredSignalsAsByteArrays = true;
+            }
+            else {
+                structuredSignalsAsByteArrays = false;
+            }
+        }
+        else {
+            structuredSignalsAsByteArrays = true;
+        }
+
+        //Copy mode is set accordingly
+        copyMode = structuredSignalsAsByteArrays?CopyModePlain:CopyModeStructured;
+
+        REPORT_ERROR(ErrorManagement::Information, "Structured signals are seen as %s", structuredSignalsAsByteArrays?"byte arrays":"single entities");
+    }
     
+    //Check if Simulink signals must be completely mapped on the GAM
+    if(status) {
+        uint32 tempSigCoverage = 0u;
+        if(data.Read("EnforceModelSignalCoverage", tempSigCoverage)) {
+            if(tempSigCoverage > 0u) {
+                enforceModelSignalCoverage = true;
+            }
+            else {
+                enforceModelSignalCoverage = false;
+            }
+        }
+        else {
+            enforceModelSignalCoverage = false;
+        }
+
+        REPORT_ERROR(ErrorManagement::Information, "GAM I/O %s cover Simulink I/O",
+                     enforceModelSignalCoverage?"must":"has not to");
+    }
+
     /// 2. Opening of model code shared object library.
     
     if (status) {
         status = (static_cast<LoadableLibrary*>(NULL) == libraryHandle);
     }
 
-    if (status) { // Load libray
+    if (status) { // Load library
         libraryHandle = new LoadableLibrary();
     }
 
-    if ((libraryHandle != NULL) && status) { // Load libray
+    if ((libraryHandle != NULL) && status) { // Load library
         status = libraryHandle->Open(libraryName.Buffer());
         if (status) {
-            REPORT_ERROR(ErrorManagement::Information, "Library %s succesfully loaded.", libraryName.Buffer());
+            REPORT_ERROR(ErrorManagement::Information, "Library %s successfully loaded.", libraryName.Buffer());
         }
         else {
             REPORT_ERROR(ErrorManagement::Information, "Couldn't open library: %s", libraryName.Buffer());
@@ -521,12 +562,39 @@ bool SimulinkWrapperGAM::Setup() {
     // (see f4e example)
 
     if (ok) {
-        REPORT_ERROR(ErrorManagement::Information, "Setup done, now initing the Simulink model");
+        REPORT_ERROR(ErrorManagement::Information, "Setup done, now init-ing the Simulink model");
     }
     else {
         REPORT_ERROR(ErrorManagement::InternalSetupError, "SetupSimulink() failed.");
     }
     
+    //Check if there are Simulink mapped signals which are not MARTe mapped when working in single signal mode
+    if(!structuredSignalsAsByteArrays && enforceModelSignalCoverage) {
+
+        uint32 portIdx = 0u;
+        uint32 signalInPortIdx = 0u;
+
+        uint32 modelPortsCount = modelPorts.GetSize();
+        REPORT_ERROR(ErrorManagement::Information, "Scanning for orphaned Simulink signals on %d ports", modelPortsCount);
+
+        bool foundDisconnected = false;
+
+        for(portIdx = 0u; (portIdx < modelPortsCount) && !foundDisconnected; portIdx++) {
+            uint32 signalsInPortCount = modelPorts[portIdx]->carriedSignals.GetSize();
+
+            for(signalInPortIdx = 0u; (signalInPortIdx < signalsInPortCount) && !foundDisconnected; signalInPortIdx++) {
+                if(modelPorts[portIdx]->carriedSignals[signalInPortIdx]->MARTeAddress == NULL) {
+                    foundDisconnected = true;
+
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Found disconnected [%s] signal in portId %d - signalId %d",
+                                 modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer(), portIdx, signalInPortIdx);
+                }
+            }
+        }
+
+        ok = !foundDisconnected;
+    }
+
     // Simulink initFunction call, init of the Simulink model
     if (ok) {
         (*initFunction)(states);
@@ -536,7 +604,7 @@ bool SimulinkWrapperGAM::Setup() {
     if (ok) {
         ReferenceT<Message> simulinkReadyMessage = Get(0u);
         if (simulinkReadyMessage.IsValid()) {
-            REPORT_ERROR(ErrorManagement::Information, "Sending simulink ready message 1.");
+            REPORT_ERROR(ErrorManagement::Information, "Sending Simulink ready message 1.");
             if(!SendMessage(simulinkReadyMessage, this)) {
                 REPORT_ERROR(ErrorManagement::Warning, "Failed to send ready message 1.");
             }
@@ -588,35 +656,38 @@ bool SimulinkWrapperGAM::SetupSimulink() {
             REPORT_ERROR(ErrorManagement::Information, "Simulink C API version number: %d", mmi->versionNum);
         }
         
-        uint32 numberOfGAMInputSignals  = GetNumberOfInputSignals();
-        uint32 numberOfGAMOutputSignals = GetNumberOfOutputSignals();
+        //Ensures the number of I/O Ports must be the same as the Simulink Model when in plain mode
+        if(structuredSignalsAsByteArrays) {
+            uint32 numberOfGAMInputSignals  = GetNumberOfInputSignals();
+            uint32 numberOfGAMOutputSignals = GetNumberOfOutputSignals();
 
-        // Check number of declared main ports
-        if (status) {
-            status = (numberOfGAMInputSignals == modelNumOfInputs);
-            if (!status) {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "Number of input signals mismatch (GAM: %u, model %u)",
-                    numberOfGAMInputSignals,  modelNumOfInputs);
+            // Check number of declared main ports
+
+            if (status) {
+                status = (numberOfGAMInputSignals == modelNumOfInputs);
+                if (!status) {
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                        "Number of input signals mismatch (GAM: %u, model %u)",
+                        numberOfGAMInputSignals,  modelNumOfInputs);
+                }
+            }
+
+            if (status) {
+                status = (numberOfGAMOutputSignals == modelNumOfOutputs);
+                if (!status) {
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                        "Number of output signals mismatch (GAM: %u, model %u)",
+                        numberOfGAMOutputSignals,  modelNumOfOutputs);
+                }
             }
         }
-        
-        if (status) {
-            status = (numberOfGAMOutputSignals == modelNumOfOutputs);
-            if (!status) {
-                REPORT_ERROR(ErrorManagement::ParametersError,
-                    "Number of output signals mismatch (GAM: %u, model %u)",
-                    numberOfGAMOutputSignals,  modelNumOfOutputs);
-            }
-        }
-        
     }
     
     ///-------------------------------------------------------------------------
     /// 1. Populate modelParameters and print information
     ///-------------------------------------------------------------------------
     
-    // Scan tunable parameters, print them if vervosity level is enough and
+    // Scan tunable parameters, print them if verbosity level is enough and
     // build the vector of tunable parameters objects
     if (status) {
         REPORT_ERROR(ErrorManagement::Information, "%s, number of main tunable parameters: %d", libraryName.Buffer(), modelNumOfParameters);
@@ -962,7 +1033,7 @@ bool SimulinkWrapperGAM::Execute() {
 
     // Inputs update
     for (portIdx = 0u; (portIdx < modelNumOfInputs) && status; portIdx++) {
-        status = modelPorts[portIdx]->CopyData();
+        status = modelPorts[portIdx]->CopyData(copyMode);
     }
     
     // Model step
@@ -972,11 +1043,10 @@ bool SimulinkWrapperGAM::Execute() {
 
     // Ouputs update
     for (portIdx = modelNumOfInputs; ( portIdx < (modelNumOfInputs + modelNumOfOutputs) ) && status; portIdx++) {
-        status = modelPorts[portIdx]->CopyData();
+        status = modelPorts[portIdx]->CopyData(copyMode);
     }
     
     return status;
-
 }
 
 /*lint -e{613} NULL pointers are checked beforehand.*/
@@ -1420,6 +1490,8 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
         currentParameter->type          = TypeDescriptor::GetTypeDescriptorFromTypeName((currentParameter->MARTeTypeName).Buffer());
         
         currentParameter->address       = ELEparamAddress;
+
+
         
         ok = modelParameters.Add(currentParameter);
     }
@@ -1536,7 +1608,7 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
             /*lint -e{1924} SS_STRUCT is defined as (uint8_T)(255U) in the C APIs, so the C-style cast cannot be removed */
             if (slDataID != SS_STRUCT) {
                 // Not structured parameter, directly print it from main params structure
-                
+                REPORT_ERROR(ErrorManagement::Information, "Not structured parameter detected");
                 ok = ScanSignal(sigIdx, 1u, SignalFromSignals, NULL_PTR(void*), "", 0ul, ""); // TODO: check if baseoffset 0 is correct
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanSignal for signal %s.", sigName);
@@ -1544,7 +1616,7 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
             }
             else {
                 // Structured signal, descend the tree
-                
+                REPORT_ERROR(ErrorManagement::Information, "Structured parameter detected, descending");
                 addrIdx    = rtwCAPI_GetSignalAddrIdx(sigGroup,sigIdx);
                 sigAddress = (void *) rtwCAPI_GetDataAddress(dataAddrMap,addrIdx);
 
@@ -1573,6 +1645,9 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
                 StreamString nameAndSeparators = sigName;
                 nameAndSeparators += signalSeparator;
                 
+                //Signal classification
+                currentPort->isStructured = true;
+
                 ok = ScanSignalsStruct(dataTypeIdx, 1u, sigAddress, nameAndSeparators, absDeltaAddress, "");
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::FatalError, "Failed ScanSignalStruct for signal %s.", sigName);
@@ -1905,6 +1980,10 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
         
         currentSignal->offset        = baseOffset + ELEelementOffset;
         
+        //Address and size propagated to the signal
+        currentSignal->address = ELEparamAddress;
+        currentSignal->byteSize = ELEsize * ELEdataTypeSize;
+
         ok = currentPort->AddSignal(currentSignal);
     }
     
@@ -1938,8 +2017,6 @@ void SimulinkWrapperGAM::PrintAlgoInfo() const {
         REPORT_ERROR(ErrorManagement::Information,"Algorithm git hash: %s", info.gitHash);
         REPORT_ERROR(ErrorManagement::Information,"Algorithm git log : %s", info.gitLog);
     }
-
-
 }
 
 bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
@@ -1948,6 +2025,7 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
     bool found = false;
     
     uint32 portIdx  = 0u;
+    uint32 signalInPortIdx = 0u;
     uint32 startIdx = 0u;
     uint32 endIdx   = 0u;
     uint32 numberOfSignals = 0u;
@@ -1978,21 +2056,52 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
         ok = false;
     }
     
-    // Check and map input ports
+    // Check and map input/output ports
     for(uint32 signalIdx = 0u; (signalIdx < numberOfSignals) && ok ; signalIdx++) {
-        
+        REPORT_ERROR(ErrorManagement::Information, "-----------------");
         found = false;
         
         GAMSignalName = "";
         ok = GetSignalName(direction, signalIdx, GAMSignalName);
-        
+        REPORT_ERROR(ErrorManagement::Information, "%s SignalIdx = %d - PortIdx = %d", directionName.Buffer(), signalIdx, portIdx);
+
+        //Signal mapping, either 1:1 or port (byte array) based
         for(portIdx = startIdx; (portIdx < endIdx) && ok; portIdx++ ) {
-            
-            if (GAMSignalName == (modelPorts[portIdx]->fullName)) {
-                found = true;
-                break;
+            uint32 portCarriedSignalsCount = modelPorts[portIdx]->carriedSignals.GetSize();
+
+            if(!structuredSignalsAsByteArrays && modelPorts[portIdx]->isStructured) {
+                for(signalInPortIdx = 0; signalInPortIdx < portCarriedSignalsCount; signalInPortIdx++) {
+                     if (GAMSignalName == (modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName)) {
+                        REPORT_ERROR(
+                            ErrorManagement::Information, 
+                            "Found %s signal in portIdx %d @ signal %d index", 
+                            modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer(),
+                            portIdx, signalInPortIdx
+                        );
+                        found = true;
+                        break;
+                    }
+                }
+                if(found) {
+                    break;
+                }
+            }
+            else {
+                if (GAMSignalName == (modelPorts[portIdx]->fullName)) {
+                    REPORT_ERROR(
+                        ErrorManagement::Information, 
+                        "Found unstructured %s signal in portIdx %d", 
+                        modelPorts[portIdx]->fullName.Buffer(),
+                        portIdx
+                    );
+                    found = true;
+                    break;
+                }
             }
         }
+        
+        REPORT_ERROR(ErrorManagement::Information, "PortIdx = %d", portIdx);
+
         if (!found) {
             REPORT_ERROR(ErrorManagement::ParametersError,
                 "GAM %s signal %s not found in Simulink model",
@@ -2003,8 +2112,8 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
         if (ok) {
             
             // Homogeneus port checks (an array). In this case we check datatype, number of dimensions and number of elements.
-            if(modelPorts[portIdx]->hasHomogeneousType) {
-                
+
+            if(!structuredSignalsAsByteArrays || modelPorts[portIdx]->hasHomogeneousType) {
                 if(!modelPorts[portIdx]->isContiguous)
                 {
                     REPORT_ERROR(ErrorManagement::ParametersError,
@@ -2012,42 +2121,42 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                         (modelPorts[portIdx]->fullName).Buffer());
                     ok = false;
                 }
-                
+
                 if (ok) {
                     ok = GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-                    if ( (GAMNumberOfDimensions != (modelPorts[portIdx]->numberOfDimensions)) && ok ) {
+                    if ( (GAMNumberOfDimensions != (modelPorts[portIdx]->carriedSignals[signalInPortIdx]->numberOfDimensions)) && ok ) {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "%s signal %s number of dimensions mismatch (GAM: %d, model: %u)",
                             directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfDimensions, modelPorts[portIdx]->numberOfDimensions);
                         ok = false;
                     }
                 }
-                
+
                 if (ok) {
                     ok = GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
-                    if ( (GAMNumberOfElements != (modelPorts[portIdx]->totalNumberOfElements)) && ok )
+                    if ( (GAMNumberOfElements != (modelPorts[portIdx]->carriedSignals[signalInPortIdx]->totalNumberOfElements)) && ok )
                     {
                         REPORT_ERROR(ErrorManagement::ParametersError,
-                            "%s signal %s number of elements mismatch (GAM: %d, model: %u)",
-                            directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfElements, modelPorts[portIdx]->totalNumberOfElements);
+                                     "%s signal %s number of elements mismatch (GAM: %d, model: %u)",
+                                     directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfElements, modelPorts[portIdx]->totalNumberOfElements);
                         ok = false;
                     }
                 }
-                
+
                 if (ok) {
                     GAMSignalType = GetSignalType(direction, signalIdx);
                     StreamString inputSignalTypeStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(GAMSignalType);
-                    if ( modelPorts[portIdx]->MARTeTypeName != inputSignalTypeStr )
+                    if ( modelPorts[portIdx]->carriedSignals[signalInPortIdx]->MARTeTypeName != inputSignalTypeStr )
                     {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "%s signal %s type mismatch (GAM: %s, model: %s)",
-                            directionName.Buffer(), GAMSignalName.Buffer(), inputSignalTypeStr.Buffer(), (modelPorts[portIdx]->MARTeTypeName).Buffer());
+                            directionName.Buffer(), GAMSignalName.Buffer(), inputSignalTypeStr.Buffer(), (modelPorts[portIdx]->carriedSignals[signalInPortIdx]->MARTeTypeName).Buffer());
                         ok = false;
                     }
                 }
-                
+
                 if (ok) {
-                    if(!CheckrtwCAPITypeAgainstSize(modelPorts[portIdx]->cTypeName, modelPorts[portIdx]->dataTypeSize))
+                    if(!CheckrtwCAPITypeAgainstSize(modelPorts[portIdx]->carriedSignals[signalInPortIdx]->cTypeName, modelPorts[portIdx]->carriedSignals[signalInPortIdx]->dataTypeSize))
                     {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "Simulink %s port %s has data type size not maching with the one configured in the GAM",
@@ -2055,12 +2164,12 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                         ok = false;
                     }
                 }
-                
+
                 if (ok) {
                     // Matrix signals in column major orientation requires additional workload.
                     if (GAMNumberOfDimensions > 1u)
                     {
-                        if (modelPorts[portIdx]->orientation != rtwCAPI_MATRIX_ROW_MAJOR) {
+                        if (modelPorts[portIdx]->carriedSignals[signalInPortIdx]->orientation != rtwCAPI_MATRIX_ROW_MAJOR) {
                             REPORT_ERROR(ErrorManagement::Warning,
                                 "%s signal %s orientation is column-major. Supported, but requires real-time transposition and may result in performance loss.",
                                 directionName.Buffer(), GAMSignalName.Buffer());
@@ -2068,13 +2177,8 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                         }
                     }
                 }
-                
             }
-            
-            // Non-homogeneus port checks (structured signal). In this case we check only the size and the GAM datatype must be uint8
-            // (i.e. we treat the port as a continuous array of bytes)
             else {
-                
                 ok = GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
                 if ( (GAMNumberOfElements != (modelPorts[portIdx]->CAPISize)) && ok )
                 {
@@ -2083,7 +2187,7 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                         directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfElements, modelPorts[portIdx]->CAPISize);
                     ok = false;
                 }
-                
+
                 if (ok) {
                     ok = GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
                     if ( (GAMNumberOfDimensions != 1u) && ok )
@@ -2094,7 +2198,7 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                         ok = false;
                     }
                 }
-                
+
                 if (ok) {
                     GAMSignalType = GetSignalType(direction, signalIdx);
                     StreamString inputSignalTypeStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(GAMSignalType);
@@ -2106,24 +2210,46 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                         ok = false;
                     }
                 }
-                
             }
+
         }
         
         // Ok, here we can map memory inputs
         if (ok) {
-            if (direction == InputSignals) {
-                modelPorts[portIdx]->MARTeAddress = GetInputSignalMemory(signalIdx);
-            }
-            else if (direction == OutputSignals) {
-                modelPorts[portIdx]->MARTeAddress = GetOutputSignalMemory(signalIdx);
+            REPORT_ERROR(ErrorManagement::Information, "Struct is %s and model is %s", 
+                structuredSignalsAsByteArrays?"BYTE":"STRUCT", modelPorts[portIdx]->isStructured?"IS":"NOT"
+            );
+            if(!structuredSignalsAsByteArrays &&  modelPorts[portIdx]->isStructured) {
+                REPORT_ERROR(ErrorManagement::Information, "Mapping a structured signal in structured mode - PortIdx = %d", portIdx);
+                if (direction == InputSignals) {
+                    REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Input ID: %d @ %p - FullName %s", signalIdx, GetInputSignalMemory(signalIdx), modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer());
+                    modelPorts[portIdx]->carriedSignals[signalInPortIdx]->MARTeAddress = GetInputSignalMemory(signalIdx);
+                }
+                else if (direction == OutputSignals) {
+                    REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Output ID: %d @ %p", signalIdx, GetOutputSignalMemory(signalIdx));
+                    modelPorts[portIdx]->carriedSignals[signalInPortIdx]->MARTeAddress = GetOutputSignalMemory(signalIdx);
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported signal direction in MapPorts()");
+                }
             }
             else {
-                REPORT_ERROR(ErrorManagement::Information, "Unsupported signal direction in MapPorts()");
+                REPORT_ERROR(ErrorManagement::Information, "Mapping a signal in single or raw mode - PortIdx = %d", portIdx);
+                if (direction == InputSignals) {
+                    REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Input ID: %d @ %p", signalIdx, GetInputSignalMemory(signalIdx));
+                    modelPorts[portIdx]->MARTeAddress = GetInputSignalMemory(signalIdx);
+                }
+                else if (direction == OutputSignals) {
+                    REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Output ID: %d @ %p", signalIdx, GetOutputSignalMemory(signalIdx));
+                    modelPorts[portIdx]->MARTeAddress = GetOutputSignalMemory(signalIdx);
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported signal direction in MapPorts()");
+                }
             }
         }
     }
-    
+    REPORT_ERROR(ErrorManagement::Information, "---");
     return ok;
 }
 

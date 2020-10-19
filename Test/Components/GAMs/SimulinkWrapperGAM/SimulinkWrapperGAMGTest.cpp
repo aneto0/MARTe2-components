@@ -265,6 +265,15 @@ TEST(SimulinkWrapperGAMGTest, TestPrintAlgoInfo) {
     ASSERT_TRUE(test.TestPrintAlgoInfo());
 }
 
+TEST(SimulinkWrapperGAMGTest, Test_StructuredSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.Test_StructuredSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, Test_StructuredSignals_Failed) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.Test_StructuredSignals_Failed());
+}
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

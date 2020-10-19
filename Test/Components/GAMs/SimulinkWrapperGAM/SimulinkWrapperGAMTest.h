@@ -108,7 +108,9 @@ public:
                                                    MARTe::StreamString inputSignals,
                                                    MARTe::StreamString outputSignals,
                                                    MARTe::StreamString parameters,
-                                                   MARTe::ObjectRegistryDatabase* objRegDatabase /* = NULL_PTR(ObjectRegistryDatabase*)*/
+                                                   MARTe::ObjectRegistryDatabase* objRegDatabase, /* = NULL_PTR(ObjectRegistryDatabase*)*/
+                                                   bool         structuredSignalsAsByteArrays, /* = true */
+                                                   bool         enforceModelSignalCoverage /*= false */
                                                    );
     
     /**
@@ -345,6 +347,18 @@ public:
     bool TestPrintAlgoInfo();
     
     /**
+     * @brief Test the behaviour when working in pure structured signal mode
+     */
+    bool Test_StructuredSignals();
+
+
+    /**
+     * @brief Test the behaviour when working in pure structured signal mode, while enforcing
+     * MARTe2 - Simulink parameter coverage (1:1 mapping)
+     */
+    bool Test_StructuredSignals_Failed();
+
+    /**
      * @brief A general template for the GAM configuration.
      *        The template has printf-style spcifiers (`%s`) where
      *        specialization for each test is required (i.e. model name,
@@ -361,6 +375,8 @@ public:
         "            SymbolPrefix = \"%s\""
         "            Verbosity = 2"
         "            TunableParamExternalSource = ExtSource"
+        "            StructuredSignalsAsByteArrays = %s"
+        "            EnforceModelSignalCoverage = %s"
         "            SkipInvalidTunableParams = %s"
         "               %s" // InputSignals
         "               %s" // OutputSignals

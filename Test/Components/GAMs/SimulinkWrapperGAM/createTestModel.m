@@ -173,7 +173,7 @@ if modelComplexity >= 3
 end
 
 % input ports
-if hasInputs == true
+if (hasInputs == true) && (hasStructSignals == false)
     add_block('simulink/Sources/In1', [model_name '/In1_ScalarDouble']);
     set_param([model_name '/In1_ScalarDouble'], 'IconDisplay',    'Signal name');
     set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
@@ -225,8 +225,51 @@ if hasInputs == true
             'NumInputs',            '2', ...
             'ConcatenateDimension', '3')
     end
+    %END if hasInputs && hasStructSignals
+
+    %Added to support !structSignalsAsByteArrays
+elseif (hasInputs == true) && (hasStructSignals == true)
     
-else
+    evalin('base', 'clear inputBusElems;');
+    
+    evalin('base', 'inputBusElems(1) = Simulink.BusElement;');
+    evalin('base', 'inputBusElems(1).Name = ''In2_ScalarUint32'';');
+    evalin('base', 'inputBusElems(1).Dimensions = 1;');
+    evalin('base', 'inputBusElems(1).DimensionsMode = ''Fixed'';');
+    evalin('base', 'inputBusElems(1).DataType = ''uint32'';');
+    evalin('base', 'inputBusElems(1).SampleTime = -1;');
+    evalin('base', 'inputBusElems(1).Complexity = ''real'';');
+    
+    
+    evalin('base', 'inputBusElems(2) = Simulink.BusElement;');
+    evalin('base', 'inputBusElems(2).Name = ''In1_ScalarDouble'';');
+    evalin('base', 'inputBusElems(2).Dimensions = 1;');
+    evalin('base', 'inputBusElems(2).DimensionsMode = ''Fixed'';');
+    evalin('base', 'inputBusElems(2).DataType = ''double'';');
+    evalin('base', 'inputBusElems(2).SampleTime = -1;');
+    evalin('base', 'inputBusElems(2).Complexity = ''real'';');
+
+    evalin('base', 'INSTRUCTSIGNAL1 = Simulink.Bus;');
+    evalin('base', 'INSTRUCTSIGNAL1.Elements = inputBusElems;');
+    
+    add_block('simulink/Sources/In1', [model_name '/In1_Structured']);
+    set_param([model_name '/In1_Structured'], 'IconDisplay',    'Signal name');
+    set_param([model_name '/In1_Structured'], 'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL1');
+    set_param([model_name '/In1_Structured'], 'BusOutputAsStruct',  'on');
+    
+    add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector'], ...
+        'OutputSignals', 'In2_ScalarUint32,In1_ScalarDouble');
+    
+    add_line(model_name, 'In1_Structured/1', 'InputSelector/1');
+    name_output_signal([model_name '/In1_Structured'], 1, 'In1_Structured');
+    
+    add_block('simulink/Math Operations/Gain', [model_name '/In1_ScalarDouble']);
+    add_block('simulink/Math Operations/Gain', [model_name '/In2_ScalarUint32']);
+    
+    add_line(model_name, 'InputSelector/2', 'In1_ScalarDouble/1');
+    add_line(model_name, 'InputSelector/1', 'In2_ScalarUint32/1');
+   
+elseif (hasInputs == false)
     add_block('simulink/Sources/Constant', [model_name '/In1_ScalarDouble']);
     set_param([model_name '/In1_ScalarDouble'], 'Value',          '1');
     set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
@@ -361,7 +404,7 @@ if hasStructSignals == true
     add_block('simulink/Sinks/Out1',  [model_name '/Out20_NonVirtualBus']);
     set_param([model_name '/Out20_NonVirtualBus'], 'IconDisplay',    'Signal name');
     set_param([model_name '/Out20_NonVirtualBus'], 'OutDataTypeStr', 'Inherit: auto');
-    
+       
     % custom type for the nonvirtual bus
     evalin('base', 'clear bus1Elems;');
     evalin('base', 'bus1Elems(1) = Simulink.BusElement;');
@@ -703,8 +746,10 @@ save_system(model_name);
 close_system(model_name);
 
 % clean build directory
+
 rmdir('slprj', 's');
 rmdir([model_name '_ert_shrlib_rtw'], 's');
+
 delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));

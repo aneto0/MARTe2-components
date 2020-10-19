@@ -109,7 +109,7 @@ namespace MARTe {
  *     SkipInvalidTunableParams      = ( 0 | 1 )            // Optional. Default: 1
  *     TunableParamExternalSource    = "ExternalSourceName" // Optional.
  *     StructuredSignalsAsByteArrays = ( 0 | 1 )            // Optional. Default: 1
- * 
+ *     EnforceModelSignalCoverage    = ( 0 | 1 )            // Optional, Default: 1 valid only when StructuredSignalsAsByteArrays = 0
  *     InputSignals  = {                                // As appropriate based on the Simulink(r) generated structure
  *         InSignal1 = {
  *             DataSource         = DDB1
@@ -183,6 +183,8 @@ namespace MARTe {
  *    - *StructuredSignalsAsByteArrays*: treat model nonvirtual buses as a raw
  *      byte array of data. See [Structured signals](#structured-signals)
  *      section for details.
+ *    - *EnforceModelSignalCoverage*: Ensures that every port of the Simulink model
+ *      is connected to the GAM, eventually preventing the GAM startup.
  *    - *Parameters*: local list of parameters. See
  *      [Model parameters](#model-parameters) section for details.
  * 
@@ -455,7 +457,7 @@ namespace MARTe {
  * }
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
- * Explicit syntax allows to send each element of the nunvirtual bus to a different
+ * Explicit syntax allows to send each element of the nonvirtual bus to a different
  * DataSource and also to select only some of the elements of the nonvirtual bus.
  * 
  * #### Previously declared structure ####
@@ -514,7 +516,7 @@ namespace MARTe {
  * 
  * Set `StructuredSignalsAsByteArrays = 1` to use this mode.
  * 
- * The structred signal must then be declared as a `uint8` array of bytes. The
+ * The structured signal must then be declared as a `uint8` array of bytes. The
  * same bus as above would then become:
  * 
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -522,7 +524,7 @@ namespace MARTe {
  *     BusSignal = {
  *         Type               = uint8
  *         NumberOfDimensions = 1
- *         NumberOfElements   = 74     // As many as the signal total bytesize
+ *         NumberOfElements   = 74     // As many as the signal total byte size
  *         DataSource = DDB1
  *     }
  * }
@@ -943,6 +945,11 @@ private:
      * @brief Set to `true` if one of the parameters is an array of structures (currently unsupported).
      */
     bool paramsHaveStructArrays;
+
+    /**
+     * @brief Set to `true` if structures passed are flattened into uint8 byte arrays outside the gam.
+     */
+    bool structuredSignalsAsByteArrays;
     
     /**
      * @brief Container of the parameters retrieved from the configuration file.
@@ -968,6 +975,18 @@ private:
         uint32 expCode;
     };
     
+
+    /**
+     * @brief Used internally to address the underlying copy mode for the ports/signals, in respect to
+     * the "structure as byte array" behaviour
+     */
+    SimulinkWrapperCopyMode copyMode;
+
+    /*
+     * @brief when enabled, all the Simulink model I/O must be matched to the GAM I/O
+     */
+    bool enforceModelSignalCoverage;
+
 };
 
 
