@@ -62,10 +62,10 @@ static const uint32 maxNumOfDims = 3u;
  */
 static const uint32 maxVariableNameLentgh = 40u;
 
-typedef enum _simwrap_copymode {
+enum SimulinkWrapperCopyMode {
     CopyModePlain = 0,
     CopyModeStructured = 1
-}SimulinkWrapperCopyMode;
+};
 
 /*---------------------------------------------------------------------------*/
 /*                               SimulinkDataI                               */
@@ -92,7 +92,7 @@ public:
     
     rtwCAPI_Orientation orientation;        //!< data orientation retrieved from model .so
     
-    uint64 byteSize;                        //!< Size in bytes occupied by this data.
+    uint32 byteSize;                        //!< Size in bytes occupied by this data.
     uint16 dataTypeSize;                    //!< Size of the type of this data.
     uint64 offset;                          //!< Data offset (used if the parameter or signal is part of a structure).
     
@@ -336,7 +336,7 @@ public:
      *          has column-major matrix signals they get transposed.
      * @returns `true` if data is successfully copied, `false` otherwise.
      */
-    virtual bool CopyData(SimulinkWrapperCopyMode copyMode);
+    virtual bool CopyData(const SimulinkWrapperCopyMode copyMode);
 };
 
 /*---------------------------------------------------------------------------*/
@@ -369,7 +369,7 @@ public:
      *          has column-major matrix signals they get transposed.
      * @returns `true` if data is successfully copied, `false` otherwise.
      */
-    virtual bool CopyData(SimulinkWrapperCopyMode copyMode);
+    virtual bool CopyData(const SimulinkWrapperCopyMode copyMode);
 };
 
 

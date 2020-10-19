@@ -236,6 +236,10 @@ SimulinkWrapperGAM::SimulinkWrapperGAM()
     
     skipInvalidTunableParams = true;
     paramsHaveStructArrays   = false;
+
+    structuredSignalsAsByteArrays = true;
+    enforceModelSignalCoverage = false;
+    copyMode = CopyModePlain;
 }
 
 /*lint -e{1551} memory must be freed and functions called in the destructor are expected not to throw exceptions */
@@ -569,9 +573,9 @@ bool SimulinkWrapperGAM::Setup() {
     }
     
     //Check if there are Simulink mapped signals which are not MARTe mapped when working in single signal mode
-    if(!structuredSignalsAsByteArrays && enforceModelSignalCoverage) {
+    if((!structuredSignalsAsByteArrays) && enforceModelSignalCoverage) {
 
-        uint32 portIdx = 0u;
+        uint32 portIdx;
         uint32 signalInPortIdx = 0u;
 
         uint32 modelPortsCount = modelPorts.GetSize();
@@ -579,15 +583,17 @@ bool SimulinkWrapperGAM::Setup() {
 
         bool foundDisconnected = false;
 
-        for(portIdx = 0u; (portIdx < modelPortsCount) && !foundDisconnected; portIdx++) {
-            uint32 signalsInPortCount = modelPorts[portIdx]->carriedSignals.GetSize();
+        for(portIdx = 0u; (portIdx < modelPortsCount) && (!foundDisconnected); portIdx++) {
+            uint32 portIdxLoop = portIdx;
+            uint32 signalsInPortCount = modelPorts[portIdxLoop]->carriedSignals.GetSize();
 
-            for(signalInPortIdx = 0u; (signalInPortIdx < signalsInPortCount) && !foundDisconnected; signalInPortIdx++) {
-                if(modelPorts[portIdx]->carriedSignals[signalInPortIdx]->MARTeAddress == NULL) {
+            for(signalInPortIdx = 0u; (signalInPortIdx < signalsInPortCount) && (!foundDisconnected); signalInPortIdx++) {
+		uint32 loopIndex = signalInPortIdx;
+                if(modelPorts[portIdxLoop]->carriedSignals[loopIndex]->MARTeAddress == NULL) {
                     foundDisconnected = true;
 
                     REPORT_ERROR(ErrorManagement::ParametersError, "Found disconnected [%s] signal in portId %d - signalId %d",
-                                 modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer(), portIdx, signalInPortIdx);
+                                 modelPorts[portIdxLoop]->carriedSignals[loopIndex]->fullName.Buffer(), portIdxLoop, loopIndex);
                 }
             }
         }
@@ -1877,7 +1883,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
 
         if (mode == SignalFromSignals) {
             currentPort->CAPISize = ELEsize*ELEdataTypeSize;
-            currentPort->byteSize = static_cast<uint64>(ELEsize)*ELEdataTypeSize; 
+            currentPort->byteSize = static_cast<uint32>(ELEsize)*ELEdataTypeSize; 
         }
 
         fullPathName =  baseName.Buffer();
@@ -2057,7 +2063,8 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
     }
     
     // Check and map input/output ports
-    for(uint32 signalIdx = 0u; (signalIdx < numberOfSignals) && ok ; signalIdx++) {
+    for(uint32 signalIdxLoop = 0u; (signalIdxLoop < numberOfSignals) && ok ; signalIdxLoop++) {
+	uint32 signalIdx = signalIdxLoop;
         REPORT_ERROR(ErrorManagement::Information, "-----------------");
         found = false;
         
@@ -2066,24 +2073,26 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
         REPORT_ERROR(ErrorManagement::Information, "%s SignalIdx = %d - PortIdx = %d", directionName.Buffer(), signalIdx, portIdx);
 
         //Signal mapping, either 1:1 or port (byte array) based
-        for(portIdx = startIdx; (portIdx < endIdx) && ok; portIdx++ ) {
+        portIdx = startIdx;
+        while((!found) && (portIdx < endIdx)) {
             uint32 portCarriedSignalsCount = modelPorts[portIdx]->carriedSignals.GetSize();
 
-            if(!structuredSignalsAsByteArrays && modelPorts[portIdx]->isStructured) {
-                for(signalInPortIdx = 0; signalInPortIdx < portCarriedSignalsCount; signalInPortIdx++) {
-                     if (GAMSignalName == (modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName)) {
-                        REPORT_ERROR(
-                            ErrorManagement::Information, 
-                            "Found %s signal in portIdx %d @ signal %d index", 
-                            modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer(),
-                            portIdx, signalInPortIdx
-                        );
-                        found = true;
-                        break;
+            if(modelPorts[portIdx]->isStructured && (!structuredSignalsAsByteArrays)) {
+
+                signalInPortIdx = 0u;
+                while((!found) && (signalInPortIdx < portCarriedSignalsCount)) {
+                    if (GAMSignalName == (modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName)) {
+                       REPORT_ERROR(
+                           ErrorManagement::Information,
+                           "Found %s signal in portIdx %d @ signal %d index",
+                           modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer(),
+                           portIdx, signalInPortIdx
+                       );
+                       found = true;
                     }
-                }
-                if(found) {
-                    break;
+                    else {
+                        signalInPortIdx++;
+                    }
                 }
             }
             else {
@@ -2095,8 +2104,10 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                         portIdx
                     );
                     found = true;
-                    break;
                 }
+            }
+            if(!found) {
+                portIdx++;
             }
         }
         
@@ -2113,7 +2124,7 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
             
             // Homogeneus port checks (an array). In this case we check datatype, number of dimensions and number of elements.
 
-            if(!structuredSignalsAsByteArrays || modelPorts[portIdx]->hasHomogeneousType) {
+            if(modelPorts[portIdx]->hasHomogeneousType || (!structuredSignalsAsByteArrays)) {
                 if(!modelPorts[portIdx]->isContiguous)
                 {
                     REPORT_ERROR(ErrorManagement::ParametersError,
@@ -2219,7 +2230,7 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
             REPORT_ERROR(ErrorManagement::Information, "Struct is %s and model is %s", 
                 structuredSignalsAsByteArrays?"BYTE":"STRUCT", modelPorts[portIdx]->isStructured?"IS":"NOT"
             );
-            if(!structuredSignalsAsByteArrays &&  modelPorts[portIdx]->isStructured) {
+            if(modelPorts[portIdx]->isStructured && (!structuredSignalsAsByteArrays)) {
                 REPORT_ERROR(ErrorManagement::Information, "Mapping a structured signal in structured mode - PortIdx = %d", portIdx);
                 if (direction == InputSignals) {
                     REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Input ID: %d @ %p - FullName %s", signalIdx, GetInputSignalMemory(signalIdx), modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer());
