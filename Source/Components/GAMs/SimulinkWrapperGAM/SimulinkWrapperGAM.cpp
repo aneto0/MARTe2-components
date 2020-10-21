@@ -579,7 +579,10 @@ bool SimulinkWrapperGAM::Setup() {
         uint32 signalInPortIdx = 0u;
 
         uint32 modelPortsCount = modelPorts.GetSize();
-        REPORT_ERROR(ErrorManagement::Information, "Scanning for orphaned Simulink signals on %d ports", modelPortsCount);
+
+        if(verbosityLevel > 1u) {
+            REPORT_ERROR(ErrorManagement::Information, "Scanning for orphaned Simulink signals on %d ports", modelPortsCount);
+        }
 
         bool foundDisconnected = false;
 
@@ -2065,12 +2068,17 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
     // Check and map input/output ports
     for(uint32 signalIdxLoop = 0u; (signalIdxLoop < numberOfSignals) && ok ; signalIdxLoop++) {
 	uint32 signalIdx = signalIdxLoop;
-        REPORT_ERROR(ErrorManagement::Information, "-----------------");
+        if(verbosityLevel > 1u) {
+            REPORT_ERROR(ErrorManagement::Information, "-----------------");
+        }
+
         found = false;
         
         GAMSignalName = "";
         ok = GetSignalName(direction, signalIdx, GAMSignalName);
-        REPORT_ERROR(ErrorManagement::Information, "%s SignalIdx = %d - PortIdx = %d", directionName.Buffer(), signalIdx, portIdx);
+        if(verbosityLevel > 1u) {
+            REPORT_ERROR(ErrorManagement::Information, "%s SignalIdx = %d - PortIdx = %d", directionName.Buffer(), signalIdx, portIdx);
+        }
 
         //Signal mapping, either 1:1 or port (byte array) based
         portIdx = startIdx;
@@ -2082,12 +2090,15 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                 signalInPortIdx = 0u;
                 while((!found) && (signalInPortIdx < portCarriedSignalsCount)) {
                     if (GAMSignalName == (modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName)) {
-                       REPORT_ERROR(
-                           ErrorManagement::Information,
-                           "Found %s signal in portIdx %d @ signal %d index",
-                           modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer(),
-                           portIdx, signalInPortIdx
-                       );
+                        if(verbosityLevel > 1u) {
+                            REPORT_ERROR(
+                                ErrorManagement::Information,
+                                "Found %s signal in portIdx %d @ signal %d index",
+                                modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer(),
+                                portIdx, signalInPortIdx
+                            );
+                        }
+
                        found = true;
                     }
                     else {
@@ -2097,12 +2108,15 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
             }
             else {
                 if (GAMSignalName == (modelPorts[portIdx]->fullName)) {
-                    REPORT_ERROR(
-                        ErrorManagement::Information, 
-                        "Found unstructured %s signal in portIdx %d", 
-                        modelPorts[portIdx]->fullName.Buffer(),
-                        portIdx
-                    );
+                    if(verbosityLevel > 1u) {
+                        REPORT_ERROR(
+                            ErrorManagement::Information,
+                            "Found unstructured %s signal in portIdx %d",
+                            modelPorts[portIdx]->fullName.Buffer(),
+                            portIdx
+                        );
+                    }
+
                     found = true;
                 }
             }
@@ -2111,7 +2125,9 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
             }
         }
         
-        REPORT_ERROR(ErrorManagement::Information, "PortIdx = %d", portIdx);
+        if(verbosityLevel > 1u) {
+            REPORT_ERROR(ErrorManagement::Information, "PortIdx = %d", portIdx);
+        }
 
         if (!found) {
             REPORT_ERROR(ErrorManagement::ParametersError,
@@ -2227,17 +2243,27 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
         
         // Ok, here we can map memory inputs
         if (ok) {
-            REPORT_ERROR(ErrorManagement::Information, "Struct is %s and model is %s", 
-                structuredSignalsAsByteArrays?"BYTE":"STRUCT", modelPorts[portIdx]->isStructured?"IS":"NOT"
-            );
+            if(verbosityLevel > 1u) {
+                REPORT_ERROR(ErrorManagement::Information, "Struct is %s and model is %s",
+                    structuredSignalsAsByteArrays?"BYTE":"STRUCT", modelPorts[portIdx]->isStructured?"IS":"NOT"
+                );
+            }
+
             if(modelPorts[portIdx]->isStructured && (!structuredSignalsAsByteArrays)) {
-                REPORT_ERROR(ErrorManagement::Information, "Mapping a structured signal in structured mode - PortIdx = %d", portIdx);
+                if(verbosityLevel > 1u) {
+                    REPORT_ERROR(ErrorManagement::Information, "Mapping a structured signal in structured mode - PortIdx = %d", portIdx);
+                }
+
                 if (direction == InputSignals) {
-                    REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Input ID: %d @ %p - FullName %s", signalIdx, GetInputSignalMemory(signalIdx), modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer());
+                    if(verbosityLevel > 1u) {
+                        REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Input ID: %d @ %p - FullName %s", signalIdx, GetInputSignalMemory(signalIdx), modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer());
+                    }
                     modelPorts[portIdx]->carriedSignals[signalInPortIdx]->MARTeAddress = GetInputSignalMemory(signalIdx);
                 }
                 else if (direction == OutputSignals) {
-                    REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Output ID: %d @ %p", signalIdx, GetOutputSignalMemory(signalIdx));
+                    if(verbosityLevel > 1u) {
+                        REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Output ID: %d @ %p", signalIdx, GetOutputSignalMemory(signalIdx));
+                    }
                     modelPorts[portIdx]->carriedSignals[signalInPortIdx]->MARTeAddress = GetOutputSignalMemory(signalIdx);
                 }
                 else {
@@ -2245,13 +2271,20 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                 }
             }
             else {
-                REPORT_ERROR(ErrorManagement::Information, "Mapping a signal in single or raw mode - PortIdx = %d", portIdx);
+                if(verbosityLevel > 1u) {
+                    REPORT_ERROR(ErrorManagement::Information, "Mapping a signal in single or raw mode - PortIdx = %d", portIdx);
+                }
+
                 if (direction == InputSignals) {
-                    REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Input ID: %d @ %p", signalIdx, GetInputSignalMemory(signalIdx));
+                    if(verbosityLevel > 1u) {
+                        REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Input ID: %d @ %p", signalIdx, GetInputSignalMemory(signalIdx));
+                    }
                     modelPorts[portIdx]->MARTeAddress = GetInputSignalMemory(signalIdx);
                 }
                 else if (direction == OutputSignals) {
-                    REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Output ID: %d @ %p", signalIdx, GetOutputSignalMemory(signalIdx));
+                    if(verbosityLevel > 1u) {
+                        REPORT_ERROR(ErrorManagement::Information, "Mapping MARTe Output ID: %d @ %p", signalIdx, GetOutputSignalMemory(signalIdx));
+                    }
                     modelPorts[portIdx]->MARTeAddress = GetOutputSignalMemory(signalIdx);
                 }
                 else {
@@ -2260,7 +2293,10 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
             }
         }
     }
-    REPORT_ERROR(ErrorManagement::Information, "---");
+    if(verbosityLevel > 1u) {
+        REPORT_ERROR(ErrorManagement::Information, "---");
+    }
+
     return ok;
 }
 

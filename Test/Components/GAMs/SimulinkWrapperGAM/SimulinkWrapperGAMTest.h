@@ -353,6 +353,11 @@ public:
 
 
     /**
+     * @brief Test execution and coherence when working in pure structured mode
+     */
+    bool Test_StructuredSignalsExecute();
+
+    /**
      * @brief Test the behaviour when working in pure structured signal mode, while enforcing
      * MARTe2 - Simulink parameter coverage (1:1 mapping)
      */

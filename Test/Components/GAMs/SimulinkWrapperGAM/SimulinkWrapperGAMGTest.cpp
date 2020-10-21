@@ -274,6 +274,11 @@ TEST(SimulinkWrapperGAMGTest, Test_StructuredSignals_Failed) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.Test_StructuredSignals_Failed());
 }
+
+TEST(SimulinkWrapperGAMGTest, Test_StructuredSignalsExecute) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.Test_StructuredSignalsExecute());
+}
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
