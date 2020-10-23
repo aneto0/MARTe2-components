@@ -433,6 +433,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
     if ((sync == "no") && ok) {
         executor.SetCPUMask(cpuMask);
         executor.SetStackSize(stackSize);
+        executor.SetName(GetName());
         ok = (executor.Start() == ErrorManagement::NoError);
     }
     if (!ok) {

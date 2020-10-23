@@ -240,6 +240,7 @@ bool EPICSCAInput::SetConfiguredDatabase(StructuredDataI & data) {
     }
 
     if (ok) {
+        executor.SetName(GetName());
         ok = (executor.Start() == ErrorManagement::NoError);
     }
     return ok;

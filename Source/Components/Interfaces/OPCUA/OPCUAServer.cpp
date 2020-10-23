@@ -107,6 +107,7 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
     if (ok) {
         service.SetCPUMask(cpuMask);
         service.SetStackSize(stackSize);
+        service.SetName(GetName());
         ok = (service.Start() == ErrorManagement::NoError);
     }
     return ok;

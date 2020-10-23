@@ -102,6 +102,7 @@ bool EPICSRPCServer::Initialise(StructuredDataI & data) {
 }
 
 ErrorManagement::ErrorType EPICSRPCServer::Start() {
+    executor.SetName(GetName());
     ErrorManagement::ErrorType err = executor.Start();
     return err;
 }

@@ -145,6 +145,7 @@ bool EPICSPVAInput::AllocateMemory() {
         ok = channelList[n].Setup(*this);
     }
     if (ok) {
+        executor.SetName(GetName());
         ok = (executor.Start() == ErrorManagement::NoError);
     }
     return ok;
