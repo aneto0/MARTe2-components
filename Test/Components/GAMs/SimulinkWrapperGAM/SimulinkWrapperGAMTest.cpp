@@ -74,7 +74,7 @@ public:
     void* GetInputSignalMemoryTest(MARTe::uint32 signalIdx) {
         return GetInputSignalMemory(signalIdx);
     }
-    
+
     void PrintAlgoInfoTest() {
         PrintAlgoInfo();
     }
@@ -3563,6 +3563,293 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignals_Failed() {
 
     // Test setup
     bool ok = !TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, NULL, false, true);
+
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::Test_MultiMixedSignalsTranspose(bool transpose) {
+    StreamString scriptCall;
+
+    if(transpose) {
+        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Column-major');";
+    }
+    else {
+        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Row-major');";
+    }
+
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_Structured = { "
+        "        In1_ScalarDouble  = { "
+        "            DataSource = Drv1"
+        "            Type = float64"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "        In2_ScalarUint32  = { "
+        "            DataSource = Drv1"
+        "            Type = uint32"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "}"
+        "    In2_Structured = { "
+        "        In3_VectorDouble = {"
+        "            DataSource = Drv1"
+        "            Type = float64"
+        "            NumberOfElements = 8"
+        "            NumberOfDimensions = 1"
+        "        }"
+        "        In4_VectorUint32  = {"
+        "            DataSource = Drv1"
+        "            Type = uint32"
+        "            NumberOfElements = 8"
+        "            NumberOfDimensions = 1"
+        "        }"
+        "}"
+        "    In3_Structured = { "
+        "        In5_MatrixDouble = {"
+        "            DataSource = Drv1"
+        "            Type = float64"
+        "            NumberOfElements = 36"
+        "            NumberOfDimensions = 2"
+        "        }"
+        "        In6_MatrixDouble  = {"
+        "            DataSource = Drv1"
+        "            Type = float64"
+        "            NumberOfElements = 36"
+        "            NumberOfDimensions = 2"
+        "        }"
+        "    }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = {"
+        "        DataSource = DDB1"
+        "        Type = float64"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "    Out2_ScalarUint32 = {"
+        "        DataSource = DDB1"
+        "        Type = uint32"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "    Out3_VectorDouble = {"
+        "        DataSource = DDB1"
+        "        Type = float64"
+        "        NumberOfElements = 8"
+        "        NumberOfDimensions = 1"
+        "    }"
+        "    Out4_VectorUint32 = {"
+        "        DataSource = DDB1"
+        "        Type = uint32"
+        "        NumberOfElements = 8"
+        "        NumberOfDimensions = 1"
+        "    }"
+        "    Out5_MatrixDouble = {"
+        "        DataSource = DDB1"
+        "        Type = float64"
+        "        NumberOfElements = 36"
+        "        NumberOfDimensions = 2"
+        "    }"
+        "    Out20_NonVirtualBus = { "
+        "        Signal1 = {"
+        "            DataSource = DDB1"
+        "            Type = uint32"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "        Signal2  = {"
+        "            DataSource = DDB1"
+        "            Type = float64"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "    }"
+        "    Out21_NonVirtualBus = { "
+        "        Signal1 = {"
+        "            DataSource = DDB1"
+        "            Type = uint32"
+        "            NumberOfElements = 8"
+        "            NumberOfDimensions = 1"
+        "        }"
+        "        Signal2  = {"
+        "            DataSource = DDB1"
+        "            Type = float64"
+        "            NumberOfElements = 8"
+        "            NumberOfDimensions = 1"
+        "        }"
+        "    }"
+        "    Out31_NonVirtualBus = { "
+        "        Signal1 = {"
+        "            DataSource = DDB1"
+        "            Type = uint32"
+        "            NumberOfElements = 36"
+        "            NumberOfDimensions = 2"
+        "        }"
+        "        Signal2  = {"
+        "            DataSource = DDB1"
+        "            Type = float64"
+        "            NumberOfElements = 36"
+        "            NumberOfDimensions = 2"
+        "        }"
+        "    }"
+        "}";
+
+    StreamString inputValues = ""
+            "In1_Structured.In2_ScalarUint32 = (uint32)  2 "
+            "In1_Structured.In1_ScalarDouble = (float64) 3.141592653 "
+            "In2_Structured.In4_VectorUint32 = (uint32)  { 12, 1, 2, 3, 4, 5, 6, 7 } "
+            "In2_Structured.In3_VectorDouble = (float64) { 2.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0} "
+            "In3_Structured.In6_MatrixDouble = (float64)  { { 9, 11, 11, 11, 11, 12},"
+            "                                               { 10, 11, 11, 11, 11, 12},"
+            "                                               { 11, 11, 11, 11, 11, 12},"
+            "                                               { 12, 11, 11, 11, 11, 12},"
+            "                                               { 13, 11, 11, 11, 11, 12},"
+            "                                               { 14, 11, 11, 11, 11, 12} }"
+            "In3_Structured.In5_MatrixDouble = (float64) { { 1.0, 11.0, 11.0, 11.0, 11.0, 12.0},"
+            "                                              { 2.0, 11.0, 11.0, 11.0, 11.0, 12.0},"
+            "                                              { 3.0, 11.0, 11.0, 11.0, 11.0, 12.0},"
+            "                                              { 4.0, 11.0, 11.0, 11.0, 11.0, 12.0},"
+            "                                              { 5.0, 11.0, 11.0, 11.0, 11.0, 12.0},"
+            "                                              { 6.0, 11.0, 11.0, 11.0, 11.0, 12.0} }";
+
+    StreamString checkValues = ""
+            "In1_Structured.In2_ScalarUint32 = (uint32)  2 "
+            "In1_Structured.In1_ScalarDouble = (float64) 3.141592653 "
+            "In2_Structured.In4_VectorUint32 = (uint32)  { 12, 1, 2, 3, 4, 5, 6, 7 } "
+            "In2_Structured.In3_VectorDouble = (float64) { 2.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0} "
+            "In3_Structured.In6_MatrixDouble = (float64)  { {  9, 10, 11, 12, 13, 14 },"
+            "                                               { 11, 11, 11, 11, 11, 11 },"
+            "                                               { 11, 11, 11, 11, 11, 11 },"
+            "                                               { 11, 11, 11, 11, 11, 11 },"
+            "                                               { 11, 11, 11, 11, 11, 11 },"
+            "                                               { 12, 12, 12, 12, 12, 12 } }"
+            "In3_Structured.In5_MatrixDouble = (float64) { { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0},"
+            "                                              { 11.0, 11.0, 11.0, 11.0, 11.0, 11.0},"
+            "                                              { 11.0, 11.0, 11.0, 11.0, 11.0, 11.0},"
+            "                                              { 11.0, 11.0, 11.0, 11.0, 11.0, 11.0},"
+            "                                              { 11.0, 11.0, 11.0, 11.0, 11.0, 11.0},"
+            "                                              { 12.0, 12.0, 12.0, 12.0, 12.0, 12.0} }";
+
+
+    StreamString parameters = "";
+
+    ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, ord, false, false);
+
+    ConfigurationDatabase cdb;
+    if (ok) {
+        inputValues.Seek(0u);
+        StandardParser parser(inputValues, cdb);
+        ok = parser.Parse();
+    }
+
+    ConfigurationDatabase cdbOut;
+
+    if(ok && transpose) {
+        checkValues.Seek(0u);
+        StandardParser parser(checkValues, cdbOut);
+        ok = parser.Parse();
+    }
+    else {
+        cdbOut = cdb;
+    }
+
+
+    if (ok) {
+        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
+
+        ok = gam.IsValid();
+
+        // Copy inputValues to the GAM input signal memory
+        if (ok) {
+
+            for (uint32 signalIdx = 0u; (signalIdx < gam->GetNumberOfInputSignals()) && ok ; signalIdx++) {
+
+                StreamString signalName;
+
+                ok = gam->GetSignalName(InputSignals, signalIdx, signalName);
+
+                AnyType arrayDescription = cdb.GetType(signalName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+
+                //
+                uint32 memoryAllocationSize = 0u;
+
+                switch (arrayDescription.GetNumberOfDimensions()) {
+
+                    case 0u:
+                        memoryAllocationSize = arrayDescription.GetByteSize();
+                        break;
+
+                    case 1u:
+                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u);
+                        break;
+
+                    case 2u:
+                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u) * arrayDescription.GetNumberOfElements(1u);
+                        break;
+                }
+                if (ok) {
+                    ok = MemoryOperationsHelper::Copy(gam->GetInputSignalMemoryTest(signalIdx), arrayDescription.GetDataPointer(), memoryAllocationSize);
+                }
+            }
+
+            ok = gam->Execute();
+        }
+
+        if (ok) {
+             SimulinkPort *inputPort1 = gam->GetPort(0);
+             SimulinkPort *inputPort2 = gam->GetPort(1);
+             SimulinkPort *inputPort3 = gam->GetPort(2);
+
+             SimulinkSignal* in1 = inputPort1->carriedSignals[0];
+             SimulinkSignal* in2 = inputPort1->carriedSignals[1];
+             SimulinkSignal* in3 = inputPort2->carriedSignals[0];
+             SimulinkSignal* in4 = inputPort2->carriedSignals[1];
+             SimulinkSignal* in5 = inputPort3->carriedSignals[0];
+             SimulinkSignal* in6 = inputPort3->carriedSignals[1];
+
+             AnyType adIn1 = cdbOut.GetType(in1->fullName.Buffer());
+             AnyType adIn2 = cdbOut.GetType(in2->fullName.Buffer());
+             AnyType adIn3 = cdbOut.GetType(in3->fullName.Buffer());
+             AnyType adIn4 = cdbOut.GetType(in4->fullName.Buffer());
+             AnyType adIn5 = cdbOut.GetType(in5->fullName.Buffer());
+             AnyType adIn6 = cdbOut.GetType(in6->fullName.Buffer());
+
+             ok =    adIn1.GetDataPointer() != NULL_PTR(void *) &&
+                     adIn2.GetDataPointer() != NULL_PTR(void *) &&
+                     adIn3.GetDataPointer() != NULL_PTR(void *) &&
+                     adIn4.GetDataPointer() != NULL_PTR(void *) &&
+                     adIn5.GetDataPointer() != NULL_PTR(void *) &&
+                     adIn6.GetDataPointer() != NULL_PTR(void *);
+
+             if(ok) {
+                 bool ok1, ok2, ok3, ok4, ok5, ok6;
+                 ok1 = (MemoryOperationsHelper::Compare(in1->address, adIn1.GetDataPointer(), in1->byteSize) == 0u);
+                 ok2 = (MemoryOperationsHelper::Compare(in2->address, adIn2.GetDataPointer(), in2->byteSize) == 0u);
+                 ok3 = (MemoryOperationsHelper::Compare(in3->address, adIn3.GetDataPointer(), in3->byteSize) == 0u);
+                 ok4 = (MemoryOperationsHelper::Compare(in4->address, adIn4.GetDataPointer(), in4->byteSize) == 0u);
+                 ok5 = (MemoryOperationsHelper::Compare(in5->address, adIn5.GetDataPointer(), in5->byteSize) == 0u);
+                 ok6 = (MemoryOperationsHelper::Compare(in6->address, adIn6.GetDataPointer(), in6->byteSize) == 0u);
+
+                 ok = ok1 && ok2 && ok3 && ok4 && ok5 && ok6;
+
+             }
+             else {
+                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Wrong data pointers");
+             }
+        }
+    }
+
 
     return ok;
 }

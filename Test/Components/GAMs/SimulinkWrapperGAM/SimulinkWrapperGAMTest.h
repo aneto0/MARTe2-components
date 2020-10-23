@@ -357,6 +357,12 @@ public:
      */
     bool Test_StructuredSignalsExecute();
 
+
+    /**
+     * @brief Test execution and coherence when working with mixed signals and transposition takes place
+     */
+    bool Test_MultiMixedSignalsTranspose(bool transpose);
+
     /**
      * @brief Test the behaviour when working in pure structured signal mode, while enforcing
      * MARTe2 - Simulink parameter coverage (1:1 mapping)

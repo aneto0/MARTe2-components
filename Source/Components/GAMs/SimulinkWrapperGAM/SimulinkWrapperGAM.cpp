@@ -59,7 +59,7 @@ static MARTe::StreamString GetOrientationName(const rtwCAPI_Orientation  &ELEori
         name = "matrix col major";
         break;
     case rtwCAPI_MATRIX_ROW_MAJOR_ND:
-        name = "matrix col major nd";
+        name = "matrix row major nd";
         break;
     case rtwCAPI_MATRIX_COL_MAJOR_ND:
         name = "matrix col major nd";
@@ -1948,25 +1948,25 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
                 currentPort->numberOfElements[dimIdx] = ELEactualDimensions[dimIdx];
             }
             
-            
             currentPort->isTyped = true;
-        }
-        else {
+        }//TODO Check added condition do ELSE (structuredSignalsAsByteArrays)
+        else if(structuredSignalsAsByteArrays) {
             // not the first signal, check coherence with previous ones
             if ( StreamString(ELEctypename) != currentPort->cTypeName ) {
-                
+
                 currentPort->cTypeName     = "unsigned char";
                 currentPort->MARTeTypeName = "uint8";
                 currentPort->type          = TypeDescriptor::GetTypeDescriptorFromTypeName("uint8");
-                
+
                 currentPort->hasHomogeneousType = false;
             }
-            
+
             if (ELEorientation != currentPort->orientation) {
                 currentPort->hasHomogeneousOrientation = false;
             }
-            
+
             for(uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
+
                 currentPort->numberOfElements[dimIdx] = 1u;
             }
         }
@@ -1992,6 +1992,8 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
         //Address and size propagated to the signal
         currentSignal->address = ELEparamAddress;
         currentSignal->byteSize = ELEsize * ELEdataTypeSize;
+
+        currentSignal->orientation = ELEorientation;
 
         ok = currentPort->AddSignal(currentSignal);
     }
@@ -2093,9 +2095,9 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                         if(verbosityLevel > 1u) {
                             REPORT_ERROR(
                                 ErrorManagement::Information,
-                                "Found %s signal in portIdx %d @ signal %d index",
+                                "Found %s signal in portIdx %d @ signal %d index %s",
                                 modelPorts[portIdx]->carriedSignals[signalInPortIdx]->fullName.Buffer(),
-                                portIdx, signalInPortIdx
+                                portIdx, signalInPortIdx,modelPorts[portIdx]->carriedSignals[signalInPortIdx]->requiresTransposition?"ReqT":"Norm"
                             );
                         }
 

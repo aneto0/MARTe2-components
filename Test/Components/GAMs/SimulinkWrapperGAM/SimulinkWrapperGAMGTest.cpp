@@ -40,6 +40,7 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+
 TEST(SimulinkWrapperGAMGTest, TestConstructor) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestConstructor());
@@ -278,6 +279,17 @@ TEST(SimulinkWrapperGAMGTest, Test_StructuredSignals_Failed) {
 TEST(SimulinkWrapperGAMGTest, Test_StructuredSignalsExecute) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.Test_StructuredSignalsExecute());
+}
+
+
+TEST(SimulinkWrapperGAMGTest, Test_MultiMixedSignalsTranspose) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.Test_MultiMixedSignalsTranspose(true));
+}
+
+TEST(SimulinkWrapperGAMGTest, Test_MultiMixedSignalsNorm) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.Test_MultiMixedSignalsTranspose(false));
 }
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

@@ -314,6 +314,8 @@ bool SimulinkDataI::TransposeAndCopyT(void *const destination, const void *const
     uint32 numberOfRows    = numberOfElements[0u];
     uint32 numberOfColumns = numberOfElements[1u];
     
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "Rows %d Columns %d", numberOfRows, numberOfColumns);
+
     for (uint32 rowIdx = 0u; rowIdx < numberOfRows; rowIdx++) {
         
         for (uint32 colIdx = 0u; colIdx < numberOfColumns; colIdx++) {
