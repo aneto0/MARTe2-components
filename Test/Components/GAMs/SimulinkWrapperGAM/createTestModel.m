@@ -18,6 +18,7 @@ hasStructArrayParams = false;
 hasInputs            = true;
 hasOutputs           = true;
 hasStructSignals     = false;
+hasStructInputs      = false;
 dataOrientation      = 'Column-major';   isRowMajor = 0;
 useType              = 0;
 
@@ -52,6 +53,9 @@ while ~isempty(varargin)
         case 'hasStructSignals'
             hasStructSignals = varargin{2};
         
+        case 'hasStructInputs'
+            hasStructInputs = varargin{2};
+            
         case 'dataOrientation'
             dataOrientation = varargin{2};
             if strcmp(dataOrientation, 'Row-major')
@@ -69,10 +73,10 @@ while ~isempty(varargin)
 end
 
 % warning: the model name is limited to 20 characters
-model_name = ['testModel' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
+model_name = ['testMdl' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
                           int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
                           int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
-                          int2str(useType)          int2str(isRowMajor) ...
+                          int2str(useType)          int2str(isRowMajor)      int2str(hasStructInputs) ...
              ];
 
 model_compiled = false;
@@ -173,248 +177,7 @@ if modelComplexity >= 3
 end
 
 % input ports
-if (hasInputs == true) && (hasStructSignals == false)
-    add_block('simulink/Sources/In1', [model_name '/In1_ScalarDouble']);
-    set_param([model_name '/In1_ScalarDouble'], 'IconDisplay',    'Signal name');
-    set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
-    
-    add_block('simulink/Sources/In1', [model_name '/In2_ScalarUint32' ]);
-    set_param([model_name '/In2_ScalarUint32'],  'IconDisplay',    'Signal name');
-    set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
-    
-    if modelComplexity >= 2
-        add_block('simulink/Sources/In1', [model_name '/In3_VectorDouble' ], ...
-            'IconDisplay',    'Signal name', ...
-            'OutdataTypeStr', 'double',      ...
-            'PortDimensions', '[8 1]');
-
-        add_block('simulink/Sources/In1', [model_name '/In4_VectorUint32' ], ...
-            'IconDisplay',    'Signal name', ...
-            'OutdataTypeStr', 'uint32',      ...
-            'PortDimensions', '[8 1]' );
-    end
-    
-    if modelComplexity >= 3
-        add_block('simulink/Sources/In1', [model_name '/In5_MatrixDouble' ], ...
-            'IconDisplay',    'Signal name', ...
-            'OutdataTypeStr', 'double',      ...
-            'PortDimensions', '[6 6]' );
-
-        add_block('simulink/Sources/In1', [model_name '/In6_MatrixUint32' ], ...
-            'IconDisplay',    'Signal name', ...
-            'OutdataTypeStr', 'uint32',      ...
-            'PortDimensions', '[6 6]' );
-    end
-    
-    if modelComplexity >= 4
-        add_block('simulink/Sources/In1', [model_name '/In7_3DMatrixDouble' ], ...
-            'IconDisplay',    'Signal name', ...
-            'OutdataTypeStr', 'double', ...
-            'PortDimensions',  '[4 4]');
-
-        add_block('simulink/Sources/In1', [model_name '/In8_3DMatrixUint32' ], ...
-            'IconDisplay',    'Signal name', ...
-            'OutdataTypeStr', 'uint32', ...
-            'PortDimensions',  '[4 4]');
-        
-        add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate7'], ...
-            'NumInputs',            '2', ...
-            'ConcatenateDimension', '3')
-        
-        add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate8'], ...
-            'NumInputs',            '2', ...
-            'ConcatenateDimension', '3')
-    end
-    %END if hasInputs && hasStructSignals
-
-    %Added to support !structSignalsAsByteArrays
-elseif (hasInputs == true) && (hasStructSignals == true)
-    
-    evalin('base', 'clear inputBusElems;');
-    
-    evalin('base', 'inputBusElems(1) = Simulink.BusElement;');
-    evalin('base', 'inputBusElems(1).Name = ''In2_ScalarUint32'';');
-    evalin('base', 'inputBusElems(1).Dimensions = 1;');
-    evalin('base', 'inputBusElems(1).DimensionsMode = ''Fixed'';');
-    evalin('base', 'inputBusElems(1).DataType = ''uint32'';');
-    evalin('base', 'inputBusElems(1).SampleTime = -1;');
-    evalin('base', 'inputBusElems(1).Complexity = ''real'';');
-    
-    evalin('base', 'inputBusElems(2) = Simulink.BusElement;');
-    evalin('base', 'inputBusElems(2).Name = ''In1_ScalarDouble'';');
-    evalin('base', 'inputBusElems(2).Dimensions = 1;');
-    evalin('base', 'inputBusElems(2).DimensionsMode = ''Fixed'';');
-    evalin('base', 'inputBusElems(2).DataType = ''double'';');
-    evalin('base', 'inputBusElems(2).SampleTime = -1;');
-    evalin('base', 'inputBusElems(2).Complexity = ''real'';');
-    
-    evalin('base', 'INSTRUCTSIGNAL1 = Simulink.Bus;');
-    evalin('base', 'INSTRUCTSIGNAL1.Elements = inputBusElems;');
-    
-    add_block('simulink/Sources/In1', [model_name '/In1_Structured']);
-    set_param([model_name '/In1_Structured'], 'IconDisplay',    'Signal name');
-    set_param([model_name '/In1_Structured'], 'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL1');
-    set_param([model_name '/In1_Structured'], 'BusOutputAsStruct',  'on');
-    
-    add_block('simulink/Math Operations/Gain', [model_name '/In1_ScalarDouble'], ...
-              'OutDataTypeStr', 'double');
-    add_block('simulink/Math Operations/Gain', [model_name '/In2_ScalarUint32'], ...
-              'OutDataTypeStr', 'uint32');
-    
-    add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector'], ...
-        'OutputSignals', 'In2_ScalarUint32,In1_ScalarDouble');
-
-    add_line(model_name, 'InputSelector/2', 'In1_ScalarDouble/1');
-    add_line(model_name, 'InputSelector/1', 'In2_ScalarUint32/1');
-    
-    add_line(model_name, 'In1_Structured/1', 'InputSelector/1');
-    name_output_signal([model_name '/In1_Structured'], 1, 'In1_Structured');
-    
-    if modelComplexity >= 2
-        evalin('base', 'clear inputBusElems2;');
-        evalin('base', 'inputBusElems2(2) = Simulink.BusElement;');
-        evalin('base', 'inputBusElems2(2).Name = ''In3_VectorDouble'';');
-        evalin('base', 'inputBusElems2(2).Dimensions = [8 1];');
-        evalin('base', 'inputBusElems2(2).DimensionsMode = ''Fixed'';');
-        evalin('base', 'inputBusElems2(2).DataType = ''double'';');
-        evalin('base', 'inputBusElems2(2).SampleTime = -1;');
-        evalin('base', 'inputBusElems2(2).Complexity = ''real'';');
-
-        evalin('base', 'inputBusElems2(1) = Simulink.BusElement;');
-        evalin('base', 'inputBusElems2(1).Name = ''In4_VectorUint32'';');
-        evalin('base', 'inputBusElems2(1).Dimensions = [8 1];');
-        evalin('base', 'inputBusElems2(1).DimensionsMode = ''Fixed'';');
-        evalin('base', 'inputBusElems2(1).DataType = ''uint32'';');
-        evalin('base', 'inputBusElems2(1).SampleTime = -1;');
-        evalin('base', 'inputBusElems2(1).Complexity = ''real'';');
-        
-        evalin('base', 'INSTRUCTSIGNAL2 = Simulink.Bus;');
-        evalin('base', 'INSTRUCTSIGNAL2.Elements = inputBusElems2;');
-        
-        add_block('simulink/Sources/In1', [model_name '/In2_Structured']);
-        set_param([model_name '/In2_Structured'], 'IconDisplay',    'Signal name');
-        set_param([model_name '/In2_Structured'], 'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL2');
-        set_param([model_name '/In2_Structured'], 'BusOutputAsStruct',  'on');
-        
-        add_block('simulink/Math Operations/Gain', [model_name '/In3_VectorDouble'], ...
-            'OutDataTypeStr', 'double');
-        add_block('simulink/Math Operations/Gain', [model_name '/In4_VectorUint32'], ...
-            'OutDataTypeStr', 'uint32');
-        
-        add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector2'], ...
-            'OutputSignals', 'In4_VectorUint32,In3_VectorDouble');
-        
-        add_line(model_name, 'InputSelector2/2', 'In3_VectorDouble/1');
-        add_line(model_name, 'InputSelector2/1', 'In4_VectorUint32/1');
-        
-        add_line(model_name, 'In2_Structured/1', 'InputSelector2/1');
-        name_output_signal([model_name '/In2_Structured'], 1, 'In2_Structured');
-    end
-    
-    if modelComplexity >= 3
-        evalin('base', 'inputBusElems3(2) = Simulink.BusElement;');
-        evalin('base', 'inputBusElems3(2).Name = ''In5_MatrixDouble'';');
-        evalin('base', 'inputBusElems3(2).Dimensions = [6 6];');
-        evalin('base', 'inputBusElems3(2).DimensionsMode = ''Fixed'';');
-        evalin('base', 'inputBusElems3(2).DataType = ''double'';');
-        evalin('base', 'inputBusElems3(2).SampleTime = -1;');
-        evalin('base', 'inputBusElems3(2).Complexity = ''real'';');
-        
-        evalin('base', 'inputBusElems3(1) = Simulink.BusElement;');
-        evalin('base', 'inputBusElems3(1).Name = ''In6_MatrixDouble'';');
-        evalin('base', 'inputBusElems3(1).Dimensions = [6 6];');
-        evalin('base', 'inputBusElems3(1).DimensionsMode = ''Fixed'';');
-        evalin('base', 'inputBusElems3(1).DataType = ''double'';');
-        evalin('base', 'inputBusElems3(1).SampleTime = -1;');
-        evalin('base', 'inputBusElems3(1).Complexity = ''real'';');
-        
-        evalin('base', 'INSTRUCTSIGNAL3 = Simulink.Bus;');
-        evalin('base', 'INSTRUCTSIGNAL3.Elements = inputBusElems3;');
-        
-        add_block('simulink/Sources/In1', [model_name '/In3_Structured']);
-        set_param([model_name '/In3_Structured'], 'IconDisplay',    'Signal name');
-        set_param([model_name '/In3_Structured'], 'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL3');
-        set_param([model_name '/In3_Structured'], 'BusOutputAsStruct',  'on');
-        
-        add_block('simulink/Math Operations/Gain', [model_name '/In5_MatrixDouble'], ...
-            'OutDataTypeStr', 'double');
-        add_block('simulink/Math Operations/Gain', [model_name '/In6_MatrixUint32'], ...
-            'OutDataTypeStr', 'uint32');
-        
-        add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector3'], ...
-            'OutputSignals', 'In6_MatrixDouble,In5_MatrixDouble');
-        
-        add_line(model_name, 'InputSelector3/2', 'In5_MatrixDouble/1');
-        add_line(model_name, 'InputSelector3/1', 'In6_MatrixUint32/1');
-        
-        add_line(model_name, 'In3_Structured/1', 'InputSelector3/1');
-        name_output_signal([model_name '/In3_Structured'], 1, 'In3_Structured');
-    end
-           
-   
-elseif (hasInputs == false)
-    add_block('simulink/Sources/Constant', [model_name '/In1_ScalarDouble']);
-    set_param([model_name '/In1_ScalarDouble'], 'Value',          '1');
-    set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
-    
-    add_block('simulink/Sources/Constant', [model_name '/In2_ScalarUint32']);
-    set_param([model_name '/In2_ScalarUint32'], 'Value',          '1');
-    set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
-    
-    if (modelComplexity >= 2)
-        add_block('simulink/Sources/Constant', [model_name '/In3_VectorDouble']);
-        set_param([model_name '/In3_VectorDouble'], 'OutDataTypeStr', 'double');
-        if hasTunableParams == true
-            set_param([model_name '/In3_VectorDouble'],  'Value',          'vectorConstant2');
-        else
-            set_param([model_name '/In3_VectorDouble'],  'Value',          'rand(8,1)');
-        end
-        
-        add_block('simulink/Sources/Constant', [model_name '/In4_VectorUint32']);
-        set_param([model_name '/In4_VectorUint32'],  'OutDataTypeStr', 'uint32');
-        if hasStructParams == true
-            set_param([model_name '/In4_VectorUint32'], 'Value',          'structMixed.vec');
-        else
-            set_param([model_name '/In4_VectorUint32'], 'Value',          'ones(8,1)');
-        end
-    end
-    
-    if (modelComplexity >= 3)
-        add_block('simulink/Sources/Constant', [model_name '/In5_MatrixDouble']);
-        set_param([model_name '/In5_MatrixDouble'], 'OutDataTypeStr', 'double');
-        if hasTunableParams == true
-            set_param([model_name '/In5_MatrixDouble'],  'Value',          'matrixConstant2');
-        else
-            set_param([model_name '/In5_MatrixDouble'], 'Value',          'rand(6,6)');
-        end
-        
-        add_block('simulink/Sources/Constant', [model_name '/In6_MatrixUint32']);
-        set_param([model_name '/In6_MatrixUint32'],  'OutDataTypeStr', 'uint32');
-        if hasStructParams == true
-            set_param([model_name '/In6_MatrixUint32'], 'Value',          'structMixed.mat');
-        else
-            set_param([model_name '/In6_MatrixUint32'],  'Value',          'ones(6,6)');
-        end
-    end
-    
-    if (modelComplexity >= 4)
-        add_block('simulink/Sources/Constant', [model_name '/In7_3DMatrixDouble']);
-        set_param([model_name '/In7_3DMatrixDouble'], 'OutDataTypeStr', 'double');
-        if hasTunableParams == true
-            set_param([model_name '/In7_3DMatrixDouble'],  'Value',          'matrixConstant3d');
-        else
-            set_param([model_name '/In7_3DMatrixDouble'], 'Value',          'rand(4,4,4)');
-        end
-        
-        add_block('simulink/Sources/Constant', [model_name '/In8_3DMatrixUint32']);
-        set_param([model_name '/In8_3DMatrixUint32'],  'OutDataTypeStr', 'uint32');
-        if hasStructParams == true
-            set_param([model_name '/In8_3DMatrixUint32'], 'Value',          'structMixed.mat3d');
-        else
-            set_param([model_name '/In8_3DMatrixUint32'],  'Value',          'ones(4,4,4)');
-        end
-    end
-end
+helper_input_gen(model_name, hasInputs, hasStructInputs, modelComplexity, hasTunableParams, hasStructParams);
 
 % output ports
 if hasOutputs == true
@@ -515,7 +278,7 @@ if hasStructSignals == true
     set_param([model_name '/Out20_NonVirtualBus'], 'IconDisplay',    'Signal name');
     set_param([model_name '/Out20_NonVirtualBus'], 'OutDataTypeStr', 'Inherit: auto');
     
-    if(modelComplexity >= 2)
+    if(modelComplexity > 1)
         evalin('base', 'clear bus3Elems;');
         evalin('base', 'bus21Elems(1) = Simulink.BusElement;');
         evalin('base', 'bus21Elems(1).Name = ''Signal1'';');
@@ -546,7 +309,7 @@ if hasStructSignals == true
         set_param([model_name '/Out21_NonVirtualBus'], 'OutDataTypeStr', 'Inherit: auto');
     end
    
-    if(modelComplexity >= 2)
+    if(modelComplexity > 2)
         evalin('base', 'clear bus31Elems;');
         evalin('base', 'bus31Elems(1) = Simulink.BusElement;');
         evalin('base', 'bus31Elems(1).Name = ''Signal1'';');
@@ -575,6 +338,44 @@ if hasStructSignals == true
         add_block('simulink/Sinks/Out1',  [model_name '/Out31_NonVirtualBus']);
         set_param([model_name '/Out31_NonVirtualBus'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out31_NonVirtualBus'], 'OutDataTypeStr', 'Inherit: auto');
+      
+    end
+    
+    if modelComplexity > 3
+        evalin('base', 'clear bus2031Elems;');
+        evalin('base', 'bus2031Elems(1) = Simulink.BusElement;');
+        evalin('base', 'bus2031Elems(1).Name = ''Signal1'';');
+        evalin('base', 'bus2031Elems(1).Dimensions = 1;');
+        evalin('base', 'bus2031Elems(1).DimensionsMode = ''Fixed'';');
+        evalin('base', 'bus2031Elems(1).DataType = ''Bus: STRUCTSIGNAL21'';');
+        evalin('base', 'bus2031Elems(1).SampleTime = -1;');
+        evalin('base', 'bus2031Elems(1).Complexity = ''real'';');
+
+        evalin('base', 'bus2031Elems(2) = Simulink.BusElement;');
+        evalin('base', 'bus2031Elems(2).Name = ''Signal2'';');
+        evalin('base', 'bus2031Elems(2).Dimensions = 1;');
+        evalin('base', 'bus2031Elems(2).DimensionsMode = ''Fixed'';');
+        evalin('base', 'bus2031Elems(2).DataType = ''Bus: STRUCTSIGNAL31'';');
+        evalin('base', 'bus2031Elems(2).SampleTime = -1;');
+        evalin('base', 'bus2031Elems(2).Complexity = ''real'';');
+
+        evalin('base', 'STRUCTSIGNAL2031 = Simulink.Bus;');
+        evalin('base', 'STRUCTSIGNAL2031.Elements = bus2031Elems;');
+        
+        add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator2031']);
+            set_param([model_name '/BusCreator2031'],         'Inputs',         '2');
+            set_param([model_name '/BusCreator2031'],         'NonVirtualBus',  'on');
+            set_param([model_name '/BusCreator2031'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL2031');
+        
+        add_block('simulink/Sinks/Out1',  [model_name '/Out2031_NonVirtualBus']);
+        set_param([model_name '/Out2031_NonVirtualBus'], 'IconDisplay',    'Signal name');
+        set_param([model_name '/Out2031_NonVirtualBus'], 'OutDataTypeStr', 'Inherit: auto');
+                   
+        add_line(model_name, 'BusCreator21/1',            'BusCreator2031/1');
+        add_line(model_name, 'BusCreator31/1',            'BusCreator2031/2');
+        add_line(model_name, 'BusCreator2031/1',          'Out2031_NonVirtualBus/1');
+        
+        name_input_signal([model_name '/Out2031_NonVirtualBus'], 1, 'Out2031_NonVirtualBus');
     end
     
 end
@@ -884,6 +685,269 @@ warning('on','MATLAB:DELETE:FileNotFound');
 warning('on', 'all');
 
 end   % function
+
+%Helper functions, just to keep main code flow tidy, block-structured and
+%easier to focus on
+
+function helper_input_gen_WithInputs(model_name, modelComplexity)
+
+  add_block('simulink/Sources/In1', [model_name '/In1_ScalarDouble']);
+    set_param([model_name '/In1_ScalarDouble'], 'IconDisplay',    'Signal name');
+    set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
+    
+    add_block('simulink/Sources/In1', [model_name '/In2_ScalarUint32' ]);
+    set_param([model_name '/In2_ScalarUint32'],  'IconDisplay',    'Signal name');
+    set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
+    
+    if modelComplexity >= 2
+        add_block('simulink/Sources/In1', [model_name '/In3_VectorDouble' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'double',      ...
+            'PortDimensions', '[8 1]');
+
+        add_block('simulink/Sources/In1', [model_name '/In4_VectorUint32' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'uint32',      ...
+            'PortDimensions', '[8 1]' );
+    end
+    
+    if modelComplexity >= 3
+        add_block('simulink/Sources/In1', [model_name '/In5_MatrixDouble' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'double',      ...
+            'PortDimensions', '[6 6]' );
+
+        add_block('simulink/Sources/In1', [model_name '/In6_MatrixUint32' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'uint32',      ...
+            'PortDimensions', '[6 6]' );
+    end
+    
+    if modelComplexity >= 4
+        add_block('simulink/Sources/In1', [model_name '/In7_3DMatrixDouble' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'double', ...
+            'PortDimensions',  '[4 4]');
+
+        add_block('simulink/Sources/In1', [model_name '/In8_3DMatrixUint32' ], ...
+            'IconDisplay',    'Signal name', ...
+            'OutdataTypeStr', 'uint32', ...
+            'PortDimensions',  '[4 4]');
+        
+        add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate7'], ...
+            'NumInputs',            '2', ...
+            'ConcatenateDimension', '3')
+        
+        add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate8'], ...
+            'NumInputs',            '2', ...
+            'ConcatenateDimension', '3')
+    end
+
+end
+
+function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableParams, hasStructParams)
+
+    add_block('simulink/Sources/Constant', [model_name '/In1_ScalarDouble']);
+    set_param([model_name '/In1_ScalarDouble'], 'Value',          '1');
+    set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
+    
+    add_block('simulink/Sources/Constant', [model_name '/In2_ScalarUint32']);
+    set_param([model_name '/In2_ScalarUint32'], 'Value',          '1');
+    set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
+    
+    if (modelComplexity >= 2)
+        add_block('simulink/Sources/Constant', [model_name '/In3_VectorDouble']);
+        set_param([model_name '/In3_VectorDouble'], 'OutDataTypeStr', 'double');
+        if hasTunableParams == true
+            set_param([model_name '/In3_VectorDouble'],  'Value',          'vectorConstant2');
+        else
+            set_param([model_name '/In3_VectorDouble'],  'Value',          'rand(8,1)');
+        end
+        
+        add_block('simulink/Sources/Constant', [model_name '/In4_VectorUint32']);
+        set_param([model_name '/In4_VectorUint32'],  'OutDataTypeStr', 'uint32');
+        if hasStructParams == true
+            set_param([model_name '/In4_VectorUint32'], 'Value',          'structMixed.vec');
+        else
+            set_param([model_name '/In4_VectorUint32'], 'Value',          'ones(8,1)');
+        end
+    end
+    
+    if (modelComplexity >= 3)
+        add_block('simulink/Sources/Constant', [model_name '/In5_MatrixDouble']);
+        set_param([model_name '/In5_MatrixDouble'], 'OutDataTypeStr', 'double');
+        if hasTunableParams == true
+            set_param([model_name '/In5_MatrixDouble'],  'Value',          'matrixConstant2');
+        else
+            set_param([model_name '/In5_MatrixDouble'], 'Value',          'rand(6,6)');
+        end
+        
+        add_block('simulink/Sources/Constant', [model_name '/In6_MatrixUint32']);
+        set_param([model_name '/In6_MatrixUint32'],  'OutDataTypeStr', 'uint32');
+        if hasStructParams == true
+            set_param([model_name '/In6_MatrixUint32'], 'Value',          'structMixed.mat');
+        else
+            set_param([model_name '/In6_MatrixUint32'],  'Value',          'ones(6,6)');
+        end
+    end
+    
+    if (modelComplexity >= 4)
+        add_block('simulink/Sources/Constant', [model_name '/In7_3DMatrixDouble']);
+        set_param([model_name '/In7_3DMatrixDouble'], 'OutDataTypeStr', 'double');
+        if hasTunableParams == true
+            set_param([model_name '/In7_3DMatrixDouble'],  'Value',          'matrixConstant3d');
+        else
+            set_param([model_name '/In7_3DMatrixDouble'], 'Value',          'rand(4,4,4)');
+        end
+        
+        add_block('simulink/Sources/Constant', [model_name '/In8_3DMatrixUint32']);
+        set_param([model_name '/In8_3DMatrixUint32'],  'OutDataTypeStr', 'uint32');
+        if hasStructParams == true
+            set_param([model_name '/In8_3DMatrixUint32'], 'Value',          'structMixed.mat3d');
+        else
+            set_param([model_name '/In8_3DMatrixUint32'],  'Value',          'ones(4,4,4)');
+        end
+    end
+
+end
+
+function helper_input_gen_WithStructInputs(model_name, modelComplexity)
+    
+    evalin('base', 'clear inputBusElems;');
+    
+    evalin('base', 'inputBusElems(1) = Simulink.BusElement;');
+    evalin('base', 'inputBusElems(1).Name = ''In2_ScalarUint32'';');
+    evalin('base', 'inputBusElems(1).Dimensions = 1;');
+    evalin('base', 'inputBusElems(1).DimensionsMode = ''Fixed'';');
+    evalin('base', 'inputBusElems(1).DataType = ''uint32'';');
+    evalin('base', 'inputBusElems(1).SampleTime = -1;');
+    evalin('base', 'inputBusElems(1).Complexity = ''real'';');
+    
+    evalin('base', 'inputBusElems(2) = Simulink.BusElement;');
+    evalin('base', 'inputBusElems(2).Name = ''In1_ScalarDouble'';');
+    evalin('base', 'inputBusElems(2).Dimensions = 1;');
+    evalin('base', 'inputBusElems(2).DimensionsMode = ''Fixed'';');
+    evalin('base', 'inputBusElems(2).DataType = ''double'';');
+    evalin('base', 'inputBusElems(2).SampleTime = -1;');
+    evalin('base', 'inputBusElems(2).Complexity = ''real'';');
+    
+    evalin('base', 'INSTRUCTSIGNAL1 = Simulink.Bus;');
+    evalin('base', 'INSTRUCTSIGNAL1.Elements = inputBusElems;');
+    
+    add_block('simulink/Sources/In1', [model_name '/In1_Structured']);
+    set_param([model_name '/In1_Structured'], 'IconDisplay',    'Signal name');
+    set_param([model_name '/In1_Structured'], 'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL1');
+    set_param([model_name '/In1_Structured'], 'BusOutputAsStruct',  'on');
+    
+    add_block('simulink/Math Operations/Gain', [model_name '/In1_ScalarDouble'], ...
+              'OutDataTypeStr', 'double');
+    add_block('simulink/Math Operations/Gain', [model_name '/In2_ScalarUint32'], ...
+              'OutDataTypeStr', 'uint32');
+    
+    add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector'], ...
+        'OutputSignals', 'In2_ScalarUint32,In1_ScalarDouble');
+
+    add_line(model_name, 'InputSelector/2', 'In1_ScalarDouble/1');
+    add_line(model_name, 'InputSelector/1', 'In2_ScalarUint32/1');
+    
+    add_line(model_name, 'In1_Structured/1', 'InputSelector/1');
+    name_output_signal([model_name '/In1_Structured'], 1, 'In1_Structured');
+    
+    if modelComplexity > 1
+        evalin('base', 'clear inputBusElems2;');
+        evalin('base', 'inputBusElems2(2) = Simulink.BusElement;');
+        evalin('base', 'inputBusElems2(2).Name = ''In3_VectorDouble'';');
+        evalin('base', 'inputBusElems2(2).Dimensions = [8 1];');
+        evalin('base', 'inputBusElems2(2).DimensionsMode = ''Fixed'';');
+        evalin('base', 'inputBusElems2(2).DataType = ''double'';');
+        evalin('base', 'inputBusElems2(2).SampleTime = -1;');
+        evalin('base', 'inputBusElems2(2).Complexity = ''real'';');
+
+        evalin('base', 'inputBusElems2(1) = Simulink.BusElement;');
+        evalin('base', 'inputBusElems2(1).Name = ''In4_VectorUint32'';');
+        evalin('base', 'inputBusElems2(1).Dimensions = [8 1];');
+        evalin('base', 'inputBusElems2(1).DimensionsMode = ''Fixed'';');
+        evalin('base', 'inputBusElems2(1).DataType = ''uint32'';');
+        evalin('base', 'inputBusElems2(1).SampleTime = -1;');
+        evalin('base', 'inputBusElems2(1).Complexity = ''real'';');
+        
+        evalin('base', 'INSTRUCTSIGNAL2 = Simulink.Bus;');
+        evalin('base', 'INSTRUCTSIGNAL2.Elements = inputBusElems2;');
+        
+        add_block('simulink/Sources/In1', [model_name '/In2_Structured']);
+        set_param([model_name '/In2_Structured'], 'IconDisplay',    'Signal name');
+        set_param([model_name '/In2_Structured'], 'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL2');
+        set_param([model_name '/In2_Structured'], 'BusOutputAsStruct',  'on');
+        
+        add_block('simulink/Math Operations/Gain', [model_name '/In3_VectorDouble'], ...
+            'OutDataTypeStr', 'double');
+        add_block('simulink/Math Operations/Gain', [model_name '/In4_VectorUint32'], ...
+            'OutDataTypeStr', 'uint32');
+        
+        add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector2'], ...
+            'OutputSignals', 'In4_VectorUint32,In3_VectorDouble');
+        
+        add_line(model_name, 'InputSelector2/2', 'In3_VectorDouble/1');
+        add_line(model_name, 'InputSelector2/1', 'In4_VectorUint32/1');
+        
+        add_line(model_name, 'In2_Structured/1', 'InputSelector2/1');
+        name_output_signal([model_name '/In2_Structured'], 1, 'In2_Structured');
+    end
+    
+    if modelComplexity > 2
+        evalin('base', 'inputBusElems3(2) = Simulink.BusElement;');
+        evalin('base', 'inputBusElems3(2).Name = ''In5_MatrixDouble'';');
+        evalin('base', 'inputBusElems3(2).Dimensions = [6 6];');
+        evalin('base', 'inputBusElems3(2).DimensionsMode = ''Fixed'';');
+        evalin('base', 'inputBusElems3(2).DataType = ''double'';');
+        evalin('base', 'inputBusElems3(2).SampleTime = -1;');
+        evalin('base', 'inputBusElems3(2).Complexity = ''real'';');
+        
+        evalin('base', 'inputBusElems3(1) = Simulink.BusElement;');
+        evalin('base', 'inputBusElems3(1).Name = ''In6_MatrixDouble'';');
+        evalin('base', 'inputBusElems3(1).Dimensions = [6 6];');
+        evalin('base', 'inputBusElems3(1).DimensionsMode = ''Fixed'';');
+        evalin('base', 'inputBusElems3(1).DataType = ''double'';');
+        evalin('base', 'inputBusElems3(1).SampleTime = -1;');
+        evalin('base', 'inputBusElems3(1).Complexity = ''real'';');
+        
+        evalin('base', 'INSTRUCTSIGNAL3 = Simulink.Bus;');
+        evalin('base', 'INSTRUCTSIGNAL3.Elements = inputBusElems3;');
+        
+        add_block('simulink/Sources/In1', [model_name '/In3_Structured']);
+        set_param([model_name '/In3_Structured'], 'IconDisplay',    'Signal name');
+        set_param([model_name '/In3_Structured'], 'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL3');
+        set_param([model_name '/In3_Structured'], 'BusOutputAsStruct',  'on');
+        
+        add_block('simulink/Math Operations/Gain', [model_name '/In5_MatrixDouble'], ...
+            'OutDataTypeStr', 'double');
+        add_block('simulink/Math Operations/Gain', [model_name '/In6_MatrixUint32'], ...
+            'OutDataTypeStr', 'uint32');
+        
+        add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector3'], ...
+            'OutputSignals', 'In6_MatrixDouble,In5_MatrixDouble');
+        
+        add_line(model_name, 'InputSelector3/2', 'In5_MatrixDouble/1');
+        add_line(model_name, 'InputSelector3/1', 'In6_MatrixUint32/1');
+        
+        add_line(model_name, 'In3_Structured/1', 'InputSelector3/1');
+        name_output_signal([model_name '/In3_Structured'], 1, 'In3_Structured');
+    end
+end
+
+function helper_input_gen(modelName, withInputs, withStructs, modelComplexity, hasTunableParams, hasStructParams)
+
+    if withInputs == true
+       if withStructs == true
+           helper_input_gen_WithStructInputs(modelName, modelComplexity);
+       else
+           helper_input_gen_WithInputs(modelName, modelComplexity);
+       end
+    else
+        helper_input_gen_WithoutInputs(modelName, modelComplexity, hasTunableParams, hasStructParams);
+    end
+
+end
 
 function name_input_signal(address, signal_index, signal_name)
     

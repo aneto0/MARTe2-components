@@ -1112,8 +1112,6 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_3() {
     god->Purge();
     
     return ok;
-    
-    return ok;
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_StructTunableParametersFromExternalSource() {
@@ -1298,17 +1296,23 @@ bool SimulinkWrapperGAMTest::TestSetup_NoTunableParameters() {
 
 bool SimulinkWrapperGAMTest::TestSetup_WithStructSignals() {
     
-    StreamString scriptCall = "createTestModel('hasStructSignals',     true);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true);";
     
     StreamString skipUnlinkedParams = "1";
     
     StreamString inputSignals = ""
         "InputSignals = { "
-        "In1_Structured = {"
-        "    DataSource = Drv1"
-        "    Type = uint8"
-        "    NumberOfElements = 16"
-        "    NumberOfDimensions = 1"
+        "    In1_ScalarDouble  = {"
+        "        DataSource = Drv1"
+        "        Type = float64"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "    In2_ScalarUint32  = {"
+        "        DataSource = Drv1"
+        "        Type = uint32"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
         "    }"
         "}";
 
@@ -1343,7 +1347,7 @@ bool SimulinkWrapperGAMTest::TestSetup_WithStructSignals() {
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_WithNestedStructSignals() {
-    
+
     StreamString scriptCall = "createTestModel('hasStructSignals', true, 'modelComplexity', 2, 'hasInputs', false);";
     
     StreamString skipUnlinkedParams = "1";
@@ -1385,7 +1389,7 @@ bool SimulinkWrapperGAMTest::TestSetup_WithNestedStructSignals() {
         "Out21_NonVirtualBus  = {"
         "    DataSource = DDB1"
         "    Type = uint8"
-        "    NumberOfElements = 24"
+        "    NumberOfElements = 96"
         "    NumberOfDimensions = 1"
         "}"
         "}";
@@ -3314,7 +3318,7 @@ bool SimulinkWrapperGAMTest::TestPrintAlgoInfo() {
 
 bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
 
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasStructInputs', true);";
 
     StreamString skipUnlinkedParams = "1";
 
@@ -3377,7 +3381,7 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
 
 bool SimulinkWrapperGAMTest::Test_StructuredSignalsExecute() {
 
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasStructInputs', true, 'hasInputs', true);";
 
     StreamString skipUnlinkedParams = "1";
 
@@ -3513,7 +3517,7 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignalsExecute() {
 }
 
 bool SimulinkWrapperGAMTest::Test_StructuredSignals_Failed() {
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasStructInputs', true, 'hasInputs', true);";
 
     StreamString skipUnlinkedParams = "1";
 
@@ -3571,10 +3575,10 @@ bool SimulinkWrapperGAMTest::Test_MultiMixedSignalsTranspose(bool transpose) {
     StreamString scriptCall;
 
     if(transpose) {
-        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Column-major');";
+        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasStructInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Column-major');";
     }
     else {
-        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Row-major');";
+        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasStructInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Row-major');";
     }
 
 
@@ -3853,3 +3857,166 @@ bool SimulinkWrapperGAMTest::Test_MultiMixedSignalsTranspose(bool transpose) {
 
     return ok;
 }
+
+bool SimulinkWrapperGAMTest::TestSetup_WithNotFoundParameter_Failed(bool skipUnlinked) {
+
+    StreamString scriptCall = "createTestModel('modelComplexity', 3, 'hasTunableParams', true, 'hasStructParams', true');";
+
+    StreamString skipUnlinkedParams = skipUnlinked?"0":"1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "In3_VectorDouble = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In4_VectorUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "In5_MatrixDouble = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "In6_MatrixUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out3_VectorDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out5_MatrixDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "Out6_MatrixUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 36"
+        "    NumberOfDimensions = 2"
+        "}"
+        "}";
+
+    StreamString parameters = ""
+        "matrixConstant = (float64) { {10, 10, 10}, {11, 11, 11}, {12, 12, 12} }"
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
+        "structScalar-one         = (float64) 3.141592653 "
+        "structScalar-nested1-one = (float64) 2.718281828 "
+        "structScalar-nested1-two = (float64) 2.718281828 "
+        "structScalar-nested2-one = (float64) 1.414213562 "
+        "structScalar-nested2-two = (float64) 1.414213562 "
+        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "matrixConstant2 = (float64) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}"
+        "structMixed-one = (float64) 10 "
+        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
+        "notFoundPar-mat = (uint32) { {10, 10, 10, 10, 10, 10},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {11, 11, 11, 11, 11, 11},"
+        "                              {12, 12, 12, 12, 12, 12}}";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters);
+
+    return (ok != skipUnlinked);
+}
+
+
+bool SimulinkWrapperGAMTest::TestSetup_WithNestedSingleSignals() {
+
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'modelComplexity', 5, 'hasInputs', false);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = "";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out3_VectorDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "Out4_VectorUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
+        "}"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, NULL, false, false);
+
+    return ok;
+}
+

@@ -369,6 +369,19 @@ public:
      */
     bool Test_StructuredSignals_Failed();
 
+
+    /**
+     * @brief Tests the behaviour when an unlinked parameter is not matched in the slx model
+     */
+    bool TestSetup_WithNotFoundParameter_Failed(bool skipUnlinked);
+
+
+    /**
+     * @brief Tests the setup of a model with nested signals
+     */
+    bool TestSetup_WithNestedSingleSignals();
+
+
     /**
      * @brief A general template for the GAM configuration.
      *        The template has printf-style spcifiers (`%s`) where

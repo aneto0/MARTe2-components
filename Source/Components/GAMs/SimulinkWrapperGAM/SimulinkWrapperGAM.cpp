@@ -1949,7 +1949,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
             }
             
             currentPort->isTyped = true;
-        }//TODO Check added condition do ELSE (structuredSignalsAsByteArrays)
+        }//TODO Check added condition to ELSE (structuredSignalsAsByteArrays)
         else if(structuredSignalsAsByteArrays) {
             // not the first signal, check coherence with previous ones
             if ( StreamString(ELEctypename) != currentPort->cTypeName ) {
@@ -1970,6 +1970,9 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
                 currentPort->numberOfElements[dimIdx] = 1u;
             }
         }
+	else {
+		REPORT_ERROR(ErrorManagement::IllegalOperation, "Unsupported condition (signal untyped && ! in byte array mode");
+	}
         
         currentSignal = new SimulinkSignal();
         

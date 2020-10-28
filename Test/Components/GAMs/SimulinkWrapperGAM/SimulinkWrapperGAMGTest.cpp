@@ -131,6 +131,7 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_SkipUnlinkedTunableParams) {
     ASSERT_TRUE(test.TestSetup_SkipUnlinkedTunableParams());
 }
 
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithStructSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_WithStructSignals());
@@ -281,7 +282,6 @@ TEST(SimulinkWrapperGAMGTest, Test_StructuredSignalsExecute) {
     ASSERT_TRUE(test.Test_StructuredSignalsExecute());
 }
 
-
 TEST(SimulinkWrapperGAMGTest, Test_MultiMixedSignalsTranspose) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.Test_MultiMixedSignalsTranspose(true));
@@ -291,6 +291,23 @@ TEST(SimulinkWrapperGAMGTest, Test_MultiMixedSignalsNorm) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.Test_MultiMixedSignalsTranspose(false));
 }
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndProcessUnlinked_Failed) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(true));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndSkipUnlinked_Failed) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(false));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithNestedSingleSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithNestedSingleSignals());
+}
+
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
