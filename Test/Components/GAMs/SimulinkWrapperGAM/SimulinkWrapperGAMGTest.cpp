@@ -307,6 +307,10 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_WithNestedSingleSignals) {
     ASSERT_TRUE(test.TestSetup_WithNestedSingleSignals());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParametersFromExternalSource_Failed) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_StructTunableParametersFromExternalSource_Failed());
+}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

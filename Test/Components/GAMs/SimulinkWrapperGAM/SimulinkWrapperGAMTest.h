@@ -381,6 +381,7 @@ public:
      */
     bool TestSetup_WithNestedSingleSignals();
 
+    bool TestSetup_StructTunableParametersFromExternalSource_Failed();
 
     /**
      * @brief A general template for the GAM configuration.

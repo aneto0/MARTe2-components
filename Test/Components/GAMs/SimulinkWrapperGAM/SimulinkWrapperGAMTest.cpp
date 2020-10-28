@@ -793,8 +793,8 @@ bool SimulinkWrapperGAMTest::TestSetup() {
 }
 
 bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_1() {
-    
-    StreamString scriptCall = "createTestModel('hasStructParams', true);";
+    //TODO Check if hasTunableParams has to be added
+    StreamString scriptCall = "createTestModel('hasStructParams', true, 'hasTunableParams', true);";
     
     StreamString skipUnlinkedParams = "0";
     
@@ -1116,7 +1116,7 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_3() {
 
 bool SimulinkWrapperGAMTest::TestSetup_StructTunableParametersFromExternalSource() {
     
-    StreamString scriptCall = "createTestModel('hasStructParams', true);";
+    StreamString scriptCall = "createTestModel('hasStructParams', true, 'hasTunableParams', true);";
     
     StreamString skipUnlinkedParams = "0";
     
@@ -4016,6 +4016,147 @@ bool SimulinkWrapperGAMTest::TestSetup_WithNestedSingleSignals() {
 
     // Test setup
     bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, NULL, false, false);
+
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_StructTunableParametersFromExternalSource_Failed() {
+
+    StreamString scriptCall = "createTestModel('hasStructParams', true, 'hasTunableParams', true);";
+
+    StreamString skipUnlinkedParams = "0";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble  = {"
+        "    DataSource = Drv1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = Drv1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "}";
+
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = uint32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "}";
+
+    StreamString parameters = ""
+        "structScalar-nested1-one = (float64) 1 "
+        "structScalar-nested1-two = (float64) 1 "
+        "structScalar-nested2-one = (float64) 1 ";
+
+    StreamString modelName, modelFolder, modelFullPath;
+
+    // Create the test model
+    modelName = testEnvironment.CreateTestModel(scriptCall);
+
+    // Retrieve working directory from the test environment
+    modelFolder = testEnvironment.modelFolder;
+
+    // Compose model library full path
+    modelFullPath  = modelFolder;
+    modelFullPath += "/";
+    modelFullPath += modelName;
+    modelFullPath += ".so";
+
+    // Insert model name and build folder in the configuration buffer template
+    StreamString config;
+    config.Printf(configTemplate.Buffer(),
+                  modelFullPath.Buffer(),
+                  modelName.Buffer(),
+                  "1",
+                  "0",
+                  skipUnlinkedParams.Buffer(),
+                  inputSignals.Buffer(),
+                  outputSignals.Buffer(),
+                  parameters.Buffer()
+                 );
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+
+    // The GAM external source of parameters is expected to be a
+    // ReferenceContainer populated by AnyObject
+    if (ok) {
+
+        // Create the ReferenceContainer
+        ReferenceT<ReferenceContainer> cfgParameterContainer("ReferenceContainer", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        cfgParameterContainer->SetName("ExtSource");
+
+        ok = cfgParameterContainer.IsValid();
+
+        if (ok) {
+            ok = ObjectRegistryDatabase::Instance()->Insert(cfgParameterContainer);
+        }
+
+        // Populate with AnyObjects
+        float64 param1 = 1.0;
+        AnyType anyParam(param1);
+
+        ReferenceT<AnyObject> objParam1("AnyObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+
+        anyParam.SetStaticDeclared(false);
+        objParam1->Serialise(anyParam);
+        objParam1->SetName("structScalar-nested2-two");
+        cfgParameterContainer->Insert(objParam1);
+
+        ReferenceT<AnyObject> objParam2("AnyObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        objParam2->Serialise(anyParam);
+        objParam2->SetName("structScalar-one");
+        cfgParameterContainer->Insert(objParam2);
+
+
+
+
+        // Verify that non-AnyObject references are ignored
+        ReferenceT<ReferenceContainer> refContainer("ReferenceContainer", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        refContainer->SetName("structScalar-nested2-one");
+        cfgParameterContainer->Insert(refContainer);
+
+
+
+    }
+
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+
+    god->Purge();
 
     return ok;
 }
