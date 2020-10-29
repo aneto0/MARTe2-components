@@ -217,8 +217,7 @@ public:
     SimulinkGAMGTestEnvironment() {
         
         // Start MATLAB engine synchronously
-        //matlabPtr = matlab::engine::startMATLAB();
-        matlabPtr = matlab::engine::connectMATLAB(u"MATLAB_29809");
+        matlabPtr = matlab::engine::startMATLAB();
         
         SetupTestEnvironment(matlabPtr);
     }
@@ -342,7 +341,7 @@ void SimulinkGAMGTestEnvironment::DeleteTestModel() {
         if (toDelete.Exists()) {
 
             //Comment to avoid recompilation
-            //ok = toDelete.Delete();
+            ok = toDelete.Delete();
         }
         
         if (!ok) {
