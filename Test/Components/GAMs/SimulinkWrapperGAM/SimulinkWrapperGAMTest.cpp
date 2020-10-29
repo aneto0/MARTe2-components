@@ -342,7 +342,7 @@ void SimulinkGAMGTestEnvironment::DeleteTestModel() {
         if (toDelete.Exists()) {
 
             //Comment to avoid recompilation
-            ok = toDelete.Delete();
+            //ok = toDelete.Delete();
         }
         
         if (!ok) {
@@ -3059,7 +3059,7 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         "Out2_ScalarUint32  = {"
         "    DataSource = DDB1"
         "    Type = uint32"
-        "    NumberOfElements = 8"
+        "    NumberOfElements = 10"
         "    NumberOfDimensions = 1"
         "}"
         "Out3_VectorDouble = {"
@@ -3101,7 +3101,7 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         "}";
 
     StreamString parameters = ""
-        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7 }";
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }";
     
     StreamString inputValues = ""
         "In1_ScalarDouble = (float64) 3.141592653 "
@@ -3160,7 +3160,7 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         
     StreamString expectedOutputValues = ""
         "Out1_ScalarDouble = (float64) 3.141592653 "
-        "Out2_ScalarUint32 = (uint32)  { 0, 2, 4, 6, 8, 10, 12, 14 } "
+        "Out2_ScalarUint32 = (uint32)  { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 } "
         "Out3_VectorDouble = (float64) { 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
         "Out4_VectorUint32 = (uint32)  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 } "
         "Out5_MatrixDouble = (float64) { { 10, 10, 10, 10, 10, 10}, "
@@ -3284,10 +3284,17 @@ bool SimulinkWrapperGAMTest::TestExecute() {
                 ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
                 if (ok) {
                     ok = (MemoryOperationsHelper::Compare(portAddr, arrayDescription.GetDataPointer(), portSize) == 0u);
-                    //if (!ok) {
-                        //REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s comparison failed.", portName.Buffer());
-                    //}
+                    if (!ok) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s comparison failed.", portName.Buffer());
+                    }
                 }
+                
+                if (portName == StreamString("Out2_ScalarUint32")) {
+                    for (uint32 idx = 0; idx < port->totalNumberOfElements; idx++) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "%u", *( (uint32*) portAddr + idx)  );
+                    }
+                }
+                
             }
         }
     }
@@ -3572,7 +3579,11 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredSignals() {
             }
         }
     }
-
+    
+    if (ok) {
+        ord->Purge();
+    }
+    
     return ok;
 }
 
@@ -3914,9 +3925,9 @@ bool SimulinkWrapperGAMTest::Test_MultiMixedSignalsTranspose(bool transpose) {
             
             // Check also outputs
             if (ok) {
-                SimulinkPort *outputPort1 = gam->GetPort(9);  REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort1->fullName.Buffer());
-                SimulinkPort *outputPort2 = gam->GetPort(10); REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort2->fullName.Buffer());
-                SimulinkPort *outputPort3 = gam->GetPort(11); REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort3->fullName.Buffer());
+                SimulinkPort *outputPort1 = gam->GetPort(9);
+                SimulinkPort *outputPort2 = gam->GetPort(10);
+                SimulinkPort *outputPort3 = gam->GetPort(11);
                 
                 SimulinkSignal* out1 = outputPort1->carriedSignals[0];
                 SimulinkSignal* out2 = outputPort1->carriedSignals[1];
@@ -3925,32 +3936,41 @@ bool SimulinkWrapperGAMTest::Test_MultiMixedSignalsTranspose(bool transpose) {
                 SimulinkSignal* out5 = outputPort3->carriedSignals[0];
                 SimulinkSignal* out6 = outputPort3->carriedSignals[1];
                 
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s, value: %u, exp: %u",
-                    outputPort1->carriedSignals[0]->fullName.Buffer(), *( (uint32*) out1->address), *( (uint32*) adIn1.GetDataPointer() ) );
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s, value: %f, exp %f",
-                    outputPort1->carriedSignals[1]->fullName.Buffer(), *( (float64*) out2->address), *( (float64*) adIn2.GetDataPointer() ) );
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort2->carriedSignals[0]->fullName.Buffer());
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort2->carriedSignals[1]->fullName.Buffer());
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort3->carriedSignals[0]->fullName.Buffer());
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort3->carriedSignals[1]->fullName.Buffer());
-                
                 if(ok) {
                     bool ok1, ok2, ok3, ok4, ok5, ok6;
                     ok1 = SafeMath::IsEqual<uint32> ( *( (uint32*)  out1->address), *( (uint32*)  adIn1.GetDataPointer() ) );
                     ok2 = SafeMath::IsEqual<float64>( *( (float64*) out2->address), *( (float64*) adIn2.GetDataPointer() ) );
-                    ok3 = (MemoryOperationsHelper::Compare(out3->address, adIn3.GetDataPointer(), in3->byteSize) == 0u);
-                    ok4 = (MemoryOperationsHelper::Compare(out4->address, adIn4.GetDataPointer(), in4->byteSize) == 0u);
-                    //ok5 = (MemoryOperationsHelper::Compare(out5->address, adIn5.GetDataPointer(), in5->byteSize) == 0u); // type mismatch between in and out, skipped
-                    ok6 = (MemoryOperationsHelper::Compare(out6->address, adIn6.GetDataPointer(), in6->byteSize) == 0u);
-
-                    ok = ok1 && ok2 && ok3 && ok4 && ok6; // && ok5;
+                    
+                    ok3 = true;
+                    for (uint32 idx = 0u; idx < out3->totalNumberOfElements; idx++) {
+                        ok3 &= SafeMath::IsEqual<uint32> ( *( (uint32*)  out3->address + idx), *( (uint32*)  adIn3.GetDataPointer() + idx ) );
+                    }
+                    
+                    ok4 = true;
+                    for (uint32 idx = 0u; idx < out4->totalNumberOfElements; idx++) {
+                        ok4 &= SafeMath::IsEqual<float64> ( *( (float64*)  out4->address + idx), *( (float64*)  adIn4.GetDataPointer() + idx ) );
+                    }
+                    
+                    ok5 = true;
+                    for (uint32 idx = 0u; idx < out5->totalNumberOfElements; idx++) {
+                        ok6 &= SafeMath::IsEqual<uint32> ( static_cast<uint32>( *( (uint32*)  out5->address + idx) ), *( (uint32*)  adIn5.GetDataPointer() + idx ) );
+                    }
+                    
+                    ok6 = true;
+                    for (uint32 idx = 0u; idx < out6->totalNumberOfElements; idx++) {
+                        ok6 &= SafeMath::IsEqual<float64> ( *( (float64*)  out6->address + idx), *( (float64*)  adIn6.GetDataPointer() + idx ) );
+                    }
+                    ok = ok1 && ok2 && ok3 && ok4 && ok6 && ok5;
                 }
                 
             }
             
         }
     }
-
+    
+    if (ok) {
+        ord->Purge();
+    }
 
     return ok;
 }
