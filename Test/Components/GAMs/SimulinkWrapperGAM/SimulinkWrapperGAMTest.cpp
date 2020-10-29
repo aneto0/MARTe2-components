@@ -32,10 +32,10 @@
 /*---------------------------------------------------------------------------*/
 
 #include "File.h"
-#include "SimulinkWrapperGAMTest.h"
-#include "SimulinkWrapperGAM.h"
 #include "MatlabDataArray.hpp"
 #include "MatlabEngine.hpp"
+#include "SimulinkWrapperGAMTest.h"
+#include "SimulinkWrapperGAM.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -217,8 +217,8 @@ public:
     SimulinkGAMGTestEnvironment() {
         
         // Start MATLAB engine synchronously
-        matlabPtr = matlab::engine::startMATLAB();
-        //matlabPtr = matlab::engine::connectMATLAB(u"MATLAB_1198");
+        //matlabPtr = matlab::engine::startMATLAB();
+        matlabPtr = matlab::engine::connectMATLAB(u"MATLAB_29809");
         
         SetupTestEnvironment(matlabPtr);
     }
@@ -2992,7 +2992,7 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation_Float() {
 
 bool SimulinkWrapperGAMTest::TestExecute() {
     
-    StreamString scriptCall = " createTestModel('modelComplexity', 4);";
+    StreamString scriptCall = " createTestModel('modelComplexity', 4, 'hasTunableParams', true);";
     
     StreamString skipUnlinkedParams = "0";
     
@@ -3059,8 +3059,8 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         "Out2_ScalarUint32  = {"
         "    DataSource = DDB1"
         "    Type = uint32"
-        "    NumberOfElements = 1"
-        "    NumberOfDimensions = 0"
+        "    NumberOfElements = 8"
+        "    NumberOfDimensions = 1"
         "}"
         "Out3_VectorDouble = {"
         "    DataSource = DDB1"
@@ -3101,28 +3101,7 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         "}";
 
     StreamString parameters = ""
-        "matrixConstant = (float64) { {10, 10, 10}, {11, 11, 11}, {12, 12, 12} }"
-        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }"
-        "structScalar-one         = (float64) 3.141592653 "
-        "structScalar-nested1-one = (float64) 2.718281828 "
-        "structScalar-nested1-two = (float64) 2.718281828 "
-        "structScalar-nested2-one = (float64) 1.414213562 "
-        "structScalar-nested2-two = (float64) 1.414213562 "
-        "vectorConstant2 = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
-        "matrixConstant2 = (float64) { {10, 10, 10, 10, 10, 10},"
-        "                              {11, 11, 11, 11, 11, 11},"
-        "                              {11, 11, 11, 11, 11, 11},"
-        "                              {11, 11, 11, 11, 11, 11},"
-        "                              {11, 11, 11, 11, 11, 11},"
-        "                              {12, 12, 12, 12, 12, 12}}"
-        "structMixed-one = (float64) 10 "
-        "structMixed-vec = (float64) { 0, 1, 2, 3, 4, 5, 6, 7 }"
-        "structMixed-mat = (uint32) { {10, 10, 10, 10, 10, 10},"
-        "                              {11, 11, 11, 11, 11, 11},"
-        "                              {11, 11, 11, 11, 11, 11},"
-        "                              {11, 11, 11, 11, 11, 11},"
-        "                              {11, 11, 11, 11, 11, 11},"
-        "                              {12, 12, 12, 12, 12, 12}}";
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7 }";
     
     StreamString inputValues = ""
         "In1_ScalarDouble = (float64) 3.141592653 "
@@ -3152,7 +3131,7 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         ;
     
     // Model is column-major, so matrices are expected to be transposed when copied
-    StreamString expectedValues = ""
+    StreamString expectedInputValues = ""
         "In1_ScalarDouble = (float64) 3.141592653 "
         "In2_ScalarUint32 = (uint32)  2 "
         "In3_VectorDouble = (float64) { 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
@@ -3174,6 +3153,33 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         "                                 { 22, 22, 22, 22 },"
         "                                 { 23, 23, 23, 23 } }"
         "In8_3DMatrixUint32 = (uint32)  { { 20, 20, 20, 20 },"
+        "                                 { 21, 21, 21, 21 },"
+        "                                 { 22, 22, 22, 22 },"
+        "                                 { 23, 23, 23, 23 } }"
+        ;
+        
+    StreamString expectedOutputValues = ""
+        "Out1_ScalarDouble = (float64) 3.141592653 "
+        "Out2_ScalarUint32 = (uint32)  { 0, 2, 4, 6, 8, 10, 12, 14 } "
+        "Out3_VectorDouble = (float64) { 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
+        "Out4_VectorUint32 = (uint32)  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 } "
+        "Out5_MatrixDouble = (float64) { { 10, 10, 10, 10, 10, 10}, "
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 12, 12, 12, 12, 12, 12} }"
+        "Out6_MatrixUint32 = (uint32)  { { 10, 10, 10, 10, 10, 10}, "
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 12, 12, 12, 12, 12, 12} }"
+        "Out7_3DMatrixDouble = (float64) { { 20, 20, 20, 20 },"
+        "                                 { 21, 21, 21, 21 },"
+        "                                 { 22, 22, 22, 22 },"
+        "                                 { 23, 23, 23, 23 } }"
+        "Out8_3DMatrixUint32 = (uint32)  { { 20, 20, 20, 20 },"
         "                                 { 21, 21, 21, 21 },"
         "                                 { 22, 22, 22, 22 },"
         "                                 { 23, 23, 23, 23 } }"
@@ -3235,14 +3241,24 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         }
         
         // Check if signals were correctly copied in the model
+        
+        ConfigurationDatabase inCdb;
         if (ok) {
-            expectedValues.Seek(0u);
-            StandardParser parser(expectedValues, cdb);
+            expectedInputValues.Seek(0u);
+            StandardParser parser(expectedInputValues, inCdb);
+            ok = parser.Parse();
+        }
+        
+        ConfigurationDatabase outCdb;
+        if (ok) {
+            expectedOutputValues.Seek(0u);
+            StandardParser parser(expectedOutputValues, outCdb);
             ok = parser.Parse();
         }
         
         if (ok) {
-                
+            
+            // Compare input and outputs with expected values
             for (uint32 signalIdx = 0u; (signalIdx < gam->GetNumberOfInputSignals()) && ok ; signalIdx++) {
                 
                 SimulinkPort* port = gam->GetPort(signalIdx);
@@ -3251,10 +3267,26 @@ bool SimulinkWrapperGAMTest::TestExecute() {
                 uint32       portSize = port->byteSize;
                 void*        portAddr = port->address;
                 
-                AnyType arrayDescription = cdb.GetType(portName.Buffer());
+                AnyType arrayDescription = inCdb.GetType(portName.Buffer());
                 ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
                 if (ok) {
                     ok = (MemoryOperationsHelper::Compare(portAddr, arrayDescription.GetDataPointer(), portSize) == 0u);
+                }
+                
+                // corresponding output
+                port = gam->GetPort(signalIdx + gam->GetNumberOfInputSignals());
+                
+                portName = port->fullName;
+                portSize = port->byteSize;
+                portAddr = port->address;
+                
+                arrayDescription = outCdb.GetType(portName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+                if (ok) {
+                    ok = (MemoryOperationsHelper::Compare(portAddr, arrayDescription.GetDataPointer(), portSize) == 0u);
+                    //if (!ok) {
+                        //REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s comparison failed.", portName.Buffer());
+                    //}
                 }
             }
         }
