@@ -277,9 +277,9 @@ TEST(SimulinkWrapperGAMGTest, Test_StructuredSignals_Failed) {
     ASSERT_TRUE(test.Test_StructuredSignals_Failed());
 }
 
-TEST(SimulinkWrapperGAMGTest, Test_StructuredSignalsExecute) {
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructuredSignals) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.Test_StructuredSignalsExecute());
+    ASSERT_TRUE(test.TestExecute_WithStructuredSignals());
 }
 
 TEST(SimulinkWrapperGAMGTest, Test_MultiMixedSignalsTranspose) {

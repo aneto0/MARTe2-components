@@ -46,6 +46,7 @@
 #include "MemoryOperationsHelper.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
+#include "SafeMath.h"
 #include "SimulinkWrapperGAM.h"
 #include "StandardParser.h"
 #include "StaticList.h"
@@ -355,7 +356,7 @@ public:
     /**
      * @brief Test execution and coherence when working in pure structured mode
      */
-    bool Test_StructuredSignalsExecute();
+    bool TestExecute_WithStructuredSignals();
 
 
     /**

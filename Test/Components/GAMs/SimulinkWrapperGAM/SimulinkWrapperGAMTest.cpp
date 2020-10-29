@@ -3411,7 +3411,7 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
     return ok;
 }
 
-bool SimulinkWrapperGAMTest::Test_StructuredSignalsExecute() {
+bool SimulinkWrapperGAMTest::TestExecute_WithStructuredSignals() {
 
     StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasStructInputs', true, 'hasInputs', true);";
 
@@ -3468,6 +3468,10 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignalsExecute() {
     StreamString inputValues = ""
         "In1_Structured.In1_ScalarDouble = (float64) 3.141592653 "
         "In1_Structured.In2_ScalarUint32 = (uint32)  2";
+        
+    StreamString expectedOutputValues = ""
+        "Out20_NonVirtualBus.Signal2 = (float64) 3.141592653 "
+        "Out20_NonVirtualBus.Signal1 = (uint32)  2";
 
     StreamString parameters = "";
 
@@ -3479,6 +3483,13 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignalsExecute() {
     if (ok) {
         inputValues.Seek(0u);
         StandardParser parser(inputValues, cdb);
+        ok = parser.Parse();
+    }
+    
+    ConfigurationDatabase outCdb;
+    if (ok) {
+        expectedOutputValues.Seek(0u);
+        StandardParser parser(expectedOutputValues, outCdb);
         ok = parser.Parse();
     }
 
@@ -3525,23 +3536,40 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignalsExecute() {
         }
 
         if (ok) {
-             SimulinkPort *inputPort = gam->GetPort(0);
-             SimulinkSignal* in1 = inputPort->carriedSignals[0];
-             SimulinkSignal* in2 = inputPort->carriedSignals[1];
+            SimulinkPort *inputPort = gam->GetPort(0);
+            SimulinkSignal* in1 = inputPort->carriedSignals[0];
+            SimulinkSignal* in2 = inputPort->carriedSignals[1];
 
-             AnyType adIn1 = cdb.GetType(in1->fullName.Buffer());
-             AnyType adIn2 = cdb.GetType(in2->fullName.Buffer());
+            AnyType adIn1 = cdb.GetType(in1->fullName.Buffer());
+            AnyType adIn2 = cdb.GetType(in2->fullName.Buffer());
 
-             ok =    adIn1.GetDataPointer() != NULL_PTR(void *) &&
-                     adIn2.GetDataPointer() != NULL_PTR(void *);
+            ok =    adIn1.GetDataPointer() != NULL_PTR(void *) &&
+                    adIn2.GetDataPointer() != NULL_PTR(void *);
 
-             if(ok) {
-                 ok =    (MemoryOperationsHelper::Compare(in1->address, adIn1.GetDataPointer(), in1->byteSize) == 0u) &&
-                         (MemoryOperationsHelper::Compare(in2->address, adIn2.GetDataPointer(), in2->byteSize) == 0u);
-             }
-             else {
-                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Wrong data pointers");
-             }
+            if(ok) {
+                ok =    (MemoryOperationsHelper::Compare(in1->address, adIn1.GetDataPointer(), in1->byteSize) == 0u) &&
+                        (MemoryOperationsHelper::Compare(in2->address, adIn2.GetDataPointer(), in2->byteSize) == 0u);
+            }
+            else {
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Wrong data pointers");
+            }
+        }
+        
+        if (ok) {
+            SimulinkPort *outputPort = gam->GetPort(3);
+            SimulinkSignal* out1 = outputPort->carriedSignals[0];
+            SimulinkSignal* out2 = outputPort->carriedSignals[1];
+
+            AnyType adOut1 = outCdb.GetType(out1->fullName.Buffer());
+            AnyType adOut2 = outCdb.GetType(out2->fullName.Buffer());
+
+            ok =    adOut1.GetDataPointer() != NULL_PTR(void *) &&
+                    adOut2.GetDataPointer() != NULL_PTR(void *);
+
+            if(ok) {
+                ok =    (SafeMath::IsEqual<float64>( *( (float64*) out2->address), *( (float64*) adOut2.GetDataPointer() ) ) ) &&
+                        (SafeMath::IsEqual<uint32> ( *( (uint32*)  out1->address), *( (uint32*)  adOut1.GetDataPointer() ) ) );
+            }
         }
     }
 
@@ -3883,6 +3911,43 @@ bool SimulinkWrapperGAMTest::Test_MultiMixedSignalsTranspose(bool transpose) {
              else {
                  REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Wrong data pointers");
              }
+            
+            // Check also outputs
+            if (ok) {
+                SimulinkPort *outputPort1 = gam->GetPort(9);  REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort1->fullName.Buffer());
+                SimulinkPort *outputPort2 = gam->GetPort(10); REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort2->fullName.Buffer());
+                SimulinkPort *outputPort3 = gam->GetPort(11); REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort3->fullName.Buffer());
+                
+                SimulinkSignal* out1 = outputPort1->carriedSignals[0];
+                SimulinkSignal* out2 = outputPort1->carriedSignals[1];
+                SimulinkSignal* out3 = outputPort2->carriedSignals[0];
+                SimulinkSignal* out4 = outputPort2->carriedSignals[1];
+                SimulinkSignal* out5 = outputPort3->carriedSignals[0];
+                SimulinkSignal* out6 = outputPort3->carriedSignals[1];
+                
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s, value: %u, exp: %u",
+                    outputPort1->carriedSignals[0]->fullName.Buffer(), *( (uint32*) out1->address), *( (uint32*) adIn1.GetDataPointer() ) );
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s, value: %f, exp %f",
+                    outputPort1->carriedSignals[1]->fullName.Buffer(), *( (float64*) out2->address), *( (float64*) adIn2.GetDataPointer() ) );
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort2->carriedSignals[0]->fullName.Buffer());
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort2->carriedSignals[1]->fullName.Buffer());
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort3->carriedSignals[0]->fullName.Buffer());
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "name: %s", outputPort3->carriedSignals[1]->fullName.Buffer());
+                
+                if(ok) {
+                    bool ok1, ok2, ok3, ok4, ok5, ok6;
+                    ok1 = SafeMath::IsEqual<uint32> ( *( (uint32*)  out1->address), *( (uint32*)  adIn1.GetDataPointer() ) );
+                    ok2 = SafeMath::IsEqual<float64>( *( (float64*) out2->address), *( (float64*) adIn2.GetDataPointer() ) );
+                    ok3 = (MemoryOperationsHelper::Compare(out3->address, adIn3.GetDataPointer(), in3->byteSize) == 0u);
+                    ok4 = (MemoryOperationsHelper::Compare(out4->address, adIn4.GetDataPointer(), in4->byteSize) == 0u);
+                    //ok5 = (MemoryOperationsHelper::Compare(out5->address, adIn5.GetDataPointer(), in5->byteSize) == 0u); // type mismatch between in and out, skipped
+                    ok6 = (MemoryOperationsHelper::Compare(out6->address, adIn6.GetDataPointer(), in6->byteSize) == 0u);
+
+                    ok = ok1 && ok2 && ok3 && ok4 && ok6; // && ok5;
+                }
+                
+            }
+            
         }
     }
 
