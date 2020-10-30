@@ -126,9 +126,9 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_NoTunableParameters) {
     ASSERT_TRUE(test.TestSetup_NoTunableParameters());
 }
 
-TEST(SimulinkWrapperGAMGTest, TestSetup_SkipUnlinkedTunableParams) {
+TEST(SimulinkWrapperGAMGTest, TestSetup_SkipInvalidTunableParams) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_SkipUnlinkedTunableParams());
+    ASSERT_TRUE(test.TestSetup_SkipInvalidTunableParams());
 }
 
 
@@ -297,7 +297,7 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndProcessUnlinked_
     ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(true));
 }
 
-TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndSkipUnlinked_Failed) {
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndSkipInvalid) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(false));
 }

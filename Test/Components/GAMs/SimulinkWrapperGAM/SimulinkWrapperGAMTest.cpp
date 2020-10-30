@@ -411,8 +411,6 @@ bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString scriptCall,
                   outputSignals.Buffer(),
                   parameters.Buffer()
                  );
-    
-    REPORT_ERROR_STATIC(ErrorManagement::Information, "%s", config);
 
     // Test setup
     bool ok = false;
@@ -448,7 +446,7 @@ bool SimulinkWrapperGAMTest::TestInitialise() {
     ok &= config.Write("SymbolPrefix",               modelName);
     ok &= config.Write("TunableParamExternalSource", "ExtSource");
     ok &= config.Write("Verbosity",                  2);
-    ok &= config.Write("SkipUnlinkedTunableParams",  1);
+    ok &= config.Write("SkipInvalidTunableParams",  1);
     
     ok &= config.CreateAbsolute("Parameters");
     ok &= config.MoveAbsolute("Parameters");
@@ -667,7 +665,7 @@ bool SimulinkWrapperGAMTest::TestInitialise_MissingParametersLeaf() {
     config.Write("SymbolPrefix", modelName);
     config.Write("TunableParamExternalSource", "ExtSource");
     config.Write("Verbosity",                  2);
-    config.Write("SkipUnlinkedTunableParams",  1);
+    config.Write("SkipInvalidTunableParams",  1);
     
     return TestInitialiseWithConfiguration(config);
     
@@ -1401,7 +1399,7 @@ bool SimulinkWrapperGAMTest::TestSetup_WithNestedStructSignals() {
     return ok;
 }
 
-bool SimulinkWrapperGAMTest::TestSetup_SkipUnlinkedTunableParams() {
+bool SimulinkWrapperGAMTest::TestSetup_SkipInvalidTunableParams() {
 
     StreamString scriptCall = "createTestModel('hasTunableParams',     true);";
     
@@ -3288,12 +3286,6 @@ bool SimulinkWrapperGAMTest::TestExecute() {
                     }
                 }
                 
-                if (portName == StreamString("Out2_ScalarUint32")) {
-                    for (uint32 idx = 0; idx < port->totalNumberOfElements; idx++) {
-                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "%u", *( (uint32*) portAddr + idx)  );
-                    }
-                }
-                
             }
         }
     }
@@ -3538,7 +3530,6 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredSignals() {
             }
 
             ok = gam->Execute();
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "GAM Execute %s", ok?"ok":"failed");
         }
 
         if (ok) {

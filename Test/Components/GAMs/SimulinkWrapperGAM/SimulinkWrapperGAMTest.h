@@ -205,7 +205,7 @@ public:
     /**
      * @brief Tests the Setup() method when told to skip not ok tunable parameters.
      */
-    bool TestSetup_SkipUnlinkedTunableParams();
+    bool TestSetup_SkipInvalidTunableParams();
     
     /**
      * @brief Tests the Setup() method when there are no inputs.
