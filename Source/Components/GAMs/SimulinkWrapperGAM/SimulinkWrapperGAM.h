@@ -407,9 +407,9 @@ namespace MARTe {
  * of data but a structure of arrays or even a structure of structures.
  * 
  * The GAM allows to manage nonvirtual bus inputs and outputs in two ways:
- *   1) *mapping to structured signals*: nonvirtual buses are mapped in a corresponding
+ *   1. *mapping to structured signals*: nonvirtual buses are mapped in a corresponding
  *      MARTe2 structured signals
- *   2) *mapping to byte arrays*: nonvirtual buses are raw-copied onto `uint8` arrays
+ *   2. *mapping to byte arrays*: nonvirtual buses are raw-copied onto `uint8` arrays
  *      of bytes
  * 
  * To select the requested mapping set the `NonVirtualBusMode` option.
