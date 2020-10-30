@@ -107,7 +107,7 @@ namespace MARTe {
  * 
  *     Verbosity                   = ( 0 | 1 | 2 )                  // Optional. Default: 0
  *     SkipInvalidTunableParams    = ( 0 | 1 )                      // Optional. Default: 1
- *     EnforceModelSignalCoverage  = ( 0 | 1 )                      // Optional. Default: 1 valid only when NonVirtualBusMode = "Structured"
+ *     EnforceModelSignalCoverage  = ( 0 | 1 )                      // Optional. Default: 1
  *     TunableParamExternalSource  = "ExternalSourceName"           // Optional.
  *     NonVirtualBusMode           = ( "ByteArray" | "Structured" ) // Optional. Default: "ByteArray"
  * 
@@ -186,6 +186,10 @@ namespace MARTe {
  *      section for details.
  *    - *EnforceModelSignalCoverage*: Ensures that every port of the Simulink model
  *      is connected to the GAM, eventually preventing the GAM startup.
+ *      Setting this option to `0` means that some of the model output signals
+ *      can be omitted in the configuration file.
+ *      Valid only when `NonVirtualBusMode == "Structured"`.
+ *      Default value: `1`.
  *    - *Parameters*: local list of parameters. See
  *      [Model parameters](#model-parameters) section for details.
  * 
