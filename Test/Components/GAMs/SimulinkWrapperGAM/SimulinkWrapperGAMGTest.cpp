@@ -66,6 +66,11 @@ TEST(SimulinkWrapperGAMGTest, TestInitialise_MissingParametersLeaf) {
     ASSERT_TRUE(test.TestInitialise_MissingParametersLeaf());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_WrongNonVirtualBusMode) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_Failed_WrongNonVirtualBusMode());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestInitialise_Failed_LoadLibrary) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestInitialise_Failed_LoadLibrary());

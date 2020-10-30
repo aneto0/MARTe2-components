@@ -140,6 +140,11 @@ public:
     bool TestInitialise_Failed_MissingSymbolPrefix();
     
     /**
+     * @brief Tests the Initialise() method if NonVirtualBusMode is wrong.
+     */
+    bool TestInitialise_Failed_WrongNonVirtualBusMode();
+    
+    /**
      * @brief Tests the Initialise() method if the external .so cannot be loaded.
      */
     bool TestInitialise_Failed_LoadLibrary();

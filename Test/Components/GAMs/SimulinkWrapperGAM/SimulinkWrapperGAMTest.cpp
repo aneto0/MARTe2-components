@@ -507,6 +507,28 @@ bool SimulinkWrapperGAMTest::TestInitialise_Failed_MissingSymbolPrefix() {
     
 }
 
+bool SimulinkWrapperGAMTest::TestInitialise_Failed_WrongNonVirtualBusMode() {
+    
+    MARTe::StreamString modelName, modelFolder, modelFullPath;
+    
+    modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.CreateTestModel("createTestModel();");
+    
+    modelFullPath  = modelFolder;
+    modelFullPath += "/";
+    modelFullPath += modelName;
+    modelFullPath += ".so";
+    
+    MARTe::ConfigurationDatabase config;
+    
+    config.Write("Library",           modelFullPath);
+    config.Write("SymbolPrefix",      modelName);
+    config.Write("NonVirtualBusMode", "Structure");
+    
+    return !TestInitialiseWithConfiguration(config);
+    
+}
+
 
 bool SimulinkWrapperGAMTest::TestInitialise_MissingTunableParamExternalSource() {
     
