@@ -446,13 +446,13 @@ SimulinkOutputPort::~SimulinkOutputPort() {
 bool SimulinkInputPort::CopyData(const SimulinkWrapperCopyMode copyMode) {
     
     bool ok = true;
-    //TODO Verify
+    
+    // Copy signal content, telling apart the two modes (struct or byte array)
+    // If address==NULL, this signal or port has no corresponding MARTe signal and thus is not mapped
     if (!requiresTransposition) {
         if( (copyMode == CopyModeStructured) && (isStructured) ) {
-            uint32 carriedSignalsCount = carriedSignals.GetSize();
-            uint32 carriedSignalIdx;
-
-            for(carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignalsCount); carriedSignalIdx++) {
+            
+            for(uint32 carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignals.GetSize()); carriedSignalIdx++) {
                 if(carriedSignals[carriedSignalIdx]->MARTeAddress != NULL) {
                     ok = MemoryOperationsHelper::Copy(carriedSignals[carriedSignalIdx]->address, carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->byteSize);
                 }
@@ -466,10 +466,8 @@ bool SimulinkInputPort::CopyData(const SimulinkWrapperCopyMode copyMode) {
     }
     else {
         if( (copyMode == CopyModeStructured) && (isStructured) ) {
-            uint32 carriedSignalsCount = carriedSignals.GetSize();
-            uint32 carriedSignalIdx;
-            ok = true;
-            for(carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignalsCount); carriedSignalIdx++) {
+            
+            for(uint32 carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignals.GetSize()); carriedSignalIdx++) {
                 if(carriedSignals[carriedSignalIdx]->MARTeAddress != NULL) {
                     ok = TransposeAndCopy(carriedSignals[carriedSignalIdx]->address, carriedSignals[carriedSignalIdx]->MARTeAddress);
                 }
@@ -489,13 +487,13 @@ bool SimulinkOutputPort::CopyData(const SimulinkWrapperCopyMode copyMode) {
     
     bool ok = true;
 
-    //Copies, telling apart the two mode (struct vs byte array)
+    // Copy signal content, telling apart the two modes (struct or byte array)
+    // If address==NULL, this signal or port has no corresponding MARTe signal and thus is not mapped
     if (!requiresTransposition) {
         if( (copyMode == CopyModeStructured) && (isStructured) ) {
-            uint32 carriedSignalsCount = carriedSignals.GetSize();
-            uint32 carriedSignalIdx;
-
-            for(carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignalsCount); carriedSignalIdx++) {
+            
+            for(uint32 carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignals.GetSize()); carriedSignalIdx++) {
+                
                 if(carriedSignals[carriedSignalIdx]->MARTeAddress != NULL) {
                     ok = MemoryOperationsHelper::Copy(carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->address, carriedSignals[carriedSignalIdx]->byteSize);
                 }
@@ -509,10 +507,8 @@ bool SimulinkOutputPort::CopyData(const SimulinkWrapperCopyMode copyMode) {
     }
     else {
         if( (copyMode == CopyModeStructured) && (isStructured) ) {
-            uint32 carriedSignalsCount = carriedSignals.GetSize();
-            uint32 carriedSignalIdx;
-
-            for(carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignalsCount); carriedSignalIdx++) {
+            
+            for(uint32 carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignals.GetSize()); carriedSignalIdx++) {
                 if(carriedSignals[carriedSignalIdx]->MARTeAddress != NULL) {
                     ok = TransposeAndCopy(carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->address);
                 }
