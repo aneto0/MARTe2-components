@@ -105,11 +105,12 @@ namespace MARTe {
  *     Library         = "modelFileName.so"                 // Compulsory
  *     SymbolPrefix    = "modelName"                        // Compulsory
  * 
- *     Verbosity                     = ( 0 | 1 | 2 )        // Optional. Default: 0
- *     SkipInvalidTunableParams      = ( 0 | 1 )            // Optional. Default: 1
- *     TunableParamExternalSource    = "ExternalSourceName" // Optional.
- *     StructuredSignalsAsByteArrays = ( 0 | 1 )            // Optional. Default: 1
- *     EnforceModelSignalCoverage    = ( 0 | 1 )            // Optional, Default: 1 valid only when StructuredSignalsAsByteArrays = 0
+ *     Verbosity                   = ( 0 | 1 | 2 )                  // Optional. Default: 0
+ *     SkipInvalidTunableParams    = ( 0 | 1 )                      // Optional. Default: 1
+ *     EnforceModelSignalCoverage  = ( 0 | 1 )                      // Optional. Default: 1 valid only when NonVirtualBusMode = "Structured"
+ *     TunableParamExternalSource  = "ExternalSourceName"           // Optional.
+ *     NonVirtualBusMode           = ( "ByteArray" | "Structured" ) // Optional. Default: "ByteArray"
+ * 
  *     InputSignals  = {                                // As appropriate based on the Simulink(r) generated structure
  *         InSignal1 = {
  *             DataSource         = DDB1
@@ -180,8 +181,8 @@ namespace MARTe {
  *      parameters (see [Model parameters](#model-parameters) section
  *      for details). It must refer to a `MARTe::ReferenceContainer`
  *      containing references to `MARTe::AnyObject`s
- *    - *StructuredSignalsAsByteArrays*: treat model nonvirtual buses as a raw
- *      byte array of data. See [Structured signals](#structured-signals)
+ *    - *NonVirtualBusMode*: treat model nonvirtual buses as structured signals
+ *      or as a raw byte array of data. See [Structured signals](#structured-signals)
  *      section for details.
  *    - *EnforceModelSignalCoverage*: Ensures that every port of the Simulink model
  *      is connected to the GAM, eventually preventing the GAM startup.
@@ -401,16 +402,13 @@ namespace MARTe {
  * A structured signal is a signal whose content is not an array
  * of data but a structure of arrays or even a structure of structures.
  * 
- * @note *Nonvirtual bus* and *structured signal* are used interchangeably
- *       in this documentation.
- * 
  * The GAM allows to manage nonvirtual bus inputs and outputs in two ways:
- *   1) *mapping to structures*: nonvirtual buses are mapped in a corresponding
+ *   1) *mapping to structured signals*: nonvirtual buses are mapped in a corresponding
  *      MARTe2 structured signals
  *   2) *mapping to byte arrays*: nonvirtual buses are raw-copied onto `uint8` arrays
  *      of bytes
  * 
- * To select the requested mapping set the `StructuredSignalsAsByteArrays` option.
+ * To select the requested mapping set the `NonVirtualBusMode` option.
  * 
  * 
  * @warning The GAM cannot map nonvirtual buses whose last element is smaller
@@ -419,7 +417,7 @@ namespace MARTe {
  * 
  * ### Mapping nonvirtual buses into MARTe2 structured signals ###
  * 
- * Set `StructuredSignalsAsByteArrays = 0` to use this mode.
+ * Set `NonVirtualBusMode = "Structured"` to use this mode.
  * 
  * When this mode is selected, the GAM maps each element of the model
  * nonvirtual buses into an element of a MARTe2 structured signal. The configuration
@@ -514,7 +512,7 @@ namespace MARTe {
  * 
  * ### Mapping nonvirtual buses into `uint8` byte arrays ###
  * 
- * Set `StructuredSignalsAsByteArrays = 1` to use this mode.
+ * Set `NonVirtualBusMode = "ByteArray"` to use this mode.
  * 
  * The structured signal must then be declared as a `uint8` array of bytes. The
  * same bus as above would then become:
@@ -809,6 +807,12 @@ private:
         SignalFromSignals,
         SignalFromElementMap
     };
+    
+    /**
+     * @brief Used internally to address the underlying copy mode for the ports/signals, in respect to
+     *        the "structure as byte array" behaviour
+     */
+    SimulinkNonVirtualBusMode nonVirtualBusMode;
 
     /**
      * @brief   Pointer to the current port being analyzed by ScanSignal().
@@ -945,11 +949,6 @@ private:
      * @brief Set to `true` if one of the parameters is an array of structures (currently unsupported).
      */
     bool paramsHaveStructArrays;
-
-    /**
-     * @brief Set to `true` if structures passed are flattened into uint8 byte arrays outside the gam.
-     */
-    bool structuredSignalsAsByteArrays;
     
     /**
      * @brief Container of the parameters retrieved from the configuration file.
@@ -974,16 +973,9 @@ private:
         char8  gitLog[81];
         uint32 expCode;
     };
-    
 
     /**
-     * @brief Used internally to address the underlying copy mode for the ports/signals, in respect to
-     * the "structure as byte array" behaviour
-     */
-    SimulinkWrapperCopyMode copyMode;
-
-    /*
-     * @brief when enabled, all the Simulink model I/O must be matched to the GAM I/O
+     * @brief When enabled, all the Simulink model I/O must be matched to a GAM I/O
      */
     bool enforceModelSignalCoverage;
 

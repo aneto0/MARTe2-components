@@ -237,9 +237,8 @@ SimulinkWrapperGAM::SimulinkWrapperGAM()
     skipInvalidTunableParams = true;
     paramsHaveStructArrays   = false;
 
-    structuredSignalsAsByteArrays = true;
-    enforceModelSignalCoverage = false;
-    copyMode = CopyModePlain;
+    nonVirtualBusMode             = ByteArrayBusMode;
+    enforceModelSignalCoverage    = false;
 }
 
 /*lint -e{1551} memory must be freed and functions called in the destructor are expected not to throw exceptions */
@@ -356,27 +355,29 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::Warning, "SkipInvalidTunableParams not set, by default it is set to true.");
         }
     }
-
-    //Structured signals seen as byte arrays (binary blobs)
-    //Defaults to true, to keep backwards compatibility
-    if(status) {
-        uint32 tempStruct = 0u;
-        if(data.Read("StructuredSignalsAsByteArrays", tempStruct)) {
-            if(tempStruct > 0u) {
-                structuredSignalsAsByteArrays = true;
+    
+    if (status) {
+        StreamString copyModeString = "";
+        if ( data.Read("NonVirtualBusMode", copyModeString) ) {
+            if (copyModeString == "Structured") {
+                nonVirtualBusMode = StructuredBusMode;
+            }
+            else if (copyModeString == "ByteArray") {
+                nonVirtualBusMode = ByteArrayBusMode;
             }
             else {
-                structuredSignalsAsByteArrays = false;
+                status = false;
+                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid NonVirtualBusMode: %s (can be ByteArray or Structured).", copyModeString.Buffer());
+            }
+            
+            if (status) {
+                REPORT_ERROR(ErrorManagement::Information, "NonVirtualBusMode mode set to %s", copyModeString.Buffer());
             }
         }
         else {
-            structuredSignalsAsByteArrays = true;
+            REPORT_ERROR(ErrorManagement::Information, "NonVirtualBusMode mode not set, by default it is set to ByteArray");
         }
-
-        //Copy mode is set accordingly
-        copyMode = structuredSignalsAsByteArrays?CopyModePlain:CopyModeStructured;
-
-        REPORT_ERROR(ErrorManagement::Information, "Structured signals are seen as %s", structuredSignalsAsByteArrays?"byte arrays":"single entities");
+        
     }
     
     //Check if Simulink signals must be completely mapped on the GAM
@@ -573,7 +574,7 @@ bool SimulinkWrapperGAM::Setup() {
     }
     
     //Check if there are Simulink mapped signals which are not MARTe mapped when working in single signal mode
-    if((!structuredSignalsAsByteArrays) && enforceModelSignalCoverage) {
+    if(enforceModelSignalCoverage && (nonVirtualBusMode == StructuredBusMode) ) {
 
         uint32 portIdx;
         uint32 signalInPortIdx = 0u;
@@ -666,7 +667,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         }
         
         //Ensures the number of I/O Ports must be the same as the Simulink Model when in plain mode
-        if(structuredSignalsAsByteArrays) {
+        if (nonVirtualBusMode == ByteArrayBusMode) {
             uint32 numberOfGAMInputSignals  = GetNumberOfInputSignals();
             uint32 numberOfGAMOutputSignals = GetNumberOfOutputSignals();
 
@@ -1044,7 +1045,7 @@ bool SimulinkWrapperGAM::Execute() {
 
     // Inputs update
     for (portIdx = 0u; (portIdx < modelNumOfInputs) && status; portIdx++) {
-        status = modelPorts[portIdx]->CopyData(copyMode);
+        status = modelPorts[portIdx]->CopyData(nonVirtualBusMode);
     }
     
     // Model step
@@ -1054,7 +1055,7 @@ bool SimulinkWrapperGAM::Execute() {
 
     // Ouputs update
     for (portIdx = modelNumOfInputs; ( portIdx < (modelNumOfInputs + modelNumOfOutputs) ) && status; portIdx++) {
-        status = modelPorts[portIdx]->CopyData(copyMode);
+        status = modelPorts[portIdx]->CopyData(nonVirtualBusMode);
     }
     
     return status;
@@ -1951,7 +1952,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
             currentPort->isTyped = true;
         }
         else {
-            if(structuredSignalsAsByteArrays) {
+            if (nonVirtualBusMode == ByteArrayBusMode) {
                 // not the first signal, check coherence with previous ones
                 if ( StreamString(ELEctypename) != currentPort->cTypeName ) {
 
@@ -2083,7 +2084,7 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
         while((!found) && (portIdx < endIdx)) {
             uint32 portCarriedSignalsCount = modelPorts[portIdx]->carriedSignals.GetSize();
 
-            if(modelPorts[portIdx]->isStructured && (!structuredSignalsAsByteArrays)) {
+            if(modelPorts[portIdx]->isStructured && (nonVirtualBusMode == StructuredBusMode)) {
 
                 signalInPortIdx = 0u;
                 while((!found) && (signalInPortIdx < portCarriedSignalsCount)) {
@@ -2119,7 +2120,7 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
             
             // Homogeneus port checks (an array). In this case we check datatype, number of dimensions and number of elements.
 
-            if(modelPorts[portIdx]->hasHomogeneousType || (!structuredSignalsAsByteArrays)) {
+            if(modelPorts[portIdx]->hasHomogeneousType || (nonVirtualBusMode == StructuredBusMode)) {
                 if(!modelPorts[portIdx]->isContiguous)
                 {
                     REPORT_ERROR(ErrorManagement::ParametersError,
@@ -2226,7 +2227,7 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
         // Ok, here we can map memory inputs
         if (ok) {
 
-            if(modelPorts[portIdx]->isStructured && (!structuredSignalsAsByteArrays)) {
+            if(modelPorts[portIdx]->isStructured && (nonVirtualBusMode == StructuredBusMode)) {
 
                 if (direction == InputSignals) {
 

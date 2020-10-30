@@ -401,7 +401,7 @@ public:
         "            SymbolPrefix = \"%s\""
         "            Verbosity = 2"
         "            TunableParamExternalSource = ExtSource"
-        "            StructuredSignalsAsByteArrays = %s"
+        "            NonVirtualBusMode = %s"
         "            EnforceModelSignalCoverage = %s"
         "            SkipInvalidTunableParams = %s"
         "               %s" // InputSignals

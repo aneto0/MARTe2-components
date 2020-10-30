@@ -62,9 +62,14 @@ static const uint32 maxNumOfDims = 3u;
  */
 static const uint32 maxVariableNameLentgh = 40u;
 
-enum SimulinkWrapperCopyMode {
-    CopyModePlain = 0,
-    CopyModeStructured = 1
+/**
+ * @brief Enum that specifies whether model nonvirtual buses should be
+ *        mapped into structured signals or raw uint8 byte arrays.
+ */
+enum SimulinkNonVirtualBusMode {
+    
+    StructuredBusMode,
+    ByteArrayBusMode
 };
 
 /*---------------------------------------------------------------------------*/
@@ -303,7 +308,7 @@ public:
     /**
      * @brief Copy data from the associated MARTe2 signal to the associated model port.
      */
-    virtual bool CopyData(SimulinkWrapperCopyMode copyMode) = 0;
+    virtual bool CopyData(SimulinkNonVirtualBusMode copyMode) = 0;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -336,7 +341,7 @@ public:
      *          has column-major matrix signals they get transposed.
      * @returns `true` if data is successfully copied, `false` otherwise.
      */
-    virtual bool CopyData(const SimulinkWrapperCopyMode copyMode);
+    virtual bool CopyData(const SimulinkNonVirtualBusMode copyMode);
 };
 
 /*---------------------------------------------------------------------------*/
@@ -369,7 +374,7 @@ public:
      *          has column-major matrix signals they get transposed.
      * @returns `true` if data is successfully copied, `false` otherwise.
      */
-    virtual bool CopyData(const SimulinkWrapperCopyMode copyMode);
+    virtual bool CopyData(const SimulinkNonVirtualBusMode copyMode);
 };
 
 
