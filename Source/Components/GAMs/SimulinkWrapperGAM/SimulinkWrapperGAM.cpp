@@ -1949,29 +1949,28 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
             }
             
             currentPort->isTyped = true;
-        }//TODO Check added condition to ELSE (structuredSignalsAsByteArrays)
-        else if(structuredSignalsAsByteArrays) {
-            // not the first signal, check coherence with previous ones
-            if ( StreamString(ELEctypename) != currentPort->cTypeName ) {
-
-                currentPort->cTypeName     = "unsigned char";
-                currentPort->MARTeTypeName = "uint8";
-                currentPort->type          = TypeDescriptor::GetTypeDescriptorFromTypeName("uint8");
-
-                currentPort->hasHomogeneousType = false;
-            }
-
-            if (ELEorientation != currentPort->orientation) {
-                currentPort->hasHomogeneousOrientation = false;
-            }
-
-            for(uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
-
-                currentPort->numberOfElements[dimIdx] = 1u;
-            }
         }
         else {
-            REPORT_ERROR(ErrorManagement::IllegalOperation, "Unsupported condition (signal untyped nor in byte array mode)");
+            if(structuredSignalsAsByteArrays) {
+                // not the first signal, check coherence with previous ones
+                if ( StreamString(ELEctypename) != currentPort->cTypeName ) {
+
+                    currentPort->cTypeName     = "unsigned char";
+                    currentPort->MARTeTypeName = "uint8";
+                    currentPort->type          = TypeDescriptor::GetTypeDescriptorFromTypeName("uint8");
+
+                    currentPort->hasHomogeneousType = false;
+                }
+
+                if (ELEorientation != currentPort->orientation) {
+                    currentPort->hasHomogeneousOrientation = false;
+                }
+
+                for(uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
+
+                    currentPort->numberOfElements[dimIdx] = 1u;
+                }
+            }
         }
         
         currentSignal = new SimulinkSignal();
