@@ -89,7 +89,7 @@ end
 
 if hasTunableParams == true
     evalin('base', 'matrixConstant = [1 1 1; 2 2 2; 3 3 3];');
-    evalin('base', 'vectorConstant = ones(10,1);');
+    evalin('base', 'vectorConstant = uint32(ones(10,1));');
     
     if modelComplexity >= 2
         evalin('base', 'vectorConstant2 = ones(8,1);');
@@ -407,7 +407,10 @@ set_param([model_name '/Gain1'], 'Gain',           gain1Param);
 set_param([model_name '/Gain1'], 'OutDataTypeStr', 'double');
 
 set_param([model_name '/Gain2'], 'Gain',           gain2Param);
-set_param([model_name '/Gain2'], 'OutDataTypeStr', 'uint32');
+set_param([model_name '/Gain2'], 'OutDataTypeStr',   'uint32');
+if hasStructArrayParams == false
+    set_param([model_name '/Gain2'], 'ParamDataTypeStr', 'uint32');
+end
 
 % change types if requested
 if useType == 1
