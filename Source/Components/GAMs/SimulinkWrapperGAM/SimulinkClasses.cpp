@@ -452,7 +452,7 @@ bool SimulinkInputPort::CopyData(const SimulinkNonVirtualBusMode copyMode) {
     if (!requiresTransposition) {
         if( (copyMode == StructuredBusMode) && (isStructured) ) {
             
-            for(uint32 carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignals.GetSize()); carriedSignalIdx++) {
+            for(uint32 carriedSignalIdx = 0u; (carriedSignalIdx < carriedSignals.GetSize()) && ok; carriedSignalIdx++) {
                 if(carriedSignals[carriedSignalIdx]->MARTeAddress != NULL) {
                     ok = MemoryOperationsHelper::Copy(carriedSignals[carriedSignalIdx]->address, carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->byteSize);
                 }
@@ -467,7 +467,7 @@ bool SimulinkInputPort::CopyData(const SimulinkNonVirtualBusMode copyMode) {
     else {
         if( (copyMode == StructuredBusMode) && (isStructured) ) {
             
-            for(uint32 carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignals.GetSize()); carriedSignalIdx++) {
+            for(uint32 carriedSignalIdx = 0u; (carriedSignalIdx < carriedSignals.GetSize()) && ok; carriedSignalIdx++) {
                 if(carriedSignals[carriedSignalIdx]->MARTeAddress != NULL) {
                     ok = TransposeAndCopy(carriedSignals[carriedSignalIdx]->address, carriedSignals[carriedSignalIdx]->MARTeAddress);
                 }
@@ -492,7 +492,7 @@ bool SimulinkOutputPort::CopyData(const SimulinkNonVirtualBusMode copyMode) {
     if (!requiresTransposition) {
         if( (copyMode == StructuredBusMode) && (isStructured) ) {
             
-            for(uint32 carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignals.GetSize()); carriedSignalIdx++) {
+            for(uint32 carriedSignalIdx = 0u; (carriedSignalIdx < carriedSignals.GetSize()) && ok; carriedSignalIdx++) {
                 
                 if(carriedSignals[carriedSignalIdx]->MARTeAddress != NULL) {
                     ok = MemoryOperationsHelper::Copy(carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->address, carriedSignals[carriedSignalIdx]->byteSize);
@@ -508,7 +508,7 @@ bool SimulinkOutputPort::CopyData(const SimulinkNonVirtualBusMode copyMode) {
     else {
         if( (copyMode == StructuredBusMode) && (isStructured) ) {
             
-            for(uint32 carriedSignalIdx = 0u; ok && (carriedSignalIdx < carriedSignals.GetSize()); carriedSignalIdx++) {
+            for(uint32 carriedSignalIdx = 0u; (carriedSignalIdx < carriedSignals.GetSize()) && ok; carriedSignalIdx++) {
                 if(carriedSignals[carriedSignalIdx]->MARTeAddress != NULL) {
                     ok = TransposeAndCopy(carriedSignals[carriedSignalIdx]->MARTeAddress, carriedSignals[carriedSignalIdx]->address);
                 }
