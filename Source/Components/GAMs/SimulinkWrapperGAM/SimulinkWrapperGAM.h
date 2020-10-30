@@ -537,13 +537,15 @@ namespace MARTe {
  * Model configuration                                   {#model-configuration}
  * =============================================================================
  * 
- * In order to be compatible with the SimulinkWrapperGAM, the code generated
- * from the model must meet some requirements.
+ * In order to be compatible with the SimulinkWrapperGAM, the model must receive
+ * inputs from `Inport` blocks and send outputs to `Outport` blocks. The GAM
+ * will map MARTe2 I/O to Simulink I/O ports.
  * 
  * 
  * Code generation options
  * ----------------------------------------------------------------------------
  * 
+ * The code generated from the model must meet some requirements.
  * The following script can be used to setup a model for code generation with
  * the correct settings. Note that the `model_name` variable must be set in the
  * workspace before running the script and must match the name of an open model.
