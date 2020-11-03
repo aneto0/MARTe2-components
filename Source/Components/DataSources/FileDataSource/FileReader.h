@@ -33,9 +33,9 @@
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
 #include "File.h"
-#include "ProcessorType.h"
 #include "MemoryMapInterpolatedInputBroker.h"
 #include "MessageI.h"
+#include "ProcessorType.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
