@@ -32,8 +32,8 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
-#include "ProcessorType.h"
 #include "File.h"
+#include "ProcessorType.h"
 #include "MemoryMapInterpolatedInputBroker.h"
 #include "MessageI.h"
 #include "RegisteredMethodsMessageFilter.h"
