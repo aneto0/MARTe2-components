@@ -517,6 +517,7 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName, const 
                 executor.SetCPUMask(cpuMask);
             }
             // Start the SingleThreadService
+            executor.SetName(GetName());
             ok = executor.Start();
         }
     }

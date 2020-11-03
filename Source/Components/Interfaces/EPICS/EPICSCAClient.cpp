@@ -120,6 +120,7 @@ bool EPICSCAClient::Initialise(StructuredDataI & data) {
 }
 
 ErrorManagement::ErrorType EPICSCAClient::Start() {
+    executor.SetName(GetName());
     ErrorManagement::ErrorType err = executor.Start();
     return err;
 }

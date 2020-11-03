@@ -132,6 +132,7 @@ bool EPICSPVADatabase::Initialise(StructuredDataI & data) {
 }
 
 ErrorManagement::ErrorType EPICSPVADatabase::Start() {
+    executor.SetName(GetName());
     ErrorManagement::ErrorType err = executor.Start();
     if (err.ErrorsCleared()) {
         err = startSynch.Wait(10000);

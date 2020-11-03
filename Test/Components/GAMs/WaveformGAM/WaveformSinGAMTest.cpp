@@ -1441,7 +1441,7 @@ bool WaveformSinGAMTest::TestInt8Execute_2() {
     ok &= gam.AllocateOutputSignalsMemory();
     ok &= gam.Setup();
 
-    uint32 *gamMemoryIn = static_cast<uint32 *>(gam.GetInputSignalsMemory());
+    uint64 *gamMemoryIn = static_cast<uint64 *>(gam.GetInputSignalsMemory());
     int8 *gamMemoryOut = static_cast<int8 *>(gam.GetOutputSignalsMemory());
     *gamMemoryIn = 0;
     //assign inputs and outputs

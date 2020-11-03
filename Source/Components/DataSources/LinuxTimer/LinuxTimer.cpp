@@ -288,6 +288,7 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName, const cha
     bool ok = true;
     if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
         if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+            executor.SetName(GetName());
             ok = executor.Start();
         }
     }
