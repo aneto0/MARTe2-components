@@ -557,9 +557,9 @@ namespace MARTe {
  * In order for a signal to be correctly linked to the GAM, *each input and
  * output signal* must be named and *each input and output port* must display
  * the signal name in its icon.
- * - To name a signal, double click on the line representing the signal and
+ * 1. To name a signal, double click on the line representing the signal and
  *   write the name on the textbox that appears
- * - To display the signal name on the port, double click on the port and
+ * 2. To display the signal name on the port, double click on the port and
  *   in the `Block parameters` set the `Icon display` field to `Signal name`
  * 
  * ### Structured signal specific settings ###
@@ -588,11 +588,14 @@ namespace MARTe {
  * Configuration of parameters
  * ----------------------------------------------------------------------------
  * 
- * In order for parameters to be modifiable by the GAM, they shall be set to
- * tunable in the model. To do that, go to `Model Setting > Code Generation >
- * Optimization` and set `Default parameter behavior` to `Tunable`.
- * To set the same option for each single parameter, click on `Configure...`
- * in the same window.
+ * In order for parameter values to be modifiable by the GAM, they shall be
+ * declared as variable and set as tunable in the model. 
+ * 1. To declare a parameter value as variable use a variable name instead
+ *    of a numeric value in the block parameter
+ * 2. To set parameter values as tunable go to `Model Setting > Code Generation >
+ *    Optimization` and set `Default parameter behavior` to `Tunable`.
+ *    To set the same option for each single parameter, click on `Configure...`
+ *    in the same window.
  * 
  * The script that is shown below automatically sets all parameters to tunable. 
  * 
