@@ -2128,13 +2128,14 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                         (modelPorts[portIdx]->fullName).Buffer());
                     ok = false;
                 }
-
+                
                 if (ok) {
                     ok = GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
+                    REPORT_ERROR(ErrorManagement::Debug, "%s: ndims %u", GAMSignalName.Buffer(), GAMNumberOfDimensions);
                     if ( (GAMNumberOfDimensions != (modelPorts[portIdx]->carriedSignals[signalInPortIdx]->numberOfDimensions)) && ok ) {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "%s signal %s number of dimensions mismatch (GAM: %d, model: %u)",
-                            directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfDimensions, modelPorts[portIdx]->numberOfDimensions);
+                            directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfDimensions, modelPorts[portIdx]->carriedSignals[signalInPortIdx]->numberOfDimensions);
                         ok = false;
                     }
                 }
@@ -2145,7 +2146,7 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                     {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                                      "%s signal %s number of elements mismatch (GAM: %d, model: %u)",
-                                     directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfElements, modelPorts[portIdx]->totalNumberOfElements);
+                                     directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfElements, modelPorts[portIdx]->carriedSignals[signalInPortIdx]->totalNumberOfElements);
                         ok = false;
                     }
                 }
