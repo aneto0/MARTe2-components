@@ -2131,7 +2131,6 @@ bool SimulinkWrapperGAM::MapPorts(const SignalDirection direction) {
                 
                 if (ok) {
                     ok = GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-                    REPORT_ERROR(ErrorManagement::Debug, "%s: ndims %u", GAMSignalName.Buffer(), GAMNumberOfDimensions);
                     if ( (GAMNumberOfDimensions != (modelPorts[portIdx]->carriedSignals[signalInPortIdx]->numberOfDimensions)) && ok ) {
                         REPORT_ERROR(ErrorManagement::ParametersError,
                             "%s signal %s number of dimensions mismatch (GAM: %d, model: %u)",
