@@ -3606,6 +3606,10 @@ bool FileWriterTest::TestGetStackSize() {
     return TestInitialise();
 }
 
+bool FileWriterTest::TestIsOverwrite() {
+    return TestInitialise();
+}
+
 bool FileWriterTest::TestIsStoreOnTrigger() {
     return TestInitialise();
 }

@@ -260,6 +260,11 @@ TEST(FileWriterGTest,TestGetStackSize) {
     ASSERT_TRUE(test.TestGetStackSize());
 }
 
+TEST(FileWriterGTest,TestIsOverwrite) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestIsOverwrite());
+}
+
 TEST(FileWriterGTest,TestIsStoreOnTrigger) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestIsStoreOnTrigger());

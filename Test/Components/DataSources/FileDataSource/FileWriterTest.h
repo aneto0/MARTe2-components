@@ -282,6 +282,11 @@ public:
     bool TestGetStackSize();
 
     /**
+     * @brief Tests the IsOverwrite method.
+     */
+    bool TestIsOverwrite();
+
+    /**
      * @brief Tests the IsStoreOnTrigger method.
      */
     bool TestIsStoreOnTrigger();
