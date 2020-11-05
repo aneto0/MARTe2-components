@@ -1,6 +1,6 @@
 /**
  * @file SDNLoggerCallback.cpp
- * @brief Source file for SDNLoggerCallback (MARTe2 plug-in for SDN Core library logs)
+ * @brief Source file for SDNLoggerCallback
  * @date 30/01/2017
  * @author Bertrand Bauvir
  *
