@@ -1,6 +1,6 @@
 /**
- * @file WaveFormSinGAMTest.cpp
- * @brief Source file for class WaveFormSinGAMTest
+ * @file WaveformSinGAMTest.cpp
+ * @brief Source file for class WaveformSinGAMTest
  * @date 22/05/2017
  * @author Llorenc Capella
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class WaveFormSinGAMTest (public, protected, and private). Be aware that some 
+ * the class WaveformSinGAMTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
  */
 

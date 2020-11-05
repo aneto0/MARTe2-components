@@ -1,6 +1,6 @@
 /**
- * @file MDSWriterTestHelper.h
- * @brief Header file for class MDSWriterTestHelper
+ * @file MDSWriterTreeTestHelper.h
+ * @brief Header file for class MDSWriterTreeTestHelper
  * @date 29/07/2018
  * @author Andre Neto
  *
@@ -16,7 +16,7 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class MDSWriterTestHelper
+ * @details This header file contains the declaration of the class MDSWriterTreeTestHelper
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
