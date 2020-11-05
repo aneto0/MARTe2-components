@@ -1,6 +1,6 @@
 /**
  * @file SDNLoggerCallback.cpp
- * @brief Source file for SDNLoggerCallback
+ * @brief Source file for class SDNLoggerCallback
  * @date 30/01/2017
  * @author Bertrand Bauvir
  *
