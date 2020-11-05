@@ -33,8 +33,8 @@
 #include "MemoryOperationsHelper.h"
 #include "NI9157CircularFifoReader.h"
 #include "NI9157DeviceOperatorDatabase.h"
-#include "Optim/NI9157MemoryOperationsHelper.h"
 #include "ObjectRegistryDatabase.h"
+#include "Optim/NI9157MemoryOperationsHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

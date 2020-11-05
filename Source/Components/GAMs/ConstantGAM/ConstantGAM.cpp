@@ -31,8 +31,8 @@
 
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
-#include "RegisteredMethodsMessageFilter.h"
 #include "ConstantGAM.h"
+#include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

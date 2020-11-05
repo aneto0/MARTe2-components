@@ -30,8 +30,8 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
-#include "MemoryMapAsyncOutputBroker.h"
 #include "MDSWriter.h"
+#include "MemoryMapAsyncOutputBroker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

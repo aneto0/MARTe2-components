@@ -29,13 +29,13 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "NI9157MxiDataSource.h"
 #include "AdvancedErrorManagement.h"
-#include "ObjectRegistryDatabase.h"
 #include "CLASSMETHODREGISTER.h"
-#include "RegisteredMethodsMessageFilter.h"
 #include "CreateNI9157DeviceOperatorI.h"
 #include "NI9157DeviceOperatorDatabase.h"
+#include "NI9157MxiDataSource.h"
+#include "ObjectRegistryDatabase.h"
+#include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

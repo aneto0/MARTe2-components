@@ -33,8 +33,8 @@
 /*---------------------------------------------------------------------------*/
 
 #include "MemoryDataSourceI.h"
-#include "NI9157DeviceOperatorT.h"
 #include "MessageI.h"
+#include "NI9157DeviceOperatorT.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
