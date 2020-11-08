@@ -137,7 +137,7 @@ bool LoggerBroker::Init(SignalDirection const direction,
     return ok;
 }
 
-void LoggerBroker::SetPeriod(uint32 cyclePeriodIn) {
+void LoggerBroker::SetPeriod(const uint32 cyclePeriodIn) {
     cyclePeriod = cyclePeriodIn;
 }
 

@@ -73,7 +73,7 @@ public:
             void *gamMemoryAddress);
 
 
-    void SetPeriod(uint32 cyclePeriodIn);
+    void SetPeriod(const uint32 cyclePeriodIn);
 
     /**
      * @brief For all the signals print their AnyType value in the logger stream.
