@@ -1,6 +1,6 @@
 /**
  * @file SDNLoggerCallback.cpp
- * @brief MARTe2 plug-in for SDN Core library logs
+ * @brief Source file for class SDNLoggerCallback
  * @date 30/01/2017
  * @author Bertrand Bauvir
  *
@@ -24,21 +24,19 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-/*                         Project header includes                           */
-/*---------------------------------------------------------------------------*/
-
-#include "AdvancedErrorManagement.h"
-#include "ErrorManagement.h"
-#include "ErrorInformation.h"
-
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 #if UNIT_VERSION > UNIT_VERSION_UID(1,1,0)
 #ifndef FEATURE_10840
 #define FEATURE_10840
 #endif
 #endif
+
+/*---------------------------------------------------------------------------*/
+/*                         Project header includes                           */
+/*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
+#include "ErrorInformation.h"
+#include "ErrorManagement.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

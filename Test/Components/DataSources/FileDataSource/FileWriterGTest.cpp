@@ -24,14 +24,12 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <limits.h>
-
-#include "FileWriterTest.h"
 #include "gtest/gtest.h"
-
+#include <limits.h>
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "FileWriterTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -258,6 +256,11 @@ TEST(FileWriterGTest,TestGetNumberOfPreTriggers) {
 TEST(FileWriterGTest,TestGetStackSize) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestGetStackSize());
+}
+
+TEST(FileWriterGTest,TestIsOverwrite) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestIsOverwrite());
 }
 
 TEST(FileWriterGTest,TestIsStoreOnTrigger) {

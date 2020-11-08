@@ -2,7 +2,7 @@
  * @file FileWriter.cpp
  * @brief Source file for class FileWriter
  * @date 11/08/2017
- * @author Andre' Neto
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -54,16 +54,18 @@ FileWriter::FileWriter() :
     numberOfBuffers = 0u;
     dataSourceMemory = NULL_PTR(char8 *);
     offsets = NULL_PTR(uint32 *);
-    cpuMask = 0xfu;
+    cpuMask = 0xFEu;
     stackSize = 0u;
     numberOfBinaryBytes = 0u;
     fileFormat = FILE_FORMAT_BINARY;
     filename = "";
     fatalFileError = false;
     overwrite = false;
+    refreshContent = 0u;
+    fullNotation =0u;
     signalsAnyType = NULL_PTR(AnyType *);
     brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
-    filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
     if (!ret.ErrorsCleared()) {
@@ -97,7 +99,9 @@ uint32 FileWriter::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool FileWriter::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
+bool FileWriter::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                       const uint32 bufferIdx,
+                                       void*& signalAddress) {
     bool ok = (dataSourceMemory != NULL_PTR(char8 *));
     if (ok) {
         /*lint -e{613} dataSourceMemory cannot be NULL here*/
@@ -108,7 +112,8 @@ bool FileWriter::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buff
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction and on the storeOnTrigger property (which is load before).*/
-const char8* FileWriter::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
+const char8* FileWriter::GetBrokerName(StructuredDataI& data,
+                                       const SignalDirection direction) {
     const char8* brokerName = "";
     if (direction == OutputSignals) {
         if (storeOnTrigger) {
@@ -122,22 +127,27 @@ const char8* FileWriter::GetBrokerName(StructuredDataI& data, const SignalDirect
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: InputBrokers are not supported. Function returns false irrespectively of the parameters.*/
-bool FileWriter::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool FileWriter::GetInputBrokers(ReferenceContainer& inputBrokers,
+                                 const char8* const functionName,
+                                 void* const gamMemPtr) {
     return false;
 }
 
-bool FileWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool FileWriter::GetOutputBrokers(ReferenceContainer& outputBrokers,
+                                  const char8* const functionName,
+                                  void* const gamMemPtr) {
     bool ok = true;
     if (storeOnTrigger) {
-        ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
+        ReferenceT < MemoryMapAsyncTriggerOutputBroker > brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
         brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
+        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+                                                              numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTriggerNew);
         }
     }
     else {
-        ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
+        ReferenceT < MemoryMapAsyncOutputBroker > brokerAsync("MemoryMapAsyncOutputBroker");
         ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsync);
@@ -149,6 +159,11 @@ bool FileWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8
 bool FileWriter::Synchronise() {
     bool ok = !fatalFileError;
     if (ok) {
+        if (refreshContent > 0u) {
+            (void) outputFile.Seek(headerPositionMarker);
+            (void) outputFile.SetSize(headerPositionMarker);
+        }
+
         if (fileFormat == FILE_FORMAT_BINARY) {
             uint32 writeSize = numberOfBinaryBytes;
             ok = outputFile.Write(dataSourceMemory, writeSize);
@@ -157,7 +172,19 @@ bool FileWriter::Synchronise() {
             }
         }
         else {
-            ok = outputFile.PrintFormatted(csvPrintfFormat.Buffer(), signalsAnyType);
+            if ((signalsAnyType != NULL) && (fullNotation > 0u)) {
+                for(uint32 i=0u; i<numberOfSignals; i++){
+                    StreamString signalName;
+                    (void)GetSignalName(i, signalName);
+                    ok = outputFile.Printf("%s = %! %s", signalName.Buffer(), signalsAnyType[i], csvSeparator.Buffer());
+                }
+            }
+            else {
+                ok = outputFile.PrintFormatted(csvPrintfFormat.Buffer(), signalsAnyType);
+            }
+            if (refreshContent > 0u) {
+                ok = outputFile.Flush();
+            }
         }
         fatalFileError = !ok;
         if (fatalFileError) {
@@ -177,7 +204,8 @@ bool FileWriter::Synchronise() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool FileWriter::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool FileWriter::PrepareNextState(const char8* const currentStateName,
+                                  const char8* const nextStateName) {
     return true;
 }
 
@@ -294,6 +322,21 @@ bool FileWriter::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
+        if (!data.Read("RefreshContent", refreshContent)) {
+            refreshContent = 0u;
+            fullNotation = 0u;
+        }
+        else {
+            if(refreshContent > 0u) {
+                fullNotation = 1u;
+            }
+        }
+        //if (!data.Read("FullNotation", fullNotation)) {
+        //    fullNotation = 0u;
+        //}
+    }
+
+    if (ok) {
         ok = data.MoveRelative("Signals");
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
@@ -309,12 +352,12 @@ bool FileWriter::Initialise(StructuredDataI& data) {
     if (ok) {
         //Check if there are any Message elements set
         if (Size() > 0u) {
-            ReferenceT<ReferenceContainer> msgContainer = Get(0u);
+            ReferenceT < ReferenceContainer > msgContainer = Get(0u);
             if (msgContainer.IsValid()) {
                 uint32 j;
                 uint32 nOfMessages = msgContainer->Size();
                 for (j = 0u; (j < nOfMessages) && (ok); j++) {
-                    ReferenceT<Message> msg = msgContainer->Get(j);
+                    ReferenceT < Message > msg = msgContainer->Get(j);
                     ok = msg.IsValid();
                     if (ok) {
                         StreamString msgName = msg->GetName();
@@ -500,7 +543,8 @@ ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filenameIn) {
                     fatalFileError = !GetSignalNumberOfElements(n, nOfElements);
                 }
                 if (!fatalFileError) {
-                    fatalFileError = !outputFile.Printf("%s (%s)[%u]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
+                    fatalFileError = !outputFile.Printf("%s (%s)[%u]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType),
+                                                        nOfElements);
                 }
             }
             if (!fatalFileError) {
@@ -556,6 +600,13 @@ ErrorManagement::ErrorType FileWriter::OpenFile(StreamString filenameIn) {
             }
         }
 
+        if(!fatalFileError) {
+            headerPositionMarker = outputFile.Position();
+            if(headerPositionMarker == 0xFFFFFFFFU) {
+                fatalFileError = true;
+            }
+        }
+
         if (fileOpenedOKMsg.IsValid()) {
             //Reset any previous replies
             fileOpenedOKMsg->SetAsReply(false);
@@ -604,14 +655,14 @@ ErrorManagement::ErrorType FileWriter::CloseFile() {
 
 ErrorManagement::ErrorType FileWriter::FlushFile() {
     bool ok = true;
-    if (brokerAsyncTrigger != NULL_PTR(MemoryMapAsyncTriggerOutputBroker *)) {
-        ok = brokerAsyncTrigger->FlushAllTriggers();
-    }
-    if (ok) {
+    //if (brokerAsyncTrigger != NULL_PTR(MemoryMapAsyncTriggerOutputBroker *)) {
+        // ok = brokerAsyncTrigger->FlushAllTriggers();
+    //}
+    //if (ok) {
         if (outputFile.IsOpen()) {
             ok = outputFile.Flush();
         }
-    }
+    //}
 
     ErrorManagement::ErrorType err(ok);
     return err;

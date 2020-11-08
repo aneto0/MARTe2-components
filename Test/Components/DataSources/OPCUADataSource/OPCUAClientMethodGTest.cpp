@@ -1,8 +1,8 @@
 /**
  * @file OPCUAClientMethodGTest.cpp
  * @brief Source file for class OPCUAClientMethodGTest
- * @date Oct 30, 2019 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 30/10/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

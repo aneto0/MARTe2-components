@@ -28,8 +28,8 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
-#include "EventSem.h"
 #include "EmbeddedServiceMethodBinderI.h"
+#include "EventSem.h"
 #include "SingleThreadService.h"
 
 /*---------------------------------------------------------------------------*/

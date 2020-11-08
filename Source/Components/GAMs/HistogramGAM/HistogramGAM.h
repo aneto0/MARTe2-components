@@ -32,9 +32,8 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "GAM.h"
-#include "TypeDescriptor.h"
-
 #include "HistogramComparatorT.h"
+#include "TypeDescriptor.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/

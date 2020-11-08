@@ -224,7 +224,12 @@ public:
     /**
      * @brief Tests the FileWriter integrated in an application which continuously stores data.
      */
-    bool TestIntegratedInApplication_NoTrigger(const MARTe::char8 *filename, bool csv = true);
+    bool TestIntegratedInApplication_NoTrigger(const MARTe::char8 *filename, bool csv = true, MARTe::uint8 refreshContent = 0u, MARTe::uint32* detectedFileSize = 0);
+
+    /**
+     * @brief Tests the FileWriter integrated in an application which continuously stores data.
+     */
+    bool TestIntegratedInApplication_RefreshContent(const MARTe::char8 *filename, bool csv = true, MARTe::uint32 * detectedFileSize = 0);
 
     /**
      * @brief Tests the FileWriter integrated in an application which continuously stores data.
@@ -275,6 +280,11 @@ public:
      * @brief Tests the GetStackSize method.
      */
     bool TestGetStackSize();
+
+    /**
+     * @brief Tests the IsOverwrite method.
+     */
+    bool TestIsOverwrite();
 
     /**
      * @brief Tests the IsStoreOnTrigger method.

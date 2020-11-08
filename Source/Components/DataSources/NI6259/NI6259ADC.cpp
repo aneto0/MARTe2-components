@@ -228,6 +228,7 @@ bool NI6259ADC::PrepareNextState(const char8* const currentStateName, const char
             if (cpuMask != 0u) {
                 executor.SetCPUMask(cpuMask);
             }
+            executor.SetName(GetName());
             ok = executor.Start();
         }
     }

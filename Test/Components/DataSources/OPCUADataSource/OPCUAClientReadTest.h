@@ -1,8 +1,8 @@
 /**
  * @file OPCUAClientReadTest.h
  * @brief Header file for class OPCUAClientReadTest
- * @date Oct 28, 2019 TODO Verify the value and format of the date
- * @author lporzio TODO Verify the name and format of the author
+ * @date 28/10/2019
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

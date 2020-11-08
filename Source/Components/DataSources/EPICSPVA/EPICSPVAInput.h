@@ -31,8 +31,8 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "EmbeddedServiceMethodBinderI.h"
 #include "EPICSPVAChannelWrapper.h"
+#include "EmbeddedServiceMethodBinderI.h"
 #include "EventSem.h"
 #include "MemoryDataSourceI.h"
 #include "MultiThreadService.h"

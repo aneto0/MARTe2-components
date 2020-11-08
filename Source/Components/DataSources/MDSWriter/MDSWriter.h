@@ -32,10 +32,10 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
-#include "ProcessorType.h"
 #include "MDSWriterNode.h"
 #include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "MessageI.h"
+#include "ProcessorType.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/

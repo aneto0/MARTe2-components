@@ -2,7 +2,7 @@
  * @file PlatformTest.cpp
  * @brief Source file for class PlatformTest
  * @date 31/01/2017
- * @author Ivan Herrero
+ * @author Ivan Herrero Molina
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

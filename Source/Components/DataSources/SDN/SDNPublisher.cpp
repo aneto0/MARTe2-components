@@ -32,18 +32,18 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
+
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
 #include "Endianity.h"
 #include "ErrorInformation.h"
 #include "ErrorManagement.h"
-#include "GlobalObjectsDatabase.h"
 #include "GAM.h"
+#include "GlobalObjectsDatabase.h"
 #include "MemoryMapInputBroker.h"
 #include "MemoryMapOutputBroker.h"
 #include "MemoryMapSynchronisedOutputBroker.h"
 #include "SDNPublisher.h"
-
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 /*lint -estring(843,"*crc.h*") ignore could be declared const warning from the crc.h header*/
 /*---------------------------------------------------------------------------*/

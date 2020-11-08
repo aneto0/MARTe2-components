@@ -1,6 +1,6 @@
 /**
  * @file PIDGAM.cpp
- * @brief Source file for class PID
+ * @brief Source file for class PIDGAM
  * @date 22/08/2017
  * @author Llorenc Capella
  *
@@ -30,9 +30,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
-#include "PIDGAM.h"
 #include "AdvancedErrorManagement.h"
+#include "PIDGAM.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

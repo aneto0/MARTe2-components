@@ -160,6 +160,7 @@ bool EventConditionTrigger::SetPacketConfig(const PacketField * const packetConf
         if (ret) {
             ret = signalsDatabase.MoveToAncestor(1u);
             if (ret) {
+                executor.SetName(GetName());
                 ErrorManagement::ErrorType err = executor.Start();
                 ret = err.ErrorsCleared();
             }

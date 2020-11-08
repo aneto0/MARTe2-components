@@ -113,6 +113,7 @@ bool EPICSPVA2V3Service::Initialise(StructuredDataI &data) {
         std::cout << epicsPVAStructure->GetRootStruct() << std::endl;
     }
     if (ok) {
+        caClient->SetName(GetName());
         ok = (caClient->Start() == ErrorManagement::NoError);
     }
 

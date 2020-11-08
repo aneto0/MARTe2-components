@@ -30,6 +30,7 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "Directory.h"
+#include "ErrorManagement.h"
 #include "FileWriter.h"
 #include "FileWriterTest.h"
 #include "GAM.h"
@@ -338,7 +339,8 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
                                     MARTe::uint8 *triggerToGenerate, MARTe::uint32 numberOfElements, MARTe::uint32 numberOfBuffers,
                                     MARTe::uint32 numberOfPreTriggers, MARTe::uint32 numberOfPostTriggers, MARTe::float32 period,
                                     const MARTe::char8 * const filename, const MARTe::char8 * const expectedFileContent, bool csv,
-                                    const MARTe::uint32 sleepMSec = 100) {
+                                    const MARTe::uint32 sleepMSec = 100, 
+                                    const MARTe::uint8 refreshContent = 0u, MARTe::uint32 * detectedSize = NULL) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config;
@@ -380,6 +382,8 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     cdb.Delete("StoreOnTrigger");
     uint32 storeOnTrigger = (triggerToGenerateWasNULL ? 0 : 1);
     cdb.Write("StoreOnTrigger", storeOnTrigger);
+    cdb.Delete("RefreshContent");
+    cdb.Write("RefreshContent", refreshContent);
 
     cdb.Delete("FileFormat");
     if (csv) {
@@ -473,6 +477,11 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
         char8 buffer[BUFFER_SIZE];
         uint32 readSize = BUFFER_SIZE;
 
+        if((refreshContent > 0u) && (detectedSize != NULL))
+        {
+            *detectedSize = generatedFile.Size();
+        }
+
         generatedFile.Seek(0u);
         uint32 z = 0u;
         bool readOnce = false;
@@ -492,6 +501,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
             ok = readOnce;
         }
     }
+
     generatedFile.Close();
     Directory toDelete(filename);
     toDelete.Delete();
@@ -581,6 +591,7 @@ static const MARTe::char8 * const config1 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -727,6 +738,7 @@ static const MARTe::char8 * const config2 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -883,6 +895,7 @@ static const MARTe::char8 * const config3 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -1035,6 +1048,7 @@ static const MARTe::char8 * const config4 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -1179,6 +1193,7 @@ static const MARTe::char8 * const config5 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -1368,6 +1383,7 @@ static const MARTe::char8 * const config6 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -1552,6 +1568,7 @@ static const MARTe::char8 * const config7 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -1736,6 +1753,7 @@ static const MARTe::char8 * const config8 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -1920,6 +1938,7 @@ static const MARTe::char8 * const config9 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -2104,6 +2123,7 @@ static const MARTe::char8 * const config10 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -2248,6 +2268,7 @@ static const MARTe::char8 * const config11 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -2362,6 +2383,7 @@ static const MARTe::char8 * const config12 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = yes"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -2512,6 +2534,7 @@ static const MARTe::char8 * const config13 = ""
         "            CSVSeparator = \";\""
         "            Overwrite = no"
         "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -2741,6 +2764,14 @@ bool FileWriterTest::TestSynchronise() {
     }
     if (ok) {
         ok = TestIntegratedInApplication_Trigger("FileWriterTest_TestSynchronise_T_BIN", false);
+    }
+    if (ok) {
+        MARTe::uint32 runCSV = 0;
+        ok = TestIntegratedInApplication_RefreshContent("FileWriterTest_TestRefresh_CSV", true, &runCSV);
+    }
+    if (ok) {
+        MARTe::uint32 runBIN = 0;
+        ok = TestIntegratedInApplication_RefreshContent("FileWriterTest_TestRefresh_BIN", false, &runBIN);
     }
 
     return ok;
@@ -3097,10 +3128,16 @@ bool FileWriterTest::TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunct
     return !TestIntegratedInApplication(config4, true);
 }
 
-bool FileWriterTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *filename, bool csv) {
+bool FileWriterTest::TestIntegratedInApplication_RefreshContent(const MARTe::char8 *filename, bool csv, MARTe::uint32 * detectedFileSize)
+{
+    return TestIntegratedInApplication_NoTrigger( filename, csv, 1u, detectedFileSize);
+}
+
+bool FileWriterTest::TestIntegratedInApplication_NoTrigger( const MARTe::char8 *filename, bool csv, MARTe::uint8 refreshContent, MARTe::uint32* detectedFileSize) {
     using namespace MARTe;
     uint32 signalToGenerate[] = { 1, 2, 3, 4, 5 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+        
     const uint32 N_OF_SIGNALS = 12;
     const char8 *signalNames[N_OF_SIGNALS] = { "Trigger", "Time", "SignalUInt8", "SignalUInt16", "SignalUInt32", "SignalUInt64", "SignalInt8", "SignalInt16",
             "SignalInt32", "SignalInt64", "SignalFloat32", "SignalFloat64WhichIsAlsoAVeryLon" };
@@ -3112,14 +3149,25 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *f
     const float32 period = 2;
     const char8 * expectedFileContent = NULL;
     if (csv) {
-        expectedFileContent =
-                ""
-                        "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
-                        "0;0;1;1;1;1;1;1;1;1;1.000000;1.000000\n"
-                        "0;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
-                        "0;4000000;3;3;3;3;3;3;3;3;3.000000;3.000000\n"
-                        "0;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
-                        "0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
+        if(refreshContent == 0u) {
+            //Expect the whole file
+            expectedFileContent =
+                    ""
+                            "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
+                            "0;0;1;1;1;1;1;1;1;1;1.000000;1.000000\n"
+                            "0;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
+                            "0;4000000;3;3;3;3;3;3;3;3;3.000000;3.000000\n"
+                            "0;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
+                            "0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
+            }
+        else {
+            //Expect the header and only the latest sample
+            expectedFileContent =
+                    ""
+                            "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
+                            "Trigger = 0 ;Time = 8000000 ;SignalUInt8 = 5 ;SignalUInt16 = 5 ;SignalUInt32 = 5 ;SignalUInt64 = 5 ;SignalInt8 = 5 ;SignalInt16 = 5 ;SignalInt32 = 5 ;SignalInt64 = 5 ;SignalFloat32 = 5.000000 ;SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated = 5.000000 ;";
+                            //"0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
+        }
     }
     else {
         uint32 cycleWriteSize = sizeof(uint8); //trigger
@@ -3140,7 +3188,7 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *f
         uint32 memorySize = headerSize + (numberOfElements * cycleWriteSize); //5 writes
         expectedFileContent = static_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
 
-        uint32 n;
+        uint32 n, idx;
         //Header
         char8 *header = const_cast<char8 *>(&expectedFileContent[0]);
         MemoryOperationsHelper::Copy(header, reinterpret_cast<const char8 *>(&N_OF_SIGNALS), sizeof(uint32));
@@ -3155,7 +3203,13 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *f
             header += sizeof(uint32);
         }
 
-        for (n = 0u; n < numberOfElements; n++) {
+        MARTe::uint32 imageGeneratorLoopSize = numberOfElements;
+
+        if(refreshContent > 0u) {
+            imageGeneratorLoopSize = 1u;
+        }
+            
+        for (n = 0u; n < imageGeneratorLoopSize; n++) {
             uint8 *triggerPointer = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(&expectedFileContent[headerSize + (n * cycleWriteSize)]));
             uint32 *timerPointer = reinterpret_cast<uint32 *>(triggerPointer + 1);
             uint8 *signalUInt8Pointer = reinterpret_cast<uint8 *>(timerPointer + 1);
@@ -3170,25 +3224,34 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger(const MARTe::char8 *f
             float64 *signalFloat64Pointer = reinterpret_cast<float64 *>(signalFloat32Pointer + 1);
 
             *triggerPointer = 0u;
-            *timerPointer = static_cast<uint32>(period * 1e6) * n;
-            *signalUInt8Pointer = signalToGenerate[n];
-            *signalUInt16Pointer = signalToGenerate[n];
-            *signalUInt32Pointer = signalToGenerate[n];
-            *signalUInt64Pointer = signalToGenerate[n];
+            
+            idx = n;
+            //Pick only the last signal to generate to make the comparison in-memory image
+            if(refreshContent > 0u) {
+                idx = (numberOfElements - 1);
+            }
+
+            *timerPointer = static_cast<uint32>(period * 1e6) * idx;
+            *signalUInt8Pointer = signalToGenerate[idx];
+            *signalUInt16Pointer = signalToGenerate[idx];
+            *signalUInt32Pointer = signalToGenerate[idx];
+            *signalUInt64Pointer = signalToGenerate[idx];
             int32 multiplier = -1;
-            if ((n % 2) == 0) {
+
+            if ((idx % 2) == 0) {
                 multiplier = 1;
             }
-            *signalInt8Pointer = multiplier * signalToGenerate[n];
-            *signalInt16Pointer = multiplier * signalToGenerate[n];
-            *signalInt32Pointer = multiplier * signalToGenerate[n];
-            *signalInt64Pointer = static_cast<int64>(multiplier) * signalToGenerate[n];
-            *signalFloat32Pointer = static_cast<float32>(multiplier) * signalToGenerate[n];
-            *signalFloat64Pointer = static_cast<float64>(multiplier) * signalToGenerate[n];
+
+            *signalInt8Pointer = multiplier * signalToGenerate[idx];
+            *signalInt16Pointer = multiplier * signalToGenerate[idx];
+            *signalInt32Pointer = multiplier * signalToGenerate[idx];
+            *signalInt64Pointer = static_cast<int64>(multiplier) * signalToGenerate[idx];
+            *signalFloat32Pointer = static_cast<float32>(multiplier) * signalToGenerate[idx];
+            *signalFloat64Pointer = static_cast<float64>(multiplier) * signalToGenerate[idx];
         }
     }
 
-    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, 1u, numberOfBuffers, 0, 0, period, filename, expectedFileContent, csv);
+    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, 1u, numberOfBuffers, 0, 0, period, filename, expectedFileContent, csv, 100, refreshContent, detectedFileSize);
     if (!csv) {
         if (expectedFileContent != NULL) {
             char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
@@ -3540,6 +3603,10 @@ bool FileWriterTest::TestGetNumberOfPreTriggers() {
 }
 
 bool FileWriterTest::TestGetStackSize() {
+    return TestInitialise();
+}
+
+bool FileWriterTest::TestIsOverwrite() {
     return TestInitialise();
 }
 

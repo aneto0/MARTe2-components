@@ -31,11 +31,11 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "DataSourceI.h"
 #include "DANStream.h"
-#include "ProcessorType.h"
+#include "DataSourceI.h"
 #include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "MessageI.h"
+#include "ProcessorType.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/

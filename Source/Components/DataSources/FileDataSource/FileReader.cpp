@@ -2,7 +2,7 @@
  * @file FileReader.cpp
  * @brief Source file for class FileReader
  * @date 11/08/2017
- * @author Andre' Neto
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
