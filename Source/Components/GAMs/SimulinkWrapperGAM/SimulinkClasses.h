@@ -1,6 +1,6 @@
 /**
  * @file SimulinkClasses.h
- * @brief Header file for classes inside SimulinkClasses.cpp
+ * @brief Header file for class SimulinkClasses
  * @date 27/05/2019
  * @author Bertrand Bauvir
  * @author Cristian Galperti 
@@ -38,7 +38,6 @@
 #include "GAM.h"
 #include "ObjectRegistryDatabase.h"
 
-//TODO Verify
 #include "ClassRegistryDatabase.h"
 
 /*---------------------------------------------------------------------------*/

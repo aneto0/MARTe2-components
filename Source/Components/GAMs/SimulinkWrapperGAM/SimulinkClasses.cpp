@@ -1,6 +1,6 @@
 /**
  * @file SimulinkClasses.cpp
- * @brief Source file for classes SimulinkClasses
+ * @brief Source file for class SimulinkClasses
  * @date 27/05/2019
  * @author Bertrand Bauvir
  * @author Cristian Galperti 

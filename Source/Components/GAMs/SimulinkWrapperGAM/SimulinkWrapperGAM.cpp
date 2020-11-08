@@ -2,7 +2,10 @@
  * @file SimulinkWrapperGAM.cpp
  * @brief Source file for class SimulinkWrapperGAM
  * @date 14/03/2019
- * @author Bertrand Bauvir, Galperti Cristian
+ * @author Bertrand Bauvir
+ * @author Cristian Galperti 
+ * @author Nicolo Ferron 
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
