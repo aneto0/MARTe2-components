@@ -40,10 +40,21 @@
 namespace MARTe {
 
 LoggerDataSource::LoggerDataSource() :
-        DataSourceI() {
+    DataSourceI() {
+    cyclePeriod = 0u;
 }
 
 LoggerDataSource::~LoggerDataSource() {
+}
+
+bool LoggerDataSource::Initialise(StructuredDataI & data) {
+    bool ret = DataSourceI::Initialise(data);
+    if (ret) {
+        if (!data.Read("CyclePeriod", cyclePeriod)) {
+            cyclePeriod = 0u;
+        }
+    }
+    return ret;
 }
 
 bool LoggerDataSource::Synchronise() {
@@ -81,9 +92,10 @@ bool LoggerDataSource::GetInputBrokers(ReferenceContainer& inputBrokers,
 bool LoggerDataSource::GetOutputBrokers(ReferenceContainer& outputBrokers,
                                         const char8* const functionName,
                                         void* const gamMemPtr) {
-    ReferenceT<BrokerI> broker("LoggerBroker");
+    ReferenceT < LoggerBroker > broker("LoggerBroker");
     bool ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
     if (ok) {
+        broker->SetPeriod(cyclePeriod);
         ok = outputBrokers.Insert(broker);
     }
     return ok;

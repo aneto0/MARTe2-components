@@ -72,6 +72,9 @@ public:
             const char8 * const functionName,
             void *gamMemoryAddress);
 
+
+    void SetPeriod(uint32 cyclePeriodIn);
+
     /**
      * @brief For all the signals print their AnyType value in the logger stream.
      * @return true.
@@ -86,9 +89,19 @@ private:
     AnyType *outputSignals;
 
     /**
-     * Hold the signal names.
+     * Holds the signal names.
      */
     StreamString *signalNames;
+
+    /**
+     * Log run cycles passed since a period occurred.
+     */
+    uint32 cycleCounter;
+
+    /**
+     * Holds the period of cycles must pass before logger produces an output.
+     */
+    uint32 cyclePeriod;
 };
 
 }

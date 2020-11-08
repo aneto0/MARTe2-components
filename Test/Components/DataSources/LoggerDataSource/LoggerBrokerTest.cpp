@@ -293,4 +293,3 @@ bool LoggerBrokerTest::TestInit() {
 bool LoggerBrokerTest::TestExecute() {
     return TestInit();
 }
-

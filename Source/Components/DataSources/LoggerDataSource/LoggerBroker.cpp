@@ -40,10 +40,13 @@
 
 namespace MARTe {
 
+
 LoggerBroker::LoggerBroker() :
-        BrokerI() {
+    BrokerI() {
     signalNames = NULL_PTR(StreamString *);
     outputSignals = NULL_PTR(AnyType *);
+    cycleCounter = 0u;
+    cyclePeriod = 0u;
 }
 
 /*lint -e{1551} the destructor must guarantee that the signalNames and outputSignals are freed.*/
@@ -56,7 +59,10 @@ LoggerBroker::~LoggerBroker() {
     }
 }
 
-bool LoggerBroker::Init(SignalDirection const direction, DataSourceI& dataSourceIn, const char8* const functionName, void * const gamMemoryAddress) {
+bool LoggerBroker::Init(SignalDirection const direction,
+                        DataSourceI& dataSourceIn,
+                        const char8* const functionName,
+                        void * const gamMemoryAddress) {
     bool ok = (direction == OutputSignals);
     if (ok) {
         ok = BrokerI::InitFunctionPointers(direction, dataSourceIn, functionName, gamMemoryAddress);
@@ -109,7 +115,7 @@ bool LoggerBroker::Init(SignalDirection const direction, DataSourceI& dataSource
             uint32 endIdx = 0u;
             ok = dataSourceIn.GetFunctionSignalByteOffsetInfo(direction, functionIdx, n, i, startIdx, size);
             if (ok) {
-                uint32 nOfBytes = static_cast<uint32>(signalDesc.numberOfBits) / 8u;
+                uint32 nOfBytes = static_cast<uint32> (signalDesc.numberOfBits) / 8u;
                 if (nOfBytes > 0u) {
                     startIdx = startIdx / nOfBytes;
                     endIdx = startIdx + (size / nOfBytes);
@@ -131,12 +137,22 @@ bool LoggerBroker::Init(SignalDirection const direction, DataSourceI& dataSource
     return ok;
 }
 
+void LoggerBroker::SetPeriod(uint32 cyclePeriodIn) {
+    cyclePeriod = cyclePeriodIn;
+}
+
 bool LoggerBroker::Execute() {
-    uint32 n;
-    for (n = 0u; n < numberOfCopies; n++) {
-        if ((signalNames != NULL_PTR(StreamString *)) && (outputSignals != NULL_PTR(AnyType *))) {
-            REPORT_ERROR(ErrorManagement::Information, "%s:%!", signalNames[n].Buffer(), outputSignals[n]);
+
+    cycleCounter++;
+    if (cycleCounter >= cyclePeriod) {
+
+        uint32 n;
+        for (n = 0u; n < numberOfCopies; n++) {
+            if ((signalNames != NULL_PTR(StreamString *)) && (outputSignals != NULL_PTR(AnyType *))) {
+                REPORT_ERROR(ErrorManagement::Information, "%s:%!", signalNames[n].Buffer(), outputSignals[n]);
+            }
         }
+        cycleCounter = 0u;
     }
     return true;
 }

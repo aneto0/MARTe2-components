@@ -45,6 +45,8 @@ namespace MARTe {
  * The configuration syntax is (names are only given as an example):
  * +LoggerDS = {
  *     Class = LoggerDataSource
+ *     CyclePeriod = 0u //Optional, defaults to 0. Period of cycles must pass before logger produces an output.
+ *                      //CyclePeriod = 0u means print every sample received.
  * }
  *
  * A signal will be added for each GAM signal that writes to this instance of the DataSourceI.
@@ -61,6 +63,9 @@ LoggerDataSource    ();
      * @brief Destructor. NOOP.
      */
     virtual ~LoggerDataSource();
+
+
+    virtual bool Initialise(StructuredDataI & data);
 
     /**
      * @brief NOOP.
@@ -122,6 +127,12 @@ LoggerDataSource    ();
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
             const char8 * const nextStateName);
+
+protected:
+    /**
+     * @brief Holds the period of cycles must pass before logger produces an output.
+     */
+    uint32 cyclePeriod;
 };
 }
 
