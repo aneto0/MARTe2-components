@@ -2,7 +2,10 @@
  * @file SimulinkClasses.cpp
  * @brief Source file for classes SimulinkClasses
  * @date 27/05/2019
- * @author Galperti Cristian
+ * @author Bertrand Bauvir
+ * @author Cristian Galperti 
+ * @author Nicolo Ferron 
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2019 Swiss Plasma Center, EPFL Lausanne Switzerland
  * the Development of Fusion Energy ('Fusion for Energy').

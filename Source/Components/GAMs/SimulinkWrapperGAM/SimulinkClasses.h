@@ -2,7 +2,10 @@
  * @file SimulinkClasses.h
  * @brief Header file for classes inside SimulinkClasses.cpp
  * @date 27/05/2019
- * @author Galperti Cristian
+ * @author Bertrand Bauvir
+ * @author Cristian Galperti 
+ * @author Nicolo Ferron 
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2019 Swiss Plasma Center, EPFL Lausanne Switzerland
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved
