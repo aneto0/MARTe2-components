@@ -85,6 +85,11 @@ public:
      * @brief Tests the PrepareNextState method.
      */
     bool TestPrepareNextState();
+
+    /**
+     * @brief Tests the Initialise method.
+     */
+    bool TestInitialise();
 };
 
 /*---------------------------------------------------------------------------*/

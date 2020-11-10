@@ -86,6 +86,12 @@ TEST(LoggerDataSourceGTest,TestSynchronise) {
     ASSERT_TRUE(test.TestSynchronise());
 }
 
+TEST(LoggerDataSourceGTest,TestInitialise) {
+    LoggerDataSourceTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

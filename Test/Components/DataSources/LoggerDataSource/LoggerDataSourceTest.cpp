@@ -201,3 +201,10 @@ bool LoggerDataSourceTest::TestPrepareNextState() {
     LoggerDataSource lds;
     return lds.PrepareNextState("", "");
 }
+
+bool LoggerDataSourceTest::TestInitialise() {
+    using namespace MARTe;
+    LoggerDataSource lds;
+    ConfigurationDatabase cdb;
+    return lds.Initialise(cdb);
+}
