@@ -200,7 +200,7 @@ bool EventConditionTrigger::Check(const uint8 * const packetMem, const PacketFie
             for (uint32 i = 0u; i < numberOfChildren; i++) {
                 ReferenceT<Message> message = Get(i);
                 if (message.IsValid()) {
-                    if (static_cast<bool>(spinLock.FastLock())) {
+                    if (spinLock.FastLock()) {
                         REPORT_ERROR(ErrorManagement::Information, "Inserted message");
                         if (!messageQueue.Insert(message)) {
                             REPORT_ERROR(ErrorManagement::Warning, "Failed Insert of the message in the queue");
@@ -226,10 +226,10 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
     else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         //pull from the queue
         uint32 nMessages = 0u;
-        if (static_cast<bool>(spinLock.FastLock())) {
+        if (spinLock.FastLock()) {
             nMessages = messageQueue.Size();
-            spinLock.FastUnLock();
         }
+        spinLock.FastUnLock();
 
         if (nMessages > 0u) {
 
@@ -246,10 +246,10 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
             //Only accept indirect replies
             for (uint32 i = 0u; i < nMessages; i++) {
                 ReferenceT<Message> eventMsg;
-                if (static_cast<bool>(spinLock.FastLock())) {
+                if (spinLock.FastLock()) {
                     eventMsg = messageQueue.Get(i);
-                    spinLock.FastUnLock();
                 }
+                spinLock.FastUnLock();
                 if (eventMsg.IsValid()) {
                     if (eventMsg->ExpectsIndirectReply()) {
                         err = !eventReplyContainer.Insert(eventMsg);
@@ -275,11 +275,11 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
             /*lint -e{850} the loop variable i is not modified within the loop*/
             for (uint32 i = 0u; (i < nMessages) && (ok); i++) {
                 ReferenceT<Message> eventMsg;
-                if (static_cast<bool>(spinLock.FastLock())) {
+                if (spinLock.FastLock()) {
                     eventMsg = messageQueue.Get(0u);
                     ok = messageQueue.Delete(eventMsg);
-                    spinLock.FastUnLock();
                 }
+                spinLock.FastUnLock();
                 if (ok) {
                     REPORT_ERROR(ErrorManagement::Information, "Message %d extracted", i);
 
@@ -287,10 +287,10 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
                         eventMsg->SetAsReply(false);
                         err = MessageI::SendMessage(eventMsg, this);
                         if (!eventMsg->ExpectsIndirectReply()) {
-                            if (static_cast<bool>(spinLock.FastLock())) {
+                            if (spinLock.FastLock()) {
                                 replied++;
-                                spinLock.FastUnLock();
                             }
+                            spinLock.FastUnLock();
                         }
                         REPORT_ERROR(ErrorManagement::Information, "Send message");
                     }
@@ -305,11 +305,11 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
                 if (eventReplyContainer.Size() > 0u) {
                     REPORT_ERROR(ErrorManagement::Information, "Wait reply");
                     err = waitSem.Wait();
-                    if (static_cast<bool>(err)) {
-                        if (static_cast<bool>(spinLock.FastLock())) {
+                    if (err.ErrorsCleared()) {
+                        if (spinLock.FastLock()) {
                             replied += eventReplyContainer.Size();
-                            spinLock.FastUnLock();
                         }
+                        spinLock.FastUnLock();
                         err = MessageI::RemoveMessageFilter(filter);
 
                     }
@@ -317,12 +317,12 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
             }
         }
         else {
-            if (static_cast<bool>(spinLock.FastLock())) {
+            if (spinLock.FastLock()) {
                 if (messageQueue.Size() == 0u) {
                     err = !eventSem.Reset();
                 }
-                spinLock.FastUnLock();
             }
+            spinLock.FastUnLock();
             if (err.ErrorsCleared()) {
                 err = eventSem.Wait(500u);
             }
