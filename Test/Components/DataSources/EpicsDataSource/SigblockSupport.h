@@ -113,7 +113,7 @@ void GenerateMetadataForSigblock(SDA::Signal::Metadata sbmd[],
     for (unsigned int i = 0u; (i < numberOfSignals); i++) {
         MARTe::StreamString name;
         name.Printf("Signal %u", i);
-        std::strncpy(sbmd[i].name, name.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN);
+        std::strncpy(sbmd[i].name, name.Buffer(), SDA::Signal::Metadata::NAME_MAX_LEN - 1);
         sbmd[i].size = sizeof(SignalType);
     }
 }
