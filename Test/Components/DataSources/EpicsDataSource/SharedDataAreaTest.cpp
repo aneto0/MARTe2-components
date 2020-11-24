@@ -351,7 +351,10 @@ bool SharedDataAreaTest::TestProducerConsumerWithTwoThreads(const char* const sh
             ok = (consumerThreadId != MARTe::InvalidThreadIdentifier);
 
             //Busy wait until both threads end:
-            while (!context.producerThreadEnd || !context.consumerThreadEnd) {
+            MARTe::uint32 nTimes = 50;
+            while ((nTimes > 0) && (!context.producerThreadEnd || !context.consumerThreadEnd)) {
+                nTimes--;
+                MARTe::Sleep::MSec(100);
             };
 
             //Free memory of dataset:

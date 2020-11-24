@@ -1228,20 +1228,26 @@ bool RealTimeThreadAsyncBridgeTest::TestGetInputOffset_2Readers() {
 
         Sleep::MSec(100);
         uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
-
+        
+        uint32 nOfRetries = 5;
         for (uint32 cnt = 0u; (cnt < 10 * sizeof(uint32)) && (ret); cnt += sizeof(uint32)) {
             //write
-
             goWrite->Post();
-
             Sleep::MSec(100);
             goRead->Post();
             Sleep::MSec(100);
             int32 x = broker->GetOffset(0);
             int32 x2 = broker2->GetOffset(0);
             ret = ((cnt % (nBuffers * sizeof(uint32))) == (uint32) x) || (((cnt - sizeof(uint32)) % (nBuffers * sizeof(uint32))) == (uint32) x);
-
             ret &= ((cnt % (nBuffers * sizeof(uint32))) == (uint32) x2) || (((cnt - sizeof(uint32)) % (nBuffers * sizeof(uint32))) == (uint32) x2);
+            if (!ret) {
+                Sleep::MSec(1000);
+                nOfRetries--;
+                if (nOfRetries > 0) {
+                    ret = true;
+                    cnt = 0;
+                }
+            }
         }
 
         dataSource->Done();
