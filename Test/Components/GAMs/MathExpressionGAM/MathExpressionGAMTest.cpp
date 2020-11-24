@@ -763,25 +763,27 @@ bool MathExpressionGAMTest::TestMemory() {
     if (ok) {
         ok = gam.IsValid();
     }
-    RuntimeEvaluator* evalPtr;
+    RuntimeEvaluator* evalPtr = NULL_PTR(RuntimeEvaluator *);
     if (ok) {
         evalPtr = gam->GetEvaluator();
     }
     
     StreamString signalName;
-    for (uint32 index = 0u; (index < gam->GetNumberOfInputSignals()) && ok; index++) {
-        ok = gam->GetSignalName(InputSignals, index, signalName);
-        if (ok) {
-            ok = (gam->GetInputSignalMemory(index) == evalPtr->GetInputVariableMemory(signalName));
+    if (evalPtr != NULL_PTR(RuntimeEvaluator *)) {
+        for (uint32 index = 0u; (index < gam->GetNumberOfInputSignals()) && ok; index++) {
+            ok = gam->GetSignalName(InputSignals, index, signalName);
+            if (ok) {
+                ok = (gam->GetInputSignalMemory(index) == evalPtr->GetInputVariableMemory(signalName));
+            }
+            signalName = "";
         }
-        signalName = "";
-    }
-    for (uint32 index = 0u; (index < gam->GetNumberOfOutputSignals()) && ok; index++) {
-        ok = gam->GetSignalName(OutputSignals, index, signalName);
-        if (ok) {
-            ok = (gam->GetOutputSignalMemory(index) == evalPtr->GetOutputVariableMemory(signalName));
+        for (uint32 index = 0u; (index < gam->GetNumberOfOutputSignals()) && ok; index++) {
+            ok = gam->GetSignalName(OutputSignals, index, signalName);
+            if (ok) {
+                ok = (gam->GetOutputSignalMemory(index) == evalPtr->GetOutputVariableMemory(signalName));
+            }
+            signalName = "";
         }
-        signalName = "";
     }
     god->Purge();
     return ok;
@@ -899,36 +901,37 @@ bool MathExpressionGAMTest::TestTypes() {
     if (ok) {
         ok = gam.IsValid();
     }
-    RuntimeEvaluator* evalPtr;
+    RuntimeEvaluator* evalPtr = NULL_PTR(RuntimeEvaluator *);
     if (ok) {
         evalPtr = gam->GetEvaluator();
     }
     
     StreamString signalName;
     VariableInformation* var;
-
-    uint32 varIdx = 0u;
-    while (evalPtr->BrowseInputVariable(varIdx, var) && ok) {
-        for (uint32 index = 0u; (index < gam->GetNumberOfInputSignals()) && ok; index++) {
-            ok = gam->GetSignalName(InputSignals, index, signalName);
-            if ((signalName == var->name) && ok) {
-                ok = (gam->GetSignalType(InputSignals, index) == var->type);
+    if (evalPtr != NULL_PTR(RuntimeEvaluator *)) {
+        uint32 varIdx = 0u;
+        while (evalPtr->BrowseInputVariable(varIdx, var) && ok) {
+            for (uint32 index = 0u; (index < gam->GetNumberOfInputSignals()) && ok; index++) {
+                ok = gam->GetSignalName(InputSignals, index, signalName);
+                if ((signalName == var->name) && ok) {
+                    ok = (gam->GetSignalType(InputSignals, index) == var->type);
+                }
+                signalName = "";
             }
-            signalName = "";
+            varIdx++;
         }
-        varIdx++;
-    }
-    
-    varIdx = 0u;
-    while (evalPtr->BrowseOutputVariable(varIdx, var) && ok) {
-        for (uint32 index = 0u; (index < gam->GetNumberOfOutputSignals()) && ok; index++) {
-            ok = gam->GetSignalName(OutputSignals, index, signalName);
-            if ((signalName == var->name) && ok) {
-                ok = (gam->GetSignalType(OutputSignals, index) == var->type);
+        
+        varIdx = 0u;
+        while (evalPtr->BrowseOutputVariable(varIdx, var) && ok) {
+            for (uint32 index = 0u; (index < gam->GetNumberOfOutputSignals()) && ok; index++) {
+                ok = gam->GetSignalName(OutputSignals, index, signalName);
+                if ((signalName == var->name) && ok) {
+                    ok = (gam->GetSignalType(OutputSignals, index) == var->type);
+                }
+                signalName = "";
             }
-            signalName = "";
+            varIdx++;
         }
-        varIdx++;
     }
     
     god->Purge();
