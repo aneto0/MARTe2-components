@@ -43,6 +43,8 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+CPPFLAGS += -Wno-error=deprecated-declarations
+
 INCLUDES += -I.
 INCLUDES += -I../EPICS/
 INCLUDES += -I$(EPICS_BASE)/include/
