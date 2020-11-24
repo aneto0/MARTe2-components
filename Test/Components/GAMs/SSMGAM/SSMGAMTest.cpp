@@ -625,7 +625,7 @@ bool SSMGAMTest::TestInitialiseNoResetInEachState() {
     Matrix<float64> matrix3(&outputMatrix[0][0], 1u, 2u);
     ok &= config.Write("OutputMatrix", matrix3);
 
-    float64 feedthoughMatrix[1][1];
+    float64 feedthoughMatrix[1][2];
     feedthoughMatrix[0][0] = 411;
     feedthoughMatrix[0][1] = 412;
     Matrix<float64> matrix4(&feedthoughMatrix[0][0], 1u, 1u);
@@ -661,7 +661,7 @@ bool SSMGAMTest::TestInitialiseWrongResetInEachState() {
     Matrix<float64> matrix3(&outputMatrix[0][0], 1u, 2u);
     ok &= config.Write("OutputMatrix", matrix3);
 
-    float64 feedthoughMatrix[1][1];
+    float64 feedthoughMatrix[1][2];
     feedthoughMatrix[0][0] = 411;
     feedthoughMatrix[0][1] = 412;
     Matrix<float64> matrix4(&feedthoughMatrix[0][0], 1u, 1u);
