@@ -120,6 +120,15 @@ bool EPICSPVAChannelWrapper::Setup(DataSourceI &dataSource) {
                 ok = dataSource.GetSignalNumberOfElements(n, tempCachedSignals[numberOfSignals].numberOfElements);
             }
             if (ok) {
+                ok = signalsIndexCache.CreateAbsolute(tempCachedSignals[numberOfSignals].qualifiedName.Buffer());
+                if (ok) {
+                    ok = signalsIndexCache.Write("Index", numberOfSignals);
+                }
+                else {
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed to add signal %s to signalsIndexCache [%d]", tempCachedSignals[numberOfSignals].qualifiedName.Buffer(), numberOfSignals);
+                }
+            }
+            if (ok) {
                 ok = dataSource.GetSignalMemoryBuffer(n, 0u, tempCachedSignals[numberOfSignals].memory);
             }
             REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s [%s]", tempCachedSignals[numberOfSignals].qualifiedName.Buffer(), channelName.Buffer());
@@ -278,16 +287,16 @@ bool EPICSPVAChannelWrapper::ResolveStructure(epics::pvData::PVFieldPtr pvField,
             else {
                 if ((fieldType == epics::pvData::scalar) || (fieldType == epics::pvData::scalarArray)) {
                     REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving scalar (or array of) [%s]", fullFieldName.Buffer());
-                    uint32 k;
-                    bool found = false;
-                    for (k = 0u; (k < numberOfSignals) && (ok) && (!found); k++) {
-                        found = (cachedSignals[k].qualifiedName == fullFieldName);
-                        if (found) {
-                            cachedSignals[k].pvField = field;
-                            REPORT_ERROR_STATIC(ErrorManagement::Debug, "Assigned PV to signal with name [%s]", fullFieldName.Buffer());
-                        }
+                    uint32 index = 0u;
+                    bool found = signalsIndexCache.MoveAbsolute(fullFieldName.Buffer());
+                    if (found) {
+                        ok = signalsIndexCache.Read("Index", index);
                     }
                     ok = found;
+                    if (ok) {
+                        cachedSignals[index].pvField = field;
+                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Assigned PV to signal with name [%s]", fullFieldName.Buffer());
+                    }
                     if (!ok) {
                         REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Could not find signal with name [%s]", fullFieldName.Buffer());
                     }

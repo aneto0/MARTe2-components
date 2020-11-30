@@ -33,8 +33,10 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "BinaryTree.h"
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
+#include "DjbHashFunction.h"
 #include "StreamString.h"
 #include "StructuredDataI.h"
 
@@ -222,6 +224,11 @@ private:
      * Set to true when the put has finished.
      */
     bool putFinished;
+
+    /**
+     * Cache the index of the signals.
+     */
+    ConfigurationDatabase signalsIndexCache;
 };
 }
 
