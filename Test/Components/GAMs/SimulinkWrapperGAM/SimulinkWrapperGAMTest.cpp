@@ -272,10 +272,17 @@ void SimulinkGAMGTestEnvironment::SetupTestEnvironment(std::unique_ptr<matlab::e
     using namespace matlab::engine;
     
     StreamString modelScriptFolder, addpathCommand;
-    
-    // Add the directory where the test script is located.
-    modelScriptFolder  = getenv("MARTe2_Components_DIR");
-    modelScriptFolder += "/Test/Components/GAMs/SimulinkWrapperGAM/";
+   
+    const char8 *envTestFolder = getenv("MARTe2_MATLAB_TEST_SCRIPT_FOLDER");
+
+    if (envTestFolder == NULL) {
+        // Add the directory where the test script is located.
+        modelScriptFolder  = getenv("MARTe2_Components_DIR");
+        modelScriptFolder += "/Test/Components/GAMs/SimulinkWrapperGAM/";
+    }
+    else {
+        modelScriptFolder  = envTestFolder;
+    }
     
     addpathCommand  = "addpath(\"";
     addpathCommand += modelScriptFolder.Buffer();
