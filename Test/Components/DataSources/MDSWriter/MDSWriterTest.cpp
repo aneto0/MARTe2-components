@@ -359,7 +359,7 @@ template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberO
     for (s = 0u; (s < numberOfSegments) && (ok); s++) {
         int32 numberOfElements;
         MDSplus::Array *segment = node->getSegment(s);
-        typeToCheck *data;
+        typeToCheck *data = NULL;
         MDSplus::Data *segTimeD = node->getSegmentDim(s);
         uint64 *segTime;
         segTime = reinterpret_cast<uint64 *>(segTimeD->getLongUnsignedArray(&numberOfElements));
@@ -503,37 +503,37 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     if (ok) {
         ok = (tree != NULL);
     }
-    MDSplus::TreeNode *sigUInt8;
-    MDSplus::TreeNode *sigInt8;
-    MDSplus::TreeNode *sigUInt16;
-    MDSplus::TreeNode *sigInt16;
-    MDSplus::TreeNode *sigUInt32;
-    MDSplus::TreeNode *sigInt32;
-    MDSplus::TreeNode *sigUInt64;
-    MDSplus::TreeNode *sigInt64;
-    MDSplus::TreeNode *sigFloat32;
-    MDSplus::TreeNode *sigFloat64;
+    MDSplus::TreeNode *sigUInt8 = NULL;
+    MDSplus::TreeNode *sigInt8 = NULL;
+    MDSplus::TreeNode *sigUInt16 = NULL;
+    MDSplus::TreeNode *sigInt16 = NULL;
+    MDSplus::TreeNode *sigUInt32 = NULL;
+    MDSplus::TreeNode *sigInt32 = NULL;
+    MDSplus::TreeNode *sigUInt64 = NULL;
+    MDSplus::TreeNode *sigInt64 = NULL;
+    MDSplus::TreeNode *sigFloat32 = NULL;
+    MDSplus::TreeNode *sigFloat64 = NULL;
 
-    MDSplus::TreeNode *sigUInt8D;
-    MDSplus::TreeNode *sigUInt8F;
-    MDSplus::TreeNode *sigInt8D;
-    MDSplus::TreeNode *sigInt8F;
-    MDSplus::TreeNode *sigUInt16D;
-    MDSplus::TreeNode *sigUInt16F;
-    MDSplus::TreeNode *sigInt16D;
-    MDSplus::TreeNode *sigInt16F;
-    MDSplus::TreeNode *sigUInt32D;
-    MDSplus::TreeNode *sigUInt32F;
-    MDSplus::TreeNode *sigInt32D;
-    MDSplus::TreeNode *sigInt32F;
-    MDSplus::TreeNode *sigUInt64D;
-    MDSplus::TreeNode *sigUInt64F;
-    MDSplus::TreeNode *sigInt64D;
-    MDSplus::TreeNode *sigInt64F;
-    MDSplus::TreeNode *sigFloat32D;
-    MDSplus::TreeNode *sigFloat32F;
-    MDSplus::TreeNode *sigFloat64D;
-    MDSplus::TreeNode *sigFloat64F;
+    MDSplus::TreeNode *sigUInt8D = NULL;
+    MDSplus::TreeNode *sigUInt8F = NULL;
+    MDSplus::TreeNode *sigInt8D = NULL;
+    MDSplus::TreeNode *sigInt8F = NULL;
+    MDSplus::TreeNode *sigUInt16D = NULL;
+    MDSplus::TreeNode *sigUInt16F = NULL;
+    MDSplus::TreeNode *sigInt16D = NULL;
+    MDSplus::TreeNode *sigInt16F = NULL;
+    MDSplus::TreeNode *sigUInt32D = NULL;
+    MDSplus::TreeNode *sigUInt32F = NULL;
+    MDSplus::TreeNode *sigInt32D = NULL;
+    MDSplus::TreeNode *sigInt32F = NULL;
+    MDSplus::TreeNode *sigUInt64D = NULL;
+    MDSplus::TreeNode *sigUInt64F = NULL;
+    MDSplus::TreeNode *sigInt64D = NULL;
+    MDSplus::TreeNode *sigInt64F = NULL;
+    MDSplus::TreeNode *sigFloat32D = NULL;
+    MDSplus::TreeNode *sigFloat32F = NULL;
+    MDSplus::TreeNode *sigFloat64D = NULL;
+    MDSplus::TreeNode *sigFloat64F = NULL;
     if (ok) {
         try {
             sigUInt8 = tree->getNode("SIGUINT8");

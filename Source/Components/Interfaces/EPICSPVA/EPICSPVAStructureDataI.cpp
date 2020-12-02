@@ -210,7 +210,7 @@ AnyType EPICSPVAStructureDataI::GetType(const char8 * const name) {
     }
     if (ok) {
         epics::pvData::Type epicsType = fieldPtr->getField()->getType();
-        epics::pvData::ScalarType epicsScalarType;
+        epics::pvData::ScalarType epicsScalarType = epics::pvData::pvByte;
         TypeDescriptor marte2Type;
         uint32 numberOfElements = 1u;
         if (epicsType == epics::pvData::scalar) {
