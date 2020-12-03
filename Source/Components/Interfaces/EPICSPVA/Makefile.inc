@@ -43,6 +43,7 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+OPTIM=-O2
 CPPFLAGS += -Wno-error=deprecated-declarations
 
 INCLUDES += -I.
