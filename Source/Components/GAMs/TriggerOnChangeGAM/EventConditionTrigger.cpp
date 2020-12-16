@@ -200,7 +200,7 @@ bool EventConditionTrigger::Check(const uint8 * const packetMem, const PacketFie
             for (uint32 i = 0u; i < numberOfChildren; i++) {
                 ReferenceT<Message> message = Get(i);
                 if (message.IsValid()) {
-                    if (spinLock.FastLock()) {
+                    if (spinLock.FastLock() == ErrorManagement::NoError) {
                         REPORT_ERROR(ErrorManagement::Information, "Inserted message");
                         if (!messageQueue.Insert(message)) {
                             REPORT_ERROR(ErrorManagement::Warning, "Failed Insert of the message in the queue");
@@ -226,7 +226,7 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
     else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         //pull from the queue
         uint32 nMessages = 0u;
-        if (spinLock.FastLock()) {
+        if (spinLock.FastLock() == ErrorManagement::NoError) {
             nMessages = messageQueue.Size();
         }
         spinLock.FastUnLock();
@@ -246,7 +246,7 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
             //Only accept indirect replies
             for (uint32 i = 0u; i < nMessages; i++) {
                 ReferenceT<Message> eventMsg;
-                if (spinLock.FastLock()) {
+                if (spinLock.FastLock() == ErrorManagement::NoError) {
                     eventMsg = messageQueue.Get(i);
                 }
                 spinLock.FastUnLock();
@@ -275,7 +275,7 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
             /*lint -e{850} the loop variable i is not modified within the loop*/
             for (uint32 i = 0u; (i < nMessages) && (ok); i++) {
                 ReferenceT<Message> eventMsg;
-                if (spinLock.FastLock()) {
+                if (spinLock.FastLock() == ErrorManagement::NoError) {
                     eventMsg = messageQueue.Get(0u);
                     ok = messageQueue.Delete(eventMsg);
                 }
@@ -287,7 +287,7 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
                         eventMsg->SetAsReply(false);
                         err = MessageI::SendMessage(eventMsg, this);
                         if (!eventMsg->ExpectsIndirectReply()) {
-                            if (spinLock.FastLock()) {
+                            if (spinLock.FastLock() == ErrorManagement::NoError) {
                                 replied++;
                             }
                             spinLock.FastUnLock();
@@ -306,7 +306,7 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
                     REPORT_ERROR(ErrorManagement::Information, "Wait reply");
                     err = waitSem.Wait();
                     if (err.ErrorsCleared()) {
-                        if (spinLock.FastLock()) {
+                        if (spinLock.FastLock() == ErrorManagement::NoError) {
                             replied += eventReplyContainer.Size();
                         }
                         spinLock.FastUnLock();
@@ -317,7 +317,7 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
             }
         }
         else {
-            if (spinLock.FastLock()) {
+            if (spinLock.FastLock() == ErrorManagement::NoError) {
                 if (messageQueue.Size() == 0u) {
                     err = !eventSem.Reset();
                 }
@@ -355,12 +355,12 @@ uint32 EventConditionTrigger::Replied(const PacketField * const packetFieldIn) {
         }
 
         if (trigger) {
-            if (static_cast<bool>(spinLock.FastLock())) {
+            if (static_cast<bool>(spinLock.FastLock() == ErrorManagement::NoError)) {
                 retVal = replied;
                 spinLock.FastUnLock();
             }
             if (retVal > 0u) {
-                if (static_cast<bool>(spinLock.FastLock())) {
+                if (static_cast<bool>(spinLock.FastLock() == ErrorManagement::NoError)) {
                     replied = 0u;
                     spinLock.FastUnLock();
                 }

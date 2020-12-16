@@ -24,6 +24,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+/*lint -efile(766,EPICSPVAOutput.cpp) MemoryMapAsyncOutputBroker.h is used in this file.*/
 #include "AdvancedErrorManagement.h"
 #include "EPICSPVAOutput.h"
 #include "MemoryMapAsyncOutputBroker.h"
