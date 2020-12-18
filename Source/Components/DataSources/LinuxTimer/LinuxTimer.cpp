@@ -323,9 +323,8 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
         }
         else {
             float32 totalSleepTime = static_cast<float32>(static_cast<float64>(deltaTicks) * HighResolutionTimer::Period());
-            uint32 busyPercentage = (100u - sleepPercentage);
-            float32 busyTime = totalSleepTime * (static_cast<float32>(busyPercentage) / 100.F);
-            Sleep::SemiBusy(totalSleepTime, busyTime);
+            float32 nonBusyTime = totalSleepTime * (static_cast<float32>(sleepPercentage) / 100.F);
+            Sleep::SemiBusy(totalSleepTime, nonBusyTime);
         }
     }
     else {
