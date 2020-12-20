@@ -54,7 +54,7 @@ const uint32 LINUX_TIMER_EXEC_MODE_SPAWNED = 2u;
 namespace MARTe {
 LinuxTimer::LinuxTimer() :
         DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
-    lastTimeTicks = 0u;
+    startTimeTicks = 0u;
     sleepTimeTicks = 0u;
     timerPeriodUsecTime = 0u;
     synchronisingFunctionIdx = 0u;
@@ -299,26 +299,26 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName, const cha
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the method sleeps for the given period irrespectively of the input info.*/
 ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
-    if (lastTimeTicks == 0u) {
-        lastTimeTicks = HighResolutionTimer::Counter();
+    if (startTimeTicks == 0u) {
+        startTimeTicks = HighResolutionTimer::Counter();
     }
 
-    uint64 startTicks = HighResolutionTimer::Counter();
-    //If we lose cycle, rephase to a multiple of the period.
+    //The last cycle, which has started after the sleep has just ended. How much time is left?
+    uint64 cycleEndTicks = HighResolutionTimer::Counter();
+    //If we lose cycle (i.e. if startTimeTicks < N * cycleEndTicks), rephase to a multiple of the period.
     uint32 nCycles = 0u;
-    while (lastTimeTicks < startTicks) {
-        lastTimeTicks += sleepTimeTicks;
+    while (startTimeTicks < cycleEndTicks) {
+        startTimeTicks += sleepTimeTicks;
         nCycles++;
     }
-    lastTimeTicks -= sleepTimeTicks;
+    startTimeTicks -= sleepTimeTicks;
 
-    //Sleep until the next period. Cannot be < 0 due to while(lastTimeTicks < startTicks) above
-    uint64 sleepTicksCorrection = (startTicks - lastTimeTicks);
-    uint64 deltaTicks = sleepTimeTicks - sleepTicksCorrection;
-
+    //Sleep until the next period. Cannot be < 0 due to while(startTimeTicks < startTicks) above
+    uint64 deltaTicks = sleepTimeTicks + startTimeTicks;
+    deltaTicks -= cycleEndTicks;
     if (sleepNature == Busy) {
         if (sleepPercentage == 0u) {
-            while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
+            while ((HighResolutionTimer::Counter() - cycleEndTicks) < deltaTicks) {
             }
         }
         else {
@@ -331,7 +331,8 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
         float32 sleepTime = static_cast<float32>(static_cast<float64>(deltaTicks) * HighResolutionTimer::Period());
         Sleep::NoMore(sleepTime);
     }
-    lastTimeTicks = HighResolutionTimer::Counter();
+    //We want to be here again in sleepTimeTicks time
+    startTimeTicks += sleepTimeTicks;
 
     ErrorManagement::ErrorType err;
     if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
