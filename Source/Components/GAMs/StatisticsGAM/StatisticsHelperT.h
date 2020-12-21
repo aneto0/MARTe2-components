@@ -103,7 +103,8 @@ public:
      * corresponding accessors are being called.
      * @return true if buffer was properly allocated.
      */
-    bool PushSample(Type sample);
+    bool PushSample(Type sample,
+                    const bool infiniteMaxMin = false);
 
     /**
      * @brief Accessor. Retrieves the sample at index in the sample buffer.
@@ -530,7 +531,8 @@ template<typename Type> Type StatisticsHelperT<Type>::FindMin() const {
     return min;
 }
 
-template<typename Type> bool StatisticsHelperT<Type>::PushSample(Type sample) {
+template<typename Type> bool StatisticsHelperT<Type>::PushSample(Type sample,
+                                                                 const bool infiniteMaxMin) {
 
     bool ok = true;
 
@@ -556,15 +558,18 @@ template<typename Type> bool StatisticsHelperT<Type>::PushSample(Type sample) {
         if (Xspl > Xmax) {
             Xmax = Xspl;
         }
-        else if (oldest == Xmax) { /* The removed sample was the max over the time window */
-            Xmax = FindMax();
-        }
 
         if (Xspl < Xmin) {
             Xmin = Xspl;
         }
-        else if (oldest == Xmin) { /* The removed sample was the min over the time window */
-            Xmin = FindMin();
+
+        if(!infiniteMaxMin) {
+            if (oldest == Xmax) { /* The removed sample was the max over the time window */
+                Xmax = FindMax();
+            }
+            if (oldest == Xmin) { /* The removed sample was the min over the time window */
+                Xmin = FindMin();
+            }
         }
     }
 
@@ -659,7 +664,8 @@ template<> inline float64 StatisticsHelperT<float64>::GetRmsSq() const {
 template<typename Type> Type StatisticsHelperT<Type>::GetRms() const {
 
     Type rms_sq = GetRmsSq();
-    Type rms = FastMath::SquareRoot<Type>(rms_sq);
+
+    Type rms = (rms_sq>0)?(FastMath::SquareRoot<Type>(rms_sq)):(0);
 
     return rms;
 
@@ -670,7 +676,7 @@ template<typename Type> Type StatisticsHelperT<Type>::GetStd() const {
     Type avg = GetAvg();
     Type avg_sq = avg * avg;
     Type rms_sq = GetRmsSq();
-    Type std = FastMath::SquareRoot<Type>(rms_sq - avg_sq);
+    Type std = ((rms_sq - avg_sq)>0)?(FastMath::SquareRoot<Type>(rms_sq - avg_sq)):(0);
 
     return std;
 

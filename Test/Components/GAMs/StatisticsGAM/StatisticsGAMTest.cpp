@@ -354,7 +354,7 @@ static inline bool StartApplication(const MARTe::char8 * const state = "Running"
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     ReferenceT<RealTimeApplication> application = god->Find("Test");
-    ;
+
     bool ok = application.IsValid();
 
     if (!ok) {
@@ -1033,7 +1033,8 @@ bool StatisticsGAMTest::TestExecute_Error() {
 }
 
 template<typename Type>
-bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
+bool StatisticsGAMTest::TestExecute_AnyType(Type value, MARTe::uint32 cycleCounter, bool infiniteMaxMin) {
+
     const MARTe::char8 * const config = ""
             "$Test = {"
             "    Class = RealTimeApplication"
@@ -1044,7 +1045,7 @@ bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
             "            OutputSignals = {"
             "                Constant_in = {"
             "                    DataSource = DDB"
-            "                    Type = int8"
+            "                    Type = uint64"
             "                    Default = 127"
             "                }"
             "            }"
@@ -1052,28 +1053,30 @@ bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
             "        +Statistics = {"
             "            Class = StatisticsGAM"
             "            WindowSize = 16"
+            "            StartCycleNumber = %d"
+            "            InfiniteMaxMin = %d"
             "            InputSignals = {"
             "               Constant_in = {"
             "                   DataSource = DDB"
-            "                   Type = int8"
+            "                   Type = uint64"
             "               }"
             "            }"
             "            OutputSignals = {"
             "               Average_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int8"
+            "                   Type = uint64"
             "               }"
             "               Stdev_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int8"
+            "                   Type = uint64"
             "               }"
             "               Max_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int8"
+            "                   Type = uint64"
             "               }"
             "               Min_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int8"
+            "                   Type = uint64"
             "               }"
             "            }"
             "        }"
@@ -1082,19 +1085,19 @@ bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
             "            InputSignals = {"
             "               Average_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int8"
+            "                   Type = uint64"
             "               }"
             "               Stdev_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int8"
+            "                   Type = uint64"
             "               }"
             "               Max_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int8"
+            "                   Type = uint64"
             "               }"
             "               Min_ExecTime = {"
             "                   DataSource = DDB"
-            "                   Type = int8"
+            "                   Type = uint64"
             "               }"
             "            }"
             "        }"
@@ -1128,8 +1131,12 @@ bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
             "    }"
             "}";
     using namespace MARTe;
+    StreamString cfgStream;
+
+    cfgStream.Printf(config, cycleCounter, infiniteMaxMin?1:0);
+
     AnyType at(value);
-    bool ok = StatisticsGAMTestHelper::ConfigureApplication(config, at.GetTypeDescriptor());
+    bool ok = StatisticsGAMTestHelper::ConfigureApplication(cfgStream.Buffer(), at.GetTypeDescriptor());
 
     if (ok) {
 
@@ -1145,6 +1152,11 @@ bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
             ok = StatisticsGAMTestHelper::StartApplication();
         }
 
+        Type avg = 0;
+        Type std = 0;
+        Type min = 0;
+        Type max = 0;
+
         Type sample = value;
         if (ok) {
             ok = cst->SetOutput<Type>(0u, sample);
@@ -1153,11 +1165,6 @@ bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
         if (ok) {
             Sleep::Sec(1.0);
         }
-
-        Type avg = 0;
-        Type std = 0;
-        Type min = 0;
-        Type max = 0;
 
         if (ok) {
             ok = sink->GetInput<Type>(0u, avg);
@@ -1197,6 +1204,10 @@ bool StatisticsGAMTest::TestExecute_AnyType(Type value) {
         if (ok) {
             ok = (max == sample);
         }
+
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::InternalSetupError, "Failure in ConfigureApplication");
     }
 
     if (ok) {
@@ -1381,3 +1392,11 @@ bool StatisticsGAMTest::TestPrepareForNextState_Success() {
     return ok;
 }
 
+bool StatisticsGAMTest::TestExecute_uint32_withCycleCounter() {
+    return TestExecute_AnyType<MARTe::uint32>(768, 10, false);
+}
+
+
+bool StatisticsGAMTest::TestExecute_uint32_withAbsoluteMaxMin() {
+    return TestExecute_AnyType<MARTe::uint32>(324, 1, true);
+}

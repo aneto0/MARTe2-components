@@ -132,7 +132,11 @@ public:
     /**
      * @Tests the execute method against anytype
      */
-    template<typename Type> bool TestExecute_AnyType(Type value);
+    template<typename Type> bool TestExecute_AnyType(
+            Type value,
+            MARTe::uint32 cycleCounter = 0u,
+            bool infiniteMaxMin = false
+            );
 
     /**
      * @brief Tests the Execute method.
@@ -205,6 +209,16 @@ public:
      * @return true if the sample buffer is reset.
      */
     bool TestPrepareForNextState_Success();
+
+    /**
+     * @brief Tests the effect of the Cycle Counter starting offset
+     */
+    bool TestExecute_uint32_withCycleCounter();
+
+    /**
+     * @brief Tests the absolute Max/Min handling mode
+     */
+    bool TestExecute_uint32_withAbsoluteMaxMin();
 };
 
 /*---------------------------------------------------------------------------*/

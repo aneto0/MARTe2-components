@@ -159,6 +159,15 @@ TEST(StatisticsGAMGTest,TestPrepareForNextState_Success) {
     ASSERT_TRUE(test.TestPrepareForNextState_Success());
 }
 
+TEST(StatisticsGAMGTest,TestExecute_uint32_withCycleCounter) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_uint32_withCycleCounter());
+}
+
+TEST(StatisticsGAMGTest,TestExecute_uint32_withAbsoluteMaxMin) {
+    StatisticsGAMTest test;
+    ASSERT_TRUE(test.TestExecute_uint32_withAbsoluteMaxMin());
+}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

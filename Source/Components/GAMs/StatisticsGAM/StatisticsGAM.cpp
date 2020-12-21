@@ -49,66 +49,69 @@ StatisticsGAM::StatisticsGAM() :
     signalType = InvalidType;
     stats = NULL_PTR(void *);
     windowSize = 1024u;
+    startCycleNumber = 0u;
+    cycleCounter = 0u;
+    infiniteMaxMin = false;
 }
 
 /*lint -e{1551} no exception thrown deleting the StatisticsHelperT<> instance*/
 StatisticsGAM::~StatisticsGAM() {
 
-   bool ok = (stats != NULL_PTR(void *));
+    bool ok = (stats != NULL_PTR(void *));
 
     /* Delete StatisticsHelperT class */
 
     if (ok) {
 
         if (signalType == SignedInteger8Bit) {
-	    StatisticsHelperT<int8> * ref = static_cast<StatisticsHelperT<int8> *>(stats);
-	    delete ref;
-	}
+            StatisticsHelperT<int8> * ref = static_cast<StatisticsHelperT<int8> *>(stats);
+            delete ref;
+        }
 
-	if (signalType == SignedInteger16Bit) {
-	    StatisticsHelperT<int16> * ref = static_cast<StatisticsHelperT<int16> *>(stats);
-	    delete ref;
-	}
+        if (signalType == SignedInteger16Bit) {
+            StatisticsHelperT<int16> * ref = static_cast<StatisticsHelperT<int16> *>(stats);
+            delete ref;
+        }
 
-	if (signalType == SignedInteger32Bit) {
-	    StatisticsHelperT<int32> * ref = static_cast<StatisticsHelperT<int32> *>(stats);
-	    delete ref;
-	}
+        if (signalType == SignedInteger32Bit) {
+            StatisticsHelperT<int32> * ref = static_cast<StatisticsHelperT<int32> *>(stats);
+            delete ref;
+        }
 
-	if (signalType == SignedInteger64Bit) {
-	    StatisticsHelperT<int64> * ref = static_cast<StatisticsHelperT<int64> *>(stats);
-	    delete ref;
-	}
+        if (signalType == SignedInteger64Bit) {
+            StatisticsHelperT<int64> * ref = static_cast<StatisticsHelperT<int64> *>(stats);
+            delete ref;
+        }
 
-	if (signalType == UnsignedInteger8Bit) {
-	    StatisticsHelperT<uint8> * ref = static_cast<StatisticsHelperT<uint8> *>(stats);
-	    delete ref;
-	}
+        if (signalType == UnsignedInteger8Bit) {
+            StatisticsHelperT<uint8> * ref = static_cast<StatisticsHelperT<uint8> *>(stats);
+            delete ref;
+        }
 
-	if (signalType == UnsignedInteger16Bit) {
-	    StatisticsHelperT<uint16> * ref = static_cast<StatisticsHelperT<uint16> *>(stats);
-	    delete ref;
-	}
+        if (signalType == UnsignedInteger16Bit) {
+            StatisticsHelperT<uint16> * ref = static_cast<StatisticsHelperT<uint16> *>(stats);
+            delete ref;
+        }
 
-	if (signalType == UnsignedInteger32Bit) {
-	    StatisticsHelperT<uint32> * ref = static_cast<StatisticsHelperT<uint32> *>(stats);
-	    delete ref;
-	}
+        if (signalType == UnsignedInteger32Bit) {
+            StatisticsHelperT<uint32> * ref = static_cast<StatisticsHelperT<uint32> *>(stats);
+            delete ref;
+        }
 
-	if (signalType == UnsignedInteger64Bit) {
-	    StatisticsHelperT<uint64> * ref = static_cast<StatisticsHelperT<uint64> *>(stats);
-	    delete ref;
-	}
+        if (signalType == UnsignedInteger64Bit) {
+            StatisticsHelperT<uint64> * ref = static_cast<StatisticsHelperT<uint64> *>(stats);
+            delete ref;
+        }
 
-	if (signalType == Float32Bit) {
-	    StatisticsHelperT<float32> * ref = static_cast<StatisticsHelperT<float32> *>(stats);
-	    delete ref;
-	}
+        if (signalType == Float32Bit) {
+            StatisticsHelperT<float32> * ref = static_cast<StatisticsHelperT<float32> *>(stats);
+            delete ref;
+        }
 
-	if (signalType == Float64Bit) {
-	    StatisticsHelperT<float64> * ref = static_cast<StatisticsHelperT<float64> *>(stats);
-	    delete ref;
-	}
+        if (signalType == Float64Bit) {
+            StatisticsHelperT<float64> * ref = static_cast<StatisticsHelperT<float64> *>(stats);
+            delete ref;
+        }
 
     }
 
@@ -120,12 +123,28 @@ bool StatisticsGAM::Initialise(StructuredDataI & data) {
 
     bool ret = GAM::Initialise(data);
 
-    /* Rerieve optional window size attribute */
+    if (ret) {
+        /* Rerieve optional window size attribute */
 
-    if (!data.Read("WindowSize", windowSize)) {
-        REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to retrieve WindowSize parameter");
-    } else {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Retrieve '%u' WindowSize parameter", windowSize);
+        if (!data.Read("WindowSize", windowSize)) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to retrieve WindowSize parameter");
+        }
+        else {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Retrieve '%u' WindowSize parameter", windowSize);
+        }
+
+        if (!data.Read("StartCycleNumber", startCycleNumber)) {
+            startCycleNumber = 0u;
+        }
+
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Starting from %u cycle number", startCycleNumber);
+
+        uint8 infiniteMaxMinTemp = 0u;
+        if (!data.Read("InfiniteMaxMin", infiniteMaxMinTemp)) {
+            infiniteMaxMinTemp = 0u;
+        }
+        infiniteMaxMin = (infiniteMaxMinTemp > 0u);
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Max and Min are %s", infiniteMaxMin?"absolute":"windowed");
     }
 
     return ret;
@@ -134,7 +153,7 @@ bool StatisticsGAM::Initialise(StructuredDataI & data) {
 bool StatisticsGAM::Setup() {
 
     /*lint -e{9007} side effect of the '&&' operator is acceptable since the evaluation of the second part
-      of the expression is only necessary when the first is verified to be true*/
+     of the expression is only necessary when the first is verified to be true*/
     bool ret = ((GetNumberOfInputSignals() != 0u) && (GetNumberOfOutputSignals() != 0u));
 
     if (!ret) {
@@ -142,7 +161,7 @@ bool StatisticsGAM::Setup() {
     }
 
     if (ret) {
-      ret = (GetSignalType(InputSignals, 0u) == GetSignalType(OutputSignals, 0u));
+        ret = (GetSignalType(InputSignals, 0u) == GetSignalType(OutputSignals, 0u));
     }
 
     if (!ret) {
@@ -150,7 +169,7 @@ bool StatisticsGAM::Setup() {
     }
 
     if (ret) {
-      signalType = GetSignalType(InputSignals, 0u);
+        signalType = GetSignalType(InputSignals, 0u);
     }
 
     uint32 signalNumberOfDimensions = 0u;
@@ -161,7 +180,7 @@ bool StatisticsGAM::Setup() {
 
     if (ret) {
         ret = (signalNumberOfDimensions == 0u);
-    }  
+    }
 
     if (!ret) {
         REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfDimensions(InputSignals, 0u) != 0u");
@@ -175,7 +194,7 @@ bool StatisticsGAM::Setup() {
 
     if (ret) {
         ret = (signalNumberOfElements == 1u);
-    }  
+    }
 
     if (!ret) {
         REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfElements(InputSignals, 0u) != 1u");
@@ -188,33 +207,33 @@ bool StatisticsGAM::Setup() {
 
         ret = (signalType == GetSignalType(OutputSignals, signalIndex));
 
-	if (!ret) {
-	    REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalType(OutputSignals, %u) != signalType", signalIndex);
-	}
+        if (!ret) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalType(OutputSignals, %u) != signalType", signalIndex);
+        }
 
-	if (ret) {
-	    ret = GetSignalNumberOfDimensions(OutputSignals, signalIndex, signalNumberOfDimensions);
-	}
+        if (ret) {
+            ret = GetSignalNumberOfDimensions(OutputSignals, signalIndex, signalNumberOfDimensions);
+        }
 
-	if (ret) {
+        if (ret) {
             ret = (signalNumberOfDimensions == 0u);
-	}  
+        }
 
-	if (!ret) {
-	    REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfDimensions(OutputSignals, %u) != 0u", signalIndex);
-	}
+        if (!ret) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfDimensions(OutputSignals, %u) != 0u", signalIndex);
+        }
 
-	if (ret) {
+        if (ret) {
             ret = GetSignalNumberOfElements(OutputSignals, signalIndex, signalNumberOfElements);
-	}
+        }
 
-	if (ret) {
-	    ret = (signalNumberOfElements == 1u);
-	}  
+        if (ret) {
+            ret = (signalNumberOfElements == 1u);
+        }
 
-	if (!ret) {
-	    REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfElements(OutputSignals, %u) != 1u", signalIndex);
-	}
+        if (!ret) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "GetSignalNumberOfElements(OutputSignals, %u) != 1u", signalIndex);
+        }
 
     }
 
@@ -226,54 +245,46 @@ bool StatisticsGAM::Setup() {
 
     /*lint -e{423} no leak as assignment of stats is exclusively done*/
     if (ret) {
-
         if (signalType == SignedInteger8Bit) {
-	    stats = static_cast<void *>(new StatisticsHelperT<int8>(windowSize));
-	}
+            stats = static_cast<void *>(new StatisticsHelperT<int8>(windowSize));
+        }
+        else if (signalType == SignedInteger16Bit) {
+            stats = static_cast<void *>(new StatisticsHelperT<int16>(windowSize));
+        }
+        else if (signalType == SignedInteger32Bit) {
+            stats = static_cast<void *>(new StatisticsHelperT<int32>(windowSize));
+        }
+        else if (signalType == SignedInteger64Bit) {
+            stats = static_cast<void *>(new StatisticsHelperT<int64>(windowSize));
+        }
+        else if (signalType == UnsignedInteger8Bit) {
+            stats = static_cast<void *>(new StatisticsHelperT<uint8>(windowSize));
+        }
+        else if (signalType == UnsignedInteger16Bit) {
+            stats = static_cast<void *>(new StatisticsHelperT<uint16>(windowSize));
+        }
+        else if (signalType == UnsignedInteger32Bit) {
+            stats = static_cast<void *>(new StatisticsHelperT<uint32>(windowSize));
+        }
+        else if (signalType == UnsignedInteger64Bit) {
+            stats = static_cast<void *>(new StatisticsHelperT<uint64>(windowSize));
+        }
+        else if (signalType == Float32Bit) {
+            stats = static_cast<void *>(new StatisticsHelperT<float32>(windowSize));
+        }
+        else if (signalType == Float64Bit) {
+            stats = static_cast<void *>(new StatisticsHelperT<float64>(windowSize));
+        }
+        else { //NOOP
+        }
+        ret = (stats != NULL_PTR(void *));
 
-	if (signalType == SignedInteger16Bit) {
-	    stats = static_cast<void *>(new StatisticsHelperT<int16>(windowSize));
-	}
-
-	if (signalType == SignedInteger32Bit) {
-	    stats = static_cast<void *>(new StatisticsHelperT<int32>(windowSize));
-	}
-
-	if (signalType == SignedInteger64Bit) {
-	    stats = static_cast<void *>(new StatisticsHelperT<int64>(windowSize));
-	}
-
-	if (signalType == UnsignedInteger8Bit) {
-	    stats = static_cast<void *>(new StatisticsHelperT<uint8>(windowSize));
-	}
-
-	if (signalType == UnsignedInteger16Bit) {
-	    stats = static_cast<void *>(new StatisticsHelperT<uint16>(windowSize));
-	}
-
-	if (signalType == UnsignedInteger32Bit) {
-	    stats = static_cast<void *>(new StatisticsHelperT<uint32>(windowSize));
-	}
-
-	if (signalType == UnsignedInteger64Bit) {
-	    stats = static_cast<void *>(new StatisticsHelperT<uint64>(windowSize));
-	}
-
-	if (signalType == Float32Bit) {
-	    stats = static_cast<void *>(new StatisticsHelperT<float32>(windowSize));
-	}
-
-	if (signalType == Float64Bit) {
-	    stats = static_cast<void *>(new StatisticsHelperT<float64>(windowSize));
-	}
-
-	ret = (stats != NULL_PTR(void *));
-
-	if (!ret) {
-	    REPORT_ERROR(ErrorManagement::InitialisationError, "Unsupported type");
-	} else {
-	    REPORT_ERROR(ErrorManagement::Information, "Instantiate StatisticsHelperT<> class");
-	}
+        if (!ret) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Unsupported type");
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::Information, "Instantiate StatisticsHelperT<> class");
+        }
 
     }
 
@@ -285,53 +296,49 @@ bool StatisticsGAM::Execute() {
     bool ret = (signalType != InvalidType);
 
     if (ret) {
-
-        if (signalType == SignedInteger8Bit) {
-	    ret = this->StatisticsGAM::ExecuteT<int8>();
-	}
-
-	if (signalType == SignedInteger16Bit) {
-	    ret = this->StatisticsGAM::ExecuteT<int16>();
-	}
-
-	if (signalType == SignedInteger32Bit) {
-	    ret = this->StatisticsGAM::ExecuteT<int32>();
-	}
-	
-	if (signalType == SignedInteger64Bit) {
-	    ret = this->StatisticsGAM::ExecuteT<int64>();
-	}
-	
-	if (signalType == UnsignedInteger8Bit) {
-	    ret = this->StatisticsGAM::ExecuteT<uint8>();
-	}
-	
-	if (signalType == UnsignedInteger16Bit) {
-	    ret = this->StatisticsGAM::ExecuteT<uint16>();
-	}
-	
-	if (signalType == UnsignedInteger32Bit) {
-	    ret = this->StatisticsGAM::ExecuteT<uint32>();
-	}
-	
-	if (signalType == UnsignedInteger64Bit) {
-	    ret = this->StatisticsGAM::ExecuteT<uint64>();
-	}
-	
-	if (signalType == Float32Bit) {
-	    ret = this->StatisticsGAM::ExecuteT<float32>();
-	}
-	
-	if (signalType == Float64Bit) {
-	    ret = this->StatisticsGAM::ExecuteT<float64>();
-	}
-
+        if (cycleCounter >= startCycleNumber) {
+            if (signalType == SignedInteger8Bit) {
+                ret = this->StatisticsGAM::ExecuteT<int8>();
+            }
+            else if (signalType == SignedInteger16Bit) {
+                ret = this->StatisticsGAM::ExecuteT<int16>();
+            }
+            else if (signalType == SignedInteger32Bit) {
+                ret = this->StatisticsGAM::ExecuteT<int32>();
+            }
+            else if (signalType == SignedInteger64Bit) {
+                ret = this->StatisticsGAM::ExecuteT<int64>();
+            }
+            else if (signalType == UnsignedInteger8Bit) {
+                ret = this->StatisticsGAM::ExecuteT<uint8>();
+            }
+            else if (signalType == UnsignedInteger16Bit) {
+                ret = this->StatisticsGAM::ExecuteT<uint16>();
+            }
+            else if (signalType == UnsignedInteger32Bit) {
+                ret = this->StatisticsGAM::ExecuteT<uint32>();
+            }
+            else if (signalType == UnsignedInteger64Bit) {
+                ret = this->StatisticsGAM::ExecuteT<uint64>();
+            }
+            else if (signalType == Float32Bit) {
+                ret = this->StatisticsGAM::ExecuteT<float32>();
+            }
+            else if (signalType == Float64Bit) {
+                ret = this->StatisticsGAM::ExecuteT<float64>();
+            }
+            else {//NOOP
+            }
+        }
+        else {
+            cycleCounter++;
+        }
     }
 
     return ret;
 }
 
-template <class Type> bool StatisticsGAM::ExecuteT() {
+template<class Type> bool StatisticsGAM::ExecuteT() {
 
     /*lint -e{665} [MISRA C++ Rule 16-0-6] templated type passed as argument to MACRO*/
     StatisticsHelperT<Type> * ref = NULL_PTR(StatisticsHelperT<Type> *);
@@ -345,8 +352,8 @@ template <class Type> bool StatisticsGAM::ExecuteT() {
     }
 
     if (ret) {
-        ref = static_cast<StatisticsHelperT<Type> *>(stats); 
-	ret = ref->PushSample(input);
+        ref = static_cast<StatisticsHelperT<Type> *>(stats);
+        ret = ref->PushSample(input, infiniteMaxMin);
     }
 
     if (ret) {
@@ -376,61 +383,61 @@ template <class Type> bool StatisticsGAM::ExecuteT() {
 /*lint -e{613} Reset() method called only when stats is not NULL*/
 /*lint -e{715} [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns irrespectively of the input parameters.*/
 bool StatisticsGAM::PrepareNextState(const char8 * const currentStateName,
-				     const char8 * const nextStateName) {
+                                     const char8 * const nextStateName) {
 
-   bool ret = (stats != NULL_PTR(void *));
+    bool ret = (stats != NULL_PTR(void *));
 
     if (ret) {
 
         if (signalType == SignedInteger8Bit) {
-	    StatisticsHelperT<int8> * ref = static_cast<StatisticsHelperT<int8> *>(stats);
-	    ret = ref->Reset();
-	}
+            StatisticsHelperT<int8> * ref = static_cast<StatisticsHelperT<int8> *>(stats);
+            ret = ref->Reset();
+        }
 
-	if (signalType == SignedInteger16Bit) {
-	    StatisticsHelperT<int16> * ref = static_cast<StatisticsHelperT<int16> *>(stats);
-	    ret = ref->Reset();
-	}
+        if (signalType == SignedInteger16Bit) {
+            StatisticsHelperT<int16> * ref = static_cast<StatisticsHelperT<int16> *>(stats);
+            ret = ref->Reset();
+        }
 
-	if (signalType == SignedInteger32Bit) {
-	    StatisticsHelperT<int32> * ref = static_cast<StatisticsHelperT<int32> *>(stats);
-	    ret = ref->Reset();
-	}
+        if (signalType == SignedInteger32Bit) {
+            StatisticsHelperT<int32> * ref = static_cast<StatisticsHelperT<int32> *>(stats);
+            ret = ref->Reset();
+        }
 
-	if (signalType == SignedInteger64Bit) {
-	    StatisticsHelperT<int64> * ref = static_cast<StatisticsHelperT<int64> *>(stats);
-	    ret = ref->Reset();
-	}
+        if (signalType == SignedInteger64Bit) {
+            StatisticsHelperT<int64> * ref = static_cast<StatisticsHelperT<int64> *>(stats);
+            ret = ref->Reset();
+        }
 
-	if (signalType == UnsignedInteger8Bit) {
-	    StatisticsHelperT<uint8> * ref = static_cast<StatisticsHelperT<uint8> *>(stats);
-	    ret = ref->Reset();
-	}
+        if (signalType == UnsignedInteger8Bit) {
+            StatisticsHelperT<uint8> * ref = static_cast<StatisticsHelperT<uint8> *>(stats);
+            ret = ref->Reset();
+        }
 
-	if (signalType == UnsignedInteger16Bit) {
-	    StatisticsHelperT<uint16> * ref = static_cast<StatisticsHelperT<uint16> *>(stats);
-	    ret = ref->Reset();
-	}
+        if (signalType == UnsignedInteger16Bit) {
+            StatisticsHelperT<uint16> * ref = static_cast<StatisticsHelperT<uint16> *>(stats);
+            ret = ref->Reset();
+        }
 
-	if (signalType == UnsignedInteger32Bit) {
-	    StatisticsHelperT<uint32> * ref = static_cast<StatisticsHelperT<uint32> *>(stats);
-	    ret = ref->Reset();
-	}
+        if (signalType == UnsignedInteger32Bit) {
+            StatisticsHelperT<uint32> * ref = static_cast<StatisticsHelperT<uint32> *>(stats);
+            ret = ref->Reset();
+        }
 
-	if (signalType == UnsignedInteger64Bit) {
-	    StatisticsHelperT<uint64> * ref = static_cast<StatisticsHelperT<uint64> *>(stats);
-	    ret = ref->Reset();
-	}
+        if (signalType == UnsignedInteger64Bit) {
+            StatisticsHelperT<uint64> * ref = static_cast<StatisticsHelperT<uint64> *>(stats);
+            ret = ref->Reset();
+        }
 
-	if (signalType == Float32Bit) {
-	    StatisticsHelperT<float32> * ref = static_cast<StatisticsHelperT<float32> *>(stats);
-	    ret = ref->Reset();
-	}
+        if (signalType == Float32Bit) {
+            StatisticsHelperT<float32> * ref = static_cast<StatisticsHelperT<float32> *>(stats);
+            ret = ref->Reset();
+        }
 
-	if (signalType == Float64Bit) {
-	    StatisticsHelperT<float64> * ref = static_cast<StatisticsHelperT<float64> *>(stats);
-	    ret = ref->Reset();
-	}
+        if (signalType == Float64Bit) {
+            StatisticsHelperT<float64> * ref = static_cast<StatisticsHelperT<float64> *>(stats);
+            ret = ref->Reset();
+        }
 
     }
 

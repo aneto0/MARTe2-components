@@ -54,7 +54,12 @@ namespace MARTe {
  * <pre>
  * +Statistics = {
  *     Class = StatisticsGAM
- *     WindowSize = 1000 // Optional - Defaults to 1024, see StatisticsHelperT
+ *     WindowSize = 1000 // Optional - Defaults to 1024, the window size for integer types is limited to power
+ *                          of 2, e.g. 64, 1024, etc. In case a different window size is specified, the
+ *                          highest power of 2 smaller than the specified size is being considered.
+ *     StartCycleNumber = 0u // Optional - Defaults to 0. GAM cycles to skip before starting the accumulation.
+ *     InfiniteMaxMin = 0u // Optional - Defaults to 0 (false). If true, Max and Min are referred to the GAM lifecycle (until reset).
+ *                            If false, Max and Min are referred only to the Sliding Window.
  *     InputSignals = {
  *         ExecutionTime = {
  *             DataSource = "DDB"
@@ -168,6 +173,21 @@ public:
      * @return true.
      */
     template <typename Type> bool ExecuteT();
+
+    /**
+     * Start computing the statistics only after startCycleNumber cycles.
+     */
+    uint32 startCycleNumber;
+
+    /**
+     * Number of ellapsed cycles.
+     */
+    uint32 cycleCounter;
+
+    /**
+     * Always compute max/min? See class description.
+     */
+    bool infiniteMaxMin;
 
 };
 
