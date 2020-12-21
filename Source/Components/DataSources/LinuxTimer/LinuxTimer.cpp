@@ -303,9 +303,9 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
         startTimeTicks = HighResolutionTimer::Counter();
     }
 
-    //The last cycle, which has started after the sleep has just ended. How much time is left?
+    //The last cycle, which started after the sleep below, has just ended. How much time is left before the next cycle should start?
     uint64 cycleEndTicks = HighResolutionTimer::Counter();
-    //If we lose cycle (i.e. if startTimeTicks < N * cycleEndTicks), rephase to a multiple of the period.
+    //If we lost cycles (i.e. if startTimeTicks < (nCycles * sleepTimeTicks) + cycleEndTicks), rephase to a multiple of the period (sleepTimeTicks).
     uint32 nCycles = 0u;
     while (startTimeTicks < cycleEndTicks) {
         startTimeTicks += sleepTimeTicks;
@@ -313,7 +313,7 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     }
     startTimeTicks -= sleepTimeTicks;
 
-    //Sleep until the next period. Cannot be < 0 due to while(startTimeTicks < startTicks) above
+    //Sleep until the next period.
     uint64 deltaTicks = sleepTimeTicks + startTimeTicks;
     deltaTicks -= cycleEndTicks;
     if (sleepNature == Busy) {
@@ -331,7 +331,10 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
         float32 sleepTime = static_cast<float32>(static_cast<float64>(deltaTicks) * HighResolutionTimer::Period());
         Sleep::NoMore(sleepTime);
     }
-    //We want to be here again in sleepTimeTicks time
+    //Update the start time of the current cycle. 
+    //Note that if startTimeTicks = HighResolutionTimer::Counter(), this would not take into account any possible delay on the sleep above and thus would lead to a drift
+    //An alternative would be to do startTimeTicks = HighResolutionTimer::Counter(), compute much was the overslept from this cycle and discount on the next, but this is 
+    //mathematically equivalent to just do startTimeTicks += sleepTimeTicks
     startTimeTicks += sleepTimeTicks;
 
     ErrorManagement::ErrorType err;
