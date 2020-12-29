@@ -60,7 +60,11 @@ namespace MARTe {
     }
 
     ProfinetDataSource::~ProfinetDataSource() {
-
+        timerHelper->Stop();
+        mainHelper->Stop();
+        
+        timerHelper->SetEntryPoint(NULL_PTR(ITimerEntryPoint*));
+        mainHelper->SetEntryPoint(NULL_PTR(IMainThreadEntryPoint*));
     }
 
     bool 
@@ -476,7 +480,7 @@ namespace MARTe {
                 //Allocating the size needed for inputs + 1, which will be reserved to the Alarm Acknowledgement signal
                 inputHeap = reinterpret_cast<uint8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc((heapSizeToAllocateInputs * 2u) + 1));
                 //Underlying malloc leaves undetermined memory. Cleaning it.
-                MemoryOperationsHelper::Set(inputHeap, 0u, heapSizeToAllocateInputs * 2u);
+                MemoryOperationsHelper::Set(inputHeap, 0u, (heapSizeToAllocateInputs * 2u) + 1u);
                 inputHeapHalfSize = heapSizeToAllocateInputs;
                 returnValue = (inputHeap != NULL_PTR(uint8*));
             }
@@ -491,9 +495,9 @@ namespace MARTe {
             if(heapSizeToAllocateOutputs > 0u) {
                 REPORT_ERROR(ErrorManagement::Information, "Allocating %d * 2 bytes for outputs", heapSizeToAllocateOutputs);
                 //Allocating the size needed for the outputs + 3, which will be reserved to LED, Ready and Alarm special signals
-                outputHeap = reinterpret_cast<uint8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc((heapSizeToAllocateOutputs * 2u) + 3));
+                outputHeap = reinterpret_cast<uint8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc((heapSizeToAllocateOutputs * 2u) + 3u));
                 //Underlying malloc leaves undetermined memory. Cleaning it.
-                MemoryOperationsHelper::Set(outputHeap, 0u, heapSizeToAllocateOutputs * 2u);
+                MemoryOperationsHelper::Set(outputHeap, 0u, (heapSizeToAllocateOutputs * 2u) + 3u);
                 outputHeapHalfSize = heapSizeToAllocateOutputs;
                 returnValue = (outputHeap != NULL_PTR(uint8*));
             }
@@ -601,25 +605,25 @@ namespace MARTe {
                         REPORT_ERROR(ErrorManagement::Information, "Moving to child %s", data.GetChildName(signalIndex));
                         StreamString tempSignalName = data.GetChildName(signalIndex);
                         if(data.MoveToChild(signalIndex)) {
-                            //First check if we have one of the Profinet special signals, ekse it will a standard signal
+                            //First check if we have one of the Profinet special signals, else it will be a standard signal
                             if(tempSignalName == "ProfinetDeviceLed") {
                                 REPORT_ERROR(ErrorManagement::Information, "Found LED signal");
-                                //First byte of LED signal is located after the input bank
-                                signalIndexer[0][signalIndex].firstByteOfSignal = outputHeap +  (2 * inputHeapHalfSize);
+                                //First byte of LED signal is located after the output bank half
+                                signalIndexer[0][signalIndex].firstByteOfSignal = outputHeap +  (2u * outputHeapHalfSize);
                                 signalIndexer[0][signalIndex].direction = 1u;
                                 signalIndexer[0][signalIndex].needsSwapping = 0u;
                                 profinetLedSignalIndex = signalIndex;
-                                MemoryOperationsHelper::Copy(signalIndexer[0][signalIndex].marteName, tempSignalName.Buffer(), tempSignalName.Size() + 1);
+                                MemoryOperationsHelper::Copy(signalIndexer[0][signalIndex].marteName, tempSignalName.Buffer(), tempSignalName.Size() + 1u);
                                 profinetLedSignalEnabled = true;
                             }
                             else if(tempSignalName == "ProfinetDeviceReady") {
                                 REPORT_ERROR(ErrorManagement::Information, "Found Ready signal");
-                                //First byte of LED signal is located after the input bank + 1
-                                signalIndexer[0][signalIndex].firstByteOfSignal = outputHeap +  (2 * inputHeapHalfSize) + 1;
+                                //First byte of LED signal is located after the output bank half + 1
+                                signalIndexer[0][signalIndex].firstByteOfSignal = outputHeap +  (2u * outputHeapHalfSize) + 1u;
                                 signalIndexer[0][signalIndex].direction = 1u;
                                 signalIndexer[0][signalIndex].needsSwapping = 0u;
                                 profinetReadySignalIndex = signalIndex;
-                                MemoryOperationsHelper::Copy(signalIndexer[0][signalIndex].marteName, tempSignalName.Buffer(), tempSignalName.Size() + 1);
+                                MemoryOperationsHelper::Copy(signalIndexer[0][signalIndex].marteName, tempSignalName.Buffer(), tempSignalName.Size() + 1u);
                                 profinetReadySignalEnabled = true;
                             }
                             else {
@@ -634,12 +638,12 @@ namespace MARTe {
 
                                     ProfinetDataSourceDriver::pnet_subslot_t* tempSubslot = adapter->GetSubslot(tempSlotNumber, tempSubslotNumber);
                                     if(tempSubslot != NULL_PTR(ProfinetDataSourceDriver::pnet_subslot_t*)) {
-                                        if(tempDirectionValue == 0) {
+                                        if(tempDirectionValue == 0u) {
                                             //MARTe signals are located in the other half of the input heap, this is why we need to shift forward of one inputHeapHalfSize
                                             signalIndexer[0][signalIndex].firstByteOfSignal = tempSubslot->inputData + tempOffsetValue + inputHeapHalfSize;
                                             REPORT_ERROR(ErrorManagement::Information, "Input signal %d will be located at Slot/Subslot + Offset [%d/%d + %d]", signalIndex, tempSlotNumber, tempSubslotNumber, tempOffsetValue);
                                         }
-                                        else if(tempDirectionValue == 1) {
+                                        else if(tempDirectionValue == 1u) {
                                             //MARTe signals are located in the other half of the output heap, this is why we need to shift forward of one outputHeapHalfSize
                                             signalIndexer[0][signalIndex].firstByteOfSignal = tempSubslot->outputData + tempOffsetValue + outputHeapHalfSize;
                                             
@@ -654,7 +658,7 @@ namespace MARTe {
                                             signalIndexer[0][signalIndex].needsSwapping = (tempNeedsSwapping != 0u);
                                             REPORT_ERROR(ErrorManagement::Information, "Signal %d endianess %s be adjusted", signalIndex, (signalIndexer[0][signalIndex].needsSwapping?"will":"will not"));
                                             //TODO verify what is the best way (size) to copy a signal name
-                                            MemoryOperationsHelper::Copy(signalIndexer[0][signalIndex].marteName, tempSignalName.Buffer(), tempSignalName.Size() + 1);
+                                            MemoryOperationsHelper::Copy(signalIndexer[0][signalIndex].marteName, tempSignalName.Buffer(), tempSignalName.Size() + 1u);
                                         }
                                     }
                                     else {
@@ -745,10 +749,6 @@ namespace MARTe {
         return adapter->MainThread(inputFlag);
     }
 
-    void ProfinetDataSource::MainThread() {
-        adapter->MainThread();
-    }
-
     void ProfinetDataSource::TimerTick() {
         adapter->TaskTimerTick();
     }
@@ -763,7 +763,7 @@ namespace MARTe {
             //There is no reason to also lock MARTe while swapping data on the Profinet side
             //NOTE firstByteOfSignal is on the MARTe side, this is why we have to move pointer backwards to the Profinet section
             for(uint32 signalIndex = 0; signalIndex < signalIndexerCount; signalIndex++) {
-                if((signalIndexer[0][signalIndex].direction == 0) && (signalIndexer[0][signalIndex].needsSwapping)) {
+                if((signalIndexer[0][signalIndex].direction == 0u) && (signalIndexer[0][signalIndex].needsSwapping)) {
                     switch(signalIndexer[0][signalIndex].signalSize) {
                         case 2:
                         Endianity::ToBigEndian(*reinterpret_cast<int16*>(signalIndexer[0][signalIndex].firstByteOfSignal - inputHeapHalfSize));
@@ -790,7 +790,7 @@ namespace MARTe {
             //MARTe must still wait before working on the signal buffer
             //NOTE firstByteOfSignal is on the MARTe side, this time no need to move pointers
             for(uint32 signalIndex = 0; signalIndex < signalIndexerCount; signalIndex++) {
-                if((signalIndexer[0][signalIndex].direction == 1) && (signalIndexer[0][signalIndex].needsSwapping)) {
+                if((signalIndexer[0][signalIndex].direction == 1u) && (signalIndexer[0][signalIndex].needsSwapping)) {
                     switch(signalIndexer[0][signalIndex].signalSize) {
                         case 2:
                         Endianity::FromBigEndian(*reinterpret_cast<int16*>(signalIndexer[0][signalIndex].firstByteOfSignal));
@@ -935,13 +935,7 @@ namespace MARTe {
     }
     
     bool ProfinetDataSource::SynchroniseOutput() {
-        bool returnValue = outputSignalsSemaphore.FastTryLock();
-
-        if(returnValue) {
-
-        }
-
-        return returnValue;
+        return outputSignalsSemaphore.FastTryLock();
     }
     
     bool ProfinetDataSource::TerminateInputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples) {
@@ -963,11 +957,15 @@ namespace MARTe {
     }
 
     void ProfinetDataSource::SetLED(bool ledStatus) {
-        *reinterpret_cast<int16*>(signalIndexer[0][profinetLedSignalIndex].firstByteOfSignal) = ledStatus?1:0;
+        if(profinetLedSignalEnabled) {
+            *reinterpret_cast<uint8*>(signalIndexer[0][profinetLedSignalIndex].firstByteOfSignal) = ledStatus?1:0;
+        }
     }
 
     void ProfinetDataSource::SetReady(bool readyStatus) {
-        *reinterpret_cast<int16*>(signalIndexer[0][profinetReadySignalIndex].firstByteOfSignal) = readyStatus?1:0;
+        if(profinetReadySignalEnabled) {
+            *reinterpret_cast<uint8*>(signalIndexer[0][profinetReadySignalIndex].firstByteOfSignal) = readyStatus?1:0;
+        }
     }
 
     CLASS_REGISTER(ProfinetDataSource, "1.0")

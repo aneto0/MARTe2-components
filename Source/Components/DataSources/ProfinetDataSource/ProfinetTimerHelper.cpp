@@ -19,7 +19,7 @@ namespace MARTe {
     }
 
     ProfinetTimerHelper::~ProfinetTimerHelper() {
-
+        entryPoint = NULL_PTR(ITimerEntryPoint*);
     }
 
     ErrorManagement::ErrorType ProfinetTimerHelper::ThreadCallback(ExecutionInfo &info) {
@@ -31,7 +31,9 @@ namespace MARTe {
         ErrorManagement::ErrorType returnValue;
 
         if(info.GetStage() == ExecutionInfo::MainStage) {
-            entryPoint->TimerTick();
+            if(entryPoint != NULL_PTR(ITimerEntryPoint*)) {
+                entryPoint->TimerTick();
+            }
             returnValue = ErrorManagement::Completed;
         }
         else if(info.GetStage() == ExecutionInfo::StartupStage) {

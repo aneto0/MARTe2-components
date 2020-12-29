@@ -153,7 +153,8 @@
  * The P-NET library [https://rt-labs.com/docs/p-net/index.html]
  * The P-NET library is a C library which implements the Profinet stack, which specified features and under
  * certain limitations. The P-NET library needs also OSAL, which in this specific case is kept for the networking
- * configuration. NOTE: in the future, the OSAL dependency may be reduced, removed or reworked to suit MARTe2.
+ * configuration. 
+ * NOTE: in the future, the OSAL dependency may be reduced, removed or reworked to suit MARTe2.
  * 
  * The pnetdsadapter
  * The Profinet DataSource Adapter (pnetdsadapter) is an adapter (not in strict GoF pattern definition) which
@@ -190,7 +191,7 @@
  * 
  * The brokers
  * ProfinetDataSource uses custom brokers, derived from the MemoryMap[Input,Output]Broker. They are similar
- * to the MemoryMapSynchronized[Input,Output]Broker version with a difference in the Synchronise/Terminate phase.
+ * to the MemoryMapSynchronised[Input,Output]Broker version with a difference in the Synchronise/Terminate phase.
  * As concurrent access happens at DataSource level, on the shared heap devoted to process image, the DataSource
  * initiates the copying (and the locking) inside the Synchronise call and terminates it signaling with the ù
  * Terminate[Input,Output]Copy (unlock).
@@ -372,7 +373,7 @@
  *       //The direction is the direction of the signal (0 Input - 1 Output).
  *       //The NeedsSwapping (optional, default to 0 = false) attribute specifies if the [Big-To-Little, Little-To-Big] endianess correction should be done.
  *       //NOTE: Two special *optional* signals ProfinetLED and ProfinetDeviceReady are given in order to:
- *               - Implement the mandatory Profinet signalling LED (which can be also stimulated from the master
+ *               - Implement the mandatory Profinet signalling LED (which can be also stimulated from the master)
  *               - Bring to downstream MARTe2 GAMs the knowledge about the Profinet slave status, which is 1 if correctly
  *                 connected and updating the master, 0 otherwise.
  *       //NOTE: A knowledge of the slave and of its corresponding GSDML clarifies the next section, considering that
@@ -816,11 +817,9 @@ namespace MARTe {
                 bool profinetReadySignalEnabled;
                 uint32 profinetReadySignalIndex;
 
-                virtual void MainThread();
-
                 virtual uint16 MainThread(uint16 inputFlag);
 
-                virtual void TimerTick() ;
+                virtual void TimerTick();
 
                 virtual void NotifyEvent(ProfinetDataSourceEventType eventType);
 

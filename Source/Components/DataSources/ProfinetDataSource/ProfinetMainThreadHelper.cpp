@@ -21,7 +21,7 @@ namespace MARTe {
     }
 
     ProfinetMainThreadHelper::~ProfinetMainThreadHelper() {
-
+        entryPoint = NULL_PTR(IMainThreadEntryPoint*);
     }
 
     ErrorManagement::ErrorType ProfinetMainThreadHelper::ThreadCallback(ExecutionInfo &info) {
@@ -37,7 +37,9 @@ namespace MARTe {
                 localFlag = eventFlag;
 
                 //Run a cycle and tell apart which flags were processed (do not assume the MainThread can clear all flags in a single call)
-                workedFlags = entryPoint->MainThread(localFlag) ^ localFlag;
+                if(entryPoint != NULL_PTR(IMainThreadEntryPoint*)) {
+                    workedFlags = entryPoint->MainThread(localFlag) ^ localFlag;
+                }                
 
                 //Clear only local flags which were reported as processed
                 if(flagMutex.FastLock(timeout, sleepTimeSeconds)) {
