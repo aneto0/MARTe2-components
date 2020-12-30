@@ -31,6 +31,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "BasicConsoleLogAdapter.h"
 #include "CompilerTypes.h"
 #include "CRC.h"
 #include "DataSourceI.h"
@@ -49,7 +50,7 @@
 #include "MultiThreadService.h" 
 #include "MutexSem.h"
 #include "ObjectRegistryDatabase.h"
-#include "pnetdsadapter.h"
+#include "ProfinetDataSourceAdapter.h"
 #include "ProfinetEventType.h"
 #include "ProfinetMainThreadHelper.h"
 #include "ProfinetTimerHelper.h"

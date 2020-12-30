@@ -29,7 +29,7 @@
 #include "EventSem.h"
 #include "FastPollingMutexSem.h"
 #include "IMainThreadEntryPoint.h"
-#include "pnetdstypes.h"
+#include "ProfinetDataSourceTypes.h"
 #include "ProfinetEventType.h"
 #include "SingleThreadService.h"
 

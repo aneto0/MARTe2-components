@@ -28,13 +28,13 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "AdvancedErrorManagement.h"
-#include "ProfinetDataSource.h"
-#include "ConfigurationDatabase.h"
-
-#include "ILoggerAdapter.h"
-
 #include <iostream>
+
+#include "AdvancedErrorManagement.h"
+#include "ConfigurationDatabase.h"
+#include "ILoggerAdapter.h"
+#include "ProfinetDataSource.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -44,15 +44,6 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-
-    class BasicConsoleLogAdapter : public ProfinetDataSourceDriver::ILoggerAdapter {
-
-        public:
-        virtual void Log(ProfinetDataSourceDriver::log_adapter_level_t logLevel, std::string message) {
-            
-            REPORT_ERROR_STATIC(ErrorManagement::Information, message.c_str());
-        }
-    };
 
     ProfinetDataSource::ProfinetDataSource() :
                         DataSourceI() {
