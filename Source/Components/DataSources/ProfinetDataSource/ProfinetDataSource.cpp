@@ -817,13 +817,82 @@ namespace MARTe {
             returnValue = GetSignalIndex(tempSignalMARTeIndex, signalIndexer[0][signalIndex].marteName);
             if(returnValue) {
                 returnValue = GetSignalByteSize(tempSignalMARTeIndex, signalIndexer[0][signalIndex].signalSize);
+                
                 signalIndexer[0][signalIndex].marteIndex = tempSignalMARTeIndex;
 
-                REPORT_ERROR(ErrorManagement::Information, "Indexer acquired signal MARTe Idx/Internal Idx %d/%d, with name %s which is %d bytes", 
+                StreamString tempSignalStateName;
+                uint32 tempNumberOfProducers = 0u;
+                uint32 tempNumberOfConsumers = 0u;
+
+                returnValue = GetSignalStateName(tempSignalMARTeIndex, 0, tempSignalStateName);
+                if(signalIndexer[0][signalIndex].direction == 0) {
+                    returnValue = GetSignalNumberOfProducers(tempSignalMARTeIndex, tempSignalStateName.Buffer(), tempNumberOfProducers);
+                    if(!returnValue) {
+                        REPORT_ERROR("Cannot configure signal MARTe Idx/Internal Idx %d/%d, with name %s. No producers connected to input",
+                        signalIndexer[0][signalIndex].marteIndex,
+                        signalIndex,
+                        signalIndexer[0][signalIndex].marteName);
+                    }
+                    else if(tempNumberOfProducers > 1) {
+                        REPORT_ERROR("Cannot configure signal MARTe Idx/Internal Idx %d/%d, with name %s. Number of producers must be exactly 0, %d found instead.",
+                        signalIndexer[0][signalIndex].marteIndex,
+                        signalIndex,
+                        signalIndexer[0][signalIndex].marteName,
+                        tempNumberOfProducers);                        
+
+                        returnValue = false;
+                    }
+
+                    if(returnValue) {
+                        returnValue = !GetSignalNumberOfConsumers(tempSignalMARTeIndex, tempSignalStateName.Buffer(), tempNumberOfConsumers);
+                        if(!returnValue) {
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot configure signal MARTe Idx/Internal Idx %d/%d, with name %s. It is produced and consumed at the same time",
+                            signalIndexer[0][signalIndex].marteIndex,
+                            signalIndex,
+                            signalIndexer[0][signalIndex].marteName);
+
+                            returnValue = false;
+                        }
+                    }
+                }
+                else if(signalIndexer[0][signalIndex].direction == 1) {
+                    returnValue = GetSignalNumberOfConsumers(tempSignalMARTeIndex, tempSignalStateName.Buffer(), tempNumberOfConsumers);
+                    if(!returnValue) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot configure signal MARTe Idx/Internal Idx %d/%d, with name %s. No consumers connected to output.",
+                        signalIndexer[0][signalIndex].marteIndex,
+                        signalIndex,
+                        signalIndexer[0][signalIndex].marteName);
+                    }
+                    else if(tempNumberOfConsumers > 1) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot configure signal MARTe Idx/Internal Idx %d/%d, with name %s. Number of consumers must be exactly 0, %d found instead.",
+                        signalIndexer[0][signalIndex].marteIndex,
+                        signalIndex,
+                        signalIndexer[0][signalIndex].marteName,
+                        tempNumberOfConsumers);
+
+                        returnValue = false;
+                    }
+
+                    if(returnValue) {
+                        returnValue = !GetSignalNumberOfProducers(tempSignalMARTeIndex, tempSignalStateName.Buffer(), tempNumberOfProducers);
+                        if(!returnValue) {
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot configure signal MARTe Idx/Internal Idx %d/%d, with name %s. It is produced and consumed at the same time",
+                            signalIndexer[0][signalIndex].marteIndex,
+                            signalIndex,
+                            signalIndexer[0][signalIndex].marteName);
+
+                            returnValue = false;
+                        }
+                    }
+                }
+
+                REPORT_ERROR(ErrorManagement::Information, "Indexer acquired signal MARTe Idx/Internal Idx %d/%d, with name %s which is %d bytes (NOP/NOC = %d/%d)", 
                     signalIndexer[0][signalIndex].marteIndex,
                     signalIndex,
                     signalIndexer[0][signalIndex].marteName, 
-                    signalIndexer[0][signalIndex].signalSize);
+                    signalIndexer[0][signalIndex].signalSize,
+                    tempNumberOfProducers,
+                    tempNumberOfConsumers);
             }
             else {
                 REPORT_ERROR(ErrorManagement::Information, "Failure dealing with signal %d", signalIndex);
