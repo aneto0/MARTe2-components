@@ -54,8 +54,8 @@
 #include "ProfinetEventType.h"
 #include "ProfinetMainThreadHelper.h"
 #include "ProfinetTimerHelper.h"
-#include "StreamString.h"
 #include "StaticList.h"
+#include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -147,7 +147,7 @@
  * At a glance, the ProfinetDataSource is structured in 3 layers:
  * <ul>
  *      <li>P-NET library</li>
- *      <li>pnetdsadapter</li>
+ *      <li>ProfinetDataSourceAdapter</li>
  *      <li>ProfinetDataSource</li>
  * </ul>
  * 
@@ -157,14 +157,13 @@
  * configuration. 
  * NOTE: in the future, the OSAL dependency may be reduced, removed or reworked to suit MARTe2.
  * 
- * The pnetdsadapter
- * The Profinet DataSource Adapter (pnetdsadapter) is an adapter (not in strict GoF pattern definition) which
+ * The ProfinetDataSourceAdapter
+ * The Profinet DataSource Adapter is an adapter (not in strict GoF pattern definition) which
  * adapts the pure C library and I/O to MARTe2 suitable primitives. The adapter is a wrapper, in first instance,
  * where all the functions and callbacks are mapped and an internal state is kept. Moreover, the adapter as a subset
- * of methods to easily map the process image.
+ * of methods to easily map the process image. * The adapter is designed to run independently from the datasource, although it is designed to fit into it.
  * 
  * The ProfinetDataSource
- * While the adapter is designed to run independently from the datasource, although it is designed to fit into it.
  * The DataSource is reduced to 2 simple memory segment (1 for the inputs, 1 for the outputs) in which the following
  * happens:
  * <ul>
