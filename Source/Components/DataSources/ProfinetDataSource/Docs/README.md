@@ -182,7 +182,7 @@ MAUType = 0x00 [6]
 - Fiber 1000BaseX Full Duplex 0x0016
 
 ### MainThread and Timer helpers
-Aforementioned MainThread and Timer helper are **EmbeddedServiceMethodBinderT** service implementations . They can be configured to be executed on specific CPU masks and with specific timeouts.
+Aforementioned MainThread and Timer helper are **EmbeddedServiceMethodBinderT** service implementations . They can be configured to be executed on specific CPU masks and with specific timeouts. Please refer to the EmbeddedServiceMethodBinderT documentation for specific details on the configuration.
 
 ```
 +MainThreadHelper = {
@@ -248,3 +248,37 @@ Extended attributes need to address the signal in the raw data byte "blobs" whic
 #### Ancillary signals
 Two ancillary signals are available: LED and Ready. They give indications about the Profinet status. The LED gives information about the peripheral and can be controlled from the master and from the engineering tool. The ready signal is instead useful to avoid running downstream GAMs when no connection or association exists between the DataSource and the Profinet master. As during offline operations the DataSource keeps last valid data, using the ready signal enables downstream GAMs operation tell apart good from stale values.
 ![Ready and LED cheat sheet](images/ReadyLEDCheatSheet.svg)*Ready and LED signal cheat sheet*
+
+###  Frequently Asked Questions
+**Q:** Why the properties are called with the "expected" prefix?  
+**A:** Because they are matched with master advertised before plugging them into modules. MARTe2 expects a configuration, the Profinet master says what is configured with the engineering tool. At last, what the Profinet master says is the only thing that counts. That's why MARTe2 can only **expect** and match features. MARTe2 expectations, from a developer point-of-view, mean to know how much memory must be allocated for slots and subslots data. Plugging (which is a part of the Profinet stack connection sequence), happens only if allocated memory (expected) matches the amount needed by the master process image.
+
+**Q:** What happens if expected size does not match master specified size?  
+**Q:** What happens if I mess with DeviceAccessPoint, ExpectedSize and DataDirection?  
+**A:** No plugging can happen, the slot is not filled and IOXS remains BAD. Master sees a faulty slave. In other words, Profinet master sees a slave which is not updating the I/O images, in both directions. I/O update is expressed in term of **P**roducers and **C**onsumers (IO**P**S and IO**C**S) and the IO**X**S term refers to both of them. No data production and no data consumption are detected by the master, which marks the slave as faulty. The Profinet stack on the MARTe2 side will bounce between a disconnected state and a plugging attempt, waiting for the matching configuration.
+
+**Q:** What does a InputOutput type do?  
+**A:** It represents a slot which is hybrid and has portions of input and portions of output in the same subslot. This kind of module/submodule will have two non-zero sizes in both the input and output values.
+
+**Q:** Are there limitation on Slot / Subslot names? I see a naming pattern in the example.  
+**A:** As long as the SlotNumber and SubslotNumber are correct, the naming is fully customizable following MARTe2 rules. Profinet stack is unaware of the MARTe2 signal names and the examples follows that convention only to make clearer associations between slots. 
+
+**Q:** Do I have to invent Slot / Subslot numbers? Do they have to be contiguous?  
+**A:** No: Slot / Subslot numbers depend on the GSDML description file. The GSDML is loaded into the engineering tool (the PLC IDE), "compiled" alongside the program and communication logic and run on the controller. At that point the controller needs for the slave to match the configuration intended in the engineering tool. Contiguity and numbering depend on how the slave was configured in the controller. This increased degree of complexity happens in MARTe2 and not in Profinet "normal" slaves due to the MARTe2 DataSource flexibility. Standard Profinet slaves are hardware-constrained to a subset of configurations, while MARTe2 virtually supports every possible combination of slots and subslots.  
+
+**Q:** What happens if I mess with Slot / Subslot / Offset / Direction values?  
+**A:** If you are unlucky (the error is subtle), a wrong value is represented using a random portion of the I/O heap. If you are lucky (the error is evident), instead, an error will prevent the DataSource execution.
+
+**Q:** How do I know which Endianess has my system and if I have to apply swapping?  
+**A:** If you apply swapping and your system architecture has the same representation of Profinet, the Endianess swap just does nothing. **Advice is always enable swapping when dealing with standard types, no performance penalty issue occurs if both endianess match.** Moreover, if you always enable endianess swap, your configuration file will be portable across different archs.
+
+**Q:** What happens if I ask for endianess correction on a non-standard size?  
+**A:** Endianess correction happens only for 2 / 4 / 8 bytes wide data (type is irrelevant). **Blobs are not endian corrected** (e.g. you must know how to handle them),
+
+**Q:** Why do I need the LED signal?  
+**A:** It may come handy, it brings some sort of information from the master and can be conveniently used. Specifically, the master can request a LED blinking (e. g. from the engineering tool when in online mode).
+
+**Q:** Why do I need the ProfinetReady signal?  
+**A:** If the synch with the master is lost (e.g. disconnection, problems, etc.) the last value assumed by signals is kept. This may lead to wrong / erratic behaviour on the downstream GAMs.
+In order to prevent this, an indication about the "goodness" of the data can be extracted from the "ready" signal,
+which is a boolean (0 not ready = bad or stale data, 1 ready = good data).
