@@ -36,6 +36,9 @@
 
 #define PNET_MAX_DIRECTORYPATH_LENGTH 4095
 
+//Do not move. Inclusion order needed as previous define is used in pnet_api.h afterwards.
+//TODO: move PNET_MAX_DIRECTORYPATH_LENGTH in compiler symbols to avoid this.
+
 #include <pnet_api.h>
 #include "ProfinetDataStructure.h"
 

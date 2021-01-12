@@ -28,23 +28,22 @@
 #define PNET_MAX_DIRECTORYPATH_LENGTH 4095
 
 #include <cstring>
-#include <iostream>
-#include <sstream>
 #include <iomanip>
-
+#include <iostream>
 #include <osal.h>
 #include <pnal.h>
 #include <pnet_api.h>
+#include <sstream>
 
-#include "ProfinetDataSourceTypes.h"
-#include "ILoggerAdapter.h"
 #include "CompilerTypes.h"
-#include "StreamString.h"
-#include "MutexSem.h"
-#include "IProfinetEventNotifiable.h"
-#include "ProfinetEventType.h"
 #include "ICyclicNotifiable.h"
+#include "ILoggerAdapter.h"
+#include "IProfinetEventNotifiable.h"
 #include "IOperationalSignalsEntryPoint.h"
+#include "MutexSem.h"
+#include "ProfinetDataSourceTypes.h"
+#include "ProfinetEventType.h"
+#include "StreamString.h"
 
 #define PNDS_MAX_INTERFACE_NAME_SIZE    32
 #define PNDS_MAX_STATION_NAME_SIZE      241

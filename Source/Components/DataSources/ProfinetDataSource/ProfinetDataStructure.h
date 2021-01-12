@@ -51,40 +51,13 @@ namespace ProfinetDataSourceDriver {
             
             SimpleLinkedList<T>        *currentList;
             SimpleLinkedListNode<T>    *currentNode;
-            SimpleLinkedListIterator(SimpleLinkedList<T>* currentList) {
-                this->currentList = currentList;
-            }
+            SimpleLinkedListIterator(SimpleLinkedList<T>* currentList);
 
         public:
-            void First() {
-                currentNode = currentList->sentinelNode->nextNode;
-            }
-
-            T Next() {
-                T tempNodeData = NULL;
-
-                if(currentNode != currentList->sentinelNode) {
-                    tempNodeData = currentNode->nodeData;
-                    currentNode = currentNode->nextNode;
-                }
-
-                return tempNodeData;
-            }
-
-            void Last() {
-                currentNode = currentList->sentinelNode->previousNode;
-            }
-
-            T Previous() {
-                T tempNodeData = NULL;
-
-                if(currentNode != currentList->sentinelNode) {
-                    tempNodeData = currentNode->nodeData;
-                    currentNode = currentNode->previousNode;
-                }
-                
-                return tempNodeData;
-            }
+            void First();
+            T Next();
+            void Last();
+            T Previous();
     };
 
     template <class T>
@@ -93,89 +66,22 @@ namespace ProfinetDataSourceDriver {
             friend class SimpleLinkedListIterator<T>;
 
             SimpleLinkedListNode<T>    *sentinelNode;
-            void BaseAppendNode(SimpleLinkedListNode<T> *currentNode, SimpleLinkedListNode<T> *newNode) {
-                newNode->nextNode = currentNode->nextNode;
-                newNode->previousNode = currentNode;
-                currentNode->nextNode->previousNode = newNode;
-                currentNode->nextNode = newNode;
-            } 
-            
-            void AppendHead(SimpleLinkedListNode<T> *newNode) {
-                BaseAppendNode(sentinelNode, newNode);
-            }
-
-            void AppendTail(SimpleLinkedListNode<T> *newNode) {
-                BaseAppendNode(sentinelNode->previousNode, newNode);
-            }
-
-            SimpleLinkedListNode<T>* BaseRemoveNode(SimpleLinkedListNode<T> *node) {
-                if(node != sentinelNode) {
-                    node->previousNode->nextNode = node->nextNode;
-                    node->nextNode->previousNode = node->previousNode;
-                    node->previousNode = node->nextNode = NULL;
-                }
-                return node;
-            }
+            void BaseAppendNode(SimpleLinkedListNode<T> *currentNode, SimpleLinkedListNode<T> *newNode);
+            void AppendHead(SimpleLinkedListNode<T> *newNode);
+            void AppendTail(SimpleLinkedListNode<T> *newNode);
+            SimpleLinkedListNode<T>* BaseRemoveNode(SimpleLinkedListNode<T> *node);
    
         public:
-            SimpleLinkedList() {
-                sentinelNode = new SimpleLinkedListNode<T>();
-                sentinelNode->nextNode = sentinelNode;
-                sentinelNode->previousNode = sentinelNode;
-            }
+            SimpleLinkedList();
+            ~SimpleLinkedList();
 
-            ~SimpleLinkedList() {
-                delete sentinelNode;
-            }
+            bool InsertHead(T nodeData);
+            bool InsertTail(T nodeData);
 
-            bool InsertHead(T nodeData) {
-                bool returnValue = false;
+            T RemoveHead();
+            T RemoveTail();
 
-                SimpleLinkedListNode<T> *newNode = new SimpleLinkedListNode<T>();
-                returnValue = (newNode != NULL);
-
-                if(returnValue) {
-                    newNode->nodeData = nodeData;
-                    AppendHead(newNode);
-                }
-
-                return returnValue;
-            }
-        
-            bool InsertTail(T nodeData) {
-                bool returnValue = false;
-
-                SimpleLinkedListNode<T> *newNode = new SimpleLinkedListNode<T>();
-                returnValue = (newNode != NULL);
-
-                if(returnValue) {
-                    newNode->nodeData = nodeData;
-                    AppendTail(newNode);
-                }
-
-                return returnValue;
-            }
-
-            T RemoveHead() {
-                SimpleLinkedListNode<T> *tempNode = BaseRemoveNode(sentinelNode->nextNode);
-                T tempNodeData = tempNode->nodeData;
-                delete tempNode;
-
-                return tempNodeData;
-            }
-
-            T RemoveTail() {
-                SimpleLinkedListNode<T> *tempNode = BaseRemoveNode(sentinelNode->previousNode);
-                T tempNodeData = tempNode->nodeData;
-                delete tempNode;
-
-                return tempNodeData;
-            }
-
-            SimpleLinkedListIterator<T>* GetIterator() {
-                SimpleLinkedListIterator<T> *tempIterator = new SimpleLinkedListIterator<T>(this);
-                return tempIterator;
-            }
+            SimpleLinkedListIterator<T>* GetIterator();
     };
 
 }

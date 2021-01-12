@@ -31,7 +31,6 @@ namespace MARTe {
             virtual void SetReady(bool readyStatus) = 0;
     };
 
-
 }
 
 #endif

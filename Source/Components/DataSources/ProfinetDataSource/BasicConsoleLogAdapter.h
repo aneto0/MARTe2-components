@@ -37,15 +37,8 @@ namespace MARTe {
             ProfinetDataSourceDriver::log_adapter_level_t minimumLevel;
 
         public:
-            BasicConsoleLogAdapter(ProfinetDataSourceDriver::log_adapter_level_t minimumLevel = ProfinetDataSourceDriver::LogLevel_Debug) {
-                this->minimumLevel = minimumLevel;
-            }
-
-        virtual void Log(ProfinetDataSourceDriver::log_adapter_level_t logLevel, std::string message) {
-            if(logLevel >= minimumLevel) {
-                REPORT_ERROR_STATIC(ErrorManagement::Information, message.c_str());
-            }
-        }
+            BasicConsoleLogAdapter(ProfinetDataSourceDriver::log_adapter_level_t minimumLevel = ProfinetDataSourceDriver::LogLevel_Debug);
+            virtual void Log(ProfinetDataSourceDriver::log_adapter_level_t logLevel, std::string message);
     };
 }
 
