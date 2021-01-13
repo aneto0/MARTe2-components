@@ -30,7 +30,8 @@ SPB    = EpicsDataSource.x \
         LinkDataSource.x \
         LoggerDataSource.x \
         RealTimeThreadAsyncBridge.x \
-        RealTimeThreadSynchronisation.x
+        RealTimeThreadSynchronisation.x \
+        ProfinetDataSource.x
 
 ifdef CODAC_ROOT
 SPB+=DAN.x
@@ -113,6 +114,8 @@ endif
 ifdef OPEN62541_INCLUDE
 LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUADataSource/OPCUADataSourceTest$(LIBEXT)
 endif
+
+LIBRARIES_STATIC+=$(BUILD_DIR)/ProfinetDataSource/ProfinetDataSourceTest$(LIBEXT)
 
 all: $(OBJS) $(SUBPROJ) \
     $(BUILD_DIR)/DataSourcesTests$(LIBEXT)
