@@ -1,8 +1,8 @@
 /**
  * @file ProfinetDataSourceTypes.h
- * @brief   Data structure for Profinet adaptation.
- * @date 
- * @author
+ * @brief Header file for class ProfinetDataSourceTypes 
+ * @date 15/01/2021
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -16,7 +16,8 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class BasicConsoleLogAdapter
+ * @details This header file contains the declaration of the ancillary classes 
+ * which can be grouped under the name ProfinetDataSourceTypes
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
@@ -28,8 +29,9 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <string>
+#include <pnet_api.h>
 #include <stdint.h>
+#include <string>
 
 #define PNET_MAX_DIRECTORYPATH_LENGTH 4095
 
@@ -39,7 +41,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include <pnet_api.h>
 #include "ProfinetDataStructure.h"
 
 #ifndef BIT

@@ -1,8 +1,8 @@
 /**
  * @file BasicConsoleLogAdapter.h
- * @brief Header file for the Basic Console Log Adapter
- * @date 
- * @author
+ * @brief Header file for class BasicConsoleLogAdapter
+ * @date 15/01/2021
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -31,7 +31,6 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
 #include "ILoggerAdapter.h"
 
 
@@ -40,15 +39,16 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
+    
         /**
-        * @brief The basic console log adapter.
+        * @brief The basic console log adapter
         * @details  Routes the log through the REPORT_ERROR_STATIC MARTe facility, to allow non-MARTe
-        *           diagnostic output. Provides also a log level specification in output.
+        * diagnostic output. Provides also a log level specification in output.
         */
         class BasicConsoleLogAdapter : public ProfinetDataSourceDriver::ILoggerAdapter {
         private:
             /**
-             * @brief Holds the minimum logging level.
+             * Holds the minimum logging level.
              */
             ProfinetDataSourceDriver::log_adapter_level_t minimumLevel;
 
@@ -60,7 +60,7 @@ namespace MARTe {
             BasicConsoleLogAdapter(ProfinetDataSourceDriver::log_adapter_level_t minimumLevel = ProfinetDataSourceDriver::LogLevel_Debug);
 
             /**
-             * @brief The log method, which outputs to the console, using the MARTE2 REPORT_ERROR facility, the intended message.
+             * @brief The log method, which outputs to the console, using the MARTE2 REPORT_ERROR facility, the intended message
              * @param[in] logLevel The level of the message to log.
              * @param[in] message The message that has to be logged.
              */

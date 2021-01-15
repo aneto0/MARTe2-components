@@ -1,8 +1,8 @@
 /**
  * @file ProfinetDataSourceAdapter.h
- * @brief Header for the adaptation layer between MARTe DataSource and Profinet underlying library (p-net).
- * @date 
- * @author
+ * @brief Header file for class ProfinetDataSourceAdapter
+ * @date 15/01/2021
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -44,8 +44,8 @@
 #include "CompilerTypes.h"
 #include "ICyclicNotifiable.h"
 #include "ILoggerAdapter.h"
-#include "IProfinetEventNotifiable.h"
 #include "IOperationalSignalsEntryPoint.h"
+#include "IProfinetEventNotifiable.h"
 #include "MutexSem.h"
 #include "ProfinetDataSourceTypes.h"
 #include "ProfinetEventType.h"

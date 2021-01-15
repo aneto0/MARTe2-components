@@ -1,8 +1,8 @@
 /**
  * @file ProfinetMainThreadHelper.cpp
- * @brief Source for the  Main Thread helper to call Profinet library entry point.
- * @date 
- * @author
+ * @brief Source file for class ProfinetMainThreadHelper 
+ * @date 15/01/2021
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

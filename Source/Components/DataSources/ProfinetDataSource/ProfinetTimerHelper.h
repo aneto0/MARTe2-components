@@ -1,8 +1,8 @@
 /**
  * @file ProfinetTimerHelper.h
- * @brief Header for the TimerHelper Service for Profinet cyclic handling.
- * @date 
- * @author
+ * @brief Header file for class ProfinetTimerHelper
+ * @date 15/01/2021
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

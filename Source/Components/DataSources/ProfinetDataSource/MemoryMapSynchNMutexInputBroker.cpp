@@ -1,8 +1,8 @@
 /**
  * @file MemoryMapSynchNMutexInputBroker.cpp
- * @brief Source file for the Specialized MemoryMapInputBroker with input-related synch features.
- * @date 
- * @author
+ * @brief Source file for class MemoryMapSynchNMutexInputBroker
+ * @date 15/01/2021
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

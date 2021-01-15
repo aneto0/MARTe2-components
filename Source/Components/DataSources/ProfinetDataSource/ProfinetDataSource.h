@@ -1,8 +1,8 @@
 /**
  * @file ProfinetDataSource.h
- * @brief Header file for the Profinet DataSource
- * @date 
- * @author
+ * @brief Header file for class ProfinetDataSource
+ * @date 15/01/2021
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -32,16 +32,16 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "BasicConsoleLogAdapter.h"
-#include "CompilerTypes.h"
 #include "CRC.h"
+#include "CompilerTypes.h"
 #include "DataSourceI.h"
 #include "EmbeddedServiceMethodBinderT.h"
 #include "Endianity.h"
 #include "FastPollingMutexSem.h"
 #include "HighResolutionTimer.h"
 #include "ICyclicNotifiable.h"
-#include "IProfinetEventNotifiable.h"
 #include "IOperationalSignalsEntryPoint.h"
+#include "IProfinetEventNotifiable.h"
 #include "ISynchronisableInput.h"
 #include "ISynchronisableOutput.h"
 #include "MemoryMapSynchNMutexInputBroker.h"
