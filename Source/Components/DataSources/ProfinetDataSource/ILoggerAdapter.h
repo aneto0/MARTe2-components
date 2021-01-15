@@ -16,19 +16,35 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details     Provides an abstraction to become able to provide logging / printing capabilities
- *              from inner classes, decoupling from MARTe specifics. This interface allows the usage of
- *              a generic Log() method from the inner classes which can be conveniently routed to the
- *              MARTe REPORT_ERROR() facility once implementing the DataSource
+ * @details This header file contains the declaration of the class (interface) ILoggerAdapter
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
  */
 
 #ifndef __PROFINET_DATASOURCE_ILOGGERADAPTER_H__
 #define __PROFINET_DATASOURCE_ILOGGERADAPTER_H__
 
+/*---------------------------------------------------------------------------*/
+/*                        Standard header includes                           */
+/*---------------------------------------------------------------------------*/
+
 #include <string>
+
+
+/*---------------------------------------------------------------------------*/
+/*                        Project header includes                            */
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                           Class declaration                               */
+/*---------------------------------------------------------------------------*/
 
 namespace ProfinetDataSourceDriver {
 
+    /**
+    * @brief Allowed log levels for the ILogAdapter class
+    */
     typedef enum logadapter_level {
         LogLevel_Debug      = 0,
         LogLevel_Info       = 1,
@@ -36,6 +52,14 @@ namespace ProfinetDataSourceDriver {
         LogLevel_Error      = 3
     }log_adapter_level_t;
 
+
+    /**
+    * @brief    Interface for a simple generic log adaptation.
+    * @details  Abstraction to allow logging / printing capabilities from inner classes, decoupling 
+    *           from MARTe specifics. This interface allows the usage of
+    *           a generic Log() method from the inner classes which can be conveniently routed to the
+    *           MARTe REPORT_ERROR() facility once implementing the DataSource.
+    */
     class ILoggerAdapter {
         
         public:
@@ -44,5 +68,9 @@ namespace ProfinetDataSourceDriver {
     };
 
 }
+
+/*---------------------------------------------------------------------------*/
+/*                        Inline method definitions                          */
+/*---------------------------------------------------------------------------*/
 
 #endif /* __PROFINET_DATASOURCE_ILOGGERADAPTER_H__ */

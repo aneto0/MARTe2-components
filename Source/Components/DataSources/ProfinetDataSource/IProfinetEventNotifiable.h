@@ -16,23 +16,49 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details     Provides the notification entry point for the adapter, in order
- *              to allow bubbling-up of the events generated inside the Profinet underlying
- *              level
+ * @details This header file contains the declaration of the class (interface) IProfinetEventiNotifiable
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
  */
 
 #ifndef DATASOURCES_PROFINET_IPROFINETEVENTNOTIFIABLE_H_
 #define DATASOURCES_PROFINET_IPROFINETEVENTNOTIFIABLE_H_
 
+/*---------------------------------------------------------------------------*/
+/*                        Standard header includes                           */
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                        Project header includes                            */
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                           Class declaration                               */
+/*---------------------------------------------------------------------------*/
+
 #include "ProfinetEventType.h"
 
 namespace MARTe {
-
+    /**
+     * @brief   Provides the notification entry point for the adapter, in order
+     *          to allow bubbling-up of the events generated inside the Profinet underlying
+     *          level.
+     */
     class IProfinetEventNotifiable {
         public:
+            /**
+             * @brief Notification entry point for the listener (implementer).
+             * @param[in] eventType The type of event generated in the underlying level.
+             */
             virtual void NotifyEvent(ProfinetDataSourceEventType eventType) = 0;
     };
 
 }
+
+/*---------------------------------------------------------------------------*/
+/*                        Inline method definitions                          */
+/*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_IPROFINETEVENTNOTIFIABLE_H_ */

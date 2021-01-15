@@ -16,29 +16,29 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details     Set of nested containers, which represents the typical Profinet peripheral hierarchy.
- *              A peripheral is a module, which can contain submodules. Each module is hosted into a slot
- *              while each submodule in a subslot. A slot can contain 1:N subslots, which once declared, are
- *              plugged at runtime by the Profinet library.
- *              NOTE: As the DataSource can (potentially) emulate every Profinet peripheral, every possible configuration
- *              could be specified. Configuration from the peripheral side must match the one loaded with GSDML on the master side.
- *              This is why two "configuration endpoints" exists:
- *              - expectedConfigurationData = what is specified from the peripheral side in the configuration file (which should somehow match the GSDML)
- *              - masterConfigurationData = what the master says about the Profinet peripheral, as specified in the GSDML.
- *              When running, the two must match, otherwise no memory mapping can occur and no runtime plugging can happen.
+ * @details This header file contains the declaration of the class BasicConsoleLogAdapter
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
  */
 
 #ifndef __PNET_DATASOURCE_TYPES_H__
 #define __PNET_DATASOURCE_TYPES_H__
 
+
+/*---------------------------------------------------------------------------*/
+/*                         Standard header includes                          */
+/*---------------------------------------------------------------------------*/
 #include <string>
 #include <stdint.h>
 
 #define PNET_MAX_DIRECTORYPATH_LENGTH 4095
 
-//Do not move. Inclusion order needed as previous define is used in pnet_api.h afterwards.
+//Do not move from here. Inclusion order needed as previous define is used in pnet_api.h afterwards.
 //TODO: move PNET_MAX_DIRECTORYPATH_LENGTH in compiler symbols to avoid this.
 
+/*---------------------------------------------------------------------------*/
+/*                         Project header includes                           */
+/*---------------------------------------------------------------------------*/
 #include <pnet_api.h>
 #include "ProfinetDataStructure.h"
 
@@ -48,6 +48,9 @@
 
 namespace ProfinetDataSourceDriver {
 
+    /**
+     * @brief Allowed directions for a sub-module data
+     */
     typedef enum pnet_submodule_direction
     {
         NoInputOutput,
@@ -55,7 +58,19 @@ namespace ProfinetDataSourceDriver {
         Output,
         InputOutput
     } pnet_submodule_direction_t;
-
+    
+    /**
+     * @details     Set of nested / nestable containers, which represents the typical Profinet peripheral hierarchy.
+     *              A peripheral is a module, which can contain submodules. Each module is hosted into a slot
+     *              while each submodule in a subslot. A slot can contain 1:N subslots, which once declared, are
+     *              plugged at runtime by the Profinet library.
+     *              NOTE: As the DataSource can (potentially) emulate every Profinet peripheral, every possible configuration
+     *              could be specified. Configuration from the peripheral side must match the one loaded with GSDML on the master side.
+     *              This is why two "configuration endpoints" exists:
+     *              - expectedConfigurationData = what is specified from the peripheral side in the configuration file (which should somehow match the GSDML)
+     *              - masterConfigurationData = what the master says about the Profinet peripheral, as specified in the GSDML.
+     *              When running, the two must match, otherwise no memory mapping can occur and no runtime plugging can happen.
+    */
     typedef struct pnet_subslot {
         bool                isDeviceAccessPoint;
         bool                masterAdded;
@@ -103,6 +118,18 @@ namespace ProfinetDataSourceDriver {
 
     }pnet_subslot_t;
 
+    /**
+     * @details     Set of nested / nestable containers, which represents the typical Profinet peripheral hierarchy.
+     *              A peripheral is a module, which can contain submodules. Each module is hosted into a slot
+     *              while each submodule in a subslot. A slot can contain 1:N subslots, which once declared, are
+     *              plugged at runtime by the Profinet library.
+     *              NOTE: As the DataSource can (potentially) emulate every Profinet peripheral, every possible configuration
+     *              could be specified. Configuration from the peripheral side must match the one loaded with GSDML on the master side.
+     *              This is why two "configuration endpoints" exists:
+     *              - expectedConfigurationData = what is specified from the peripheral side in the configuration file (which should somehow match the GSDML)
+     *              - masterConfigurationData = what the master says about the Profinet peripheral, as specified in the GSDML.
+     *              When running, the two must match, otherwise no memory mapping can occur and no runtime plugging can happen.
+    */
     typedef struct pnet_slot {
         bool                                masterAdded;
         bool                                configAdded;
@@ -121,6 +148,9 @@ namespace ProfinetDataSourceDriver {
 
     }pnet_slot_t;
 
+    /**
+     * @brief Describes for the specific API Identifier the AREP (application relationship identifier). Currently single AREP supported.
+     */
     typedef struct pnet_api {
         uint32_t                            apiIdentifier;
         uint32_t                            appRelationshipIdentifier;
@@ -128,6 +158,9 @@ namespace ProfinetDataSourceDriver {
         SimpleLinkedList<pnet_slot_t*>      slots;
     }pnet_api_t;
 
+    /**
+     * @brief Defines the event flag that can occur during Profinet stack execution.
+     */
     typedef enum pnet_event {
         ReadyForData    = BIT (0),
         Timer           = BIT (1),
@@ -135,6 +168,9 @@ namespace ProfinetDataSourceDriver {
         Abort           = BIT (15)
     }pnet_event_t;
 
+    /**
+     * @brief Allowed values for the Software Revision Field inside the Identification and Maintainance Data (I&M Data)
+     */
     typedef enum {
         SwRev_V = 'V',
         SwRev_R = 'R',

@@ -1,6 +1,6 @@
 /**
- * @file
- * @brief
+ * @file ProfinetDataSource.h
+ * @brief Source file for the Profinet DataSource
  * @date
  * @author
  *
@@ -16,24 +16,26 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details 
+  * @details This header file contains the declaration of the class ProfinetDataSource
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
  */
 
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include <iostream>
+
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
-#include <iostream>
-
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "ILoggerAdapter.h"
 #include "ProfinetDataSource.h"
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

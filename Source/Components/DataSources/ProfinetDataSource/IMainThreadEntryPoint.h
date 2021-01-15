@@ -16,20 +16,48 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details     Provides the entry point for the main thread service, which will
- *              call in a loop the MainThread method.
+ * @details This header file contains the declaration of the class (interface) IMainThreadEntryPoint
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
  */
 
 #ifndef DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_
 #define DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_
 
-namespace MARTe {
+/*---------------------------------------------------------------------------*/
+/*                        Standard header includes                           */
+/*---------------------------------------------------------------------------*/
 
+
+/*---------------------------------------------------------------------------*/
+/*                        Project header includes                            */
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                           Class declaration                               */
+/*---------------------------------------------------------------------------*/
+
+namespace MARTe {
+    /**
+    * @brief Provides an entrypoint for the main thread executor.
+    * @details  Provides a convenient entry-point with status flag management
+    *           for the main thread.
+    */
     class IMainThreadEntryPoint {
         public:
+            /**
+             * @brief Main thread entry-point.
+             * @param[in] inputFlag The current status flag.
+             * @return The status flag after processing.
+             */
             virtual uint16 MainThread(uint16 inputFlag) = 0;
     };
 
 }
+
+/*---------------------------------------------------------------------------*/
+/*                        Inline method definitions                          */
+/*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_ */

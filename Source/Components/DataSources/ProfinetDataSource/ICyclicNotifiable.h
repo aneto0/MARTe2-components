@@ -16,21 +16,42 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details     Provides an interface which is used to push a notification every cycle execution.
- *              It is meant to decouple the Profinet Adapter from the DataSource specifics, in term of
- *              notification for each execution cycle.
+ * @details This header file contains the declaration of the class (interface) ICyclicNotifiable
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
  */
 
 #ifndef DATASOURCES_PROFINET_ICYCLICNOTIFIABLE_H_
 #define DATASOURCES_PROFINET_ICYCLICNOTIFIABLE_H_
+
+/*---------------------------------------------------------------------------*/
+/*                        Standard header includes                           */
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                        Project header includes                            */
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                           Class declaration                               */
+/*---------------------------------------------------------------------------*/
 
 namespace ProfinetDataSourceDriver
 {
    
     class ICyclicNotifiable {
         public:
+            /**
+             * @brief Entry point for the notification of a cyclic update.
+             */ 
             virtual void NotifyCycle() = 0;
     };
 }
+
+/*---------------------------------------------------------------------------*/
+/*                        Inline method definitions                          */
+/*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_ICYCLICNOTIFIABLE_H_ */

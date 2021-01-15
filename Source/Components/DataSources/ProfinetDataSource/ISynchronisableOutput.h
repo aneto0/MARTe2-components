@@ -16,19 +16,45 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details     Defines a specialization of the MARTe default Synchronise method
- *              in which differentiation between input and output synchronisation
- *              shall occur.
+ * @details This header file contains the declaration of the class (interface) ISynchronisableOutput
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
  */
 
 #ifndef DATASOURCES_PROFINET_ISYNCHRONISABLEOUTPUT_H_
 #define DATASOURCES_PROFINET_ISYNCHRONISABLEOUTPUT_H_
 
+/*---------------------------------------------------------------------------*/
+/*                        Standard header includes                           */
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                        Project header includes                            */
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                           Class declaration                               */
+/*---------------------------------------------------------------------------*/
+
 namespace MARTe {
+    /**
+     * @brief   Defines a specialization of the MARTe default Synchronise method
+     *          in which differentiation between input and output synchronisation
+     *          shall occur.
+     */
     class ISynchronisableOutput {
         public:
+            /**
+             * @brief Entry point to inform that an output synchronisation is occurring.
+             */
             virtual bool SynchroniseOutput() = 0;
     };
 }
+
+/*---------------------------------------------------------------------------*/
+/*                        Inline method definitions                          */
+/*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_ISYNCHRONISABLEOUTPUT_H_ */

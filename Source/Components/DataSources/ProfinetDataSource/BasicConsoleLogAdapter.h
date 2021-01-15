@@ -16,7 +16,7 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class ProfinetDataSource
+ * @details This header file contains the declaration of the class BasicConsoleLogAdapter
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
@@ -24,7 +24,20 @@
 #ifndef DATASOURCES_PROFINET_BASICCONSOLELOGADAPTER_H_
 #define DATASOURCES_PROFINET_BASICCONSOLELOGADAPTER_H_
 
+/*---------------------------------------------------------------------------*/
+/*                        Standard header includes                           */
+/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+/*                        Project header includes                            */
+/*---------------------------------------------------------------------------*/
+
 #include "ILoggerAdapter.h"
+
+
+/*---------------------------------------------------------------------------*/
+/*                           Class declaration                               */
+/*---------------------------------------------------------------------------*/
 
 namespace MARTe {
         /**
@@ -34,10 +47,23 @@ namespace MARTe {
         */
         class BasicConsoleLogAdapter : public ProfinetDataSourceDriver::ILoggerAdapter {
         private:
+            /**
+             * @brief Holds the minimum logging level.
+             */
             ProfinetDataSourceDriver::log_adapter_level_t minimumLevel;
 
         public:
+            /**
+             * @brief Parametrized constructor
+             * @param[in] minimumLevel Defines the minimum log level needed for the logger to produce an output. Defaults to log level DEBUG.
+             */
             BasicConsoleLogAdapter(ProfinetDataSourceDriver::log_adapter_level_t minimumLevel = ProfinetDataSourceDriver::LogLevel_Debug);
+
+            /**
+             * @brief The log method, which outputs to the console, using the MARTE2 REPORT_ERROR facility, the intended message.
+             * @param[in] logLevel The level of the message to log.
+             * @param[in] message The message that has to be logged.
+             */
             virtual void Log(ProfinetDataSourceDriver::log_adapter_level_t logLevel, std::string message);
     };
 }
