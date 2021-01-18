@@ -51,7 +51,8 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 INCLUDES += -I../../../../Source/Components/DataSources/ProfinetDataSource
 
 all: $(OBJS) \
-	$(BUILD_DIR)/ProfinetDataSourceTest$(LIBEXT)
+	$(BUILD_DIR)/ProfinetDataSourceTest$(LIBEXT) \
+	$(BUILD_DIR)/ProfinetDataStructureTest$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)
