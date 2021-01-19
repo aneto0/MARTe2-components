@@ -1,8 +1,8 @@
 /**
- * @file
- * @brief
- * @date
- * @author
+ * @file ProfinetDataSource.cpp
+ * @brief Source file for class ProfinetDataSource
+ * @date 15/01/2021
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -16,24 +16,26 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details 
+  * @details This header file contains the declaration of the class ProfinetDataSource
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
  */
 
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include <iostream>
+
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
-#include <iostream>
-
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "ILoggerAdapter.h"
 #include "ProfinetDataSource.h"
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -88,7 +90,7 @@ namespace MARTe {
             periodicIntervalus = tempPeriodicIntervalus;
             reductionRatio = tempReductionRatio;
 
-            ProfinetDataSourceDriver::ILoggerAdapter *log = new BasicConsoleLogAdapter();
+            ProfinetDataSourceDriver::ILoggerAdapter *log = new ProfinetToMARTeLogAdapter();
             adapter = new ProfinetDataSourceDriver::ProfinetDataSourceAdapter(networkInterface.Buffer(), periodicIntervalus, stationName.Buffer(), reductionRatio, log);
 
             if(adapter != NULL_PTR(ProfinetDataSourceDriver::ProfinetDataSourceAdapter *)) {

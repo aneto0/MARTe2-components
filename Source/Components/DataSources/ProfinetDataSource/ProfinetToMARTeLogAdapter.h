@@ -1,6 +1,6 @@
 /**
- * @file IMainThreadEntryPoint.h
- * @brief Header file for class IMainThreadEntryPoint
+ * @file ProfinetToMARTeLogAdapter.h
+ * @brief Header file for class ProfinetToMARTeLogAdapter
  * @date 15/01/2021
  * @author Giuseppe Avon
  *
@@ -16,22 +16,22 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class (interface) IMainThreadEntryPoint
+ * @details This header file contains the declaration of the class ProfinetToMARTeLogAdapter
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_
-#define DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_
+#ifndef DATASOURCES_PROFINET_PROFINETTOMARTELOGADAPTER_H_
+#define DATASOURCES_PROFINET_PROFINETTOMARTELOGADAPTER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "ILoggerAdapter.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -39,25 +39,33 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-    /**
-    * @brief Provides an entrypoint for the main thread executor.
-    * @details  Provides a convenient entry-point with status flag management
-    *           for the main thread.
-    */
-    class IMainThreadEntryPoint {
+    
+        /**
+        * @brief The basic console log adapter
+        * @details  Routes the log through the REPORT_ERROR_STATIC MARTe facility, to allow non-MARTe
+        * diagnostic output. Provides also a log level specification in output.
+        */
+        class ProfinetToMARTeLogAdapter : public ProfinetDataSourceDriver::ILoggerAdapter {
+        private:
+            /**
+             * Holds the minimum logging level.
+             */
+            ProfinetDataSourceDriver::log_adapter_level_t minimumLevel;
+
         public:
             /**
-             * @brief Main thread entry-point.
-             * @param[in] inputFlag The current status flag.
-             * @return The status flag after processing.
+             * @brief Parametrized constructor
+             * @param[in] minimumLevel Defines the minimum log level needed for the logger to produce an output. Defaults to log level DEBUG.
              */
-            virtual uint16 MainThread(uint16 inputFlag) = 0;
-    };
+            ProfinetToMARTeLogAdapter(ProfinetDataSourceDriver::log_adapter_level_t minimumLevel = ProfinetDataSourceDriver::LogLevel_Debug);
 
+            /**
+             * @brief The log method, which outputs to the console, using the MARTE2 REPORT_ERROR facility, the intended message
+             * @param[in] logLevel The level of the message to log.
+             * @param[in] message The message that has to be logged.
+             */
+            virtual void Log(ProfinetDataSourceDriver::log_adapter_level_t logLevel, std::string message);
+    };
 }
 
-/*---------------------------------------------------------------------------*/
-/*                        Inline method definitions                          */
-/*---------------------------------------------------------------------------*/
-
-#endif /* DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_ */
+#endif /* DATASOURCES_PROFINET_PROFINETTOMARTELOGADAPTER_H_ */

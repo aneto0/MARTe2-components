@@ -1,7 +1,7 @@
 /**
- * @file IMainThreadEntryPoint.h
- * @brief Header file for class IMainThreadEntryPoint
- * @date 15/01/2021
+ * @file ProfinetDataSourceAdapterTest.h
+ * @brief Header file for class ProfinetDataSourceAdapterTest
+ * @date 18/01/2021
  * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class (interface) IMainThreadEntryPoint
+ * @details This header file contains the declaration of the class ProfinetDataSourceAdapterTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_
-#define DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_
+#ifndef __PROFINET_DATASOURCE_ADAPTER_TEST_H__
+#define __PROFINET_DATASOURCE_ADAPTER_TEST_H__
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -32,32 +32,58 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
+#include "ProfinetToMARTeLogAdapter.h"
+#include "ILoggerAdapter.h"
+#include "ProfinetDataSourceAdapter.h"
+#include "ProfinetDataSourceAdapterTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-namespace MARTe {
-    /**
-    * @brief Provides an entrypoint for the main thread executor.
-    * @details  Provides a convenient entry-point with status flag management
-    *           for the main thread.
-    */
-    class IMainThreadEntryPoint {
-        public:
-            /**
-             * @brief Main thread entry-point.
-             * @param[in] inputFlag The current status flag.
-             * @return The status flag after processing.
-             */
-            virtual uint16 MainThread(uint16 inputFlag) = 0;
-    };
 
-}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+class ProfinetDataSourceAdapterTest {
+    private:
+        bool EnvironmentSetup();
 
-#endif /* DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_ */
+    public:
+        bool TestConstructor();
+
+         bool TestSetBaseData();
+
+        bool TestSetIdentificationAndMaintainanceData();
+        
+        // bool TestSetLLDPData();
+
+        // bool TestAddSlot();
+
+        // bool TestAddSubslot();
+
+        // bool TestGetSubslot();
+
+        // bool TestInitialize();
+
+        // bool TestMainThread();
+
+        // bool TestTaskTimerTick();
+
+        // bool TestGetLedStatus();
+
+        // bool TestGetDefaultLLDPRTClass2Status();
+
+        // bool TestGetDefaultLLDPRTClass3Status();
+
+        // bool TestGetDefaultLLDPAutonegotiationCapability();
+
+        // bool TestGetDefaultLLDPAutonegotiationSpeed();
+
+        // bool TestGetDefaultLLDPMAUType();
+
+        // bool TestIPv4U32toQuadU8();
+
+};
+#endif /* __PROFINET_DATASOURCE_ADAPTER_TEST_H__ */ 

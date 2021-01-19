@@ -1,8 +1,8 @@
 /**
- * @file ICyclicNotifiable.h
- * @brief Header file for class ICyclicNotifiable
- * @date 15/01/2021
- * @author Giuseppe Avon
+ * @file ProfinetDataSourceAdapterGTest.cpp
+ * @brief Source file for class ProfinetDataSourceGTest
+ * @date 14/02/2017
+ * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -16,42 +16,35 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class (interface) ICyclicNotifiable
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This source file contains the definition of all the methods for
+ * the class ProfinetDataSourceGTest (public, protected, and private). Be aware that some
+ * methods, such as those inline could be defined on the header file, instead.
  */
 
-#ifndef DATASOURCES_PROFINET_ICYCLICNOTIFIABLE_H_
-#define DATASOURCES_PROFINET_ICYCLICNOTIFIABLE_H_
+/*---------------------------------------------------------------------------*/
+/*                         Standard header includes                          */
+/*---------------------------------------------------------------------------*/
+#include <limits.h>
+#include "gtest/gtest.h"
 
 /*---------------------------------------------------------------------------*/
-/*                        Standard header includes                           */
+/*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
-
-/*---------------------------------------------------------------------------*/
-/*                        Project header includes                            */
-/*---------------------------------------------------------------------------*/
-
+#include "ProfinetDataSourceAdapterTest.h"
 
 /*---------------------------------------------------------------------------*/
-/*                           Class declaration                               */
+/*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-namespace ProfinetDataSourceDriver
-{
-   
-    class ICyclicNotifiable {
-        public:
-            /**
-             * @brief Entry point for the notification of a cyclic update.
-             */ 
-            virtual void NotifyCycle() = 0;
-    };
+/*---------------------------------------------------------------------------*/
+/*                           Method definitions                              */
+/*---------------------------------------------------------------------------*/
+TEST(ProfinetDataSourceAdapterGTest, TestConstructor) {
+    ProfinetDataSourceAdapterTest test;
+    ASSERT_TRUE(test.TestConstructor());
 }
 
-/*---------------------------------------------------------------------------*/
-/*                        Inline method definitions                          */
-/*---------------------------------------------------------------------------*/
-
-#endif /* DATASOURCES_PROFINET_ICYCLICNOTIFIABLE_H_ */
+TEST(ProfinetDataSourceAdapterGTest, TestSetBaseData) {
+    ProfinetDataSourceAdapterTest test;
+    ASSERT_TRUE(test.TestSetBaseData());
+}

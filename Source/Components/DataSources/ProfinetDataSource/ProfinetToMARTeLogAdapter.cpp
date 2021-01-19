@@ -1,6 +1,6 @@
 /**
- * @file IMainThreadEntryPoint.h
- * @brief Header file for class IMainThreadEntryPoint
+ * @file BasicConsoleLogAdapter.cpp
+ * @brief Source file for class BasicConsoleLogAdapter
  * @date 15/01/2021
  * @author Giuseppe Avon
  *
@@ -16,48 +16,43 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class (interface) IMainThreadEntryPoint
+ * @details This header file contains the declaration of the class BasicConsoleLogAdapter
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_
-#define DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_
-
 /*---------------------------------------------------------------------------*/
-/*                        Standard header includes                           */
+/*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 
 
 /*---------------------------------------------------------------------------*/
-/*                        Project header includes                            */
+/*                         Project header includes                           */
+/*---------------------------------------------------------------------------*/
+
+#include "AdvancedErrorManagement.h"
+#include "ProfinetToMARTeLogAdapter.h"
+
+
+/*---------------------------------------------------------------------------*/
+/*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
 
 /*---------------------------------------------------------------------------*/
-/*                           Class declaration                               */
+/*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-    /**
-    * @brief Provides an entrypoint for the main thread executor.
-    * @details  Provides a convenient entry-point with status flag management
-    *           for the main thread.
-    */
-    class IMainThreadEntryPoint {
-        public:
-            /**
-             * @brief Main thread entry-point.
-             * @param[in] inputFlag The current status flag.
-             * @return The status flag after processing.
-             */
-            virtual uint16 MainThread(uint16 inputFlag) = 0;
-    };
+
+    ProfinetToMARTeLogAdapter::ProfinetToMARTeLogAdapter(ProfinetDataSourceDriver::log_adapter_level_t minimumLevel) {
+        this->minimumLevel = minimumLevel;
+    }
+
+    void ProfinetToMARTeLogAdapter::Log(ProfinetDataSourceDriver::log_adapter_level_t logLevel, std::string message) {
+        if(logLevel >= minimumLevel) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, message.c_str());
+        }
+    }
 
 }
-
-/*---------------------------------------------------------------------------*/
-/*                        Inline method definitions                          */
-/*---------------------------------------------------------------------------*/
-
-#endif /* DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_ */

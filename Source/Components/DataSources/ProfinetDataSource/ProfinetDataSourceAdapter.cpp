@@ -1,4 +1,44 @@
+/**
+ * @file ProfinetDataSourceAdapter.cpp
+ * @brief Source file for class ProfinetDataSourceAdapter
+ * @date 15/01/2021
+ * @author Giuseppe Avon
+ *
+ * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
+ * the Development of Fusion Energy ('Fusion for Energy').
+ * Licensed under the EUPL, Version 1.1 or - as soon they will be approved
+ * by the European Commission - subsequent versions of the EUPL (the "Licence")
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+ *
+ * @warning Unless required by applicable law or agreed to in writing, 
+ * software distributed under the Licence is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the Licence permissions and limitations under the Licence.
+
+ * @details This header file contains the declaration of the class ProfinetDataSourceAdapter
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
+ */
+
+/*---------------------------------------------------------------------------*/
+/*                         Standard header includes                          */
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                         Project header includes                           */
+/*---------------------------------------------------------------------------*/
 #include "ProfinetDataSourceAdapter.h"
+
+/*---------------------------------------------------------------------------*/
+/*                           Static definitions                              */
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                           Method definitions                              */
+/*---------------------------------------------------------------------------*/
 
 namespace ProfinetDataSourceDriver {
 
@@ -81,6 +121,12 @@ namespace ProfinetDataSourceDriver {
         loggerAdapter->Log(LogLevel_Debug, outStr.str());
 
         return baseDataUp;
+    }
+
+    pnet_cfg_t ProfinetDataSourceAdapter::GetProfinetConfigurationHandle() {
+        pnet_cfg_t returnCfg = *profinetConfigurationHandle;
+
+        return returnCfg;
     }
 
     void ProfinetDataSourceAdapter::SetIdentificationAndMaintainanceData(
@@ -226,8 +272,8 @@ namespace ProfinetDataSourceDriver {
         strncpy(this->ethInterface, ethInterface.c_str(), PNDS_MAX_INTERFACE_NAME_SIZE);
         this->ethInterface[PNDS_MAX_INTERFACE_NAME_SIZE - 1] = '\0';
 
-        eventMask = ReadyForData | Timer | Alarm | Abort;
-        eventFlags = 0;
+        //eventMask = ReadyForData | Timer | Alarm | Abort;
+        //eventFlags = 0;
     }
 
     bool ProfinetDataSourceAdapter::Initialize() {
@@ -276,9 +322,8 @@ namespace ProfinetDataSourceDriver {
             if(profinetUp) {
                 pnet_show(profinetHandle, 0x2010);
 
-                threadUp = true;
                 cycles = 0;
-                events = os_event_create();
+                //events = os_event_create();
 
                 //mainThread = os_thread_create("mainThread", 15, 4096, mainThreadFunction, (void*)this);
                 //taskTimer = os_timer_create(periodicInterval, taskTimer_tick, (void*)this, false);
@@ -744,9 +789,9 @@ namespace ProfinetDataSourceDriver {
     //Endregion - Signal Led Management
 
     //Region - Thread and task timer mapper
-    void mainThreadFunction(void *arg) {
-        static_cast<ProfinetDataSourceAdapter*>(arg)->MainThread();
-    }
+    // void mainThreadFunction(void *arg) {
+    //     static_cast<ProfinetDataSourceAdapter*>(arg)->MainThread();
+    // }
 
 
     MARTe::uint16 ProfinetDataSourceAdapter::MainThread(MARTe::uint16 inputFlagMask) {
@@ -778,7 +823,7 @@ namespace ProfinetDataSourceDriver {
         return outputFlagMask;
     }
 
-    void ProfinetDataSourceAdapter::MainThread() {
+//    void ProfinetDataSourceAdapter::MainThread() {
         
 
         // os_event_wait(events, eventMask, &eventFlags, OS_WAIT_FOREVER);
@@ -809,15 +854,15 @@ namespace ProfinetDataSourceDriver {
         //     os_event_clr(events, Abort);
         // }
 
-    }
+//    }
 
-    void taskTimer_tick(os_timer_t *timer, void *arg) {
-        static_cast<ProfinetDataSourceAdapter*>(arg)->TaskTimerTick();
-    }
+    // void taskTimer_tick(os_timer_t *timer, void *arg) {
+    //     static_cast<ProfinetDataSourceAdapter*>(arg)->TaskTimerTick();
+    // }
 
-    void ledTimer_tick(os_timer_t *timer, void *arg) {
-        static_cast<ProfinetDataSourceAdapter*>(arg)->SetLedStatus(false);
-    }
+    // void ledTimer_tick(os_timer_t *timer, void *arg) {
+    //     static_cast<ProfinetDataSourceAdapter*>(arg)->SetLedStatus(false);
+    // }
 
     void ProfinetDataSourceAdapter::TaskTimerTick() {
         profinetEventNotificationListener->NotifyEvent(MARTe::ProfinetEventTimer);

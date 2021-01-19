@@ -1,8 +1,8 @@
 /**
  * @file ProfinetEventType.h
- * @brief   Bit flag enumeration to tell apart events.
- * @date 
- * @author
+ * @brief Header file for class ProfinetEventType
+ * @date 15/01/2021
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -16,8 +16,9 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details     Enumeration, structured as bit flag, to model occurring events in the underlying
- *              Profinet library. 
+ * @details This header file contains the declaration of the class (enum) ProfinetEventType
+ * with all of its public, protected and private members. It may also include
+ * definitions for inline methods which need to be visible to the compiler.
  */
 
 
@@ -29,7 +30,10 @@
 #endif
 
 namespace MARTe {
-    
+    /**
+    * @details     Enumeration, structured as bit flag, to model occurring events in the underlying
+    *              Profinet library. 
+    */
     typedef enum profinetdatasource_eventtype {
         ProfinetEventReadyForData    = BIT (0),
         ProfinetEventTimer           = BIT (1),
@@ -39,4 +43,4 @@ namespace MARTe {
 
 }
 
-#endif
+#endif /* DATASOURCES_PROFINET_PROFINETEVENTTYPE_H_ */
