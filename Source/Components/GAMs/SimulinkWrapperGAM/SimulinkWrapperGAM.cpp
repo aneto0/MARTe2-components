@@ -111,7 +111,7 @@ static const TypeMap typeLookUpTable[] = {
 };
 
 /**
- * @brief To implement a lookup table between C type names and MARTe type names.
+ * @brief To implement a lookup table between C type names and type sizes.
  */
 struct SizeMap {
     /**
@@ -194,6 +194,43 @@ static inline uint16 GetTypeSizeFromCTypeName(const char8* const cTypeNameIn) {
     return typeSizeOut;
 }
 
+static inline const char8* GetMARTeTypeNameFromEnumeratedTypes(const uint8 slEnumTypeIn) {
+    
+    MARTe::StreamString MARTeTypeNameOut;
+    
+    switch(slEnumTypeIn)
+    {
+    case SS_DOUBLE:
+        MARTeTypeNameOut = "float64";
+        break;
+    case SS_SINGLE:
+        MARTeTypeNameOut = "float32";
+        break;
+    case SS_INT8:
+        MARTeTypeNameOut = "int8";
+        break;
+    case SS_UINT8:
+        MARTeTypeNameOut = "uint8";
+        break;
+    case SS_INT16:
+        MARTeTypeNameOut = "int16";
+        break;
+    case SS_UINT16:
+        MARTeTypeNameOut = "uint16";
+        break;
+    case SS_INT32:
+        MARTeTypeNameOut = "int32";
+        break;
+    case SS_UINT32:
+        MARTeTypeNameOut = "uint32";
+        break;
+    default:
+        MARTeTypeNameOut = "void";
+        break;
+    }
+    
+    return MARTeTypeNameOut.Buffer();
+}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
