@@ -176,7 +176,7 @@ public:
 
     /**
      * @brief Destructor.
-     * @details Deletes the sentinel node.
+     * @details Calls the EmptyLinkedList method and deletes the sentinel node.
      */
     ~SimpleLinkedList();
 
@@ -230,8 +230,7 @@ public:
 
     /**
      * @brief Gets a new iterator to the linked list.
-     * @details The new linked list iterator shall be deleted after no
-     * longer being required.
+     * @details The caller method is responsbible for destructing the iterator.
      * @return Returns the linked list iterator or NULL if the operation was not successfull.
      */
     SimpleLinkedListIterator<T>* GetIterator();
@@ -294,10 +293,8 @@ namespace ProfinetDataSourceDriver {
     T SimpleLinkedListIterator<T>::Next() {
         T tempNodeData = T();
         if (currentNode != currentList->sentinelNode) {
-            if (currentNode != NULL) {
-                tempNodeData = currentNode->nodeData;
-                currentNode = currentNode->nextNode;
-            }
+            tempNodeData = currentNode->nodeData;
+            currentNode = currentNode->nextNode;
         }
         return tempNodeData;
     }
@@ -311,10 +308,8 @@ namespace ProfinetDataSourceDriver {
     T SimpleLinkedListIterator<T>::Previous() {
         T tempNodeData = T();
         if (currentNode != currentList->sentinelNode) {
-            if (currentNode != NULL) {
-                tempNodeData = currentNode->nodeData;
-                currentNode = currentNode->previousNode;
-            }
+            tempNodeData = currentNode->nodeData;
+            currentNode = currentNode->previousNode;
         }
         return tempNodeData;
     }
@@ -333,6 +328,7 @@ namespace ProfinetDataSourceDriver {
 
     template <class T>
     SimpleLinkedList<T>::~SimpleLinkedList() {
+        EmptyLinkedList();
         if (sentinelNode != NULL) {
             delete sentinelNode;
             sentinelNode = NULL;
@@ -404,10 +400,13 @@ namespace ProfinetDataSourceDriver {
 
     template <class T>
     bool SimpleLinkedList<T>::LinkedListStatus() {
-        SimpleLinkedListNode<T> *tempNode = NULL;
         bool ok = true;
-        ok = (sentinelNode->previousNode != sentinelNode);
-        ok = (sentinelNode->nextNode != sentinelNode);
+        if (ok) {
+            ok = (sentinelNode->previousNode != sentinelNode);
+        }
+        if (ok) {
+            ok = (sentinelNode->nextNode != sentinelNode);
+        }
         return ok;
     }
 
