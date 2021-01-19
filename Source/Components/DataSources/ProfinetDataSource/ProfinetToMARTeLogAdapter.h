@@ -1,6 +1,6 @@
 /**
- * @file BasicConsoleLogAdapter.h
- * @brief Header file for class BasicConsoleLogAdapter
+ * @file ProfinetToMARTeLogAdapter.h
+ * @brief Header file for class ProfinetToMARTeLogAdapter
  * @date 15/01/2021
  * @author Giuseppe Avon
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class BasicConsoleLogAdapter
+ * @details This header file contains the declaration of the class ProfinetToMARTeLogAdapter
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef DATASOURCES_PROFINET_BASICCONSOLELOGADAPTER_H_
-#define DATASOURCES_PROFINET_BASICCONSOLELOGADAPTER_H_
+#ifndef DATASOURCES_PROFINET_PROFINETTOMARTELOGADAPTER_H_
+#define DATASOURCES_PROFINET_PROFINETTOMARTELOGADAPTER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -45,7 +45,7 @@ namespace MARTe {
         * @details  Routes the log through the REPORT_ERROR_STATIC MARTe facility, to allow non-MARTe
         * diagnostic output. Provides also a log level specification in output.
         */
-        class BasicConsoleLogAdapter : public ProfinetDataSourceDriver::ILoggerAdapter {
+        class ProfinetToMARTeLogAdapter : public ProfinetDataSourceDriver::ILoggerAdapter {
         private:
             /**
              * Holds the minimum logging level.
@@ -57,7 +57,7 @@ namespace MARTe {
              * @brief Parametrized constructor
              * @param[in] minimumLevel Defines the minimum log level needed for the logger to produce an output. Defaults to log level DEBUG.
              */
-            BasicConsoleLogAdapter(ProfinetDataSourceDriver::log_adapter_level_t minimumLevel = ProfinetDataSourceDriver::LogLevel_Debug);
+            ProfinetToMARTeLogAdapter(ProfinetDataSourceDriver::log_adapter_level_t minimumLevel = ProfinetDataSourceDriver::LogLevel_Debug);
 
             /**
              * @brief The log method, which outputs to the console, using the MARTE2 REPORT_ERROR facility, the intended message
@@ -68,4 +68,4 @@ namespace MARTe {
     };
 }
 
-#endif /* DATASOURCES_PROFINET_BASICCONSOLELOGADAPTER_H_ */
+#endif /* DATASOURCES_PROFINET_PROFINETTOMARTELOGADAPTER_H_ */

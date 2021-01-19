@@ -31,7 +31,6 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "BasicConsoleLogAdapter.h"
 #include "CRC.h"
 #include "CompilerTypes.h"
 #include "DataSourceI.h"
@@ -54,6 +53,7 @@
 #include "ProfinetEventType.h"
 #include "ProfinetMainThreadHelper.h"
 #include "ProfinetTimerHelper.h"
+#include "ProfinetToMARTeLogAdapter.h"
 #include "StaticList.h"
 #include "StreamString.h"
 

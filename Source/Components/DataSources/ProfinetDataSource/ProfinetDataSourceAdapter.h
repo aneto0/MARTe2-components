@@ -370,6 +370,14 @@ namespace ProfinetDataSourceDriver
             //Endregion - Helpers
 
         public:
+
+        /**
+         * @brief Returns a COPY of the Profinet device configuration handle.
+         * Usage intended for testing purposes.
+         * @return A copy of the configuration handle, in order to avoid interfering with the private data.
+         */
+        pnet_cfg_t GetProfinetConfigurationHandle();
+
         /**
          * @brief Constructs a ProfinetDataSourceAdapter instance with specified base configuration parameters.
          * @param[in] ethInterface The name of the ethernet interface reserver for Profinet communication
@@ -387,6 +395,7 @@ namespace ProfinetDataSourceDriver
             );
             //Region - Initialization methods
             
+
             /**
              * @brief Sets base configuration data for the Profinet stack and slave
              * @param[in] vendorIdHigh High part of the vendor identifier (see GSDML)

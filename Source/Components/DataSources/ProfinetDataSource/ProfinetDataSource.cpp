@@ -90,7 +90,7 @@ namespace MARTe {
             periodicIntervalus = tempPeriodicIntervalus;
             reductionRatio = tempReductionRatio;
 
-            ProfinetDataSourceDriver::ILoggerAdapter *log = new BasicConsoleLogAdapter();
+            ProfinetDataSourceDriver::ILoggerAdapter *log = new ProfinetToMARTeLogAdapter();
             adapter = new ProfinetDataSourceDriver::ProfinetDataSourceAdapter(networkInterface.Buffer(), periodicIntervalus, stationName.Buffer(), reductionRatio, log);
 
             if(adapter != NULL_PTR(ProfinetDataSourceDriver::ProfinetDataSourceAdapter *)) {

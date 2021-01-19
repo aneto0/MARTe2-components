@@ -123,6 +123,12 @@ namespace ProfinetDataSourceDriver {
         return baseDataUp;
     }
 
+    pnet_cfg_t ProfinetDataSourceAdapter::GetProfinetConfigurationHandle() {
+        pnet_cfg_t returnCfg = *profinetConfigurationHandle;
+
+        return returnCfg;
+    }
+
     void ProfinetDataSourceAdapter::SetIdentificationAndMaintainanceData(
         MARTe::uint8           vendorIdDataHigh,
         MARTe::uint8           vendorIdDataLow ,

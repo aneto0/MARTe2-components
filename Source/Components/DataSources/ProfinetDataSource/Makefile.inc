@@ -22,7 +22,13 @@
 #
 #############################################################
 
-OBJSX=BasicConsoleLogAdapter.x MemoryMapSynchNMutexInputBroker.x MemoryMapSynchNMutexOutputBroker.x ProfinetTimerHelper.x ProfinetMainThreadHelper.x ProfinetDataSourceAdapter.x ProfinetDataSource.x
+OBJSX=  ProfinetToMARTeLogAdapter.x \
+        MemoryMapSynchNMutexInputBroker.x \
+        MemoryMapSynchNMutexOutputBroker.x \
+        ProfinetTimerHelper.x \
+        ProfinetMainThreadHelper.x \
+        ProfinetDataSourceAdapter.x \
+        ProfinetDataSource.x
 
 PACKAGE=Components/DataSources
 
