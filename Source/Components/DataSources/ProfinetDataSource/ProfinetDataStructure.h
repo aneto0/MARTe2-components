@@ -2,6 +2,7 @@
  * @file ProfinetDataStructure.h
  * @brief Header file for class ProfinetDataStructure
  * @date 14/01/2021
+ * @author Giuseppe Avon
  * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
