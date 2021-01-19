@@ -110,7 +110,7 @@ bool SimulinkParameter::Actualise(const AnyType& sourceParameter) {
     bool ok;
     
     // Type coherence check
-    TypeDescriptor slkType = TypeDescriptor::GetTypeDescriptorFromTypeName(MARTeTypeName.Buffer());
+    TypeDescriptor slkType = type;
     TypeDescriptor extType = sourceParameter.GetTypeDescriptor();
     
     ok = (extType == slkType);
