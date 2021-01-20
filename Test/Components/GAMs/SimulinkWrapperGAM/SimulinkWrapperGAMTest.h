@@ -388,7 +388,26 @@ public:
      */
     bool TestSetup_WithNestedSingleSignals();
 
+    /**
+     * @brief Tests the setup of a model with struct parameters from external AnyObject source
+     */
     bool TestSetup_StructTunableParametersFromExternalSource_Failed();
+    
+    
+    /**
+     * @brief Tests the setup of a model with enums in output signals
+     */
+    bool TestSetup_WithOutputEnumSignals();
+    
+    /**
+     * @brief Tests the setup of a model with enums as signals
+     */
+    bool TestSetup_WithEnumSignals();
+    
+    /**
+     * @brief Tests the setup of a model with enums as parameters
+     */
+    bool TestSetup_WithEnumParameters();
 
     /**
      * @brief A general template for the GAM configuration.

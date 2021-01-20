@@ -318,6 +318,21 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParametersFromExternalSourc
     ASSERT_TRUE(test.TestSetup_StructTunableParametersFromExternalSource_Failed());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithOutputEnumSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithOutputEnumSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithEnumSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithEnumSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithEnumParameters) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithEnumParameters());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
