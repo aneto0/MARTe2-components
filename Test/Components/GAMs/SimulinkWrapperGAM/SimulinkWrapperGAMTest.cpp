@@ -1329,17 +1329,11 @@ bool SimulinkWrapperGAMTest::TestSetup_WithStructSignals() {
     
     StreamString inputSignals = ""
         "InputSignals = { "
-        "    In1_ScalarDouble  = {"
+        "    In1_Structured  = {"
         "        DataSource = Drv1"
-        "        Type = float64"
-        "        NumberOfElements = 1"
-        "        NumberOfDimensions = 0"
-        "    }"
-        "    In2_ScalarUint32  = {"
-        "        DataSource = Drv1"
-        "        Type = uint32"
-        "        NumberOfElements = 1"
-        "        NumberOfDimensions = 0"
+        "        Type = uint8"
+        "        NumberOfElements = 16"
+        "        NumberOfDimensions = 1"
         "    }"
         "}";
 
@@ -3378,7 +3372,7 @@ bool SimulinkWrapperGAMTest::TestPrintAlgoInfo() {
 
 bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
 
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasStructInputs', true);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
 
     StreamString skipUnlinkedParams = "1";
 
@@ -3441,7 +3435,7 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
 
 bool SimulinkWrapperGAMTest::TestExecute_WithStructuredSignals() {
 
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasStructInputs', true, 'hasInputs', true);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
 
     StreamString skipUnlinkedParams = "1";
 
@@ -3608,7 +3602,7 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredSignals() {
 }
 
 bool SimulinkWrapperGAMTest::Test_StructuredSignals_Failed() {
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasStructInputs', true, 'hasInputs', true);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
 
     StreamString skipUnlinkedParams = "1";
 
@@ -3666,10 +3660,10 @@ bool SimulinkWrapperGAMTest::Test_MultiMixedSignalsTranspose(bool transpose) {
     StreamString scriptCall;
 
     if(transpose) {
-        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasStructInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Column-major');";
+        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Column-major');";
     }
     else {
-        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasStructInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Row-major');";
+        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Row-major');";
     }
 
 

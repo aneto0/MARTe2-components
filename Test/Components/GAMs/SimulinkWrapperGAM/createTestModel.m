@@ -19,6 +19,7 @@ hasInputs            = true;
 hasOutputs           = true;
 hasStructSignals     = false;
 hasStructInputs      = false;
+hasEnums             = false;
 dataOrientation      = 'Column-major';   isRowMajor = 0;
 useType              = 0;
 
@@ -52,9 +53,9 @@ while ~isempty(varargin)
             
         case 'hasStructSignals'
             hasStructSignals = varargin{2};
-        
-        case 'hasStructInputs'
-            hasStructInputs = varargin{2};
+                       
+        case 'hasEnums'
+            hasStructSignals = varargin{2};
             
         case 'dataOrientation'
             dataOrientation = varargin{2};
@@ -72,11 +73,15 @@ while ~isempty(varargin)
     varargin(1:2) = [];
 end
 
+if ((hasStructSignals == true) && (hasInputs == true))
+    hasStructInputs = true;
+end
+
 % warning: the model name is limited to 20 characters
 model_name = ['testMdl' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
-                          int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
-                          int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
-                          int2str(useType)          int2str(isRowMajor)      int2str(hasStructInputs) ...
+                        int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
+                        int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
+                        int2str(isRowMajor)       int2str(hasEnums)        int2str(useType) ...
              ];
 
 model_compiled = false;
@@ -678,7 +683,7 @@ close_system(model_name);
 rmdir('slprj', 's');
 rmdir([model_name '_ert_shrlib_rtw'], 's');
 
-delete(sprintf('%s.slx',model_name));
+%delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
 
