@@ -408,7 +408,17 @@ public:
      * @brief Tests the setup of a model with enums as parameters
      */
     bool TestSetup_WithEnumParameters();
-
+    
+    /**
+     * @brief Tests the setup of a model with enums in output signals
+     */
+    bool TestSetup_WithOutputEnumSignals_FailedWrongType();
+    
+    /**
+     * @brief Tests execution of a model with enums as signals
+     */
+    bool TestExecute_WithEnumSignals();
+    
     /**
      * @brief A general template for the GAM configuration.
      *        The template has printf-style spcifiers (`%s`) where

@@ -333,6 +333,16 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_WithEnumParameters) {
     ASSERT_TRUE(test.TestSetup_WithEnumParameters());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithOutputEnumSignals_FailedWrongType) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithOutputEnumSignals_FailedWrongType());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithEnumSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithEnumSignals());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
