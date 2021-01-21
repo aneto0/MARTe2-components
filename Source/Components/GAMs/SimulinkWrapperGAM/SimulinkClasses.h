@@ -103,6 +103,7 @@ public:
     uint16 dataTypeSize;                    //!< Size of the type of this data.
     uint64 offset;                          //!< Data offset (used if the parameter or signal is part of a structure).
     
+    StreamString   className;               //!< data class name (datatype if numeric, class name if struct or enum).
     StreamString   cTypeName;               //!< data type name (in C terminology). If this SimulinkDataI is an enumeration this string is not the actual type name and is instead `numeric`.
     StreamString   MARTeTypeName;           //!< data type name (in MARTe terminology). If this SimulinkDataI is an enumeration this string is nevertheless the actual underlying type name.
     TypeDescriptor type;                    //!< data type. If this SimulinkDataI is an enumeration this is nevertheless the actual underlying data type.

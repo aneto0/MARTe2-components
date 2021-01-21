@@ -1405,7 +1405,8 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
     uint8               ELEenumType      = 0u;  // data type for enum parameters
     uint8*              ELEparamAddress  = NULL_PTR(uint8*);
     
-    const char8*        ELEctypename;
+    const char8*        ELEclassName;
+    const char8*        ELEcTypeName;
     StreamString        ELEMARTeTypeName;
     uint8               ELEnumDims;
     uint32              ELEdimArrayIdx;
@@ -1463,7 +1464,8 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
     if (ok) {
         
         // Type
-        ELEctypename         = rtwCAPI_GetDataTypeCName(dataTypeMap, ELEdataTypeIndex);
+        ELEcTypeName         = rtwCAPI_GetDataTypeCName (dataTypeMap, ELEdataTypeIndex);
+        ELEclassName         = rtwCAPI_GetDataTypeMWName(dataTypeMap, ELEdataTypeIndex);
         
         /*lint -e{1924} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, so the C-style cast cannot be removed */
         if (ELEslDataID == SS_ENUM_TYPE) {
@@ -1474,8 +1476,8 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
             ELEtype          = TypeDescriptor::GetTypeDescriptorFromTypeName(ELEMARTeTypeName.Buffer());
         }
         else {
-            ELEMARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEctypename);
-            ELEtype          = TypeDescriptor::GetTypeDescriptorFromTypeName(GetMARTeTypeNameFromCTypeName(ELEctypename));
+            ELEMARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEcTypeName);
+            ELEtype          = TypeDescriptor::GetTypeDescriptorFromTypeName(GetMARTeTypeNameFromCTypeName(ELEcTypeName));
         }
         
         // Dimensions
@@ -1525,7 +1527,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
             
             StreamString paramInfoString = "";
             ok = paramInfoString.Printf("%s, offset %d, type %-7s (%d bytes), ndims %d, dims [",
-                alignedName.Buffer(), ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
+                alignedName.Buffer(), ELEelementOffset, ELEcTypeName, ELEdataTypeSize, ELEMARTeNumDims);
             
             if (ok) {
                 ok = paramInfoString.Printf("%d", ELEactualDimensions[0u]);
@@ -1549,23 +1551,23 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
         
         currentParameter->fullName      = fullPathName;
         
-        currentParameter->numberOfDimensions = ELEMARTeNumDims;
+        currentParameter->orientation           = ELEorientation;
+        currentParameter->numberOfDimensions    = ELEMARTeNumDims;
         currentParameter->totalNumberOfElements = ELEelements;
         for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
             currentParameter->numberOfElements[dimIdx] = ELEactualDimensions[dimIdx];
         }
-        currentParameter->orientation   = ELEorientation;
-        
-        currentParameter->byteSize      = ELEsize;
-        currentParameter->dataTypeSize  = ELEdataTypeSize;
-        currentParameter->offset        = baseOffset;
-        
-        currentParameter->cTypeName     = ELEctypename;
-        currentParameter->MARTeTypeName = ELEMARTeTypeName;
-        currentParameter->type          = ELEtype;
         
         currentParameter->address       = ELEparamAddress;
-
+        currentParameter->byteSize      = ELEsize;
+        currentParameter->offset        = baseOffset;
+        
+        currentParameter->className     = ELEclassName;
+        currentParameter->cTypeName     = ELEcTypeName;
+        currentParameter->MARTeTypeName = ELEMARTeTypeName;
+        currentParameter->type          = ELEtype;
+        currentParameter->dataTypeSize  = ELEdataTypeSize;
+        
         currentParameter->verbosity     = verbosityLevel;
         
         ok = modelParameters.Add(currentParameter);
@@ -1586,7 +1588,6 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
     uint16       dataTypeSize;
     uint32       addrIdx;
     void*        sigAddress;
-    StreamString stemp;
     
     bool ok = (mmi != NULL);
     
@@ -1676,8 +1677,8 @@ bool SimulinkWrapperGAM::ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, c
         }
         
         if ((currentPort != NULL) && ok) {
-            stemp = sigName;
-            currentPort->fullName = stemp;
+            
+            currentPort->fullName = sigName;
             currentPort->verbosity = verbosityLevel;
             
             /*lint -e{1924} SS_STRUCT is defined as (uint8_T)(255U) in the C APIs, so the C-style cast cannot be removed */
@@ -1875,7 +1876,8 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
     uint8               ELEenumType      = 0u;  // data type for enum signals
     uint8*              ELEparamAddress  = NULL_PTR(uint8*);
     
-    const char8*        ELEctypename;
+    const char8*        ELEclassName;
+    const char8*        ELEcTypeName;
     StreamString        ELEMARTeTypeName;
     uint8               ELEnumDims;
     uint32              ELEdimArrayIdx;
@@ -1934,7 +1936,8 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
     if (ok) {
         
         // Type
-        ELEctypename         = rtwCAPI_GetDataTypeCName(dataTypeMap,ELEdataTypeIndex);
+        ELEcTypeName         = rtwCAPI_GetDataTypeCName (dataTypeMap,ELEdataTypeIndex);
+        ELEclassName         = rtwCAPI_GetDataTypeMWName(dataTypeMap, ELEdataTypeIndex);
         
         if (ELEslDataID == SS_ENUM_TYPE) {
             // if the signal is an enum the typename is "numeric" and
@@ -1944,7 +1947,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
             ELEtype          = TypeDescriptor::GetTypeDescriptorFromTypeName(ELEMARTeTypeName.Buffer());
         }
         else {
-            ELEMARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEctypename);
+            ELEMARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEcTypeName);
             ELEtype          = TypeDescriptor::GetTypeDescriptorFromTypeName(ELEMARTeTypeName.Buffer());
         }
         
@@ -1999,7 +2002,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
             
             StreamString signalInfoString = "";
             ok = signalInfoString.Printf("%s, offset %d, type %-7s (%d bytes), ndims %d, dims [",
-                alignedName.Buffer(), ELEelementOffset, ELEctypename, ELEdataTypeSize, ELEMARTeNumDims);
+                alignedName.Buffer(), ELEelementOffset, ELEcTypeName, ELEdataTypeSize, ELEMARTeNumDims);
             
             if (ok) {
                 ok = signalInfoString.Printf("%d", ELEactualDimensions[0u]);
@@ -2024,7 +2027,8 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
         
         if (!currentPort->isTyped) {
             // this is first signal encountered in this port, set type
-            currentPort->cTypeName     = ELEctypename;
+            currentPort->className     = ELEclassName;
+            currentPort->cTypeName     = ELEcTypeName;
             currentPort->MARTeTypeName = ELEMARTeTypeName;
             currentPort->type          = ELEtype;
             currentPort->dataTypeSize  = ELEdataTypeSize;
@@ -2038,8 +2042,8 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
         else {
             // not the first signal, check coherence with previous ones
             
-            if ( StreamString(ELEctypename) != currentPort->cTypeName ) {
-
+            if ( StreamString(ELEcTypeName) != currentPort->cTypeName ) {
+                currentPort->className     = "struct";
                 currentPort->cTypeName     = "unsigned char";
                 currentPort->MARTeTypeName = "uint8";
                 currentPort->type          = TypeDescriptor::GetTypeDescriptorFromTypeName("uint8");
@@ -2066,25 +2070,23 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
         
         currentSignal->fullName              = fullPathName;
         
+        currentSignal->orientation           = ELEorientation;
         currentSignal->numberOfDimensions    = ELEMARTeNumDims;
         currentSignal->totalNumberOfElements = ELEsize;
         for (uint32 dimIdx = 0u; dimIdx < ELEnumDims; dimIdx++) {
             currentSignal->numberOfElements[dimIdx] = ELEactualDimensions[dimIdx];
         }
         
-        currentSignal->cTypeName     = ELEctypename; 
+        currentSignal->className     = ELEclassName;
+        currentSignal->cTypeName     = ELEcTypeName;
         currentSignal->MARTeTypeName = ELEMARTeTypeName;
         currentSignal->type          = ELEtype;
-
         currentSignal->dataTypeSize  = ELEdataTypeSize;
         
-        currentSignal->offset        = baseOffset + ELEelementOffset;
-        
         //Address and size propagated to the signal
-        currentSignal->address = ELEparamAddress;
+        currentSignal->address  = ELEparamAddress;
         currentSignal->byteSize = ELEsize * ELEdataTypeSize;
-
-        currentSignal->orientation = ELEorientation;
+        currentSignal->offset   = baseOffset + ELEelementOffset;
         
         currentSignal->verbosity   = verbosityLevel;
 
