@@ -125,7 +125,7 @@ bool SimulinkParameter::Actualise(const AnyType& sourceParameter) {
     
     // In case of an enum parameter ("numeric") a warning is issued
     // if actualisation of the enum type is based on an integer type
-    if ( (cTypeName == "numeric") && (type.IsNumericType()) ) {
+    if ( (type.IsNumericType()) && (cTypeName == "numeric") ) {
         if(verbosity > 0u) {
             REPORT_ERROR_STATIC(ErrorManagement::Warning,
                 "Parameter %s is of enum type but is being actualised using %s. No check is performed on input data range.",

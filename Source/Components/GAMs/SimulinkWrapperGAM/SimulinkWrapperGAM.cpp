@@ -1465,6 +1465,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
         // Type
         ELEctypename         = rtwCAPI_GetDataTypeCName(dataTypeMap, ELEdataTypeIndex);
         
+        /*lint -e{1924} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, so the C-style cast cannot be removed */
         if (ELEslDataID == SS_ENUM_TYPE) {
             // if the parameter is an enum the typename is "numeric" and
             // the underlying datatype is stored in enumStorageType
