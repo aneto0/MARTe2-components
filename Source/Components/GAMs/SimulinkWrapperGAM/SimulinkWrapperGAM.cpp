@@ -1565,7 +1565,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
         
         currentParameter->address       = ELEparamAddress;
 
-
+        currentParameter->verbosity     = verbosityLevel;
         
         ok = modelParameters.Add(currentParameter);
     }
@@ -2084,6 +2084,8 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
         currentSignal->byteSize = ELEsize * ELEdataTypeSize;
 
         currentSignal->orientation = ELEorientation;
+        
+        currentSignal->verbosity   = verbosityLevel;
 
         ok = currentPort->AddSignal(currentSignal);
     }
