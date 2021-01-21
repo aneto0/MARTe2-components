@@ -309,6 +309,30 @@ namespace MARTe {
  * the dot is a reserved character. 
  * 
  * 
+ * Enumeration parameters
+ * ----------------------------------------------------------------------------
+ * 
+ * The model can contain enumeration parameters, that is, enum fields can be
+ * used as block parameters. For example, a `Constant` block can have its
+ * value set to `enumParam` where `enumParam` can be `MyEnum.On` or `MyEnum.Off`.
+ * `MyEnum` shall be an enumeration defined in the model.
+ * 
+ * In this case the actualisation value of the parameter specified
+ * in the `Parameters` node or in the external parameter source must be an integer
+ * of the same type as the underlying type of the model enumeration:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Parameters = {
+ *     enumParam = (int16) 1
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * @warning While the model enumeration can assume a limited set of values (e.g.
+ *          `1` or `0` for `MyEnum.On` and `MyEnum.Off`) no check is performed
+ *          on the actualisation value specified in the configuration file
+ *          or from an external parameter source to verify that the value is within
+ *          the model enumeration range.
+ * 
  * Actualisation mechanism
  * ----------------------------------------------------------------------------
  * 
@@ -544,6 +568,33 @@ namespace MARTe {
  * }
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
+ * Enumeration signals
+ * ----------------------------------------------------------------------------
+ * 
+ * The model can contain enumeration signals, that is, enum fields can be
+ * used as input or output values. For example, an `Outport` block can have its
+ * value set to `MyEnum.On` or `MyEnum.Off` where `MyEnum` is an enumeration
+ * defined in the model.
+ * 
+ * In this case the signal configuration in the configuration file must declare
+ * the signal to be of integer type (and of the same type as the underlying type
+ * of the model enumeration):
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * OutputSignals = {
+ *     enumSignal = {
+ *         Type               = int16
+ *         NumberOfDimensions = 0
+ *         NumberOfElements   = 1
+ *         DataSource = DDB1
+ *     }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * @warning While the model enumeration can assume a limited set of values (e.g.
+ *          `1` or `0` for `MyEnum.On` and `MyEnum.Off`) no check is performed
+ *          on the signal value to verify that the value is within
+ *          the model enumeration range.
  * 
  * 
  * Model configuration                                   {#model-configuration}
