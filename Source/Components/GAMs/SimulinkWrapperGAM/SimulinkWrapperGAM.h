@@ -173,8 +173,9 @@ namespace MARTe {
  *      for details.
  * - **Optional nodes**:
  *    - *Verbosity*: the amount of information that shall be printed
- *      during GAM initialisation. Minimum value: 0, maximum value: 2,
- *      default value: 0
+ *      during GAM initialisation. `0` prints errors only, `1` prints errors,
+ *      warnings and basic information, `2` prints errors, warnings and additional
+ *      information. Minimum value: 0, maximum value: 2, default value: 0
  *    - *SkipInvalidTunableParams*: can be 0 or 1. When set to 0, the 
  *      GAM execution will stop if the actualisation of one parameter
  *      fails (see [Model parameters](#model-parameters) section

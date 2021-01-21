@@ -740,7 +740,9 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     // Scan tunable parameters, print them if verbosity level is enough and
     // build the vector of tunable parameters objects
     if (status) {
-        REPORT_ERROR(ErrorManagement::Information, "%s, number of main tunable parameters: %d", libraryName.Buffer(), modelNumOfParameters);
+        if (verbosityLevel > 1u) {
+            REPORT_ERROR(ErrorManagement::Information, "%s, number of main tunable parameters: %d", libraryName.Buffer(), modelNumOfParameters);
+        }
         
         status = ScanTunableParameters(mmi);
         if (!status) {
@@ -772,11 +774,11 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 maxNameLength = currentNameSize;
             }
         }
-        if (verbosityLevel > 0u) {
+        if (verbosityLevel > 1u) {
             REPORT_ERROR(ErrorManagement::Information, "%s, configured tunable parameters:", libraryName.Buffer());
-        }
-        for(uint32 paramIdx = 0u; paramIdx < modelParameters.GetSize(); paramIdx++) {
-            modelParameters[paramIdx]->PrintData(maxNameLength);
+            for(uint32 paramIdx = 0u; paramIdx < modelParameters.GetSize(); paramIdx++) {
+                modelParameters[paramIdx]->PrintData(maxNameLength);
+            }
         }
     }
     
@@ -815,11 +817,11 @@ bool SimulinkWrapperGAM::SetupSimulink() {
                 maxNameLength = currentNameSize;
             }
         }
-        if (verbosityLevel > 0u) {
+        if (verbosityLevel > 1u) {
             REPORT_ERROR(ErrorManagement::Information, "%s, configured input/output ports:", libraryName.Buffer());
-        }
-        for (uint32 portIdx = 0u; portIdx < modelPorts.GetSize(); portIdx++) {
-            modelPorts[portIdx]->PrintPort(maxNameLength);
+            for (uint32 portIdx = 0u; portIdx < modelPorts.GetSize(); portIdx++) {
+                modelPorts[portIdx]->PrintPort(maxNameLength);
+            }
         }
     }
     
@@ -1022,7 +1024,7 @@ bool SimulinkWrapperGAM::SetupSimulink() {
         
         // Cases in which execution should be stopped
         else if ( (!isLoaded) && (!isActualised) && (!skipInvalidTunableParams) ) {
-            REPORT_ERROR(ErrorManagement::Information,
+            REPORT_ERROR(ErrorManagement::ParametersError,
                 "Parameter %s not found, failing",
                 alignedParamName.Buffer());
             status = false;
@@ -1041,37 +1043,36 @@ bool SimulinkWrapperGAM::SetupSimulink() {
     ///-------------------------------------------------------------------------
     
     // Print ports signals details
-    for(uint32 portIdx = 0u; (portIdx < modelNumOfInputs) && status; portIdx++) {
+    if (verbosityLevel > 1u) {
         
-        uint32 signalsInThisPort = (modelPorts[portIdx]->carriedSignals).GetSize();
-        
-        if (verbosityLevel > 1u) {
+        for(uint32 portIdx = 0u; (portIdx < modelNumOfInputs) && status; portIdx++) {
+            
+            uint32 signalsInThisPort = (modelPorts[portIdx]->carriedSignals).GetSize();
+            
             REPORT_ERROR(ErrorManagement::Information,
                 "IN port %s, # signals %d, signal content:",
                 (modelPorts[portIdx]->fullName).Buffer(), signalsInThisPort);
+            
+            for(uint32 signalIdx = 0u; signalIdx < signalsInThisPort; signalIdx++) {
+                (modelPorts[portIdx]->carriedSignals[signalIdx])->PrintSignal(40ul);
+            }
+        
         }
         
-        for(uint32 signalIdx = 0u; signalIdx < signalsInThisPort; signalIdx++) {
-            (modelPorts[portIdx]->carriedSignals[signalIdx])->PrintSignal(40ul);
-        }
-    
-    }
-    
-    for(uint32 portIdx = modelNumOfInputs; ( portIdx < (modelNumOfInputs + modelNumOfOutputs) ) && status; portIdx++) {
-        
-        uint32 signalsInThisPort = (modelPorts[portIdx]->carriedSignals).GetSize();
-        
-        if (verbosityLevel > 1u) {
+        for(uint32 portIdx = modelNumOfInputs; ( portIdx < (modelNumOfInputs + modelNumOfOutputs) ) && status; portIdx++) {
+            
+            uint32 signalsInThisPort = (modelPorts[portIdx]->carriedSignals).GetSize();
+            
             REPORT_ERROR(ErrorManagement::Information,
                 "OUT port %s, # signals %d, signal content:",
                 (modelPorts[portIdx]->fullName).Buffer(), signalsInThisPort);
-        }
-        
-        for(uint32 signalIdx = 0u; signalIdx < signalsInThisPort; signalIdx++) {
-            (modelPorts[portIdx]->carriedSignals[signalIdx])->PrintSignal(40ul);
+            
+            for(uint32 signalIdx = 0u; signalIdx < signalsInThisPort; signalIdx++) {
+                (modelPorts[portIdx]->carriedSignals[signalIdx])->PrintSignal(40ul);
+            }
         }
     }
-
+    
     return status;
 
 }
