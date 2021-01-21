@@ -254,11 +254,16 @@ namespace ProfinetDataSourceDriver {
 
         outStr << "Running every " << periodicInterval << "us and cycling every " << gearRatio << " intervals" << std::endl;
         loggerAdapter->Log(LogLevel_Info, outStr.str());
+        outStr.str("");
+        outStr.clear();
 
         appRelationshipEndPoint = UINT32_MAX;
         
         int macRes = os_get_macaddress(ethInterface.c_str(), &macAddress);
         outStr << "Getting MAC address " << ((macRes == 0)?"success":"failure");
+        loggerAdapter->Log(LogLevel_Info, outStr.str());
+        outStr.str("");
+        outStr.clear();
 
         ipAddress = os_get_ip_address(ethInterface.c_str());
         netmask = os_get_netmask(ethInterface.c_str());
@@ -271,6 +276,12 @@ namespace ProfinetDataSourceDriver {
 
         strncpy(this->ethInterface, ethInterface.c_str(), PNDS_MAX_INTERFACE_NAME_SIZE);
         this->ethInterface[PNDS_MAX_INTERFACE_NAME_SIZE - 1] = '\0';
+        
+        //We have them disabled on startup
+        cyclicNotificationListener = NULL;
+        profinetEventNotificationListener = NULL;
+        opSignalsEntryPoint = NULL;
+
 
         //eventMask = ReadyForData | Timer | Alarm | Abort;
         //eventFlags = 0;
@@ -280,7 +291,9 @@ namespace ProfinetDataSourceDriver {
         bool valid = callbacksUp && baseDataUp && idMaintDataUp && lldpDataUp;
         
         if(valid) {
-            
+            std::ostringstream outStr;
+            loggerAdapter->Log(LogLevel_Info, "Configuration parameters up, going on with initialization");
+
             memcpy(&profinetConfigurationHandle->eth_addr, macAddress.addr, sizeof(os_ethaddr_t));
             strncpy(profinetConfigurationHandle->station_name, stationName, PNDS_MAX_STATION_NAME_SIZE);
             
@@ -291,6 +304,10 @@ namespace ProfinetDataSourceDriver {
                 &profinetConfigurationHandle->ip_addr.c,
                 &profinetConfigurationHandle->ip_addr.d
             );
+            outStr << "IP: " << (int)profinetConfigurationHandle->ip_addr.a << "." << (int)profinetConfigurationHandle->ip_addr.b << "." << (int)profinetConfigurationHandle->ip_addr.c << "." << (int)profinetConfigurationHandle->ip_addr.d << std::endl;
+            loggerAdapter->Log(LogLevel_Info, outStr.str());
+            outStr.str("");
+            outStr.clear();
 
             ProfinetDataSourceAdapter::IPv4U32toQuadU8(
                 netmask,
@@ -299,6 +316,10 @@ namespace ProfinetDataSourceDriver {
                 &profinetConfigurationHandle->ip_mask.c,
                 &profinetConfigurationHandle->ip_mask.d
             );
+            outStr << "Netmask: " << (int)profinetConfigurationHandle->ip_mask.a << "." << (int)profinetConfigurationHandle->ip_mask.b << "." << (int)profinetConfigurationHandle->ip_mask.c << "." << (int)profinetConfigurationHandle->ip_mask.d << std::endl;
+            loggerAdapter->Log(LogLevel_Info, outStr.str());
+            outStr.str("");
+            outStr.clear();
 
             ProfinetDataSourceAdapter::IPv4U32toQuadU8(
                 gateway,
@@ -307,6 +328,10 @@ namespace ProfinetDataSourceDriver {
                 &profinetConfigurationHandle->ip_gateway.c,
                 &profinetConfigurationHandle->ip_gateway.d
             );
+            outStr << "Gateway: " << (int)profinetConfigurationHandle->ip_gateway.a << "." << (int)profinetConfigurationHandle->ip_gateway.b << "." << (int)profinetConfigurationHandle->ip_gateway.c << "." << (int)profinetConfigurationHandle->ip_gateway.d << std::endl;
+            loggerAdapter->Log(LogLevel_Info, outStr.str());
+            outStr.str("");
+            outStr.clear();
 
             profinetHandle = pnet_init(ethInterface, periodicInterval, profinetConfigurationHandle);
             

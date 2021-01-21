@@ -48,42 +48,93 @@
 /*---------------------------------------------------------------------------*/
 class ProfinetDataSourceAdapterTest {
     private:
-        bool EnvironmentSetup();
+        ProfinetDataSourceDriver::ILoggerAdapter *log;
+        ProfinetDataSourceDriver::ProfinetDataSourceAdapter *adapter;
 
     public:
+        /**
+         * @brief Constructs a test instance, initializing bases to null
+         */
+        ProfinetDataSourceAdapterTest();
+
+        /**
+         * @brief Destructs the test instance, removing also bases
+         */
+        ~ProfinetDataSourceAdapterTest();
+
+        /**
+         * @brief Prepares the environment adapter and log, eventually getting
+         * from the environment the network interface which will be used for the 
+         * testing.
+         * @param[in] getIfNameFromEnv true if the environment variable PROFINET_ETH_INTERFACE
+         * has to be used for the network interface. Otherwise a dummy if will be used.
+         */
+        bool EnvironmentSetup(bool getIfNameFromEnv = false);
+
+        /**
+         * @brief Tests the constructor
+         */
         bool TestConstructor();
 
-         bool TestSetBaseData();
+        /**
+         * @brief Feeds base configuration data to the adapter, checking if they are 
+         * effectively copied inside configuration handles
+         */
+        bool TestSetBaseData();
 
+        /**
+         * @brief Feeds I&M data to the adapter, checking if they are 
+         * effectively copied inside configuration handles
+         */
         bool TestSetIdentificationAndMaintainanceData();
-        
-        // bool TestSetLLDPData();
 
-        // bool TestAddSlot();
+        /**
+         * @brief Feeds LLDP data to the adapter, checking if they are
+         * effectively copied inside configuration handles
+         */
+        bool TestSetLLDPData();
 
-        // bool TestAddSubslot();
+        /**
+         * @brief Tests the Slots and Subslot system management
+         */
+        bool TestSlotAndSubslotManagement();
 
-        // bool TestGetSubslot();
+        /**
+         * @brief Initializes a real Profinet instance.
+         * NOTE: Needs a real network interface and permissions to bind a raw socket.
+         * Needs also the PROFINET_ETH_INTERFACE environment variable to be set.
+         */
+        bool TestInitialize();
 
-        // bool TestInitialize();
+        /**
+         * @brief Checks if the underlying initialization fails when insufficient
+         * configuration parameters are fed.
+         */
+        bool TestInitializeFail();
 
-        // bool TestMainThread();
+        /**
+         * @brief Assesses default RT Class 2 status
+         */
+        bool TestGetDefaultLLDPRTClass2Status();
 
-        // bool TestTaskTimerTick();
+        /**
+         * @brief Assesses default RT Class 3 status
+         */
+        bool TestGetDefaultLLDPRTClass3Status();
 
-        // bool TestGetLedStatus();
+        /**
+         * @brief Assesses default Auto negotiation capability
+         */
+        bool TestGetDefaultLLDPAutonegotiationCapability();
 
-        // bool TestGetDefaultLLDPRTClass2Status();
+        /**
+         * @brief Assesses default Autonegotiation speed
+         */
+        bool TestGetDefaultLLDPAutonegotiationSpeed();
 
-        // bool TestGetDefaultLLDPRTClass3Status();
-
-        // bool TestGetDefaultLLDPAutonegotiationCapability();
-
-        // bool TestGetDefaultLLDPAutonegotiationSpeed();
-
-        // bool TestGetDefaultLLDPMAUType();
-
-        // bool TestIPv4U32toQuadU8();
-
+        /**
+         * @brief Assesses default MAU type
+         */
+        bool TestGetDefaultLLDPMAUType();
 };
 #endif /* __PROFINET_DATASOURCE_ADAPTER_TEST_H__ */ 
