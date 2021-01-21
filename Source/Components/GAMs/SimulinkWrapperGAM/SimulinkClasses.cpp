@@ -71,7 +71,7 @@ SimulinkDataI::SimulinkDataI() {
     
     address = NULL_PTR(void*);
     
-    verbosity = 0u;
+    verbosity = 1u;
 }
 
 SimulinkDataI::~SimulinkDataI() {
@@ -116,11 +116,21 @@ bool SimulinkParameter::Actualise(const AnyType& sourceParameter) {
     ok = (extType == slkType);
     
     if (!ok) {
-        REPORT_ERROR_STATIC(ErrorManagement::Warning,
+        REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
             "Parameter %s data type not matching (parameter source: %s, model: %s)",
             fullName.Buffer(),
             TypeDescriptor::GetTypeNameFromTypeDescriptor(extType),
             MARTeTypeName.Buffer());
+    }
+    
+    // In case of an enum parameter ("numeric") a warning is issued
+    // if actualisation of the enum type is based on an integer type
+    if ( (cTypeName == "numeric") && (type.IsNumericType()) ) {
+        if(verbosity > 0u) {
+            REPORT_ERROR_STATIC(ErrorManagement::Warning,
+                "Parameter %s is of enum type but is being actualised using %s. No check is performed on input data range.",
+                fullName.Buffer(), MARTeTypeName.Buffer());
+        }
     }
     
     // Type size coherence check
@@ -132,7 +142,7 @@ bool SimulinkParameter::Actualise(const AnyType& sourceParameter) {
         ok = (extTypeSize == slkTypeSize);
         
         if (!ok) {
-            REPORT_ERROR_STATIC(ErrorManagement::Warning,
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
                 "Parameter %s data type size not matching (parameter source: %d, model: %d)",
                 fullName.Buffer(), extTypeSize, slkTypeSize);
         }
@@ -144,7 +154,7 @@ bool SimulinkParameter::Actualise(const AnyType& sourceParameter) {
         ok = (sourceParameter.GetNumberOfDimensions() == numberOfDimensions);
         
         if (!ok) {
-            REPORT_ERROR_STATIC(ErrorManagement::Warning,
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
                 "Parameter %s number of dimensions not matching (parameter source: %d, model: %d)",
                 fullName.Buffer(), sourceParameter.GetNumberOfDimensions(), numberOfDimensions);
         }
@@ -217,7 +227,7 @@ bool SimulinkParameter::Actualise(const AnyType& sourceParameter) {
         ok = (sourceParameter.GetDataSize() == byteSize);
         
         if(!ok) {
-            REPORT_ERROR_STATIC(ErrorManagement::Warning,
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
                 "Parameter %s: total data size not matching (parameter source: %d, model: %d)",
                 fullName.Buffer(), sourceParameter.GetDataSize(), byteSize);
         }
