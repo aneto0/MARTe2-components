@@ -191,7 +191,7 @@ namespace MARTe {
  *    - *EnforceModelSignalCoverage*: Ensures that every port of the Simulink model
  *      is connected to the GAM, eventually preventing the GAM startup.
  *      Setting this option to `0` means that some of the model output signals
- *      can be omitted in the configuration file.
+ *      can be omitted in the configuration file and their value will not be stored.
  *      Valid only when `NonVirtualBusMode == "Structured"`.
  *      Default value: `1`.
  *    - *Parameters*: local list of parameters. See
