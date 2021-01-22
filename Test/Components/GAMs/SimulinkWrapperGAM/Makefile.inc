@@ -36,6 +36,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 # instead of rtwtypes.h (which is generated for each model and not available in MATLAB root directory)
 CPPFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
 
+# Add enum support only if available (from version 2019a onwards)
 ENUM_FEATURE = $(shell if grep -qr rtwCAPI_GetDataEnumStorageType $$MATLAB_DIR/rtw/c/src; then echo 0; else echo 1; fi)
 ifeq "$(ENUM_FEATURE)" "0"
 CPPFLAGS += -DENUM_FEATURE

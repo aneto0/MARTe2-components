@@ -1465,7 +1465,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
         ELEcTypeName   = rtwCAPI_GetDataTypeCName (dataTypeMap, ELEdataTypeIndex);
         ELEclassName   = rtwCAPI_GetDataTypeMWName(dataTypeMap, ELEdataTypeIndex);
 #ifdef ENUM_FEATURE
-        ELEenumType    = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex);
+        ELEenumType    = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex); // Add enum support only if available (from version 2019a onwards)
 #endif
         
         /*lint -e{1924, 9117} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, C-style cast and signedness change cannot be removed */
@@ -1939,7 +1939,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
         ELEcTypeName    = rtwCAPI_GetDataTypeCName (dataTypeMap,ELEdataTypeIndex);
         ELEclassName    = rtwCAPI_GetDataTypeMWName(dataTypeMap, ELEdataTypeIndex);
 #ifdef ENUM_FEATURE
-        ELEenumType     = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex);
+        ELEenumType     = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex); // Add enum support only if available (from version 2019a onwards)
 #endif
         
         /*lint -e{1924, 9117} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, C-style cast and signedness change cannot be removed */
