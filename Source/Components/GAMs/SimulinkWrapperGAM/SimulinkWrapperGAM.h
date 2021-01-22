@@ -91,6 +91,8 @@ namespace MARTe {
  * 
  * @warning The GAM is tested with MATLAB(r) version 2018a or higher.
  * 
+ * @warning Enumerations are supported with version 2019a or higher.
+ * 
  * 
  * 
  * GAM configuration                                       {#gam-configuration}
