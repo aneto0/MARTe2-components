@@ -198,28 +198,28 @@ static inline StreamString GetMARTeTypeNameFromEnumeratedTypes(const uint8 slEnu
     
     switch(slEnumTypeIn)
     {
-    case 0:
+    case SS_DOUBLE:
         MARTeTypeNameOut = "float64";
         break;
-    case 1:
+    case SS_SINGLE:
         MARTeTypeNameOut = "float32";
         break;
-    case 2:
+    case SS_INT8:
         MARTeTypeNameOut = "int8";
         break;
-    case 3:
+    case SS_UINT8:
         MARTeTypeNameOut = "uint8";
         break;
-    case 4:
+    case SS_INT16:
         MARTeTypeNameOut = "int16";
         break;
-    case 5:
+    case SS_UINT16:
         MARTeTypeNameOut = "uint16";
         break;
-    case 6:
+    case SS_INT32:
         MARTeTypeNameOut = "int32";
         break;
-    case 7:
+    case SS_UINT32:
         MARTeTypeNameOut = "uint32";
         break;
     default:
