@@ -284,7 +284,7 @@ In order to prevent this, an indication about the "goodness" of the data can be 
 which is a boolean (0 not ready = bad or stale data, 1 ready = good data).
 
 ###  Extra - OSAL and PNET library temporary installation steps (to be replaced):
-'''
+```
 1) Existing folders in profinet.zip:
 ~/profinet/osal
 ~/profinet/p-net
@@ -344,8 +344,8 @@ $ sudo ldconfig -p | grep profinet
 9.7) /usr/local/include/pnet_api.h
 9.8) /usr/local/include/pnet_export.h
 
-10) All Done. Add the libraries to your Makefile.inc:
+(10) All Done. Add the libraries to your Makefile.inc:
 (...)
 LIBRARIES += -losal -lprofinet
 (...)
-'''
+```
