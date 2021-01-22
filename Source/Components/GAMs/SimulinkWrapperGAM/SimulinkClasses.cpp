@@ -125,11 +125,14 @@ bool SimulinkParameter::Actualise(const AnyType& sourceParameter) {
     
     // In case of an enum parameter ("numeric") a warning is issued
     // if actualisation of the enum type is based on an integer type
-    if ( (type.IsNumericType()) && (cTypeName == "numeric") ) {
-        if(verbosity > 0u) {
-            REPORT_ERROR_STATIC(ErrorManagement::Warning,
-                "Parameter %s is of enum type %s but is being actualised using %s. No check is performed on input data range.",
-                fullName.Buffer(), className.Buffer(), MARTeTypeName.Buffer());
+    if (ok) {
+        /*lint -e{9007} no side-effects on the right of the && operator */
+        if ( (type.IsNumericType()) && (cTypeName == "numeric") ) {
+            if(verbosity > 0u) {
+                REPORT_ERROR_STATIC(ErrorManagement::Warning,
+                    "Parameter %s is of enum type %s but is being actualised using %s. No check is performed on input data range.",
+                    fullName.Buffer(), className.Buffer(), MARTeTypeName.Buffer());
+            }
         }
     }
     
