@@ -1468,7 +1468,7 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
         ELEenumType    = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex);
 #endif
         
-        /*lint -e{1924} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, so the C-style cast cannot be removed */
+        /*lint -e{1924, 9117} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, C-style cast and signedness change cannot be removed */
         if (ELEslDataID == SS_ENUM_TYPE) {
             // if the parameter is an enum the typename is "numeric" and
             // the underlying datatype is stored in enumStorageType
@@ -1942,7 +1942,7 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
         ELEenumType     = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex);
 #endif
         
-        /*lint -e{1924} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, so the C-style cast cannot be removed */
+        /*lint -e{1924, 9117} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, C-style cast and signedness change cannot be removed */
         if (ELEslDataID == SS_ENUM_TYPE) {
             // if the signal is an enum the typename is "numeric" and
             // the underlying datatype is stored in enumStorageType
