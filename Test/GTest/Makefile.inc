@@ -57,6 +57,8 @@ ifdef OPEN62541_LIB
 LIBRARIES_STATIC += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
 endif
 
+LIBRARIES += -losal -lprofinet
+
 all: $(OBJS) $(SUBPROJ)   \
         $(BUILD_DIR)/MainGTest$(EXEEXT)
 	echo  $(OBJS)

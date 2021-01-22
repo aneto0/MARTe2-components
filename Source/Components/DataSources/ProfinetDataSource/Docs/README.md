@@ -282,3 +282,68 @@ Two ancillary signals are available: LED and Ready. They give indications about 
 **A:** If the synch with the master is lost (e.g. disconnection, problems, etc.) the last value assumed by signals is kept. This may lead to wrong / erratic behaviour on the downstream GAMs.
 In order to prevent this, an indication about the "goodness" of the data can be extracted from the "ready" signal,
 which is a boolean (0 not ready = bad or stale data, 1 ready = good data).
+
+###  Extra - OSAL and PNET library temporary installation steps (to be replaced):
+1) Existing folders in profinet.zip:
+~/profinet/osal
+~/profinet/p-net
+
+2) Edit both "osal/cmake/Linux.cmake" and "p-net/cmake/Linux.cmake" files and add the "-fPIC" option
+to the "target_compile_options" cmake file section:
+(...)
+target_compile_options(<osal or profinet>
+  PRIVATE
+  -fPIC
+  -Wall
+  -Wextra
+  -Werror
+  -Wno-unused-parameter
+  INTERFACE
+  $<$<CONFIG:Coverage>:--coverage>
+  )
+(...)
+
+3) Compile and install osal:
+$ cd osal/build
+$ cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
+$ make
+$ sudo make install
+
+4) copy "missing" osal library file:
+$ sudo cp /usr/local/lib/libosal.so /usr/lib64/
+
+5) Run ldconfig and check if the library exists:
+$ sudo ldconfig
+$ sudo ldconfig -p | grep osal
+        libosal.so (libc6,x86-64) => /lib64/libosal.so
+
+6) OSAL is done, letd go to p-net:
+$ cd ~/profinet/p-net/build
+$ cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
+$ make
+$ sudo make install
+
+7) copy p-net headers and library files:
+$ sudo cp ~/profinet/p-net/src/pnal.h /usr/local/include/
+$ sudo cp ~/profinet/p-net/src/ports/linux/pnal_sys.h /usr/local/include/
+$ sudo cp /home/marte/Projects/profinetg/p-net/build/libprofinet.so /usr/lib64/
+
+8) Run ldconfig and check if the library exists:
+$ sudo ldconfig
+$ sudo ldconfig -p | grep profinet
+        libprofinet.so (libc6,x86-64) => /lib64/libprofinet.so
+
+9) Do a final check and verify if these files exist:
+9.1) /usr/lib64/libosal.so
+9.2) /usr/lib64/libprofinet.so
+9.3) /usr/local/include/osal.h
+9.4) /usr/local/include/osal_log.h
+9.5) /usr/local/include/pnal.h
+9.6) /usr/local/include/pnal_sys.h
+9.7) /usr/local/include/pnet_api.h
+9.8) /usr/local/include/pnet_export.h
+
+10) All Done. Add the libraries to your Makefile.inc:
+(...)
+LIBRARIES += -losal -lprofinet
+(...)

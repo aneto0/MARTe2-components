@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  ProfinetDataStructureTest.x ProfinetDataSourceAdapterTest.x
+OBJSX +=  ProfinetDataStructureTest.x ProfinetDataSourceAdapterTest.x ProfinetToMARTeLogAdapterTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
