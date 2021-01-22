@@ -318,6 +318,7 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParametersFromExternalSourc
     ASSERT_TRUE(test.TestSetup_StructTunableParametersFromExternalSource_Failed());
 }
 
+#ifdef ENUM_FEATURE
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithOutputEnumSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_WithOutputEnumSignals());
@@ -342,6 +343,7 @@ TEST(SimulinkWrapperGAMGTest, TestExecute_WithEnumSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestExecute_WithEnumSignals());
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

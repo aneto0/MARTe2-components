@@ -4292,6 +4292,8 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParametersFromExternalSource
     return ok;
 }
 
+#ifdef ENUM_FEATURE
+
 bool SimulinkWrapperGAMTest::TestSetup_WithOutputEnumSignals() {
 
     StreamString scriptCall = "createTestModel('hasEnums', true, 'hasInputs', false);";
@@ -4586,3 +4588,5 @@ bool SimulinkWrapperGAMTest::TestExecute_WithEnumSignals() {
     
     return ok;
 }
+
+#endif

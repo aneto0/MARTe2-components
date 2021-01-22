@@ -393,7 +393,7 @@ public:
      */
     bool TestSetup_StructTunableParametersFromExternalSource_Failed();
     
-    
+#ifdef ENUM_FEATURE
     /**
      * @brief Tests the setup of a model with enums in output signals
      */
@@ -418,6 +418,7 @@ public:
      * @brief Tests execution of a model with enums as signals
      */
     bool TestExecute_WithEnumSignals();
+#endif
     
     /**
      * @brief A general template for the GAM configuration.

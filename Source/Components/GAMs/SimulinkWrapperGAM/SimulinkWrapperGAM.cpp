@@ -27,12 +27,10 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
 #include "AdvancedErrorManagement.h"
 #include "LoadableLibrary.h"
 #include "StructuredDataI.h"
@@ -1464,14 +1462,16 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
     if (ok) {
         
         // Type
-        ELEcTypeName         = rtwCAPI_GetDataTypeCName (dataTypeMap, ELEdataTypeIndex);
-        ELEclassName         = rtwCAPI_GetDataTypeMWName(dataTypeMap, ELEdataTypeIndex);
+        ELEcTypeName   = rtwCAPI_GetDataTypeCName (dataTypeMap, ELEdataTypeIndex);
+        ELEclassName   = rtwCAPI_GetDataTypeMWName(dataTypeMap, ELEdataTypeIndex);
+#ifdef ENUM_FEATURE
+        ELEenumType    = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex);
+#endif
         
         /*lint -e{1924} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, so the C-style cast cannot be removed */
         if (ELEslDataID == SS_ENUM_TYPE) {
             // if the parameter is an enum the typename is "numeric" and
             // the underlying datatype is stored in enumStorageType
-            ELEenumType      = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex);
             ELEMARTeTypeName = GetMARTeTypeNameFromEnumeratedTypes(ELEenumType);
             ELEtype          = TypeDescriptor::GetTypeDescriptorFromTypeName(ELEMARTeTypeName.Buffer());
         }
@@ -1936,13 +1936,15 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
     if (ok) {
         
         // Type
-        ELEcTypeName         = rtwCAPI_GetDataTypeCName (dataTypeMap,ELEdataTypeIndex);
-        ELEclassName         = rtwCAPI_GetDataTypeMWName(dataTypeMap, ELEdataTypeIndex);
-        
+        ELEcTypeName    = rtwCAPI_GetDataTypeCName (dataTypeMap,ELEdataTypeIndex);
+        ELEclassName    = rtwCAPI_GetDataTypeMWName(dataTypeMap, ELEdataTypeIndex);
+#ifdef ENUM_FEATURE
+        ELEenumType     = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex);
+#endif
+
         if (ELEslDataID == SS_ENUM_TYPE) {
             // if the signal is an enum the typename is "numeric" and
             // the underlying datatype is stored in enumStorageType
-            ELEenumType      = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex);
             ELEMARTeTypeName = GetMARTeTypeNameFromEnumeratedTypes(ELEenumType);
             ELEtype          = TypeDescriptor::GetTypeDescriptorFromTypeName(ELEMARTeTypeName.Buffer());
         }
