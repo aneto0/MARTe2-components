@@ -36,6 +36,8 @@ ROOT_DIR=../../../../
 
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
+include $(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/Makefile.detect
+
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 INCLUDES += -I.
@@ -51,10 +53,12 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
+INCLUDES += -I$(PROFINET_INCLUDE)
+LIBRARIES += -L$(PROFINET_LIBRARY) -losal -lprofinet
 
 all: $(OBJS)    \
-    $(BUILD_DIR)/ProfinetDataSource$(LIBEXT) \
-    $(BUILD_DIR)/ProfinetDataSource$(DLLEXT)
+	$(BUILD_DIR)/ProfinetDataSource$(LIBEXT) \
+	$(BUILD_DIR)/ProfinetDataSource$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

@@ -25,5 +25,3 @@
 
 include Makefile.inc
 
-LIBRARIES +=  -losal -lprofinet
-
