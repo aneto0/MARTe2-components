@@ -1466,6 +1466,8 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
         ELEclassName   = rtwCAPI_GetDataTypeMWName(dataTypeMap, ELEdataTypeIndex);
 #ifdef ENUM_FEATURE
         ELEenumType    = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex); // Add enum support only if available (from version 2019a onwards)
+#else
+        ELEenumType    = 127u; // Invalid datatype
 #endif
         
         /*lint -e{1924, 9117} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, C-style cast and signedness change cannot be removed */
@@ -1474,6 +1476,9 @@ bool SimulinkWrapperGAM::ScanParameter(const uint16 parIdx, const uint32 depth, 
             // the underlying datatype is stored in enumStorageType
             ELEMARTeTypeName = GetMARTeTypeNameFromEnumeratedTypes(ELEenumType);
             ELEtype          = TypeDescriptor::GetTypeDescriptorFromTypeName(ELEMARTeTypeName.Buffer());
+#ifndef ENUM_FEATURE
+            REPORT_ERROR(ErrorManagement::Warning, "Parameter %s: usage of enumeration type requires a higher version.", fullPathName.Buffer());
+#endif
         }
         else {
             ELEMARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEcTypeName);
@@ -1940,6 +1945,8 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
         ELEclassName    = rtwCAPI_GetDataTypeMWName(dataTypeMap, ELEdataTypeIndex);
 #ifdef ENUM_FEATURE
         ELEenumType     = rtwCAPI_GetDataEnumStorageType(dataTypeMap, ELEdataTypeIndex); // Add enum support only if available (from version 2019a onwards)
+#else
+        ELEenumType    = 127u; // Invalid datatype
 #endif
         
         /*lint -e{1924, 9117} SS_ENUM_TYPE is defined as (uint8_T)(255U - 1) in the C APIs, C-style cast and signedness change cannot be removed */
@@ -1948,6 +1955,9 @@ bool SimulinkWrapperGAM::ScanSignal(const uint16 sigIdx, const uint32 depth, con
             // the underlying datatype is stored in enumStorageType
             ELEMARTeTypeName = GetMARTeTypeNameFromEnumeratedTypes(ELEenumType);
             ELEtype          = TypeDescriptor::GetTypeDescriptorFromTypeName(ELEMARTeTypeName.Buffer());
+#ifndef ENUM_FEATURE
+            REPORT_ERROR(ErrorManagement::Warning, "Signal %s: usage of enumeration type requires a higher version.", fullPathName.Buffer());
+#endif
         }
         else {
             ELEMARTeTypeName = GetMARTeTypeNameFromCTypeName(ELEcTypeName);
