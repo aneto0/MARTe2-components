@@ -15,7 +15,6 @@ marte_components_flint_exceptions.lnt
  * defines for SimulinkWrapperGAM
  */
 -dHOST_CAPI_BUILD
--dMATLAB_MEX_FILE
 
 /*
  * Set jenkins output format
