@@ -4,6 +4,8 @@
 -i%MDSPLUS_DIR%/include
 -i%SDN_CORE_INCLUDE_DIR%
 -i%MATLAB_DIR%/extern/include/
+-i%MATLAB_DIR%/rtw/c/src/
+-i%MATLAB_DIR%/simulink/include/
 
 -i%MARTe2_DIR%/Source/Core/BareMetal/L0Types/
 -i%MARTe2_DIR%/Source/Core/BareMetal/L0Types/Architecture/x86_gcc
