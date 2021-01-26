@@ -37,7 +37,7 @@ endif
 
 ifndef PROFINET_INCLUDE
 $(info $(shell tput setaf 4)Found the following Profinet INCLUDE/LIBRARY paths:$(shell tput sgr0))
-SCRIPT_PATH=$(shell pwd)/$(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/search_profinet.sh
+SCRIPT_PATH=$(shell pwd)/$(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/libraryDetect.sh
 STATUS=$(shell . $(SCRIPT_PATH))
 ifeq "$(word 1,$(STATUS))" "true"
 PROFINET_COMPILE=$(word 1,$(STATUS))
