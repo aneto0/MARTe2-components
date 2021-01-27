@@ -283,15 +283,22 @@ Two ancillary signals are available: LED and Ready. They give indications about 
 In order to prevent this, an indication about the "goodness" of the data can be extracted from the "ready" signal,
 which is a boolean (0 not ready = bad or stale data, 1 ready = good data).
 
-###  Extra - OSAL and PNET library temporary installation steps (to be replaced):
+### PNET and OSAL Installation on CentOS 7
+- Tested using:
 ```
-1) Existing folders in profinet.zip:
+GCC version used - gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44)
+cmake version used - cmake3 version 3.17.5
+```
+
+- Check if the following folders exist (from profinet.zip):
+```
 ~/profinet/osal
 ~/profinet/p-net
+```
 
-2) Edit both "osal/cmake/Linux.cmake" and "p-net/cmake/Linux.cmake" files and add the "-fPIC" option
-to the "target_compile_options" cmake file section:
-(...)
+- Edit both "osal/cmake/Linux.cmake" and "p-net/cmake/Linux.cmake" files and add the "-fPIC" option
+to the cmake files "target_compile_options" section:
+```
 target_compile_options(<osal or profinet>
   PRIVATE
   -fPIC
@@ -302,55 +309,50 @@ target_compile_options(<osal or profinet>
   INTERFACE
   $<$<CONFIG:Coverage>:--coverage>
   )
-(...)
+```
 
-3) Compile and install osal:
+- Compile and install OSAL:
+```
 $ cd osal/build
 $ cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
 $ make
 $ sudo make install
+```
 
-4) copy "missing" osal library file:
-$ sudo cp /usr/local/lib/libosal.so /usr/lib64/
-
-5) Run ldconfig and check if the library exists:
-$ sudo ldconfig
-$ sudo ldconfig -p | grep osal
-        libosal.so (libc6,x86-64) => /lib64/libosal.so
-
-6) OSAL is done, letd go to p-net:
+- OSAL installation is done. Now the PNET:
+```
 $ cd ~/profinet/p-net/build
 $ cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
 $ make
 $ sudo make install
+```
 
-7) copy p-net headers and library files:
+- Copy the additional PNET header files required by the DataSource:
+```
 $ sudo cp ~/profinet/p-net/src/pnal.h /usr/local/include/
 $ sudo cp ~/profinet/p-net/src/ports/linux/pnal_sys.h /usr/local/include/
-$ sudo cp /home/marte/Projects/profinetg/p-net/build/libprofinet.so /usr/lib64/
-
-8) Run ldconfig and check if the library exists:
-$ sudo ldconfig
-$ sudo ldconfig -p | grep profinet
-        libprofinet.so (libc6,x86-64) => /lib64/libprofinet.so
-
-9) Do a final check and verify if these files exist:
-9.1) /usr/lib64/libosal.so
-9.2) /usr/lib64/libprofinet.so
-9.3) /usr/local/include/osal.h
-9.4) /usr/local/include/osal_log.h
-9.5) /usr/local/include/pnal.h
-9.6) /usr/local/include/pnal_sys.h
-9.7) /usr/local/include/pnet_api.h
-9.8) /usr/local/include/pnet_export.h
-
-(10) All Done. Add the libraries to your Makefile.inc:
-(...)
-LIBRARIES += -losal -lprofinet
-(...)
 ```
-### DataSource compilation using the 'Makefile.detect' approach:
 
+- Do a final check and verify if these files exist:
+```
+/usr/local/lib/libosal.so
+/usr/local/lib/libprofinet.so
+/usr/local/include/osal.h
+/usr/local/include/osal_log.h
+/usr/local/include/pnal.h
+/usr/local/include/pnal_sys.h
+/usr/local/include/pnet_api.h
+/usr/local/include/pnet_export.h
+```
+
+- All Done. To make the '-losal' and '-lprofinet' libraries available at runtime, export the '/usr/local/lib' path to the LD_LIBRARY_PATH:
+```
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+```
+
+**Note:** To use a different installation directory, change '-DCMAKE_INSTALL_PREFIX=/usr/local/' accordingly when calling 'cmake' on both libraries. Also, check the [DataSource compilation using the 'Makefile.detect' approach](#dataSource-makefile-detect-approach) section.
+
+### [DataSource compilation using the 'Makefile.detect' approach](#dataSource-makefile-detect-approach)
 As previously described, the ProfinetDataSource requires pre-installing the PNET (and OSAL) library. Compiling MARTe2 with the ProfinetDataSource present and without the libraries would imply to make changes on the MARTe2 Makefiles. The 'Makefile.detect' approach enables to overcome this issue, providing a versatile alternative to disable the DataSource compilation and change the environment paths to the P-NET/OSAL libraries.
 
 - Compile MARTe2 without compiling the ProfinetDataSource or in the absence of the PNET/OSAL libraries:
@@ -371,17 +373,17 @@ Notice that this variable is only intended for explicitly disabling the DataSour
 
 - Compile MARTe2 with the ProfinetDataSource present and with the PNET/OSAL libraries installed in the default locations:
 
-The 'Makefile.detect' searches the required headers and libraries in the default paths '/usr/local/include/' and '/usr/lib64/' (set in the ‘libraryDetect.sh’ script). If the files are found, the Data Source is compiled and the following notification is issued to the  console during compilation (blue coloured):
+The 'Makefile.detect' searches the required headers and libraries in the default paths '/usr/local/include/' and '/usr/local/lib/' (set in the ‘libraryDetect.sh’ script). If the files are found, the Data Source is compiled and the following notification is issued to the  console during compilation (blue coloured):
 ```
 ProfinetDataSource INCLUDE/LIBRARY files found in default paths:
 PROFINET_INCLUDE=/usr/local/include/
-PROFINET_LIBRARY=/usr/lib64/
+PROFINET_LIBRARY=/usr/local/lib/
 ```
 If the files are not found, the following message (yellow coloured) is issued instead and the ProfinetDataSource is ignored during the compilation:
 ```
 ProfinetDataSource INCLUDE/LIBRARY files not found in default paths:
 PROFINET_INCLUDE=/usr/local/include/
-PROFINET_LIBRARY=/usr/lib64/
+PROFINET_LIBRARY=/usr/local/lib/
 ```
 
 - Compile MARTe2 with the ProfinetDataSource present and with the PNET/OSAL libraries installed, but using alternative user-specified include/library locations:
@@ -411,7 +413,7 @@ or
 ```
 ProfinetDataSource LIBRARY path is defined but INCLUDE is not:
 PROFINET_INCLUDE=
-PROFINET_LIBRARY=/usr/lib64/
+PROFINET_LIBRARY=/usr/local/lib/
 ```
-Either add the missing path using ‘export’ or remove the remaining path using ‘unset’.
+Either add the missing path using ‘export’ or remove the existing path using ‘unset’.
 
