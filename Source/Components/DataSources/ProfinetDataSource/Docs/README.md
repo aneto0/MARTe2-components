@@ -349,3 +349,63 @@ $ sudo ldconfig -p | grep profinet
 LIBRARIES += -losal -lprofinet
 (...)
 ```
+### DataSource compilation using the 'Makefile.detect' approach:
+
+As previously described, the ProfinetDataSource requires pre-installing the PNET (and OSAL) library. Compiling MARTe2 with the ProfinetDataSource present and without the libraries would imply to make changes on the MARTe2 Makefiles. The 'Makefile.detect' approach enables to overcome this issue, providing a versatile alternative to disable the DataSource compilation and change the environment paths to the P-NET/OSAL libraries.
+
+- Compile MARTe2 without compiling the ProfinetDataSource or in the absence of the PNET/OSAL libraries:
+Set the environment variable 'PROFINET_DISABLE' to 'true':
+```
+$ export PROFINET_DISABLE=true
+```
+MARTe2 can now be compiled (i.e. the ProfinetDataSource will be ignored). During the compilation process a notification (red coloured) is exhibited in the console:
+ProfinetDataSource is DISABLED.
+To revert this action, use the 'unset' command (or change 'PROFINET_DISABLE' variable content to something else):
+```
+$ unset PROFINET_DISABLE
+```
+Notice that this variable is only intended for explicitly disabling the DataSource when required.
+
+- Compile MARTe2 with the ProfinetDataSource present and with the PNET/OSAL libraries installed in the default locations:
+The 'Makefile.detect' searches the required headers and libraries in the default paths '/usr/local/include/' and '/usr/lib64/' (set in the ‘libraryDetect.sh’ script). If the files are found, the Data Source is compiled and the following notification is issued to the  console during compilation (blue coloured):
+```
+ProfinetDataSource INCLUDE/LIBRARY files found in default paths:
+PROFINET_INCLUDE=/usr/local/include/
+PROFINET_LIBRARY=/usr/lib64/
+```
+If the files are not found, the following message (yellow coloured) is issued instead and the ProfinetDataSource is ignored during the compilation:
+```
+ProfinetDataSource INCLUDE/LIBRARY files not found in default paths:
+PROFINET_INCLUDE=/usr/local/include/
+PROFINET_LIBRARY=/usr/lib64/
+```
+
+- Compile MARTe2 with the ProfinetDataSource present and with the PNET/OSAL libraries installed, but using alternative user-specified include/library locations:
+Set the following environment variables accordingly:
+```
+$ export PROFINET_INCLUDE=/path/to/pnet/and/osal/header/files/
+$ export PROFINET_LIBRARY=/path/to/pnet/and/osal/library/files/
+```
+These paths are assumed to be correct and the compilation process attempts to compile the DataSource. The following  notification (green coloured) is issued to the console:
+ProfinetDataSource INCLUDE/LIBRARY files using environment set paths:
+```
+export PROFINET_INCLUDE=/path/to/pnet/and/osal/header/files/
+export PROFINET_LIBRARY=/path/to/pnet/and/osal/library/files/
+```
+To revert this configuration, ‘unset’ the ‘PROFINET_INCLUDE’ and ‘PROFINET_LIBRARY’ environment variables.
+
+- Only one of the INCLUDE/LIBRARY paths is defined.
+The following notification (red coloured) is issued to the console and the ProfinetDataSource is not compiled:
+```
+ProfinetDataSource INCLUDE path is defined but LIBRARY is not:
+PROFINET_INCLUDE=/usr/local/include
+PROFINET_LIBRARY=
+```
+or
+```
+ProfinetDataSource LIBRARY path is defined but INCLUDE is not:
+PROFINET_INCLUDE=
+PROFINET_LIBRARY=/usr/lib64/
+```
+Either add the missing path using ‘export’ or remove the remaining path using ‘unset’.
+
