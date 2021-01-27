@@ -350,9 +350,9 @@ $ sudo cp ~/profinet/p-net/src/ports/linux/pnal_sys.h /usr/local/include/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 ```
 
-**Note:** To use a different installation directory, change '-DCMAKE_INSTALL_PREFIX=/usr/local/' accordingly when calling 'cmake' on both libraries. Also, check the [DataSource compilation using the 'Makefile.detect' approach](#dataSource-makefile-detect-approach) section.
+**Note:** To use a different installation directory, change '-DCMAKE_INSTALL_PREFIX=/usr/local/' accordingly when calling 'cmake' on both libraries. Also, check the [DataSource compilation using the 'Makefile.detect' approach](##datasource-compilation-using-the-makefiledetect-approach) section.
 
-### [DataSource compilation using the 'Makefile.detect' approach](#dataSource-makefile-detect-approach)
+### DataSource compilation using the 'Makefile.detect' approach
 As previously described, the ProfinetDataSource requires pre-installing the PNET (and OSAL) library. Compiling MARTe2 with the ProfinetDataSource present and without the libraries would imply to make changes on the MARTe2 Makefiles. The 'Makefile.detect' approach enables to overcome this issue, providing a versatile alternative to disable the DataSource compilation and change the environment paths to the P-NET/OSAL libraries.
 
 - Compile MARTe2 without compiling the ProfinetDataSource or in the absence of the PNET/OSAL libraries:
