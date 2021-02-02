@@ -74,7 +74,7 @@ namespace ProfinetDataSourceDriver
 
         private:
             ProfinetDataSourceAdapter() {;}
-
+            
             /**
              * @brief Holds the Logger Adapter instance.
              */
@@ -370,6 +370,8 @@ namespace ProfinetDataSourceDriver
             //Endregion - Helpers
 
         public:
+        
+        ~ProfinetDataSourceAdapter();
 
         /**
          * @brief Returns a COPY of the Profinet device configuration handle.
@@ -529,6 +531,12 @@ namespace ProfinetDataSourceDriver
              * @param[in] inputFlagMask The input flag mask which contains the to-be-served events
              */
             MARTe::uint16 MainThread(MARTe::uint16 inputFlagMask);
+
+            /**
+             * @brief Cleanly aborts the Profinet session
+             * @return true if Abort succeeded, false otherwise
+             */
+            bool AbortConnection();
 
             /**
              * @brief The Task timer tick event entry-point implementation

@@ -50,20 +50,34 @@ namespace MARTe {
     ProfinetDataSource::ProfinetDataSource() :
                         DataSourceI() {
 
+        adapter = NULL_PTR(ProfinetDataSourceDriver::ProfinetDataSourceAdapter*);
     }
 
     ProfinetDataSource::~ProfinetDataSource() {
-        timerHelper->Stop();
-        mainHelper->Stop();
+
+        if(adapter != NULL_PTR(ProfinetDataSourceDriver::ProfinetDataSourceAdapter*)) {
+            adapter->AbortConnection();
+            Sleep::Sec(2);
+            
+        }
+
+        if(timerHelper.IsValid()) {
+            timerHelper->Stop();
+            timerHelper->SetEntryPoint(NULL_PTR(ITimerEntryPoint*));
+        }
         
-        timerHelper->SetEntryPoint(NULL_PTR(ITimerEntryPoint*));
-        mainHelper->SetEntryPoint(NULL_PTR(IMainThreadEntryPoint*));
+        if(mainHelper.IsValid()) {
+            mainHelper->Stop();
+            mainHelper->SetEntryPoint(NULL_PTR(IMainThreadEntryPoint*));
+        }
+        
+        delete adapter;
     }
 
     bool 
         ProfinetDataSource::Initialise(
             StructuredDataI& data) {
-        
+
         bool returnValue = DataSourceI::Initialise(data);
         
         uint16 imResultFlag = 0u;
@@ -193,7 +207,7 @@ namespace MARTe {
 
             uint16 tempIMVendor;
             uint16 tempIMHardwareRevision;
-            char8 tempIMSoftwareRevision;
+            StreamString tempIMSoftwareRevision;
             uint8 tempIMFunctionalEnhancement;
             uint8 tempIMBugFix;
             uint8 tempIMInternalChange;
@@ -232,7 +246,7 @@ namespace MARTe {
                 imVendor = tempIMVendor;
                 imHardwareRevision = tempIMHardwareRevision;
                 
-                switch(tempIMSoftwareRevision) {
+                switch(tempIMSoftwareRevision.Buffer()[0]) {
                     case 'V':
                         imSoftwareRevision = ProfinetDataSourceDriver::SwRev_V;
                     break;
@@ -1027,6 +1041,18 @@ namespace MARTe {
     void ProfinetDataSource::SetReady(bool readyStatus) {
         if(profinetReadySignalEnabled) {
             *reinterpret_cast<uint8*>(signalIndexer[0][profinetReadySignalIndex].firstByteOfSignal) = readyStatus?1:0;
+        }
+    }
+
+    void ProfinetDataSource::Abort() {
+        if(timerHelper.IsValid()) {
+            timerHelper->Stop();
+            timerHelper->SetEntryPoint(NULL_PTR(ITimerEntryPoint*));
+        }
+        
+        if(mainHelper.IsValid()) {
+            mainHelper->Stop();
+            mainHelper->SetEntryPoint(NULL_PTR(IMainThreadEntryPoint*));
         }
     }
 

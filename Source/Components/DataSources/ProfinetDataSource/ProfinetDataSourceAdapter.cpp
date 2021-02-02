@@ -287,6 +287,13 @@ namespace ProfinetDataSourceDriver {
         //eventFlags = 0;
     }
 
+    ProfinetDataSourceAdapter::~ProfinetDataSourceAdapter() {
+        if(profinetUp) {
+            //pnet_ar_abort(profinetHandle, appRelationshipEndPoint);
+            //pnet_factory_reset(profinetHandle);
+        }
+    }
+
     bool ProfinetDataSourceAdapter::Initialize() {
         bool valid = callbacksUp && baseDataUp && idMaintDataUp && lldpDataUp;
         
@@ -360,6 +367,16 @@ namespace ProfinetDataSourceDriver {
         }
 
         return profinetUp;
+    }
+
+    bool ProfinetDataSourceAdapter::AbortConnection() {
+        bool returnValue = false;
+        std::ostringstream outStr;
+
+        returnValue = (pnet_ar_abort(profinetHandle, appRelationshipEndPoint) == 0);
+        outStr << "ABORT " << returnValue << " on AREP " << appRelationshipEndPoint << std::endl;
+        loggerAdapter->Log(LogLevel_Warning, outStr.str());
+        return returnValue;
     }
 
     void ProfinetDataSourceAdapter::AddSlot(
@@ -616,7 +633,7 @@ namespace ProfinetDataSourceDriver {
                 loggerAdapter->Log(LogLevel_Error, outStr.str());
 
                 profinetEventNotificationListener->NotifyEvent(MARTe::ProfinetEventAbort);
-                
+                //appRelationshipEndPoint = UINT32_MAX;
                 if(opSignalsEntryPoint != NULL) {
                     opSignalsEntryPoint->SetReady(false);
                 }
@@ -843,6 +860,9 @@ namespace ProfinetDataSourceDriver {
         else if(inputFlagMask & Abort) {
             loggerAdapter->Log(LogLevel_Debug, "Abort.");
             outputFlagMask = outputFlagMask & (~Abort);
+            if(opSignalsEntryPoint != NULL) {
+                opSignalsEntryPoint->Abort();
+            }
         }
 
         return outputFlagMask;

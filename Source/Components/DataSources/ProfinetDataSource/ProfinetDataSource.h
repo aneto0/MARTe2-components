@@ -868,6 +868,11 @@ namespace MARTe {
                  * @brief Entry point implementation for the ready signal event.
                  */
                 virtual void SetReady(bool readyStatus);
+
+                /**
+                 * @brief Entry point for the abort indication
+                 */
+                virtual void Abort();
     };
 
 }

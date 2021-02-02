@@ -57,6 +57,11 @@ namespace MARTe {
              * @param[in] readyStatus New status for the ready signal.
              */
             virtual void SetReady(bool readyStatus) = 0;
+
+            /**
+             * @brief Informs the listener (implementer) that underlying driver has aborted
+             */
+            virtual void Abort() = 0;
     };
 
 }
