@@ -1,8 +1,9 @@
 /**
  * @file ILoggerAdapter.h
  * @brief Header file for class ILoggerAdapter
- * @date 15/01/2021
+ * @date 22/01/2021
  * @author Giuseppe Avon
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -30,7 +31,6 @@
 
 #include <string>
 
-
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -39,33 +39,48 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 namespace ProfinetDataSourceDriver {
+/**
+ * @brief Implementation of the ILoggerAdapter for the ProfinetDataSourceDriver
+ * 
+ * @details Implements a generic double-linked list with the Sentinel Node approach.
+ * Provides also a convenient iterator (forward and reverse) for easy traversal.
+ */
+
+/**
+ * @brief Log levels for the ILogAdapter class.
+ * @details Allowed message output levels for the ILogAdapter class.
+ */
+typedef enum logadapter_level {
+    LogLevel_Debug      = 0,
+    LogLevel_Info       = 1,
+    LogLevel_Warning    = 2,
+    LogLevel_Error      = 3
+}log_adapter_level_t;
+
+
+/**
+ * @brief Interface for a simple generic log adaptation.
+ * @details Abstraction to allow logging / printing capabilities from inner classes,
+ * decoupling from MARTe specifics. This interface allows the usage of a generic Log
+ * method from the inner classes which can be conveniently routed to the MARTe2 
+ * REPORT_ERROR_STATIC facility once implementing the DataSource.
+ */
+class ILoggerAdapter {
+public:
 
     /**
-    * Allowed log levels for the ILogAdapter class
-    */
-    typedef enum logadapter_level {
-        LogLevel_Debug      = 0,
-        LogLevel_Info       = 1,
-        LogLevel_Warning    = 2,
-        LogLevel_Error      = 3
-    }log_adapter_level_t;
-
+     * @brief Destructor.
+     * @details The destructor for ILoggerAdapter.
+     */
+    virtual ~ILoggerAdapter() {}
 
     /**
-    * @brief    Interface for a simple generic log adaptation.
-    * @details  Abstraction to allow logging / printing capabilities from inner classes, decoupling 
-    *           from MARTe specifics. This interface allows the usage of
-    *           a generic Log() method from the inner classes which can be conveniently routed to the
-    *           MARTe REPORT_ERROR() facility once implementing the DataSource.
-    */
-    class ILoggerAdapter {
-        
-        public:
-            virtual ~ILoggerAdapter() {}
-            virtual void Log(log_adapter_level_t logLevel, std::string message) = 0;
-    };
+     * @brief The Log method.
+     * @details The Log method used at ProfinetToMARTeLogAdapter.
+     */
+    virtual void Log(log_adapter_level_t logLevel, std::string message) = 0;
+};
 
 }
 

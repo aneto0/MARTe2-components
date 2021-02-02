@@ -25,5 +25,3 @@
 TARGET=cov
 
 include Makefile.inc
-
-LIBRARIES += -losal -lprofinet

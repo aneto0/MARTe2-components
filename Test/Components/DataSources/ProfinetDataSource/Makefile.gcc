@@ -24,10 +24,9 @@
 #
 #############################################################
 
-
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
-
-OBJSX = ProfinetDataStructureGTest.x ProfinetDataSourceAdapterGTest.x ProfinetDataSourceGTest.x
-LIBRARIES += -losal -lprofinet
+OBJSX = ProfinetDataStructureGTest.x \
+    ProfinetDataSourceAdapterGTest.x \
+    ProfinetToMARTeLogAdapterGTest.x \
+    ProfinetDataSourceGTest.x
 
 include Makefile.inc

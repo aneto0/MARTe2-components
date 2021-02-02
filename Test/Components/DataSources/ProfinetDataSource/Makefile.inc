@@ -24,11 +24,16 @@
 #
 #############################################################
 
-OBJSX +=  ProfinetDataStructureTest.x ProfinetDataSourceAdapterTest.x ProfinetDataSourceTest.x
-		
+OBJSX +=  ProfinetDataStructureTest.x \
+    ProfinetDataSourceAdapterTest.x \
+    ProfinetToMARTeLogAdapterTest.x \
+	ProfinetDataSourceTest.x
+        
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
+
+include $(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/Makefile.detect
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
@@ -48,11 +53,18 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
+INCLUDES += -I$(PROFINET_INCLUDE)
+
 INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource
+INCLUDES += -I$(ROOT_DIR)/Source/Components/GAMs/IOGAM
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+LIBRARIES +=  -L$(PROFINET_LIBRARY) -losal -lprofinet
 
 all: $(OBJS) \
-	$(BUILD_DIR)/ProfinetDataSourceTest$(LIBEXT)
-	echo  $(OBJS)
+	$(BUILD_DIR)/ProfinetDataSourceTest$(LIBEXT) \
+	$(BUILD_DIR)/ProfinetDataStructureTest$(LIBEXT)
+	echo $(OBJS)
 
 include depends.$(TARGET)
 

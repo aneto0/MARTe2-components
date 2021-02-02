@@ -1,8 +1,9 @@
 /**
- * @file BasicConsoleLogAdapter.cpp
- * @brief Source file for class BasicConsoleLogAdapter
- * @date 15/01/2021
+ * @file ProfinetToMARTeLogAdapter.cpp
+ * @brief Source file for class ProfinetToMARTeLogAdapter
+ * @date 21/01/2021
  * @author Giuseppe Avon
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,8 +16,8 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
- * @details This header file contains the declaration of the class BasicConsoleLogAdapter
+ *
+ * @details This header file contains the declaration of the class ProfinetToMARTeLogAdapter
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
@@ -33,7 +34,6 @@
 #include "AdvancedErrorManagement.h"
 #include "ProfinetToMARTeLogAdapter.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -42,7 +42,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
 namespace MARTe {
 
     ProfinetToMARTeLogAdapter::ProfinetToMARTeLogAdapter(ProfinetDataSourceDriver::log_adapter_level_t minimumLevel) {
@@ -55,4 +54,7 @@ namespace MARTe {
         }
     }
 
+    ProfinetDataSourceDriver::log_adapter_level_t ProfinetToMARTeLogAdapter::GetMinimumLoggerLevel() {
+        return minimumLevel;
+    }
 }

@@ -1,7 +1,7 @@
 /**
- * @file ProfinetDataStructureGTest.cpp
- * @brief Source file for class ProfinetDataStructureTest
- * @date 14/01/2021
+ * @file ProfinetToMARTeLogAdapterGTest.cpp
+ * @brief Source file for class ProfinetToMARTeLogAdapterTest
+ * @date 20/01/2021
  * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -17,20 +17,22 @@
  * or implied. See the Licence permissions and limitations under the Licence.
  *
  * @details This source file contains the definition of all the methods for
- * the class ProfinetDataStructureTest (public, protected, and private). Be aware that some
- * methods, such as those inline could be defined on the header file, instead.
+ * the class ProfinetToMARTeLogAdapterTest (public, protected, and private). 
+ * Be aware that some methods, such as those inline could be defined on the
+ * header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+
 #include <limits.h>
 #include "gtest/gtest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "ProfinetDataStructureTest.h"
+#include "ProfinetToMARTeLogAdapterTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -39,62 +41,52 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-TEST(ProfinetDataStructureGTest, TestConstructor) {
-    ProfinetDataStructureTest test;
+TEST(ProfinetToMARTeLogAdapterGTest, TestConstructor) {
+    ProfinetToMARTeLogAdapterTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(ProfinetDataStructureGTest, TestInsertHead) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestInsertHead());
+TEST(ProfinetToMARTeLogAdapterGTest, TestLoggerMinimumLevels) {
+    ProfinetToMARTeLogAdapterTest test;
+    ASSERT_TRUE(test.TestLoggerMinimumLevels());
 }
 
-TEST(ProfinetDataStructureGTest, TestInsertTail) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestInsertTail());
+TEST(ProfinetToMARTeLogAdapterGTest, TestLoggerMessageZeroSize) {
+    ProfinetToMARTeLogAdapterTest test;
+    ASSERT_TRUE(test.TestLoggerMessageZeroSize());
 }
 
-TEST(ProfinetDataStructureGTest, TestRemoveHead) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestRemoveHead());
+TEST(ProfinetToMARTeLogAdapterGTest, TestLoggerMessageAverageSize) {
+    ProfinetToMARTeLogAdapterTest test;
+    ASSERT_TRUE(test.TestLoggerMessageAverageSize());
 }
 
-TEST(ProfinetDataStructureGTest, TestRemoveTail) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestRemoveTail());
+TEST(ProfinetToMARTeLogAdapterGTest, TestLoggerMessageMaximumSize) {
+    ProfinetToMARTeLogAdapterTest test;
+    ASSERT_TRUE(test.TestLoggerMessageMaximumSize());
 }
 
-TEST(ProfinetDataStructureGTest, TestEmptyLinkedList) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestEmptyLinkedList());
+TEST(ProfinetToMARTeLogAdapterGTest, TestLoggerMessageOverrunSize) {
+    ProfinetToMARTeLogAdapterTest test;
+    ASSERT_TRUE(test.TestLoggerMessageOverrunSize());
 }
 
-TEST(ProfinetDataStructureGTest, TestLinkedListStatus) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestLinkedListStatus());
+TEST(ProfinetToMARTeLogAdapterGTest, TestLoggerMessageDebugLevel) {
+    ProfinetToMARTeLogAdapterTest test;
+    ASSERT_TRUE(test.TestLoggerMessageDebugLevel());
 }
 
-TEST(ProfinetDataStructureGTest, TestGetIterator) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestGetIterator());
+TEST(ProfinetToMARTeLogAdapterGTest, TestLoggerMessageInformationLevel) {
+    ProfinetToMARTeLogAdapterTest test;
+    ASSERT_TRUE(test.TestLoggerMessageInformationLevel());
 }
 
-TEST(ProfinetDataStructureGTest, TestFirst) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestFirst());
+TEST(ProfinetToMARTeLogAdapterGTest, TestLoggerMessageWarningLevel) {
+    ProfinetToMARTeLogAdapterTest test;
+    ASSERT_TRUE(test.TestLoggerMessageWarningLevel());
 }
 
-TEST(ProfinetDataStructureGTest, TestNext) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestNext());
-}
-
-TEST(ProfinetDataStructureGTest, TestLast) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestLast());
-}
-
-TEST(ProfinetDataStructureGTest, TestPrevious) {
-    ProfinetDataStructureTest test;
-    ASSERT_TRUE(test.TestPrevious());
+TEST(ProfinetToMARTeLogAdapterGTest, TestLoggerMessageErrorLevel) {
+    ProfinetToMARTeLogAdapterTest test;
+    ASSERT_TRUE(test.TestLoggerMessageErrorLevel());
 }

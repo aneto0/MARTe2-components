@@ -1,7 +1,7 @@
 /**
- * @file ProfinetDataStructureTest.h
- * @brief Header file for class ProfinetDataStructureTest
- * @date 14/01/2021
+ * @file ProfinetToMARTeLogAdapterTest.h
+ * @brief Header file for class ProfinetToMARTeLogAdapterTest
+ * @date 20/01/2021
  * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,14 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class ProfinetDataStructureTest
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This source file contains the definition of all the methods for
+ * the class ProfinetToMARTeLogAdapterTest (public, protected, and private). 
+ * Be aware that some methods, such as those inline could be defined on the
+ * header file, instead.
  */
 
-#ifndef DATASOURCES_PROFINET_PROFINETDATASTRUCTURETEST_H_
-#define DATASOURCES_PROFINET_PROFINETDATASTRUCTURETEST_H_
+#ifndef DATASOURCES_PROFINET_PROFINETTOMARTELOGADAPTERTEST_H_
+#define DATASOURCES_PROFINET_PROFINETTOMARTELOGADAPTERTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -37,9 +38,9 @@
 /*---------------------------------------------------------------------------*/
 
 /**
- * @brief Tests the ProfinetDataStructure public methods.
+ * @brief Tests the ProfinetToMARTeLogAdapter public methods.
  */
-class ProfinetDataStructureTest {
+class ProfinetToMARTeLogAdapterTest {
 public:
 
     /**
@@ -48,63 +49,53 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the InsertHead method.
+     * @brief Tests the Contructor minimum logger level parameter.
      */
-    bool TestInsertHead();
+    bool TestLoggerMinimumLevels();
 
     /**
-     * @brief Tests the InsertTail method.
+     * @brief Tests the Log method using a message with size equals zero.
      */
-    bool TestInsertTail();
+    bool TestLoggerMessageZeroSize();
 
     /**
-     * @brief Tests the RemoveHead method.
+     * @brief Tests the Log method using a message with average size.
      */
-    bool TestRemoveHead();
+    bool TestLoggerMessageAverageSize();
 
     /**
-     * @brief Tests the RemoveTail method.
+     * @brief Tests the Log method using a message with maximum size.
      */
-    bool TestRemoveTail();
+    bool TestLoggerMessageMaximumSize();
 
     /**
-     * @brief Tests the EmptyLinkedList method.
+     * @brief Tests the Log method using a message with size above the maximum.
      */
-    bool TestEmptyLinkedList();
+    bool TestLoggerMessageOverrunSize();
 
     /**
-     * @brief Tests the LinkedListStatus method.
+     * @brief Tests the Log method for Debug level.
      */
-    bool TestLinkedListStatus();
+    bool TestLoggerMessageDebugLevel();
 
     /**
-     * @brief Tests the GetIterator method.
+     * @brief Tests the Log method for Information level.
      */
-    bool TestGetIterator();
+    bool TestLoggerMessageInformationLevel();
 
     /**
-     * @brief Tests the First method.
+     * @brief Tests the Log method for Warning level.
      */
-    bool TestFirst();
+    bool TestLoggerMessageWarningLevel();
 
     /**
-     * @brief Tests the Next method.
+     * @brief Tests the Log method for Error level.
      */
-    bool TestNext();
-
-    /**
-     * @brief Tests the Last method.
-     */
-    bool TestLast();
-
-    /**
-     * @brief Tests the Previous method.
-     */
-    bool TestPrevious();
+    bool TestLoggerMessageErrorLevel();
 };
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* DATASOURCES_PROFINET_PROFINETDATASTRUCTURETEST_H_ */
+#endif /* DATASOURCES_PROFINET_PROFINETTOMARTELOGADAPTERTEST_H_ */

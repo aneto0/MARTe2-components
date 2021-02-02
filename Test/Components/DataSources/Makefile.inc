@@ -30,8 +30,10 @@ SPB    = EpicsDataSource.x \
         LinkDataSource.x \
         LoggerDataSource.x \
         RealTimeThreadAsyncBridge.x \
-        RealTimeThreadSynchronisation.x \
-        ProfinetDataSource.x
+        RealTimeThreadSynchronisation.x
+
+ROOT_DIR=../../..
+include ../../../Source/Components/DataSources/ProfinetDataSource/Makefile.detect
 
 ifdef CODAC_ROOT
 SPB+=DAN.x
@@ -63,6 +65,10 @@ endif
 
 ifdef OPEN62541_INCLUDE
 SPB    += OPCUADataSource.x
+endif
+
+ifdef PROFINET_COMPILE
+SPB    += ProfinetDataSource.x
 endif
 
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
@@ -115,7 +121,9 @@ ifdef OPEN62541_INCLUDE
 LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUADataSource/OPCUADataSourceTest$(LIBEXT)
 endif
 
+ifdef PROFINET_COMPILE
 LIBRARIES_STATIC+=$(BUILD_DIR)/ProfinetDataSource/ProfinetDataSourceTest$(LIBEXT)
+endif
 
 all: $(OBJS) $(SUBPROJ) \
     $(BUILD_DIR)/DataSourcesTests$(LIBEXT)
