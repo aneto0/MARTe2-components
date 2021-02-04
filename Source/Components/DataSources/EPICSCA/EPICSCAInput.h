@@ -15,7 +15,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This header file contains the declaration of the class EPICSCAInput
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
@@ -51,34 +51,46 @@ const uint32 PV_NAME_MAX_SIZE = 64u;
  * Wraps a PV
  */
 struct PVWrapper {
+
     /**
      * The channel identifier
      */
     chid pvChid;
+
     /**
      * The event identifier
      */
     evid pvEvid;
+
     /**
      * The PV type
      */
     chtype pvType;
+
     /**
      * The memory of the signal associated to this channel
      */
     void *memory;
+
     /**
      * The number of elements > 0
      */
     uint32 numberOfElements;
+
     /**
      * The memory size
      */
     uint32 memorySize;
+
     /**
      * The PV name
      */
     char8 pvName[PV_NAME_MAX_SIZE];
+
+    /**
+     * The type descriptor
+     */
+    TypeDescriptor td;
 };
 
 /**
@@ -111,7 +123,7 @@ public:
     /**
      * @brief Default constructor. NOOP.
      */
-EPICSCAInput    ();
+    EPICSCAInput    ();
 
     /**
      * @brief Destructor.

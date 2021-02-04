@@ -15,7 +15,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class EPICSPV (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
@@ -44,8 +44,7 @@
 
 namespace MARTe {
 
-EPICSPV::EPICSPV() :
-        Object(), MessageI() {
+EPICSPV::EPICSPV() : ReferenceContainer(), MessageI() {
     context = NULL_PTR(struct ca_client_context *);
     timeout = 5.0F;
     pvName = "";
@@ -61,6 +60,8 @@ EPICSPV::EPICSPV() :
     pvMemory = NULL_PTR(void *);
     memorySize = 0u;
     typeSize = 0u;
+    changedPvVal = 0u;
+    firstTime = 0u;
 
     ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -97,7 +98,7 @@ EPICSPV::~EPICSPV() {
 }
 
 bool EPICSPV::Initialise(StructuredDataI & data) {
-    bool ok = Object::Initialise(data);
+    bool ok = ReferenceContainer::Initialise(data);
     if (ok) {
         ok = data.Read("PVName", pvName);
         if (!ok) {
@@ -176,12 +177,6 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
 
     if (data.MoveRelative("Event")) {
         if (ok) {
-            ok = data.Read("Destination", destination);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Destination must be specified");
-            }
-        }
-        if (ok) {
             StreamString modeValueStr;
             ok = data.Read("PVValue", modeValueStr);
             if (!ok) {
@@ -199,10 +194,21 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
                 }
                 else if (modeValueStr == "Ignore") {
                     eventMode.ignore = true;
+                                }
+                else if (modeValueStr == "Message") {
+                    eventMode.message = true;
                 }
                 else {
                     REPORT_ERROR(ErrorManagement::ParametersError, "PVValue %s is not supported", modeValueStr.Buffer());
                     ok = false;
+                }
+            }
+        }
+        if (ok) {
+            if (!(eventMode.message.operator bool())) {
+                ok = data.Read("Destination", destination);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Destination must be specified");
                 }
             }
         }
@@ -387,95 +393,152 @@ void EPICSPV::HandlePVEvent(struct event_handler_args const & args) {
 void EPICSPV::TriggerEventMessage() {
     ConfigurationDatabase cdb;
     //firstTime do not trigger an event so that we only react on value transitions.
-    static bool firstTime = true;
-    if (!firstTime) {
-        bool ok = cdb.Write("Destination", destination.Buffer());
-        if (eventMode.function.operator bool()) {
-            if (nOfFunctionMaps == 0u) {
+    if (firstTime >= 1u) {
+        bool ok = true;
+        if (!eventMode.message.operator bool()) {
+            ok = cdb.Write("Destination", destination.Buffer());
+
+            if (eventMode.function.operator bool()) {
+                if (nOfFunctionMaps == 0u) {
+                    if (ok) {
+                        ok = cdb.Write("Function", pvAnyType);
+                    }
+                }
+                else {
+                    StreamString newValue;
+                    AnyType newValueAnyType(TypeDescriptor(false, SString, static_cast<uint16>(sizeof(StreamString) * 8u)), 0u, &newValue);
+                    if (TypeConvert(newValueAnyType, pvAnyType)) {
+                        StreamString functionMapValue = GetFunctionFromMap(newValue.Buffer());
+                        if (functionMapValue.Size() > 0u) {
+                            ok = cdb.Write("Function", functionMapValue.Buffer());
+                        }
+                        else {
+                            REPORT_ERROR(ErrorManagement::FatalError, "Could not find a mapping for key: %s", newValue.Buffer());
+                            ok = false;
+                        }
+                    }
+                }
+            }
+            else if (eventMode.ignore.operator bool()) {
                 if (ok) {
-                    ok = cdb.Write("Function", pvAnyType);
+                    ok = cdb.Write("Function", function.Buffer());
                 }
             }
+            else if (eventMode.parameterName.operator bool()) {
+                if (ok) {
+                    ok = cdb.Write("Function", function.Buffer());
+                }
+                if (ok) {
+                    ok = cdb.CreateAbsolute("+Parameters");
+                }
+                if (ok) {
+                    ok = cdb.Write("Class", "ConfigurationDatabase");
+                }
+                if (ok) {
+                    ok = cdb.Write("param1", GetName());
+                }
+                if (ok) {
+                    ok = cdb.Write("param2", pvAnyType);
+                }
+                if (ok) {
+                    ok = cdb.MoveToAncestor(1u);
+                }
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Could not create ConfigurationDatabase for message");
+                }
+            }
+            //Must be eventMode.parameter.operator bool()
             else {
-                StreamString newValue;
-                AnyType newValueAnyType(TypeDescriptor(false, SString, static_cast<uint16>(sizeof(StreamString) * 8u)), 0u, &newValue);
-                if (TypeConvert(newValueAnyType, pvAnyType)) {
-                    StreamString functionMapValue = GetFunctionFromMap(newValue.Buffer());
-                    if (functionMapValue.Size() > 0u) {
-                        ok = cdb.Write("Function", functionMapValue.Buffer());
+                if (ok) {
+                    ok = cdb.Write("Function", function.Buffer());
+                }
+                if (ok) {
+                    ok = cdb.CreateAbsolute("+Parameters");
+                }
+                if (ok) {
+                    ok = cdb.Write("Class", "ConfigurationDatabase");
+                }
+                if (ok) {
+                    ok = cdb.Write("param1", pvAnyType);
+                }
+                if (ok) {
+                    ok = cdb.MoveToAncestor(1u);
+                }
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Could not create ConfigurationDatabase for message");
+                }
+            }
+            if (ok) {
+                ReferenceT<Message> message(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+                ok = message->Initialise(cdb);
+                if (ok) {
+                    if (MessageI::SendMessage(message, this) != ErrorManagement::NoError) {
+                        StreamString val;
+                        (void) val.Printf("%!", pvAnyType);
+                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", destination.Buffer(), val.Buffer());
                     }
-                    else {
-                        REPORT_ERROR(ErrorManagement::FatalError, "Could not find a mapping for key: %s", newValue.Buffer());
-                        ok = false;
-                    }
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Could not Initialise message");
                 }
             }
         }
-        else if (eventMode.ignore.operator bool()) {
-            if (ok) {
-                ok = cdb.Write("Function", function.Buffer());
-            }
-        }
-        else if (eventMode.parameterName.operator bool()) {
-            if (ok) {
-                ok = cdb.Write("Function", function.Buffer());
-            }
-            if (ok) {
-                ok = cdb.CreateAbsolute("+Parameters");
-            }
-            if (ok) {
-                ok = cdb.Write("Class", "ConfigurationDatabase");
-            }
-            if (ok) {
-                ok = cdb.Write("param1", GetName());
-            }
-            if (ok) {
-                ok = cdb.Write("param2", pvAnyType);
-            }
-            if (ok) {
-                ok = cdb.MoveToAncestor(1u);
-            }
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not create ConfigurationDatabase for message");
-            }
-        }
-        //Must be eventMode.parameter.operator bool()
         else {
-            if (ok) {
-                ok = cdb.Write("Function", function.Buffer());
-            }
-            if (ok) {
-                ok = cdb.CreateAbsolute("+Parameters");
-            }
-            if (ok) {
-                ok = cdb.Write("Class", "ConfigurationDatabase");
-            }
-            if (ok) {
-                ok = cdb.Write("param1", pvAnyType);
-            }
-            if (ok) {
-                ok = cdb.MoveToAncestor(1u);
-            }
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not create ConfigurationDatabase for message");
-            }
-        }
-        if (ok) {
-            ReferenceT<Message> message(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-            ok = message->Initialise(cdb);
-            if (ok) {
-                if (MessageI::SendMessage(message, this) != ErrorManagement::NoError) {
-                    StreamString val;
-                    (void) val.Printf("%!", pvAnyType);
-                    REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", destination.Buffer(), val.Buffer());
+            uint32 numberOfMessages = Size();
+            ReferenceT < Message > message;
+            for (uint32 i = 0u; (i < numberOfMessages) && ok; i++) {
+                message = Get(i);
+                if (message.IsValid()) {
+                    ReferenceT < ConfigurationDatabase > parameters = message->Get(0u);
+                    if (parameters.IsValid()) {
+                        uint32 numberOfParameters = parameters->GetNumberOfChildren();
+                        for (uint32 j = 0u; (j < numberOfParameters) && ok; j++) {
+                            StreamString childName = parameters->GetChildName(j);
+                            if (firstTime >= 2u) {
+                                if (((1ull << j) & changedPvVal) != 0u) {
+                                    ok = parameters->Delete(childName.Buffer());
+                                    if (ok) {
+                                        ok = parameters->Write(childName.Buffer(), pvAnyType);
+                                    }
+                                }
+                            }
+                            else {
+                                StreamString templ;
+                                if (parameters->Read(childName.Buffer(), templ)) {
+                                    if (templ == "$PVName") {
+                                        ok = parameters->Delete(childName.Buffer());
+                                        if (ok) {
+                                            ok = parameters->Write(childName.Buffer(), GetName());
+                                        }
+                                    }
+                                    else {
+                                        if (templ == "$PVValue") {
+                                            ok = parameters->Delete(childName.Buffer());
+                                            if (ok) {
+                                                ok = parameters->Write(childName.Buffer(), pvAnyType);
+                                            }
+                                            if (ok) {
+                                                changedPvVal |= (1ull << j);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            else {
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not Initialise message");
+            if (MessageI::SendMessage(message, this) != ErrorManagement::NoError) {
+                StreamString val;
+                (void) val.Printf("%!", pvAnyType);
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", destination.Buffer(), val.Buffer());
             }
+        }
+        if (firstTime > 2u) {
+            firstTime = 2u;
         }
     }
-    firstTime = false;
+    firstTime++;
 }
 
 /*lint -e{1762} function cannot be made const as it is registered as an RPC*/

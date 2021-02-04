@@ -15,7 +15,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This header file contains the declaration of the class EPICSPV
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
@@ -72,7 +72,7 @@ namespace MARTe {
  *
  * If the Event section is defined the Messages triggered will have the Function defined as above and the parameter (if set) will be written with the key "param1".
  */
-class EPICSPV: public Object, public MessageI {
+class EPICSPV: public ReferenceContainer, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -182,9 +182,14 @@ EPICSPV    ();
         BitBoolean<uint8, 4u> ignore;
 
         /**
+         * Message
+         */
+        BitBoolean<uint8, 5u> message;
+
+        /**
          * Unmapped area
          */
-        BitRange<uint8, 5u, 3u> unMapped;
+        BitRange<uint8, 6u, 2u> unMapped;
 
         /**
          * Output as uint16
@@ -345,6 +350,12 @@ private:
      * The EPICS PV AnyType representation
      */
     AnyType pvAnyType;
+
+    //TODO
+    uint64 changedPvVal;
+
+    //TODO
+    uint8 firstTime;
 };
 
 }

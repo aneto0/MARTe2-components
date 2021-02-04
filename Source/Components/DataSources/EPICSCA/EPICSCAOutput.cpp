@@ -15,7 +15,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class EPICSCAOutput (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
@@ -31,6 +31,8 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "MemoryMapAsyncOutputBroker.h"
+#include "CLASSMETHODREGISTER.h"
+#include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -47,6 +49,13 @@ EPICSCAOutput::EPICSCAOutput() :
     numberOfBuffers = 0u;
     ignoreBufferOverrun = 1u;
     threadContextSet = false;
+    signalFlag = NULL_PTR(uint8*);
+    ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    filter->SetDestination(this);
+    ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
+    if (!ret.ErrorsCleared()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
+    }
 }
 
 /*lint -e{1551} must free the memory allocated to the different PVs.*/
@@ -63,6 +72,9 @@ EPICSCAOutput::~EPICSCAOutput() {
             }
         }
         delete[] pvs;
+    }
+    if (signalFlag == NULL_PTR(uint8*)) {
+        delete[] signalFlag;
     }
 }
 
@@ -152,10 +164,12 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
 
     if (ok) {
         pvs = new PVWrapper[nOfSignals];
+        signalFlag = new uint8[nOfSignals];
         uint32 n;
         for (n = 0u; (n < nOfSignals); n++) {
             pvs[n].memory = NULL_PTR(void *);
             pvs[n].pvChid = NULL_PTR(chid);
+            signalFlag[n] = 0u;
         }
         for (n = 0u; (n < nOfSignals) && (ok); n++) {
             //Note that the RealTimeApplicationConfigurationBuilder is allowed to change the order of the signals w.r.t. to the originalSignalInformation
@@ -278,7 +292,7 @@ bool EPICSCAOutput::GetInputBrokers(ReferenceContainer& inputBrokers, const char
 }
 
 bool EPICSCAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT<MemoryMapAsyncOutputBroker> broker("MemoryMapAsyncOutputBroker");
+    ReferenceT < MemoryMapAsyncOutputBroker > broker("MemoryMapAsyncOutputBroker");
     bool ok = broker->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
     if (ok) {
         ok = outputBrokers.Insert(broker);
@@ -290,6 +304,16 @@ bool EPICSCAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const ch
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
 bool EPICSCAOutput::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+    for (uint32 i = 0u; (i < numberOfSignals); i++) {
+        uint32 numberOfProducers = 0u;
+        if (!GetSignalNumberOfProducers(i, nextStateName, numberOfProducers)) {
+            numberOfProducers = 0u;
+        }
+        if (numberOfProducers > 0u) {
+            /*lint -e{613} NULL pointer checked*/
+            signalFlag[i] = 1u;
+        }
+    }
     return true;
 }
 
@@ -318,10 +342,12 @@ bool EPICSCAOutput::Synchronise() {
         threadContextSet = ok;
         if (pvs != NULL_PTR(PVWrapper *)) {
             for (n = 0u; (n < nOfSignals); n++) {
-                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                ok = (ca_create_channel(&pvs[n].pvName[0], NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvs[n].pvChid) == ECA_NORMAL);
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::FatalError, "ca_create_channel failed for PV with name %s", pvs[n].pvName);
+                if (signalFlag[n] > 0u) {
+                    /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                    ok = (ca_create_channel(&pvs[n].pvName[0], NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvs[n].pvChid) == ECA_NORMAL);
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::FatalError, "ca_create_channel failed for PV with name %s", pvs[n].pvName);
+                    }
                 }
             }
         }
@@ -331,21 +357,24 @@ bool EPICSCAOutput::Synchronise() {
     if (threadContextSet) {
         if (pvs != NULL_PTR(PVWrapper *)) {
             for (n = 0u; (n < nOfSignals); n++) {
-                uint32 nRetries = 5u;
-                ok = false;
-                while((nRetries > 0u) && (!ok)) {
-                    /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                    if (pvs[n].pvType == DBR_STRING) {
-                        ok = (ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                if (signalFlag[n] > 0u) {
+
+                    uint32 nRetries = 5u;
+                    ok = false;
+                    while ((nRetries > 0u) && (!ok)) {
+                        /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                        if (pvs[n].pvType == DBR_STRING) {
+                            ok = (ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                        }
+                        else {
+                            ok = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                        }
+                        nRetries--;
+                        (void) ca_pend_io(0.5);
                     }
-                    else {
-                        ok = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::FatalError, "ca_put failed for PV: %s", pvs[n].pvName);
                     }
-                    nRetries--;
-                    (void) ca_pend_io(0.5);
-                }
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::FatalError, "ca_put failed for PV: %s", pvs[n].pvName);
                 }
             }
         }
@@ -358,7 +387,52 @@ bool EPICSCAOutput::IsIgnoringBufferOverrun() const {
     return (ignoreBufferOverrun == 1u);
 }
 
+ErrorManagement::ErrorType EPICSCAOutput::AsyncCaPut(StreamString pvName, StreamString pvVal) {
+    
+    ErrorManagement::ErrorType err;
+    if (threadContextSet) {
+        if (pvs != NULL_PTR(PVWrapper *)) {
+            bool found = false;
+            for (uint32 n = 0u; (n < numberOfSignals); n++) {
+                found = (StringHelper::Compare(pvName.Buffer(), pvs[n].pvName)==0);
+                if (found) {
+                    err = (pvs[n].numberOfElements > 1u);
+                    if (err.ErrorsCleared()) {
+                        TypeDescriptor td = GetSignalType(n);
+                        AnyType at = AnyType(td, 0u, pvs[n].memory);
+                        err = !TypeConvert(at, pvVal);
+                        if (err.ErrorsCleared()) {
+                            /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                            err = (ca_create_channel(&pvs[n].pvName[0], NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvs[n].pvChid) != ECA_NORMAL);
+                            if (err.ErrorsCleared()) {
+                                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                                if (pvs[n].pvType == DBR_STRING) {
+                                    err = (ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory) != ECA_NORMAL);
+                                }
+                                else {
+                                    err = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) != ECA_NORMAL);
+                                }
+                                (void) ca_pend_io(0.5);
+                            }
+                            else {
+                                REPORT_ERROR(ErrorManagement::FatalError, "Failed to cn PV with name %s");
+                            }
+                        }
+                        else {
+                            REPORT_ERROR(ErrorManagement::FatalError, "ca_create_channel failed for PV with name %s", pvs[n].pvName);
+                        }
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::FatalError, "PV %s must be scalar", pvs[n].pvName);
+                    }
+                }
+            }
+        }
+    }
+}
+
 CLASS_REGISTER(EPICSCAOutput, "1.0")
+CLASS_METHOD_REGISTER(EPICSCAOutput, AsyncCaPut)
 
 }
 

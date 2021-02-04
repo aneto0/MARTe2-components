@@ -15,7 +15,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class EPICSCAInput (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
@@ -37,6 +37,8 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
+
+#define NULL_PTR(x) NULL
 /**
  * @brief Callback function for the ca_create_subscription. Single point of access which
  * delegates the events to the corresponding EPICSPV instance.
@@ -45,9 +47,46 @@ static FastPollingMutexSem eventCallbackFastMux;
 /*lint -e{1746} function must match required prototype and thus cannot be changed to constant reference.*/
 void EPICSCAInputEventCallback(struct event_handler_args const args) {
     (void) eventCallbackFastMux.FastLock();
-    PVWrapper *pv = static_cast<PVWrapper *>(args.usr);
+    PVWrapper *pv = static_cast<PVWrapper *> (args.usr);
     if (pv != NULL_PTR(PVWrapper *)) {
         (void) MemoryOperationsHelper::Copy(pv->memory, args.dbr, pv->memorySize);
+#if 0
+        if (pv->numberOfElements == 1u) {
+            if (pv->td == UnsignedInteger8Bit) {
+                uint8 *mem = (uint8*) (pv->memory);
+                if (*mem >= 0x7Fu) {
+                    uint16 temp;
+                    if (!ca_array_get(DBR_SHORT, pv->numberOfElements, pv->pvChid, &temp)) {
+                    }
+                    ca_pend_io(0.1);
+                    *mem = temp;
+                }
+            }
+            else if (pv->td == UnsignedInteger16Bit) {
+                uint16 *mem = (uint16*) (pv->memory);
+                if (*mem >= 0x7FFFu) {
+                    uint32 temp;
+                    if (!ca_array_get(DBR_LONG, pv->numberOfElements, pv->pvChid, &temp)) {
+                    }
+                    ca_pend_io(0.1);
+                    *mem = temp;
+                }
+            }
+            else if (pv->td == UnsignedInteger32Bit) {
+                printf("HEREEE!\n");
+                uint32 *mem = (uint32*) (pv->memory);
+                if (*mem >= 0x7FFFFFFFu) {
+                    float64 temp;
+                    if (!ca_array_get(DBR_DOUBLE, pv->numberOfElements, pv->pvChid, &temp)) {
+                        printf("Failed!\n", temp);
+                    }
+                    ca_pend_io(0.1);
+                    printf("read %f!\n", temp);
+                    *mem = (uint32) temp;
+                }
+            }
+        }
+#endif
     }
     eventCallbackFastMux.FastUnLock();
 }
@@ -177,6 +216,7 @@ bool EPICSCAInput::SetConfiguredDatabase(StructuredDataI & data) {
             }
             TypeDescriptor td = GetSignalType(n);
             if (ok) {
+                pvs[n].td = td;
                 (void) StringHelper::CopyN(&pvs[n].pvName[0], pvName.Buffer(), PV_NAME_MAX_SIZE);
                 if (td == CharString) {
                     pvs[n].pvType = DBR_STRING;
@@ -240,7 +280,6 @@ bool EPICSCAInput::SetConfiguredDatabase(StructuredDataI & data) {
     }
 
     if (ok) {
-        executor.SetName(GetName());
         ok = (executor.Start() == ErrorManagement::NoError);
     }
     return ok;
@@ -277,7 +316,7 @@ const char8* EPICSCAInput::GetBrokerName(StructuredDataI& data, const SignalDire
 }
 
 bool EPICSCAInput::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
+    ReferenceT < MemoryMapInputBroker > broker("MemoryMapInputBroker");
     bool ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
     if (ok) {
         ok = inputBrokers.Insert(broker);
