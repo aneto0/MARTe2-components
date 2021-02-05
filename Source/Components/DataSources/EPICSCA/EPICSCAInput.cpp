@@ -1,8 +1,9 @@
 /**
  * @file EPICSCAInput.cpp
  * @brief Source file for class EPICSCAInput
- * @date 20/04/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -24,12 +25,12 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "EPICSCAInput.h"
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
+#include "EPICSCAInput.h"
 #include "MemoryMapInputBroker.h"
 
 /*---------------------------------------------------------------------------*/
@@ -38,7 +39,7 @@
 
 namespace MARTe {
 
-#define NULL_PTR(x) NULL
+// #define NULL_PTR(x) NULL
 /**
  * @brief Callback function for the ca_create_subscription. Single point of access which
  * delegates the events to the corresponding EPICSPV instance.

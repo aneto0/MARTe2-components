@@ -1,8 +1,9 @@
 /**
  * @file EPICSCAOutput.cpp
  * @brief Source file for class EPICSCAOutput
- * @date 20/04/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -24,19 +25,20 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "EPICSCAOutput.h"
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "MemoryMapAsyncOutputBroker.h"
 #include "CLASSMETHODREGISTER.h"
+#include "EPICSCAOutput.h"
+#include "MemoryMapAsyncOutputBroker.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -429,6 +431,7 @@ ErrorManagement::ErrorType EPICSCAOutput::AsyncCaPut(StreamString pvName, Stream
             }
         }
     }
+    return err;
 }
 
 CLASS_REGISTER(EPICSCAOutput, "1.0")

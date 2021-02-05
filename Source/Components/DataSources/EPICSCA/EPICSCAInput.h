@@ -1,8 +1,9 @@
 /**
  * @file EPICSCAInput.h
  * @brief Header file for class EPICSCAInput
- * @date 20/04/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -21,8 +22,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSCAINPUT_H_
-#define EPICSCAINPUT_H_
+#ifndef DATASOURCES_EPICSCAINPUT_H_
+#define DATASOURCES_EPICSCAINPUT_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -123,11 +124,11 @@ public:
     /**
      * @brief Default constructor. NOOP.
      */
-    EPICSCAInput    ();
+    EPICSCAInput();
 
     /**
      * @brief Destructor.
-     * @details TODO.
+     * @details Stops the thread executor, calls Free on the pvs memory and delete on pvs.
      */
     virtual ~EPICSCAInput();
 
@@ -267,5 +268,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSCADATASOURCE_H_ */
+#endif /* DATASOURCES_EPICSCADATASOURCE_H_ */
 

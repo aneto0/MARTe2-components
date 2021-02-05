@@ -1,8 +1,9 @@
 /**
  * @file EPICSCAOutput.h
  * @brief Header file for class EPICSCAOutput
- * @date 20/04/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -21,8 +22,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef EPICSCAOUTPUT_H_
-#define EPICSCAOUTPUT_H_
+#ifndef DATASOURCES_EPICSCAOUTPUT_H_
+#define DATASOURCES_EPICSCAOUTPUT_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -36,9 +37,9 @@
 #include "EPICSCAInput.h"
 #include "EmbeddedServiceMethodBinderI.h"
 #include "EventSem.h"
-#include "SingleThreadService.h"
 #include "FastPollingMutexSem.h"
 #include "MessageI.h"
+#include "SingleThreadService.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -192,6 +193,7 @@ public:
      * @brief Asynchronous Channel Access Put.
      * @details Performs the following EPICS calls: ca_create_channel and then, depending on pvType, 
      * ca_put or ca_array_put. Occuring errors are reported using MARTe2 REPORT_ERROR facility.
+     * @return The error err if occurred in any of the described calls.
      */
     ErrorManagement::ErrorType AsyncCaPut(StreamString pvName, StreamString pvVal);
 
@@ -243,5 +245,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* EPICSCADATASOURCE_H_ */
+#endif /* DATASOURCES_EPICSCAOUTPUT_H_ */
 
