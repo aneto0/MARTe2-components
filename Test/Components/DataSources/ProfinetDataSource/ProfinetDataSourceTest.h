@@ -35,6 +35,8 @@
 #include "CompilerTypes.h"
 #include "ConfigurationDatabase.h"
 
+#include "ProfinetDataSourceConstants.h"
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

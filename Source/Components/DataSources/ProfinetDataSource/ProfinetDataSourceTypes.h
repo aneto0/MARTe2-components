@@ -30,6 +30,8 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #define PNET_MAX_DIRECTORYPATH_LENGTH 4095
+#define PNET_MAX_PORT 1
+#define PNET_MAX_DIRECTORYPATH_SIZE 240
 
 #include <pnet_api.h>
 #include <stdint.h>

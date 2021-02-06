@@ -24,6 +24,7 @@
 #ifndef __PROFINET_DATASOURCE_ADAPTER_TEST_H__
 #define __PROFINET_DATASOURCE_ADAPTER_TEST_H__
 
+
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -69,12 +70,53 @@ class ProfinetDataSourceAdapterTest {
          * @param[in] getIfNameFromEnv true if the environment variable PROFINET_ETH_INTERFACE
          * has to be used for the network interface. Otherwise a dummy if will be used.
          */
-        bool EnvironmentSetup(bool getIfNameFromEnv = false);
+        bool EnvironmentSetup(
+            bool emptyIfName = false,
+            bool getIfNameFromEnv = false,
+            std::string stationName = "dummystation",
+            uint32_t periodicInterval = 10000,
+            uint32_t gearRatio = 10,
+            bool nullLogAdapter = false);
 
         /**
          * @brief Tests the constructor
          */
         bool TestConstructor();
+
+        /**
+         * @brief Tests if the constructor handles well a provided NULL network adapter
+         */
+        bool TestConstructorFailEmptyLoggerAdapter();
+
+        /**
+         * @brief Tests if the constructor handles well a zero periodic interval
+         */
+        bool TestConstructorFailZeroPeriodicInterval();
+
+        /**
+         * @brief Tests if the constructor handles well an empty station name
+         */
+        bool TestConstructorFailEmptyStationName();
+
+        /**
+         *@brief Tests if the constructor handles well an empty network interface name
+        */
+        bool TestConstructorFailEmptyInterface();
+
+        /**
+         * @brief Tests if the constructor handles well a zero reduction ratio
+         */
+        bool TestConstructorFailZeroGearRatio();
+
+        /**
+         * @brief Tests if the constructor handles well a failure in network setup
+         */
+        bool TestConstructorFailNetworkDataSetup();
+
+        /**
+         * @brief Tests a huge station name, which is the only human-due failure entrypoint
+         */
+        bool TestConstructorFailHugeStationName();
 
         /**
          * @brief Feeds base configuration data to the adapter, checking if they are 

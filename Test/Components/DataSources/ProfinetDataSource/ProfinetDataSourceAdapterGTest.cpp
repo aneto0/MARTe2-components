@@ -44,6 +44,36 @@ TEST(ProfinetDataSourceAdapterGTest, TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
+TEST(ProfinetDataSourceAdapterGTest, TestConstructorFailEmptyLoggerAdapter) {
+    ProfinetDataSourceAdapterTest test;
+    ASSERT_FALSE(test.TestConstructorFailEmptyLoggerAdapter());
+}
+
+TEST(ProfinetDataSourceAdapterGTest, TestConstructorFailZeroPeriodicInterval) {
+    ProfinetDataSourceAdapterTest test;
+    ASSERT_FALSE(test.TestConstructorFailZeroPeriodicInterval());
+}
+
+TEST(ProfinetDataSourceAdapterGTest, TestConstructorFailEmptyStationName) {
+    ProfinetDataSourceAdapterTest test;
+    ASSERT_FALSE(test.TestConstructorFailEmptyStationName());
+}
+
+TEST(ProfinetDataSourceAdapterGTest, TestConstructorFailEmptyInterface) {
+    ProfinetDataSourceAdapterTest test;
+    ASSERT_FALSE(test.TestConstructorFailEmptyInterface());
+}
+
+TEST(ProfinetDataSourceAdapterGTest, TestConstructorFailZeroGearRatio) {
+    ProfinetDataSourceAdapterTest test;
+    ASSERT_FALSE(test.TestConstructorFailZeroGearRatio());
+}
+
+TEST(ProfinetDataSourceAdapterGTest, TestConstructorFailNetworkDataSetup) {
+    ProfinetDataSourceAdapterTest test;
+    ASSERT_FALSE(test.TestConstructorFailNetworkDataSetup());
+}
+
 TEST(ProfinetDataSourceAdapterGTest, TestSetBaseData) {
     ProfinetDataSourceAdapterTest test;
     ASSERT_TRUE(test.TestSetBaseData());

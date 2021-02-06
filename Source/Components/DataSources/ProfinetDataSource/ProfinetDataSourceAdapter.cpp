@@ -43,6 +43,7 @@
 namespace ProfinetDataSourceDriver {
 
     void ProfinetDataSourceAdapter::BaseInitializeCallbacks() {
+
         profinetConfigurationHandle->connect_cb = pnetds_connect_ind;
         profinetConfigurationHandle->release_cb = pnetds_release_ind;
         profinetConfigurationHandle->state_cb = pnetds_state_ind;
@@ -58,10 +59,8 @@ namespace ProfinetDataSourceDriver {
         profinetConfigurationHandle->alarm_ack_cnf_cb = pnetds_alarm_ack_cnf;
         profinetConfigurationHandle->reset_cb = pnetds_reset_ind;
         profinetConfigurationHandle->signal_led_cb = pnetds_signal_led_ind;
-
+        
         callbacksUp = true;
-
-        loggerAdapter->Log(LogLevel_Debug, "ProfinetDataSource Callbacks connected");
     }
 
     bool ProfinetDataSourceAdapter::SetBaseData(
@@ -73,50 +72,53 @@ namespace ProfinetDataSourceDriver {
         MARTe::uint8           oemVendorIdLow,
         MARTe::uint8           oemDeviceIdHigh,
         MARTe::uint8           oemDeviceIdLow,
-        MARTe::StreamString    deviceVendor,
-        MARTe::StreamString    manufacturerSpecificString,
+        MARTe::StreamString    productName,
         MARTe::uint16          minimumDeviceInterval
     ) {
         std::ostringstream outStr;
 
         //Region - Device configuration
+        strncpy(profinetConfigurationHandle->product_name, productName.Buffer(), PNDS_MAX_PRODUCTNAME_SIZE);
+        profinetConfigurationHandle->product_name[PNDS_MAX_PRODUCTNAME_SIZE - 1] = '\0';
+        
         profinetConfigurationHandle->device_id.vendor_id_hi = static_cast<MARTe::uint8>(vendorIdHigh);
         profinetConfigurationHandle->device_id.vendor_id_lo = static_cast<MARTe::uint8>(vendorIdLow);
         profinetConfigurationHandle->device_id.device_id_hi = static_cast<MARTe::uint8>(deviceIdHigh);
         profinetConfigurationHandle->device_id.device_id_lo = static_cast<MARTe::uint8>(deviceIdLow);
-        outStr << "Profinet device identifiers: VID_0x" << std::hex << (int)vendorIdHigh << std::hex << (int)vendorIdLow << " DEVID_0x" << std::hex << (int)deviceIdHigh << std::hex << (int)deviceIdLow << std::endl;
+        outStr << "Profinet device identifiers: VID_0x" << std::hex << (int)vendorIdHigh << std::hex << (int)vendorIdLow << " DEVID_0x" << std::hex << (int)deviceIdHigh << std::hex << (int)deviceIdLow;
+        loggerAdapter->Log(LogLevel_Debug, outStr.str());
+        outStr.str("");
+        outStr.clear();
 
         profinetConfigurationHandle->oem_device_id.vendor_id_hi = static_cast<MARTe::uint8>(oemVendorIdHigh);
         profinetConfigurationHandle->oem_device_id.vendor_id_lo = static_cast<MARTe::uint8>(oemVendorIdLow);
         profinetConfigurationHandle->oem_device_id.device_id_hi = static_cast<MARTe::uint8>(oemDeviceIdHigh);
         profinetConfigurationHandle->oem_device_id.device_id_lo = static_cast<MARTe::uint8>(oemDeviceIdLow);
-        outStr << "Profinet OEM device identifiers: VID_0x" << std::hex << (int)oemVendorIdHigh << std::hex << (int)oemVendorIdLow << " DEVID_0x" << std::hex << (int)oemDeviceIdHigh << std::hex << (int)oemDeviceIdLow << std::endl;
-        
-        strncpy(profinetConfigurationHandle->device_vendor, deviceVendor.Buffer(), 21);
-        strncpy(profinetConfigurationHandle->manufacturer_specific_string, manufacturerSpecificString.Buffer(), 241);
-        
-        /* Safety string truncation */
-        profinetConfigurationHandle->device_vendor[20] = '\0';
-        profinetConfigurationHandle->manufacturer_specific_string[240] = '\0';
-
-        outStr << "Vendor: " << deviceVendor.Buffer() << std::endl;
-        outStr << "Manufacturer specific string: " << manufacturerSpecificString.Buffer() << std::endl;
+        outStr << "Profinet OEM device identifiers: VID_0x" << std::hex << (int)oemVendorIdHigh << std::hex << (int)oemVendorIdLow << " DEVID_0x" << std::hex << (int)oemDeviceIdHigh << std::hex << (int)oemDeviceIdLow;
+        loggerAdapter->Log(LogLevel_Debug, outStr.str());
+        outStr.str("");
+        outStr.clear();
 
         //Endregion - Device configuration
 
         //Region - Timing
-        profinetConfigurationHandle->min_device_interval = minimumDeviceInterval;  /* Corresponds to 1 ms */
-        outStr << "Minimum device interval: " << minimumDeviceInterval << std::endl;
+        profinetConfigurationHandle->min_device_interval = 32;  /* 32 Corresponds to 1 ms */
+        profinetConfigurationHandle->tick_us = periodicInterval;
+        outStr << "Minimum device interval: " << profinetConfigurationHandle->min_device_interval;
+        loggerAdapter->Log(LogLevel_Debug, outStr.str());
+        outStr.str("");
+        outStr.clear();
         //Endregion - Timing
 
         //Region - Network configuration
-        profinetConfigurationHandle->send_hello = 1;
-        profinetConfigurationHandle->dhcp_enable = 0;
-        outStr << (profinetConfigurationHandle->send_hello?"Sending":"Not sending") << " HELLO, DHCP " << (profinetConfigurationHandle->dhcp_enable?"enabled":"disabled") << std::endl;
+        profinetConfigurationHandle->send_hello = true;
+        profinetConfigurationHandle->if_cfg.ip_cfg.dhcp_enable = false;
+        outStr << (profinetConfigurationHandle->send_hello?"Sending":"Not sending") << " HELLO, DHCP " << (profinetConfigurationHandle->if_cfg.ip_cfg.dhcp_enable?"enabled":"disabled");
+        profinetConfigurationHandle->use_qualified_diagnosis = false; /* False means Extended = better supported by wireshark */
         //Endregion - Network configuration
 
         baseDataUp = true;
-        outStr << "Profinet base data up" << std::endl;
+        outStr << "Profinet base data up";
 
         loggerAdapter->Log(LogLevel_Debug, outStr.str());
 
@@ -129,7 +131,61 @@ namespace ProfinetDataSourceDriver {
         return returnCfg;
     }
 
-    void ProfinetDataSourceAdapter::SetIdentificationAndMaintainanceData(
+    bool ProfinetDataSourceAdapter::ValidateProfinetConfigurationHandle() {
+        bool returnValue = false;
+        const uint16_t imMask = ~(PNET_SUPPORTED_IM1 | PNET_SUPPORTED_IM2 | PNET_SUPPORTED_IM3 | PNET_SUPPORTED_IM4);
+
+        if(profinetConfigurationHandle == NULL) {
+            loggerAdapter->Log(LogLevel_Error, "Provided configuration is NULL");
+        }
+        else {
+            returnValue = true;
+        }
+
+        if(returnValue) {
+            if(profinetConfigurationHandle->tick_us == 0) {
+                loggerAdapter->Log(LogLevel_Error, "Configured tick interval must not be 0");
+                returnValue = false;
+            }
+            else {
+                returnValue = true;
+            }
+        }
+
+        if(returnValue) {
+            if(profinetConfigurationHandle->min_device_interval == 0) {
+                loggerAdapter->Log(LogLevel_Error, "Minimum device interval must be 0 < x <= 4096");
+                returnValue = false;
+            }
+            else {
+                returnValue = true;
+            }
+        }
+
+        if(returnValue) {
+            if(profinetConfigurationHandle->min_device_interval > 4096) {
+                loggerAdapter->Log(LogLevel_Error, "Minimum device interval must be 0 < x <= 4096");
+                returnValue = false;
+            }
+            else {
+                returnValue = true;
+            }
+        }
+
+        if(returnValue) {
+            if((profinetConfigurationHandle->im_0_data.im_supported & imMask) > 0) {
+                loggerAdapter->Log(LogLevel_Error, "The supported I&M setting is wrong");
+                returnValue = false;
+            }
+            else {
+                returnValue = true;
+            }
+        }
+
+        return returnValue;
+    }
+
+    bool ProfinetDataSourceAdapter::SetIdentificationAndMaintainanceData(
         MARTe::uint8           vendorIdDataHigh,
         MARTe::uint8           vendorIdDataLow ,
         MARTe::uint16          hardwareRevision,
@@ -141,6 +197,8 @@ namespace ProfinetDataSourceDriver {
         MARTe::uint16          profileSpecificType,
         MARTe::uint8           versionMajor,
         MARTe::uint8           versionMinor,
+        MARTe::StreamString    orderIdentification,
+        MARTe::StreamString    serialNumber,
         MARTe::StreamString    tagFunction,
         MARTe::StreamString    tagLocation,
         MARTe::StreamString    date,
@@ -149,91 +207,247 @@ namespace ProfinetDataSourceDriver {
     ) {
         std::ostringstream outStr;
 
-        profinetConfigurationHandle->im_0_data.im_vendor_id_hi = static_cast<uint8_t>(vendorIdDataHigh);
-        profinetConfigurationHandle->im_0_data.im_vendor_id_lo = static_cast<uint8_t>(vendorIdDataLow);
-        outStr << "I&M device identifiers: VID_0x" << std::hex << (int)profinetConfigurationHandle->im_0_data.im_vendor_id_hi << std::hex << (int)profinetConfigurationHandle->im_0_data.im_vendor_id_lo << std::endl;
-        loggerAdapter->Log(LogLevel_Debug, outStr.str());
-        outStr.str("");
-        outStr.clear();
+        if(profinetConfigurationHandle != NULL) {
+            profinetConfigurationHandle->im_0_data.im_vendor_id_hi = static_cast<uint8_t>(vendorIdDataHigh);
+            profinetConfigurationHandle->im_0_data.im_vendor_id_lo = static_cast<uint8_t>(vendorIdDataLow);
+            profinetConfigurationHandle->im_0_data.im_hardware_revision = static_cast<uint16_t>(hardwareRevision);
+            profinetConfigurationHandle->im_0_data.im_sw_revision_prefix = softwareRevision;
+            
+            outStr << "I&M device identifiers: VID_0x" << std::hex << 
+                static_cast<int>(profinetConfigurationHandle->im_0_data.im_vendor_id_hi) <<
+                static_cast<int>(profinetConfigurationHandle->im_0_data.im_vendor_id_lo) << std::endl;
 
-        profinetConfigurationHandle->im_0_data.im_hardware_revision = static_cast<uint16_t>(hardwareRevision);
+            outStr << "Hardware revision " << 
+                static_cast<int>(profinetConfigurationHandle->im_0_data.im_hardware_revision) << std::endl;
 
-        profinetConfigurationHandle->im_0_data.im_sw_revision_prefix = softwareRevision;
-        profinetConfigurationHandle->im_0_data.im_sw_revision_functional_enhancement = static_cast<uint8_t>(functionalEnhancement);
-        profinetConfigurationHandle->im_0_data.im_sw_revision_bug_fix = static_cast<uint8_t>(bugFix);
-        profinetConfigurationHandle->im_0_data.im_sw_revision_internal_change = static_cast<uint8_t>(internalChange);
-        outStr  << "REV HW: " << profinetConfigurationHandle->im_0_data.im_hardware_revision << 
-                " SW: " << profinetConfigurationHandle->im_0_data.im_sw_revision_prefix << "." << 
-                profinetConfigurationHandle->im_0_data.im_sw_revision_functional_enhancement << "." << 
-                profinetConfigurationHandle->im_0_data.im_sw_revision_bug_fix << "." << 
-                profinetConfigurationHandle->im_0_data.im_sw_revision_internal_change << std::endl;
-        loggerAdapter->Log(LogLevel_Debug, outStr.str());
-        outStr.str("");
-        outStr.clear();
+            outStr << "Software revision prefix " << 
+                static_cast<char>(profinetConfigurationHandle->im_0_data.im_sw_revision_prefix) << std::endl;
 
-        profinetConfigurationHandle->im_0_data.im_revision_counter = 0;  /* Only 0 allowed according to standard */
+            loggerAdapter->Log(LogLevel_Debug, outStr.str());
+            outStr.str("");
+            outStr.clear();
 
-        profinetConfigurationHandle->im_0_data.im_profile_id = static_cast<uint16_t>(profileIdentifier);
-        profinetConfigurationHandle->im_0_data.im_profile_specific_type = static_cast<uint16_t>(profileSpecificType);
-        outStr << "Profile ID:" << profinetConfigurationHandle->im_0_data.im_profile_id << " Type: " << profinetConfigurationHandle->im_0_data.im_profile_specific_type << std::endl;
-        loggerAdapter->Log(LogLevel_Debug, outStr.str());
-        outStr.str("");
-        outStr.clear();
+            profinetConfigurationHandle->im_0_data.im_sw_revision_functional_enhancement = static_cast<uint8_t>(functionalEnhancement);
+            profinetConfigurationHandle->im_0_data.im_sw_revision_bug_fix = static_cast<uint8_t>(bugFix);
+            profinetConfigurationHandle->im_0_data.im_sw_revision_internal_change = static_cast<uint8_t>(internalChange);
+            
+            outStr  << "Software revision " <<
+                static_cast<int>(profinetConfigurationHandle->im_0_data.im_sw_revision_functional_enhancement) << "." << 
+                static_cast<int>(profinetConfigurationHandle->im_0_data.im_sw_revision_bug_fix) << "." << 
+                static_cast<int>(profinetConfigurationHandle->im_0_data.im_sw_revision_internal_change) << std::endl;
+            loggerAdapter->Log(LogLevel_Debug, outStr.str());
+            outStr.str("");
+            outStr.clear();
 
-        profinetConfigurationHandle->im_0_data.im_version_major = static_cast<uint8_t>(versionMajor);
-        profinetConfigurationHandle->im_0_data.im_version_minor = static_cast<uint8_t>(versionMinor);
-        outStr << "Version: " << profinetConfigurationHandle->im_0_data.im_version_major << "." << profinetConfigurationHandle->im_0_data.im_version_minor << std::endl;
-        loggerAdapter->Log(LogLevel_Debug, outStr.str());
-        outStr.str("");
-        outStr.clear();
+            profinetConfigurationHandle->im_0_data.im_revision_counter = 0;  /* Only 0 allowed according to standard */
 
-        profinetConfigurationHandle->im_0_data.im_supported = 0x001e;        /* Only I&M0..I&M4 supported */
+            profinetConfigurationHandle->im_0_data.im_profile_id = static_cast<uint16_t>(profileIdentifier);
+            profinetConfigurationHandle->im_0_data.im_profile_specific_type = static_cast<uint16_t>(profileSpecificType);
+            outStr << "Profile ID: " << static_cast<int>(profinetConfigurationHandle->im_0_data.im_profile_id) << 
+                " Specific Type: " << static_cast<int>(profinetConfigurationHandle->im_0_data.im_profile_specific_type) << std::endl;
+            loggerAdapter->Log(LogLevel_Debug, outStr.str());
+            outStr.str("");
+            outStr.clear();
 
-        strncpy(profinetConfigurationHandle->im_1_data.im_tag_function, tagFunction.Buffer(), 33);
-        strncpy(profinetConfigurationHandle->im_1_data.im_tag_location, tagLocation.Buffer(), 23);
-        strncpy(profinetConfigurationHandle->im_2_data.im_date, date.Buffer(), 17);
-        strncpy(profinetConfigurationHandle->im_3_data.im_descriptor, descriptor.Buffer(), 55);
-        strncpy(profinetConfigurationHandle->im_4_data.im_signature, signature.Buffer(), 54);  /* For functional safety only */
+            profinetConfigurationHandle->im_0_data.im_version_major = static_cast<uint8_t>(versionMajor);
+            profinetConfigurationHandle->im_0_data.im_version_minor = static_cast<uint8_t>(versionMinor);
+            outStr << "Version: " << 
+                static_cast<int>(profinetConfigurationHandle->im_0_data.im_version_major) << "." << 
+                static_cast<int>(profinetConfigurationHandle->im_0_data.im_version_minor) << std::endl;
+            loggerAdapter->Log(LogLevel_Debug, outStr.str());
+            outStr.str("");
+            outStr.clear();
 
-        /* Safety automatic string truncation */
-        profinetConfigurationHandle->im_1_data.im_tag_function[32] = '\0';
-        profinetConfigurationHandle->im_1_data.im_tag_location[22]  = '\0';
-        profinetConfigurationHandle->im_2_data.im_date[16]  = '\0';
-        profinetConfigurationHandle->im_3_data.im_descriptor[54]  = '\0';
-        profinetConfigurationHandle->im_4_data.im_signature[53]  = '\0';
+            profinetConfigurationHandle->im_0_data.im_supported = PNET_SUPPORTED_IM1 | PNET_SUPPORTED_IM2 | PNET_SUPPORTED_IM3 | PNET_SUPPORTED_IM4;
+            strncpy(profinetConfigurationHandle->im_0_data.im_order_id, orderIdentification.Buffer(), PNDS_MAX_IM0_ORDERID_SIZE);
+            strncpy(profinetConfigurationHandle->im_0_data.im_serial_number, serialNumber.Buffer(), PNDS_MAX_IM0_SERNUM_SIZE);
+            strncpy(profinetConfigurationHandle->im_1_data.im_tag_function, tagFunction.Buffer(), PNDS_MAX_IM1_TAGFUNC_SIZE);
+            strncpy(profinetConfigurationHandle->im_1_data.im_tag_location, tagLocation.Buffer(), PNDS_MAX_IM1_TAGLOC_SIZE);
+            strncpy(profinetConfigurationHandle->im_2_data.im_date, date.Buffer(), PNDS_MAX_IM2_DATE_SIZE);
+            strncpy(profinetConfigurationHandle->im_3_data.im_descriptor, descriptor.Buffer(), PNDS_MAX_IM3_DESC_SIZE);
+            strncpy(profinetConfigurationHandle->im_4_data.im_signature, signature.Buffer(), PNDS_MAX_IM4_SIGN_SIZE);  /* For functional safety only */
 
-        outStr << "---- TAG ----" << std::endl;
-        outStr  << profinetConfigurationHandle->im_1_data.im_tag_function << std::endl <<
+            /* Safety automatic string truncation */
+            profinetConfigurationHandle->im_0_data.im_order_id[PNDS_MAX_IM0_ORDERID_SIZE - 1] = '\0';
+            profinetConfigurationHandle->im_0_data.im_serial_number[PNDS_MAX_IM0_SERNUM_SIZE - 1] = '\0';
+            profinetConfigurationHandle->im_1_data.im_tag_function[PNDS_MAX_IM1_TAGFUNC_SIZE - 1] = '\0';
+            profinetConfigurationHandle->im_1_data.im_tag_location[PNDS_MAX_IM1_TAGLOC_SIZE - 1]  = '\0';
+            profinetConfigurationHandle->im_2_data.im_date[PNDS_MAX_IM2_DATE_SIZE - 1]  = '\0';
+            profinetConfigurationHandle->im_3_data.im_descriptor[PNDS_MAX_IM3_DESC_SIZE - 1]  = '\0';
+            profinetConfigurationHandle->im_4_data.im_signature[PNDS_MAX_IM4_SIGN_SIZE - 1]  = '\0';
+
+            outStr << std::endl <<
+                "---- I&M TAG ----" << std::endl <<
+                profinetConfigurationHandle->im_0_data.im_order_id << std::endl <<
+                profinetConfigurationHandle->im_0_data.im_serial_number << std::endl <<
+                profinetConfigurationHandle->im_1_data.im_tag_function << std::endl <<
                 profinetConfigurationHandle->im_1_data.im_tag_location << std::endl <<
                 profinetConfigurationHandle->im_2_data.im_date << std::endl <<
                 profinetConfigurationHandle->im_3_data.im_descriptor << std::endl <<
-                profinetConfigurationHandle->im_4_data.im_signature << std::endl;
-        outStr << "---- END TAG ----" << std::endl;
-        outStr << "Id and Maintainance data up" << std::endl;
-        loggerAdapter->Log(LogLevel_Debug, outStr.str());
+                profinetConfigurationHandle->im_4_data.im_signature << std::endl <<
+                "---- END TAG ----" << std::endl;
 
-        idMaintDataUp = true;
+            outStr << "Id and Maintainance data up" << std::endl;
+            loggerAdapter->Log(LogLevel_Debug, outStr.str());
 
+            idMaintDataUp = true;        
+        }
+        else {
+            loggerAdapter->Log(LogLevel_Error, "Cannot set I&M data on invalid Profinet configuration handle");
+            idMaintDataUp = false;
+        }
+
+        return idMaintDataUp;
     }
 
     void ProfinetDataSourceAdapter::SetLLDPData(
-        MARTe::StreamString     lldpPortIdentifier,
         MARTe::uint16           rtClass2Status,
-        MARTe::uint16           rtClass3Status,
-        MARTe::uint8            autoNegotiationCapability,
-        MARTe::uint16           autoNegotiationSpeed,
-        MARTe::uint16           mauType
+        MARTe::uint16           rtClass3Status
     ) {
-        strcpy(profinetConfigurationHandle->lldp_cfg.port_id, lldpPortIdentifier.Buffer());
-        profinetConfigurationHandle->lldp_cfg.rtclass_2_status = rtClass2Status;
-        profinetConfigurationHandle->lldp_cfg.rtclass_3_status = rtClass3Status;
-        profinetConfigurationHandle->lldp_cfg.cap_aneg = autoNegotiationCapability;
-        profinetConfigurationHandle->lldp_cfg.cap_phy = autoNegotiationSpeed;
-        profinetConfigurationHandle->lldp_cfg.mau_type = mauType;
+        //We force the LLDP port name accordingly, there's no need to ask user
+        //things we can sort out by ourselves
+        strcpy(profinetConfigurationHandle->if_cfg.ports[0].port_name, "port-001");
+        profinetConfigurationHandle->if_cfg.ports[0].rtclass_2_status = rtClass2Status;
+        profinetConfigurationHandle->if_cfg.ports[0].rtclass_3_status = rtClass3Status;
 
         lldpDataUp = true;
 
-        loggerAdapter->Log(LogLevel_Debug, "I&M data set");
+        loggerAdapter->Log(LogLevel_Debug, "LLDP data set");
+    }
+
+    bool ProfinetDataSourceAdapter::ConfigureNetworkData() {
+        bool returnValue = false;
+        std::ostringstream outStr;
+
+        returnValue = (pnal_get_macaddress(ethInterface, &macAddress) == 0);
+        outStr << "Getting MAC address "<<  ((returnValue)?"success":"failure") << " for interface " << ethInterface;
+        loggerAdapter->Log((returnValue)?LogLevel_Info:LogLevel_Error, outStr.str());
+        outStr.str("");
+        outStr.clear();
+
+        if(returnValue) {
+            ipAddress = pnal_get_ip_address(ethInterface);
+            returnValue = (ipAddress != 0);
+
+            outStr << "Getting IP address "<<  ((returnValue)?"success":"failure");
+            loggerAdapter->Log((returnValue)?LogLevel_Info:LogLevel_Error, outStr.str());
+            outStr.str("");
+            outStr.clear();
+        }
+
+        if(returnValue) {
+            //As of b276cf7 commit for the p-net library, this function is a fake
+            //Citing their comment "it is difficult to get gateway address"
+            //and so they "wisely" assume the gateway as xxx.yyy.zzz.1 always.
+            //No impact on the Profinet operations, however
+            gateway = pnal_get_gateway(ethInterface);
+
+            if(gateway == 0) {
+                //Until p-net guys will fix  pnal_get_gateway 
+                //We will never reach this point
+                loggerAdapter->Log(LogLevel_Error, "Invalid gateway address for the network interface");
+                returnValue = false;
+            }
+        }
+
+        if(returnValue) {
+            //Unfortunately we have no way telling if NM is correctly taken
+            //However the call should fail way before, during the get ip address 
+            //if things are messed with the network interface
+            netmask = pnal_get_netmask(ethInterface);
+        }
+
+        if(returnValue) {
+            IPv4U32toQuadU8(ipAddress, 
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_addr.a,
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_addr.b,
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_addr.c,
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_addr.d
+            );
+
+            IPv4U32toQuadU8(gateway, 
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_gateway.a,
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_gateway.b,
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_gateway.c,
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_gateway.d
+            );
+
+            IPv4U32toQuadU8(netmask, 
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_mask.a,
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_mask.b,
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_mask.c,
+                &profinetConfigurationHandle->if_cfg.ip_cfg.ip_mask.d
+            );
+
+            outStr << std::endl << "IP address "<<  
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_addr.a << "." << 
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_addr.b << "." << 
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_addr.c << "." << 
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_addr.d << std::endl;
+
+            outStr << "Subnet Mask "<<  
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_mask.a << "." << 
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_mask.b << "." << 
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_mask.c << "." << 
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_mask.d  << std::endl;
+
+            outStr << "Gateway "<<  
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_gateway.a << "." << 
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_gateway.b << "." << 
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_gateway.c << "." << 
+                (int)profinetConfigurationHandle->if_cfg.ip_cfg.ip_gateway.d  << std::endl;
+
+            //Here we can go smoothly as stationName was sanitized before
+            strncpy(profinetConfigurationHandle->station_name, stationName, PNDS_MAX_STATION_NAME_SIZE);
+
+            loggerAdapter->Log((returnValue)?LogLevel_Info:LogLevel_Error, outStr.str());
+        }
+
+        return returnValue;
+    }
+
+    bool ProfinetDataSourceAdapter::ConfigureProfinetPort() {
+        //We have to configure both the main port (management) and the first port (physical)
+        std::ostringstream outStr;
+
+        bool returnValue = true;
+
+        outStr << "ETH Interface: " << ethInterface << " MAC ";
+        outStr << std::setw(2) << std::hex << 
+            static_cast<unsigned int>(macAddress.addr[0]) << ":" <<
+            static_cast<unsigned int>(macAddress.addr[1]) << ":" <<
+            static_cast<unsigned int>(macAddress.addr[2]) << ":" <<
+            static_cast<unsigned int>(macAddress.addr[3]) << ":" <<
+            static_cast<unsigned int>(macAddress.addr[4]) << ":" <<
+            static_cast<unsigned int>(macAddress.addr[5]) << std::endl;
+
+        loggerAdapter->Log(LogLevel_Info, outStr.str());
+
+        memcpy(profinetConfigurationHandle->if_cfg.main_port.eth_addr.addr, macAddress.addr, sizeof(pnal_ethaddr_t));
+        memcpy(profinetConfigurationHandle->if_cfg.ports[0].phy_port.eth_addr.addr, macAddress.addr, sizeof(pnal_ethaddr_t));
+        
+        strncpy(profinetConfigurationHandle->if_cfg.main_port.if_name, ethInterface, PNET_INTERFACE_NAME_MAX_SIZE);
+        
+        if(profinetConfigurationHandle->if_cfg.main_port.if_name[PNET_INTERFACE_NAME_MAX_SIZE - 1] != '\0') {
+            //Something wrong is going on if the interface name is so long and non \0 terminated
+            //However we truncate it but avoid things going on
+            //We should never arrive here, as an invalid interface name should fail way before
+            profinetConfigurationHandle->if_cfg.main_port.if_name[PNET_INTERFACE_NAME_MAX_SIZE - 1] = '\0';
+            returnValue = false;
+            //If there's no terminating null byte in the first n bytes of the src string, strncpy produces an unterminated string in dest
+            //see man(3) strncpy
+        }
+
+        if(returnValue) {
+            //Like before, things are not going to go this bad but we still keep it up
+            strncpy(profinetConfigurationHandle->if_cfg.ports[0].phy_port.if_name, ethInterface, PNET_INTERFACE_NAME_MAX_SIZE);
+            if(profinetConfigurationHandle->if_cfg.ports[0].phy_port.if_name[PNET_INTERFACE_NAME_MAX_SIZE - 1] != '\0') {
+                profinetConfigurationHandle->if_cfg.ports[0].phy_port.if_name[PNET_INTERFACE_NAME_MAX_SIZE - 1] = '\0';    
+                returnValue = false;
+            }          
+        }
+        
+        return returnValue;
     }
 
     ProfinetDataSourceAdapter::ProfinetDataSourceAdapter(
@@ -243,51 +457,132 @@ namespace ProfinetDataSourceDriver {
         uint32_t        gearRatio,
         ILoggerAdapter  *loggerAdapter
     ) {
-        this->loggerAdapter = loggerAdapter;
+        bool integrityCheck = true;
+
+        //We do not want stray pointers, especially when cleaning up after premature disasters
+        profinetConfigurationHandle = NULL;
+        this->loggerAdapter = NULL;
+
         std::ostringstream outStr;
 
-        profinetConfigurationHandle = new pnet_cfg_t;
-        profinetConfigurationHandle->cb_arg = (void *)this;
+        //Region integrity checks
+
+        if(integrityCheck) {
+            if(loggerAdapter == NULL) {
+                //We have to say something to the user and unfortunately
+                //cout is the only way, as the logger is NULL
+                std::cout << "Error in ProfinetDataSourceAdapter constructor: the loggerAdapter points to NULL" << std::endl;
+                integrityCheck = false;
+            }
+            else {
+                this->loggerAdapter = loggerAdapter;
+            }
+        }
+
+        if(integrityCheck) {
+            if(periodicInterval == 0) {
+                loggerAdapter->Log(LogLevel_Error, "The periodic interval must be > 0");
+                integrityCheck = false;
+            }
+            else {
+                this->periodicInterval = periodicInterval;
+            }
+        }
+
+        if(integrityCheck) {
+            if(stationName.empty()) {
+                loggerAdapter->Log(LogLevel_Error, "The station name cannot be empty");
+                integrityCheck = false;
+            }
+        }
+
+        if(integrityCheck) {
+            if(ethInterface.empty()) {
+                loggerAdapter->Log(LogLevel_Error, "The ETH interface name cannot be empty");
+                integrityCheck = false;
+            }
+        }
+
+        if(integrityCheck) {
+            if(gearRatio == 0) {
+                loggerAdapter->Log(LogLevel_Error, "The gear ratio must be > 0");
+                integrityCheck = false;
+            }
+            else {
+                this->gearRatio = gearRatio;
+            }
+        }
+        //EndRegion
         
-        this->periodicInterval = periodicInterval;
-        this->gearRatio = gearRatio;
+        if(integrityCheck) {
+            profinetConfigurationHandle = new pnet_cfg_t;
+            if(profinetConfigurationHandle == NULL) {
+                //These lines are really hard to reach for the coverage
+                loggerAdapter->Log(LogLevel_Info, "Unable to allocate memory for the configuration handle structure");
+                integrityCheck = false;
+            }
+            else {
+                memset(profinetConfigurationHandle, 0, sizeof(pnet_cfg_t));
+                profinetConfigurationHandle->cb_arg = (void *)this;
+                strncpy(profinetConfigurationHandle->file_directory, "./", 240);
+            }
+        }
+       
+        if(integrityCheck) {
+            //We use this magic number to say no AREP
+            appRelationshipEndPoint = UINT32_MAX;
+            outStr << "Running every " << periodicInterval << "us and cycling every " << gearRatio << " intervals";
+            loggerAdapter->Log(LogLevel_Info, outStr.str());
+            outStr.str("");
+            outStr.clear();
 
-        outStr << "Running every " << periodicInterval << "us and cycling every " << gearRatio << " intervals" << std::endl;
-        loggerAdapter->Log(LogLevel_Info, outStr.str());
-        outStr.str("");
-        outStr.clear();
+            strncpy(this->stationName, stationName.c_str(), PNDS_MAX_STATION_NAME_SIZE);
+            this->stationName[PNDS_MAX_STATION_NAME_SIZE - 1] = '\0';
 
-        appRelationshipEndPoint = UINT32_MAX;
+            strncpy(this->ethInterface, ethInterface.c_str(), PNET_INTERFACE_NAME_MAX_SIZE);
+            this->ethInterface[PNET_INTERFACE_NAME_MAX_SIZE - 1] = '\0';
+
+            integrityCheck = ConfigureNetworkData();
+            if(!integrityCheck) {
+                loggerAdapter->Log(LogLevel_Error, "Network data configuration failure");
+            }
+        }
         
-        int macRes = os_get_macaddress(ethInterface.c_str(), &macAddress);
-        outStr << "Getting MAC address " << ((macRes == 0)?"success":"failure");
-        loggerAdapter->Log(LogLevel_Info, outStr.str());
-        outStr.str("");
-        outStr.clear();
+        if(integrityCheck) {
+            loggerAdapter->Log(LogLevel_Info, "Network data configured");
 
-        ipAddress = os_get_ip_address(ethInterface.c_str());
-        netmask = os_get_netmask(ethInterface.c_str());
-        gateway = os_get_gateway(ethInterface.c_str());
-        
-        BaseInitializeCallbacks();
+            integrityCheck = ConfigureProfinetPort();
+            if(!integrityCheck) {
+                loggerAdapter->Log(LogLevel_Error, "Profinet port data configuration failure");
+            }
+        }
 
-        strncpy(this->stationName, stationName.c_str(), PNDS_MAX_STATION_NAME_SIZE);
-        this->stationName[PNDS_MAX_STATION_NAME_SIZE - 1] = '\0';
+        if(integrityCheck) {
+            loggerAdapter->Log(LogLevel_Info, "Profinet port data configured");
 
-        strncpy(this->ethInterface, ethInterface.c_str(), PNDS_MAX_INTERFACE_NAME_SIZE);
-        this->ethInterface[PNDS_MAX_INTERFACE_NAME_SIZE - 1] = '\0';
-        
-        //We have them disabled on startup
-        cyclicNotificationListener = NULL;
-        profinetEventNotificationListener = NULL;
-        opSignalsEntryPoint = NULL;
+            //We have them disabled on startup
+            cyclicNotificationListener = NULL;
+            profinetEventNotificationListener = NULL;
+            opSignalsEntryPoint = NULL;
+            
+            //And finally we use the BaseInitializeCallbacks as a virtual return value
+            //to avoid subsequent calls going up due to something missing here
+            //as BaseInitializeCallbacks is a pure assigning function which bases on
+            //things that, if failing, should fail way before here.
+            //Further calls are infact blocked by the here-set callbacksUp class member
+            BaseInitializeCallbacks();
+        }
+    }
 
-
-        //eventMask = ReadyForData | Timer | Alarm | Abort;
-        //eventFlags = 0;
+    bool ProfinetDataSourceAdapter::CheckBaseNetworkingData() {
+        return callbacksUp;
     }
 
     ProfinetDataSourceAdapter::~ProfinetDataSourceAdapter() {
+        
+        if(profinetConfigurationHandle != NULL) {
+            delete profinetConfigurationHandle;
+        }
         if(profinetUp) {
             //pnet_ar_abort(profinetHandle, appRelationshipEndPoint);
             //pnet_factory_reset(profinetHandle);
@@ -299,70 +594,35 @@ namespace ProfinetDataSourceDriver {
         
         if(valid) {
             std::ostringstream outStr;
-            loggerAdapter->Log(LogLevel_Info, "Configuration parameters up, going on with initialization");
-
-            memcpy(&profinetConfigurationHandle->eth_addr, macAddress.addr, sizeof(os_ethaddr_t));
-            strncpy(profinetConfigurationHandle->station_name, stationName, PNDS_MAX_STATION_NAME_SIZE);
+            loggerAdapter->Log(LogLevel_Info, "Configuration parameters up, going on with initialization");                 
             
-            ProfinetDataSourceAdapter::IPv4U32toQuadU8(
-                ipAddress, 
-                &profinetConfigurationHandle->ip_addr.a,
-                &profinetConfigurationHandle->ip_addr.b,
-                &profinetConfigurationHandle->ip_addr.c,
-                &profinetConfigurationHandle->ip_addr.d
-            );
-            outStr << "IP: " << (int)profinetConfigurationHandle->ip_addr.a << "." << (int)profinetConfigurationHandle->ip_addr.b << "." << (int)profinetConfigurationHandle->ip_addr.c << "." << (int)profinetConfigurationHandle->ip_addr.d << std::endl;
-            loggerAdapter->Log(LogLevel_Info, outStr.str());
-            outStr.str("");
-            outStr.clear();
+            valid = ValidateProfinetConfigurationHandle();
 
-            ProfinetDataSourceAdapter::IPv4U32toQuadU8(
-                netmask,
-                &profinetConfigurationHandle->ip_mask.a,
-                &profinetConfigurationHandle->ip_mask.b,
-                &profinetConfigurationHandle->ip_mask.c,
-                &profinetConfigurationHandle->ip_mask.d
-            );
-            outStr << "Netmask: " << (int)profinetConfigurationHandle->ip_mask.a << "." << (int)profinetConfigurationHandle->ip_mask.b << "." << (int)profinetConfigurationHandle->ip_mask.c << "." << (int)profinetConfigurationHandle->ip_mask.d << std::endl;
-            loggerAdapter->Log(LogLevel_Info, outStr.str());
-            outStr.str("");
-            outStr.clear();
+            if(valid) {
+                profinetHandle = pnet_init(profinetConfigurationHandle);
+                
+                if(profinetHandle == NULL) {
+                    loggerAdapter->Log(LogLevel_Error, "Profinet initialization failure.");
+                    profinetUp = false;
+                }
+                else {
+                    loggerAdapter->Log(LogLevel_Info, "Profinet successfully initialized.");
+                    profinetUp = true;
+                }
 
-            ProfinetDataSourceAdapter::IPv4U32toQuadU8(
-                gateway,
-                &profinetConfigurationHandle->ip_gateway.a,
-                &profinetConfigurationHandle->ip_gateway.b,
-                &profinetConfigurationHandle->ip_gateway.c,
-                &profinetConfigurationHandle->ip_gateway.d
-            );
-            outStr << "Gateway: " << (int)profinetConfigurationHandle->ip_gateway.a << "." << (int)profinetConfigurationHandle->ip_gateway.b << "." << (int)profinetConfigurationHandle->ip_gateway.c << "." << (int)profinetConfigurationHandle->ip_gateway.d << std::endl;
-            loggerAdapter->Log(LogLevel_Info, outStr.str());
-            outStr.str("");
-            outStr.clear();
-
-            profinetHandle = pnet_init(ethInterface, periodicInterval, profinetConfigurationHandle);
-            
-            if(profinetHandle == NULL) {
-                loggerAdapter->Log(LogLevel_Error, "Profinet initialization failure.");
-                profinetUp = false;
+                if(profinetUp) {
+                    pnet_show(profinetHandle, 0x2010);
+                    cycles = 0;
+                }
             }
             else {
-                loggerAdapter->Log(LogLevel_Info, "Profinet successfully initialized.");
-                profinetUp = true;
+                loggerAdapter->Log(LogLevel_Error, "Configuration handle contains invalid values");
+                profinetUp = false;
             }
-
-            if(profinetUp) {
-                pnet_show(profinetHandle, 0x2010);
-
-                cycles = 0;
-                //events = os_event_create();
-
-                //mainThread = os_thread_create("mainThread", 15, 4096, mainThreadFunction, (void*)this);
-                //taskTimer = os_timer_create(periodicInterval, taskTimer_tick, (void*)this, false);
-                //os_timer_start(taskTimer);
-            }
+            
         }
         else {
+            std::cout << "CB: " << callbacksUp << " BD: " << baseDataUp << " IM: " << idMaintDataUp << " LLDP: " << lldpDataUp << std::endl;
             loggerAdapter->Log(LogLevel_Error, "Configuration preconditions not met. Cannot proceed.");
         }
 
@@ -373,7 +633,8 @@ namespace ProfinetDataSourceDriver {
         bool returnValue = false;
         std::ostringstream outStr;
 
-        returnValue = (pnet_ar_abort(profinetHandle, appRelationshipEndPoint) == 0);
+        //returnValue = (pnet_ar_abort(profinetHandle, appRelationshipEndPoint) == 0);
+        returnValue = (pnet_factory_reset(profinetHandle));
         outStr << "ABORT " << returnValue << " on AREP " << appRelationshipEndPoint << std::endl;
         loggerAdapter->Log(LogLevel_Warning, outStr.str());
         return returnValue;
@@ -820,9 +1081,6 @@ namespace ProfinetDataSourceDriver {
         if(opSignalsEntryPoint != NULL) {
             opSignalsEntryPoint->SetLED(ledStatus);
         }
-        // std::ostringstream outStr;
-        // outStr << "Signal led going " << (ledStatus?"ON":"OFF");
-        // loggerAdapter->Log(LogLevel_Info, outStr.str());
     }
 
     bool ProfinetDataSourceAdapter::GetLedStatus() {
@@ -831,10 +1089,6 @@ namespace ProfinetDataSourceDriver {
     //Endregion - Signal Led Management
 
     //Region - Thread and task timer mapper
-    // void mainThreadFunction(void *arg) {
-    //     static_cast<ProfinetDataSourceAdapter*>(arg)->MainThread();
-    // }
-
 
     MARTe::uint16 ProfinetDataSourceAdapter::MainThread(MARTe::uint16 inputFlagMask) {
         MARTe::uint16 outputFlagMask = inputFlagMask;
@@ -868,50 +1122,8 @@ namespace ProfinetDataSourceDriver {
         return outputFlagMask;
     }
 
-//    void ProfinetDataSourceAdapter::MainThread() {
-        
-
-        // os_event_wait(events, eventMask, &eventFlags, OS_WAIT_FOREVER);
-
-        // if(eventFlags & ReadyForData) {
-        //     os_event_clr(events, ReadyForData);
-        //     loggerAdapter->Log(LogLevel_Debug, "Application Ready.");
-        //     pnet_application_ready(profinetHandle, appRelationshipEndPoint);
-            
-        // }
-        // else if(eventFlags & Alarm) {
-        //     os_event_clr(events, Alarm);
-        //     loggerAdapter->Log(LogLevel_Info, "Alarm detected.");
-
-        // }
-        // else if(eventFlags & Timer) {
-        //     os_event_clr(events, Timer);
-            
-        //     if((appRelationshipEndPoint != UINT32_MAX) && ((cycles % gearRatio) ==  0)) {
-        //         SetCyclicData();
-        //     }
-
-        //     cycles++;
-        //     pnet_handle_periodic(profinetHandle);
-        // }
-        // else if(eventFlags & Abort) {
-        //     loggerAdapter->Log(LogLevel_Debug, "Abort.");
-        //     os_event_clr(events, Abort);
-        // }
-
-//    }
-
-    // void taskTimer_tick(os_timer_t *timer, void *arg) {
-    //     static_cast<ProfinetDataSourceAdapter*>(arg)->TaskTimerTick();
-    // }
-
-    // void ledTimer_tick(os_timer_t *timer, void *arg) {
-    //     static_cast<ProfinetDataSourceAdapter*>(arg)->SetLedStatus(false);
-    // }
-
     void ProfinetDataSourceAdapter::TaskTimerTick() {
         profinetEventNotificationListener->NotifyEvent(MARTe::ProfinetEventTimer);
-        //os_event_set(events, Timer);
     }
 
     //Endregion - Thread and task timer mapper
@@ -980,7 +1192,7 @@ namespace ProfinetDataSourceDriver {
 
     //Region - Static utilities
     void ProfinetDataSourceAdapter::IPv4U32toQuadU8(
-        os_ipaddr_t     inputIpAddress, 
+        pnal_ipaddr_t     inputIpAddress, 
         uint8_t         *a, 
         uint8_t         *b, 
         uint8_t         *c, 

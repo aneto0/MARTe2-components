@@ -24,15 +24,14 @@
 #ifndef __PROFINET_DATASOURCE_ADAPTER_H__
 #define __PROFINET_DATASOURCE_ADAPTER_H__
 
-#define PNET_MAX_DIRECTORYPATH_LENGTH 4095
-
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "ProfinetDataSourceConstants.h"
+
 #include <cstring>
 #include <iomanip>
 #include <iostream>
-#include <osal.h>
 #include <pnal.h>
 #include <pnet_api.h>
 #include <sstream>
@@ -52,9 +51,18 @@
 #include "StreamString.h"
 
 
-#define PNDS_MAX_INTERFACE_NAME_SIZE    32
+#define PNDS_MAX_INTERFACE_NAME_SIZE    16
 #define PNDS_MAX_STATION_NAME_SIZE      241
 #define PNDS_MAX_SUPPORTED_SUBSLOTS     5
+#define PNDS_MAX_PRODUCTNAME_SIZE       26
+
+#define PNDS_MAX_IM0_ORDERID_SIZE       21
+#define PNDS_MAX_IM0_SERNUM_SIZE        17
+#define PNDS_MAX_IM1_TAGFUNC_SIZE       33
+#define PNDS_MAX_IM1_TAGLOC_SIZE        23
+#define PNDS_MAX_IM2_DATE_SIZE          17
+#define PNDS_MAX_IM3_DESC_SIZE          55
+#define PNDS_MAX_IM4_SIGN_SIZE          54
 
 #define PNDS_RETURN_VALUE_ERROR         -1
 #define PNDS_RETURN_VALUE_SUCCESS       0
@@ -73,8 +81,23 @@ namespace ProfinetDataSourceDriver
     class ProfinetDataSourceAdapter {
 
         private:
+
+            /**
+             * @brief Default private empty constructor
+             */
             ProfinetDataSourceAdapter() {;}
             
+
+            /**
+             * @brief Configures the internals for network parameters, which are further used in deep configuration processes
+            */
+            bool ConfigureNetworkData();
+
+            /**
+             * @brief Configures the Profinet handle network parameters, previously filled up
+             */
+            bool ConfigureProfinetPort();
+
             /**
              * @brief Holds the Logger Adapter instance.
              */
@@ -108,22 +131,22 @@ namespace ProfinetDataSourceDriver
             /**
              * @brief Network interface MAC Address
             */
-            os_ethaddr_t    macAddress;
+            pnal_ethaddr_t    macAddress;
 
             /**
              * @brief Network interface IP Address
             */
-            os_ipaddr_t     ipAddress;
+            pnal_ipaddr_t     ipAddress;
 
             /**
              * @brief Network interface Netmask
             */
-            os_ipaddr_t     netmask;
+            pnal_ipaddr_t     netmask;
 
             /**
              * @brief Network interface gateway
             */
-            os_ipaddr_t     gateway;
+            pnal_ipaddr_t     gateway;
 
             
             //os_thread_t     *mainThread;
@@ -164,7 +187,7 @@ namespace ProfinetDataSourceDriver
             /**
              * @brief The network interface name, as seen by the OS.
              */
-            char            ethInterface[PNDS_MAX_INTERFACE_NAME_SIZE];
+            char            ethInterface[PNET_INTERFACE_NAME_MAX_SIZE];
 
             /**
              * @brief The Profinet station name, which matches the GSDML configured one.
@@ -349,14 +372,6 @@ namespace ProfinetDataSourceDriver
             friend int pnetds_signal_led_ind(pnet_t * net, void * arg, bool led_state);
             //Endregion - Callback mappers
 
-            //Region - Threading
-
-            //friend void mainThreadFunction(void * arg);
-            //friend void pnetds_main_thread(void * arg);
-            //friend void taskTimer_tick(os_timer_t *timer, void *arg);
-            //friend void ledTimer_tick(os_timer_t *timer, void *arg);
-            //Endregion - Threading
-
             //Region - Helpers
             /**
              * @brief Helper to set the data and the IO Producer/Consumer status.
@@ -371,23 +386,37 @@ namespace ProfinetDataSourceDriver
 
         public:
         
-        ~ProfinetDataSourceAdapter();
+            ~ProfinetDataSourceAdapter();
 
-        /**
-         * @brief Returns a COPY of the Profinet device configuration handle.
-         * Usage intended for testing purposes.
-         * @return A copy of the configuration handle, in order to avoid interfering with the private data.
-         */
-        pnet_cfg_t GetProfinetConfigurationHandle();
+            /**
+             * @brief Returns a COPY of the Profinet device configuration handle.
+             * Usage intended for testing purposes.
+             * @return A copy of the configuration handle, in order to avoid interfering with the private data.
+             */
+            pnet_cfg_t GetProfinetConfigurationHandle();
 
-        /**
-         * @brief Constructs a ProfinetDataSourceAdapter instance with specified base configuration parameters.
-         * @param[in] ethInterface The name of the ethernet interface reserver for Profinet communication
-         * @param[in] periodicInterval The periodic interval expressed in microseconds for cyclic data exchange
-         * @param[in] stationName The name of the station as appearing on the GSDML description file
-         * @param[in] gearRatio The reduction between cycles and update cycles
-         * @param[in] loggerAdapter The Instance of the logger, to redirect all internal messages in an unified outputter
-         */
+            /**
+             * @brief Checks if the callbacks are connected (explicitly)
+             * implicitly indicates whether the constructor has managed to instantiate base
+             * networking data.
+             * @return true if callbacks (and main network data) are valid
+             */
+            bool CheckBaseNetworkingData();
+
+            /**
+             * @brief Validates the configuration data handle, for basic features (as taken from pf_fspm_validate_configuration in pf_fspm.c)
+             * @return true if base configuration data is valid
+             */
+            bool ValidateProfinetConfigurationHandle();
+
+            /**
+             * @brief Constructs a ProfinetDataSourceAdapter instance with specified base configuration parameters.
+             * @param[in] ethInterface The name of the ethernet interface reserver for Profinet communication
+             * @param[in] periodicInterval The periodic interval expressed in microseconds for cyclic data exchange
+             * @param[in] stationName The name of the station as appearing on the GSDML description file
+             * @param[in] gearRatio The reduction between cycles and update cycles
+             * @param[in] loggerAdapter The Instance of the logger, to redirect all internal messages in an unified outputter
+             */
             ProfinetDataSourceAdapter(
                 std::string     ethInterface, 
                 uint32_t        periodicInterval,
@@ -406,9 +435,8 @@ namespace ProfinetDataSourceDriver
              * @param[in] deviceIdLow Low part of the vendor identifier (see GSDML)
              * @param[in] oemDeviceIdHigh High part of the OEM device identifier.
              * @param[in] oemDeviceIdLow Low part of the OEM device identifier.
-             * @param[in] deviceVendor Device vendor.
-             * @param[in] manufacturerSpecificString A manufacturer specific customizable string.
-             * @param[in] minimumDeviceInterval Minimum supported update interval for the Profinet slave.
+             * @param[in] productName The Profinet product name string.
+             * @param[in] minimumDeviceInterval Minimum supported update interval for the Profinet slave
              */
             bool SetBaseData(
                 MARTe::uint8           vendorIdHigh,
@@ -419,8 +447,7 @@ namespace ProfinetDataSourceDriver
                 MARTe::uint8           oemVendorIdLow,
                 MARTe::uint8           oemDeviceIdHigh,
                 MARTe::uint8           oemDeviceIdLow,
-                MARTe::StreamString    deviceVendor,
-                MARTe::StreamString    manufacturerSpecificString,
+                MARTe::StreamString    productName,
                 MARTe::uint16          minimumDeviceInterval
             );
 
@@ -443,7 +470,7 @@ namespace ProfinetDataSourceDriver
              * @param[in] descriptor Tag attribute for device descriptor
              * @param[in] signature Tag attribute for device signature
              */
-            void SetIdentificationAndMaintainanceData(
+            bool SetIdentificationAndMaintainanceData(
                 MARTe::uint8           vendorIdDataHigh,
                 MARTe::uint8           vendorIdDataLow ,
                 MARTe::uint16          hardwareRevision,
@@ -455,6 +482,8 @@ namespace ProfinetDataSourceDriver
                 MARTe::uint16          profileSpecificType,
                 MARTe::uint8           versionMajor,
                 MARTe::uint8           versionMinor,
+                MARTe::StreamString    orderIdentification,
+                MARTe::StreamString    serialNumber,
                 MARTe::StreamString    tagFunction,
                 MARTe::StreamString    tagLocation,
                 MARTe::StreamString    date,
@@ -464,20 +493,12 @@ namespace ProfinetDataSourceDriver
 
             /**
              * @brief Sets the LLDP (Link Layer Discovery Protocol) Configuration data
-             * @param[in] lldpPortIdentifier LLDP port identifier
-             * @param[in] rtClass2Status RT Class 2 status
-             * @param[in] rtClass3Status RT Class 3 status
-             * @param[in] autoNegotiationCapability Auto negotiation slave capabilities
-             * @param[in] autoNegotiationSpeed Auto negotiation supported speeds
-             * @param[in] mauType Medium Attachment Unit type for the slave
+             * @param[in] rtClass2Status RT Class 2 status (0 only supported)
+             * @param[in] rtClass3Status RT Class 3 status (0 only supported)
              */
             void SetLLDPData(
-                MARTe::StreamString     lldpPortIdentifier,
                 MARTe::uint16           rtClass2Status,
-                MARTe::uint16           rtClass3Status,
-                MARTe::uint8            autoNegotiationCapability,
-                MARTe::uint16           autoNegotiationSpeed,
-                MARTe::uint16           mauType
+                MARTe::uint16           rtClass3Status
             );
 
             /**
@@ -580,22 +601,28 @@ namespace ProfinetDataSourceDriver
             static MARTe::uint16 GetDefaultLLDPRTClass3Status() { return 0; }
 
             /**
-             * @brief Returns the default LLDP AutoNegotiation capabilities
-             * @return 0x03 which means Autonegotiation is supported and enabled.
+             * @brief Returns the default LLDP AutoNegotiation support
+             * @return 0x01 which means Autonegotiation is supported
              */
-            static MARTe::uint8 GetDefaultLLDPAutonegotiationCapability() { return PNET_LLDP_AUTONEG_SUPPORTED | PNET_LLDP_AUTONEG_ENABLED; }
+            static MARTe::uint8 GetDefaultLLDPAutonegotiationSupport() { return 0x01; }
+
+            /**
+             * @brief Returns the default LLDP AutoNegotiation status
+             * @return 0x01 which means Autonegotiation is enabled
+             */
+            static MARTe::uint8 GetDefaultLLDPAutonegotiationStatus() { return 0x01; }
 
             /**
              * @brief Returns the default LLDP AutoNegotiation supported speeds
              * @return 100BASETX Half Duplex and 100BASETX Full Duplex
              */
-            static MARTe::uint16 GetDefaultLLDPAutonegotiationSpeed() { return PNET_LLDP_AUTONEG_CAP_100BaseTX_HALF_DUPLEX | PNET_LLDP_AUTONEG_CAP_100BaseTX_FULL_DUPLEX; }
+            static MARTe::uint16 GetDefaultLLDPAutonegotiationSpeed() { return PNAL_ETH_AUTONEG_CAP_100BaseTX_HALF_DUPLEX | PNAL_ETH_AUTONEG_CAP_100BaseTX_FULL_DUPLEX; }
             
             /**
              * @brief Returns the default MAU Type
              * @return 100BASETX Full Duplex
              */
-            static MARTe::uint16 GetDefaultLLDPMAUType() { return PNET_MAU_COPPER_100BaseTX_FULL_DUPLEX; }
+            static MARTe::uint16 GetDefaultLLDPMAUType() { return PNAL_ETH_MAU_COPPER_100BaseTX_FULL_DUPLEX; }
 
             /**
              * @brief Conveniently translates an os_ipaddr_t into a quad uint8 representation
@@ -606,7 +633,7 @@ namespace ProfinetDataSourceDriver
              * @param[out] d Fourth octet of the IP Address
              */
             static void IPv4U32toQuadU8(
-                os_ipaddr_t     inputIpAddress, 
+                pnal_ipaddr_t     inputIpAddress, 
                 uint8_t         *a, 
                 uint8_t         *b, 
                 uint8_t         *c, 

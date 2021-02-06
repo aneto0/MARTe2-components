@@ -28,6 +28,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "ProfinetDataSourceConstants.h"
 #include "ProfinetDataStructure.h"
 #include "ProfinetDataStructureTest.h"
 #include "CompilerTypes.h"

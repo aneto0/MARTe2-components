@@ -43,6 +43,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+
 static const MARTe::char8 * const configurationFile = ""
 "$TestApp = {"
 "    Class = RealTimeApplication"
@@ -257,17 +258,15 @@ static const MARTe::char8 * const configurationFile = ""
 "			IMProfileSpecificType = 0x5678"
 "			IMVersionMajor = 0"
 "			IMVersionMinor = 0"
+"           IMOrderId = \"MARTe2\""
+"           IMSerialNumber = \"0001\""
 "			IMFunction = \"\""
 "			IMLocation = \"\""
 "			IMDate = \"\""
 "			IMDescriptor = \"\""
 "			IMSignature = \"\""
-"			LLDPPortIdentifier = \"port-001\""
 "			RTClass2Status = 0"
 "			RTClass3Status = 0"
-"			AutoNegotiationCapability = 0x03"
-"			AutoNegotiationSpeed = 0x0010"
-"			MAUType = 0x00"
 "			+MainThreadHelper = {"
 "				Class = ProfinetMainThreadHelper"
 "				Timeout = 1000"

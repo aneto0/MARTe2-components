@@ -71,30 +71,29 @@
 #define PNETDS_MASK_BASEIDDEVICEID                      (MARTe::uint16)(0x0001 << 1)
 #define PNETDS_MASK_BASEIDOEMVENDORID                   (MARTe::uint16)(0x0001 << 2)
 #define PNETDS_MASK_BASEIDOEMDEVICEID                   (MARTe::uint16)(0x0001 << 3)
-#define PNETDS_MASK_BASEIDDEVICEVENDOR                  (MARTe::uint16)(0x0001 << 4)
-#define PNETDS_MASK_BASEIDMANUFACTURERSTRING            (MARTe::uint16)(0x0001 << 5)
+
 #define PNETDS_MASK_BASEID_MANDATORIES                  (PNETDS_MASK_BASEIDVENDORID | \
                                                         PNETDS_MASK_BASEIDDEVICEID | \
                                                         PNETDS_MASK_BASEIDOEMVENDORID | \
-                                                        PNETDS_MASK_BASEIDOEMDEVICEID | \
-                                                        PNETDS_MASK_BASEIDDEVICEVENDOR | \
-                                                        PNETDS_MASK_BASEIDMANUFACTURERSTRING)
+                                                        PNETDS_MASK_BASEIDOEMDEVICEID)
 
-#define PNETDS_MASK_IMVENDOR                    (MARTe::uint16)(0x0001 << 0)
-#define PNETDS_MASK_IMHARDWAREREVISION          (MARTe::uint16)(0x0001 << 1)
-#define PNETDS_MASK_IMSOFTWAREREVISION          (MARTe::uint16)(0x0001 << 2)
-#define PNETDS_MASK_IMFUNCTIONALENHANCEMENT     (MARTe::uint16)(0x0001 << 3)
-#define PNETDS_MASK_IMBUGFIX                    (MARTe::uint16)(0x0001 << 4)
-#define PNETDS_MASK_IMINTERNALCHANGE            (MARTe::uint16)(0x0001 << 5)
-#define PNETDS_MASK_IMPROFILEIDENTIFIER         (MARTe::uint16)(0x0001 << 6)
-#define PNETDS_MASK_IMPROFILESPECIFICTYPE       (MARTe::uint16)(0x0001 << 7)
-#define PNETDS_MASK_IMVERSIONMAJOR              (MARTe::uint16)(0x0001 << 8)
-#define PNETDS_MASK_IMVERSIONMINOR              (MARTe::uint16)(0x0001 << 9)
-#define PNETDS_MASK_IMFUNCTION                  (MARTe::uint16)(0x0001 << 10)
-#define PNETDS_MASK_IMLOCATION                  (MARTe::uint16)(0x0001 << 11)
-#define PNETDS_MASK_IMDATE                      (MARTe::uint16)(0x0001 << 12)
-#define PNETDS_MASK_IMDESCRIPTOR                (MARTe::uint16)(0x0001 << 13)
-#define PNETDS_MASK_IMSIGNATURE                 (MARTe::uint16)(0x0001 << 14)
+#define PNETDS_MASK_IMVENDOR                    (MARTe::uint32)(0x00000001 << 0)
+#define PNETDS_MASK_IMHARDWAREREVISION          (MARTe::uint32)(0x00000001 << 1)
+#define PNETDS_MASK_IMSOFTWAREREVISION          (MARTe::uint32)(0x00000001 << 2)
+#define PNETDS_MASK_IMFUNCTIONALENHANCEMENT     (MARTe::uint32)(0x00000001 << 3)
+#define PNETDS_MASK_IMBUGFIX                    (MARTe::uint32)(0x00000001 << 4)
+#define PNETDS_MASK_IMINTERNALCHANGE            (MARTe::uint32)(0x00000001 << 5)
+#define PNETDS_MASK_IMPROFILEIDENTIFIER         (MARTe::uint32)(0x00000001 << 6)
+#define PNETDS_MASK_IMPROFILESPECIFICTYPE       (MARTe::uint32)(0x00000001 << 7)
+#define PNETDS_MASK_IMVERSIONMAJOR              (MARTe::uint32)(0x00000001 << 8)
+#define PNETDS_MASK_IMVERSIONMINOR              (MARTe::uint32)(0x00000001 << 9)
+#define PNETDS_MASK_IMORDERID                   (MARTe::uint32)(0x00000001 << 10)
+#define PNETDS_MASK_IMSERIALNUMBER              (MARTe::uint32)(0x00000001 << 11)
+#define PNETDS_MASK_IMFUNCTION                  (MARTe::uint32)(0x00000001 << 12)
+#define PNETDS_MASK_IMLOCATION                  (MARTe::uint32)(0x00000001 << 13)
+#define PNETDS_MASK_IMDATE                      (MARTe::uint32)(0x00000001 << 14)
+#define PNETDS_MASK_IMDESCRIPTOR                (MARTe::uint32)(0x00000001 << 15)
+#define PNETDS_MASK_IMSIGNATURE                 (MARTe::uint32)(0x00000001 << 16)
 #define PNETDS_MASK_IM_MANDATORIES      (PNETDS_MASK_IMVENDOR | \
                                         PNETDS_MASK_IMHARDWAREREVISION | \
                                         PNETDS_MASK_IMSOFTWAREREVISION | \
@@ -105,6 +104,8 @@
                                         PNETDS_MASK_IMPROFILESPECIFICTYPE | \
                                         PNETDS_MASK_IMVERSIONMAJOR | \
                                         PNETDS_MASK_IMVERSIONMINOR | \
+                                        PNETDS_MASK_IMORDERID | \
+                                        PNETDS_MASK_IMSERIALNUMBER | \
                                         PNETDS_MASK_IMFUNCTION | \
                                         PNETDS_MASK_IMLOCATION | \
                                         PNETDS_MASK_IMDATE | \
@@ -114,9 +115,10 @@
 #define PNETDS_MASK_LLDP_PORTID                 (MARTe::uint8)(0x01 << 0)
 #define PNETDS_MASK_LLDP_RTCLASS2STATUS         (MARTe::uint8)(0x01 << 1)
 #define PNETDS_MASK_LLDP_RTCLASS3STATUS         (MARTe::uint8)(0x01 << 2)
-#define PNETDS_MASK_LLDP_AUTONEGCAPAB           (MARTe::uint8)(0x01 << 3)
-#define PNETDS_MASK_LLDP_AUTONEGSPEED           (MARTe::uint8)(0x01 << 4)
-#define PNETDS_MASK_LLDP_MAUTYPE                (MARTe::uint8)(0x01 << 5)
+#define PNETDS_MASK_LLDP_AUTONEGENABLED         (MARTe::uint8)(0x01 << 3)
+#define PNETDS_MASK_LLDP_AUTONEGSUPPORTED       (MARTe::uint8)(0x01 << 4)
+#define PNETDS_MASK_LLDP_AUTONEGSPEED           (MARTe::uint8)(0x01 << 5)
+#define PNETDS_MASK_LLDP_MAUTYPE                (MARTe::uint8)(0x01 << 6)
 
 #define PNETDS_MASK_SUBSLOT_NUMBER              (MARTe::uint8)(0x01 << 0)
 #define PNETDS_MASK_SUBSLOT_ISDAP               (MARTe::uint8)(0x01 << 1)
@@ -688,6 +690,16 @@ namespace MARTe {
                 uint8 imVersionMinor;
 
                 /**
+                 * @brief       Identification & Maintenance device Order Identifier
+                 */
+                StreamString imOrderId;
+
+                /**
+                 * @brief       Identification & Maintenance device Serial Number
+                 */
+                StreamString imSerialNumber;
+
+                /**
                  * @brief       Identification & Maintenance Function
                  */
                 StreamString imFunction;
@@ -732,7 +744,14 @@ namespace MARTe {
                  *              0 - AutoNegotiation not supported
                  *              1 - AutoNegotiation supported
                  */
-                uint8 autoNegotiationCapability;
+                uint8 autoNegotiationSupported;
+
+                /**
+                 * @brief       Link Layer Discovery Protocol (LLDP) AutoNegotiation capabilities
+                 *              0 - AutoNegotiation disabled
+                 *              1 - AutoNegotiation enabled
+                 */
+                uint8 autoNegotiationEnabled;
 
                 /**
                  * @brief       Link Layer Discovery Protocol (LLDP) AutoNegotiation available speeds

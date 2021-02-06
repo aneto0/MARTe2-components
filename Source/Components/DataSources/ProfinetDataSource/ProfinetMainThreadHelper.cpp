@@ -83,10 +83,9 @@ namespace MARTe {
                 //Clear only local flags which were reported as processed
                 if(flagMutex.FastLock(timeout, sleepTimeSeconds)) {
                     eventFlag &= ~workedFlags;
+                    eventSemaphore.Reset();
                     flagMutex.FastUnLock();
                 }
-
-                eventSemaphore.Reset();
             }
             returnValue = ErrorManagement::Completed;
         }
@@ -126,9 +125,8 @@ namespace MARTe {
     void ProfinetMainThreadHelper::NotifyEvent(ProfinetDataSourceEventType eventType) {
         if(flagMutex.FastLock(timeout, sleepTimeSeconds)) {
             eventFlag |= eventType;
-            flagMutex.FastUnLock();
-
             eventSemaphore.Post();
+            flagMutex.FastUnLock();
         }
     }
 

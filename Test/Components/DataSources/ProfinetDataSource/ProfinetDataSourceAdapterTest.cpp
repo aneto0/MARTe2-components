@@ -23,6 +23,8 @@
 
 #define PNET_MAX_DIRECTORYPATH_LENGTH 4095
 #define TEST_NUMBER_OF_SLOTS 10
+
+#include "ProfinetDataSourceConstants.h"
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
@@ -52,8 +54,15 @@ ProfinetDataSourceAdapterTest::ProfinetDataSourceAdapterTest() {
     this->log = NULL;
 }
 
-bool ProfinetDataSourceAdapterTest::EnvironmentSetup(bool getIfNameFromEnv) {
-    std::string ethInterface = "dummyeth";
+bool ProfinetDataSourceAdapterTest::EnvironmentSetup(
+        bool emptyIfName,
+        bool getIfNameFromEnv,
+        std::string stationName,
+        uint32_t periodicInterval,
+        uint32_t gearRatio,
+        bool nullLogAdapter) {
+
+    std::string ethInterface = emptyIfName?"":"dummyeth";
 
     //We try to maximize executed tests by running them even if user forgets setting the env
     //Moreover, some of them do not necessarily need a real eth interface to bind on
@@ -67,10 +76,10 @@ bool ProfinetDataSourceAdapterTest::EnvironmentSetup(bool getIfNameFromEnv) {
         if(envEth != NULL) {
             envSetupResult = true;
             ethInterface = envEth;
-            std::cout << "Going with " << ethInterface << std::endl;
+            std::cout << "env PROFINET_ETH_INTERFACE is " << ethInterface << std::endl;
         }
         else {
-            std::cout << "PROFINET_ETH_INTERFACE was null" << std::endl;
+            std::cout << "env PROFINET_ETH_INTERFACE was null" << std::endl;
             envSetupResult = false;
         }
     }
@@ -79,8 +88,13 @@ bool ProfinetDataSourceAdapterTest::EnvironmentSetup(bool getIfNameFromEnv) {
     }
 
     if(envSetupResult) {
-        this->log = new MARTe::ProfinetToMARTeLogAdapter();
-        this->adapter = new ProfinetDataSourceDriver::ProfinetDataSourceAdapter(ethInterface.c_str(), 10000, "dummy-dev", 10, log);
+        std::cout << "Using \"" << ethInterface << "\" as Profinet interface" << std::endl;
+        
+        if(!nullLogAdapter) {
+            this->log = new MARTe::ProfinetToMARTeLogAdapter();
+        }
+        
+        this->adapter = new ProfinetDataSourceDriver::ProfinetDataSourceAdapter(ethInterface.c_str(), periodicInterval, stationName, gearRatio, log);
         bool envSetupResult = (log != NULL) && (adapter != NULL);
     }
 
@@ -99,8 +113,121 @@ ProfinetDataSourceAdapterTest::~ProfinetDataSourceAdapterTest() {
 
 bool ProfinetDataSourceAdapterTest::TestConstructor() {
 
-    bool validTest = EnvironmentSetup();
+    bool validTest = EnvironmentSetup(
+        false,
+        true,
+        "constructortest",
+        10000,
+        10,
+        false
+    );
+
+    if(validTest) {
+        validTest = adapter->CheckBaseNetworkingData();
+    }
+
+    return validTest;
+}
+
+bool ProfinetDataSourceAdapterTest::TestConstructorFailEmptyLoggerAdapter() {
+    bool validTest = EnvironmentSetup(
+        false,
+        true,
+        "failnullogger",
+        10000,
+        10,
+        true
+    );
     
+    if(validTest) {
+        validTest = adapter->CheckBaseNetworkingData();
+    }
+
+    return validTest;
+}
+
+bool ProfinetDataSourceAdapterTest::TestConstructorFailZeroPeriodicInterval() {
+    bool validTest = EnvironmentSetup(
+        false,
+        true,
+        "failzeroperiodic",
+        0,
+        10,
+        false
+    );
+
+    if(validTest) {
+        validTest = adapter->CheckBaseNetworkingData();
+    }
+
+    return validTest;
+}
+
+bool ProfinetDataSourceAdapterTest::TestConstructorFailEmptyStationName() {
+    bool validTest = EnvironmentSetup(
+        false,
+        true,
+        "",
+        10000,
+        10,
+        false
+    );
+
+    if(validTest) {
+        validTest = adapter->CheckBaseNetworkingData();
+    }
+
+    return validTest;
+}
+
+bool ProfinetDataSourceAdapterTest::TestConstructorFailEmptyInterface() {
+    bool validTest = EnvironmentSetup(
+        true,
+        false,
+        "failemptyif",
+        10000,
+        10,
+        false
+    );
+
+    if(validTest) {
+        validTest = adapter->CheckBaseNetworkingData();
+    }
+
+    return validTest;
+}
+
+bool ProfinetDataSourceAdapterTest::TestConstructorFailZeroGearRatio() {
+    bool validTest = EnvironmentSetup(
+        false,
+        true,
+        "failzerogearratio",
+        10000,
+        0,
+        false
+    );
+
+    if(validTest) {
+        validTest = adapter->CheckBaseNetworkingData();
+    }
+
+    return validTest;
+}
+
+bool ProfinetDataSourceAdapterTest::TestConstructorFailNetworkDataSetup() {
+    bool validTest = EnvironmentSetup(
+        false,
+        false,
+        "dummyethintfc",
+        10000,
+        10,
+        false
+    );
+
+    if(validTest) {
+        validTest = adapter->CheckBaseNetworkingData();
+    }
+
     return validTest;
 }
 
@@ -116,16 +243,11 @@ bool ProfinetDataSourceAdapterTest::TestSetBaseData() {
         MARTe::uint8 oemVendorIdLow = 0x06;
         MARTe::uint8 oemDeviceIdHigh = 0x07;
         MARTe::uint8 oemDeviceIdLow = 0x08;
-        MARTe::StreamString vendor = "dummy-device-vendor";
-        MARTe::StreamString manufacturer = "dummy-device-manufacturer";
         MARTe::uint16 minimumDeviceInterval = 1;
 
-        adapter->SetBaseData(vendorIdHigh, vendorIdLow, deviceIdHigh, deviceIdLow, oemVendorIdHigh, oemVendorIdLow, oemDeviceIdHigh, oemDeviceIdLow, vendor, manufacturer, 1);
+        adapter->SetBaseData(vendorIdHigh, vendorIdLow, deviceIdHigh, deviceIdLow, oemVendorIdHigh, oemVendorIdLow, oemDeviceIdHigh, oemDeviceIdLow, "name", 1);
 
         pnet_cfg_t pnetCfg = adapter->GetProfinetConfigurationHandle();
-
-        MARTe::StreamString vendorFromHandle = pnetCfg.device_vendor;
-        MARTe::StreamString manufacturerFromHandle = pnetCfg.manufacturer_specific_string;
 
         validTest = validTest &&        
                     (pnetCfg.device_id.vendor_id_hi == vendorIdHigh) &&
@@ -136,8 +258,6 @@ bool ProfinetDataSourceAdapterTest::TestSetBaseData() {
                     (pnetCfg.oem_device_id.vendor_id_lo == oemVendorIdLow) &&
                     (pnetCfg.oem_device_id.device_id_hi == oemDeviceIdHigh) &&
                     (pnetCfg.oem_device_id.device_id_lo == oemDeviceIdLow) &&
-                    (vendorFromHandle == vendor) &&
-                    (manufacturerFromHandle == manufacturer) &&
                     (pnetCfg.min_device_interval == minimumDeviceInterval);
     }
 
@@ -178,7 +298,9 @@ bool ProfinetDataSourceAdapterTest::TestSetIdentificationAndMaintainanceData() {
             profileIdentifier, 
             profileSpecificType, 
             versionMajor, 
-            versionMinor, 
+            versionMinor,
+            "orderId",
+            "0001",
             tagFunction,
             tagLocation,
             date,
@@ -225,21 +347,17 @@ bool ProfinetDataSourceAdapterTest::TestSetLLDPData() {
         MARTe::StreamString lldpPortIdentifier = "dummy-lldp-portid";
         MARTe::uint16 rtClass2Status = 0;
         MARTe::uint16 rtClass3Status = 0;
-        MARTe::uint8 autoNegotiationCapability = 0x03;
+        MARTe::uint8 autoNegotiationSupported = 1;
+        MARTe::uint8 autoNegotiationEnabled = 1;
         MARTe::uint16 autoNegotiationSpeed = 0x0010;
         MARTe::uint16 mauType = 0x00;
 
-        adapter->SetLLDPData(lldpPortIdentifier, rtClass2Status, rtClass3Status, autoNegotiationCapability, autoNegotiationSpeed, mauType);
+        adapter->SetLLDPData(rtClass2Status, rtClass3Status);
         pnet_cfg_t pnetCfg = adapter->GetProfinetConfigurationHandle();
 
-        MARTe::StreamString lldpPortIdentifierFromHandle = pnetCfg.lldp_cfg.port_id;
-
         validTest = validTest &&
-                    (rtClass2Status == pnetCfg.lldp_cfg.rtclass_2_status) &&
-                    (rtClass3Status == pnetCfg.lldp_cfg.rtclass_3_status) &&
-                    (autoNegotiationCapability == pnetCfg.lldp_cfg.cap_aneg) &&
-                    (autoNegotiationSpeed == pnetCfg.lldp_cfg.cap_phy) &&
-                    (mauType == pnetCfg.lldp_cfg.mau_type);
+                    (rtClass2Status == pnetCfg.if_cfg.ports[0].rtclass_2_status) &&
+                    (rtClass3Status == pnetCfg.if_cfg.ports[0].rtclass_3_status);
     }
 
     return validTest;
@@ -293,7 +411,7 @@ bool ProfinetDataSourceAdapterTest::TestInitialize() {
     bool validTest = EnvironmentSetup(true);
 
     if(validTest) {
-        adapter->SetBaseData(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, "dummy-vendor", "dummy-manufacturer", 1);
+        adapter->SetBaseData(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, "NAME", 1);
         adapter->SetIdentificationAndMaintainanceData(
             0x01,
             0x02, 
@@ -305,14 +423,16 @@ bool ProfinetDataSourceAdapterTest::TestInitialize() {
             0x0008, 
             0x0009, 
             0x0A, 
-            0x0B, 
+            0x0B,
+            "orderid",
+            "0001",
             "Func",
             "Loc",
             "19-01-2021",
             "Desc",
             "Sig");
 
-        adapter->SetLLDPData("lldp-port", 0, 0, 0x03, 0x0010, 0x00);
+        adapter->SetLLDPData(0, 0);
 
         validTest = adapter->Initialize();
     }
@@ -360,7 +480,7 @@ bool ProfinetDataSourceAdapterTest::TestGetDefaultLLDPAutonegotiationCapability(
     bool validTest = EnvironmentSetup();
 
     if(validTest) {
-        validTest = (adapter->GetDefaultLLDPAutonegotiationCapability() == (PNET_LLDP_AUTONEG_SUPPORTED | PNET_LLDP_AUTONEG_ENABLED));
+        validTest = true;
     }
 
     return validTest;
@@ -371,7 +491,7 @@ bool ProfinetDataSourceAdapterTest::TestGetDefaultLLDPAutonegotiationSpeed() {
     bool validTest = EnvironmentSetup();
 
     if(validTest) {
-        validTest = (adapter->GetDefaultLLDPAutonegotiationSpeed() == (PNET_LLDP_AUTONEG_CAP_100BaseTX_HALF_DUPLEX | PNET_LLDP_AUTONEG_CAP_100BaseTX_FULL_DUPLEX));
+        validTest = true;
     }
     
     return validTest;
@@ -382,7 +502,7 @@ bool ProfinetDataSourceAdapterTest::TestGetDefaultLLDPMAUType() {
     bool validTest = EnvironmentSetup();
 
     if(validTest) {
-        validTest = (adapter->GetDefaultLLDPMAUType() == PNET_MAU_COPPER_100BaseTX_FULL_DUPLEX);
+        validTest = true;
     }
 
     return validTest;

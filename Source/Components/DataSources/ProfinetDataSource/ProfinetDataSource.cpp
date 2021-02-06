@@ -57,8 +57,7 @@ namespace MARTe {
 
         if(adapter != NULL_PTR(ProfinetDataSourceDriver::ProfinetDataSourceAdapter*)) {
             adapter->AbortConnection();
-            Sleep::Sec(2);
-            
+            Sleep::Sec(20);
         }
 
         if(timerHelper.IsValid()) {
@@ -80,7 +79,7 @@ namespace MARTe {
 
         bool returnValue = DataSourceI::Initialise(data);
         
-        uint16 imResultFlag = 0u;
+        uint32 imResultFlag = 0u;
 
         StreamString tempNetworkInterface;
         StreamString tempStationName;
@@ -142,23 +141,17 @@ namespace MARTe {
             (data.Read("DeviceIdentifier", tempDeviceIdentifier))?(imResultFlag |= PNETDS_MASK_BASEIDDEVICEID):(imResultFlag &= ~PNETDS_MASK_BASEIDDEVICEID);
             (data.Read("OEMVendorIdentifier", tempOEMVendorIdentifier))?(imResultFlag |= PNETDS_MASK_BASEIDOEMVENDORID):(imResultFlag &= ~PNETDS_MASK_BASEIDOEMVENDORID);
             (data.Read("OEMDeviceIdentifier", tempOEMDeviceIdentifier))?(imResultFlag |= PNETDS_MASK_BASEIDOEMDEVICEID):(imResultFlag &= ~PNETDS_MASK_BASEIDOEMDEVICEID);
-            (data.Read("DeviceVendor", tempDeviceVendor))?(imResultFlag |= PNETDS_MASK_BASEIDDEVICEVENDOR):(imResultFlag &= ~PNETDS_MASK_BASEIDDEVICEVENDOR);
-            (data.Read("ManufacturerSpecificString", tempManufacturerSpecificString))?(imResultFlag |= PNETDS_MASK_BASEIDMANUFACTURERSTRING):(imResultFlag &= ~PNETDS_MASK_BASEIDMANUFACTURERSTRING);
 
             if((imResultFlag & PNETDS_MASK_BASEID_MANDATORIES) == PNETDS_MASK_BASEID_MANDATORIES) {
                 REPORT_ERROR(ErrorManagement::Information, "Profinet Vendor IDentifier 0x%04x", tempVendorIdentifier);
                 REPORT_ERROR(ErrorManagement::Information, "Profinet Device IDentifier 0x%04x", tempDeviceIdentifier);
                 REPORT_ERROR(ErrorManagement::Information, "Profinet OEM Vendor IDentifier 0x%04x", tempOEMVendorIdentifier);
                 REPORT_ERROR(ErrorManagement::Information, "Profinet OEM Device IDentifier 0x%04x", tempOEMDeviceIdentifier);
-                REPORT_ERROR(ErrorManagement::Information, "Device Vendor %s", tempDeviceVendor.Buffer());
-                REPORT_ERROR(ErrorManagement::Information, "Manufacturer Specific String %s", tempManufacturerSpecificString.Buffer());
 
                 vendorIdentifier = tempVendorIdentifier;
                 deviceIdentifier = tempDeviceIdentifier;
                 oemVendorIdentifier = tempOEMVendorIdentifier;
                 oemDeviceIdentifier = tempOEMDeviceIdentifier;
-                deviceVendor = tempDeviceVendor;
-                manufacturerSpecificString = tempManufacturerSpecificString;
 
                 returnValue = true;
             }
@@ -168,9 +161,7 @@ namespace MARTe {
                                                                 ((imResultFlag & PNETDS_MASK_BASEIDVENDORID) == 0)?"VendorIdentifier":"",
                                                                 ((imResultFlag & PNETDS_MASK_BASEIDDEVICEID) == 0)?"DeviceIdentifier":"",
                                                                 ((imResultFlag & PNETDS_MASK_BASEIDOEMVENDORID) == 0)?"OEMVendorIdentifier":"",
-                                                                ((imResultFlag & PNETDS_MASK_BASEIDOEMDEVICEID) == 0)?"OEMDeviceIdentifier":"",
-                                                                ((imResultFlag & PNETDS_MASK_BASEIDDEVICEVENDOR) == 0)?"DeviceVendor":"",
-                                                                ((imResultFlag & PNETDS_MASK_BASEIDMANUFACTURERSTRING) == 0)?"ManufacturerSpecificString":"");
+                                                                ((imResultFlag & PNETDS_MASK_BASEIDOEMDEVICEID) == 0)?"OEMDeviceIdentifier":"");
 
                 returnValue = false;
             }
@@ -191,7 +182,7 @@ namespace MARTe {
             uint8 oemDeviceIdHigh = static_cast<uint8>((oemDeviceIdentifier >> 8) & 0x00FF);
             uint8 oemDeviceIdLow = static_cast<uint8>((oemDeviceIdentifier) & 0x00FF);
 
-            returnValue = adapter->SetBaseData(vendorIdHigh, vendorIdLow, deviceIdHigh, deviceIdLow, oemVendorIdHigh, oemVendorIdLow, oemDeviceIdHigh, oemDeviceIdLow, deviceVendor, manufacturerSpecificString, 32);
+            returnValue = adapter->SetBaseData(vendorIdHigh, vendorIdLow, deviceIdHigh, deviceIdLow, oemVendorIdHigh, oemVendorIdLow, oemDeviceIdHigh, oemDeviceIdLow, "name", 32);
             if(returnValue) {
                 REPORT_ERROR(ErrorManagement::Information, "Profinet Base Configuration data accepted");
             }
@@ -215,6 +206,8 @@ namespace MARTe {
             uint16 tempIMProfileSpecificType;
             uint8 tempIMVersionMajor;
             uint8 tempIMVersionMinor;
+            StreamString tempIMOrderId;
+            StreamString tempIMSerialNumber;
             StreamString tempIMFunction;
             StreamString tempIMLocation;
             StreamString tempIMDate;
@@ -234,6 +227,9 @@ namespace MARTe {
 
             (data.Read("IMVersionMajor", tempIMVersionMajor))?(imResultFlag |= PNETDS_MASK_IMVERSIONMAJOR):(imResultFlag &= ~PNETDS_MASK_IMVERSIONMAJOR);
             (data.Read("IMVersionMinor", tempIMVersionMinor))?(imResultFlag |= PNETDS_MASK_IMVERSIONMINOR):(imResultFlag &= ~PNETDS_MASK_IMVERSIONMINOR);
+
+            (data.Read("IMOrderId", tempIMOrderId))?(imResultFlag |= PNETDS_MASK_IMORDERID):(imResultFlag &= ~PNETDS_MASK_IMORDERID);
+            (data.Read("IMSerialNumber", tempIMSerialNumber))?(imResultFlag |= PNETDS_MASK_IMSERIALNUMBER):(imResultFlag &= ~PNETDS_MASK_IMSERIALNUMBER);
 
             (data.Read("IMFunction", tempIMFunction))?(imResultFlag |= PNETDS_MASK_IMFUNCTION):(imResultFlag &= ~PNETDS_MASK_IMFUNCTION);
             (data.Read("IMLocation", tempIMLocation))?(imResultFlag |= PNETDS_MASK_IMLOCATION):(imResultFlag &= ~PNETDS_MASK_IMLOCATION);
@@ -276,6 +272,8 @@ namespace MARTe {
                 imVersionMajor = tempIMVersionMajor;
                 imVersionMinor = tempIMVersionMinor;
 
+                imOrderId = ((imResultFlag & PNETDS_MASK_IMORDERID) == PNETDS_MASK_IMORDERID)?tempIMOrderId:"";
+                imSerialNumber = ((imResultFlag & PNETDS_MASK_IMSERIALNUMBER) == PNETDS_MASK_IMSERIALNUMBER)?tempIMSerialNumber:"";
                 imFunction = ((imResultFlag & PNETDS_MASK_IMFUNCTION) == PNETDS_MASK_IMFUNCTION)?tempIMFunction:"";
                 imLocation = ((imResultFlag & PNETDS_MASK_IMLOCATION) == PNETDS_MASK_IMLOCATION)?tempIMLocation:"";
                 imDate = ((imResultFlag & PNETDS_MASK_IMDATE) == PNETDS_MASK_IMDATE)?tempIMDate:"";
@@ -284,11 +282,11 @@ namespace MARTe {
                 uint8 imVendorHigh = static_cast<uint8>((imVendor >> 8) & 0x00FF);
                 uint8 imVendorLow = static_cast<uint8>(imVendor & 0x00FF);
 
-                adapter->SetIdentificationAndMaintainanceData(imVendorHigh, imVendorLow, imHardwareRevision, imSoftwareRevision, imFunctionalEnhancement, imBugFix, imInternalChange, imProfileIdentifier, imProfileSpecificType, imVersionMajor, imVersionMinor, imFunction, imLocation, imDate, imDescriptor, imSignature);
+                adapter->SetIdentificationAndMaintainanceData(imVendorHigh, imVendorLow, imHardwareRevision, imSoftwareRevision, imFunctionalEnhancement, imBugFix, imInternalChange, imProfileIdentifier, imProfileSpecificType, imVersionMajor, imVersionMinor, imFunction, "order-id", "0001", imLocation, imDate, imDescriptor, imSignature);
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Missing I&M Mandatory configuration keys, listed below");
-                REPORT_ERROR(ErrorManagement::ParametersError,  "%s %s %s %s %s %s %s %s %s %s", 
+                REPORT_ERROR(ErrorManagement::ParametersError,  "%s %s %s %s %s %s %s %s %s", 
                                                                 ((imResultFlag & PNETDS_MASK_IMVENDOR) == 0)?"IMVendor":"",
                                                                 ((imResultFlag & PNETDS_MASK_IMHARDWAREREVISION) == 0)?"IMHardwareRevision":"",
                                                                 ((imResultFlag & PNETDS_MASK_IMSOFTWAREREVISION) == 0)?"IMSoftwareRevision":"",
@@ -299,43 +297,31 @@ namespace MARTe {
                                                                 ((imResultFlag & PNETDS_MASK_IMPROFILESPECIFICTYPE) == 0)?"IMProfileSpecificType":"",
                                                                 ((imResultFlag & PNETDS_MASK_IMVERSIONMAJOR) == 0)?"IMVersionMajor":"",
                                                                 ((imResultFlag & PNETDS_MASK_IMVERSIONMINOR) == 0)?"IMVersionMinor":"");
+                REPORT_ERROR(ErrorManagement::ParametersError, "%s %s %s",
+                    ((imResultFlag & PNETDS_MASK_IMSIGNATURE) == 0)?"IMSignature":"",
+                    ((imResultFlag & PNETDS_MASK_IMORDERID) == 0)?"IMOrderId":"",
+                    ((imResultFlag & PNETDS_MASK_IMSERIALNUMBER) == 0)?"IMSerialNumber":"");
 
                 returnValue = false;
             }
         }
 
-        //Reading LLDP / RTClass / Network configuration data
+        //Reading RTClass configuration data
         if(returnValue) {
             imResultFlag = 0u;
 
-            StreamString tempLLDPPortIdentifier;
             uint16 tempRTClass2Status;
             uint16 tempRTClass3Status;
-            uint8 tempAutoNegotiationCapability;
-            uint16 tempAutoNegotiationSpeed;
-            uint16 tempMAUType;
 
-            (data.Read("LLDPPortIdentifier", tempLLDPPortIdentifier))?(imResultFlag |= PNETDS_MASK_LLDP_PORTID):(imResultFlag &= ~PNETDS_MASK_LLDP_PORTID);
             (data.Read("RTClass2Status", tempRTClass2Status))?(imResultFlag |= PNETDS_MASK_LLDP_RTCLASS2STATUS):(imResultFlag &= ~PNETDS_MASK_LLDP_RTCLASS2STATUS);
             (data.Read("RTClass3Status", tempRTClass3Status))?(imResultFlag |= PNETDS_MASK_LLDP_RTCLASS3STATUS):(imResultFlag &= ~PNETDS_MASK_LLDP_RTCLASS3STATUS);
-            (data.Read("AutoNegotiationCapability", tempAutoNegotiationCapability))?(imResultFlag |= PNETDS_MASK_LLDP_AUTONEGCAPAB):(imResultFlag &= ~PNETDS_MASK_LLDP_AUTONEGCAPAB);
-            (data.Read("AutoNegotiationSpeed", tempAutoNegotiationSpeed))?(imResultFlag |= PNETDS_MASK_LLDP_AUTONEGSPEED):(imResultFlag &= ~PNETDS_MASK_LLDP_AUTONEGSPEED);
-            (data.Read("MAUType", tempMAUType))?(imResultFlag |= PNETDS_MASK_LLDP_MAUTYPE):(imResultFlag &= ~PNETDS_MASK_LLDP_MAUTYPE);
 
-            lldpPortIdentifier = ((imResultFlag & PNETDS_MASK_LLDP_PORTID) == PNETDS_MASK_LLDP_PORTID)?tempLLDPPortIdentifier:"port-001";
             rtClass2Status = ((imResultFlag & PNETDS_MASK_LLDP_RTCLASS2STATUS) == PNETDS_MASK_LLDP_RTCLASS2STATUS)?tempRTClass2Status:adapter->GetDefaultLLDPRTClass2Status();
             rtClass3Status = ((imResultFlag & PNETDS_MASK_LLDP_RTCLASS3STATUS) == PNETDS_MASK_LLDP_RTCLASS3STATUS)?tempRTClass3Status:adapter->GetDefaultLLDPRTClass3Status();
-            autoNegotiationCapability = ((imResultFlag & PNETDS_MASK_LLDP_AUTONEGCAPAB) == PNETDS_MASK_LLDP_AUTONEGCAPAB)?tempAutoNegotiationCapability:adapter->GetDefaultLLDPAutonegotiationCapability();
-            autoNegotiationSpeed = ((imResultFlag & PNETDS_MASK_LLDP_MAUTYPE) == PNETDS_MASK_LLDP_MAUTYPE)?tempMAUType:adapter->GetDefaultLLDPMAUType();
 
-            REPORT_ERROR(ErrorManagement::Information, "LLDP Configuration");
-            REPORT_ERROR(ErrorManagement::Information, "Port Identifier %s", lldpPortIdentifier.Buffer());
             REPORT_ERROR(ErrorManagement::Information, "RT Class2/Class3 %d/%d", rtClass2Status, rtClass3Status);
-            REPORT_ERROR(ErrorManagement::Information, "AutoNegotiation caps %02x", autoNegotiationCapability);
-            REPORT_ERROR(ErrorManagement::Information, "AutoNegotiation speed %04x", autoNegotiationSpeed);
-            REPORT_ERROR(ErrorManagement::Information, "MAU Type %04x", mauType);
 
-            adapter->SetLLDPData(lldpPortIdentifier, rtClass2Status, rtClass3Status, autoNegotiationCapability, autoNegotiationSpeed, mauType);
+            adapter->SetLLDPData(rtClass2Status, rtClass3Status);
             returnValue = true;
         }
 
