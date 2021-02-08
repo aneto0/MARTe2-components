@@ -1,8 +1,9 @@
 /**
  * @file EPICSCAOutputGTest.cpp
  * @brief Source file for class EPICSCAOutputGTest
- * @date 21/04/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -28,8 +29,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include <limits.h>
 #include "gtest/gtest.h"
+#include <limits.h>
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -99,6 +100,11 @@ TEST(EPICSCAOutputGTest,TestInitialise_False_NumberOfBuffers) {
     ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers());
 }
 
+// TEST(EPICSCAOutputGTest,TestAsyncCaPut) {
+//     EPICSCAOutputTest test;
+//     ASSERT_TRUE(test.TestAsyncCaPut());
+// }
+
 TEST(EPICSCAOutputGTest,TestGetCPUMask) {
     EPICSCAOutputTest test;
     ASSERT_TRUE(test.TestGetCPUMask());
@@ -164,3 +170,7 @@ TEST(EPICSCAOutputGTest,TestIsIgnoringBufferOverrun) {
     ASSERT_TRUE(test.TestIsIgnoringBufferOverrun());
 }
 
+TEST(EPICSCAOutputGTest,TestAsyncCaPut) {
+    EPICSCAOutputTest test;
+    ASSERT_TRUE(test.TestAsyncCaPut());
+}

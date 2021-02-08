@@ -1,8 +1,9 @@
 /**
  * @file EPICSCAClient.cpp
  * @brief Source file for class EPICSCAClient
- * @date 23/03/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -120,7 +121,6 @@ bool EPICSCAClient::Initialise(StructuredDataI & data) {
 }
 
 ErrorManagement::ErrorType EPICSCAClient::Start() {
-    // executor.SetName(GetName()); // TODO - This line is to be removed if not necessary (not present in the recent code)
     ErrorManagement::ErrorType err = executor.Start();
     return err;
 }

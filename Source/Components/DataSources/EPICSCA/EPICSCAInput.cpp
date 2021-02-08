@@ -38,8 +38,6 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-
-// #define NULL_PTR(x) NULL
 /**
  * @brief Callback function for the ca_create_subscription. Single point of access which
  * delegates the events to the corresponding EPICSPV instance.
@@ -48,46 +46,9 @@ static FastPollingMutexSem eventCallbackFastMux;
 /*lint -e{1746} function must match required prototype and thus cannot be changed to constant reference.*/
 void EPICSCAInputEventCallback(struct event_handler_args const args) {
     (void) eventCallbackFastMux.FastLock();
-    PVWrapper *pv = static_cast<PVWrapper *> (args.usr);
+    PVWrapper *pv = static_cast<PVWrapper *>(args.usr);
     if (pv != NULL_PTR(PVWrapper *)) {
         (void) MemoryOperationsHelper::Copy(pv->memory, args.dbr, pv->memorySize);
-#if 0
-        if (pv->numberOfElements == 1u) {
-            if (pv->td == UnsignedInteger8Bit) {
-                uint8 *mem = (uint8*) (pv->memory);
-                if (*mem >= 0x7Fu) {
-                    uint16 temp;
-                    if (!ca_array_get(DBR_SHORT, pv->numberOfElements, pv->pvChid, &temp)) {
-                    }
-                    ca_pend_io(0.1);
-                    *mem = temp;
-                }
-            }
-            else if (pv->td == UnsignedInteger16Bit) {
-                uint16 *mem = (uint16*) (pv->memory);
-                if (*mem >= 0x7FFFu) {
-                    uint32 temp;
-                    if (!ca_array_get(DBR_LONG, pv->numberOfElements, pv->pvChid, &temp)) {
-                    }
-                    ca_pend_io(0.1);
-                    *mem = temp;
-                }
-            }
-            else if (pv->td == UnsignedInteger32Bit) {
-                printf("HEREEE!\n");
-                uint32 *mem = (uint32*) (pv->memory);
-                if (*mem >= 0x7FFFFFFFu) {
-                    float64 temp;
-                    if (!ca_array_get(DBR_DOUBLE, pv->numberOfElements, pv->pvChid, &temp)) {
-                        printf("Failed!\n", temp);
-                    }
-                    ca_pend_io(0.1);
-                    printf("read %f!\n", temp);
-                    *mem = (uint32) temp;
-                }
-            }
-        }
-#endif
     }
     eventCallbackFastMux.FastUnLock();
 }
@@ -317,7 +278,7 @@ const char8* EPICSCAInput::GetBrokerName(StructuredDataI& data, const SignalDire
 }
 
 bool EPICSCAInput::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT < MemoryMapInputBroker > broker("MemoryMapInputBroker");
+    ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
     bool ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
     if (ok) {
         ok = inputBrokers.Insert(broker);

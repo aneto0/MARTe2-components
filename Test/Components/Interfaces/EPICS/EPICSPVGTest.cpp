@@ -1,8 +1,9 @@
 /**
  * @file EPICSPVGTest.cpp
  * @brief Source file for class EPICSPVGTest
- * @date 25/03/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -24,8 +25,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <limits.h>
 #include "gtest/gtest.h"
+#include <limits.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -132,6 +133,11 @@ TEST(EPICSPVGTest,TestInitialise_Event_ParameterName) {
 TEST(EPICSPVGTest,TestInitialise_Event_Ignore) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestInitialise_Event_Ignore());
+}
+
+TEST(EPICSPVGTest,TestInitialise_Event_Message) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestInitialise_Event_Message());
 }
 
 TEST(EPICSPVGTest,TestInitialise_Event_False_PVValue) {
@@ -322,6 +328,21 @@ TEST(EPICSPVGTest,TestHandlePVEvent_Function_ParameterName_Int) {
 TEST(EPICSPVGTest,TestHandlePVEvent_Function_Ignore) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestHandlePVEvent_Function_Ignore());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Message) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Message());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Message_PVName) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Message_PVName());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Message_PVValue) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Message_PVValue());
 }
 
 TEST(EPICSPVGTest,TestCAPut_UInt16) {

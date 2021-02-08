@@ -1,8 +1,9 @@
 /**
  * @file EPICSCAClient.h
  * @brief Header file for class EPICSCAClient
- * @date 23/03/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -72,7 +73,7 @@ public:
     /**
      * @brief Constructor. NOOP.
      */
-EPICSCAClient    ();
+    EPICSCAClient();
 
     /**
      * @brief Destructor. Stops the embedded thread.

@@ -22,8 +22,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef DATASOURCES_EPICSCAOUTPUT_H_
-#define DATASOURCES_EPICSCAOUTPUT_H_
+#ifndef EPICSCAOUTPUT_H_
+#define EPICSCAOUTPUT_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -245,5 +245,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* DATASOURCES_EPICSCAOUTPUT_H_ */
+#endif /* EPICSCAOUTPUT_H_ */
 

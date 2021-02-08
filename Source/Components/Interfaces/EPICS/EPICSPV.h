@@ -1,8 +1,9 @@
 /**
  * @file EPICSPV.h
  * @brief Header file for class EPICSPV
- * @date 23/03/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -28,6 +29,7 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 #include <cadef.h>
+
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
@@ -81,7 +83,7 @@ public:
      * @post
      *   GetTimeout() == 5.0
      */
-EPICSPV    ();
+    EPICSPV();
 
     /**
      * @brief Frees the FunctionMap memory if needed/
@@ -157,17 +159,17 @@ EPICSPV    ();
     /*lint ++flb*/
     union EventMode {
         /**
-         * Mode is not set
+         * Mode is not set.
          */
         BitBoolean<uint8, 0u> notSet;
 
         /**
-         * Value is to be used as the function name
+         * Value is to be used as the function name.
          */
         BitBoolean<uint8, 1u> function;
 
         /**
-         * Value is to be used as the function parameter
+         * Value is to be used as the function parameter.
          */
         BitBoolean<uint8, 2u> parameter;
 
@@ -177,22 +179,22 @@ EPICSPV    ();
         BitBoolean<uint8, 3u> parameterName;
 
         /**
-         * Value is to be ignored
+         * Value is to be ignored.
          */
         BitBoolean<uint8, 4u> ignore;
 
         /**
-         * Message
+         * Value is to be used as message.
          */
         BitBoolean<uint8, 5u> message;
 
         /**
-         * Unmapped area
+         * Unmapped area.
          */
         BitRange<uint8, 6u, 2u> unMapped;
 
         /**
-         * Output as uint16
+         * Output as uint8.
          */
         uint8 asUint8;
     };
@@ -332,30 +334,34 @@ private:
     void *pvMemory;
 
     /**
-     * The total memory size
+     * The total memory size.
      */
     uint32 memorySize;
 
     /**
-     * The type size
+     * The type size.
      */
     uint32 typeSize;
 
     /**
-     * The number of elements to set
+     * The number of elements to set.
      */
     uint32 numberOfElements;
 
     /**
-     * The EPICS PV AnyType representation
+     * The EPICS PV AnyType representation.
      */
     AnyType pvAnyType;
 
-    //TODO
+    /**
+     * The EPICS PV Value to be changed when in a message.
+     */
     uint64 changedPvVal;
 
-    //TODO
-    uint8 firstTime;
+    /**
+     * The number of times HandlePVEvent was called.
+     */
+    uint8 handlePVEventNthTime;
 };
 
 }

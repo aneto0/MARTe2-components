@@ -294,7 +294,7 @@ bool EPICSCAOutput::GetInputBrokers(ReferenceContainer& inputBrokers, const char
 }
 
 bool EPICSCAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT < MemoryMapAsyncOutputBroker > broker("MemoryMapAsyncOutputBroker");
+    ReferenceT<MemoryMapAsyncOutputBroker> broker("MemoryMapAsyncOutputBroker");
     bool ok = broker->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
     if (ok) {
         ok = outputBrokers.Insert(broker);
@@ -405,20 +405,31 @@ ErrorManagement::ErrorType EPICSCAOutput::AsyncCaPut(StreamString pvName, Stream
                         err = !TypeConvert(at, pvVal);
                         if (err.ErrorsCleared()) {
                             /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                            err = (ca_clear_channel(pvs[n].pvChid) != ECA_NORMAL);
+                            (void) ca_pend_io(0.5);
                             err = (ca_create_channel(&pvs[n].pvName[0], NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvs[n].pvChid) != ECA_NORMAL);
                             if (err.ErrorsCleared()) {
-                                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                                if (pvs[n].pvType == DBR_STRING) {
-                                    err = (ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory) != ECA_NORMAL);
+                                uint32 nRetries = 5u;
+                                bool ok = false;
+                                int32 caErrorCode = 0;
+                                while ((nRetries > 0u) && (!ok)) {
+                                    /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                                    if (pvs[n].pvType == DBR_STRING) {
+                                        caErrorCode = ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory);
+                                    }
+                                    else {
+                                        caErrorCode = ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory);
+                                    }
+                                    (void) ca_pend_io(0.5);
+                                    ok = (caErrorCode == ECA_NORMAL);
+                                    nRetries--;
                                 }
-                                else {
-                                    err = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) != ECA_NORMAL);
-                                }
-                                (void) ca_pend_io(0.5);
+                                err = !ok;
                             }
                             else {
-                                REPORT_ERROR(ErrorManagement::FatalError, "Failed to cn PV with name %s");
+                                REPORT_ERROR(ErrorManagement::FatalError, "Failed to cn PV with name %s", pvs[n].pvName);
                             }
+                            // err = (ca_clear_channel(pvs[n].pvChid) != ECA_NORMAL);
                         }
                         else {
                             REPORT_ERROR(ErrorManagement::FatalError, "ca_create_channel failed for PV with name %s", pvs[n].pvName);

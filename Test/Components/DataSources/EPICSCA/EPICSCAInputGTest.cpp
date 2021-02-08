@@ -1,8 +1,9 @@
 /**
  * @file EPICSCAInputGTest.cpp
  * @brief Source file for class EPICSCAInputGTest
- * @date 21/04/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -28,8 +29,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include <limits.h>
 #include "gtest/gtest.h"
+#include <limits.h>
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

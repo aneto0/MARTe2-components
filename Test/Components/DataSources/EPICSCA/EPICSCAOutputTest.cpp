@@ -138,7 +138,7 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-EPICSCAOutputSchedulerTestHelper    () : MARTe::GAMSchedulerI() {
+    EPICSCAOutputSchedulerTestHelper () : MARTe::GAMSchedulerI() {
         scheduledStates = NULL;
     }
 
@@ -1162,6 +1162,82 @@ bool EPICSCAOutputTest::TestGetNumberOfBuffers() {
 
 bool EPICSCAOutputTest::TestIsIgnoringBufferOverrun() {
     return TestInitialise();
+}
+
+bool EPICSCAOutputTest::TestAsyncCaPut() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString err;
+    ErrorManagement::ErrorType error;
+    ObjectRegistryDatabase *godb;
+    ReferenceT<RealTimeApplication> application;
+    ReferenceT<EPICSCAOutputGAMTestHelper> gam1;
+    ReferenceT<EPICSCAOutputSchedulerTestHelper> scheduler;
+    ReferenceT<EPICSCAOutput> testData;
+    StreamString pvName[2] = {"MARTe2::EPICSCAInput::Test::Int32", "MARTe2::EPICSCAInput::Test::Float32"};
+    StreamString pvValue[2] = {"7777", "77.77"};
+
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb, &err);
+
+    bool ok = parser.Parse();
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "%s", err.Buffer());
+    }
+    godb = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        godb->Purge();
+        ok = godb->Initialise(cdb);
+    }
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    if (ok) {
+        gam1 = godb->Find("Test.Functions.GAM1");
+        ok = gam1.IsValid();
+    }
+    if (ok) {
+        scheduler = godb->Find("Test.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        testData = godb->Find("Test.Data.EPICSCAOutputTest");
+        ok = testData.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+    if (ok) {
+        ok = (ca_context_create(ca_enable_preemptive_callback));
+    }
+
+    if (ok) {
+        for (uint32 idx = 0u; idx < 1u; idx++) {
+            scheduler->ExecuteThreadCycle(0);
+            Sleep::Sec(0.1);
+            error = testData->AsyncCaPut(pvName[idx], pvValue[idx]);
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "AsyncCaPut(%s, %s) %s", pvName[idx].Buffer(), 
+                pvValue[idx].Buffer(), (error ==  ErrorManagement::NoError) ? "returned without errors" : "returned with CA errors");
+            Sleep::Sec(0.1);
+        }
+    }
+
+    if (ok) {
+        ok = application->StopCurrentStateExecution();
+    }
+
+    ca_detach_context();
+    ca_context_destroy();
+    godb->Purge();
+    return ok;
 }
 
 bool EPICSCAOutputTest::TestExecute() {

@@ -22,8 +22,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef DATASOURCES_EPICSCAINPUT_H_
-#define DATASOURCES_EPICSCAINPUT_H_
+#ifndef EPICSCAINPUT_H_
+#define EPICSCAINPUT_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -268,5 +268,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* DATASOURCES_EPICSCADATASOURCE_H_ */
+#endif /* EPICSCAINPUT_H_ */
 

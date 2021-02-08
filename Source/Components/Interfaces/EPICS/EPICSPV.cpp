@@ -1,8 +1,9 @@
 /**
  * @file EPICSPV.cpp
  * @brief Source file for class EPICSPV
- * @date 23/03/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -29,8 +30,8 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "ConfigurationDatabase.h"
 #include "CLASSMETHODREGISTER.h"
+#include "ConfigurationDatabase.h"
 #include "EPICSPV.h"
 #include "RegisteredMethodsMessageFilter.h"
 
@@ -44,7 +45,8 @@
 
 namespace MARTe {
 
-EPICSPV::EPICSPV() : ReferenceContainer(), MessageI() {
+EPICSPV::EPICSPV() : 
+        ReferenceContainer(), MessageI() {
     context = NULL_PTR(struct ca_client_context *);
     timeout = 5.0F;
     pvName = "";
@@ -61,7 +63,7 @@ EPICSPV::EPICSPV() : ReferenceContainer(), MessageI() {
     memorySize = 0u;
     typeSize = 0u;
     changedPvVal = 0u;
-    firstTime = 0u;
+    handlePVEventNthTime = 0u;
 
     ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -194,7 +196,7 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
                 }
                 else if (modeValueStr == "Ignore") {
                     eventMode.ignore = true;
-                                }
+                }
                 else if (modeValueStr == "Message") {
                     eventMode.message = true;
                 }
@@ -392,8 +394,8 @@ void EPICSPV::HandlePVEvent(struct event_handler_args const & args) {
 
 void EPICSPV::TriggerEventMessage() {
     ConfigurationDatabase cdb;
-    //firstTime do not trigger an event so that we only react on value transitions.
-    if (firstTime >= 1u) {
+    //if (handlePVEventNthTime == 0u) do not trigger an event so that we only react on value transitions.
+    if (handlePVEventNthTime >= 1u) {
         bool ok = true;
         if (!eventMode.message.operator bool()) {
             ok = cdb.Write("Destination", destination.Buffer());
@@ -494,7 +496,7 @@ void EPICSPV::TriggerEventMessage() {
                         uint32 numberOfParameters = parameters->GetNumberOfChildren();
                         for (uint32 j = 0u; (j < numberOfParameters) && ok; j++) {
                             StreamString childName = parameters->GetChildName(j);
-                            if (firstTime >= 2u) {
+                            if (handlePVEventNthTime >= 2u) {
                                 if (((1ull << j) & changedPvVal) != 0u) {
                                     ok = parameters->Delete(childName.Buffer());
                                     if (ok) {
@@ -528,17 +530,22 @@ void EPICSPV::TriggerEventMessage() {
                     }
                 }
             }
+            StreamString messageDestination;
+            messageDestination = message->GetDestination();
+            StreamString val;
+            (void) val.Printf("%!", pvAnyType);
             if (MessageI::SendMessage(message, this) != ErrorManagement::NoError) {
-                StreamString val;
-                (void) val.Printf("%!", pvAnyType);
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", destination.Buffer(), val.Buffer());
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", messageDestination.Buffer(), val.Buffer());
+            }
+            else{
+                REPORT_ERROR(ErrorManagement::Information, "Sent message to %s with value %s", messageDestination.Buffer(), val.Buffer());
             }
         }
-        if (firstTime > 2u) {
-            firstTime = 2u;
+        if (handlePVEventNthTime > 2u) {
+            handlePVEventNthTime = 2u;
         }
     }
-    firstTime++;
+    handlePVEventNthTime++;
 }
 
 /*lint -e{1762} function cannot be made const as it is registered as an RPC*/
