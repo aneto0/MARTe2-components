@@ -45,9 +45,16 @@ namespace MARTe {
 /**
  * @brief Describes an EPICS PV.
  * @details This class wraps an EPICS PV, allowing to caput and caget values from it.
- * This class is capable of triggering Messages as a response to a PV value change. The new PV value can
- * either be: 1) the name of the Function to be called; 2) or an ID of a Function to be called (see FunctionMap);
- *  3) or the input parameter of a pre-defined Function to be called; or 4) or a pre-defined Function is to be called with no parameters (i.e. the PV value is to be ignored).
+ * This class is capable of triggering Messages as a response to a PV value change.
+ * The new PV value can either be: 
+ * <pre>
+ * 1) the name of the Function to be called;
+ * 2) or an ID of a Function to be called (see FunctionMap);
+ * 3) or the input parameter of a pre-defined Function to be called;
+ * 4) or a pre-defined Function is to be called with no parameters (i.e. the PV value is to be ignored);
+ * 5) or the PVValue is Message and the parameters inside Event = {} are ignored (a Message is added).
+ * </pre>
+ *
  * The configuration syntax is (names are only given as an example):
  *
  * <pre>
@@ -58,14 +65,26 @@ namespace MARTe {
  *   NumberOfElements = 1 //Optional. Number of elements
  *   Timeout = 5.0 //Optional but if set shall be > 0. The timeout for the ca_pend_io operations in seconds. Default value is 5.0 s.
  *   Event = { //Optional. Information about the message to be triggered every-time the EPICS PV value changes.
- *     Destination = StateMachine //Compulsory. Destination of the message.
- *     PVValue = Function //Compulsory. Can either be Function, Parameter or Ignore.
+ *      Destination = StateMachine //Compulsory. Destination of the message.
+ *      PVValue = Function //Compulsory. Can either be Function, Parameter or Ignore.
  *                        //If Function the PV value will be used as the name of the Function to call.
  *                        //If Parameter the PV value will be used as the parameter of the Function to call. This implies that the Function parameter must be set.
  *                        //If ParameterName the PV value will be used as the second parameter of the Function to call. The first parameter will the Object name. This implies that the Function parameter must be set.
  *                        //If Ignore, the PV value will not be used and the Function will always be called.
- *     Function = STOP //Compulsory if PVValue=Parameter, PVValue=ParameterName or PVValue=Ignore. Shall not be set if FunctionMap is defined or if PVValue=Function.
- *     FunctionMap = {{"1", "RUN"}, {"0", "STOP"}} //Optional Nx2 matrix. Only allowed if PVValue == Function. If defined then the PV value (first column of the matrix) will be used to map the Function name (second column of the matrix).
+ *      Function = STOP //Compulsory if PVValue=Parameter, PVValue=ParameterName or PVValue=Ignore. Shall not be set if FunctionMap is defined or if PVValue=Function.
+ *      FunctionMap = {{"1", "RUN"}, {"0", "STOP"}} //Optional Nx2 matrix. Only allowed if PVValue == Function. If defined then the PV value (first column of the matrix) will be used to map the Function name (second column of the matrix).
+ *   }
+ *   AMessage = {  //Only if the PVValue = Message
+ *      Class = Message
+ *      Destination = AnObject //Compulsory. Destination of the message.
+ *      Function = AFunction //Compulsory. The function at destination which handles the message.
+ *      Parameters = {"
+ *          Class = ConfigurationDatabase
+ *          param1 = THEPAR //If THEPAR the behaviour is the default.
+ *                          //If $PVName the param1 argument is automaticaly replaced by PV_1.
+ *          param2 = 12345  //If 12345 the behaviour is the default.
+ *                          //If $PVValue the param1 argument is automaticaly replaced by the value used in argument of HandlePVEvent call.
+ *      }
  *   }
  * }
  * </pre>

@@ -1,8 +1,9 @@
 /**
  * @file EPICSCAOutputTest.h
  * @brief Header file for class EPICSCAOutputTest
- * @date 21/04/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

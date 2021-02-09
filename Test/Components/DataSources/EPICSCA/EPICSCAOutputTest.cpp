@@ -1,8 +1,9 @@
 /**
  * @file EPICSCAOutputTest.cpp
  * @brief Source file for class EPICSCAOutputTest
- * @date 21/04/2017
+ * @date 04/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -1175,24 +1176,19 @@ bool EPICSCAOutputTest::TestAsyncCaPut() {
     StreamString returnedValue;
 
     const uint32 numberOfPVs = 10;
-
     StreamString pvName [numberOfPVs] = { "MARTe2::EPICSCAInput::Test::Char8", "MARTe2::EPICSCAInput::Test::String",
             "MARTe2::EPICSCAInput::Test::UInt8", "MARTe2::EPICSCAInput::Test::Int8", "MARTe2::EPICSCAInput::Test::UInt16",
             "MARTe2::EPICSCAInput::Test::Int16", "MARTe2::EPICSCAInput::Test::UInt32", "MARTe2::EPICSCAInput::Test::Int32",
             "MARTe2::EPICSCAInput::Test::Float32", "MARTe2::EPICSCAInput::Test::Float64" };
-
     StreamString pvValue [numberOfPVs] = { "F", "SECOND",
             "128", "-64", "32768",
             "-16384", "2147483648", "-1073741824",
             "-1.2E+8", "-1.2E+16" };
-
     chtype pvTypes[numberOfPVs] = { DBR_STRING, DBR_STRING,
             DBR_CHAR, DBR_CHAR, DBR_SHORT,
             DBR_SHORT, DBR_LONG, DBR_LONG,
             DBR_FLOAT, DBR_DOUBLE };
-
     chid pvChids[numberOfPVs];
-
     char8 char8Value[40];
     char8 stringValue[40];
     uint8 uint8Value = 0;
@@ -1274,7 +1270,7 @@ bool EPICSCAOutputTest::TestAsyncCaPut() {
                 if (ok) {
                     returnedValue.Seek(0ul);
                     returnedValue.SetSize(0ul);
-                    switch(idx) {
+                    switch (idx) {
                         case 0 :
                             returnedValue.Printf("%!", char8Value);
                             break;
