@@ -398,15 +398,12 @@ ErrorManagement::ErrorType EPICSCAOutput::AsyncCaPut(StreamString pvName, Stream
             for (uint32 n = 0u; (n < numberOfSignals); n++) {
                 found = (StringHelper::Compare(pvName.Buffer(), pvs[n].pvName)==0);
                 if (found) {
-                    err = (pvs[n].numberOfElements > 1u);
                     if (err.ErrorsCleared()) {
                         TypeDescriptor td = GetSignalType(n);
                         AnyType at = AnyType(td, 0u, pvs[n].memory);
                         err = !TypeConvert(at, pvVal);
                         if (err.ErrorsCleared()) {
                             /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                            err = (ca_clear_channel(pvs[n].pvChid) != ECA_NORMAL);
-                            (void) ca_pend_io(0.5);
                             err = (ca_create_channel(&pvs[n].pvName[0], NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvs[n].pvChid) != ECA_NORMAL);
                             if (err.ErrorsCleared()) {
                                 uint32 nRetries = 5u;
@@ -429,7 +426,6 @@ ErrorManagement::ErrorType EPICSCAOutput::AsyncCaPut(StreamString pvName, Stream
                             else {
                                 REPORT_ERROR(ErrorManagement::FatalError, "Failed to cn PV with name %s", pvs[n].pvName);
                             }
-                            // err = (ca_clear_channel(pvs[n].pvChid) != ECA_NORMAL);
                         }
                         else {
                             REPORT_ERROR(ErrorManagement::FatalError, "ca_create_channel failed for PV with name %s", pvs[n].pvName);
