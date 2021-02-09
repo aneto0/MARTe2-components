@@ -75,7 +75,7 @@ EPICSCAOutput::~EPICSCAOutput() {
         }
         delete[] pvs;
     }
-    if (signalFlag == NULL_PTR(uint8*)) {
+    if (signalFlag != NULL_PTR(uint8*)) {
         delete[] signalFlag;
     }
 }
@@ -342,7 +342,7 @@ bool EPICSCAOutput::Synchronise() {
             REPORT_ERROR(ErrorManagement::FatalError, "ca_enable_preemptive_callback failed");
         }
         threadContextSet = ok;
-        if (pvs != NULL_PTR(PVWrapper *)) {
+        if ((pvs != NULL_PTR(PVWrapper *)) && (signalFlag != NULL_PTR(uint8*))) {
             for (n = 0u; (n < nOfSignals); n++) {
                 if (signalFlag[n] > 0u) {
                     /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
@@ -395,45 +395,41 @@ ErrorManagement::ErrorType EPICSCAOutput::AsyncCaPut(StreamString pvName, Stream
     AnyType at;
     uint32 nRetries = 5u;
     bool ok = false;
-    int32 caErrorCode = 0;
     if (threadContextSet) {
         if (pvs != NULL_PTR(PVWrapper *)) {
             for (uint32 n = 0u; (n < numberOfSignals); n++) {
-                if (pvs[n].pvName != NULL_PTR(const char8 *)) {
-                    if (StringHelper::Compare(pvName.Buffer(), pvs[n].pvName)==0) {
+                if (StringHelper::Compare(pvName.Buffer(), pvs[n].pvName)==0) {
+                    if (err.ErrorsCleared()) {
+                        td = GetSignalType(n);
+                        at = AnyType(td, 0u, pvs[n].memory);
+                        err = !TypeConvert(at, pvVal);
                         if (err.ErrorsCleared()) {
-                            td = GetSignalType(n);
-                            at = AnyType(td, 0u, pvs[n].memory);
-                            err = !TypeConvert(at, pvVal);
+                            /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                            err = (ca_create_channel(&pvs[n].pvName[0], NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvs[n].pvChid) != ECA_NORMAL);
                             if (err.ErrorsCleared()) {
-                                /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                                err = (ca_create_channel(&pvs[n].pvName[0], NULL_PTR(caCh *), NULL_PTR(void *), 20u, &pvs[n].pvChid) != ECA_NORMAL);
-                                if (err.ErrorsCleared()) {
-                                    while ((nRetries > 0u) && (!ok)) {
-                                        /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
-                                        if (pvs[n].pvType == DBR_STRING) {
-                                            caErrorCode = ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory);
-                                        }
-                                        else {
-                                            caErrorCode = ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory);
-                                        }
-                                        (void) ca_pend_io(0.5);
-                                        ok = (caErrorCode == ECA_NORMAL);
-                                        nRetries--;
+                                while ((nRetries > 0u) && (!ok)) {
+                                    /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
+                                    if (pvs[n].pvType == DBR_STRING) {
+                                        ok = (ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
                                     }
-                                    err = !ok;
+                                    else {
+                                        ok = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
+                                    }
+                                    (void) ca_pend_io(0.5);
+                                    nRetries--;
                                 }
-                                else {
-                                    REPORT_ERROR(ErrorManagement::FatalError, "Failed to cn PV with name %s", pvs[n].pvName);
-                                }
+                                err = !ok;
                             }
                             else {
-                                REPORT_ERROR(ErrorManagement::FatalError, "ca_create_channel failed for PV with name %s", pvs[n].pvName);
+                                REPORT_ERROR(ErrorManagement::FatalError, "Failed to cn PV with name %s", pvs[n].pvName);
                             }
                         }
                         else {
-                            REPORT_ERROR(ErrorManagement::FatalError, "PV %s must be scalar", pvs[n].pvName);
+                            REPORT_ERROR(ErrorManagement::FatalError, "ca_create_channel failed for PV with name %s", pvs[n].pvName);
                         }
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::FatalError, "PV %s must be scalar", pvs[n].pvName);
                     }
                 }
             }
