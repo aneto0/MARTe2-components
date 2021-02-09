@@ -357,7 +357,7 @@ bool EPICSCAOutput::Synchronise() {
 
     //Allow to write event at the first time!
     if (threadContextSet) {
-        if (pvs != NULL_PTR(PVWrapper *)) {
+        if ((pvs != NULL_PTR(PVWrapper *)) && (signalFlag != NULL_PTR(uint8*))) {
             for (n = 0u; (n < nOfSignals); n++) {
                 if (signalFlag[n] > 0u) {
 
@@ -398,6 +398,7 @@ ErrorManagement::ErrorType EPICSCAOutput::AsyncCaPut(StreamString pvName, Stream
     if (threadContextSet) {
         if (pvs != NULL_PTR(PVWrapper *)) {
             for (uint32 n = 0u; (n < numberOfSignals); n++) {
+                /*lint -e{9132} False positive. lint ins getting confused here for some reason.*/
                 if (StringHelper::Compare(pvName.Buffer(), pvs[n].pvName)==0) {
                     if (err.ErrorsCleared()) {
                         td = GetSignalType(n);
