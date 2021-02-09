@@ -1170,30 +1170,30 @@ bool EPICSCAOutputTest::TestAsyncCaPut() {
     StreamString err;
     ObjectRegistryDatabase *godb;
     ReferenceT<RealTimeApplication> application;
-    ReferenceT<EPICSCAOutputGAMTestHelper> gam1;
     ReferenceT<EPICSCAOutputSchedulerTestHelper> scheduler;
     ReferenceT<EPICSCAOutput> testData;
     StreamString returnedValue;
 
-    const uint32 numberOfPVs = 9;
+    const uint32 numberOfPVs = 10;
 
-    StreamString pvName [numberOfPVs] = {"MARTe2::EPICSCAInput::Test::String",
+    StreamString pvName [numberOfPVs] = { "MARTe2::EPICSCAInput::Test::Char8", "MARTe2::EPICSCAInput::Test::String",
             "MARTe2::EPICSCAInput::Test::UInt8", "MARTe2::EPICSCAInput::Test::Int8", "MARTe2::EPICSCAInput::Test::UInt16",
             "MARTe2::EPICSCAInput::Test::Int16", "MARTe2::EPICSCAInput::Test::UInt32", "MARTe2::EPICSCAInput::Test::Int32",
             "MARTe2::EPICSCAInput::Test::Float32", "MARTe2::EPICSCAInput::Test::Float64" };
 
-    StreamString pvValue [numberOfPVs] = {"FIRSTVALUE", 
+    StreamString pvValue [numberOfPVs] = { "F", "SECOND",
             "128", "-64", "32768",
             "-16384", "2147483648", "-1073741824",
-            "-1.2E+8", "-1.2E+16"};
+            "-1.2E+8", "-1.2E+16" };
 
-    chtype pvTypes[numberOfPVs] = { DBR_STRING, 
+    chtype pvTypes[numberOfPVs] = { DBR_STRING, DBR_STRING,
             DBR_CHAR, DBR_CHAR, DBR_SHORT,
             DBR_SHORT, DBR_LONG, DBR_LONG,
-            DBR_FLOAT, DBR_DOUBLE};
+            DBR_FLOAT, DBR_DOUBLE };
 
     chid pvChids[numberOfPVs];
 
+    char8 char8Value[40];
     char8 stringValue[40];
     uint8 uint8Value = 0;
     int8 int8Value = 0;
@@ -1203,7 +1203,7 @@ bool EPICSCAOutputTest::TestAsyncCaPut() {
     int32 int32Value = 0;
     float32 float32Value = 0;
     float64 float64Value = 0;
-    void *pvMemory[numberOfPVs] = { &stringValue[0],
+    void *pvMemory[numberOfPVs] = { &char8Value[0], &stringValue[0],
             &uint8Value, &int8Value, &uint16Value,
             &int16Value, &uint32Value, &int32Value,
             &float32Value, &float64Value };
@@ -1227,10 +1227,6 @@ bool EPICSCAOutputTest::TestAsyncCaPut() {
     }
     if (ok) {
         ok = application->ConfigureApplication();
-    }
-    if (ok) {
-        gam1 = godb->Find("Test.Functions.GAM1");
-        ok = gam1.IsValid();
     }
     if (ok) {
         scheduler = godb->Find("Test.Scheduler");
@@ -1280,30 +1276,33 @@ bool EPICSCAOutputTest::TestAsyncCaPut() {
                     returnedValue.SetSize(0ul);
                     switch(idx) {
                         case 0 :
-                            returnedValue.Printf("%!", stringValue);
+                            returnedValue.Printf("%!", char8Value);
                             break;
                         case 1 :
-                            returnedValue.Printf("%!", uint8Value);
+                            returnedValue.Printf("%!", stringValue);
                             break;
                         case 2 :
-                            returnedValue.Printf("%!", int8Value);
+                            returnedValue.Printf("%!", uint8Value);
                             break;
                         case 3 :
-                            returnedValue.Printf("%!", uint16Value);
+                            returnedValue.Printf("%!", int8Value);
                             break;
                         case 4 :
-                            returnedValue.Printf("%!", int16Value);
+                            returnedValue.Printf("%!", uint16Value);
                             break;
                         case 5 :
-                            returnedValue.Printf("%!", uint32Value);
+                            returnedValue.Printf("%!", int16Value);
                             break;
                         case 6 :
-                            returnedValue.Printf("%!", int32Value);
+                            returnedValue.Printf("%!", uint32Value);
                             break;
                         case 7 :
-                            returnedValue.Printf("%.2e", float32Value);
+                            returnedValue.Printf("%!", int32Value);
                             break;
                         case 8 :
+                            returnedValue.Printf("%.2e", float32Value);
+                            break;
+                        case 9 :
                             returnedValue.Printf("%.2e", float64Value);
                             break;
                         default:

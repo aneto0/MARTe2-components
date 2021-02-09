@@ -101,11 +101,6 @@ public:
     bool TestInitialise_False_NumberOfBuffers();
 
     /**
-     * @brief Tests the AsyncCaPut method.
-     */
-    bool TestAsyncCaPut();
-
-    /**
      * @brief Tests the SetConfiguredDatabase method.
      */
     bool TestSetConfiguredDatabase();
@@ -169,6 +164,11 @@ public:
      * @brief Tests the IsIgnoringBufferOverrun method.
      */
     bool TestIsIgnoringBufferOverrun();
+
+    /**
+     * @brief Tests the AsyncCaPut method.
+     */
+    bool TestAsyncCaPut();
 
 };
 
