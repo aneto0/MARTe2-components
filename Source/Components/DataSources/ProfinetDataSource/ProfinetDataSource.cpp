@@ -57,7 +57,6 @@ namespace MARTe {
 
         if(adapter != NULL_PTR(ProfinetDataSourceDriver::ProfinetDataSourceAdapter*)) {
             adapter->AbortConnection();
-            Sleep::Sec(20);
         }
 
         if(timerHelper.IsValid()) {
@@ -69,8 +68,10 @@ namespace MARTe {
             mainHelper->Stop();
             mainHelper->SetEntryPoint(NULL_PTR(IMainThreadEntryPoint*));
         }
-        
-        delete adapter;
+
+        if(adapter != NULL_PTR(ProfinetDataSourceDriver::ProfinetDataSourceAdapter*)) {
+            delete adapter;
+        }
     }
 
     bool 
@@ -726,6 +727,9 @@ namespace MARTe {
             adapter->profinetEventNotificationListener = this;
             adapter->opSignalsEntryPoint = this;
             returnValue = adapter->Initialize();
+        }
+
+        if(returnValue) {
             //Main helper times out after 10 missed cycles
             mainHelper->SetPeriodicInterval(periodicIntervalus * 10e-9);
             mainHelper->SetTimeout(periodicIntervalus * 10e-9 * 10);

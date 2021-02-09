@@ -31,7 +31,6 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "CRC.h"
 #include "CompilerTypes.h"
 #include "DataSourceI.h"
 #include "EmbeddedServiceMethodBinderT.h"

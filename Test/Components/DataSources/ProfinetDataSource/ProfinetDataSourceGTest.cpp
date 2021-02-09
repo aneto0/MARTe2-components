@@ -117,13 +117,13 @@ TEST(ProfinetDataSourceGTest, TestIntegratedRunProfinetSlave) {
 }
 
 TEST(ProfinetDataSourceGTest, TestIntegratedRunPLCLoopback) {
-    ProfinetDataSourceTest test;
-    ASSERT_TRUE(test.TestIntegratedRunPLCLoopback());
+    ProfinetDataSourceTest* test = new ProfinetDataSourceTest();
+    bool temp = test->TestIntegratedRunPLCLoopback();
+    delete test;
+    ASSERT_TRUE(temp);
 }
 
 TEST(ProfinetDataSourceGTest, TestIntegratedRunFailModulePlugging) {
     ProfinetDataSourceTest test;
     ASSERT_TRUE(test.TestIntegratedRunFailModulePlugging());
 }
-
-

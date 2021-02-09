@@ -99,32 +99,3 @@ TEST(ProfinetDataSourceAdapterGTest, TestInitialize) {
     ASSERT_TRUE(test.TestInitialize());
 }
 
-TEST(ProfinetDataSourceAdapterGTest, TestInitializeFail) {
-    ProfinetDataSourceAdapterTest test;
-    ASSERT_TRUE(test.TestInitializeFail());
-}
-
-TEST(ProfinetDataSourceAdapterGTest, TestGetDefaultLLDPRTClass2Status) {
-    ProfinetDataSourceAdapterTest test;
-    ASSERT_TRUE(test.TestGetDefaultLLDPRTClass2Status());
-}
-
-TEST(ProfinetDataSourceAdapterGTest, TestGetDefaultLLDPRTClass3Status) {
-    ProfinetDataSourceAdapterTest test;
-    ASSERT_TRUE(test.TestGetDefaultLLDPRTClass3Status());
-}
-
-TEST(ProfinetDataSourceAdapterGTest, TestGetDefaultLLDPAutonegotiationCapability) {
-    ProfinetDataSourceAdapterTest test;
-    ASSERT_TRUE(test.TestGetDefaultLLDPAutonegotiationCapability());
-}
-
-TEST(ProfinetDataSourceAdapterGTest, TestGetDefaultLLDPAutonegotiationSpeed) {
-    ProfinetDataSourceAdapterTest test;
-    ASSERT_TRUE(test.TestGetDefaultLLDPAutonegotiationSpeed());
-}
-
-TEST(ProfinetDataSourceAdapterGTest, TestGetDefaultLLDPMAUType) {
-    ProfinetDataSourceAdapterTest test;
-    ASSERT_TRUE(test.TestGetDefaultLLDPMAUType());
-}

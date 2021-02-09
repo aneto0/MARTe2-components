@@ -114,11 +114,6 @@ class ProfinetDataSourceAdapterTest {
         bool TestConstructorFailNetworkDataSetup();
 
         /**
-         * @brief Tests a huge station name, which is the only human-due failure entrypoint
-         */
-        bool TestConstructorFailHugeStationName();
-
-        /**
          * @brief Feeds base configuration data to the adapter, checking if they are 
          * effectively copied inside configuration handles
          */
@@ -147,13 +142,7 @@ class ProfinetDataSourceAdapterTest {
          * Needs also the PROFINET_ETH_INTERFACE environment variable to be set.
          */
         bool TestInitialize();
-
-        /**
-         * @brief Checks if the underlying initialization fails when insufficient
-         * configuration parameters are fed.
-         */
-        bool TestInitializeFail();
-
+        
         /**
          * @brief Assesses default RT Class 2 status
          */
@@ -163,20 +152,5 @@ class ProfinetDataSourceAdapterTest {
          * @brief Assesses default RT Class 3 status
          */
         bool TestGetDefaultLLDPRTClass3Status();
-
-        /**
-         * @brief Assesses default Auto negotiation capability
-         */
-        bool TestGetDefaultLLDPAutonegotiationCapability();
-
-        /**
-         * @brief Assesses default Autonegotiation speed
-         */
-        bool TestGetDefaultLLDPAutonegotiationSpeed();
-
-        /**
-         * @brief Assesses default MAU type
-         */
-        bool TestGetDefaultLLDPMAUType();
 };
 #endif /* __PROFINET_DATASOURCE_ADAPTER_TEST_H__ */ 

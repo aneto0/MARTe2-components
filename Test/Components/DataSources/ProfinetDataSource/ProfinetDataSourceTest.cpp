@@ -238,7 +238,7 @@ static const MARTe::char8 * const configurationFile = ""
 "        }"
 "        +DDB1 = {"
 "			Class = ProfinetDataSource"
-"			NetworkInterface = \"enp0s9\""
+"			NetworkInterface = \"dummyeth\""
 "			StationName = \"rt-labs-dev\""
 "			PeriodicInterval = 10000"
 "			ReductionRatio = 100"
@@ -1119,6 +1119,7 @@ bool ProfinetDataSourceTest::RunIntegrated(MARTe::ConfigurationDatabase& inputCd
         }
 
         god->Purge();
+        god = NULL;
     }
 
     return ok;

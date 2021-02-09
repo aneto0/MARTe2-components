@@ -232,33 +232,59 @@ bool ProfinetDataSourceAdapterTest::TestConstructorFailNetworkDataSetup() {
 }
 
 bool ProfinetDataSourceAdapterTest::TestSetBaseData() {
-    bool validTest = EnvironmentSetup();
+    bool validTest = EnvironmentSetup(
+        false,
+        true,
+        "testsetbasedata",
+        10000,
+        10,
+        false
+    );
 
     if(validTest) {
+        //Try and emulate what the real user of the adapter (ProfinetDataSource)
+        //manupulates values to fill the handle
+
+        MARTe::uint16 vendorId = 0x0102;
         MARTe::uint8 vendorIdHigh = 0x01;
         MARTe::uint8 vendorIdLow = 0x02;
+
+        MARTe::uint16 deviceId = 0x0304;
         MARTe::uint8 deviceIdHigh = 0x03;
         MARTe::uint8 deviceIdLow = 0x04;
+
+        MARTe::uint16 oemVendorId = 0x0506;
         MARTe::uint8 oemVendorIdHigh = 0x05;
         MARTe::uint8 oemVendorIdLow = 0x06;
+
+        MARTe::uint16 oemDeviceId = 0x0708;
         MARTe::uint8 oemDeviceIdHigh = 0x07;
         MARTe::uint8 oemDeviceIdLow = 0x08;
-        MARTe::uint16 minimumDeviceInterval = 1;
+        MARTe::StreamString productName = "productname";
 
-        adapter->SetBaseData(vendorIdHigh, vendorIdLow, deviceIdHigh, deviceIdLow, oemVendorIdHigh, oemVendorIdLow, oemDeviceIdHigh, oemDeviceIdLow, "name", 1);
+        adapter->SetBaseData(
+            static_cast<MARTe::uint8>((vendorId >> 8) & 0x00FF), 
+            static_cast<MARTe::uint8>((vendorId) & 0x00FF), 
+            static_cast<MARTe::uint8>((deviceId >> 8) & 0x00FF), 
+            static_cast<MARTe::uint8>((deviceId) & 0x00FF), 
+            static_cast<MARTe::uint8>((oemVendorId >> 8) & 0x00FF), 
+            static_cast<MARTe::uint8>((oemVendorId) & 0x00FF), 
+            static_cast<MARTe::uint8>((oemDeviceId >> 8) & 0x00FF), 
+            static_cast<MARTe::uint8>((oemDeviceId) & 0x00FF), 
+            productName,
+            32);
 
         pnet_cfg_t pnetCfg = adapter->GetProfinetConfigurationHandle();
 
-        validTest = validTest &&        
-                    (pnetCfg.device_id.vendor_id_hi == vendorIdHigh) &&
+        validTest = (pnetCfg.device_id.vendor_id_hi == vendorIdHigh) &&
                     (pnetCfg.device_id.vendor_id_lo == vendorIdLow) &&
                     (pnetCfg.device_id.device_id_hi == deviceIdHigh) &&
                     (pnetCfg.device_id.device_id_lo == deviceIdLow) &&
                     (pnetCfg.oem_device_id.vendor_id_hi == oemVendorIdHigh) &&
                     (pnetCfg.oem_device_id.vendor_id_lo == oemVendorIdLow) &&
                     (pnetCfg.oem_device_id.device_id_hi == oemDeviceIdHigh) &&
-                    (pnetCfg.oem_device_id.device_id_lo == oemDeviceIdLow) &&
-                    (pnetCfg.min_device_interval == minimumDeviceInterval);
+                    (pnetCfg.oem_device_id.device_id_lo == oemDeviceIdLow);
+                    (pnetCfg.min_device_interval == 32);
     }
 
     return validTest;
@@ -266,11 +292,18 @@ bool ProfinetDataSourceAdapterTest::TestSetBaseData() {
 
 bool ProfinetDataSourceAdapterTest::TestSetIdentificationAndMaintainanceData() {
     
-    bool validTest = EnvironmentSetup();
+    bool validTest = EnvironmentSetup(
+        false,
+        true,
+        "testsetiandm",
+        10000,
+        10,
+        false
+    );
 
     if(validTest) {
         MARTe::uint8 vendorIdDataHigh = 0x01;
-        MARTe::uint8 vendorIdDataLow = 0x01;
+        MARTe::uint8 vendorIdDataLow = 0x02;
         MARTe::uint16 hardwareRevision = 0x01;
         ProfinetDataSourceDriver::softwarerevision_t softwareRevision = ProfinetDataSourceDriver::SwRev_V;
         MARTe::uint8 functionalEnhancement = 1;
@@ -280,12 +313,13 @@ bool ProfinetDataSourceAdapterTest::TestSetIdentificationAndMaintainanceData() {
         MARTe::uint16 profileSpecificType = 0x5678;
         MARTe::uint8 versionMajor = 1;
         MARTe::uint8 versionMinor = 2;
+        MARTe::StreamString orderId = "orderId";
+        MARTe::StreamString serialNumber = "0001";
         MARTe::StreamString tagFunction = "tagFunction";
         MARTe::StreamString tagLocation = "tagLocation";;
         MARTe::StreamString date = "19-01-2020";
         MARTe::StreamString descriptor = "tagDescriptor";
         MARTe::StreamString signature = "tagSignature";
-
 
         adapter->SetIdentificationAndMaintainanceData(
             vendorIdDataHigh, 
@@ -299,8 +333,8 @@ bool ProfinetDataSourceAdapterTest::TestSetIdentificationAndMaintainanceData() {
             profileSpecificType, 
             versionMajor, 
             versionMinor,
-            "orderId",
-            "0001",
+            orderId,
+            serialNumber,
             tagFunction,
             tagLocation,
             date,
@@ -309,6 +343,8 @@ bool ProfinetDataSourceAdapterTest::TestSetIdentificationAndMaintainanceData() {
 
         pnet_cfg_t pnetCfg = adapter->GetProfinetConfigurationHandle();
 
+        MARTe::StreamString orderIdFromHandle = pnetCfg.im_0_data.im_order_id;
+        MARTe::StreamString serialNumFromHandle = pnetCfg.im_0_data.im_serial_number;
         MARTe::StreamString tagFunctionFromHandle = pnetCfg.im_1_data.im_tag_function;
         MARTe::StreamString tagLocationFromHandle = pnetCfg.im_1_data.im_tag_location;
         MARTe::StreamString tagDateFromHandle = pnetCfg.im_2_data.im_date;
@@ -329,6 +365,8 @@ bool ProfinetDataSourceAdapterTest::TestSetIdentificationAndMaintainanceData() {
                     (versionMajor == pnetCfg.im_0_data.im_version_major) &&
                     (versionMinor == pnetCfg.im_0_data.im_version_minor) &&
                     (pnetCfg.im_0_data.im_supported == 0x001e) &&
+                    (serialNumber == serialNumFromHandle) &&
+                    (orderId == orderIdFromHandle) &&
                     (tagFunction == tagFunctionFromHandle) &&
                     (tagLocation == tagLocationFromHandle) &&
                     (date == tagDateFromHandle) &&
@@ -341,16 +379,18 @@ bool ProfinetDataSourceAdapterTest::TestSetIdentificationAndMaintainanceData() {
 
 bool ProfinetDataSourceAdapterTest::TestSetLLDPData() {
 
-    bool validTest = EnvironmentSetup();
+    bool validTest = EnvironmentSetup(
+        false,
+        true,
+        "testsetlldp",
+        10000,
+        10,
+        false
+    );
 
     if(validTest) {
-        MARTe::StreamString lldpPortIdentifier = "dummy-lldp-portid";
         MARTe::uint16 rtClass2Status = 0;
         MARTe::uint16 rtClass3Status = 0;
-        MARTe::uint8 autoNegotiationSupported = 1;
-        MARTe::uint8 autoNegotiationEnabled = 1;
-        MARTe::uint16 autoNegotiationSpeed = 0x0010;
-        MARTe::uint16 mauType = 0x00;
 
         adapter->SetLLDPData(rtClass2Status, rtClass3Status);
         pnet_cfg_t pnetCfg = adapter->GetProfinetConfigurationHandle();
@@ -365,7 +405,14 @@ bool ProfinetDataSourceAdapterTest::TestSetLLDPData() {
 
 bool ProfinetDataSourceAdapterTest::TestSlotAndSubslotManagement() {
 
-    bool validTest = EnvironmentSetup();
+    bool validTest = EnvironmentSetup(
+        false,
+        true,
+        "testsetslotsubslot",
+        10000,
+        10,
+        false
+    );
 
     if(validTest) {
         for(int i = 0; i < TEST_NUMBER_OF_SLOTS; i++) {
@@ -408,10 +455,17 @@ bool ProfinetDataSourceAdapterTest::TestSlotAndSubslotManagement() {
 
 bool ProfinetDataSourceAdapterTest::TestInitialize() {
     
-    bool validTest = EnvironmentSetup(true);
+    bool validTest = EnvironmentSetup(
+        false,
+        true,
+        "testinitialize",
+        10000,
+        10,
+        false
+    );
 
     if(validTest) {
-        adapter->SetBaseData(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, "NAME", 1);
+        adapter->SetBaseData(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, "NAME", 32);
         adapter->SetIdentificationAndMaintainanceData(
             0x01,
             0x02, 
@@ -437,74 +491,6 @@ bool ProfinetDataSourceAdapterTest::TestInitialize() {
         validTest = adapter->Initialize();
     }
     
-    return validTest;
-}
-
-bool ProfinetDataSourceAdapterTest::TestInitializeFail() {
-    
-    bool validTest = EnvironmentSetup();
-    bool testResult = false;
-
-    if(validTest) {
-        testResult = !adapter->Initialize();
-    }
-
-    return validTest && testResult;
-}
-
-bool ProfinetDataSourceAdapterTest::TestGetDefaultLLDPRTClass2Status() {
-    
-    bool validTest = EnvironmentSetup();
-
-    if(validTest) {
-        validTest = (adapter->GetDefaultLLDPRTClass2Status() == 0);
-    }
-
-    return validTest;
-}
-
-bool ProfinetDataSourceAdapterTest::TestGetDefaultLLDPRTClass3Status() {
-
-    bool validTest = EnvironmentSetup();
-
-    if(validTest) {
-        validTest = (adapter->GetDefaultLLDPRTClass3Status() == 0);
-    }
-
-    return validTest;
-
-}
-
-bool ProfinetDataSourceAdapterTest::TestGetDefaultLLDPAutonegotiationCapability() {
-
-    bool validTest = EnvironmentSetup();
-
-    if(validTest) {
-        validTest = true;
-    }
-
-    return validTest;
-}
-
-bool ProfinetDataSourceAdapterTest::TestGetDefaultLLDPAutonegotiationSpeed() {
-
-    bool validTest = EnvironmentSetup();
-
-    if(validTest) {
-        validTest = true;
-    }
-    
-    return validTest;
-}
-
-bool ProfinetDataSourceAdapterTest::TestGetDefaultLLDPMAUType() {
-
-    bool validTest = EnvironmentSetup();
-
-    if(validTest) {
-        validTest = true;
-    }
-
     return validTest;
 }
 

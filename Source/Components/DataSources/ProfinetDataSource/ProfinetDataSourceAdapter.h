@@ -35,7 +35,7 @@
 #include <pnal.h>
 #include <pnet_api.h>
 #include <sstream>
-
+#include <unistd.h>
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -382,6 +382,17 @@ namespace ProfinetDataSourceDriver
              * @brief Helper to set the cyclic data exchange.
              */
             int SetCyclicData();
+
+            /**
+             * @brief Checks if a file exists for a number of attempts, one every interval
+             */
+            bool FileExists(const char* pathName, int attempts, int intervalMs);
+
+            /**
+             * @brief Validates the configuration data handle, for basic features (as taken from pf_fspm_validate_configuration in pf_fspm.c)
+             * @return true if base configuration data is valid
+             */
+            bool ValidateProfinetConfigurationHandle();
             //Endregion - Helpers
 
         public:
@@ -404,12 +415,6 @@ namespace ProfinetDataSourceDriver
             bool CheckBaseNetworkingData();
 
             /**
-             * @brief Validates the configuration data handle, for basic features (as taken from pf_fspm_validate_configuration in pf_fspm.c)
-             * @return true if base configuration data is valid
-             */
-            bool ValidateProfinetConfigurationHandle();
-
-            /**
              * @brief Constructs a ProfinetDataSourceAdapter instance with specified base configuration parameters.
              * @param[in] ethInterface The name of the ethernet interface reserver for Profinet communication
              * @param[in] periodicInterval The periodic interval expressed in microseconds for cyclic data exchange
@@ -425,7 +430,6 @@ namespace ProfinetDataSourceDriver
                 ILoggerAdapter  *loggerAdapter
             );
             //Region - Initialization methods
-            
 
             /**
              * @brief Sets base configuration data for the Profinet stack and slave
@@ -599,30 +603,6 @@ namespace ProfinetDataSourceDriver
              * @return 0 as currently not managed
              */
             static MARTe::uint16 GetDefaultLLDPRTClass3Status() { return 0; }
-
-            /**
-             * @brief Returns the default LLDP AutoNegotiation support
-             * @return 0x01 which means Autonegotiation is supported
-             */
-            static MARTe::uint8 GetDefaultLLDPAutonegotiationSupport() { return 0x01; }
-
-            /**
-             * @brief Returns the default LLDP AutoNegotiation status
-             * @return 0x01 which means Autonegotiation is enabled
-             */
-            static MARTe::uint8 GetDefaultLLDPAutonegotiationStatus() { return 0x01; }
-
-            /**
-             * @brief Returns the default LLDP AutoNegotiation supported speeds
-             * @return 100BASETX Half Duplex and 100BASETX Full Duplex
-             */
-            static MARTe::uint16 GetDefaultLLDPAutonegotiationSpeed() { return PNAL_ETH_AUTONEG_CAP_100BaseTX_HALF_DUPLEX | PNAL_ETH_AUTONEG_CAP_100BaseTX_FULL_DUPLEX; }
-            
-            /**
-             * @brief Returns the default MAU Type
-             * @return 100BASETX Full Duplex
-             */
-            static MARTe::uint16 GetDefaultLLDPMAUType() { return PNAL_ETH_MAU_COPPER_100BaseTX_FULL_DUPLEX; }
 
             /**
              * @brief Conveniently translates an os_ipaddr_t into a quad uint8 representation
