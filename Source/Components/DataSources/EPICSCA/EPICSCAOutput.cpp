@@ -398,7 +398,7 @@ ErrorManagement::ErrorType EPICSCAOutput::AsyncCaPut(StreamString pvName, Stream
     if (threadContextSet) {
         if (pvs != NULL_PTR(PVWrapper *)) {
             for (uint32 n = 0u; (n < numberOfSignals); n++) {
-                /*lint -e{9132} False positive. lint ins getting confused here for some reason.*/
+                /*lint -e{9132} False positive. pvs[n].pvName is a pointer to a string.*/
                 if (StringHelper::Compare(pvName.Buffer(), pvs[n].pvName)==0) {
                     if (err.ErrorsCleared()) {
                         td = GetSignalType(n);

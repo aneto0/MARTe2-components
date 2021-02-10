@@ -235,9 +235,9 @@ TEST(EPICSPVGTest,TestGetMode) {
     ASSERT_TRUE(test.TestGetMode());
 }
 
-TEST(EPICSPVGTest,TestGetTimeout) {
+TEST(EPICSPVGTest,TestGetCATimeout) {
     EPICSPVTest test;
-    ASSERT_TRUE(test.TestGetTimeout());
+    ASSERT_TRUE(test.TestGetCATimeout());
 }
 
 TEST(EPICSPVGTest,TestGetDestination) {

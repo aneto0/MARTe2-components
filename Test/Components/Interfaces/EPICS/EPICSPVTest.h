@@ -334,9 +334,9 @@ public:
     bool TestGetMode();
 
     /**
-     * @brief Tests the GetTimeout method.
+     * @brief Tests the GetCATimeout method.
      */
-    bool TestGetTimeout();
+    bool TestGetCATimeout();
 
     /**
      * @brief Tests the GetDestination method.

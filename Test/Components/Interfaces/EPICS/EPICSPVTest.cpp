@@ -64,7 +64,7 @@ bool EPICSPVTest::TestConstructor() {
     ok &= (pv.GetPVName() == "");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_LONG);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     return ok;
 }
 
@@ -84,7 +84,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_UInt16() {
     ok &= (pv.GetPVName() == "PVONEU");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_SHORT);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     ok &= (pv.GetAnyType().GetTypeDescriptor() == UnsignedInteger16Bit);
 
     return ok;
@@ -106,7 +106,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_Int16() {
     ok &= (pv.GetPVName() == "PVONE");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_SHORT);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     ok &= (pv.GetAnyType().GetTypeDescriptor() == SignedInteger16Bit);
 
     return ok;
@@ -128,7 +128,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_UInt32() {
     ok &= (pv.GetPVName() == "PVONEU");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_LONG);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     ok &= (pv.GetAnyType().GetTypeDescriptor() == UnsignedInteger32Bit);
     return ok;
 }
@@ -149,7 +149,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_Int32() {
     ok &= (pv.GetPVName() == "PVONE");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_LONG);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     ok &= (pv.GetAnyType().GetTypeDescriptor() == SignedInteger32Bit);
     return ok;
 }
@@ -170,7 +170,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_Float32() {
     ok &= (pv.GetPVName() == "PVONEF");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_FLOAT);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     ok &= (pv.GetAnyType().GetTypeDescriptor() == Float32Bit);
     return ok;
 }
@@ -191,7 +191,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_Float64() {
     ok &= (pv.GetPVName() == "PVONED");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_DOUBLE);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     ok &= (pv.GetAnyType().GetTypeDescriptor() == Float64Bit);
     return ok;
 }
@@ -213,7 +213,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_Array() {
     ok &= (pv.GetPVName() == "PVONED");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_DOUBLE);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     ok &= (pv.GetAnyType().GetTypeDescriptor() == Float64Bit);
     ok &= (pv.GetAnyType().GetNumberOfElements(0u) == 101);
     ok &= (pv.GetAnyType().GetNumberOfDimensions() == 1);
@@ -236,7 +236,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_String() {
     ok &= (pv.GetPVName() == "PVONES");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_STRING);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     return ok;
 }
 
@@ -257,7 +257,7 @@ bool EPICSPVTest::TestInitialise_NoEvent_Timeout() {
     ok &= (pv.GetPVName() == "PVONES");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_STRING);
-    ok &= (pv.GetTimeout() == 3);
+    ok &= (pv.GetCATimeout() == 3);
     return ok;
 }
 
@@ -312,7 +312,7 @@ bool EPICSPVTest::TestInitialise_Event_Function() {
     ok &= (pv.GetPVName() == "PVONES");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_STRING);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     return ok;
 }
 
@@ -346,7 +346,7 @@ bool EPICSPVTest::TestInitialise_Event_FunctionMap() {
     ok &= (pv.GetPVName() == "PVONES");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_STRING);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     return ok;
 }
 
@@ -371,7 +371,7 @@ bool EPICSPVTest::TestInitialise_Event_Parameter() {
     ok &= (pv.GetPVName() == "PVONES");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_STRING);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     return ok;
 }
 
@@ -396,7 +396,7 @@ bool EPICSPVTest::TestInitialise_Event_ParameterName() {
     ok &= (pv.GetPVName() == "PVONES");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_STRING);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     return ok;
 }
 
@@ -421,7 +421,7 @@ bool EPICSPVTest::TestInitialise_Event_Ignore() {
     ok &= (pv.GetPVName() == "PVONES");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_STRING);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     return ok;
 }
 
@@ -446,7 +446,7 @@ bool EPICSPVTest::TestInitialise_Event_Message() {
     ok &= (pv.GetPVName() == "PVONES");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_STRING);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     return ok;
 }
 
@@ -681,7 +681,7 @@ bool EPICSPVTest::TestGetMode() {
     return TestInitialise_Event_Function();
 }
 
-bool EPICSPVTest::TestGetTimeout() {
+bool EPICSPVTest::TestGetCATimeout() {
     return TestInitialise_NoEvent_Timeout();
 }
 
@@ -1634,7 +1634,7 @@ bool EPICSPVTest::TestGetAnyType() {
     ok &= (pv.GetPVName() == "PVONED");
     ok &= (pv.GetPVChid() == 0u);
     ok &= (pv.GetPVType() == DBR_DOUBLE);
-    ok &= (pv.GetTimeout() == 5.0);
+    ok &= (pv.GetCATimeout() == 5.0);
     ok &= (pv.GetAnyType().GetTypeDescriptor() == Float64Bit);
     return ok;
 }

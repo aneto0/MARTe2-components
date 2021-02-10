@@ -594,7 +594,7 @@ EPICSPV::EventMode EPICSPV::GetMode() const {
     return eventMode;
 }
 
-float64 EPICSPV::GetTimeout() const {
+float64 EPICSPV::GetCATimeout() const {
     return timeout;
 }
 

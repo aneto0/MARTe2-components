@@ -100,7 +100,7 @@ public:
     /**
      * @brief Constructor. Register the CAPut and CAGet function calls for RPC.
      * @post
-     *   GetTimeout() == 5.0
+     *   GetCATimeout() == 5.0
      */
     EPICSPV();
 
@@ -229,7 +229,7 @@ public:
      * @brief Gets the ca_pend_io timeout.
      * @return the ca_pend_io timeout.
      */
-    float64 GetTimeout() const;
+    float64 GetCATimeout() const;
 
     /**
      * @brief Gets the event message destination.
