@@ -12,3 +12,4 @@ depends*.x86-linux
 EclipseLintLocal.sh
 *.d
 depends*.*
+VSCodeLcov.sh
