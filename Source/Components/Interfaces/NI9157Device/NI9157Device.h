@@ -249,7 +249,6 @@ public:
 
     /**
      * @brief Reads a boolean value from a given indicator or control.
-     *
      * @param[in] indicator indicator or control from which to read
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -259,7 +258,6 @@ public:
 
     /**
      * @brief Reads a signed 8-bit integer value from a given indicator or control.
-     *
      * @param[in] indicator indicator or control from which to read
      * @param[out] value outputs the value that was read
      * @return result of the call
@@ -269,7 +267,6 @@ public:
 
     /**
      * @brief Reads an unsigned 8-bit integer value from a given indicator or control.
-     *
      * @param[in] indicator indicator or control from which to read
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -279,7 +276,6 @@ public:
 
     /**
      * @brief Reads a signed 16-bit integer value from a given indicator or control.
-     *
      * @param[in] indicator indicator or control from which to read
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -289,7 +285,6 @@ public:
 
     /**
      * @brief Reads an unsigned 16-bit integer value from a given indicator or control.
-     *
      * @param[in] indicator indicator or control from which to read
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -299,7 +294,6 @@ public:
 
     /**
      * @brief Reads a signed 32-bit integer value from a given indicator or control.
-     *
      * @param[in] indicator indicator or control from which to read
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -309,7 +303,6 @@ public:
 
     /**
      * @brief Reads an unsigned 32-bit integer value from a given indicator or control.
-     *
      * @param[in] indicator indicator or control from which to read
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -319,7 +312,6 @@ public:
 
     /**
      * @brief Reads a signed 64-bit integer value from a given indicator or control.
-     *
      * @param[in] indicator indicator or control from which to read
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -329,7 +321,6 @@ public:
 
     /**
      * @brief Reads an unsigned 64-bit integer value from a given indicator or control.
-     *
      * @param[in] indicator indicator or control from which to read
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -339,7 +330,6 @@ public:
 
     /**
      * @brief Writes a boolean value to a given control or indicator.
-     *
      * @param[in] control control or indicator to which to write
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -349,7 +339,6 @@ public:
 
     /**
      * @brief Writes a signed 8-bit integer value to a given control or indicator.
-     *
      * @param[in] control control or indicator to which to write
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -359,7 +348,6 @@ public:
 
     /**
      * @brief Writes an unsigned 8-bit integer value to a given control or indicator.
-     *
      * @param[in] control control or indicator to which to write
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -369,7 +357,6 @@ public:
 
     /**
      * @brief Writes a signed 16-bit integer value to a given control or indicator.
-     *
      * @param[in] control control or indicator to which to write
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -379,7 +366,6 @@ public:
 
     /**
      * @brief Writes an unsigned 16-bit integer value to a given control or indicator.
-     *
      * @param[in] control control or indicator to which to write
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -389,7 +375,6 @@ public:
 
     /**
      * @brief Writes a signed 32-bit integer value to a given control or indicator.
-     *
      * @param[in] control control or indicator to which to write
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -399,7 +384,6 @@ public:
 
     /**
      * @brief Writes an unsigned 32-bit integer value to a given control or indicator.
-     *
      * @param[in] control control or indicator to which to write
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -409,7 +393,6 @@ public:
 
     /**
      * @brief Writes a signed 64-bit integer value to a given control or indicator.
-     *
      * @param[in] control control or indicator to which to write
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -419,7 +402,6 @@ public:
 
     /**
      * @brief Writes an unsigned 64-bit integer value to a given control or indicator.
-     *
      * @param[in] control control or indicator to which to write
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
@@ -445,7 +427,6 @@ public:
 
     /**
      * @brief Starts a FIFO. This method is optional.
-     *
      * @param[in] fifo FIFO to start
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
@@ -453,7 +434,6 @@ public:
 
     /**
      * @brief Stops a FIFO. This method is optional.
-     *
      * @param[in] fifo FIFO to stop
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
@@ -461,7 +441,6 @@ public:
 
     /**
      * @brief Reads from a target-to-host FIFO of booleans.
-     *
      * @param[in] fifo target-to-host FIFO from which to read
      * @param[out] data outputs the data that was read
      * @param[in] numberOfElements number of elements to read
@@ -478,7 +457,6 @@ public:
 
     /**
      * @brief Reads from a target-to-host FIFO of signed 8-bit integers.
-     *
      * @param[in] fifo target-to-host FIFO from which to read
      * @param[out] data outputs the data that was read
      * @param[in] numberOfElements number of elements to read
@@ -495,7 +473,6 @@ public:
 
     /**
      * @brief Reads from a target-to-host FIFO of unsigned 8-bit integers.
-     *
      * @param[in] fifo target-to-host FIFO from which to read
      * @param[out] data outputs the data that was read
      * @param[in] numberOfElements number of elements to read
@@ -512,7 +489,6 @@ public:
 
     /**
      * @brief Reads from a target-to-host FIFO of signed 16-bit integers.
-     *
      * @param[in] fifo target-to-host FIFO from which to read
      * @param[out] data outputs the data that was read
      * @param[in] numberOfElements number of elements to read
@@ -529,7 +505,6 @@ public:
 
     /**
      * @brief Reads from a target-to-host FIFO of unsigned 16-bit integers.
-     *
      * @param[in] fifo target-to-host FIFO from which to read
      * @param[out] data outputs the data that was read
      * @param[in] numberOfElements number of elements to read
@@ -546,7 +521,6 @@ public:
 
     /**
      * @brief Reads from a target-to-host FIFO of signed 32-bit integers.
-     *
      * @param[in] fifo target-to-host FIFO from which to read
      * @param[out] data outputs the data that was read
      * @param[in] numberOfElements number of elements to read
@@ -563,7 +537,6 @@ public:
 
     /**
      * @brief Reads from a target-to-host FIFO of unsigned 32-bit integers.
-     *
      * @param[in] fifo target-to-host FIFO from which to read
      * @param[out] data outputs the data that was read
      * @param[in] numberOfElements number of elements to read
@@ -580,7 +553,6 @@ public:
 
     /**
      * @brief Reads from a target-to-host FIFO of signed 64-bit integers.
-     *
      * @param[in] fifo target-to-host FIFO from which to read
      * @param[out] data outputs the data that was read
      * @param[in] numberOfElements number of elements to read
@@ -597,7 +569,6 @@ public:
 
     /**
      * @brief Reads from a target-to-host FIFO of unsigned 64-bit integers.
-     *
      * @param[in] fifo target-to-host FIFO from which to read
      * @param[out] data outputs the data that was read
      * @param[in] numberOfElements number of elements to read
@@ -614,7 +585,6 @@ public:
 
     /**
      * @brief Writes to a host-to-target FIFO of booleans.
-     *
      * @param[in] fifo host-to-target FIFO to which to write
      * @param[in] data data to write
      * @param[in] numberOfElements number of elements to write
@@ -632,7 +602,6 @@ public:
 
     /**
      * @brief Writes to a host-to-target FIFO of signed 8-bit integers.
-     *
      * @param[in] fifo host-to-target FIFO to which to write
      * @param[in] data data to write
      * @param[in] numberOfElements number of elements to write
@@ -650,7 +619,6 @@ public:
 
     /**
      * @brief Writes to a host-to-target FIFO of unsigned 8-bit integers.
-     *
      * @param[in] fifo host-to-target FIFO to which to write
      * @param[in] data data to write
      * @param[in] numberOfElements number of elements to write
@@ -668,7 +636,6 @@ public:
 
     /**
      * @brief Writes to a host-to-target FIFO of signed 16-bit integers.
-     *
      * @param[in] fifo host-to-target FIFO to which to write
      * @param[in] data data to write
      * @param[in] numberOfElements number of elements to write
@@ -686,7 +653,6 @@ public:
 
     /**
      * @brief Writes to a host-to-target FIFO of unsigned 16-bit integers.
-     *
      * @param[in] fifo host-to-target FIFO to which to write
      * @param[in] data data to write
      * @param[in] numberOfElements number of elements to write
@@ -704,7 +670,6 @@ public:
 
     /**
      * @brief Writes to a host-to-target FIFO of signed 32-bit integers.
-     *
      * @param[in] fifo host-to-target FIFO to which to write
      * @param[in] data data to write
      * @param[in] numberOfElements number of elements to write
@@ -722,7 +687,6 @@ public:
 
     /**
      * @brief Writes to a host-to-target FIFO of unsigned 32-bit integers.
-     *
      * @param[in] fifo host-to-target FIFO to which to write
      * @param[in] data data to write
      * @param[in] numberOfElements number of elements to write
@@ -740,7 +704,6 @@ public:
 
     /**
      * @brief Writes to a host-to-target FIFO of signed 64-bit integers.
-     *
      * @param[in] fifo host-to-target FIFO to which to write
      * @param[in] data data to write
      * @param[in] numberOfElements number of elements to write
@@ -758,7 +721,6 @@ public:
 
     /**
      * @brief Writes to a host-to-target FIFO of unsigned 64-bit integers.
-     *
      * @param[in] fifo host-to-target FIFO to which to write
      * @param[in] data data to write
      * @param[in] numberOfElements number of elements to write

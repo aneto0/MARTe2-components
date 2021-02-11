@@ -59,7 +59,7 @@ public:
 
     /**
      * @brief Constructor by reference to NI9157Device
-     * param[in] niDev a reference to the NI9157Device to be wrapped.
+     * @param[in] niDev a reference to the NI9157Device to be wrapped.
      */
     NI9157DeviceOperatorT(ReferenceT<NI9157Device> niDev);
 
