@@ -33,9 +33,9 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "NI9157Device.h"
+#include "NI9157DeviceOperatorTI.h"
 #include "ReferenceT.h"
 #include "TypeDescriptor.h"
-#include "NI9157DeviceOperatorTI.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

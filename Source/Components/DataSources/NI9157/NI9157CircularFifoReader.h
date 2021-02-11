@@ -16,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ * 
  * @details This header file contains the declaration of the class NI9157CircularFifoReader
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
@@ -33,10 +33,10 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "CircularBufferThreadInputDataSource.h"
+#include "EventSem.h"
+#include "MessageI.h"
 #include "NI9157DeviceOperatorT.h"
 #include "SampleChecker.h"
-#include "MessageI.h"
-#include "EventSem.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

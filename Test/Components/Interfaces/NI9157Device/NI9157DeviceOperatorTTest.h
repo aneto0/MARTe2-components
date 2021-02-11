@@ -32,7 +32,6 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "NI9157DeviceOperatorT.h"
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
 #include "GAMSchedulerI.h"
@@ -40,6 +39,7 @@
 #include "MemoryMapMultiBufferOutputBroker.h"
 #include "MemoryMapSynchronisedMultiBufferInputBroker.h"
 #include "MemoryMapSynchronisedMultiBufferOutputBroker.h"
+#include "NI9157DeviceOperatorT.h"
 #include "NI9157DeviceTest.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"

@@ -30,13 +30,13 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
+#include "CLASSMETHODREGISTER.h"
 #include "CreateNI9157DeviceOperatorI.h"
 #include "MemoryOperationsHelper.h"
 #include "NI9157CircularFifoReader.h"
 #include "NI9157DeviceOperatorDatabase.h"
-#include "Optim/NI9157MemoryOperationsHelper.h"
 #include "ObjectRegistryDatabase.h"
-#include "CLASSMETHODREGISTER.h"
+#include "Optim/NI9157MemoryOperationsHelper.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/

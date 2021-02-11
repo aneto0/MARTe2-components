@@ -29,8 +29,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "NI9157DeviceOperatorDatabase.h"
 #include "CreateNI9157DeviceOperator.h"
+#include "NI9157DeviceOperatorDatabase.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
